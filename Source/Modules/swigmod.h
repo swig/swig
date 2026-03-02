@@ -18,21 +18,21 @@
 #include "preprocessor.h"
 #include "swigwarn.h"
 
-#define NOT_VIRTUAL     0
-#define PLAIN_VIRTUAL   1
-#define PURE_VIRTUAL    2
+#define NOT_VIRTUAL   0
+#define PLAIN_VIRTUAL 1
+#define PURE_VIRTUAL  2
 
 extern String *input_file;
 extern int line_number;
 extern int start_line;
-extern int CPlusPlus;           // C++ mode
-extern int Extend;              // Extend mode
+extern int CPlusPlus;  // C++ mode
+extern int Extend;     // Extend mode
 extern int Verbose;
 extern int IsVirtual;
 extern int ImportMode;
-extern int NoExcept;            // -no_except option
-extern int Abstract;            // abstract base class
-extern int SmartPointer;        // smart pointer methods being emitted
+extern int NoExcept;      // -no_except option
+extern int Abstract;      // abstract base class
+extern int SmartPointer;  // smart pointer methods being emitted
 
 /* Overload "argc" and "argv" */
 extern String *argv_template_string;
@@ -40,16 +40,15 @@ extern String *argc_template_string;
 
 /* Miscellaneous stuff */
 
-#define  tab2   "  "
-#define  tab4   "    "
-#define  tab8   "        "
+#define tab2 "  "
+#define tab4 "    "
+#define tab8 "        "
 
 class Dispatcher {
 public:
-
-  Dispatcher ():cplus_mode(PUBLIC) {
+  Dispatcher() : cplus_mode(PUBLIC) {
   }
-  virtual ~ Dispatcher () {
+  virtual ~Dispatcher() {
   }
 
   virtual int emit_one(Node *n);
@@ -99,7 +98,7 @@ public:
 protected:
   AccessMode cplus_mode;
   AccessMode accessModeFromString(String *access);
-  int abstractClassTest(Node *n);       /* Is class really abstract? */
+  int abstractClassTest(Node *n); /* Is class really abstract? */
 };
 
 /* ----------------------------------------------------------------------------
@@ -110,7 +109,7 @@ protected:
  * functions to output different types of code for different languages.
  * ------------------------------------------------------------------------- */
 
-class Language:public Dispatcher {
+class Language : public Dispatcher {
 public:
   Language();
   virtual ~Language();
@@ -127,7 +126,6 @@ public:
   virtual int top(Node *n);
 
   /* SWIG directives */
-
 
   virtual int applyDirective(Node *n);
   virtual int clearDirective(Node *n);
@@ -207,19 +205,19 @@ public:
   virtual int classDirectorDisown(Node *n);
 
   /* Miscellaneous */
-  virtual int validIdentifier(String *s);       /* valid identifier? */
-  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");   /* Add symbol        */
+  virtual int validIdentifier(String *s);                                                     /* valid identifier? */
+  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = ""); /* Add symbol        */
   virtual int addInterfaceSymbol(const String *interface_name, Node *n, const_String_or_char_ptr scope = "");
   virtual void dumpSymbols();
   virtual Node *symbolLookup(const String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
-  virtual Hash* symbolAddScope(const_String_or_char_ptr scope/*, Node *n = 0*/);
-  virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
-  virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
-  static Node *classLookup(const SwigType *s); /* Class lookup      */
-  static Node *enumLookup(SwigType *s); /* Enum lookup       */
-  virtual int is_immutable(Node *n);    /* Is variable assignable? */
-  virtual String *runtimeCode();        /* returns the language specific runtime code */
-  virtual String *defaultExternalRuntimeFilename();     /* the default filename for the external runtime */
+  virtual Hash *symbolAddScope(const_String_or_char_ptr scope /*, Node *n = 0*/);
+  virtual Hash *symbolScopeLookup(const_String_or_char_ptr scope);
+  virtual Hash *symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
+  static Node *classLookup(const SwigType *s);                                  /* Class lookup      */
+  static Node *enumLookup(SwigType *s);                                         /* Enum lookup       */
+  virtual int is_immutable(Node *n);                                            /* Is variable assignable? */
+  virtual String *runtimeCode();                                                /* returns the language specific runtime code */
+  virtual String *defaultExternalRuntimeFilename();                             /* the default filename for the external runtime */
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm); /* Language specific special variable substitutions for $typemap() */
 
   /* Runtime is C++ based, so extern "C" header section */
@@ -256,7 +254,7 @@ public:
   void setOverloadResolutionTemplates(String *argc, String *argv);
 
   /* Language instance is a singleton - get instance */
-  static Language* instance();
+  static Language *instance();
 
 protected:
   /* Allow multiple-input typemaps */
@@ -303,9 +301,9 @@ protected:
 
 public:
   enum NestedClassSupport {
-    NCS_None, // Target language does not have an equivalent to nested classes
-    NCS_Full, // Target language does have an equivalent to nested classes and is fully implemented
-    NCS_Unknown // Target language may or may not have an equivalent to nested classes. If it does, it has not been implemented yet.
+    NCS_None,    // Target language does not have an equivalent to nested classes
+    NCS_Full,    // Target language does have an equivalent to nested classes and is fully implemented
+    NCS_Unknown  // Target language may or may not have an equivalent to nested classes. If it does, it has not been implemented yet.
   };
   /* Does target language support nested classes? Default is NCS_Unknown.
     If NCS_Unknown is returned, then the nested classes will be ignored unless
@@ -354,10 +352,10 @@ private:
 };
 
 extern "C" {
-  typedef Language *(*ModuleFactory) (void);
+typedef Language *(*ModuleFactory)(void);
 }
 
-enum Status {Disabled, Deprecated, Experimental, Supported};
+enum Status { Disabled, Deprecated, Experimental, Supported };
 
 struct TargetLanguageModule {
   const char *name;
@@ -369,7 +367,7 @@ struct TargetLanguageModule {
 int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm);
 void emit_parameter_variables(ParmList *l, Wrapper *f);
 void emit_return_variable(Node *n, SwigType *rt, Wrapper *f);
-void SWIG_config_file(const_String_or_char_ptr );
+void SWIG_config_file(const_String_or_char_ptr);
 const String *SWIG_output_directory();
 void SWIG_config_cppext(const char *ext);
 void Swig_print_xml(Node *obj, String *filename);
@@ -422,10 +420,10 @@ void Wrapper_naturalvar_mode_set(int);
 void clean_overloaded(Node *n);
 
 extern "C" {
-  const char *Swig_to_string(DOH *object, int count = -1);
-  const char *Swig_to_string_with_location(DOH *object, int count = -1);
-  void Swig_print(DOH *object, int count = -1);
-  void Swig_print_with_location(DOH *object, int count = -1);
+const char *Swig_to_string(DOH *object, int count = -1);
+const char *Swig_to_string_with_location(DOH *object, int count = -1);
+void Swig_print(DOH *object, int count = -1);
+void Swig_print_with_location(DOH *object, int count = -1);
 }
 
 void Swig_default_allocators(Node *n);
@@ -445,16 +443,22 @@ void Swig_interface_feature_enable();
 void Swig_interface_propagate_methods(Node *n);
 
 /* Miscellaneous */
-template <class T> class save_value {
+template <class T>
+class save_value {
   T _value;
-  T& _value_ptr;
-  save_value(const save_value&);
-  save_value& operator=(const save_value&);
+  T &_value_ptr;
+  save_value(const save_value &);
+  save_value &operator=(const save_value &);
 
 public:
-  save_value(T& value) : _value(value), _value_ptr(value) {}
-  save_value(T& value, T new_val) : _value(value), _value_ptr(value) { value = new_val; }
-  ~save_value() { _value_ptr = _value; }
+  save_value(T &value) : _value(value), _value_ptr(value) {
+  }
+  save_value(T &value, T new_val) : _value(value), _value_ptr(value) {
+    value = new_val;
+  }
+  ~save_value() {
+    _value_ptr = _value;
+  }
 };
 
 #endif

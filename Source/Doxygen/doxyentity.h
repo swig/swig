@@ -17,13 +17,11 @@
 #include <string>
 #include <list>
 
-
 class DoxygenEntity;
 
 typedef std::list<DoxygenEntity> DoxygenEntityList;
 typedef DoxygenEntityList::iterator DoxygenEntityListIt;
 typedef DoxygenEntityList::const_iterator DoxygenEntityListCIt;
-
 
 /*
  * Structure to represent a doxygen comment entry

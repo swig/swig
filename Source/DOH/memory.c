@@ -18,7 +18,7 @@
 #include <stdlib.h>
 
 #ifndef DOH_POOL_SIZE
-#define DOH_POOL_SIZE         4194304
+#define DOH_POOL_SIZE 4194304
 #endif
 
 /* Checks stale DOH object use - will use a lot more memory as pool memory is not re-used. */
@@ -28,19 +28,19 @@
 
 static int PoolSize = DOH_POOL_SIZE;
 
-DOH *DohNone = 0;               /* The DOH None object */
+DOH *DohNone = 0; /* The DOH None object */
 
 typedef struct pool {
-  DohBase *ptr;                 /* Start of pool */
-  int len;                      /* Length of pool */
-  int blen;                     /* Byte length of pool */
-  int current;                  /* Current position for next allocation */
-  char *pbeg;                   /* Beg of pool */
-  char *pend;                   /* End of pool */
-  struct pool *next;            /* Next pool */
+  DohBase *ptr;      /* Start of pool */
+  int len;           /* Length of pool */
+  int blen;          /* Byte length of pool */
+  int current;       /* Current position for next allocation */
+  char *pbeg;        /* Beg of pool */
+  char *pend;        /* End of pool */
+  struct pool *next; /* Next pool */
 } Pool;
 
-static DohBase *FreeList = 0;   /* List of free objects */
+static DohBase *FreeList = 0; /* List of free objects */
 static Pool *Pools = 0;
 static int pools_initialized = 0;
 
@@ -50,12 +50,12 @@ static int pools_initialized = 0;
 
 static void CreatePool(void) {
   Pool *p = 0;
-  p = (Pool *) DohMalloc(sizeof(Pool));
-  p->ptr = (DohBase *) DohCalloc(PoolSize, sizeof(DohBase));
+  p = (Pool *)DohMalloc(sizeof(Pool));
+  p->ptr = (DohBase *)DohCalloc(PoolSize, sizeof(DohBase));
   p->len = PoolSize;
   p->blen = PoolSize * sizeof(DohBase);
   p->current = 0;
-  p->pbeg = ((char *) p->ptr);
+  p->pbeg = ((char *)p->ptr);
   p->pend = p->pbeg + p->blen;
   p->next = Pools;
   Pools = p;
@@ -68,9 +68,9 @@ static void CreatePool(void) {
 static void InitPools(void) {
   if (pools_initialized)
     return;
-  CreatePool();                 /* Create initial pool */
+  CreatePool(); /* Create initial pool */
   pools_initialized = 1;
-  DohNone = NewVoid(0, 0);      /* Create the None object */
+  DohNone = NewVoid(0, 0); /* Create the None object */
   DohIntern(DohNone);
 }
 
@@ -82,11 +82,11 @@ static void InitPools(void) {
 
 int DohCheck(const DOH *ptr) {
   Pool *p = Pools;
-  char *cptr = (char *) ptr;
+  char *cptr = (char *)ptr;
   while (p) {
     if ((cptr >= p->pbeg) && (cptr < p->pend)) {
 #ifdef DOH_DEBUG_MEMORY_POOLS
-      DohBase *b = (DohBase *) ptr;
+      DohBase *b = (DohBase *)ptr;
       int DOH_object_already_deleted = b->type == 0;
       assert(!DOH_object_already_deleted);
 #endif
@@ -105,7 +105,7 @@ int DohCheck(const DOH *ptr) {
  * ----------------------------------------------------------------------------- */
 
 void DohIntern(DOH *obj) {
-  DohBase *b = (DohBase *) obj;
+  DohBase *b = (DohBase *)obj;
   b->flag_intern = 1;
 }
 
@@ -122,7 +122,7 @@ DOH *DohObjMalloc(DohObjInfo *type, void *data) {
 #ifndef DOH_DEBUG_MEMORY_POOLS
   if (FreeList) {
     obj = FreeList;
-    FreeList = (DohBase *) obj->data;
+    FreeList = (DohBase *)obj->data;
   } else {
 #endif
     while (Pools->current == Pools->len) {
@@ -141,7 +141,7 @@ DOH *DohObjMalloc(DohObjInfo *type, void *data) {
   obj->flag_marked = 0;
   obj->flag_user = 0;
   obj->flag_usermark = 0;
-  return (DOH *) obj;
+  return (DOH *)obj;
 }
 
 /* ----------------------------------------------------------------------
@@ -150,11 +150,11 @@ DOH *DohObjMalloc(DohObjInfo *type, void *data) {
 
 void DohObjFree(DOH *ptr) {
   DohBase *b, *meta;
-  b = (DohBase *) ptr;
+  b = (DohBase *)ptr;
   if (b->flag_intern)
     return;
-  meta = (DohBase *) b->meta;
-  b->data = (void *) FreeList;
+  meta = (DohBase *)b->meta;
+  b->data = (void *)FreeList;
   b->meta = 0;
   b->type = 0;
   b->refcount = 0;
@@ -205,7 +205,7 @@ void DohMemoryDebug(void) {
           numhash++;
       }
     }
-    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", (void *) p, p->len, nused, nfree);
+    printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", (void *)p, p->len, nused, nfree);
     totsize += p->len;
     totused += nused;
     totfree += nfree;
@@ -232,7 +232,6 @@ void DohMemoryDebug(void) {
     p = p->next;
   }
 #endif
-
 }
 
 /* Function to call instead of exit(). */
@@ -267,18 +266,21 @@ static void allocation_failed(size_t n, size_t size) {
 
 void *DohMalloc(size_t size) {
   void *p = doh_internal_malloc(size);
-  if (!p) allocation_failed(1, size);
+  if (!p)
+    allocation_failed(1, size);
   return p;
 }
 
 void *DohRealloc(void *ptr, size_t size) {
   void *p = doh_internal_realloc(ptr, size);
-  if (!p) allocation_failed(1, size);
+  if (!p)
+    allocation_failed(1, size);
   return p;
 }
 
 void *DohCalloc(size_t n, size_t size) {
   void *p = doh_internal_calloc(n, size);
-  if (!p) allocation_failed(n, size);
+  if (!p)
+    allocation_failed(n, size);
   return p;
 }

@@ -29,7 +29,7 @@ struct normal_node {
 static normal_node *patch_list = 0;
 
 /* Singleton class - all non-static methods in this class are private */
-class TypePass:private Dispatcher {
+class TypePass : private Dispatcher {
   Node *inclass;
   Node *module;
   int importmode;
@@ -38,14 +38,7 @@ class TypePass:private Dispatcher {
   Hash *classhash;
   List *normalize;
 
-  TypePass() :
-    inclass(0),
-    module(0),
-    importmode(0),
-    nsname(0),
-    nssymname(0),
-    classhash(0),
-    normalize(0) {
+  TypePass() : inclass(0), module(0), importmode(0), nsname(0), nssymname(0), classhash(0), normalize(0) {
   }
 
   /* -----------------------------------------------------------------------------
@@ -149,7 +142,7 @@ class TypePass:private Dispatcher {
       }
       Delete(nn->normallist);
       np = nn->next;
-      delete(nn);
+      delete (nn);
       nn = np;
     }
     Swig_symbol_setscope(currentsym);
@@ -159,7 +152,7 @@ class TypePass:private Dispatcher {
   void cplus_inherit_types_impl(Node *first, Node *cls, String *clsname, const char *bases, const char *baselist, int ispublic, String *cast = 0) {
 
     if (first == cls)
-      return;                   /* The Marcelo check */
+      return; /* The Marcelo check */
     if (!cls)
       cls = first;
     List *alist = 0;
@@ -214,8 +207,16 @@ class TypePass:private Dispatcher {
                       Append(ilist, bcls);
                     } else {
                       if (!GetFlag(bcls, "feature:ignore")) {
-                        Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
-                        Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+                        Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                                     Getfile(bname),
+                                     Getline(bname),
+                                     "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n",
+                                     SwigType_namestr(bname));
+                        Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                                     Getfile(bcls),
+                                     Getline(bcls),
+                                     "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n",
+                                     SwigType_namestr(bname));
                       }
                     }
                   }
@@ -238,13 +239,25 @@ class TypePass:private Dispatcher {
                     Append(ilist, bcls);
                   } else {
                     if (!GetFlag(bcls, "feature:ignore")) {
-                      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n", SwigType_namestr(bname));
-                      Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n", SwigType_namestr(bname));
+                      Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                                   Getfile(bname),
+                                   Getline(bname),
+                                   "Base class '%s' has no name as it is an empty template instantiated with '%%template()'. Ignored.\n",
+                                   SwigType_namestr(bname));
+                      Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                                   Getfile(bcls),
+                                   Getline(bcls),
+                                   "The %%template directive must be written before '%s' is used as a base class and be declared with a name.\n",
+                                   SwigType_namestr(bname));
                     }
                   }
                 } else {
                   Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Base class '%s' undefined.\n", SwigType_namestr(bname));
-                  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bcls), Getline(bcls), "'%s' must be defined before it is used as a base class.\n", SwigType_namestr(bname));
+                  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                               Getfile(bcls),
+                               Getline(bcls),
+                               "'%s' must be defined before it is used as a base class.\n",
+                               SwigType_namestr(bname));
                 }
               }
             }
@@ -256,9 +269,14 @@ class TypePass:private Dispatcher {
           if (!bcls) {
             if (!clsforward && !GetFlag(cls, "feature:ignore")) {
               if (ispublic && !Getmeta(bname, "already_warned")) {
-                Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
+                Swig_warning(
+                  WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Nothing known about base class '%s'. Ignored.\n", SwigType_namestr(bname));
                 if (Strchr(bname, '<')) {
-                  Swig_warning(WARN_TYPE_UNDEFINED_CLASS, Getfile(bname), Getline(bname), "Maybe you forgot to instantiate '%s' using %%template.\n", SwigType_namestr(bname));
+                  Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                               Getfile(bname),
+                               Getline(bname),
+                               "Maybe you forgot to instantiate '%s' using %%template.\n",
+                               SwigType_namestr(bname));
                 }
                 Setmeta(bname, "already_warned", "1");
               }
@@ -304,12 +322,22 @@ class TypePass:private Dispatcher {
             Delete(smartnamestr);
             Delete(convcode);
           } else {
-            Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
+            Swig_warning(WARN_LANG_SMARTPTR_MISSING,
+                         Getfile(first),
+                         Getline(first),
+                         "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n",
+                         SwigType_namestr(Getattr(bclass, "name")),
+                         SwigType_namestr(Getattr(first, "name")));
           }
         } else {
           if (GetFlag(bclass, "smart"))
             if (!GetFlag(first, "feature:ignore"))
-              Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
+              Swig_warning(WARN_LANG_SMARTPTR_MISSING,
+                           Getfile(first),
+                           Getline(first),
+                           "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n",
+                           SwigType_namestr(Getattr(first, "name")),
+                           SwigType_namestr(Getattr(bclass, "name")));
         }
       }
       if (!importmode) {
@@ -384,7 +412,7 @@ class TypePass:private Dispatcher {
     // Check validity - single colons not allowed
     const char *c = Char(feature_nspace);
     int valid = 1;
-    while(c && *c) {
+    while (c && *c) {
       if (*(c++) == ':' && *(c++) != ':') {
         valid = 0;
         break;
@@ -416,7 +444,12 @@ class TypePass:private Dispatcher {
           String *outer_nspace_feature = Copy(outer_nspace);
           Replaceall(outer_nspace_feature, ".", "::");
           Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(n), Getline(n), "Ignoring nspace setting (%s) for '%s',\n", nspace_attribute, Swig_name_decl(n));
-          Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace_feature, Swig_name_decl(outer));
+          Swig_warning(WARN_TYPE_NSPACE_SETTING,
+                       Getfile(outer),
+                       Getline(outer),
+                       "as it conflicts with the nspace setting (%s) for outer class '%s'.\n",
+                       outer_nspace_feature,
+                       Swig_name_decl(outer));
         }
         Setattr(n, "sym:nspace", outer_nspace);
       } else {
@@ -454,7 +487,6 @@ class TypePass:private Dispatcher {
     SwigType_set_scope(0);
     return SWIG_OK;
   }
-
 
   /* ------------------------------------------------------------
    * moduleDirective()
@@ -508,7 +540,7 @@ class TypePass:private Dispatcher {
     String *unnamed = Getattr(n, "unnamed");
     String *storage = Getattr(n, "storage");
     String *kind = Getattr(n, "kind");
-    save_value<Node*> oldinclass(inclass);
+    save_value<Node *> oldinclass(inclass);
     List *olist = normalize;
     Symtab *symtab;
     String *nname = 0;
@@ -528,20 +560,28 @@ class TypePass:private Dispatcher {
         if (!Equal(resolved_name, deftype_name))
           template_default_expanded = Copy(deftype_name);
         if (!Equal(fname, name) && (cn = Swig_symbol_clookup_local(fname, 0))) {
-          if ((n == cn)
-              || (Strcmp(nodeType(cn), "template") == 0)
-              || (Getattr(cn, "feature:onlychildren") != 0)
-              || (Getattr(n, "feature:onlychildren") != 0)) {
+          if ((n == cn) || (Strcmp(nodeType(cn), "template") == 0) || (Getattr(cn, "feature:onlychildren") != 0) || (Getattr(n, "feature:onlychildren") != 0)) {
             Swig_symbol_cadd(fname, n);
             if (template_default_expanded)
               Swig_symbol_cadd(template_default_expanded, n);
             SwigType_typedef_class(fname);
             scopename = Copy(fname);
           } else {
-            // Arguably the parser should instead ignore these duplicate template instantiations, in particular for ensuring the first parsed instantiation is used
+            // Arguably the parser should instead ignore these duplicate template instantiations, in particular for ensuring the first parsed instantiation is
+            // used
             SetFlag(n, "feature:ignore");
-            Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n), "Duplicate template instantiation of '%s' with name '%s' ignored,\n", SwigType_namestr(name), Getattr(n, "sym:name"));
-            Swig_warning(WARN_TYPE_REDEFINED, Getfile(cn), Getline(cn), "previous instantiation of '%s' with name '%s'.\n", SwigType_namestr(Getattr(cn, "name")), Getattr(cn, "sym:name"));
+            Swig_warning(WARN_TYPE_REDEFINED,
+                         Getfile(n),
+                         Getline(n),
+                         "Duplicate template instantiation of '%s' with name '%s' ignored,\n",
+                         SwigType_namestr(name),
+                         Getattr(n, "sym:name"));
+            Swig_warning(WARN_TYPE_REDEFINED,
+                         Getfile(cn),
+                         Getline(cn),
+                         "previous instantiation of '%s' with name '%s'.\n",
+                         SwigType_namestr(Getattr(cn, "name")),
+                         Getattr(cn, "sym:name"));
             scopename = 0;
           }
         } else {
@@ -608,7 +648,7 @@ class TypePass:private Dispatcher {
 
     /* Inherit type definitions into the class */
     if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") &&
-      (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
+                  (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 
@@ -838,7 +878,6 @@ class TypePass:private Dispatcher {
     return SWIG_OK;
   }
 
-
   /* ------------------------------------------------------------
    * constructorDeclaration()
    * ------------------------------------------------------------ */
@@ -878,7 +917,6 @@ class TypePass:private Dispatcher {
     }
     return SWIG_OK;
   }
-
 
   /* ------------------------------------------------------------
    * enumDeclaration()
@@ -962,10 +1000,10 @@ class TypePass:private Dispatcher {
         } else {
           if (!enumvalue && previous_ignored) {
             if (previous)
-              Setattr(c, "enumvalue", NewStringf("(%s) + %d", previous, count+1));
+              Setattr(c, "enumvalue", NewStringf("(%s) + %d", previous, count + 1));
             else
               Setattr(c, "enumvalue", NewStringf("%d", count));
-            SetFlag(c, "virtenumvalue"); // identify enumvalue as virtual, ie not from the parsed source
+            SetFlag(c, "virtenumvalue");  // identify enumvalue as virtual, ie not from the parsed source
           }
           if (!firstenumitem) {
             SetFlag(c, "firstenumitem");
@@ -1017,7 +1055,8 @@ class TypePass:private Dispatcher {
 
     // Make up an enumvalue if one was not specified in the parsed code (not designed to be used on enum items and %ignore - enumvalue will be set instead)
     if (!GetFlag(n, "feature:ignore")) {
-      if (Getattr(n, "_last") && !Getattr(n, "enumvalue")) {    // Only the first enum item has _last set (Note: first non-ignored enum item has firstenumitem set)
+      if (Getattr(n, "_last") &&
+          !Getattr(n, "enumvalue")) {  // Only the first enum item has _last set (Note: first non-ignored enum item has firstenumitem set)
         Setattr(n, "enumvalueex", "0");
       }
       if (next && !Getattr(next, "enumvalue")) {
@@ -1047,7 +1086,7 @@ class TypePass:private Dispatcher {
       if (nodetype) {
         if (Equal(nodetype, "enumforward")) {
           SetFlag(nn, "enumMissing");
-        } // if a real enum was declared this would be an "enum" node type
+        }  // if a real enum was declared this would be an "enum" node type
       }
       Delete(ty);
     }
@@ -1071,7 +1110,13 @@ class TypePass:private Dispatcher {
       }
 
       String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
-      Printf(stdout, "  show_overloaded %s::%s(%s)          [%s] nodeType:%s\n", parentNode(c) ? Getattr(parentNode(c), "name") : "NOPARENT", Getattr(c, "name"), decl, Getattr(c, "sym:overname"), nodeType(c));
+      Printf(stdout,
+             "  show_overloaded %s::%s(%s)          [%s] nodeType:%s\n",
+             parentNode(c) ? Getattr(parentNode(c), "name") : "NOPARENT",
+             Getattr(c, "name"),
+             decl,
+             Getattr(c, "sym:overname"),
+             nodeType(c));
       if (!Getattr(c, "sym:overloaded")) {
         Printf(stdout, "sym:overloaded error.....%p\n", c);
         Swig_print_node(c);
@@ -1161,7 +1206,6 @@ class TypePass:private Dispatcher {
     return SWIG_OK;
   }
 
-
   /* ------------------------------------------------------------
    * typemapcopyDirective()
    * ------------------------------------------------------------ */
@@ -1225,4 +1269,3 @@ void Swig_process_types(Node *n) {
     return;
   TypePass::pass(n);
 }
-

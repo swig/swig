@@ -66,7 +66,7 @@ static void add_symbols_c(Node *n) {
     Swig_features_get(Swig_cparse_features(), 0, name, 0, n);
     if (makename) {
       symname = make_name(n, makename, 0);
-      Delattr(n, "parser:makename");    /* temporary information, don't leave it hanging around */
+      Delattr(n, "parser:makename"); /* temporary information, don't leave it hanging around */
     } else {
       makename = name;
       symname = make_name(n, makename, 0);
@@ -93,7 +93,6 @@ static void add_symbols_c(Node *n) {
 
     Delete(fdecl);
     Delete(fun);
-
   }
   if (!symname)
     return;
@@ -223,7 +222,7 @@ static Node *create_insert(Node *n, bool noTypedef = false) {
   /* Make all SWIG created typedef structs/unions/classes unnamed else
      redefinition errors occur - nasty hack alert. */
   if (!noTypedef) {
-    const char *types_array[3] = { "struct", "union", "class" };
+    const char *types_array[3] = {"struct", "union", "class"};
     for (int i = 0; i < 3; i++) {
       char *code_ptr = Char(ccode);
       while (code_ptr) {
@@ -392,7 +391,7 @@ void Swig_nested_process_classes(Node *n) {
         removeNode(c);
         if (!checkAttribute(c, "access", "public"))
           SetFlag(c, "feature:ignore");
-        else if (Strcmp(nodeType(n),"extend") == 0 && Strcmp(nodeType(parentNode(n)),"class") == 0)
+        else if (Strcmp(nodeType(n), "extend") == 0 && Strcmp(nodeType(parentNode(n)), "class") == 0)
           insertNodeAfter(parentNode(n), c);
         else
           insertNodeAfter(n, c);
@@ -403,4 +402,3 @@ void Swig_nested_process_classes(Node *n) {
   }
   remove_outer_class_reference(n);
 }
-

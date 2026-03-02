@@ -98,7 +98,6 @@ String *Swig_director_declaration(Node *n) {
   return declaration;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_method_call()
  * ----------------------------------------------------------------------------- */
@@ -202,9 +201,8 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
   if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) ||
-      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") ||
-                                               Swig_storage_isstatic(n))
-                                          && !Equal(nodeType(n), "constructor"))) {
+      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || Swig_storage_isstatic(n)) &&
+       !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
     String *dirname;
     String *dirdecl;

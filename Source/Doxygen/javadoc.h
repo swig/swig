@@ -56,7 +56,7 @@ protected:
    * Typedef for the function that handles one tag
    * arg - some string argument to easily pass it through lookup table
    */
-  typedef void (JavaDocConverter::*tagHandler) (DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  typedef void (JavaDocConverter::*tagHandler)(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /**
    * Copies verbatim args of the tag to output, used for commands like \f$, ...

@@ -20,8 +20,8 @@
 #include "doxyentity.h"
 #include "doxytranslator.h"
 
-#define DOC_STRING_LENGTH         64 // characters per line allowed
-#define DOC_PARAM_STRING_LENGTH   30 // characters reserved for param name / type
+#define DOC_STRING_LENGTH       64  // characters per line allowed
+#define DOC_PARAM_STRING_LENGTH 30  // characters reserved for param name / type
 
 class CSharpDocConverter : public DoxygenTranslator {
 public:
@@ -30,7 +30,6 @@ public:
   String *makeDocumentation(Node *node);
 
 protected:
-
   size_t m_tableLineLen;
   bool m_prevRowIsTH;
   std::string m_url;
@@ -52,7 +51,7 @@ protected:
    * Typedef for the function that handles one tag
    * arg - some string argument to easily pass it through lookup table
    */
-  typedef void (CSharpDocConverter::*tagHandler) (DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+  typedef void (CSharpDocConverter::*tagHandler)(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
    * Wrap the command data with the some string
@@ -82,12 +81,12 @@ protected:
 
   /**
    *  Print the content without any tag
-  */
+   */
   void handleNotHandled(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName);
 
   /**
    *  Print the content as an item of a list
-  */
+   */
   void handleAddList(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName);
 
   /*
@@ -95,7 +94,7 @@ protected:
    */
   void handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg = std::string());
 
-/*
+  /*
    * Ignore the tag
    */
   void handleIgnore(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg = std::string());
@@ -206,7 +205,6 @@ protected:
   /* Handles HTML entities recognized by Doxygen, like &lt;, &copy;, ... */
   void handleHtmlEntity(DoxygenEntity &, std::string &translatedComment, const std::string &arg);
 
-
   /*
    * Simple helper function that calculates correct parameter type
    * of the node stored in 'currentNode'
@@ -227,9 +225,8 @@ private:
   std::string m_indent;
 
   // this contains the handler pointer and one string argument
-  typedef std::map<std::string, std::pair<tagHandler, std::string> >TagHandlersMap;
+  typedef std::map<std::string, std::pair<tagHandler, std::string> > TagHandlersMap;
   static TagHandlersMap tagHandlers;
-
 
   // Helper functions for fillStaticTables(): make a new tag handler object.
   TagHandlersMap::mapped_type make_handler(tagHandler handler);

@@ -79,8 +79,8 @@ static SwigType *typemap_identifier_fix(const SwigType *s) {
     ta = SwigType_templateargs(s);
     tq = Swig_symbol_type_qualify(ta, 0);
     tr = SwigType_typedef_resolve_all(ta);
-    Append(tp,tr);
-    Append(tp,ts);
+    Append(tp, tr);
+    Append(tp, ts);
     Delete(ts);
     Delete(ta);
     Delete(tq);
@@ -145,7 +145,6 @@ static void set_typemap(const SwigType *type, Hash **tmhash) {
   Delete(new_tm);
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_typemap_init()
  *
@@ -189,7 +188,8 @@ static String *typemap_method_name(const_String_or_char_ptr tmap_method) {
  * Internal implementation for Swig_typemap_register()
  * ----------------------------------------------------------------------------- */
 
-static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs, String *source_directive) {
+static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *parms, const_String_or_char_ptr code, ParmList *locals, ParmList *kwargs,
+                             String *source_directive) {
   Hash *tm;
   Hash *tm1;
   Hash *tm2;
@@ -201,8 +201,8 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
     return;
 
   if (typemap_register_debug) {
-      Printf(stdout, "Registering - %s\n", tmap_method);
-      Swig_print_node(parms);
+    Printf(stdout, "Registering - %s\n", tmap_method);
+    Swig_print_node(parms);
   }
 
   tm_method = typemap_method_name(tmap_method);
@@ -380,7 +380,6 @@ int Swig_typemap_copy(const_String_or_char_ptr tmap_method, ParmList *srcparms, 
 
   /* Not found */
   return -1;
-
 }
 
 /* -----------------------------------------------------------------------------
@@ -652,7 +651,8 @@ static void debug_search_result_display(Node *tm) {
  * %typemap(tm_method) ctype
  * ----------------------------------------------------------------------------- */
 
-static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm_method, SwigType *ctype, const String *cqualifiedname, const String *cname, Hash **backup) {
+static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm_method, SwigType *ctype, const String *cqualifiedname, const String *cname,
+                                   Hash **backup) {
   Hash *result = 0;
   Hash *tm1;
   if (debug_display && cqualifiedname)
@@ -682,7 +682,7 @@ static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm
   if (debug_display)
     Printf(stdout, "  Looking for: %s\n", SwigType_str(ctype, 0));
   if (tm) {
-    result = Getattr(tm, tm_method);    /* See if there is simply a type without name match */
+    result = Getattr(tm, tm_method); /* See if there is simply a type without name match */
     if (result && Getattr(result, "code"))
       goto ret_result;
     if (result)
@@ -700,7 +700,8 @@ ret_result:
  * 'code' attribute.
  * ----------------------------------------------------------------------------- */
 
-static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type, const_String_or_char_ptr name, const_String_or_char_ptr qualifiedname, SwigType **matchtype, Node *node) {
+static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type, const_String_or_char_ptr name, const_String_or_char_ptr qualifiedname,
+                            SwigType **matchtype, Node *node) {
   Hash *result = 0;
   Hash *tm;
   Hash *backup = 0;
@@ -810,7 +811,6 @@ ret_result:
   return result;
 }
 
-
 /* -----------------------------------------------------------------------------
  * typemap_search_multi()
  *
@@ -867,7 +867,6 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
 
   return tm;
 }
-
 
 static int replace_with_override(String *src, const DOHString_or_char *token, const DOHString_or_char *replace, int flags, Hash *override_vars) {
   String *override_replace = override_vars ? Getattr(override_vars, token) : NULL;
@@ -1457,7 +1456,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   if (Cmp(s, "pass") == 0)
     return sdef;
 
-  s = Copy(s);                  /* Make a local copy of the typemap code */
+  s = Copy(s); /* Make a local copy of the typemap code */
 
   /* Look in the "out" typemap for the "optimal" attribute */
   if (Cmp(cmethod, "out") == 0) {
@@ -1484,17 +1483,20 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
        * hack and circumvents the normal requirement for a temporary variable
        * to hold the result returned from a wrapped function call.
        */
-      if (Strncmp(actioncode, result_equals, Len(result_equals)) == 0 &&
-          Strchr(actioncode, ';') == Char(actioncode) + Len(actioncode) - 2 &&
+      if (Strncmp(actioncode, result_equals, Len(result_equals)) == 0 && Strchr(actioncode, ';') == Char(actioncode) + Len(actioncode) - 2 &&
           Char(actioncode)[Len(actioncode) - 1] == '\n') {
-        clname = NewStringWithSize(Char(actioncode) + Len(result_equals),
-                                   Len(actioncode) - Len(result_equals) - 2);
+        clname = NewStringWithSize(Char(actioncode) + Len(result_equals), Len(actioncode) - Len(result_equals) - 2);
         lname = clname;
         actioncode = 0;
         optimal_substitution = 1;
       } else {
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
-        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", actioncode);
+        Swig_warning(
+          WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
+        Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED,
+                     Getfile(s),
+                     Getline(s),
+                     "in the out typemap as the following cannot be used to generate optimal code: %s\n",
+                     actioncode);
         delete_optimal_attribute = 1;
       }
     } else {
@@ -1519,13 +1521,13 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       pname = cname;
     }
   }
-  if (SwigType_istemplate((char *) lname)) {
-    clname = SwigType_namestr((char *) lname);
+  if (SwigType_istemplate((char *)lname)) {
+    clname = SwigType_namestr((char *)lname);
     lname = clname;
   }
 
   matchtype = mtype && SwigType_isarray(mtype) ? mtype : type;
-  num_substitutions = typemap_replace_vars(s, locals, matchtype, type, pname, (char *) lname, 1, NULL);
+  num_substitutions = typemap_replace_vars(s, locals, matchtype, type, pname, (char *)lname, 1, NULL);
   if (optimal_substitution && num_substitutions > 1) {
     Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(node), Getline(node), "Multiple calls to %s might be generated due to\n", Swig_name_decl(node));
     Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE, Getfile(s), Getline(s), "optimal attribute usage in the out typemap.\n");
@@ -1599,7 +1601,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   /* Print warnings, if any */
   warning = typemap_warn(cmethod, node);
   if (warning) {
-    typemap_replace_vars(warning, 0, matchtype, type, pname, (char *) lname, 1, NULL);
+    typemap_replace_vars(warning, 0, matchtype, type, pname, (char *)lname, 1, NULL);
     Replace(warning, "$name", pname, DOH_REPLACE_ANY);
     if (symname)
       Replace(warning, "$symname", symname, DOH_REPLACE_ANY);
@@ -1624,7 +1626,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   Delete(cname);
   Delete(clname);
   Delete(mtype);
-  if (sdef) {                   /* put 'ref' and 'newfree' codes together */
+  if (sdef) { /* put 'ref' and 'newfree' codes together */
     String *p = NewStringf("%s\n%s", sdef, s);
     Delete(s);
     Delete(sdef);
@@ -1827,7 +1829,6 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
               continue;
             }
           }
-
         }
       } else {
         p = nextSibling(p);
@@ -1887,7 +1888,7 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
 #ifdef SWIG_DEBUG
     Printf(stdout, "attach: %s %s %s\n", Getattr(firstp, "name"), typemap_method_name(tmap_method), s);
 #endif
-    Setattr(firstp, typemap_method_name(tmap_method), s);       /* Code object */
+    Setattr(firstp, typemap_method_name(tmap_method), s); /* Code object */
 
     if (locals) {
       sprintf(temp, "%s:locals", cmethod);
@@ -1929,12 +1930,10 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
 #ifdef SWIG_DEBUG
     Printf(stdout, "res: %s %s %s\n", Getattr(firstp, "name"), typemap_method_name(tmap_method), Getattr(firstp, typemap_method_name(tmap_method)));
 #endif
-
   }
 #ifdef SWIG_DEBUG
   Printf(stdout, "Swig_typemap_attach_parms: end\n");
 #endif
-
 }
 
 void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList *parms, Wrapper *f) {
@@ -1987,9 +1986,9 @@ static List *split_embedded_typemap(String *s) {
       angle_level++;
     if (*c == '>' && *(c - 1) != '-')
       angle_level--;
-    if (isspace((int) *c) && leading)
+    if (isspace((int)*c) && leading)
       start++;
-    if (!isspace((int) *c))
+    if (!isspace((int)*c))
       leading = 0;
     c++;
   }
@@ -2125,7 +2124,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
           Printf(stdout, "Swig_typemap_attach_parms:  embedded\n");
 #endif
           if (already_substituting < 10) {
-            char* found_colon;
+            char *found_colon;
             already_substituting++;
             if ((in_typemap_search_multi == 0) && typemap_search_debug) {
               String *dtypemap = NewString(dollar_typemap);
@@ -2211,7 +2210,6 @@ void Swig_typemap_debug(void) {
   Printf(stdout, "-----------------------------------------------------------------------------\n");
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_typemap_search_debug_set()
  *
@@ -2241,4 +2239,3 @@ void Swig_typemap_used_debug_set(void) {
 void Swig_typemap_register_debug_set(void) {
   typemap_register_debug = 1;
 }
-

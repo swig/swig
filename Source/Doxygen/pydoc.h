@@ -20,8 +20,8 @@
 #include "doxyentity.h"
 #include "doxytranslator.h"
 
-#define DOC_STRING_LENGTH         64 // characters per line allowed
-#define DOC_PARAM_STRING_LENGTH   30 // characters reserved for param name / type
+#define DOC_STRING_LENGTH       64  // characters per line allowed
+#define DOC_PARAM_STRING_LENGTH 30  // characters reserved for param name / type
 
 class PyDocConverter : public DoxygenTranslator {
 public:
@@ -29,7 +29,6 @@ public:
   String *makeDocumentation(Node *node);
 
 protected:
-
   size_t m_tableLineLen;
   bool m_prevRowIsTH;
   std::string m_url;
@@ -51,7 +50,7 @@ protected:
    * Typedef for the function that handles one tag
    * arg - some string argument to easily pass it through lookup table
    */
-  typedef void (PyDocConverter::*tagHandler) (DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+  typedef void (PyDocConverter::*tagHandler)(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
    * Wrap the command data with the some string
@@ -170,7 +169,6 @@ protected:
   /* Handles HTML entities recognized by Doxygen, like &lt;, &copy;, ... */
   void handleHtmlEntity(DoxygenEntity &, std::string &translatedComment, const std::string &arg);
 
-
   /*
    * Simple helper function that calculates correct parameter type
    * of the node stored in 'currentNode'
@@ -190,9 +188,8 @@ private:
   // Extra indent for the current paragraph, must be output after each new line.
   std::string m_indent;
 
-
   // this contains the handler pointer and one string argument
-  typedef std::map<std::string, std::pair<tagHandler, std::string> >TagHandlersMap;
+  typedef std::map<std::string, std::pair<tagHandler, std::string> > TagHandlersMap;
   static TagHandlersMap tagHandlers;
 
   // this contains the sections titles, like 'Arguments:' or 'Notes:', that are printed only once

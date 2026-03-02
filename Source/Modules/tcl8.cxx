@@ -38,7 +38,7 @@ static String *constructor_name;
 static int have_destructor;
 static int have_base_classes;
 static String *destructor_action = 0;
-static String *version = (String *) "0.0";
+static String *version = (String *)"0.0";
 static String *class_name = 0;
 
 static int have_attributes;
@@ -50,7 +50,6 @@ static File *f_wrappers = 0;
 static File *f_init = 0;
 static File *f_begin = 0;
 static File *f_runtime = 0;
-
 
 //  Itcl support
 static int itcl = 0;
@@ -67,18 +66,15 @@ static String *attributes = 0;
 static String *attribute_traces = 0;
 static String *iattribute_traces = 0;
 
-
-
-class TCL8:public Language {
+class TCL8 : public Language {
 public:
-
   /* ------------------------------------------------------------
    * TCL8::main()
    * ------------------------------------------------------------ */
 
   virtual void main(int argc, char *argv[]) {
 
-     SWIG_library_directory("tcl");
+    SWIG_library_directory("tcl");
 
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -89,7 +85,7 @@ public:
             Swig_mark_arg(i + 1);
             i++;
           } else
-             Swig_arg_error();
+            Swig_arg_error();
         } else if (strcmp(argv[i], "-pkgversion") == 0) {
           if (argv[i + 1]) {
             version = NewString(argv[i + 1]);
@@ -171,7 +167,6 @@ public:
     ns_name = prefix ? Copy(prefix) : Copy(module);
     if (prefix)
       Append(prefix, "_");
-
 
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     if (itcl) {
@@ -259,7 +254,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n) {
-    String *name = Getattr(n, "name");  /* Like to get rid of this */
+    String *name = Getattr(n, "name"); /* Like to get rid of this */
     String *iname = Getattr(n, "sym:name");
     SwigType *returntype = Getattr(n, "type");
     ParmList *parms = Getattr(n, "parms");
@@ -294,7 +289,6 @@ public:
 #ifdef SWIG_USE_RESULTOBJ
     Wrapper_add_local(f, "resultobj", "Tcl_Obj *resultobj = NULL");
 #endif
-
 
     String *wname = Swig_name_wrapper(iname);
     if (overname) {
@@ -408,8 +402,7 @@ public:
 
     /* Insert cleanup code */
     for (i = 0, p = parms; p; i++) {
-      if (!checkAttribute(p, "tmap:in:numinputs", "0")
-          && !Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
+      if (!checkAttribute(p, "tmap:in:numinputs", "0") && !Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
         if (Len(tm) != 0) {
           Printv(cleanup, tm, "\n", NIL);
         }
@@ -522,9 +515,12 @@ public:
           Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
           Delete(fulldecl);
         } while ((sibl = Getattr(sibl, "sym:nextSibling")));
-        Printf(df->code, "Tcl_SetResult(interp,(char *) "
+        Printf(df->code,
+               "Tcl_SetResult(interp,(char *) "
                "\"Wrong number or type of arguments for overloaded function '%s'.\\n\""
-               "\n\"  Possible C/C++ prototypes are:\\n\"%s, TCL_STATIC);\n", iname, protoTypes);
+               "\n\"  Possible C/C++ prototypes are:\\n\"%s, TCL_STATIC);\n",
+               iname,
+               protoTypes);
         Delete(protoTypes);
         Printf(df->code, "return TCL_ERROR;\n");
         Printv(df->code, "}\n", NIL);
@@ -570,7 +566,8 @@ public:
     String *getname = Swig_name_get(NSPACE_TODO, iname);
     String *getfname = Swig_name_wrapper(getname);
     Setattr(n, "wrap:name", getfname);
-    Printv(getf->def, "SWIGINTERN const char *", getfname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
+    Printv(
+      getf->def, "SWIGINTERN const char *", getfname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2, int flags) {", NIL);
     Wrapper_add_local(getf, "value", "Tcl_Obj *value = 0");
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", "value");
@@ -601,8 +598,11 @@ public:
       setfname = Swig_name_wrapper(setname);
       Setattr(n, "wrap:name", setfname);
       if (setf) {
-        Printv(setf->def, "SWIGINTERN const char *", setfname,
-             "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {", NIL);
+        Printv(setf->def,
+               "SWIGINTERN const char *",
+               setfname,
+               "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, char *name1, char *name2 SWIGUNUSED, int flags) {",
+               NIL);
         Wrapper_add_local(setf, "value", "Tcl_Obj *value = 0");
         Wrapper_add_local(setf, "name1o", "Tcl_Obj *name1o = 0");
 
@@ -629,14 +629,14 @@ public:
       readonly = 1;
     }
 
-
     Printv(var_tab, tab4, "{ SWIG_prefix \"", iname, "\", 0, (swig_variable_func) ", getfname, ",", NIL);
     if (readonly) {
       static int readonlywrap = 0;
       if (!readonlywrap) {
         Wrapper *ro = NewWrapper();
         Printf(ro->def,
-               "SWIGINTERN const char *swig_readonly(ClientData clientData SWIGUNUSED, Tcl_Interp *interp SWIGUNUSED, char *name1 SWIGUNUSED, char *name2 SWIGUNUSED, int flags SWIGUNUSED) {");
+               "SWIGINTERN const char *swig_readonly(ClientData clientData SWIGUNUSED, Tcl_Interp *interp SWIGUNUSED, char *name1 SWIGUNUSED, char *name2 "
+               "SWIGUNUSED, int flags SWIGUNUSED) {");
         Printv(ro->code, "return \"Variable is read-only\";\n", "}\n", NIL);
         Wrapper_print(ro, f_wrappers);
         readonlywrap = 1;
@@ -704,8 +704,8 @@ public:
     if (!addSymbol(funcname, n))
       return SWIG_ERROR;
 
-    Printf(f_init, "\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", (swig_wrapper_func) %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n", name,
-           funcname);
+    Printf(
+      f_init, "\t Tcl_CreateObjCommand(interp, SWIG_prefix \"%s\", (swig_wrapper_func) %s, (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);\n", name, funcname);
     return SWIG_OK;
   }
 
@@ -827,8 +827,8 @@ public:
         Printf(base_class_names, "\"%s *\",", SwigType_namestr(bname));
         /* Put code to register base classes in init function */
 
-        //Printf(f_init,"/* Register base : %s */\n", bmangle);
-        //Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
+        // Printf(f_init,"/* Register base : %s */\n", bmangle);
+        // Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
         (void)index;
         b = Next(b);
         index++;
@@ -859,14 +859,34 @@ public:
 
           Printv(ptrclass,
                  "    switch -exact -- $op {\n",
-                 "      r {set $var [", ns_name, "::", class_name, "_[set var]_get $swigobj]}\n",
-                 "      w {", ns_name, "::", class_name, "_${var}_set $swigobj [set $var]}\n", "    }\n", "  }\n", NIL);
+                 "      r {set $var [",
+                 ns_name,
+                 "::",
+                 class_name,
+                 "_[set var]_get $swigobj]}\n",
+                 "      w {",
+                 ns_name,
+                 "::",
+                 class_name,
+                 "_${var}_set $swigobj [set $var]}\n",
+                 "    }\n",
+                 "  }\n",
+                 NIL);
         } else {
           Printv(ptrclass,
-                 "  protected method ", class_name, "_swig_getset {var name1 name2 op} {\n",
+                 "  protected method ",
+                 class_name,
+                 "_swig_getset {var name1 name2 op} {\n",
                  "    switch -exact -- $op {\n",
-                 "      r {set $var [", class_name, "_[set var]_get $swigobj]}\n",
-                 "      w {", class_name, "_${var}_set $swigobj [set $var]}\n", "    }\n", "  }\n", NIL);
+                 "      r {set $var [",
+                 class_name,
+                 "_[set var]_get $swigobj]}\n",
+                 "      w {",
+                 class_name,
+                 "_${var}_set $swigobj [set $var]}\n",
+                 "    }\n",
+                 "  }\n",
+                 NIL);
         }
       }
       //  Add the constructor, which may include
@@ -885,11 +905,17 @@ public:
       }
       Printv(ptrclass, "  }\n", NIL);
 
-
       //  Add destructor
-      Printv(ptrclass, "  destructor {\n",
-             "    set d_func delete_", class_name, "\n",
-             "    if { $thisown && ([info command $d_func] != \"\") } {\n" "      $d_func $swigobj\n", "    }\n", "  }\n", NIL);
+      Printv(ptrclass,
+             "  destructor {\n",
+             "    set d_func delete_",
+             class_name,
+             "\n",
+             "    if { $thisown && ([info command $d_func] != \"\") } {\n"
+             "      $d_func $swigobj\n",
+             "    }\n",
+             "  }\n",
+             NIL);
 
       //  Add methods
       if (have_methods) {
@@ -900,7 +926,6 @@ public:
       Printv(ptrclass, "}\n\n", NIL);
       Printv(f_shadow, ptrclass, NIL);
       // pointer class end
-
 
       //  Create the "real" class.
       Printv(f_shadow, "itcl::class ", class_name, " {\n", NIL);
@@ -946,19 +971,34 @@ public:
     } else {
       Printf(f_wrappers, ",0");
     }
-    Printv(f_wrappers, ", swig_", mangled_classname, "_methods, swig_", mangled_classname, "_attributes, swig_", mangled_classname, "_bases,",
-           "swig_", mangled_classname, "_base_names, &swig_module, SWIG_TCL_HASHTABLE_INIT };\n", NIL);
+    Printv(f_wrappers,
+           ", swig_",
+           mangled_classname,
+           "_methods, swig_",
+           mangled_classname,
+           "_attributes, swig_",
+           mangled_classname,
+           "_bases,",
+           "swig_",
+           mangled_classname,
+           "_base_names, &swig_module, SWIG_TCL_HASHTABLE_INIT };\n",
+           NIL);
 
     if (!itcl) {
-      Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, (ClientData)&_wrap_class_", mangled_classname,
-             "},\n", NIL);
+      Printv(cmd_tab,
+             tab4,
+             "{ SWIG_prefix \"",
+             class_name,
+             "\", (swig_wrapper_func) SWIG_ObjectConstructor, (ClientData)&_wrap_class_",
+             mangled_classname,
+             "},\n",
+             NIL);
     }
 
     Delete(t);
     Delete(mangled_classname);
     return SWIG_OK;
   }
-
 
   /* ------------------------------------------------------------
    * memberfunctionHandler()

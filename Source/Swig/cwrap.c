@@ -183,7 +183,6 @@ static String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
   return ty;
 }
 
-
 static String *Swig_wrapped_var_deref(SwigType *t, const_String_or_char_ptr name, int varcref) {
   if (SwigType_isclass(t)) {
     if (varcref) {
@@ -267,7 +266,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
           Delete(defvalue);
         }
       } else if (!pvalue && ((tycode == T_POINTER) || (tycode == T_STRING) || (tycode == T_WSTRING) || (tycode == T_ARRAY))) {
-        pvalue = (String *) "0";
+        pvalue = (String *)"0";
       }
       if (!altty) {
         local = Swig_clocal(pt, lname, pvalue);
@@ -427,7 +426,8 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
  * set to "(*this)->" or some similar sequence.
  * ----------------------------------------------------------------------------- */
 
-static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms, const_String_or_char_ptr self, String *explicit_qualifier, SwigType *director_type) {
+static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms, const_String_or_char_ptr self, String *explicit_qualifier,
+                                 SwigType *director_type) {
   String *func, *nname;
   int i = 0;
   Parm *p = parms;
@@ -529,7 +529,6 @@ String *Swig_cconstructor_call(const_String_or_char_ptr name) {
   Printf(func, "calloc(1, sizeof(%s))", name);
   return func;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_cppconstructor_call()
@@ -709,7 +708,6 @@ String *Swig_cdestructor_call(Node *n) {
   }
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_cppdestructor_call()
  *
@@ -782,7 +780,6 @@ String *Swig_cmemberset_call(const_String_or_char_ptr name, SwigType *type, Stri
   Delete(pname1);
   return (func);
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_cmemberget_call()
@@ -859,7 +856,8 @@ void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
  *        return_type function_name(parms) code
  *
  * ----------------------------------------------------------------------------- */
-static String *extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
+static String *extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus,
+                              const String *self) {
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
   String *sig = NewStringf("%s(%s)", function_name, (cplusplus || Len(parms_str)) ? parms_str : "void");
   String *rt_sig = SwigType_str(return_type, sig);
@@ -885,13 +883,13 @@ static String *extension_code(Node *n, const String *function_name, ParmList *pa
  * See also extension_code()
  *
  * ----------------------------------------------------------------------------- */
-int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus, const String *self) {
+int Swig_add_extension_code(Node *n, const String *function_name, ParmList *parms, SwigType *return_type, const String *code, int cplusplus,
+                            const String *self) {
   String *body = extension_code(n, function_name, parms, return_type, code, cplusplus, self);
   Setattr(n, "wrap:code", body);
   Delete(body);
   return SWIG_OK;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_MethodToFunction(Node *n)
@@ -917,15 +915,13 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
       if (qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0) {
         self = NewString("(*(this))->");
         is_smart_pointer_overload = 1;
-      }
-      else if (Swig_storage_isstatic(n)) {
+      } else if (Swig_storage_isstatic(n)) {
         String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
         String *ctname = SwigType_namestr(cname);
         self = NewStringf("(*(%s const *)this)->", ctname);
         is_smart_pointer_overload = 1;
         Delete(ctname);
-      }
-      else {
+      } else {
         self = NewString("(*this)->");
       }
     } else {
@@ -947,7 +943,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   SwigType_add_pointer(type);
   p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
-  Setattr(p, "hidden","1");
+  Setattr(p, "hidden", "1");
   /*
      Disable the 'this' ownership in 'self' to manage inplace
      operations like:
@@ -1086,8 +1082,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
           String *nclassname = SwigType_namestr(classname);
           fadd = NewStringf("(%s const *)((%s const *)%s)->operator ->()", ctname, nclassname, pname);
           Delete(nclassname);
-        }
-        else {
+        } else {
           fadd = NewStringf("(%s*)(%s)->operator ->()", ctname, pname);
         }
         Append(func, fadd);
@@ -1169,14 +1164,14 @@ Node *Swig_directormap(Node *module, String *type) {
   return 0;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_ConstructorToFunction()
  *
  * This function creates a C wrapper for a C constructor function.
  * ----------------------------------------------------------------------------- */
 
-int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus, int flags, String *directorname) {
+int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus,
+                               int flags, String *directorname) {
   Parm *p;
   ParmList *directorparms;
   SwigType *type;
@@ -1188,7 +1183,8 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
     Parm *p2, *p3;
 
     directorparms = CopyParmList(prefix_args);
-    for (p = directorparms; nextSibling(p); p = nextSibling(p));
+    for (p = directorparms; nextSibling(p); p = nextSibling(p))
+      ;
     for (p2 = parms; p2; p2 = nextSibling(p2)) {
       p3 = CopyParm(p2);
       set_nextSibling(p, p3);
@@ -1393,7 +1389,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(t);
   parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
-  Setattr(parms, "hidden","1");
+  Setattr(parms, "hidden", "1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);
@@ -1485,7 +1481,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
   SwigType_add_pointer(t);
   parms = NewParm(t, "self", n);
   Setattr(parms, "self", "1");
-  Setattr(parms, "hidden","1");
+  Setattr(parms, "hidden", "1");
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);

@@ -91,7 +91,7 @@ int ParmList_is_compactdefargs(ParmList *p) {
 String *ParmList_errorstr(ParmList *p) {
   String *out = NewStringEmpty();
   while (p) {
-    if (Getattr(p,"hidden")) {
+    if (Getattr(p, "hidden")) {
       p = nextSibling(p);
     } else {
       String *pstr = SwigType_str(Getattr(p, "type"), 0);

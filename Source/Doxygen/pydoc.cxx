@@ -34,8 +34,9 @@ public:
   static const char *Level() {
     return "    ";
   }
-  // Default ctor doesn't do anything and prevents the dtor from doing anything// too and should only be used when the guard needs to be initialized// conditionally as Init() can then be called after checking some condition.// Otherwise, prefer to use the non default ctor below.
-      IndentGuard() {
+  // Default ctor doesn't do anything and prevents the dtor from doing anything// too and should only be used when the guard needs to be initialized//
+  // conditionally as Init() can then be called after checking some condition.// Otherwise, prefer to use the non default ctor below.
+  IndentGuard() {
     m_initialized = false;
   }
 
@@ -172,10 +173,7 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
     if (pos == string::npos) {
       lastLineWasNonBlank = false;
     } else {
-      if (lastLineWasNonBlank &&
-          (line.compare(pos, 13, ".. code-block") == 0 ||
-           line.compare(pos, 7, ".. math") == 0 ||
-           line.compare(pos, 3, ">>>") == 0)) {
+      if (lastLineWasNonBlank && (line.compare(pos, 13, ".. code-block") == 0 || line.compare(pos, 7, ".. math") == 0 || line.compare(pos, 3, ">>>") == 0)) {
         // Must separate code or math blocks from the previous line
         result += '\n';
       }
@@ -194,11 +192,10 @@ static std::string getCommandOption(const std::string &command, char openChar, c
   opt_begin = command.find(openChar);
   opt_end = command.find(closeChar);
   if (opt_begin != string::npos && opt_end != string::npos)
-    option = command.substr(opt_begin+1, opt_end-opt_begin-1);
+    option = command.substr(opt_begin + 1, opt_end - opt_begin - 1);
 
   return option;
 }
-
 
 /* static */
 PyDocConverter::TagHandlersMap::mapped_type PyDocConverter::make_handler(tagHandler handler) {
@@ -211,7 +208,7 @@ PyDocConverter::TagHandlersMap::mapped_type PyDocConverter::make_handler(tagHand
 }
 
 void PyDocConverter::fillStaticTables() {
-  if (tagHandlers.size()) // fill only once
+  if (tagHandlers.size())  // fill only once
     return;
 
   // table of section titles, they are printed only once
@@ -225,8 +222,8 @@ void PyDocConverter::fillStaticTables() {
   sectionTitles["remark"] = "Remarks: ";
   sectionTitles["remarks"] = "Remarks: ";
   sectionTitles["warning"] = "Warning: ";
-//  sectionTitles["sa"] = "See also: ";
-//  sectionTitles["see"] = "See also: ";
+  //  sectionTitles["sa"] = "See also: ";
+  //  sectionTitles["see"] = "See also: ";
   sectionTitles["since"] = "Since: ";
   sectionTitles["todo"] = "TODO: ";
   sectionTitles["version"] = "Version: ";
@@ -296,7 +293,8 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["li"] = make_handler(&PyDocConverter::handleTagMessage, "* ");
   tagHandlers["overload"] = make_handler(&PyDocConverter::handleTagMessage,
                                          "This is an overloaded member function, provided for"
-                                         " convenience.\nIt differs from the above function only in what" " argument(s) it accepts.");
+                                         " convenience.\nIt differs from the above function only in what"
+                                         " argument(s) it accepts.");
   tagHandlers["par"] = make_handler(&PyDocConverter::handleTagPar);
   tagHandlers["param"] = tagHandlers["tparam"] = make_handler(&PyDocConverter::handleTagParam);
   tagHandlers["ref"] = make_handler(&PyDocConverter::handleTagRef);
@@ -388,8 +386,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["&rarr"] = make_handler(&PyDocConverter::handleHtmlEntity, "-->");
 }
 
-PyDocConverter::PyDocConverter(int flags):
-DoxygenTranslator(flags), m_tableLineLen(0), m_prevRowIsTH(false) {
+PyDocConverter::PyDocConverter(int flags) : DoxygenTranslator(flags), m_tableLineLen(0), m_prevRowIsTH(false) {
   fillStaticTables();
 }
 
@@ -490,7 +487,7 @@ void PyDocConverter::translateEntity(DoxygenEntity &doxyEntity, std::string &tra
   std::map<std::string, std::pair<tagHandler, std::string> >::iterator it;
   it = tagHandlers.find(getBaseCommand(doxyEntity.typeOfEntity));
   if (it != tagHandlers.end())
-    (this->*(it->second.first)) (doxyEntity, translatedComment, it->second.second);
+    (this->*(it->second.first))(doxyEntity, translatedComment, it->second.second);
 }
 
 void PyDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
@@ -503,7 +500,7 @@ void PyDocConverter::handleVerbatimBlock(DoxygenEntity &tag, std::string &transl
   eraseLeadingNewLine(verb);
 
   // Remove the last newline to prevent doubling the newline already present after \endverbatim
-  trimWhitespace(verb); // Needed to catch trailing newline below
+  trimWhitespace(verb);  // Needed to catch trailing newline below
   eraseTrailingNewLine(verb);
   translatedComment += verb;
 }
@@ -599,11 +596,11 @@ void PyDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComme
   size_t startPos;
   // ">>>" would normally appear at the beginning, but doxygen comment
   // style may have space in front, so skip leading whitespace
-  if ((startPos=code.find_first_not_of(" \t")) != string::npos && code.substr(startPos,3) == ">>>")
+  if ((startPos = code.find_first_not_of(" \t")) != string::npos && code.substr(startPos, 3) == ">>>")
     isDocTestBlock = true;
 
   string codeIndent;
-  if (! isDocTestBlock) {
+  if (!isDocTestBlock) {
     // Use the current indent for the code-block line itself.
     translatedComment += indent.getFirstLineIndent();
     translatedComment += ".. code-block:: " + codeLanguage + "\n\n";
@@ -703,7 +700,8 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
 
   // Get command option, e.g. "in", "out", or "in,out"
   string commandOpt = getCommandOption(tag.typeOfEntity, '[', ']');
-  if (commandOpt == "in,out") commandOpt = "in/out";
+  if (commandOpt == "in,out")
+    commandOpt = "in/out";
 
   // If provided, append the parameter direction to the type
   // information via a suffix:
@@ -727,7 +725,6 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
   handleParagraph(tag, translatedComment);
 }
 
-
 void PyDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   IndentGuard indent(translatedComment, m_indent);
 
@@ -743,14 +740,12 @@ void PyDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &translated
   handleParagraph(tag, translatedComment);
 }
 
-
 void PyDocConverter::handleTagException(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   IndentGuard indent(translatedComment, m_indent);
 
   translatedComment += ":raises: ";
   handleParagraph(tag, translatedComment);
 }
-
 
 void PyDocConverter::handleTagRef(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   if (!tag.entityList.size())
@@ -765,9 +760,8 @@ void PyDocConverter::handleTagRef(DoxygenEntity &tag, std::string &translatedCom
   translatedComment += "'" + anchorText + "'";
 }
 
-
 void PyDocConverter::handleTagWrap(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
-  if (tag.entityList.size()) { // do not include empty tags
+  if (tag.entityList.size()) {  // do not include empty tags
     std::string tagData = translateSubtree(tag);
     // wrap the thing, ignoring whitespace
     size_t wsPos = tagData.find_last_not_of("\n\t ");
@@ -936,7 +930,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
     if (allDocumentation.size() > 1) {
       string indentStr;
       if (minIndent != static_cast<size_t>(-1))
-       indentStr.assign(minIndent, ' ');
+        indentStr.assign(minIndent, ' ');
 
       std::ostringstream concatDocString;
       for (size_t realOverloadCount = 0; realOverloadCount < allDocumentation.size(); realOverloadCount++) {
@@ -990,4 +984,3 @@ String *PyDocConverter::makeDocumentation(Node *n) {
 
   return NewString(pyDocString.c_str());
 }
-

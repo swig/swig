@@ -14,9 +14,9 @@
 
 #include "dohint.h"
 
-#define OBUFLEN  512
+#define OBUFLEN 512
 
-static DOH *encodings = 0;      /* Encoding hash */
+static DOH *encodings = 0; /* Encoding hash */
 
 /* -----------------------------------------------------------------------------
  * Writen()
@@ -27,7 +27,7 @@ static DOH *encodings = 0;      /* Encoding hash */
 
 static int Writen(DOH *out, void *buffer, int len) {
   int nw = len, ret;
-  char *cb = (char *) buffer;
+  char *cb = (char *)buffer;
   while (nw) {
     ret = Write(out, cb, nw);
     if (ret < 0)
@@ -45,14 +45,14 @@ static int Writen(DOH *out, void *buffer, int len) {
  * two file-like objects and operate as a filter.
  * ----------------------------------------------------------------------------- */
 
-void DohEncoding(const char *name, DOH *(*fn) (DOH *s)) {
+void DohEncoding(const char *name, DOH *(*fn)(DOH *s)) {
   DohFuncPtr_t fp;
 
   if (!encodings)
     encodings = NewHash();
 
   fp.func = fn;
-  Setattr(encodings, (void *) name, NewVoid(fp.p, 0));
+  Setattr(encodings, (void *)name, NewVoid(fp.p, 0));
 }
 
 /* internal function for processing an encoding */
@@ -65,8 +65,8 @@ static DOH *encode(char *name, DOH *s) {
   if (cfmt) {
     tmp = NewString(cfmt + 1);
     Append(tmp, s);
-    Setfile(tmp, Getfile((DOH *) s));
-    Setline(tmp, Getline((DOH *) s));
+    Setfile(tmp, Getfile((DOH *)s));
+    Setline(tmp, Getline((DOH *)s));
     *cfmt = '\0';
   }
   if (!encodings || !(handle = Getattr(encodings, name))) {
@@ -78,7 +78,7 @@ static DOH *encode(char *name, DOH *s) {
   Seek(s, 0, SEEK_SET);
 
   fp.p = Data(handle);
-  ns = (*fp.func) (s);
+  ns = (*fp.func)(s);
   assert(pos != -1);
   (void)Seek(s, pos, SEEK_SET);
   if (tmp)
@@ -125,7 +125,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 
   while (*p) {
     switch (state) {
-    case 0:                     /* Ordinary text */
+    case 0: /* Ordinary text */
       if (*p != '%') {
         Putc(*p, so);
         nbytes++;
@@ -138,8 +138,8 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
         state = 10;
       }
       break;
-    case 10:                    /* Look for a width and precision */
-      if (isdigit((int) *p) && (*p != '0')) {
+    case 10: /* Look for a width and precision */
+      if (isdigit((int)*p) && (*p != '0')) {
         w = temp;
         *(w++) = *p;
         *(fmt++) = *p;
@@ -170,8 +170,8 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       }
       break;
 
-    case 20:                    /* Hmmm. At the start of a width field */
-      if (isdigit((int) *p)) {
+    case 20: /* Hmmm. At the start of a width field */
+      if (isdigit((int)*p)) {
         *(w++) = *p;
         *(fmt++) = *p;
       } else if (strchr(fmt_codes, *p)) {
@@ -195,7 +195,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       }
       break;
 
-    case 30:                    /* Parsed a width from an argument.  Look for a . */
+    case 30: /* Parsed a width from an argument.  Look for a . */
       if (*p == '.') {
         w = temp;
         *(fmt++) = *p;
@@ -213,7 +213,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 
     case 40:
       /* Start of precision expected */
-      if (isdigit((int) *p) && (*p != '0')) {
+      if (isdigit((int)*p) && (*p != '0')) {
         *(fmt++) = *p;
         *(w++) = *p;
         state = 41;
@@ -234,7 +234,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       }
       break;
     case 41:
-      if (isdigit((int) *p)) {
+      if (isdigit((int)*p)) {
         *(fmt++) = *p;
         *(w++) = *p;
       } else if (strchr(fmt_codes, *p)) {
@@ -310,7 +310,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           if ((maxwidth + 1) < OBUFLEN) {
             stemp = obuffer;
           } else {
-            stemp = (char *) DohMalloc(maxwidth + 1);
+            stemp = (char *)DohMalloc(maxwidth + 1);
           }
           if (enc) {
             nbytes += sprintf(stemp, newformat, Data(enc));
@@ -319,7 +319,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           }
           if (Writen(so, stemp, (int)strlen(stemp)) < 0)
             return -1;
-          if ((DOH *) Sval != doh) {
+          if ((DOH *)Sval != doh) {
             Delete(Sval);
           }
           if (enc)
@@ -332,7 +332,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           }
         } else {
           if (!doh)
-            doh = (char *) "";
+            doh = (char *)"";
 
           if (strlen(encoder)) {
             DOH *s = NewString(doh);
@@ -343,13 +343,13 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           } else {
             enc = 0;
           }
-          maxwidth = maxwidth + (int)strlen(newformat) + (int)strlen((char *) doh);
+          maxwidth = maxwidth + (int)strlen(newformat) + (int)strlen((char *)doh);
           *(fmt++) = 's';
           *fmt = 0;
           if ((maxwidth + 1) < OBUFLEN) {
             stemp = obuffer;
           } else {
-            stemp = (char *) DohMalloc(maxwidth + 1);
+            stemp = (char *)DohMalloc(maxwidth + 1);
           }
           nbytes += sprintf(stemp, newformat, doh);
           if (Writen(so, stemp, (int)strlen(stemp)) < 0)
@@ -371,7 +371,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
         if (maxwidth < OBUFLEN)
           stemp = obuffer;
         else
-          stemp = (char *) DohMalloc(maxwidth + 1);
+          stemp = (char *)DohMalloc(maxwidth + 1);
         switch (*p) {
         case 'd':
         case 'i':
@@ -390,25 +390,28 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
             break;
           }
           /* FALLTHRU */
-        case 'c': {
-          int ivalue = va_arg(ap, int);
-          nbytes += sprintf(stemp, newformat, ivalue);
-          break;
-        }
+        case 'c':
+          {
+            int ivalue = va_arg(ap, int);
+            nbytes += sprintf(stemp, newformat, ivalue);
+            break;
+          }
         case 'f':
         case 'g':
         case 'e':
         case 'E':
-        case 'G': {
-          double dvalue = va_arg(ap, double);
-          nbytes += sprintf(stemp, newformat, dvalue);
-          break;
-        }
-        case 'p': {
-          void *pvalue = va_arg(ap, void *);
-          nbytes += sprintf(stemp, newformat, pvalue);
-          break;
-        }
+        case 'G':
+          {
+            double dvalue = va_arg(ap, double);
+            nbytes += sprintf(stemp, newformat, dvalue);
+            break;
+          }
+        case 'p':
+          {
+            void *pvalue = va_arg(ap, void *);
+            nbytes += sprintf(stemp, newformat, pvalue);
+            break;
+          }
         default:
           break;
         }
@@ -454,7 +457,7 @@ int DohPrintf(DOH *obj, const char *format, ...) {
  * Print a null-terminated variable length list of DOH objects
  * ----------------------------------------------------------------------------- */
 
-int DohPrintv(DOHFile * f, ...) {
+int DohPrintv(DOHFile *f, ...) {
   va_list ap;
   int ret = 0;
   DOH *obj;
@@ -466,7 +469,7 @@ int DohPrintv(DOHFile * f, ...) {
     if (DohCheck(obj)) {
       ret += DohDump(obj, f);
     } else {
-      ret += DohWrite(f, obj, (int)strlen((char *) obj));
+      ret += DohWrite(f, obj, (int)strlen((char *)obj));
     }
   }
   va_end(ap);
@@ -509,7 +512,6 @@ int DohCopyto(DOH *in, DOH *out) {
   }
   return nbytes;
 }
-
 
 /* -----------------------------------------------------------------------------
  * DohSplit()
@@ -579,7 +581,6 @@ DOH *DohSplitLines(DOH *in) {
   }
   return list;
 }
-
 
 /* -----------------------------------------------------------------------------
  * DohReadline()

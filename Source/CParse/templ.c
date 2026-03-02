@@ -17,7 +17,6 @@
 
 static int template_debug = 0;
 
-
 const char *baselists[3];
 
 void SwigType_template_init(void) {
@@ -103,7 +102,8 @@ static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpand
  * and typelist for later template parameter substitutions.
  * ----------------------------------------------------------------------------- */
 
-static void expand_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms, List *patchlist, List *typelist, int is_pattern) {
+static void expand_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms, List *patchlist, List *typelist,
+                         int is_pattern) {
   ParmList *p;
   expand_variadic_parms(n, attribute, unexpanded_variadic_parm, expanded_variadic_parms);
   p = Getattr(n, attribute);
@@ -118,7 +118,8 @@ static void expand_parms(Node *n, const char *attribute, Parm *unexpanded_variad
  * template parameters
  * ----------------------------------------------------------------------------- */
 
-static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
+static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist,
+                                   List *cpatchlist, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   static int expanded = 0;
   String *nodeType;
   if (!n)
@@ -257,7 +258,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
   } else if (Equal(nodeType, "destructor")) {
     /* We only need to patch the dtor of the template itself, not the destructors of any nested classes, so check that the parent of this node is the root
      * template node, with the special exception for %extend which adds its methods under an intermediate node. */
-    Node* parent = parentNode(n);
+    Node *parent = parentNode(n);
     if (parent == templnode || (parentNode(parent) == templnode && Equal(nodeType(parent), "extend"))) {
       String *symname = Getattr(n, "sym:name");
       if (symname)
@@ -306,7 +307,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 
     if (Getattr(n, "namespace")) {
       /* Namespace link.   This is nasty.  Is other namespace defined? */
-
     }
   } else {
     /* Look for obvious parameters */
@@ -441,7 +441,7 @@ static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
     }
     parmname = NewStringWithSize(c, (int)(suffix - c)); /* $1, $2 etc */
     suffix_length = (int)strlen(suffix);
-    assert(Strstr(type, prefix) == Char(type)); /* check that the start of both types match */
+    assert(Strstr(type, prefix) == Char(type));                            /* check that the start of both types match */
     assert(strcmp(Char(type) + type_length - suffix_length, suffix) == 0); /* check that the end of both types match */
     parmtype = NewStringWithSize(Char(type) + prefix_length, type_length - suffix_length - prefix_length);
     Delete(prefix);
@@ -598,7 +598,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
               name which is not a template.
             */
             tynode = Swig_symbol_clookup(s, 0);
-            tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
+            tyname = tynode ? Getattr(tynode, "sym:name") : 0;
             /*
             Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, name_with_templateargs);
             Printf(stdout, "    %d %s to %s\n", tp == unexpanded_variadic_parm, name, ParmList_str_defaultargs(expanded_variadic_parms));
@@ -703,7 +703,8 @@ static int is_exact_partial_type(const SwigType *type) {
 
 static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symtab *tscope, int *specialization_priority) {
   static const int EXACT_MATCH_PRIORITY = 99999; /* a number bigger than the length of any conceivable type */
-  static const int TEMPLATE_MATCH_PRIORITY = 1000; /* a priority added for each nested template, assumes max length of any prefix, such as r.q(const). , is less than this number */
+  static const int TEMPLATE_MATCH_PRIORITY =
+    1000; /* a priority added for each nested template, assumes max length of any prefix, such as r.q(const). , is less than this number */
   SwigType *ty = Swig_symbol_typedef_reduce(type, tscope);
   SwigType *pp_prefix = SwigType_prefix(partial_parm_type);
   int pp_len = Len(pp_prefix);
@@ -844,7 +845,8 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
   templ = Swig_symbol_clookup(name, 0);
 
   if (templ) {
-    /* TODO: check that this is not a specialization (might be a user error specializing a template before a primary template), but note https://stackoverflow.com/questions/9757642/wrapping-specialised-c-template-class-with-swig */
+    /* TODO: check that this is not a specialization (might be a user error specializing a template before a primary template), but note
+     * https://stackoverflow.com/questions/9757642/wrapping-specialised-c-template-class-with-swig */
     if (template_debug) {
       Printf(stdout, "    found primary template <%s> '%s'\n", ParmList_str_defaultargs(Getattr(templ, "templateparms")), Getattr(templ, "name"));
     }
@@ -900,12 +902,16 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
         tn = Getattr(n, "template");
         if (tn) {
           /* Previously wrapped by a template instantiation */
-          Node *previous_named_instantiation = GetFlag(n, "hidden") ? Getattr(n, "csym:nextSibling") : n; /* "hidden" is set when "sym:name" is a __dummy_ name */
+          Node *previous_named_instantiation =
+            GetFlag(n, "hidden") ? Getattr(n, "csym:nextSibling") : n; /* "hidden" is set when "sym:name" is a __dummy_ name */
           if (!symname) {
             /* Quietly ignore empty template instantiations if there is a previous (empty or non-empty) template instantiation */
             if (template_debug) {
               if (previous_named_instantiation)
-                Printf(stdout, "    previous instantiation with name '%s' found: '%s' - duplicate empty template instantiation ignored\n", Getattr(previous_named_instantiation, "sym:name"), Getattr(n, "name"));
+                Printf(stdout,
+                       "    previous instantiation with name '%s' found: '%s' - duplicate empty template instantiation ignored\n",
+                       Getattr(previous_named_instantiation, "sym:name"),
+                       Getattr(n, "name"));
               else
                 Printf(stdout, "    previous empty template instantiation found: '%s' - duplicate empty template instantiation ignored\n", Getattr(n, "name"));
             }
@@ -921,22 +927,34 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
             if (template_debug)
               Printf(stdout, "    previous instantiation with name '%s' found: '%s' - duplicate instantiation ignored\n", previous_symname, Getattr(n, "name"));
             SWIG_WARN_NODE_BEGIN(n);
-            Swig_warning(WARN_TYPE_REDEFINED, cparse_file, cparse_line, "Duplicate template instantiation of '%s' with name '%s' ignored,\n", SwigType_namestr(unprocessed_tname), symname);
-            Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n), "previous instantiation of '%s' with name '%s'.\n", SwigType_namestr(previous_name), previous_symname);
+            Swig_warning(WARN_TYPE_REDEFINED,
+                         cparse_file,
+                         cparse_line,
+                         "Duplicate template instantiation of '%s' with name '%s' ignored,\n",
+                         SwigType_namestr(unprocessed_tname),
+                         symname);
+            Swig_warning(WARN_TYPE_REDEFINED,
+                         Getfile(n),
+                         Getline(n),
+                         "previous instantiation of '%s' with name '%s'.\n",
+                         SwigType_namestr(previous_name),
+                         previous_symname);
             SWIG_WARN_NODE_END(n);
 
             Delete(unprocessed_tname);
             return 0;
           }
           if (template_debug)
-            Printf(stdout, "    previous empty template instantiation found: '%s' - using as duplicate instantiation overrides empty template instantiation\n", Getattr(n, "name"));
+            Printf(stdout,
+                   "    previous empty template instantiation found: '%s' - using as duplicate instantiation overrides empty template instantiation\n",
+                   Getattr(n, "name"));
           n = tn;
           goto success;
         }
         Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
         Delete(tname);
         Delete(parms);
-        return 0;         /* Found a match, but it's not a template of any kind. */
+        return 0; /* Found a match, but it's not a template of any kind. */
       }
     }
 
@@ -1034,7 +1052,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
         int parms_len = ParmList_len(parms);
         Printf(stdout, "      parameter priorities matrix (%d parms):\n", parms_len);
         for (row = 0; row < posslen; row++) {
-          int *priorities_row = priorities_matrix + row*parms_len;
+          int *priorities_row = priorities_matrix + row * parms_len;
           Printf(stdout, "        ");
           for (col = 0; col < parms_len; col++) {
             Printf(stdout, "%5d ", priorities_row[col]);
@@ -1055,7 +1073,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
              */
           /* determine the highest rank for this nth parameter */
           for (row = 0; row < posslen; row++) {
-            int *element_ptr = priorities_col + row*parms_len;
+            int *element_ptr = priorities_col + row * parms_len;
             int priority = *element_ptr;
             if (priority > maxpriority)
               maxpriority = priority;
@@ -1064,7 +1082,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
           /* Printf(stdout, "\n"); */
           /* flag all the parameters which equal the highest rank */
           for (row = 0; row < posslen; row++) {
-            int *element_ptr = priorities_col + row*parms_len;
+            int *element_ptr = priorities_col + row * parms_len;
             int priority = *element_ptr;
             *element_ptr = (priority >= maxpriority) ? 1 : 0;
           }
@@ -1078,7 +1096,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
         if (template_debug)
           Printf(stdout, "      priority flags matrix:\n");
         for (row = 0; row < posslen; row++) {
-          int *priorities_row = priorities_matrix + row*parms_len;
+          int *priorities_row = priorities_matrix + row * parms_len;
           int highest_count = 0; /* count of highest priority parameters */
           for (col = 0; col < parms_len; col++) {
             highest_count += priorities_row[col];
@@ -1120,7 +1138,11 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
           String *templcsymname = Getattr(Getitem(possiblepartials, i), "templcsymname");
           Node *ignored_node = Swig_symbol_clookup_local(templcsymname, primary_scope);
           assert(ignored_node);
-          Swig_warning(WARN_PARSE_TEMPLATE_AMBIG, Getfile(ignored_node), Getline(ignored_node), "  instantiation '%s' ignored.\n", SwigType_namestr(Getattr(ignored_node, "name")));
+          Swig_warning(WARN_PARSE_TEMPLATE_AMBIG,
+                       Getfile(ignored_node),
+                       Getline(ignored_node),
+                       "  instantiation '%s' ignored.\n",
+                       SwigType_namestr(Getattr(ignored_node, "name")));
         }
       }
     }
@@ -1163,7 +1185,6 @@ success:
   return n;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_cparse_template_locate()
  *
@@ -1193,7 +1214,10 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
           Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparmsfound));
           match = 0;
         } else if (ParmList_len(instantiated_parms) < ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) { /* Variadic parameter is optional */
-          Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. Minimum of %d required.\n", (ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) );
+          Swig_error(cparse_file,
+                     cparse_line,
+                     "Not enough template parameters specified. Minimum of %d required.\n",
+                     (ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)));
           match = 0;
         }
       }
@@ -1224,7 +1248,11 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
             if (ParmList_len(instantiated_parms) == ParmList_len(tparmsfound)) {
               /* successful match */
               if (template_debug) {
-                Printf(stdout, "    found: template <%s> '%s' (%s)\n", ParmList_str_defaultargs(Getattr(n, "templateparms")), name, ParmList_str_defaultargs(Getattr(n, "parms")));
+                Printf(stdout,
+                       "    found: template <%s> '%s' (%s)\n",
+                       ParmList_str_defaultargs(Getattr(n, "templateparms")),
+                       name,
+                       ParmList_str_defaultargs(Getattr(n, "parms")));
               }
               SetFlag(n, "instantiate");
               if (!match)
@@ -1246,7 +1274,11 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
               if (ParmList_len(instantiated_parms) >= ParmList_len(tparmsfound) - 1) {
                 /* successful variadic match */
                 if (template_debug) {
-                  Printf(stdout, "    found: template <%s> '%s' (%s)\n", ParmList_str_defaultargs(Getattr(n, "templateparms")), name, ParmList_str_defaultargs(Getattr(n, "parms")));
+                  Printf(stdout,
+                         "    found: template <%s> '%s' (%s)\n",
+                         ParmList_str_defaultargs(Getattr(n, "templateparms")),
+                         name,
+                         ParmList_str_defaultargs(Getattr(n, "parms")));
                 }
                 SetFlag(n, "instantiate");
                 if (!match)
@@ -1341,7 +1373,7 @@ static void expand_defaults(ParmList *expanded_templateparms) {
     String *tv = Getattr(tp, "value");
     if (!tv)
       tv = Getattr(tp, "type");
-    while(p) {
+    while (p) {
       String *name = Getattr(p, "name");
       String *value = Getattr(p, "value");
       if (!value)

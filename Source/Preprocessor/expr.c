@@ -39,22 +39,22 @@ typedef struct {
   String *svalue;
 } exprval;
 
-#define  EXPR_TOP      1
-#define  EXPR_VALUE    2
-#define  EXPR_OP       3
-#define  EXPR_GROUP    4
+#define EXPR_TOP   1
+#define EXPR_VALUE 2
+#define EXPR_OP    3
+#define EXPR_GROUP 4
 
 /* Special token values used here to distinguish from SWIG_TOKEN_MINUS
  * and SWIG_TOKEN_PLUS (which we use here for a two argument versions).
  */
-#define  OP_UMINUS   100
-#define  OP_UPLUS    101
+#define OP_UMINUS  100
+#define OP_UPLUS   101
 
-static exprval stack[256];      /* Parsing stack       */
-static int sp = 0;              /* Stack pointer       */
-static int prec[256];           /* Precedence rules    */
-static int expr_init = 0;       /* Initialization flag */
-static const char *errmsg = 0;  /* Parsing error       */
+static exprval stack[256];     /* Parsing stack       */
+static int sp = 0;             /* Stack pointer       */
+static int prec[256];          /* Precedence rules    */
+static int expr_init = 0;      /* Initialization flag */
+static const char *errmsg = 0; /* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence(void) {
@@ -83,10 +83,7 @@ static void init_precedence(void) {
   expr_init = 1;
 }
 
-#define UNARY_OP(token) (((token) == SWIG_TOKEN_NOT) || \
-                         ((token) == SWIG_TOKEN_LNOT) || \
-                         ((token) == OP_UMINUS) || \
-                         ((token) == OP_UPLUS))
+#define UNARY_OP(token) (((token) == SWIG_TOKEN_NOT) || ((token) == SWIG_TOKEN_LNOT) || ((token) == OP_UMINUS) || ((token) == OP_UPLUS))
 
 /* Reduce a single operator on the stack */
 /* return 0 on failure, 1 on success */
@@ -245,7 +242,7 @@ static int reduce_op(void) {
     }
   }
   stack[sp].op = EXPR_VALUE;
-  stack[sp].svalue = 0;         /* ensure it's not a string! */
+  stack[sp].svalue = 0; /* ensure it's not a string! */
   return 1;
 }
 
@@ -266,12 +263,11 @@ void Preprocessor_expr_delete(void) {
   DelScanner(scan);
 }
 
-
 /* -----------------------------------------------------------------------------
  * Tokenizer
  * ----------------------------------------------------------------------------- */
 
-static int expr_token(Scanner * s) {
+static int expr_token(Scanner *s) {
   int t;
   while (1) {
     t = Scanner_token(s);
@@ -322,9 +318,9 @@ int Preprocessor_expr(DOH *s, int *error) {
         /* A boolean value.  Reduce EXPR_TOP to an EXPR_VALUE */
         String *cc = Scanner_text(scan);
         if (Strcmp(cc, "true") == 0) {
-          stack[sp].value = (long) 1;
+          stack[sp].value = (long)1;
         } else {
-          stack[sp].value = (long) 0;
+          stack[sp].value = (long)0;
         }
         stack[sp].svalue = 0;
         stack[sp].op = EXPR_VALUE;
@@ -333,9 +329,9 @@ int Preprocessor_expr(DOH *s, int *error) {
         char *c = Char(Scanner_text(scan));
         if (c[0] == '0' && (c[1] == 'b' || c[1] == 'B')) {
           /* strtol() doesn't handle binary constants */
-          stack[sp].value = (long) strtol(c + 2, 0, 2);
+          stack[sp].value = (long)strtol(c + 2, 0, 2);
         } else {
-          stack[sp].value = (long) strtol(c, 0, 0);
+          stack[sp].value = (long)strtol(c, 0, 0);
         }
         stack[sp].svalue = 0;
         stack[sp].op = EXPR_VALUE;
@@ -431,7 +427,7 @@ int Preprocessor_expr(DOH *s, int *error) {
         } else {
           if (stack[sp - 1].op != EXPR_OP)
             goto syntax_error_expected_operator;
-          op = stack[sp - 1].value;     /* Previous operator */
+          op = stack[sp - 1].value; /* Previous operator */
 
           /* Now, depending on the precedence relationship between the last operator and the current
              we will reduce or push */

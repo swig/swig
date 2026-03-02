@@ -37,7 +37,7 @@ void Swig_init_args(int argc, char **argv) {
 
   numargs = argc;
   args = argv;
-  marked = (int *) Calloc(numargs, sizeof(int));
+  marked = (int *)Calloc(numargs, sizeof(int));
   marked[0] = 1;
 }
 

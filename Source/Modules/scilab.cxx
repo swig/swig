@@ -29,8 +29,7 @@ Scilab options (available with -scilab)\n\
      -gatewayxml6                   - Generate gateway xml for Scilab 6\n\
 \n";
 
-
-class SCILAB:public Language {
+class SCILAB : public Language {
 protected:
   /* General objects used for holding the strings */
   File *beginSection;
@@ -75,8 +74,8 @@ protected:
   String *loaderScript5;
   String *loaderScript6;
   int loaderFunctionCount;
-public:
 
+public:
   /* ------------------------------------------------------------------------
    * main()
    * ----------------------------------------------------------------------*/
@@ -336,8 +335,8 @@ public:
     SwigType *functionReturnType = Getattr(node, "type");
     ParmList *functionParamsList = Getattr(node, "parms");
 
-    int paramIndex = 0;         // Used for loops over ParmsList
-    Parm *param = NULL;         // Used for loops over ParamsList
+    int paramIndex = 0;  // Used for loops over ParmsList
+    Parm *param = NULL;  // Used for loops over ParamsList
 
     /* Create the wrapper object */
     Wrapper *wrapper = NewWrapper();
@@ -348,7 +347,7 @@ public:
     /* Deal with overloading */
     String *overloadedName = Copy(wrapperName);
     /* Determine whether the function is overloaded or not */
-    bool isOverloaded = ! !Getattr(node, "sym:overloaded");
+    bool isOverloaded = !!Getattr(node, "sym:overloaded");
     /* Determine whether the function is the last overloaded */
     bool isLastOverloaded = isOverloaded && !Getattr(node, "sym:nextSibling");
 
@@ -381,8 +380,7 @@ public:
 
     if (!emit_isvarargs(functionParamsList)) {
       Printf(wrapper->code, "SWIG_CheckInputArgument(pvApiCtx, $mininputarguments, $maxinputarguments);\n");
-    }
-    else {
+    } else {
       Printf(wrapper->code, "SWIG_CheckInputArgumentAtLeast(pvApiCtx, $mininputarguments-1);\n");
     }
     Printf(wrapper->code, "SWIG_CheckOutputArgument(pvApiCtx, $minoutputarguments, $maxoutputarguments);\n");
@@ -415,7 +413,7 @@ public:
           Replaceall(paramTypemap, "$disown", "0");
         }
 
-        if (paramIndex >= minInputArguments) {  /* Optional input argument management */
+        if (paramIndex >= minInputArguments) { /* Optional input argument management */
           Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
         } else {
           Printf(wrapper->code, "%s\n", paramTypemap);
@@ -463,8 +461,8 @@ public:
       Delete(functionReturnTypemap);
 
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0),
-                   functionName);
+      Swig_warning(
+        WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0), functionName);
     }
 
     /* Write typemaps(out) */
@@ -610,8 +608,8 @@ public:
   virtual int variableWrapper(Node *node) {
 
     /* Get information about variable */
-    String *origVariableName = Getattr(node, "name");   // Ex: Shape::nshapes
-    String *variableName = Getattr(node, "sym:name");   // Ex; Shape_nshapes (can be used for function names, ...)
+    String *origVariableName = Getattr(node, "name");  // Ex: Shape::nshapes
+    String *variableName = Getattr(node, "sym:name");  // Ex; Shape_nshapes (can be used for function names, ...)
     String *smallVariableName = createSmallIdentifierName(variableName, SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4);
 
     /* Manage GET function */
@@ -817,7 +815,8 @@ public:
    * Declare a wrapped function in Scilab (builder, gateway, XML, ...)
    * ----------------------------------------------------------------------- */
 
-  void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr scilabSmallFunctionName, const_String_or_char_ptr wrapperFunctionName) {
+  void addFunctionToScilab(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr scilabSmallFunctionName,
+                           const_String_or_char_ptr wrapperFunctionName) {
     if (!generateBuilder)
       addFunctionInGatewayHeader(scilabFunctionName, scilabSmallFunctionName, wrapperFunctionName);
 
@@ -837,7 +836,6 @@ public:
       Printf(gatewayXMLV6, "<gateway name=\"%s\" function=\"%s\" type=\"0\"/>\n", scilabFunctionName, scilabFunctionName);
     }
   }
-
 
   /* -----------------------------------------------------------------------
    * createBuilderCode()
@@ -914,7 +912,8 @@ public:
    * Add a function wrapper in the function table of generated builder script
    * ----------------------------------------------------------------------- */
 
-  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr scilabSmallFunctionName, const_String_or_char_ptr wrapperFunctionName, String *scriptCode5, String *scriptCode6) {
+  void addFunctionInScriptTable(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr scilabSmallFunctionName,
+                                const_String_or_char_ptr wrapperFunctionName, String *scriptCode5, String *scriptCode6) {
     if (++builderFunctionCount % 10 == 0) {
       Printf(scriptCode5, "];\ntable = [table; ..\n");
       Printf(scriptCode6, "];\ntable = [table; ..\n");
@@ -1062,7 +1061,8 @@ public:
    * Add a function in the gateway header
    * ----------------------------------------------------------------------- */
 
-  void addFunctionInGatewayHeader(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr scilabSmallFunctionName, const_String_or_char_ptr wrapperFunctionName) {
+  void addFunctionInGatewayHeader(const_String_or_char_ptr scilabFunctionName, const_String_or_char_ptr scilabSmallFunctionName,
+                                  const_String_or_char_ptr wrapperFunctionName) {
     if (gatewayHeaderV5 == NULL) {
       gatewayHeaderV5 = NewString("");
       Printf(gatewayHeaderV5, "static GenericTable Tab[] = {\n");
@@ -1070,7 +1070,11 @@ public:
       Printf(gatewayHeaderV5, ",\n");
     Printf(gatewayHeaderV5, " {(Myinterfun)sci_gateway, (GT)%s, (char *)\"%s\"}", wrapperFunctionName, scilabSmallFunctionName);
 
-    Printf(gatewayHeaderV6, "if (wcscmp(pwstFuncName, L\"%s\") == 0) { addCStackFunction((wchar_t *)L\"%s\", &%s, (wchar_t *)MODULE_NAME); }\n", scilabFunctionName, scilabFunctionName, wrapperFunctionName);
+    Printf(gatewayHeaderV6,
+           "if (wcscmp(pwstFuncName, L\"%s\") == 0) { addCStackFunction((wchar_t *)L\"%s\", &%s, (wchar_t *)MODULE_NAME); }\n",
+           scilabFunctionName,
+           scilabFunctionName,
+           wrapperFunctionName);
   }
 
   /* -----------------------------------------------------------------------
@@ -1109,7 +1113,6 @@ public:
     Printv(gatewayHeader, gatewayHeaderV6, NIL);
     Printf(gatewayHeader, "#endif\n");
   }
-
 
   /* -----------------------------------------------------------------------
    * createLoaderScriptFile()
@@ -1194,19 +1197,19 @@ public:
    * Create a Scilab small identifier to be used by Scilab 5
    * ----------------------------------------------------------------------- */
 
-  String* createSmallIdentifierName(String* name, int outputLen = SCILAB_IDENTIFIER_NAME_CHAR_MAX) {
-    char* s = Char(name);
+  String *createSmallIdentifierName(String *name, int outputLen = SCILAB_IDENTIFIER_NAME_CHAR_MAX) {
+    char *s = Char(name);
     int nameLen = Len(s);
 
     // truncate and preserve common suffix
     if (outputLen > 4 && nameLen > outputLen) {
-      String* smallName = NewStringWithSize(name, outputLen);
-      char* smallNameStr = (char*) Data(smallName);
+      String *smallName = NewStringWithSize(name, outputLen);
+      char *smallNameStr = (char *)Data(smallName);
 
-      if (s[nameLen-4] == '_' && s[nameLen - 3] == 'g' && s[nameLen - 2] == 'e' && s[nameLen - 1] == 't') {
+      if (s[nameLen - 4] == '_' && s[nameLen - 3] == 'g' && s[nameLen - 2] == 'e' && s[nameLen - 1] == 't') {
         // get
         memcpy(&smallNameStr[outputLen - 4], &s[nameLen - 4], 4);
-      } else if (s[nameLen-4] == '_' && s[nameLen - 3] == 's' && s[nameLen - 2] == 'e' && s[nameLen - 1] == 't') {
+      } else if (s[nameLen - 4] == '_' && s[nameLen - 3] == 's' && s[nameLen - 2] == 'e' && s[nameLen - 1] == 't') {
         // set
         memcpy(&smallNameStr[outputLen - 4], &s[nameLen - 4], 4);
       }
@@ -1216,7 +1219,6 @@ public:
 
     return name;
   }
-
 };
 
 extern "C" Language *swig_scilab(void) {

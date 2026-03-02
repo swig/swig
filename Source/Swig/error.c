@@ -35,13 +35,13 @@
  * ----------------------------------------------------------------------------- */
 
 #if defined(_WIN32)
-#  define  DEFAULT_ERROR_MSG_FORMAT EMF_MICROSOFT
+#define DEFAULT_ERROR_MSG_FORMAT EMF_MICROSOFT
 #else
-#  define  DEFAULT_ERROR_MSG_FORMAT EMF_STANDARD
+#define DEFAULT_ERROR_MSG_FORMAT EMF_STANDARD
 #endif
 static ErrorMessageFormat msg_format = DEFAULT_ERROR_MSG_FORMAT;
-static int silence = 0;         /* Silent operation */
-static String *filter = 0;      /* Warning filter */
+static int silence = 0;    /* Silent operation */
+static String *filter = 0; /* Warning filter */
 static int warnall = 0;
 static int nwarning = 0;
 static int nerrors = 0;
@@ -78,7 +78,7 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
   vPrintf(out, fmt, ap);
 
   msg = Char(out);
-  if (isdigit((unsigned char) *msg)) {
+  if (isdigit((unsigned char)*msg)) {
     unsigned long result = strtoul(msg, &msg, 10);
     if (msg != Char(out)) {
       msg++;
@@ -94,11 +94,11 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
     sprintf(temp, "%d", wnum);
     while (*f != '\0' && (c = strstr(f, temp))) {
       if (*(c - 1) == '-') {
-        wrn = 0;                /* Warning disabled */
+        wrn = 0; /* Warning disabled */
         break;
       }
       if (*(c - 1) == '+') {
-        wrn = 1;                /* Warning enabled */
+        wrn = 1; /* Warning enabled */
         break;
       }
       f += strlen(temp);
@@ -174,7 +174,6 @@ void Swig_error_silent(int s) {
   silence = s;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_warnfilter()
  *
@@ -199,17 +198,17 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
   c = Char(s);
   c = strtok(c, ", ");
   while (c) {
-    if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {
+    if (isdigit((int)*c) || (*c == '+') || (*c == '-')) {
       /* Even if c is a digit, the rest of the string might not be, eg in the case of typemap
        * warnings (a bit odd really), eg: %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) */
       if (add) {
         Insert(filter, 0, c);
-        if (isdigit((int) *c)) {
+        if (isdigit((int)*c)) {
           Insert(filter, 0, "-");
         }
       } else {
-        char *temp = (char *)Malloc(sizeof(char)*strlen(c) + 2);
-        if (isdigit((int) *c)) {
+        char *temp = (char *)Malloc(sizeof(char) * strlen(c) + 2);
+        if (isdigit((int)*c)) {
           sprintf(temp, "-%s", c);
         } else {
           strcpy(temp, c);
@@ -226,7 +225,6 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
 void Swig_warnall(void) {
   warnall = 1;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_warn_count()
@@ -256,7 +254,7 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
   switch (format) {
   case EMF_MICROSOFT:
     fmt_line = "%s(%d) ";
-    fmt_eof = "%s(999999) ";    /* Is there a special character for EOF? Just use a large number. */
+    fmt_eof = "%s(999999) "; /* Is there a special character for EOF? Just use a large number. */
     break;
   case EMF_STANDARD:
   default:
@@ -347,4 +345,3 @@ void Swig_diagnostic(const_String_or_char_ptr filename, int line, const char *fm
   va_end(ap);
   Delete(formatted_filename);
 }
-

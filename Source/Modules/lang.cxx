@@ -45,29 +45,29 @@ void Wrapper_naturalvar_mode_set(int flag) {
 }
 
 extern "C" {
-  int Swig_director_mode() {
-    return director_mode;
-  }
-  int Swig_director_protected_mode() {
-    return director_protected_mode;
-  }
-  int Swig_all_protected_mode() {
-    return all_protected_mode;
-  }
-  void Language_replace_special_variables(String *method, String *tm, Parm *parm) {
-    Language::instance()->replaceSpecialVariables(method, tm, parm);
-  }
+int Swig_director_mode() {
+  return director_mode;
+}
+int Swig_director_protected_mode() {
+  return director_protected_mode;
+}
+int Swig_all_protected_mode() {
+  return all_protected_mode;
+}
+void Language_replace_special_variables(String *method, String *tm, Parm *parm) {
+  Language::instance()->replaceSpecialVariables(method, tm, parm);
+}
 }
 
 /* Some status variables used during parsing */
-static int InClass = 0; /* Parsing C++ or not */
-static String *ClassName = 0;   /* This is the real name of the current class */
-static String *EnumClassName = 0; /* Enum class name */
-static String *ClassPrefix = 0; /* Class prefix */
-static String *EnumClassPrefix = 0; /* Prefix for strongly typed enums (including ClassPrefix) */
-static String *NSpace = 0;      /* Namespace for the nspace feature */
-static String *ClassType = 0;   /* Fully qualified type name to use */
-static String *DirectorClassName = 0;   /* Director name of the current class */
+static int InClass = 0;               /* Parsing C++ or not */
+static String *ClassName = 0;         /* This is the real name of the current class */
+static String *EnumClassName = 0;     /* Enum class name */
+static String *ClassPrefix = 0;       /* Class prefix */
+static String *EnumClassPrefix = 0;   /* Prefix for strongly typed enums (including ClassPrefix) */
+static String *NSpace = 0;            /* Namespace for the nspace feature */
+static String *ClassType = 0;         /* Fully qualified type name to use */
+static String *DirectorClassName = 0; /* Director name of the current class */
 int Abstract = 0;
 int ImportMode = 0;
 int IsVirtual = 0;
@@ -82,12 +82,12 @@ static Hash *classhash;
 extern int ForceExtern;
 extern int AddExtern;
 extern "C" {
-  extern int UseWrapperSuffix;
+extern int UseWrapperSuffix;
 }
 
 /* import modes */
 
-#define  IMPORT_MODE     1
+#define IMPORT_MODE 1
 
 /* ----------------------------------------------------------------------
  * Dispatcher::emit_one()
@@ -218,7 +218,6 @@ int Dispatcher::emit_children(Node *n) {
   }
   return SWIG_OK;
 }
-
 
 /* Stubs for dispatcher class.  We don't do anything by default---up to derived class
    to fill in traversal code */
@@ -357,19 +356,18 @@ Dispatcher::AccessMode Dispatcher::accessModeFromString(String *access) {
   return mode;
 }
 
-
 /* Allocators */
-Language::Language():
-none_comparison(NewString("$arg != 0")),
-director_ctor_code(NewString("")),
-director_prot_ctor_code(0),
-director_multiple_inheritance(1),
-doxygenTranslator(NULL),
-symtabs(NewHash()),
-overloading(0),
-multiinput(0),
-cplus_runtime(0) {
-  symbolAddScope(""); // create top level/global symbol table scope
+Language::Language() :
+  none_comparison(NewString("$arg != 0")),
+  director_ctor_code(NewString("")),
+  director_prot_ctor_code(0),
+  director_multiple_inheritance(1),
+  doxygenTranslator(NULL),
+  symtabs(NewHash()),
+  overloading(0),
+  multiinput(0),
+  cplus_runtime(0) {
+  symbolAddScope("");  // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
 
@@ -387,26 +385,26 @@ Language::~Language() {
   this_ = 0;
 }
 
-  /* -----------------------------------------------------------------------------
-   * directorClassName()
-   * ----------------------------------------------------------------------------- */
+/* -----------------------------------------------------------------------------
+ * directorClassName()
+ * ----------------------------------------------------------------------------- */
 
-  String *Language::directorClassName(Node *n) {
-    String *dirclassname;
-    String *nspace = NewString(Getattr(n, "sym:nspace"));
-    const char *attrib = "director:classname";
-    String *classname = getClassPrefix();
+String *Language::directorClassName(Node *n) {
+  String *dirclassname;
+  String *nspace = NewString(Getattr(n, "sym:nspace"));
+  const char *attrib = "director:classname";
+  String *classname = getClassPrefix();
 
-    Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
-    if (Len(nspace) > 0)
-      dirclassname = NewStringf("SwigDirector_%s_%s", nspace, classname);
-    else
-      dirclassname = NewStringf("SwigDirector_%s", classname);
-    Setattr(n, attrib, dirclassname);
+  Replace(nspace, NSPACE_SEPARATOR, "_", DOH_REPLACE_ANY);
+  if (Len(nspace) > 0)
+    dirclassname = NewStringf("SwigDirector_%s_%s", nspace, classname);
+  else
+    dirclassname = NewStringf("SwigDirector_%s", classname);
+  Setattr(n, attrib, dirclassname);
 
-    Delete(nspace);
-    return dirclassname;
-  }
+  Delete(nspace);
+  return dirclassname;
+}
 
 /* ----------------------------------------------------------------------
    emit_one()
@@ -418,8 +416,7 @@ int Language::emit_one(Node *n) {
   if (!n)
     return SWIG_OK;
 
-  if (GetFlag(n, "feature:ignore")
-      && !Getattr(n, "feature:onlychildren"))
+  if (GetFlag(n, "feature:ignore") && !Getattr(n, "feature:onlychildren"))
     return SWIG_OK;
 
   oldext = Extend;
@@ -444,7 +441,6 @@ int Language::emit_one(Node *n) {
   Extend = oldext;
   return ret;
 }
-
 
 static Parm *nonvoid_parms(Parm *p) {
   if (p) {
@@ -477,8 +473,6 @@ static Node *first_nontemplate(Node *n) {
   }
   return n;
 }
-
-
 
 /* --------------------------------------------------------------------------
  * swig_pragma()
@@ -680,7 +674,7 @@ int Language::insertDirective(Node *n) {
     String *code = Getattr(n, "code");
     String *section = Getattr(n, "section");
     File *f = 0;
-    if (!section) {             /* %{ ... %} */
+    if (!section) { /* %{ ... %} */
       f = Swig_filebyname("header");
     } else {
       f = Swig_filebyname(section);
@@ -701,7 +695,7 @@ int Language::insertDirective(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::moduleDirective(Node *n) {
-  (void) n;
+  (void)n;
   /* %module directive */
   return SWIG_OK;
 }
@@ -746,7 +740,6 @@ int Language::typemapDirective(Node *n) {
   Parm *kwargs = Getattr(n, "kwargs");
   Node *items = firstChild(n);
   static int nameerror = 0;
-
 
   if (code && (Strstr(code, "$source") || (Strstr(code, "$target")))) {
     Swig_error(Getfile(n), Getline(n), "Obsolete typemap feature ($source/$target).\n");
@@ -811,7 +804,6 @@ Doc/Manual/Typemaps.html for complete details.\n");
     items = nextSibling(items);
   }
   return SWIG_OK;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -883,8 +875,8 @@ int Language::cDeclaration(Node *n) {
       // Ignore it unless it has been %rename'd
       if (Strncmp(symname, "__dummy_", 8) == 0 && Cmp(storage, "typedef") != 0) {
         SetFlag(n, "feature:ignore");
-        Swig_warning(WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number,
-            "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
+        Swig_warning(
+          WARN_LANG_TEMPLATE_METHOD_IGNORE, input_file, line_number, "%%template() contains no name. Template method ignored: %s\n", Swig_name_decl(n));
         return SWIG_NOWRAP;
       }
     }
@@ -898,7 +890,7 @@ int Language::cDeclaration(Node *n) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
       if (!(Swig_directors_enabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || isNonVirtualProtectedAccess(n)))) {
-          return SWIG_NOWRAP;
+        return SWIG_NOWRAP;
       }
       // Prevent wrapping protected overloaded director methods more than once -
       // This bit of code is only needed due to the cDeclaration call in classHandler()
@@ -1594,7 +1586,8 @@ int Language::membervariableHandler(Node *n) {
 int Language::staticmembervariableHandler(Node *n) {
   Swig_require("staticmembervariableHandler", n, "*name", "*sym:name", "*type", "?value", NIL);
   String *value = Getattr(n, "value");
-  String *classname = !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerpointeeclassname");
+  String *classname =
+    !SmartPointer ? (isNonVirtualProtectedAccess(n) ? DirectorClassName : ClassName) : Getattr(CurrentClass, "allocate:smartpointerpointeeclassname");
 
   if (!value || !Getattr(n, "hasconsttype")) {
     String *name = Getattr(n, "name");
@@ -1639,7 +1632,6 @@ int Language::staticmembervariableHandler(Node *n) {
        the best we can do is to wrap the given value verbatim.
      */
 
-
     String *name = Getattr(n, "name");
     String *cname = NewStringf("%s::%s", classname, name);
     if (Extend) {
@@ -1664,7 +1656,6 @@ int Language::staticmembervariableHandler(Node *n) {
   Swig_restore(n);
   return SWIG_OK;
 }
-
 
 /* ----------------------------------------------------------------------
  * Language::externDeclaration()
@@ -1735,7 +1726,7 @@ int Language::enumvalueDeclaration(Node *n) {
   }
 
   if (!CurrentClass || !cparse_cplusplus) {
-    Setattr(n, "name", tmpValue);       /* for wrapping of enums in a namespace when emit_action is used */
+    Setattr(n, "name", tmpValue); /* for wrapping of enums in a namespace when emit_action is used */
     constantWrapper(n);
   } else {
     memberconstantHandler(n);
@@ -1751,9 +1742,9 @@ int Language::enumvalueDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::enumforwardDeclaration(Node *n) {
-  (void) n;
+  (void)n;
   if (GetFlag(n, "enumMissing"))
-    enumDeclaration(n); // Generate an empty enum in target language
+    enumDeclaration(n);  // Generate an empty enum in target language
   return SWIG_OK;
 }
 
@@ -1772,7 +1763,7 @@ int Language::memberconstantHandler(Node *n) {
     Setattr(n, "feature:except", Getattr(n, "feature:exceptvar"));
   }
 
-  String *enumvalue_symname = Getattr(n, "enumvalueDeclaration:sym:name"); // Only set if a strongly typed enum
+  String *enumvalue_symname = Getattr(n, "enumvalueDeclaration:sym:name");  // Only set if a strongly typed enum
   String *name = Getattr(n, "name");
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
@@ -1828,9 +1819,9 @@ int Language::typedefHandler(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorMethod(Node *n, Node *parent, String *super) {
-  (void) n;
-  (void) parent;
-  (void) super;
+  (void)n;
+  (void)parent;
+  (void)super;
   return SWIG_OK;
 }
 
@@ -1839,7 +1830,7 @@ int Language::classDirectorMethod(Node *n, Node *parent, String *super) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorConstructor(Node *n) {
-  (void) n;
+  (void)n;
   return SWIG_OK;
 }
 
@@ -1848,7 +1839,7 @@ int Language::classDirectorConstructor(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorDefaultConstructor(Node *n) {
-  (void) n;
+  (void)n;
   return SWIG_OK;
 }
 
@@ -2018,7 +2009,6 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int &virtual
   return SWIG_OK;
 }
 
-
 /* ----------------------------------------------------------------------
  * Language::classDirectorDisown()
  * ---------------------------------------------------------------------- */
@@ -2175,7 +2165,7 @@ int Language::classDirectorMethods(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorInit(Node *n) {
-  (void) n;
+  (void)n;
   return SWIG_OK;
 }
 
@@ -2209,7 +2199,7 @@ int Language::classDirectorDestructor(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorEnd(Node *n) {
-  (void) n;
+  (void)n;
   return SWIG_OK;
 }
 
@@ -2240,7 +2230,8 @@ int Language::classDirector(Node *n) {
     if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
       String *classtype = Getattr(n, "classtype");
       SWIG_WARN_NODE_BEGIN(ni);
-      Swig_warning(WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor %s is final, %s cannot be a director class.\n", Swig_name_decl(ni), classtype);
+      Swig_warning(
+        WARN_LANG_DIRECTOR_FINAL, input_file, line_number, "Destructor %s is final, %s cannot be a director class.\n", Swig_name_decl(ni), classtype);
       SWIG_WARN_NODE_END(ni);
       SetFlag(n, "feature:nodirector");
       Delete(vtable);
@@ -2483,7 +2474,7 @@ int Language::classHandler(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classforwardDeclaration(Node *n) {
-  (void) n;
+  (void)n;
   return SWIG_OK;
 }
 
@@ -2571,10 +2562,8 @@ int Language::constructorDeclaration(Node *n) {
         if (Getattr(over, "copy_constructor"))
           over = Getattr(over, "sym:nextSibling");
         if (over != n) {
-          Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number,
-                       "Overloaded constructor ignored.  %s\n", Swig_name_decl(n));
-          Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, Getfile(over), Getline(over),
-                       "Previous declaration is %s\n", Swig_name_decl(over));
+          Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, input_file, line_number, "Overloaded constructor ignored.  %s\n", Swig_name_decl(n));
+          Swig_warning(WARN_LANG_OVERLOAD_CONSTRUCT, Getfile(over), Getline(over), "Previous declaration is %s\n", Swig_name_decl(over));
         } else {
           constructorHandler(n);
         }
@@ -2602,8 +2591,12 @@ int Language::constructorDeclaration(Node *n) {
 
           illegal_name = !Equal(name_resolved, expected_name_resolved);
           if (!illegal_name)
-            Swig_warning(WARN_LANG_EXTEND_CONSTRUCTOR, input_file, line_number, "Use of an illegal constructor name '%s' in %%extend is deprecated, the constructor name should be '%s'.\n",
-                SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
+            Swig_warning(WARN_LANG_EXTEND_CONSTRUCTOR,
+                         input_file,
+                         line_number,
+                         "Use of an illegal constructor name '%s' in %%extend is deprecated, the constructor name should be '%s'.\n",
+                         SwigType_str(Swig_scopename_last(actual_name), 0),
+                         SwigType_str(Swig_scopename_last(expected_name), 0));
           Delete(name_resolved);
           Delete(expected_name_resolved);
         }
@@ -2651,7 +2644,6 @@ static String *get_director_ctor_code(Node *n, String *director_ctor_code, Strin
   return director_ctor;
 }
 
-
 /* ----------------------------------------------------------------------
  * Language::constructorHandler()
  * ---------------------------------------------------------------------- */
@@ -2663,9 +2655,7 @@ int Language::constructorHandler(Node *n) {
   String *nodeType = Getattr(n, "nodeType");
   int constructor = (!Cmp(nodeType, "constructor"));
   List *abstracts = 0;
-  String *director_ctor = get_director_ctor_code(n, director_ctor_code,
-                                                 director_prot_ctor_code,
-                                                 abstracts);
+  String *director_ctor = get_director_ctor_code(n, director_ctor_code, director_prot_ctor_code, abstracts);
   if (!constructor) {
     /* if not originally a constructor, still handle it as one */
     Setattr(n, "handled_as_constructor", "1");
@@ -2692,9 +2682,7 @@ int Language::copyconstructorHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
   String *mrename = Swig_name_copyconstructor(NSpace, symname);
   List *abstracts = 0;
-  String *director_ctor = get_director_ctor_code(n, director_ctor_code,
-                                                 director_prot_ctor_code,
-                                                 abstracts);
+  String *director_ctor = get_director_ctor_code(n, director_ctor_code, director_prot_ctor_code, abstracts);
   Swig_ConstructorToFunction(n, NSpace, ClassType, none_comparison, director_ctor, CPlusPlus, Getattr(n, "template") ? 0 : Extend, DirectorClassName);
   Setattr(n, "sym:name", mrename);
   functionWrapper(n);
@@ -2767,8 +2755,12 @@ int Language::destructorDeclaration(Node *n) {
 
       illegal_name = !Equal(name_resolved, expected_name_resolved);
       if (!illegal_name)
-        Swig_warning(WARN_LANG_EXTEND_DESTRUCTOR, input_file, line_number, "Use of an illegal destructor name '%s' in %%extend is deprecated, the destructor name should be '%s'.\n",
-            SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
+        Swig_warning(WARN_LANG_EXTEND_DESTRUCTOR,
+                     input_file,
+                     line_number,
+                     "Use of an illegal destructor name '%s' in %%extend is deprecated, the destructor name should be '%s'.\n",
+                     SwigType_str(Swig_scopename_last(actual_name), 0),
+                     SwigType_str(Swig_scopename_last(expected_name), 0));
       Delete(name_resolved);
       Delete(expected_name_resolved);
     }
@@ -2897,8 +2889,8 @@ int Language::variableWrapper(Node *n) {
   SwigType *type = Getattr(n, "type");
   String *name = Getattr(n, "name");
 
-  Delattr(n,"varset");
-  Delattr(n,"varget");
+  Delattr(n, "varset");
+  Delattr(n, "varget");
 
   String *newsymname = 0;
   if (!CurrentClass && EnumClassPrefix) {
@@ -2984,13 +2976,13 @@ int Language::functionWrapper(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int Language::nativeWrapper(Node *n) {
-  (void) n;
+  (void)n;
   return SWIG_OK;
 }
 
 void Language::main(int argc, char *argv[]) {
-  (void) argc;
-  (void) argv;
+  (void)argc;
+  (void)argv;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3004,7 +2996,7 @@ void Language::main(int argc, char *argv[]) {
  * ----------------------------------------------------------------------------- */
 
 int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
-  //Printf( stdout, "addSymbol: %s %s %s:%d\n", s, scope, Getfile(n), Getline(n) );
+  // Printf( stdout, "addSymbol: %s %s %s:%d\n", s, scope, Getfile(n), Getline(n) );
   Hash *symbols = symbolScopeLookup(scope);
   if (!symbols) {
     symbols = symbolAddScope(scope);
@@ -3037,8 +3029,12 @@ int Language::addInterfaceSymbol(const String *interface_name, Node *n, const_St
     Node *existing_symbol = symbolLookup(interface_name, scope);
     if (existing_symbol) {
       String *proxy_class_name = Getattr(n, "sym:name");
-      Swig_error(input_file, line_number, "The interface feature name '%s' for proxy class '%s' is already defined in the generated target language module in scope '%s'.\n",
-          interface_name, proxy_class_name, scope);
+      Swig_error(input_file,
+                 line_number,
+                 "The interface feature name '%s' for proxy class '%s' is already defined in the generated target language module in scope '%s'.\n",
+                 interface_name,
+                 proxy_class_name,
+                 scope);
       Swig_error(Getfile(existing_symbol), Getline(existing_symbol), "Previous declaration of '%s'\n", interface_name);
       return 0;
     }
@@ -3056,7 +3052,7 @@ int Language::addInterfaceSymbol(const String *interface_name, Node *n, const_St
  * If scope with given name already exists, then do nothing.
  * Returns newly created (or already existing) scope.
  * ----------------------------------------------------------------------------- */
-Hash *Language::symbolAddScope(const_String_or_char_ptr scope/*, Node *n*/) {
+Hash *Language::symbolAddScope(const_String_or_char_ptr scope /*, Node *n*/) {
   Hash *symbols = symbolScopeLookup(scope);
   if (!symbols) {
     // The order in which the following code is executed is important. In the Language
@@ -3078,7 +3074,7 @@ Hash *Language::symbolAddScope(const_String_or_char_ptr scope/*, Node *n*/) {
     //   This will require explicit calls to symbolScopeLookup() in each language and removing the call from addSymbol().
     //   addSymbol() should then instead assert that the scope exists.
     //   All this just to fix up the file/line numbering of the scopes for error reporting.
-    //Node *symbol = n;
+    // Node *symbol = n;
     Node *symbol = Getattr(topscope_symbols, scope);
 
     Hash *pseudo_symbol = 0;
@@ -3118,8 +3114,7 @@ Hash *Language::symbolScopeLookup(const_String_or_char_ptr scope) {
  * There is no difference from symbolLookup() method except for signature
  * and return type.
  * ----------------------------------------------------------------------------- */
-Hash *Language::symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope)
-{
+Hash *Language::symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope) {
   /* Getting top scope */
   const_String_or_char_ptr top_scope = "";
   Hash *symbols = Getattr(symtabs, top_scope);
@@ -3145,7 +3140,7 @@ void Language::dumpSymbols() {
       while (it.key) {
         String *symname = it.key;
         Printf(stdout, "  %s\n", symname);
-        //Printf(stdout, "  %s (%s:%d)\n", symname, Getfile(it.item), Getline(it.item));
+        // Printf(stdout, "  %s (%s:%d)\n", symname, Getfile(it.item), Getline(it.item));
         it = Next(it);
       }
     }
@@ -3209,12 +3204,12 @@ Node *Language::classLookup(const SwigType *s) {
         break;
       Node *sibling = n;
       while (sibling) {
-       sibling = Getattr(sibling, "csym:nextSibling");
-       if (sibling && Strcmp(nodeType(sibling), "class") == 0)
-         break;
+        sibling = Getattr(sibling, "csym:nextSibling");
+        if (sibling && Strcmp(nodeType(sibling), "class") == 0)
+          break;
       }
       if (sibling)
-       break;
+        break;
       n = parentNode(n);
       if (!n)
         break;
@@ -3228,12 +3223,11 @@ Node *Language::classLookup(const SwigType *s) {
     if (n) {
       /* Found a match.  Look at the prefix.  We only allow
          the cases where we want a proxy class for the particular type */
-      bool acceptable_prefix =
-        (Len(prefix) == 0) ||                         // simple type (pass by value)
-        (Strcmp(prefix, "p.") == 0) ||                // pointer
-        (Strcmp(prefix, "r.") == 0) ||                // reference
-        (Strcmp(prefix, "z.") == 0) ||                // rvalue reference
-        SwigType_prefix_is_simple_1D_array(prefix);   // Simple 1D array (not arrays of pointers/references)
+      bool acceptable_prefix = (Len(prefix) == 0) ||                        // simple type (pass by value)
+                               (Strcmp(prefix, "p.") == 0) ||               // pointer
+                               (Strcmp(prefix, "r.") == 0) ||               // reference
+                               (Strcmp(prefix, "z.") == 0) ||               // rvalue reference
+                               SwigType_prefix_is_simple_1D_array(prefix);  // Simple 1D array (not arrays of pointers/references)
       // Also accept pointer by const reference, not non-const pointer reference
       if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {
         Delete(prefix);
@@ -3315,7 +3309,7 @@ Node *Language::enumLookup(SwigType *s) {
     }
     if (n) {
       /* Found a match.  Look at the prefix.  We only allow simple types. */
-      if (Len(prefix) == 0) {   /* Simple type */
+      if (Len(prefix) == 0) { /* Simple type */
         if (!enumtypes)
           enumtypes = NewHash();
         Setattr(enumtypes, Copy(s), n);
@@ -3455,8 +3449,7 @@ int Language::need_nonpublic_ctor(Node *n) {
         } else {
           /* check if there is a public constructor */
           Node *parent = Swig_methodclass(n);
-          int public_ctor = Getattr(parent, "allocate:default_constructor")
-              || Getattr(parent, "allocate:public_constructor");
+          int public_ctor = Getattr(parent, "allocate:default_constructor") || Getattr(parent, "allocate:public_constructor");
           if (!public_ctor) {
             /* if not, the protected constructor will be needed only
                if there is no protected default constructor declared */
@@ -3488,7 +3481,6 @@ int Language::need_nonpublic_member(Node *n) {
   }
   return 0;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Language::is_smart_pointer()
@@ -3641,7 +3633,7 @@ String *Language::getClassType() const {
 /* -----------------------------------------------------------------------------
  * Dispatcher::abstractClassTest()
  * ----------------------------------------------------------------------------- */
-//#define SWIG_DEBUG
+// #define SWIG_DEBUG
 int Dispatcher::abstractClassTest(Node *n) {
   /* check for non public operator new */
   if (GetFlag(n, "feature:notabstract"))
@@ -3670,7 +3662,7 @@ int Dispatcher::abstractClassTest(Node *n) {
   Printf(stderr, "testing %s %d %d\n", Getattr(n, "name"), labs, Len(allbases));
 #endif
   if (!labs)
-    return 0;                   /*strange, but need to be fixed */
+    return 0; /*strange, but need to be fixed */
   if (abstracts && !Swig_directors_enabled())
     return 1;
   if (!GetFlag(n, "feature:director"))
@@ -3708,12 +3700,19 @@ int Dispatcher::abstractClassTest(Node *n) {
     }
     if (dirabstract) {
       if (is_public(dirabstract)) {
-        Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT, Getfile(n), Getline(n),
+        Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,
+                     Getfile(n),
+                     Getline(n),
                      "Director class '%s' is abstract, abstract method '%s' is not accessible, maybe due to multiple inheritance or 'nodirector' feature\n",
-                     SwigType_namestr(Getattr(n, "name")), Getattr(dirabstract, "name"));
+                     SwigType_namestr(Getattr(n, "name")),
+                     Getattr(dirabstract, "name"));
       } else {
-        Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT, Getfile(n), Getline(n),
-                     "Director class '%s' is abstract, abstract method '%s' is private\n", SwigType_namestr(Getattr(n, "name")), Getattr(dirabstract, "name"));
+        Swig_warning(WARN_LANG_DIRECTOR_ABSTRACT,
+                     Getfile(n),
+                     Getline(n),
+                     "Director class '%s' is abstract, abstract method '%s' is private\n",
+                     SwigType_namestr(Getattr(n, "name")),
+                     Getattr(dirabstract, "name"));
       }
       return 1;
     }
@@ -3768,4 +3767,3 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
-

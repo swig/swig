@@ -14,7 +14,7 @@
 #include "swig.h"
 #include "cparse.h"
 
-static Hash *extendhash = 0;     /* Hash table of added methods */
+static Hash *extendhash = 0; /* Hash table of added methods */
 
 /* -----------------------------------------------------------------------------
  * Swig_extend_hash()
@@ -42,28 +42,28 @@ void Swig_extend_merge(Node *cls, Node *am) {
   n = firstChild(am);
   while (n) {
     String *symname;
-    if (Strcmp(nodeType(n),"constructor") == 0) {
-      symname = Getattr(n,"sym:name");
+    if (Strcmp(nodeType(n), "constructor") == 0) {
+      symname = Getattr(n, "sym:name");
       if (symname) {
-        if (Strcmp(symname,Getattr(n,"name")) == 0) {
+        if (Strcmp(symname, Getattr(n, "name")) == 0) {
           /* If the name and the sym:name of a constructor are the same,
              then it hasn't been renamed.  However---the name of the class
              itself might have been renamed so we need to do a consistency
              check here */
-          if (Getattr(cls,"sym:name")) {
-            Setattr(n,"sym:name", Getattr(cls,"sym:name"));
+          if (Getattr(cls, "sym:name")) {
+            Setattr(n, "sym:name", Getattr(cls, "sym:name"));
           }
         }
       }
     }
 
-    symname = Getattr(n,"sym:name");
+    symname = Getattr(n, "sym:name");
     DohIncref(symname);
-    if ((symname) && (!Getattr(n,"error"))) {
+    if ((symname) && (!Getattr(n, "error"))) {
       Node *c;
       /* Remove node from its symbol table */
       Swig_symbol_remove(n);
-      c = Swig_symbol_add(symname,n);
+      c = Swig_symbol_add(symname, n);
       if (c != n) {
         /* Conflict with previous definition.  Nuke previous definition */
         String *e = NewStringEmpty();
@@ -75,13 +75,13 @@ void Swig_extend_merge(Node *cls, Node *am) {
         Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
         Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
         SWIG_WARN_NODE_END(n);
-        Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(c), Getline(c), ec, Getfile(n),Getline(n),en);
+        Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(c), Getline(c), ec, Getfile(n), Getline(n), en);
         Setattr(c, "error", e);
         Delete(e);
         Delete(en);
         Delete(ec);
-        Swig_symbol_remove(c);                /* Remove class definition */
-        Swig_symbol_add(symname, n);          /* Insert extend definition */
+        Swig_symbol_remove(c);       /* Remove class definition */
+        Swig_symbol_add(symname, n); /* Insert extend definition */
       }
     }
     n = nextSibling(n);
@@ -97,26 +97,30 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
   Node *pe = 0;
   Node *ae = 0;
 
-  if (!am) return;
+  if (!am)
+    return;
 
   n = firstChild(am);
   while (n) {
     ne = nextSibling(n);
-    set_nextSibling(n,0);
+    set_nextSibling(n, 0);
     /* typemaps and fragments need to be prepended */
-    if (((Cmp(nodeType(n),"typemap") == 0) || (Cmp(nodeType(n),"fragment") == 0)))  {
-      if (!pe) pe = Swig_cparse_new_node("extend");
+    if (((Cmp(nodeType(n), "typemap") == 0) || (Cmp(nodeType(n), "fragment") == 0))) {
+      if (!pe)
+        pe = Swig_cparse_new_node("extend");
       appendChild(pe, n);
     } else {
-      if (!ae) ae = Swig_cparse_new_node("extend");
+      if (!ae)
+        ae = Swig_cparse_new_node("extend");
       appendChild(ae, n);
     }
     n = ne;
   }
-  if (pe) prependChild(cls,pe);
-  if (ae) appendChild(cls,ae);
+  if (pe)
+    prependChild(cls, pe);
+  if (ae)
+    appendChild(cls, ae);
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_extend_unused_check()
@@ -128,13 +132,13 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
 void Swig_extend_unused_check(void) {
   Iterator ki;
 
-  if (!extendhash) return;
+  if (!extendhash)
+    return;
   for (ki = First(extendhash); ki.key; ki = Next(ki)) {
-    if (!Strchr(ki.key,'<')) {
+    if (!Strchr(ki.key, '<')) {
       SWIG_WARN_NODE_BEGIN(ki.item);
-      Swig_warning(WARN_PARSE_EXTEND_UNDEF,Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", SwigType_namestr(ki.key));
+      Swig_warning(WARN_PARSE_EXTEND_UNDEF, Getfile(ki.item), Getline(ki.item), "%%extend defined for an undeclared class %s.\n", SwigType_namestr(ki.key));
       SWIG_WARN_NODE_END(ki.item);
     }
   }
 }
-

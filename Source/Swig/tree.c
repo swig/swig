@@ -72,7 +72,6 @@ static void print_indent(int l) {
   }
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_print_node(Node *n)
  * ----------------------------------------------------------------------------- */
@@ -95,11 +94,13 @@ void Swig_print_node(Node *obj) {
     DOH *value = Getattr(obj, k);
     if (Equal(k, "nodeType") || (*(Char(k)) == '$')) {
       /* Do nothing */
-    } else if (debug_quiet && (Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") ||
-        Equal(k, "previousSibling") || Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") ||
-        Equal(k, "sym:previousSibling") || Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
+    } else if (debug_quiet &&
+               (Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") || Equal(k, "previousSibling") ||
+                Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") || Equal(k, "sym:previousSibling") ||
+                Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
       /* Do nothing */
-    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "templateparmsraw") || Equal(k, "template_parameters") || Equal(k, "throws")) {
+    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") ||
+               Equal(k, "templateparmsraw") || Equal(k, "template_parameters") || Equal(k, "throws")) {
       print_indent(2);
       /* Differentiate parameter lists by displaying within single quotes */
       Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(value));
@@ -114,10 +115,10 @@ void Swig_print_node(Node *obj) {
         }
         Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
         Delete(o);
-/*
-      } else if (DohIsSequence(value)) {
-        Printf(stdout, "%-12s - %s\n", k, value);
-*/
+        /*
+              } else if (DohIsSequence(value)) {
+                Printf(stdout, "%-12s - %s\n", k, value);
+        */
       } else {
         Printf(stdout, "%-12s - %p\n", k, value);
       }
@@ -231,7 +232,8 @@ void removeNode(Node *n) {
   Node *next;
 
   parent = parentNode(n);
-  if (!parent) return;
+  if (!parent)
+    return;
 
   prev = previousSibling(n);
   next = nextSibling(n);
@@ -251,9 +253,9 @@ void removeNode(Node *n) {
   }
 
   /* Delete attributes */
-  Delattr(n,"parentNode");
-  Delattr(n,"nextSibling");
-  Delattr(n,"previousSibling");
+  Delattr(n, "parentNode");
+  Delattr(n, "nextSibling");
+  Delattr(n, "previousSibling");
 }
 
 /* -----------------------------------------------------------------------------
@@ -348,7 +350,6 @@ void Swig_require(const char *ns, Node *n, ...) {
     }
   }
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_save()

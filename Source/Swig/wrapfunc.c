@@ -16,7 +16,7 @@
 #include "swig.h"
 #include <ctype.h>
 
-static int Compact_mode = 0;    /* set to 0 on default */
+static int Compact_mode = 0; /* set to 0 on default */
 static int Max_line_size = 128;
 
 /* -----------------------------------------------------------------------------
@@ -27,7 +27,7 @@ static int Max_line_size = 128;
 
 Wrapper *NewWrapper(void) {
   Wrapper *w;
-  w = (Wrapper *) Malloc(sizeof(Wrapper));
+  w = (Wrapper *)Malloc(sizeof(Wrapper));
   w->localh = NewHash();
   w->locals = NewStringEmpty();
   w->code = NewStringEmpty();
@@ -166,7 +166,7 @@ void Wrapper_pretty_print(String *str, File *f) {
       c = Getc(str);
       if (c != EOF) {
         Putc(c, ts);
-        if (c == '/') {         /* C++ comment */
+        if (c == '/') { /* C++ comment */
           while ((c = Getc(str)) != EOF) {
             if (c == '\n') {
               Ungetc(c, str);
@@ -174,16 +174,16 @@ void Wrapper_pretty_print(String *str, File *f) {
             }
             Putc(c, ts);
           }
-        } else if (c == '*') {  /* C comment */
+        } else if (c == '*') { /* C comment */
           int endstar = 0;
           while ((c = Getc(str)) != EOF) {
-            if (endstar && c == '/') {  /* end of C comment */
+            if (endstar && c == '/') { /* end of C comment */
               Putc(c, ts);
               break;
             }
             endstar = (c == '*');
             Putc(c, ts);
-            if (c == '\n') {    /* multi-line C comment. Could be improved slightly. */
+            if (c == '\n') { /* multi-line C comment. Could be improved slightly. */
               for (i = 0; i < level; i++)
                 Putc(' ', ts);
             }
@@ -211,7 +211,7 @@ void Wrapper_pretty_print(String *str, File *f) {
  * ----------------------------------------------------------------------------- */
 
 void Wrapper_compact_print(String *str, File *f) {
-  String *ts, *tf;              /*temp string & temp file */
+  String *ts, *tf; /*temp string & temp file */
   int level = 0;
   int c, i;
   int empty = 1;
@@ -222,7 +222,7 @@ void Wrapper_compact_print(String *str, File *f) {
   Seek(str, 0, SEEK_SET);
 
   while ((c = Getc(str)) != EOF) {
-    if (c == '\"') {            /* string 1 */
+    if (c == '\"') { /* string 1 */
       empty = 0;
       Putc(c, ts);
       while ((c = Getc(str)) != EOF) {
@@ -234,7 +234,7 @@ void Wrapper_compact_print(String *str, File *f) {
         if (c == '\"')
           break;
       }
-    } else if (c == '\'') {     /* string 2 */
+    } else if (c == '\'') { /* string 2 */
       empty = 0;
       Putc(c, ts);
       while ((c = Getc(str)) != EOF) {
@@ -246,7 +246,7 @@ void Wrapper_compact_print(String *str, File *f) {
         if (c == '\'')
           break;
       }
-    } else if (c == '{') {      /* start of {...} */
+    } else if (c == '{') { /* start of {...} */
       empty = 0;
       Putc(c, ts);
       if (Len(tf) == 0) {
@@ -270,7 +270,7 @@ void Wrapper_compact_print(String *str, File *f) {
           break;
         }
       }
-    } else if (c == '}') {      /* end of {...} */
+    } else if (c == '}') { /* end of {...} */
       empty = 0;
       if (Len(tf) == 0) {
         for (i = 0; i < level; i++)
@@ -288,7 +288,7 @@ void Wrapper_compact_print(String *str, File *f) {
       Putc(c, tf);
       Clear(ts);
       level -= indent;
-    } else if (c == '\n') {     /* line end */
+    } else if (c == '\n') { /* line end */
       while ((c = Getc(str)) != EOF) {
         if (!isspace(c))
           break;
@@ -316,21 +316,21 @@ void Wrapper_compact_print(String *str, File *f) {
       Ungetc(c, str);
 
       empty = 1;
-    } else if (c == '/') {      /* comment */
+    } else if (c == '/') { /* comment */
       empty = 0;
       c = Getc(str);
       if (c != EOF) {
-        if (c == '/') {         /* C++ comment */
+        if (c == '/') { /* C++ comment */
           while ((c = Getc(str)) != EOF) {
             if (c == '\n') {
               Ungetc(c, str);
               break;
             }
           }
-        } else if (c == '*') {  /* C comment */
+        } else if (c == '*') { /* C comment */
           int endstar = 0;
           while ((c = Getc(str)) != EOF) {
-            if (endstar && c == '/') {  /* end of C comment */
+            if (endstar && c == '/') { /* end of C comment */
               break;
             }
             endstar = (c == '*');
@@ -340,11 +340,11 @@ void Wrapper_compact_print(String *str, File *f) {
           Putc(c, ts);
         }
       }
-    } else if (c == '#') {      /* Preprocessor line */
+    } else if (c == '#') { /* Preprocessor line */
       Putc('#', ts);
       while ((c = Getc(str)) != EOF) {
         Putc(c, ts);
-        if (c == '\\') {        /* Continued line of the same PP */
+        if (c == '\\') { /* Continued line of the same PP */
           c = Getc(str);
           if (c == '\n')
             Putc(c, ts);
@@ -486,9 +486,8 @@ char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_
   ret = Char(nname);
   Delete(nname);
   Delete(ndecl);
-  return ret;                   /* Note: nname should still exists in the w->localh hash */
+  return ret; /* Note: nname should still exists in the w->localh hash */
 }
-
 
 /* -----------------------------------------------------------------------------
  * Wrapper_new_localv()
