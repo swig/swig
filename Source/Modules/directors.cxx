@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -98,7 +98,6 @@ String *Swig_director_declaration(Node *n) {
   return declaration;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_method_call()
  * ----------------------------------------------------------------------------- */
@@ -116,11 +115,11 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
       SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Getattr(p, "name");
       if (comma)
-	Append(func, ",");
+        Append(func, ",");
       if (SwigType_isrvalue_reference(rpt))
-	Printv(func, "std::move(", pname, ")", NIL);
+        Printv(func, "std::move(", pname, ")", NIL);
       else
-	Printv(func, pname, NIL);
+        Printv(func, pname, NIL);
       Delete(rpt);
       comma = 1;
     }
@@ -195,16 +194,15 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
  * Swig_director_emit_dynamic_cast()
  *
  * In order to call protected virtual director methods from the target language, we need
- * to add an extra dynamic_cast to call the public C++ wrapper in the director class. 
+ * to add an extra dynamic_cast to call the public C++ wrapper in the director class.
  * Also for non-static protected members when the allprotected option is on.
  * ----------------------------------------------------------------------------- */
 
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
-  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
-      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || 
-                                               Swig_storage_isstatic(n))
-                                          && !Equal(nodeType(n), "constructor"))) {
+  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) ||
+      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || Swig_storage_isstatic(n)) &&
+       !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
     String *dirname;
     String *dirdecl;

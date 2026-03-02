@@ -25,10 +25,8 @@
 // include options, e.g. param[in] -> param
 std::string getBaseCommand(const std::string &cmd);
 
-
 class DoxygenParser {
 private:
-
   enum DoxyCommandEnum {
     NONE = -1,
     SIMPLECOMMAND,
@@ -52,7 +50,6 @@ private:
     COMMAND
   };
 
-
   /** This class contains parts of Doxygen comment as a token. */
   class Token {
   public:
@@ -61,7 +58,7 @@ private:
 
     Token(DoxyCommandEnum tType, std::string tString) : m_tokenType(tType), m_tokenString(tString) {
     }
-    
+
     std::string toString() const {
       switch (m_tokenType) {
       case END_LINE:
@@ -77,7 +74,6 @@ private:
       }
     }
   };
-
 
   typedef std::vector<Token> TokenList;
   typedef TokenList::const_iterator TokenListCIt;
@@ -96,7 +92,7 @@ private:
   static DoxyCommandsMap doxygenCommands;
   static std::set<std::string> doxygenSectionIndicators;
 
-  bool m_isVerbatimText; // used to handle \htmlonly and \verbatim commands
+  bool m_isVerbatimText;  // used to handle \htmlonly and \verbatim commands
   bool m_isInQuotedString;
 
   Node *m_node;
@@ -124,7 +120,7 @@ private:
    */
   std::string stringToLower(const std::string &stringToConvert);
 
-  /* 
+  /*
    * isSectionIndicator returns a boolean if the command is a section indicator
    * This is a helper method for finding the end of a paragraph
    * by Doxygen's terms
@@ -176,7 +172,7 @@ private:
    */
   std::string getNextWordInComment();
 
-  /* 
+  /*
    * Returns the location of the end of the line as
    * an iterator.
    */
@@ -192,7 +188,7 @@ private:
    * Returns a properly formatted std::string
    * up til the command specified is encountered
    */
-  //TODO check that this behaves properly for formulas
+  // TODO check that this behaves properly for formulas
   std::string getStringTilEndCommand(const std::string &theCommand, const TokenList &tokList);
 
   /*
@@ -245,7 +241,7 @@ private:
    * CommandWord
    * Format: @command <word>
    * Commands with a single WORD after then such as @b
-   * "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", 
+   * "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package",
    * "relates", "namespace", "relatesalso","anchor", "dontinclude", "include",
    * "includelineno"
    */
@@ -332,7 +328,7 @@ private:
    */
   void ignoreCommand(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList);
 
-  /* 
+  /*
    * The actual "meat" of the doxygen parser. Calls the correct addCommand...()
    * function.
    */
@@ -352,7 +348,6 @@ private:
   void processWordCommands(size_t &pos, const std::string &line);
   void processHtmlTags(size_t &pos, const std::string &line);
   void processHtmlEntities(size_t &pos, const std::string &line);
-
 
   /** Processes comment outside \htmlonly and \verbatim commands. */
   size_t processNormalComment(size_t pos, const std::string &line);

@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -25,20 +25,21 @@ struct contract {
 
 static contract Rules[] = {
   {"require:", "&&"},
-  {"ensure:", "||"},
-  {NULL, NULL}
+  {"ensure:",  "||"},
+  {NULL,       NULL}
 };
 
 /* ----------------------------------------------------------------------------
  * class Contracts:
  *
- * This class defines the functions that need to be used in 
+ * This class defines the functions that need to be used in
  *         "wrap by contract" module.
  * ------------------------------------------------------------------------- */
 
-class Contracts:public Dispatcher {
+class Contracts : public Dispatcher {
   String *make_expression(String *s, Node *n);
   void substitute_parms(String *s, ParmList *p, int method);
+
 public:
   Hash *ContractSplit(Node *n);
   int emit_contract(Node *n, int method);
@@ -53,8 +54,8 @@ public:
   virtual int top(Node *n);
 };
 
-static int Contract_Mode = 0;	/* contract option */
-static int InClass = 0;		/* Parsing C++ or not */
+static int Contract_Mode = 0; /* contract option */
+static int InClass = 0;       /* Parsing C++ or not */
 static int InConstructor = 0;
 static Node *CurrentClass = 0;
 
@@ -99,15 +100,15 @@ Hash *Contracts::ContractSplit(Node *n) {
       continue;
     for (int j = 0; Rules[j].section; j++) {
       if (Strstr(i.item, Rules[j].section)) {
-	if (Len(current_section)) {
-	  Setattr(result, current_section_name, current_section);
-	  current_section = Getattr(result, Rules[j].section);
-	  if (!current_section)
-	    current_section = NewString("");
-	}
-	current_section_name = Rules[j].section;
-	found = 1;
-	break;
+        if (Len(current_section)) {
+          Setattr(result, current_section_name, current_section);
+          current_section = Getattr(result, Rules[j].section);
+          if (!current_section)
+            current_section = NewString("");
+        }
+        current_section_name = Rules[j].section;
+        found = 1;
+        break;
       }
     }
     if (!found)
@@ -145,34 +146,34 @@ static void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages)
     while (temp) {
       base_decl = Getattr(temp, "decl");
       if (base_decl) {
-	base_decl = SwigType_typedef_resolve_all(base_decl);
-	if ((checkAttribute(temp, "storage", "virtual")) &&
-	    (checkAttribute(temp, "name", name)) && (checkAttribute(temp, "type", type)) && (!Strcmp(local_decl, base_decl))) {
-	  /* Yes, match found. */
-	  Hash *icontracts = Getattr(temp, "contract:rules");
-	  Hash *imessages = Getattr(temp, "contract:messages");
-	  found = 1;
-	  if (icontracts && imessages) {
-	    /* Add inherited contracts and messages to the contract rules above */
-	    int j = 0;
-	    for (j = 0; Rules[j].section; j++) {
-	      String *t = Getattr(contracts, Rules[j].section);
-	      String *s = Getattr(icontracts, Rules[j].section);
-	      if (s) {
-		if (t) {
-		  Insert(t, 0, "(");
-		  Printf(t, ") %s (%s)", Rules[j].combiner, s);
-		  String *m = Getattr(messages, Rules[j].section);
-		  Printf(m, " %s [%s from %s]", Rules[j].combiner, Getattr(imessages, Rules[j].section), Getattr(b, "name"));
-		} else {
-		  Setattr(contracts, Rules[j].section, NewString(s));
-		  Setattr(messages, Rules[j].section, NewStringf("[%s from %s]", Getattr(imessages, Rules[j].section), Getattr(b, "name")));
-		}
-	      }
-	    }
-	  }
-	}
-	Delete(base_decl);
+        base_decl = SwigType_typedef_resolve_all(base_decl);
+        if ((checkAttribute(temp, "storage", "virtual")) && (checkAttribute(temp, "name", name)) && (checkAttribute(temp, "type", type)) &&
+            (!Strcmp(local_decl, base_decl))) {
+          /* Yes, match found. */
+          Hash *icontracts = Getattr(temp, "contract:rules");
+          Hash *imessages = Getattr(temp, "contract:messages");
+          found = 1;
+          if (icontracts && imessages) {
+            /* Add inherited contracts and messages to the contract rules above */
+            int j = 0;
+            for (j = 0; Rules[j].section; j++) {
+              String *t = Getattr(contracts, Rules[j].section);
+              String *s = Getattr(icontracts, Rules[j].section);
+              if (s) {
+                if (t) {
+                  Insert(t, 0, "(");
+                  Printf(t, ") %s (%s)", Rules[j].combiner, s);
+                  String *m = Getattr(messages, Rules[j].section);
+                  Printf(m, " %s [%s from %s]", Rules[j].combiner, Getattr(imessages, Rules[j].section), Getattr(b, "name"));
+                } else {
+                  Setattr(contracts, Rules[j].section, NewString(s));
+                  Setattr(messages, Rules[j].section, NewStringf("[%s from %s]", Getattr(imessages, Rules[j].section), Getattr(b, "name")));
+                }
+              }
+            }
+          }
+        }
+        Delete(base_decl);
       }
       temp = nextSibling(temp);
     }
@@ -213,7 +214,7 @@ String *Contracts::make_expression(String *s, Node *n) {
     if (Len(expr)) {
       Replaceid(expr, Getattr(n, "name"), Swig_cresult_name());
       if (Len(str_assert))
-	Append(str_assert, "&&");
+        Append(str_assert, "&&");
       Printf(str_assert, "(%s)", expr);
     }
   }
@@ -222,7 +223,7 @@ String *Contracts::make_expression(String *s, Node *n) {
 }
 
 /* This function substitutes parameter names for argument names in the
-   contract specification.  Note: it is assumed that the wrapper code 
+   contract specification.  Note: it is assumed that the wrapper code
    uses arg1 for self and arg2..argn for arguments. */
 
 void Contracts::substitute_parms(String *s, ParmList *p, int method) {

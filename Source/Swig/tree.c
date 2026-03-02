@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -72,7 +72,6 @@ static void print_indent(int l) {
   }
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_print_node(Node *n)
  * ----------------------------------------------------------------------------- */
@@ -95,11 +94,13 @@ void Swig_print_node(Node *obj) {
     DOH *value = Getattr(obj, k);
     if (Equal(k, "nodeType") || (*(Char(k)) == '$')) {
       /* Do nothing */
-    } else if (debug_quiet && (Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") ||
-	Equal(k, "previousSibling") || Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") ||
-	Equal(k, "sym:previousSibling") || Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
+    } else if (debug_quiet &&
+               (Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") || Equal(k, "previousSibling") ||
+                Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") || Equal(k, "sym:previousSibling") ||
+                Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
       /* Do nothing */
-    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "templateparmsraw") || Equal(k, "template_parameters") || Equal(k, "throws")) {
+    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") ||
+               Equal(k, "templateparmsraw") || Equal(k, "template_parameters") || Equal(k, "throws")) {
       print_indent(2);
       /* Differentiate parameter lists by displaying within single quotes */
       Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(value));
@@ -108,18 +109,18 @@ void Swig_print_node(Node *obj) {
       const char *trunc = "";
       print_indent(2);
       if (DohIsString(value)) {
-	o = Str(value);
-	if (Len(o) > 80) {
-	  trunc = "...";
-	}
-	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
-	Delete(o);
-/*
-      } else if (DohIsSequence(value)) {
-	Printf(stdout, "%-12s - %s\n", k, value);
-*/
+        o = Str(value);
+        if (Len(o) > 80) {
+          trunc = "...";
+        }
+        Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
+        Delete(o);
+        /*
+              } else if (DohIsSequence(value)) {
+                Printf(stdout, "%-12s - %s\n", k, value);
+        */
       } else {
-	Printf(stdout, "%-12s - %p\n", k, value);
+        Printf(stdout, "%-12s - %p\n", k, value);
       }
     }
     ki = Next(ki);
@@ -231,7 +232,8 @@ void removeNode(Node *n) {
   Node *next;
 
   parent = parentNode(n);
-  if (!parent) return;
+  if (!parent)
+    return;
 
   prev = previousSibling(n);
   next = nextSibling(n);
@@ -251,9 +253,9 @@ void removeNode(Node *n) {
   }
 
   /* Delete attributes */
-  Delattr(n,"parentNode");
-  Delattr(n,"nextSibling");
-  Delattr(n,"previousSibling");
+  Delattr(n, "parentNode");
+  Delattr(n, "nextSibling");
+  Delattr(n, "previousSibling");
 }
 
 /* -----------------------------------------------------------------------------
@@ -340,15 +342,14 @@ void Swig_require(const char *ns, Node *n, ...) {
     String *view = Getattr(n, "view");
     if (view) {
       if (Strcmp(view, ns) != 0) {
-	Setattr(n, NewStringf("%s:view", ns), view);
-	Setattr(n, "view", NewString(ns));
+        Setattr(n, NewStringf("%s:view", ns), view);
+        Setattr(n, "view", NewString(ns));
       }
     } else {
       Setattr(n, "view", NewString(ns));
     }
   }
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_save()
@@ -386,8 +387,8 @@ void Swig_save(const char *ns, Node *n, ...) {
     String *view = Getattr(n, "view");
     if (view) {
       if (Strcmp(view, ns) != 0) {
-	Setattr(n, NewStringf("%s:view", ns), view);
-	Setattr(n, "view", NewString(ns));
+        Setattr(n, NewStringf("%s:view", ns), view);
+        Setattr(n, "view", NewString(ns));
       }
     } else {
       Setattr(n, "view", NewString(ns));
