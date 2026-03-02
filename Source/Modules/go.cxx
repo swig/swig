@@ -1480,7 +1480,7 @@ private:
 
       p = nextParm(p);
     }
-      
+
     Printv(fnname, ")", NULL);
 
     if (SwigType_type(info->result) == T_VOID) {

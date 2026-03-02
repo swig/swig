@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -32,7 +32,7 @@ static contract Rules[] = {
 /* ----------------------------------------------------------------------------
  * class Contracts:
  *
- * This class defines the functions that need to be used in 
+ * This class defines the functions that need to be used in
  *         "wrap by contract" module.
  * ------------------------------------------------------------------------- */
 
@@ -222,7 +222,7 @@ String *Contracts::make_expression(String *s, Node *n) {
 }
 
 /* This function substitutes parameter names for argument names in the
-   contract specification.  Note: it is assumed that the wrapper code 
+   contract specification.  Note: it is assumed that the wrapper code
    uses arg1 for self and arg2..argn for arguments. */
 
 void Contracts::substitute_parms(String *s, ParmList *p, int method) {

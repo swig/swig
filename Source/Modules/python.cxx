@@ -3213,7 +3213,7 @@ public:
         }
       }
 
-      // Unwrap return values that are director classes so that the original Python object is returned instead. 
+      // Unwrap return values that are director classes so that the original Python object is returned instead.
       if (!constructor && Swig_director_can_unwrap(n)) {
         Wrapper_add_local(f, "director", "Swig::Director *director = 0");
         Printf(f->code, "director = SWIG_DIRECTOR_CAST(%s);\n", Swig_cresult_name());

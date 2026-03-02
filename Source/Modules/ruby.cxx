@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -65,7 +65,7 @@ public:
     constructor_defined = 0;
     destructor_defined = 0;
   }
-  
+
   ~RClass() {
     Delete(name);
     Delete(cname);
@@ -286,7 +286,7 @@ private:
    * addMissingParameterNames()
    *  For functions that have not had nameless parameters set in the Language class.
    *
-   * Inputs: 
+   * Inputs:
    *   plist - entire parameter list
    *   arg_offset - argument number for first parameter
    * Side effects:
@@ -439,8 +439,8 @@ private:
       n = Getattr(n, "sym:previousSibling");
 
     Node *pn = Swig_methodclass(n);
-    String* super_names = NewString(""); 
-    String* class_name = Getattr(pn, "sym:name") ; 
+    String* super_names = NewString("");
+    String* class_name = Getattr(pn, "sym:name") ;
 
     if ( !class_name ) {
       class_name = NewString("");
@@ -849,7 +849,7 @@ public:
    *
    * Parse command line options and initializes variables.
    * --------------------------------------------------------------------- */
-  
+
   virtual void main(int argc, char *argv[]) {
 
     int autorename = 0;
@@ -1787,7 +1787,7 @@ public:
     insertArgOutputCode(l, outarg, need_result);
 
     /* if the object is a director, and the method call originated from its
-     * underlying Ruby object, resolve the call by going up the c++ 
+     * underlying Ruby object, resolve the call by going up the c++
      * inheritance chain.  otherwise try to resolve the method in Ruby.
      * without this check an infinite loop is set up between the director and
      * shadow class method calls.
@@ -1873,7 +1873,7 @@ public:
             else
               Replaceall(tm, "$owner", "0");
 
-            // Unwrap return values that are director classes so that the original Ruby object is returned instead. 
+            // Unwrap return values that are director classes so that the original Ruby object is returned instead.
             if (Swig_director_can_unwrap(n)) {
               Wrapper_add_local(f, "director", "Swig::Director *director = 0");
               Printf(f->code, "director = dynamic_cast<Swig::Director *>(%s);\n", Swig_cresult_name());
@@ -2080,7 +2080,7 @@ public:
     Printv(f->code, dispatch, "\n", NIL);
 
 
-    
+
     // Generate prototype list, go to first node
     Node *sibl = n;
 
@@ -2104,7 +2104,7 @@ public:
         Printv( methodName, Getattr(parent_node,"sym:name"), ".", NIL );
     }
     Append( methodName, Getattr(sibl,"sym:name" ) );
-    if ( isCtor ) Append( methodName, ".new" ); 
+    if ( isCtor ) Append( methodName, ".new" );
 
     // Generate prototype list
     String *protoTypes = NewString("");
@@ -2117,7 +2117,7 @@ public:
       }
       Printv(protoTypes, methodName, NIL );
       Parm* p = Getattr(sibl, "wrap:parms");
-      if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || 
+      if (p && (current == MEMBER_FUNC || current == MEMBER_VAR ||
                 ctor_director) )
         p = nextSibling(p); // skip self
       Append( protoTypes, "(" );
@@ -2130,7 +2130,7 @@ public:
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
     Append(f->code, "fail:\n");
-    Printf(f->code, "Ruby_Format_OverloadedError( argc, %d, \"%s\", %s);\n", 
+    Printf(f->code, "Ruby_Format_OverloadedError( argc, %d, \"%s\", %s);\n",
            maxargs, methodName, protoTypes);
     Append(f->code, "\nreturn Qnil;\n");
 
@@ -2356,7 +2356,7 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * classDeclaration() 
+   * classDeclaration()
    *
    * Records information about classes---even classes that might be defined in
    * other modules referenced by %import.
@@ -2525,7 +2525,7 @@ public:
     if (!useGlobalModule) {
       Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, ", \"", klass->name, "\", $super);\n", NIL);
     } else {
-      Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, 
+      Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name,
              "\", $super);\n", NIL);
     }
 
@@ -2653,7 +2653,7 @@ public:
     Printf(f_wrappers, "%s", docs);
     Delete(docs);
 
-    /* 
+    /*
      * If we're wrapping the constructor of a C++ director class, prepend a new parameter
      * to receive the scripting language object (e.g. 'self')
      *
@@ -2934,7 +2934,7 @@ public:
   /* ---------------------------------------------------------------
    * exceptionSafeMethodCall()
    *
-   * Emit a virtual director method to pass a method call on to the 
+   * Emit a virtual director method to pass a method call on to the
    * underlying Ruby instance.
    *
    * --------------------------------------------------------------- */
@@ -3115,7 +3115,7 @@ public:
       Append(w->def, "\nSWIG_INIT_STACK;\n");
     }
 
-    /* declare method return value 
+    /* declare method return value
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
@@ -3242,7 +3242,7 @@ public:
             } else {
               Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
               Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-              //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+              //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n",
               //       source, nonconst, base);
               Printv(arglist, source, NIL);
             }

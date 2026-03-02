@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -36,7 +36,7 @@ void Wrapper_virtual_elimination_mode_set(int flag) {
   virtual_elimination_mode = flag;
 }
 
-/* Helper function to assist with abstract class checking.  
+/* Helper function to assist with abstract class checking.
    This is a major hack. Sorry.  */
 
 extern "C" {
@@ -508,10 +508,10 @@ class Allocate:public Dispatcher {
 
   void process_exceptions(Node *n) {
     ParmList *catchlist = 0;
-    /* 
+    /*
        the "catchlist" attribute is used to emit the block
 
-       try {$action;} 
+       try {$action;}
        catch <list of catches>;
 
        in emit.cxx
@@ -635,7 +635,7 @@ class Allocate:public Dispatcher {
 
   void add_member_for_using_declaration(Node *c, Node *n, int &ccount, Node *&unodes, Node *&last_unodes) {
     if (GetFlag(c, "fvirtual:ignore")) {
-      // This node was ignored by fvirtual. Thus, it has feature:ignore set. 
+      // This node was ignored by fvirtual. Thus, it has feature:ignore set.
       // However, we may have new sibling overrides that will make us want to keep it.
       // Hence, temporarily unset the feature:ignore flag.
       UnsetFlag(c, "feature:ignore");
@@ -1099,7 +1099,7 @@ Allocate():
 #endif
 
                 if (firstoverloaded == n) {
-                  // This 'using' node we are cutting out was the first node in the overloaded list. 
+                  // This 'using' node we are cutting out was the first node in the overloaded list.
                   // Change the first node in the list
                   Delattr(firstoverloaded, "sym:overloaded");
                   firstoverloaded = fc ? fc : ns;

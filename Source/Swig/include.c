@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -86,8 +86,8 @@ void Swig_pop_directory(void) {
 
 /* -----------------------------------------------------------------------------
  * Swig_last_file()
- * 
- * Returns the full pathname of the last file opened. 
+ *
+ * Returns the full pathname of the last file opened.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_last_file(void) {
@@ -96,8 +96,8 @@ String *Swig_last_file(void) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_search_path_any() 
- * 
+ * Swig_search_path_any()
+ *
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
@@ -113,7 +113,7 @@ static List *Swig_search_path_any(int syspath) {
   Printf(filename, ".%s", SWIG_FILE_DELIMITER);
   Append(slist, filename);
   Delete(filename);
-  
+
   /* If there are any pushed directories.  Add them first */
   if (pdirectories) {
     ilen = Len(pdirectories);
@@ -150,7 +150,7 @@ List *Swig_search_path(void) {
 /* -----------------------------------------------------------------------------
  * Swig_open()
  *
- * open a file, optionally looking for it in the include path.  Returns an open  
+ * open a file, optionally looking for it in the include path.  Returns an open
  * FILE * on success.
  * ----------------------------------------------------------------------------- */
 
@@ -214,7 +214,7 @@ FILE *Swig_open(const_String_or_char_ptr name) {
 
 /* -----------------------------------------------------------------------------
  * Swig_read_file()
- * 
+ *
  * Reads data from an open FILE * and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
@@ -230,7 +230,7 @@ String *Swig_read_file(FILE *f) {
     if (c < sizeof(buffer)) break;
   }
   len = Len(str);
-  /* Add a newline if not present on last line -- the preprocessor seems to 
+  /* Add a newline if not present on last line -- the preprocessor seems to
    * rely on \n and not EOF terminating lines */
   if (len) {
     char *cstr = Char(str);

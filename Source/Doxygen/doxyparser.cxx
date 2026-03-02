@@ -49,7 +49,7 @@ static size_t getEndOfWordCommand(const std::string &line, size_t pos) {
   size_t endOfWordPos = line.find_first_not_of(DOXYGEN_WORD_CHARS, pos);
   if (line.substr(pos, 6) == "param[")
     // include ",", which can appear in param[in,out]
-    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ",", pos);  
+    endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ",", pos);
   else if (line.substr(pos, 5) == "code{")
     // include ".", which can appear in e.g. code{.py}
     endOfWordPos = line.find_first_not_of(string(DOXYGEN_WORD_CHARS)+ ".", pos);
@@ -1220,7 +1220,7 @@ void DoxygenParser::processWordCommands(size_t &pos, const std::string &line) {
       endOfWordPos = line.find_first_not_of(" \t", endOfWordPos);
     }
   }
-  
+
   pos = endOfWordPos;
 }
 

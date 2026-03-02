@@ -73,7 +73,7 @@ static String *getRClassName(String *retType, int deRef=0, int upRef=0) {
     if (isreference) {
       SwigType_del_reference(resolved);
     }
-  } 
+  }
   String *tmp = NewString("");
   Insert(tmp, 0, Char(SwigType_manglestr(resolved)));
   return tmp;
@@ -570,7 +570,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       replaceRClass(tm, Getattr(p,"type"));
       Replaceall(tm,"$owner", "0");
       Delete(lstr);
-    } 
+    }
 
     r_tmp_needed = true;
     Printf(setExprElements, "%s\n", tm);
@@ -853,8 +853,8 @@ int R::DumpCode(Node *n) {
 }
 
 
-List *R::filterMemberList(List *class_member_types, 
-                          List *class_member_other, 
+List *R::filterMemberList(List *class_member_types,
+                          List *class_member_other,
                           String *R_MEMBER, bool equal) {
   // filters class_member_other based on whether corresponding elements of
   // class_member_function_types are equal or notequal to R_MEMBER
@@ -862,7 +862,7 @@ List *R::filterMemberList(List *class_member_types,
   Iterator ftype, other;
 
   for (ftype = First(class_member_types), other = First(class_member_other);
-       ftype.item; 
+       ftype.item;
        ftype=Next(ftype), other=Next(other)) {
     // verbose, clean up later if the overall structure works
     if (equal) {
@@ -990,7 +990,7 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
  * out - the stream where we write the code.
  * --------------------------------------------------------------*/
 
-int R::OutputMemberReferenceMethod(String *className, int isSet,  
+int R::OutputMemberReferenceMethod(String *className, int isSet,
                                    List *memberList, List *nameList,
                                    List *typeList, File *out) {
   int numMems = Len(memberList), j;
@@ -1129,7 +1129,7 @@ int R::enumDeclaration(Node *n) {
     String *ename;
 
     String *name = Getattr(n, "name");
-    ename = getRClassName(name); 
+    ename = getRClassName(name);
     if (debugMode) {
       Node *current_class = getCurrentClass();
       String *cl = NewString("");
@@ -1144,7 +1144,7 @@ int R::enumDeclaration(Node *n) {
     enum_values = 0;
     // Emit each enum item
     Language::enumDeclaration(n);
-      
+
     Printf(enum_def_calls, "defineEnumeration(\"%s\",\n .values=c(%s))\n\n", ename, enum_values);
     Delete(enum_values);
     Delete(ename);
@@ -1177,7 +1177,7 @@ int R::enumvalueDeclaration(Node *n) {
     tmpValue = NewString(name);
   // Note that this is used in enumValue() amongst other places
   Setattr(n, "value", tmpValue);
-  
+
   // Deal with enum values that are not int
   int swigtype = SwigType_type(Getattr(n, "type"));
   if (swigtype == T_CHAR) {
@@ -1203,7 +1203,7 @@ int R::enumvalueDeclaration(Node *n) {
       Printf(stdout, "Setting type: %s\n", Copy(typemap_lookup_type));
     }
     Setattr(n, "type", typemap_lookup_type);
-    
+
     // Simple integer constants
     // Note these are always generated for anonymous enums, no matter what enum_feature is specified
     // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
@@ -1288,7 +1288,7 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
   Append(class_member_function_types, methodSetGet);
   Append(class_member_function_names, name);
   Append(class_member_function_membernames, memberName);
-  
+
   String *tmp = NewString("");
   Wrapper_print(wrapper, tmp);
   Append(class_member_function_wrappernames, tmp);
@@ -1995,7 +1995,7 @@ int R::functionWrapper(Node *n) {
   /* Deal with the explicit return value. */
   if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
     SwigType *retType = Getattr(n, "type");
-    
+
     Replaceall(tm,"$1", Swig_cresult_name());
     Replaceall(tm,"$result", "r_ans");
     if (debugMode){
@@ -2092,7 +2092,7 @@ int R::functionWrapper(Node *n) {
     Printv(f->code, "R_ClearExternalPtr(self);\n", NIL);
 
   Printv(f->code, "return r_ans;\n", NIL);
-  
+
   /* Error handling code */
   Printv(f->code, "fail: SWIGUNUSED;\n", NIL);
   if (need_cleanup) {
@@ -2102,7 +2102,7 @@ int R::functionWrapper(Node *n) {
   Printv(f->code, "  Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
   Printv(f->code, "  return R_NilValue;\n", NIL);
   Delete(cleanup);
-  
+
   Printv(f->code, "}\n", NIL);
   Printv(sfun->code, "\n}", NIL);
 
@@ -2329,20 +2329,20 @@ int R::classDeclaration(Node *n) {
   if (class_member_function_types) {
 
     // collect the "set" methods
-    List *class_set_membernames   = filterMemberList(class_member_function_types, 
+    List *class_set_membernames   = filterMemberList(class_member_function_types,
                                                      class_member_function_membernames, R_MEMBER_SET, true);
-    List *class_set_functionnames = filterMemberList(class_member_function_types, 
+    List *class_set_functionnames = filterMemberList(class_member_function_types,
                                                      class_member_function_names, R_MEMBER_SET, true);
     // this one isn't used - collecting to keep code simpler
-    List *class_set_functiontypes = filterMemberList(class_member_function_types, 
+    List *class_set_functiontypes = filterMemberList(class_member_function_types,
                                                      class_member_function_types, R_MEMBER_SET, true);
 
     // collect the others
-    List *class_other_membernames   = filterMemberList(class_member_function_types, 
+    List *class_other_membernames   = filterMemberList(class_member_function_types,
                                                        class_member_function_membernames, R_MEMBER_SET, false);
-    List *class_other_functionnames = filterMemberList(class_member_function_types, 
+    List *class_other_functionnames = filterMemberList(class_member_function_types,
                                                        class_member_function_names, R_MEMBER_SET, false);
-    List *class_other_functiontypes = filterMemberList(class_member_function_types, 
+    List *class_other_functiontypes = filterMemberList(class_member_function_types,
                                                        class_member_function_types, R_MEMBER_SET, false);
 
     if (Len(class_other_membernames) > 0) {
@@ -2415,8 +2415,8 @@ int R::classDeclaration(Node *n) {
       //	    else
       //XXX How can we tell if this is already done.
       //	      SwigType_push(elType, elDecl);
-        
-        
+
+
       // returns ""  tp = processType(elType, c, NULL);
       //	    Printf(stdout, "<classDeclaration> elType %p\n", elType);
       //	    tp = getRClassNameCopyStruct(Getattr(c, "type"), 1);
@@ -2797,7 +2797,7 @@ String * R::processType(SwigType *t, Node *n, int *nargs) {
 
 /* -----------------------------------------------------------------------
  * enumValue()
- * This method will return a string with an enum value to use in from R when 
+ * This method will return a string with an enum value to use in from R when
  * setting up an enum variable
  * ------------------------------------------------------------------------ */
 
@@ -2808,7 +2808,7 @@ String *R::enumValue(Node *n) {
 
   Node *parent = parentNode(n);
   symname = Getattr(n, "sym:name");
-  
+
   // parent enumtype has namespace mangled in
   String *etype = Getattr(parent, "enumtype");
   // we have to directly call the c wrapper function, as the

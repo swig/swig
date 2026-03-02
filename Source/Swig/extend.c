@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -54,7 +54,7 @@ void Swig_extend_merge(Node *cls, Node *am) {
             Setattr(n,"sym:name", Getattr(cls,"sym:name"));
           }
         }
-      } 
+      }
     }
 
     symname = Getattr(n,"sym:name");
@@ -98,7 +98,7 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
   Node *ae = 0;
 
   if (!am) return;
-  
+
   n = firstChild(am);
   while (n) {
     ne = nextSibling(n);
@@ -110,13 +110,13 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
     } else {
       if (!ae) ae = Swig_cparse_new_node("extend");
       appendChild(ae, n);
-    }    
+    }
     n = ne;
   }
   if (pe) prependChild(cls,pe);
   if (ae) appendChild(cls,ae);
 }
- 
+
 
 /* -----------------------------------------------------------------------------
  * Swig_extend_unused_check()
@@ -124,7 +124,7 @@ void Swig_extend_append_previous(Node *cls, Node *am) {
  * Check for unused %extend.  Special case, don't report unused
  * extensions for templates
  * ----------------------------------------------------------------------------- */
- 
+
 void Swig_extend_unused_check(void) {
   Iterator ki;
 

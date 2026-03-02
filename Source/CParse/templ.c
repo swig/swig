@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -8,7 +8,7 @@
  *
  * templ.c
  *
- * Expands a template into a specialized version.   
+ * Expands a template into a specialized version.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -941,7 +941,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
     }
 
     /* Search for partial specializations.
-     * Example: template<typename T> class name<T *> { ... } 
+     * Example: template<typename T> class name<T *> { ... }
 
      * There are 3 types of template arguments:
      * (1) Template type arguments
@@ -1049,7 +1049,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
         for (col = 0; col < parms_len; col++) {
           int *priorities_col = priorities_matrix + col;
           int maxpriority = -1;
-          /* 
+          /*
              Printf(stdout, "max_possible_partials: %d col:%d\n", max_possible_partials, col);
              Printf(stdout, "        ");
              */
@@ -1215,7 +1215,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       firstn = Swig_symbol_clookup_local(name, 0);
       n = firstn;
       /* First look for all overloaded functions (non-variadic) template matches.
-       * Looking for all template parameter matches only (not function parameter matches) 
+       * Looking for all template parameter matches only (not function parameter matches)
        * as %template instantiation uses template parameters without any function parameters. */
       while (n) {
         if (Strcmp(nodeType(n), "template") == 0) {

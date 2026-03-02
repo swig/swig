@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -70,7 +70,7 @@ public:
     director_multiple_inheritance = 1;
     directorLanguage();
   }
- 
+
   String *Swig_class_name(Node *n) {
     String *name;
     name = Copy(Getattr(n, "sym:name"));
@@ -178,12 +178,12 @@ public:
     /* Set comparison with none for ConstructorToFunction */
     setSubclassInstanceCheck(NewString("caml_list_nth(args,0) != Val_unit"));
 
-    /* check if directors are enabled for this module.  note: this 
+    /* check if directors are enabled for this module.  note: this
      * is a "master" switch, without which no director code will be
      * emitted.  %feature("director") statements are also required
      * to enable directors for individual classes or methods.
      *
-     * use %module(directors="1") modulename at the start of the 
+     * use %module(directors="1") modulename at the start of the
      * interface file to enable director generation.
      */
     String *mod_docstring = NULL;
@@ -397,8 +397,8 @@ public:
     }
   }
 
-  /* 
-   * Return true iff T is a reference type 
+  /*
+   * Return true iff T is a reference type
    */
 
   int
@@ -619,7 +619,7 @@ public:
     }
 
     /* if the object is a director, and the method call originated from its
-     * underlying ocaml object, resolve the call by going up the c++ 
+     * underlying ocaml object, resolve the call by going up the c++
      * inheritance chain.  otherwise try to resolve the method in ocaml.
      * without this check an infinite loop is set up between the director and
      * shadow class method calls.
@@ -772,7 +772,7 @@ public:
    * simply evaluating this variable.  We return the value of the variable
    * in both cases.
    *
-   * symname is the name of the variable with respect to C.  This 
+   * symname is the name of the variable with respect to C.  This
    * may need to differ from the original name in the case of enums.
    * enumvname is the name of the variable with respect to ocaml.  This
    * will vary if the variable has been renamed.
@@ -871,7 +871,7 @@ public:
 
   /* ------------------------------------------------------------
    * staticmemberfunctionHandler --
-   * Overridden to set static_member_function 
+   * Overridden to set static_member_function
    * ------------------------------------------------------------ */
 
   virtual int staticmemberfunctionHandler(Node *n) {
@@ -998,11 +998,11 @@ public:
   }
 
   /* classHandler
-   * 
+   *
    * Create a "class" definition for ocaml.  I thought quite a bit about
    * how I should do this part of it, and arrived here, using a function
    * invocation to select a method, and dispatch.  This can obviously be
-   * done better, but I can't see how, given that I want to support 
+   * done better, but I can't see how, given that I want to support
    * overloaded methods, out parameters, and operators.
    *
    * I needed a system that would do this:
@@ -1060,7 +1060,7 @@ public:
    * classes represented);.
    *
    * I can't think of a more elegant way of converting a C_obj fun to a
-   * pointer than "operator &"... 
+   * pointer than "operator &"...
    *
    * Added a 'sizeof' that will allow you to do the expected thing.
    * This should help users to fill buffer structs and the like (as is
@@ -1166,7 +1166,7 @@ public:
   }
 
   /*
-   * Produce the symbol name that ocaml will use when referring to the 
+   * Produce the symbol name that ocaml will use when referring to the
    * target item.  I wonder if there's a better way to do this:
    * (WF - use Swig_name_mangle_string/Swig_name_mangle_type)
    *
@@ -1302,8 +1302,8 @@ public:
          * typedef name resolution.  My opinion is that SwigType_typedef
          * resolve_all should *always* return the enum tag if one exists,
          * rather than the admittedly friendlier enclosing typedef.
-         * 
-         * This would make one of the cases below unnecessary. 
+         *
+         * This would make one of the cases below unnecessary.
          * * * */
         Printf(f_mlbody, "let _ = Callback.register \"%s_marker\" (`%s)\n", fully_qualified_name, oname);
         if (!strncmp(Char(fully_qualified_name), "enum ", 5)) {
@@ -1346,7 +1346,7 @@ public:
   /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
-   * Emit a virtual director method to pass a method call on to the 
+   * Emit a virtual director method to pass a method call on to the
    * underlying Python object.
    *
    * --------------------------------------------------------------- */
@@ -1429,7 +1429,7 @@ public:
     }
     Append(w->def, " {");
     Append(declaration, ";\n");
-    /* declare method return value 
+    /* declare method return value
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */
@@ -1544,7 +1544,7 @@ public:
             } else {
               Wrapper_add_localv(w, source, "value", source, "= Val_unit", NIL);
               Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-              //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+              //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n",
               //       source, nonconst, base);
               Printv(arglist, source, NIL);
             }
@@ -1593,7 +1593,7 @@ public:
        * output arguments).
        */
 
-      /* marshal return value and other outputs (if any) from value to C/C++ 
+      /* marshal return value and other outputs (if any) from value to C/C++
        * type */
 
       String *cleanup = NewString("");
@@ -1731,7 +1731,7 @@ public:
     Delete(sub);
     Delete(classname);
     Delete(supername);
-    //Delete(parms);        
+    //Delete(parms);
 
     return SWIG_OK;
   }
@@ -1781,7 +1781,7 @@ public:
    * typedefHandler
    *
    * This is here in order to maintain the correct association between
-   * typedef names and enum names. 
+   * typedef names and enum names.
    *
    * Since I implement enums as polymorphic variant tags, I need to call
    * back into ocaml to evaluate them.  This requires a string that can
@@ -1792,7 +1792,7 @@ public:
    * e_typedef_name
    * for
    * typedef enum e_name_tag { ... } e_typedef_name;
-   * 
+   *
    * Since I need these strings to be consistent, I must maintain a correct
    * association list between typedef and enum names.
    * --------------------------------------------------------------------- */

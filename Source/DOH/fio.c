@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -450,7 +450,7 @@ int DohPrintf(DOH *obj, const char *format, ...) {
 
 /* -----------------------------------------------------------------------------
  * DohPrintv()
- * 
+ *
  * Print a null-terminated variable length list of DOH objects
  * ----------------------------------------------------------------------------- */
 
@@ -473,7 +473,7 @@ int DohPrintv(DOHFile * f, ...) {
   return ret;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * DohCopyto()
  *
  * Copies all of the input from an input stream to an output stream. Returns the

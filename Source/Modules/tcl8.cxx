@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -1144,7 +1144,7 @@ public:
         // inheritance hierarchy.
         // In the former case, we need to call the C++ constructor, in the
         // latter we don't, or we end up with two C++ objects.
-        // Check to see if we are instantiating a 'realname' or something 
+        // Check to see if we are instantiating a 'realname' or something
         // derived from it.
         //
         Printv(constructor, "    if { [string equal -nocase \"", realname, "\" \"[namespace tail [info class]]\" ] } {\n", NIL);

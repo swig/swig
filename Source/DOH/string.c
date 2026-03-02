@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -685,7 +685,7 @@ static char *match_number_end(char *base, char *s, char *token, int tokenlen) {
 /* -----------------------------------------------------------------------------
  * replace_simple()
  *
- * Replaces count non-overlapping occurrences of token with rep in a string.   
+ * Replaces count non-overlapping occurrences of token with rep in a string.
  * ----------------------------------------------------------------------------- */
 
 static int replace_simple(String *str, char *token, char *rep, int flags, int count, char *(*match) (char *, char *, char *, int)) {

@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -8,7 +8,7 @@
  *
  * file.c
  *
- *     This file implements a file-like object that can be built around an 
+ *     This file implements a file-like object that can be built around an
  *     ordinary FILE * or integer file descriptor.
  * ----------------------------------------------------------------------------- */
 

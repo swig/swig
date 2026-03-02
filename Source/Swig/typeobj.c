@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -41,7 +41,7 @@
  *        p.q(const).char                 char const *
  *
  * All type constructors are denoted by a trailing '.':
- * 
+ *
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference or ref-qualifier (&)
  *  'z.'                = Rvalue reference or ref-qualifier (&&)
@@ -102,20 +102,20 @@
  *
  * Finally, there are some data extraction functions that can be used to
  * extract array dimensions, template arguments, and so forth.
- * 
+ *
  * It is very important for developers to realize that the functions in this
  * module do *NOT* incorporate higher-level type system features like typedef.
  * For example, you could have C code like this:
  *
  *        typedef  int  *intptr;
- *       
+ *
  * In this case, a SwigType of type 'intptr' will be treated as a simple type and
  * functions like SwigType_ispointer() will evaluate as false.  It is strongly
  * advised that developers use the TypeSys_* interface to check types in a more
  * reliable manner.
  * ----------------------------------------------------------------------------- */
 
-/* The next few functions are utility functions used in the construction and 
+/* The next few functions are utility functions used in the construction and
    management of types */
 
 /* -----------------------------------------------------------------------------
@@ -125,7 +125,7 @@
  * Type elements are always delimited by periods, but may be nested with
  * parentheses.  A nested element is always handled as a single item.
  *
- * Returns the integer size of the element (which can be used to extract a 
+ * Returns the integer size of the element (which can be used to extract a
  * substring, to chop the element off, or for other purposes).
  * ----------------------------------------------------------------------------- */
 
@@ -159,7 +159,7 @@ static int element_size(char *c) {
 /* -----------------------------------------------------------------------------
  * SwigType_del_element()
  *
- * Deletes one type element from the type.  
+ * Deletes one type element from the type.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_del_element(SwigType *t) {
@@ -170,7 +170,7 @@ SwigType *SwigType_del_element(SwigType *t) {
 
 /* -----------------------------------------------------------------------------
  * SwigType_pop()
- * 
+ *
  * Pop one type element off the type.
  * For example:
  *   t in:   q(const).p.Integer
@@ -199,7 +199,7 @@ SwigType *SwigType_pop(SwigType *t) {
 
 /* -----------------------------------------------------------------------------
  * SwigType_last()
- * 
+ *
  * Return the last element of the given (partial) type.
  * For example:
  *   t:      q(const).p.
@@ -310,7 +310,7 @@ List *SwigType_split(const SwigType *t) {
  *    std::string
  *    p.f().Bar<(int,double)>
  * ----------------------------------------------------------------------------- */
- 
+
 List *SwigType_parmlist(const SwigType *p) {
   String *item = 0;
   List *list;
@@ -990,7 +990,7 @@ int SwigType_isfunction(const SwigType *t) {
   return 0;
 }
 
-/* Create a list of parameters from the type t, using the file_line_node Node for 
+/* Create a list of parameters from the type t, using the file_line_node Node for
  * file and line numbering for the parameters */
 ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node) {
   List *l = SwigType_parmlist(t);
@@ -1308,7 +1308,7 @@ String *SwigType_prefix(const SwigType *t) {
 
 /* -----------------------------------------------------------------------------
  * SwigType_strip_qualifiers()
- * 
+ *
  * Strip all qualifiers from a type and return a new type
  * ----------------------------------------------------------------------------- */
 
@@ -1346,11 +1346,11 @@ SwigType *SwigType_strip_qualifiers(const SwigType *t) {
 
 /* -----------------------------------------------------------------------------
  * SwigType_strip_single_qualifier()
- * 
+ *
  * If the type contains a qualifier, strip one qualifier and return a new type.
  * The left most qualifier is stripped first (when viewed as C source code) but
  * this is the equivalent to the right most qualifier using SwigType notation.
- * Example: 
+ * Example:
  *    r.q(const).p.q(const).int => r.q(const).p.int
  *    r.q(const).p.int          => r.p.int
  *    r.p.int                   => r.p.int

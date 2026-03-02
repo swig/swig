@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -10,7 +10,7 @@
  *
  * This module contains support for the interface feature.
  * This feature is used in language modules where the target language does not
- * naturally support C++ style multiple inheritance, but does support inheritance 
+ * naturally support C++ style multiple inheritance, but does support inheritance
  * from multiple interfaces.
  * ----------------------------------------------------------------------------- */
 

@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -483,7 +483,7 @@ static Node *first_nontemplate(Node *n) {
 /* --------------------------------------------------------------------------
  * swig_pragma()
  *
- * Handle swig pragma directives.  
+ * Handle swig pragma directives.
  * -------------------------------------------------------------------------- */
 
 static void swig_pragma(char *lang, char *name, char *value) {
@@ -548,7 +548,7 @@ int Language::use_naturalvar_mode(Node *n) const {
 }
 
 /* ----------------------------------------------------------------------
- * Language::top()   - Top of parsing tree 
+ * Language::top()   - Top of parsing tree
  * ---------------------------------------------------------------------- */
 
 int Language::top(Node *n) {
@@ -1452,7 +1452,7 @@ int Language::membervariableHandler(Node *n) {
     int assignable = !is_immutable(n);
 
     if (SmartPointer) {
-      if (!Getattr(CurrentClass, "allocate:smartpointermutable")) { 
+      if (!Getattr(CurrentClass, "allocate:smartpointermutable")) {
         assignable = 0;
       }
     }
@@ -1546,8 +1546,8 @@ int Language::membervariableHandler(Node *n) {
 
   } else {
 
-    /* This code is used to support the attributefunction directive 
-       where member variables are converted automagically to 
+    /* This code is used to support the attributefunction directive
+       where member variables are converted automagically to
        accessor functions */
 
 #if 0
@@ -1757,7 +1757,7 @@ int Language::enumforwardDeclaration(Node *n) {
   return SWIG_OK;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Language::memberconstantHandler()
  * ----------------------------------------------------------------------------- */
 
@@ -1797,7 +1797,7 @@ int Language::memberconstantHandler(Node *n) {
 }
 
 /* ----------------------------------------------------------------------
- * Language::typedefHandler() 
+ * Language::typedefHandler()
  * ---------------------------------------------------------------------- */
 
 int Language::typedefHandler(Node *n) {
@@ -1806,7 +1806,7 @@ int Language::typedefHandler(Node *n) {
      in
 
      typedef void NT;
-     int func(NT *p); 
+     int func(NT *p);
 
      see director_basic.i for example.
    */
@@ -2116,7 +2116,7 @@ int Language::classDirectorConstructors(Node *n) {
   }
   /* this is just to support old java behavior, ie, the default
      constructor is always emitted, even when protected, and not
-     needed, since there is a public constructor already defined.  
+     needed, since there is a public constructor already defined.
 
      (scottm) This code is needed here to make the director_abstract +
      test generate compilable code (Example2 in director_abstract.i).
@@ -2184,7 +2184,7 @@ int Language::classDirectorInit(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorDestructor(Node *n) {
-  /* 
+  /*
      Always emit the virtual destructor in the declaration and in the
      compilation unit.  Being explicit here can't make any damage, and
      can solve some nasty C++ compiler problems.
@@ -2461,7 +2461,7 @@ int Language::classHandler(Node *n) {
           Setattr(m, "director", "1");
           Setattr(m, "parentNode", n);
           /*
-           * There is a bug that needs fixing still... 
+           * There is a bug that needs fixing still...
            * This area of code is creating methods which have not been overridden in a derived class (director methods that are protected in the base)
            * If the method is overloaded, then Swig_overload_dispatch() incorrectly generates a call to the base wrapper, _wrap_xxx method
            * See director_protected_overloaded.i - Possibly sym:overname needs correcting here.
@@ -2562,7 +2562,7 @@ int Language::constructorDeclaration(Node *n) {
     if (over)
       over = first_nontemplate(over);
     if ((over) && (!overloading)) {
-      /* If the symbol is overloaded.  We check to see if it is a copy constructor.  If so, 
+      /* If the symbol is overloaded.  We check to see if it is a copy constructor.  If so,
          we invoke copyconstructorHandler() as a special case. */
       if (Getattr(n, "copy_constructor") && (!Getattr(CurrentClass, "has_copy_constructor"))) {
         copyconstructorHandler(n);
@@ -2602,7 +2602,7 @@ int Language::constructorDeclaration(Node *n) {
 
           illegal_name = !Equal(name_resolved, expected_name_resolved);
           if (!illegal_name)
-            Swig_warning(WARN_LANG_EXTEND_CONSTRUCTOR, input_file, line_number, "Use of an illegal constructor name '%s' in %%extend is deprecated, the constructor name should be '%s'.\n", 
+            Swig_warning(WARN_LANG_EXTEND_CONSTRUCTOR, input_file, line_number, "Use of an illegal constructor name '%s' in %%extend is deprecated, the constructor name should be '%s'.\n",
                 SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
           Delete(name_resolved);
           Delete(expected_name_resolved);
@@ -2767,7 +2767,7 @@ int Language::destructorDeclaration(Node *n) {
 
       illegal_name = !Equal(name_resolved, expected_name_resolved);
       if (!illegal_name)
-        Swig_warning(WARN_LANG_EXTEND_DESTRUCTOR, input_file, line_number, "Use of an illegal destructor name '%s' in %%extend is deprecated, the destructor name should be '%s'.\n", 
+        Swig_warning(WARN_LANG_EXTEND_DESTRUCTOR, input_file, line_number, "Use of an illegal destructor name '%s' in %%extend is deprecated, the destructor name should be '%s'.\n",
             SwigType_str(Swig_scopename_last(actual_name), 0), SwigType_str(Swig_scopename_last(expected_name), 0));
       Delete(name_resolved);
       Delete(expected_name_resolved);
@@ -3228,7 +3228,7 @@ Node *Language::classLookup(const SwigType *s) {
     if (n) {
       /* Found a match.  Look at the prefix.  We only allow
          the cases where we want a proxy class for the particular type */
-      bool acceptable_prefix = 
+      bool acceptable_prefix =
         (Len(prefix) == 0) ||			      // simple type (pass by value)
         (Strcmp(prefix, "p.") == 0) ||		      // pointer
         (Strcmp(prefix, "r.") == 0) ||		      // reference
@@ -3265,7 +3265,7 @@ Node *Language::classLookup(const SwigType *s) {
 /* -----------------------------------------------------------------------------
  * Language::enumLookup()
  *
- * Finds and returns the Node containing the enum declaration for the (enum) 
+ * Finds and returns the Node containing the enum declaration for the (enum)
  * type passed in.
  * ----------------------------------------------------------------------------- */
 
@@ -3413,7 +3413,7 @@ int Language::dirprot_mode() const {
  * ----------------------------------------------------------------------------- */
 
 int Language::need_nonpublic_ctor(Node *n) {
-  /* 
+  /*
      detects when a protected constructor is needed, which is always
      the case if 'dirprot' mode is used.  However, if that is not the
      case, we will try to strictly emit what is minimal to don't break
@@ -3501,7 +3501,7 @@ int Language::is_smart_pointer() const {
 /* -----------------------------------------------------------------------------
  * Language::makeParameterName()
  *
- * Inputs: 
+ * Inputs:
  *   n - Node
  *   p - parameter node
  *   arg_num - parameter argument number
@@ -3554,7 +3554,7 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
 
 bool Language::isNonVirtualProtectedAccess(Node *n) const {
   // Ideally is_non_virtual_protected_access() would contain all this logic, see
-  // comments therein about vtable. 
+  // comments therein about vtable.
   return DirectorClassName && is_non_virtual_protected_access(n);
 }
 

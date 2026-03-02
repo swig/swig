@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -33,7 +33,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  * [ type ]
  *    +-------- [ name ]
  *    +-------- [ name ]
- *    
+ *
  * Each hash table [ type ] or [ name ] then contains references to the
  * different typemap methods.    These are referenced by names such as
  * "tmap:in", "tmap:out", "tmap:argout", and so forth.
@@ -46,7 +46,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  *    "source"  -  Source directive (%apply or %typemap) for the typemap
  *    "locals"  -  Local variables (if any)
  *    "kwargs"  -  Typemap attributes
- * 
+ *
  * Example for a typemap method named "in":
  *   %typemap(in, warning="987:my warning", noblock=1) int &my_int (int tmp) "$1 = $input;"
  *
@@ -56,7 +56,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  *    "source"  -  typemap(in) int &my_int
  *    "locals"  -  int tmp
  *    "kwargs"  -  warning="987:my typemap warning", foo=123
- * 
+ *
  * ----------------------------------------------------------------------------- */
 
 static Hash *typemaps;
@@ -183,7 +183,7 @@ static String *typemap_method_name(const_String_or_char_ptr tmap_method) {
   return s;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * typemap_register()
  *
  * Internal implementation for Swig_typemap_register()
@@ -256,7 +256,7 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
      "in-int+foo:-p.int+bar:   char *blah[]
 
      Notice how the typemap method name expands to encode information about
-     previous arguments.        
+     previous arguments.
 
    */
 
@@ -289,7 +289,7 @@ static void typemap_register(const_String_or_char_ptr tmap_method, ParmList *par
   }
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Swig_typemap_register()
  *
  * Add a new, possibly multi-argument, typemap
@@ -518,7 +518,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
     Hash *deferred_add;
     match = 1;
 
-    /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm. 
+    /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm.
      * Create a temporary hash of typemaps to add immediately after. */
     deferred_add = NewHash();
     for (ki = First(sm); ki.key; ki = Next(ki)) {
@@ -569,7 +569,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 /* -----------------------------------------------------------------------------
  * Swig_typemap_clear_apply()
  *
- * %clear directive.   Clears all typemaps for a type (in the current scope only).    
+ * %clear directive.   Clears all typemaps for a type (in the current scope only).
  * ----------------------------------------------------------------------------- */
 
 /* Multi-argument %clear directive */
@@ -649,7 +649,7 @@ static void debug_search_result_display(Node *tm) {
  * tm. A match is sought in this order:
  * %typemap(tm_method) ctype cqualifiedname
  * %typemap(tm_method) ctype cname
- * %typemap(tm_method) ctype 
+ * %typemap(tm_method) ctype
  * ----------------------------------------------------------------------------- */
 
 static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm_method, SwigType *ctype, const String *cqualifiedname, const String *cname, Hash **backup) {
@@ -695,8 +695,8 @@ ret_result:
 /* -----------------------------------------------------------------------------
  * typemap_search()
  *
- * Search for a typemap match. This is where the typemap pattern matching rules 
- * are implemented... tries to find the most specific typemap that includes a 
+ * Search for a typemap match. This is where the typemap pattern matching rules
+ * are implemented... tries to find the most specific typemap that includes a
  * 'code' attribute.
  * ----------------------------------------------------------------------------- */
 
@@ -1354,8 +1354,8 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
  *
  * The node should contain the "type" and "name" attributes for the typemap match on.
  * input. The typemap code and typemap attribute values are attached onto the node
- * prefixed with "tmap:". For example with tmap_method="in", the typemap code can be retrieved 
- * with a call to Getattr(node, "tmap:in") (this is also the string returned) and the 
+ * prefixed with "tmap:". For example with tmap_method="in", the typemap code can be retrieved
+ * with a call to Getattr(node, "tmap:in") (this is also the string returned) and the
  * "noblock" attribute can be retrieved with a call to Getattr(node, "tmap:in:noblock").
  *
  * tmap_method - typemap method, eg "in", "out", "newfree"
@@ -1395,7 +1395,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     return sdef;
 
   /* Special hook (hack!). Check for the 'ref' feature and add code it contains to any 'newfree' typemap code.
-   * We could choose to put this hook into a number of different typemaps, not necessarily 'newfree'... 
+   * We could choose to put this hook into a number of different typemaps, not necessarily 'newfree'...
    * Rather confusingly 'newfree' is used to release memory and the 'ref' feature is used to add in memory references - yuck! */
   if (Cmp(tmap_method, "newfree") == 0) {
     String *base = SwigType_base(type);
@@ -1470,7 +1470,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       kw = nextSibling(kw);
     }
   }
-  
+
   if (optimal_attribute) {
     /* Note: "out" typemap is the only typemap that will have the "optimal" attribute set.
      * If f and actioncode are NULL, then the caller is just looking to attach the "out" attributes
@@ -1481,7 +1481,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
        * The code should be in the form "result = ...;\n". We need to extract
        * the "..." part. This may not be possible for various reasons, eg
        * code added by %exception. This optimal code generation is bit of a
-       * hack and circumvents the normal requirement for a temporary variable 
+       * hack and circumvents the normal requirement for a temporary variable
        * to hold the result returned from a wrapped function call.
        */
       if (Strncmp(actioncode, result_equals, Len(result_equals)) == 0 &&
@@ -1737,7 +1737,7 @@ static String *typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
  * Swig_typemap_attach_parms()
  *
  * Given a parameter list, this function attaches all of the typemaps and typemap
- * attributes to the parameter for each type in the parameter list. 
+ * attributes to the parameter for each type in the parameter list.
  *
  * This function basically provides the typemap code and typemap attribute values as
  * attributes on each parameter prefixed with "tmap:". For example with tmap_method="in", the typemap
@@ -2076,13 +2076,13 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
         ParmList *to_match_parms;
         tmap_method = Getitem(l, 0);
 
-        /* the second parameter might contain multiple sub-parameters for multi-argument 
+        /* the second parameter might contain multiple sub-parameters for multi-argument
          * typemap matching, so split these parameters apart */
         to_match_parms = Swig_cparse_parms(Getitem(l, 1), file_line_node);
         if (to_match_parms) {
           Parm *p = to_match_parms;
           Parm *sub_p = parm_sublist;
-          String *empty_string = NewStringEmpty(); 
+          String *empty_string = NewStringEmpty();
           String *lname = empty_string;
           while (p) {
             if (sub_p) {
@@ -2173,7 +2173,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
             }
             Delete(attr);
           } else {
-            /* Simple recursive call check to prevent infinite recursion - this strategy only allows a limited 
+            /* Simple recursive call check to prevent infinite recursion - this strategy only allows a limited
              * number of calls by a embedded typemaps to other embedded typemaps though */
             String *dtypemap = NewString(dollar_typemap);
             Replaceall(dtypemap, "$TYPEMAP", "$typemap");

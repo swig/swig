@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -38,22 +38,22 @@
  *  typedef int *blah;             ---->    "name" : 'blah'
  *                                          "type" : 'int'
  *                                          "decl" : 'p.'
- *                                       "storage" : 'typedef'          
- * 
+ *                                       "storage" : 'typedef'
+ *
  * In some cases, the symbol table needs to manage overloaded entries.  For instance,
  * overloaded functions.  In this case, a linked list is built.  The "sym:nextSibling"
  * attribute is reserved to hold a link to the next entry.  For example:
  *
  * int foo(int);            --> "name" : "foo"         "name" : "foo"
- * int foo(int,double);         "type" : "int"         "type" : "int" 
+ * int foo(int,double);         "type" : "int"         "type" : "int"
  *                              "decl" : "f(int)."     "decl" : "f(int,double)."
  *                               ...                    ...
  *                   "sym:nextSibling" :  --------> "sym:nextSibling": --------> ...
  *
- * When more than one symbol has the same name, the symbol declarator is 
+ * When more than one symbol has the same name, the symbol declarator is
  * used to detect duplicates.  For example, in the above case, foo(int) and
  * foo(int,double) are different because their "decl" attribute is different.
- * However, if a third declaration "foo(int)" was made, it would generate a 
+ * However, if a third declaration "foo(int)" was made, it would generate a
  * conflict (due to having a declarator that matches a previous entry).
  *
  * Structures and classes:
@@ -68,26 +68,26 @@
  *             ...
  *        }
  *
- *        int Foo();       // Error. Name clash.  Works in C though 
- * 
+ *        int Foo();       // Error. Name clash.  Works in C though
+ *
  * Due to the unified namespace for structures, special handling is performed for
  * the following:
  *
  *        typedef struct Foo {
  *
  *        } Foo;
- * 
+ *
  * In this case, the symbol table contains an entry for the structure itself.  The
  * typedef is left out of the symbol table.
  *
  * Target language vs C:
  *
  * The symbol tables are normally managed *in the namespace of the target language*.
- * This means that name-collisions can be resolved using %rename and related 
+ * This means that name-collisions can be resolved using %rename and related
  * directives.   A quirk of this is that sometimes the symbol tables need to
  * be used for C type resolution as well.  To handle this, each symbol table
- * also has a C-symbol table lurking behind the scenes.  This is used to locate 
- * symbols in the C namespace.  However, this symbol table is not used for error 
+ * also has a C-symbol table lurking behind the scenes.  This is used to locate
+ * symbols in the C namespace.  However, this symbol table is not used for error
  * reporting nor is it used for anything else during code generation.
  *
  * Symbol table structure:
@@ -106,17 +106,17 @@
  *
  * When a symbol is placed in the symbol table, the following attributes
  * are set:
- *       
+ *
  *     sym:name             -- Symbol name
  *     sym:nextSibling      -- Next symbol (if overloaded)
  *     sym:previousSibling  -- Previous symbol (if overloaded)
  *     sym:symtab           -- Symbol table object holding the symbol
  *     sym:overloaded       -- Set to the first symbol if overloaded
  *
- * These names are modeled after XML namespaces.  In particular, every attribute 
- * pertaining to symbol table management is prefaced by the "sym:" prefix.   
+ * These names are modeled after XML namespaces.  In particular, every attribute
+ * pertaining to symbol table management is prefaced by the "sym:" prefix.
  *
- * An example dump of the parse tree showing symbol table entries for the 
+ * An example dump of the parse tree showing symbol table entries for the
  * following code should clarify this:
  *
  *   namespace OuterNamespace {
@@ -134,31 +134,31 @@
  *   | symtab       - 0xa064bf0
  *   | sym:symtab   - 0xa041690
  *   | sym:overname - "__SWIG_0"
- *  
+ *
  *         +++ namespace ----------------------------------------
  *         | sym:name     - "InnerNamespace"
  *         | symtab       - 0xa064cc0
  *         | sym:symtab   - 0xa064bf0
  *         | sym:overname - "__SWIG_0"
- *  
+ *
  *               +++ class ----------------------------------------
  *               | sym:name     - "Class"
  *               | symtab       - 0xa064d80
  *               | sym:symtab   - 0xa064cc0
  *               | sym:overname - "__SWIG_0"
- *               | 
+ *               |
  *               +++ class ----------------------------------------
  *               | sym:name     - "Struct"
  *               | symtab       - 0xa064f00
  *               | sym:symtab   - 0xa064cc0
  *               | sym:overname - "__SWIG_0"
- *  
+ *
  *                     +++ cdecl ----------------------------------------
  *                     | sym:name     - "Var"
  *                     | sym:symtab   - 0xa064f00
  *                     | sym:overname - "__SWIG_0"
- *                     | 
- *  
+ *                     |
+ *
  *
  * Each class and namespace has its own scope and thus a new symbol table (sym)
  * is created. The sym attribute is only set for the first entry in the symbol
@@ -197,7 +197,7 @@ void Swig_symbol_print_tables(Symtab *symtab) {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_print_tables_summary()
  *
- * Debug summary display of all symbol tables by fully-qualified name 
+ * Debug summary display of all symbol tables by fully-qualified name
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_print_tables_summary(void) {
@@ -336,7 +336,7 @@ Symtab *Swig_symbol_getscope(const_String_or_char_ptr name) {
   return Getattr(symtabs, name);
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Swig_symbol_qualifiedscopename()
  *
  * Get the fully qualified C scopename of a symbol table.  Note, this only pertains
@@ -367,7 +367,7 @@ String *Swig_symbol_qualifiedscopename(Symtab *symtab) {
   return result;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Swig_symbol_qualified_language_scopename()
  *
  * Get the fully qualified C scopename of a symbol table but using a language
@@ -530,12 +530,12 @@ void Swig_symbol_inherit(Symtab *s) {
 void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
   Node *append = 0;
   Node *cn;
-  /* There are a few options for weak symbols.  A "weak" symbol 
+  /* There are a few options for weak symbols.  A "weak" symbol
      is any symbol that can be replaced by another symbol in the C symbol
      table.  An example would be a forward class declaration.  A forward
      class sits in the symbol table until a real class declaration comes along.
 
-     Certain symbols are marked as "sym:typename".  These are important 
+     Certain symbols are marked as "sym:typename".  These are important
      symbols related to the C++ type-system and take precedence in the C
      symbol table.  An example might be code like this:
 
@@ -701,7 +701,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
   }
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Swig_symbol_add()
  *
  * Adds a node to the symbol table.  Returns the node itself if successfully
@@ -727,12 +727,12 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
      when compiling the wrapper code */
 
 
-  /* There are a few options for weak symbols.  A "weak" symbol 
+  /* There are a few options for weak symbols.  A "weak" symbol
      is any symbol that can be replaced by another symbol in the C symbol
      table.  An example would be a forward class declaration.  A forward
      class sits in the symbol table until a real class declaration comes along.
 
-     Certain symbols are marked as "sym:typename".  These are important 
+     Certain symbols are marked as "sym:typename".  These are important
      symbols related to the C++ type-system and take precedence in the C
      symbol table.  An example might be code like this:
 
@@ -776,7 +776,7 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
     /* There is a symbol table conflict.  There are a few cases to consider here:
        (1) A conflict between a class/enum and a typedef declaration is okay.
        In this case, the symbol table entry is set to the class/enum declaration
-       itself, not the typedef.   
+       itself, not the typedef.
        (2) A conflict between namespaces is okay--namespaces are open
        (3) Otherwise, overloading is only allowed for functions
        (4) This special case is okay: a class template instantiated with same name as the template's name
@@ -1015,7 +1015,7 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
  *
  * Internal function to handle fully qualified symbol table lookups.  This
  * works from the symbol table supplied in symtab and unwinds its way out
- * towards the global scope. 
+ * towards the global scope.
  *
  * This function operates in the C namespace, not the target namespace.
  *
@@ -1264,7 +1264,7 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
  * accepts a callback function that is invoked to determine a symbol match.
  * The purpose of this function is to support complicated algorithms that need
  * to examine multiple definitions of the same symbol that might appear in an
- * inheritance hierarchy. 
+ * inheritance hierarchy.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc) (Node *n)) {
@@ -1591,7 +1591,7 @@ String *Swig_symbol_qualified(Node *n) {
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_isoverloaded()
- * 
+ *
  * Check if a symbol is overloaded.  Returns the first symbol if so.
  * ----------------------------------------------------------------------------- */
 
@@ -1775,7 +1775,7 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
  *   typedef int Int;
  *   typedef Int Integer;
  * with input:
- *   Foo<(Int,Integer)> 
+ *   Foo<(Int,Integer)>
  * returns:
  *   Foo<(int,int)>
  * ----------------------------------------------------------------------------- */
@@ -1970,7 +1970,7 @@ String *Swig_symbol_string_qualify(String *s, Symtab *st) {
 /* -----------------------------------------------------------------------------
  * Swig_symbol_template_defargs()
  *
- * Apply default arg from generic template default args 
+ * Apply default arg from generic template default args
  * Returns a parameter list which contains missing default arguments (if any)
  * Note side effects: parms will also contain the extra parameters in its list
  * (but only if non-zero).

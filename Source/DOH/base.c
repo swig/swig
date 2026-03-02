@@ -1,12 +1,12 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
  * and at https://www.swig.org/legal.html.
  *
- * base.c 
+ * base.c
  *
  *     This file contains the function entry points for dispatching methods on
  *     DOH objects.  A number of small utility functions are also included.
@@ -437,7 +437,7 @@ char *DohGetChar(DOH *obj, const DOH *name) {
  * A flag is unset if the attribute (name) does not exist on the node (obj),
  * or it is set to "0". If the attribute is set to any other value,
  * the flag is set.
- * 
+ *
  * DohGetFlag()     returns if the flag is set or not
  * DohGetFlagAttr() returns the flag value if is set, NULL otherwise
  * ----------------------------------------------------------------------------- */
@@ -921,7 +921,7 @@ int DohGetmark(DOH *ho) {
  *       "builtin"    -  Pointer to built-in function (if any)
  *
  * (Additional attributes may be added later)
- * 
+ *
  * Returns a DOH object with result on success. Returns NULL on error
  * ----------------------------------------------------------------------------- */
 

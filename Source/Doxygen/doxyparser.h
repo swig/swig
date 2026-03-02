@@ -61,7 +61,7 @@ private:
 
     Token(DoxyCommandEnum tType, std::string tString) : m_tokenType(tType), m_tokenString(tString) {
     }
-    
+
     std::string toString() const {
       switch (m_tokenType) {
       case END_LINE:
@@ -124,7 +124,7 @@ private:
    */
   std::string stringToLower(const std::string &stringToConvert);
 
-  /* 
+  /*
    * isSectionIndicator returns a boolean if the command is a section indicator
    * This is a helper method for finding the end of a paragraph
    * by Doxygen's terms
@@ -176,7 +176,7 @@ private:
    */
   std::string getNextWordInComment();
 
-  /* 
+  /*
    * Returns the location of the end of the line as
    * an iterator.
    */
@@ -245,7 +245,7 @@ private:
    * CommandWord
    * Format: @command <word>
    * Commands with a single WORD after then such as @b
-   * "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package", 
+   * "a", "b", "c", "e", "em", "p", "def", "enum", "example", "package",
    * "relates", "namespace", "relatesalso","anchor", "dontinclude", "include",
    * "includelineno"
    */
@@ -332,7 +332,7 @@ private:
    */
   void ignoreCommand(const std::string &theCommand, const TokenList &tokList, DoxygenEntityList &doxyList);
 
-  /* 
+  /*
    * The actual "meat" of the doxygen parser. Calls the correct addCommand...()
    * function.
    */

@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -9,7 +9,7 @@
  * swigparm.h
  *
  * Functions related to the handling of function/method parameters and
- * parameter lists.  
+ * parameter lists.
  * ----------------------------------------------------------------------------- */
 
 /* Individual parameters */
