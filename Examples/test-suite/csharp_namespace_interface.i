@@ -5,7 +5,7 @@
 %include <std_string.i>
 %include <swiginterface.i>
 
-%interface_impl(A::B::Implementer);
+%interface_impl(A::B::Interface);
 
 %inline %{
 #include <string>
