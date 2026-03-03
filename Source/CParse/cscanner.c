@@ -713,7 +713,7 @@ num_common: {
 	yylval.type = NewSwigType(T_CHAR);
 	return (TYPE_CHAR);
       }
-      if (strcmp(yytext, "wchar_t") == 0) {
+      if (strcmp(yytext, "__WCHAR_T__") == 0) {
 	yylval.type = NewSwigType(T_WCHAR);
 	return (TYPE_WCHAR);
       }
