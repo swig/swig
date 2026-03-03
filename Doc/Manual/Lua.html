@@ -32,6 +32,7 @@
 <li><a href="#Lua_structures">Structures</a>
 <li><a href="#Lua_nn14">C++ classes</a>
 <li><a href="#Lua_nn15">C++ inheritance</a>
+<li><a href="#Lua_nested_classes">C++ nested classes</a>
 <li><a href="#Lua_nn16">Pointers, references, values, and arrays</a>
 <li><a href="#Lua_nn17">C++ overloaded functions</a>
 <li><a href="#Lua_nn18">C++ operators</a>
@@ -818,6 +819,62 @@ then the function <tt>spam()</tt> accepts a Foo pointer or a pointer to any clas
 <p>
 It is safe to use multiple inheritance with SWIG.
 </p>
+<H3><a name="Lua_nested_classes">29.3.8.1 C++ nested classes</a></H3>
+
+<p>
+SWIG fully supports C++ nested classes. A nested class is a class defined within the scope of another class. For example:
+</p>
+<div class="code"><pre>
+class Outer {
+public:
+  class Inner {
+  public:
+    int value;
+    Inner() : value(0) {}
+    void setValue(int v) { value = v; }
+  };
+  
+  Inner createInner() { return Inner(); }
+};
+</pre></div>
+<p>
+In Lua, nested classes are accessed through their parent class using dot notation:
+</p>
+<div class="targetlang"><pre>
+&gt; -- Create an instance of the nested class directly
+&gt; inner = example.Outer.Inner()
+&gt; inner:setValue(42)
+&gt; print(inner.value)
+42
+&gt;
+&gt; -- Or through a factory method of the outer class
+&gt; outer = example.Outer()
+&gt; inner2 = outer:createInner()
+&gt; print(inner2.value)
+0
+</pre></div>
+<p>
+Nested classes can have multiple levels of nesting, and all levels are accessible using the same dot notation:
+</p>
+<div class="code"><pre>
+class Level1 {
+public:
+  class Level2 {
+  public:
+    class Level3 {
+    public:
+      static int deepValue;
+    };
+  };
+};
+</pre></div>
+<div class="targetlang"><pre>
+&gt; print(example.Level1.Level2.Level3.deepValue)
+</pre></div>
+<p>
+Static members and methods of nested classes are also fully supported and accessible through the nested class path.
+</p>
+
 <H3><a name="Lua_nn16">29.3.9 Pointers, references, values, and arrays</a></H3>
 
 
