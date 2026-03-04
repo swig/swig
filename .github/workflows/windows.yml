@@ -25,6 +25,23 @@ permissions:
   contents: read
 
 jobs:
+  # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
+  # The clang-format version used is slightly different for each OS workflow file
+  # This job gates the main build job so must succeed before the main build job is run
+  clang-format:
+    runs-on: ubuntu-latest
+    name: clang-format 21
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+      - name: Check with clang-format
+        uses: RafikFarhad/clang-format-github-action@v6.0.1
+        with:
+          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+          style: file
+
   # This action build using MSYS2 environment
   # We use two compilers C/C++:
   # - Microsoft Visual Studio compiler.
@@ -37,7 +54,7 @@ jobs:
   #  and install only missed software.
   # We use different versions of installed languages by using
   #  proper envirounment.
-  win_ci:
+  build:
     # When continue-on-error is true for an individual build,
     # that build can fail (it'll show red),
     # but it won't fail the overall tests
@@ -55,6 +72,8 @@ jobs:
       ${{ matrix.CSTD }}
       ${{ matrix.os }}
       ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: [clang-format]
 
     strategy:
       matrix:

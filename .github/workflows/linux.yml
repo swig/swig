@@ -22,9 +22,11 @@ permissions:
 
 jobs:
   # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
-  clang-format-oldest:
+  # The clang-format version used is slightly different for each OS workflow file
+  # This job gates the main build job so must succeed before the main build job is run
+  clang-format:
     runs-on: ubuntu-latest
-    name: clang-format 18
+    name: clang-format 18 # 18 is the oldest supported version
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -32,20 +34,6 @@ jobs:
           show-progress: false
       - name: Check with clang-format
         uses: RafikFarhad/clang-format-github-action@v4.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
-
-  clang-format-newest:
-    runs-on: ubuntu-latest
-    name: clang-format 21
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6.0.1
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v6.0.1
         with:
           sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
           style: file
@@ -62,7 +50,7 @@ jobs:
     # can define the additional "desc" field with any additional information to include in the name.
     name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
-    needs: [clang-format-oldest, clang-format-newest]
+    needs: [clang-format]
 
     strategy:
       matrix:
