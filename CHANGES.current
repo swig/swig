@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-04: wsfulton
+            #3312 SWIG source code in Source directory is now formatted with clang-format.
+
+            Supported versions of clang-format are 18 and later (tested up to and including
+            version 22). Formatting is enforced in Github Actions so contributors to the
+            source code base must use clang-format before raising Github pull requests.
+            Separate formatting only commits are strongly discouraged; each commit should
+            be correctly formatted when committing (or format only commits squashed into
+            prior commits prior to pushing to Github).
+
+            Please see docs in Doc/Manual/Extending.html.
+
 2026-02-28: ArtemKozak666
             [C#] #3321 Fix undefined behaviour in std::string_view directorin typemap.
 
