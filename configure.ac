@@ -154,11 +154,11 @@ else
 fi
 if test -n "$CLANG_FORMAT" ; then
   AC_MSG_CHECKING([for clang-format version])
-  clang_format_version=[$($CLANG_FORMAT --version | sed -e 's/^.*version \([0-9]\+.[0-9.]*\).*$/\1/')]
+  clang_format_version=[$($CLANG_FORMAT --version | sed 's/^.*version \([0-9][0-9.]*\).*$/\1/')]
   AC_MSG_RESULT([$clang_format_version])
-  clang_format_major_version=[$(echo "$clang_format_version" | sed -e 's/^\([0-9]\+\)\(.[0-9.]*\).*$/\1/')]
+  clang_format_major_version=[$(echo "$clang_format_version" | sed 's/^\([0-9][0-9]*\)\(.[0-9.]*\).*$/\1/')]
   AC_MSG_CHECKING([whether clang-format major version ($clang_format_major_version) >= required minimum version (18) and should be enabled]) # 18 is first version to support .clang-format-ignore
-  if test "$clang_format_major_version" -ge "18"; then
+  if test $clang_format_major_version -ge 18; then
     AC_MSG_RESULT([yes])
   else
     AC_MSG_RESULT([no])
