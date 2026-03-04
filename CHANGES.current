@@ -19,6 +19,11 @@ Version 4.5.0 (in progress)
 
             Please see docs in Doc/Manual/Extending.html.
 
+            In order to the ease pain of working on git branches that were branched prior to the
+            commit on master that reformatted the code (f007c329), the following is suggested.
+            Merge/rebase onto the prior commit, then, run the identical commands specified
+            in the f007c329 commit message. The branch should then merge cleanly onto f007c329.
+
 2026-02-28: ArtemKozak666
             [C#] #3321 Fix undefined behaviour in std::string_view directorin typemap.
 

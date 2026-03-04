@@ -3655,6 +3655,8 @@ How the tool is used during the development/building of SWIG depends on configur
 
 <p>
 The version of clang-format is inspected at configure time.
+If the <tt>--with-clang-format</tt> option is not passed to configure then named versions,
+such as clang-format-18, are searched for first before clang-format.
 It is only enabled if the version is recent enough and this is clearly shown in the output of configure.
 Version 18 is the minimum supported version and was carefully chosen when clang-format was first used for SWIG as this is the first version to support the
 <tt>Source/.clang-format-ignore</tt> file that SWIG requires.

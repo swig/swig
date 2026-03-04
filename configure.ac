@@ -145,7 +145,8 @@ if test x"$with_clang_format" = xno; then
   CLANG_FORMAT=
 else
   if test "x$with_clang_format" = xyes; then
-    AC_CHECK_PROGS(CLANG_FORMAT, clang-format)
+    # Specific versions searched for below are those that are known to work
+    AC_CHECK_PROGS(CLANG_FORMAT, clang-format-22 clang-format-21 clang-format-20 clang-format-19 clang-format-18 clang-format)
   else
     AC_MSG_CHECKING([clang-format])
     CLANG_FORMAT="$with_clang_format"
