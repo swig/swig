@@ -7,7 +7,10 @@
 %template(VectorInt) std::vector<int>;
 
 %inline %{
-std::vector<int> make_vector_a() {
-  return {10, 20, 30};
-}
+class VecHolder_a {
+public:
+  std::vector<int> data;
+  VecHolder_a() : data({10, 20, 30}) {}
+  std::vector<int>& get() { return data; }
+};
 %}
