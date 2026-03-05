@@ -137,6 +137,7 @@ C_TEST_CASES += \
 
 MULTI_CPP_TEST_CASES += \
 	import_callback \
+	python_pyiterator_rename \
 	python_runtime_data \
 
 include $(srcdir)/../common.mk
@@ -210,6 +211,7 @@ clean:
 	rm -f imports_a.py imports_b.py mod_a.py mod_b.py
 	rm -f multi_import_a.py multi_import_b.py multi_import_d.py
 	rm -f packageoption_a.py packageoption_b.py packageoption_c.py
+	rm -f python_pyiterator_rename_a.py python_pyiterator_rename_b.py
 	rm -f python_runtime_data_builtin.py python_runtime_data_nobuiltin.py
 	rm -f template_typedef_cplx2.py
 
