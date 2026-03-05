@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-05: christophe-calmejane
+            [Lua] #3305 Added std::array and std::set support.
+
 2026-03-04: wsfulton
             #3312 SWIG source code in Source directory is now formatted with clang-format.
 
@@ -20,9 +23,11 @@ Version 4.5.0 (in progress)
             Please see docs in Doc/Manual/Extending.html.
 
             In order to the ease pain of working on git branches that were branched prior to the
-            commit on master that reformatted the code (f007c329), the following is suggested.
-            Merge/rebase onto the prior commit, then, run the identical commands specified
-            in the f007c329 commit message. The branch should then merge cleanly onto f007c329.
+            commit on master that reformatted the code (bbdec1f7), the following is suggested.
+            1. Merge/rebase onto the prior commit bbdec1f7^
+            2. Copy Source/.clang-format from bbdec1f7 into your working directory
+            3. Run the identical commands specified in the bbdec1f7 commit message
+            The branch should then merge cleanly onto bbdec1f7.
 
 2026-02-28: ArtemKozak666
             [C#] #3321 Fix undefined behaviour in std::string_view directorin typemap.
