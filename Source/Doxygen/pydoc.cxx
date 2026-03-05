@@ -34,8 +34,10 @@ public:
   static const char *Level() {
     return "    ";
   }
-  // Default ctor doesn't do anything and prevents the dtor from doing anything// too and should only be used when the guard needs to be initialized//
-  // conditionally as Init() can then be called after checking some condition.// Otherwise, prefer to use the non default ctor below.
+  // Default ctor doesn't do anything and prevents the dtor from doing anything
+  // too and should only be used when the guard needs to be initialized
+  // conditionally as Init() can then be called after checking some condition.
+  // Otherwise, prefer to use the non default ctor below.
   IndentGuard() {
     m_initialized = false;
   }
