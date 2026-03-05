@@ -10,7 +10,11 @@
 class VecHolder_a {
 public:
   std::vector<int> data;
-  VecHolder_a() : data({10, 20, 30}) {}
+  VecHolder_a() {
+    data.push_back(10);
+    data.push_back(20);
+    data.push_back(30);
+  }
   std::vector<int>& get() { return data; }
 };
 %}
