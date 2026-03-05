@@ -26,6 +26,7 @@ CPP_TEST_CASES = \
 	csharp_lib_arrays \
 	csharp_lib_arrays_bool \
 	csharp_namespace_system_collision \
+	csharp_nspace_interface \
 	csharp_prepost \
 	csharp_swig2_compatibility \
 	csharp_typemaps \

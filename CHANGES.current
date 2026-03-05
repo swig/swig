@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-05: FilipAlg
+            [C#] #3354 Fully qualify generated C# interfaces when using the interface
+            and nspace features.
+
 2026-03-05: christophe-calmejane
             [Lua] #3305 Added std::array and std::set support.
 
