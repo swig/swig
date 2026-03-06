@@ -1,4 +1,4 @@
-%module nspace_interface
+%module cpp17_nspace_interface
 
 // nspace feature only supported by these languages
 #if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)

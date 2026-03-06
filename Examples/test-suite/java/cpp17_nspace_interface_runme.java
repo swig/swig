@@ -1,9 +1,9 @@
-// This tests changes the package name from nspace_interface to nspace_interfacePackage as javac can't seem to resolve classes and packages having the same name
-public class nspace_interface_runme {
+// This tests changes the package name from cpp17_nspace_interface to cpp17_nspace_interfacePackage as javac can't seem to resolve classes and packages having the same name
+public class cpp17_nspace_interface_runme {
 
   static {
     try {
-	System.loadLibrary("nspace_interface");
+	System.loadLibrary("cpp17_nspace_interface");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -11,7 +11,7 @@ public class nspace_interface_runme {
   }
 
   public static void main(String argv[]) {
-    nspace_interfacePackage.A.Implementer impl = new nspace_interfacePackage.A.Implementer();
+    cpp17_nspace_interfacePackage.A.Implementer impl = new cpp17_nspace_interfacePackage.A.Implementer();
 
     Assert(impl.Method(), "Implemented A::B::Interface::Method");
   }
