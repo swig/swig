@@ -1,4 +1,10 @@
-%module csharp_nspace_interface
+%module nspace_interface
+
+// nspace feature only supported by these languages
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+
+// %interface only supported by these languages
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 
 %nspace;
 
@@ -26,3 +32,9 @@ namespace A {
   };
 }
 %}
+
+#endif
+
+#else
+//#warning nspace feature not yet supported in this target language
+#endif

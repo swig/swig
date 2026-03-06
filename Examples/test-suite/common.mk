@@ -363,6 +363,7 @@ CPP_TEST_CASES += \
 	newobject3 \
 	nspace \
 	nspace_extend \
+	nspace_interface \
 	nspacemove \
 	nspacemove_nested \
 	nspacemove_stl \

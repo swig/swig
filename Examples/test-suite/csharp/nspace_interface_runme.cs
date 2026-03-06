@@ -1,5 +1,5 @@
 using System;
-using csharp_nspace_interfaceNamespace.A;
+using nspace_interfaceNamespace.A;
 
 public class runme
 {
