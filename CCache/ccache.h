@@ -2,45 +2,67 @@
 
 #define CCACHE_VERSION SWIG_VERSION
 
-#ifndef _WIN32
 #include "config.h"
-#else
-#include <sys/locking.h>
-#include "config_win32.h"
-#endif
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#ifndef _WIN32
- #include <sys/wait.h>
- #include <sys/mman.h>
-#else
-#ifndef _WIN32_WINNT
- #define _WIN32_WINNT 0x0500
-#endif
+#ifdef _WIN32
+ #ifndef _WIN32_WINNT
+ /* minimum Windows OS SDK */
+ #define _WIN32_WINNT _WIN32_WINNT_WIN2K /* 0x0500 Windows 2000 */
+ #endif
  #include <windows.h>
  #include <shlobj.h>
-#endif
+ #include <io.h>
+ #include <direct.h>
+ #include <sys/locking.h>
+ #include <sys/utime.h>
+ #ifndef S_ISREG
+ #define S_ISREG(mode) (((mode) & S_IFREG) == S_IFREG)
+ #endif
+ #ifndef S_ISDIR
+ #define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
+ #endif
+ void perror_win32(LPTSTR pszFunction);
+ char *argvtos(char **argv);
+ #define MYNAME PROGRAM_NAME ".exe"
+#else /* _WIN32 */
+ #define MYNAME PROGRAM_NAME
+#endif /* _WIN32 */
 
-#include <sys/file.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <time.h>
 #include <string.h>
-#include <ctype.h>
-#include <utime.h>
 #include <stdarg.h>
-#include <dirent.h>
 #include <limits.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_CTYPE_H
+#include <ctype.h>
+#endif
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#endif
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_WAIT_H
+#include <sys/wait.h>
+#endif
+#ifdef HAVE_SYS_MMAN_H
+#include <sys/mman.h>
 #endif
 
 #ifdef ENABLE_ZLIB
@@ -50,8 +72,6 @@
 #define STATUS_NOTFOUND 3
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
-
-#define MYNAME PROGRAM_NAME
 
 #define LIMIT_MULTIPLE 0.8
 
@@ -134,9 +154,6 @@ char *gnu_getcwd(void);
 int create_empty_file(const char *fname);
 const char *get_home_directory(void);
 int x_utimes(const char *filename);
-#ifdef _WIN32
-void perror_win32(LPTSTR pszFunction);
-#endif
 
 void stats_update(enum stats stat);
 void stats_zero(void);
@@ -165,9 +182,6 @@ void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize, size_t minfil
 void cleanup_all(const char *dir);
 void wipe_all(const char *dir);
 
-#ifdef _WIN32
-char *argvtos(char **argv);
-#endif
 int execute(char **argv, 
 	    const char *path_stdout,
 	    const char *path_stderr);
@@ -199,11 +213,3 @@ typedef int (*COMPAR_FN_T)(const void *, const void *);
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
-
-/* mkstemp() on some versions of cygwin don't handle binary files, so
-   override */
-/* Seems okay in Cygwin 1.7.0
-#ifdef __CYGWIN__
-#undef HAVE_MKSTEMP
-#endif
-*/
