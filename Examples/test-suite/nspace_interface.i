@@ -16,12 +16,14 @@
 %inline %{
 #include <string>
 
-namespace A::B {
+namespace A {
+namespace B {
   class Interface {
   public:
     virtual std::string Method() = 0;
     virtual ~Interface() {};
   };
+}
 }
 
 namespace A {
