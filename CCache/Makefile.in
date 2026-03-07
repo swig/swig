@@ -21,7 +21,7 @@ EXEEXT=@EXEEXT@
 LIBS= @LIBS@
 OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
 	cleanup.o snprintf.o unify.o
-HEADERS = ccache.h mdfour.h config.h config_win32.h
+HEADERS = ccache.h mdfour.h config.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
@@ -65,12 +65,12 @@ clean-docs:
 	rm -f $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/$(PACKAGE_NAME)-man.html
 
 test: test.sh
-	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' CCACHE='../$(PACKAGE_NAME)' CCACHE_PROG=$(PROGRAM_NAME) $(srcdir)/test.sh
+	SWIG_LIB='$(SWIG_LIB)' PATH=../..:$$PATH SWIG='$(SWIG)' CC='$(CC)' NOSOFTLINKSTEST='$(NOSOFTLINKSTEST)' CCACHE='../$(PACKAGE_NAME)$(EXEEXT)' CCACHE_PROG='$(PROGRAM_NAME)$(EXEEXT)' $(srcdir)/test.sh
 
 check: test
 
 distclean: clean
-	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h config_win32.h
+	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h
 	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean
