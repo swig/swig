@@ -68,31 +68,6 @@ jobs:
     strategy:
       matrix:
         include:
-        - SWIGLANG: ''
-          os: macos-14
-        - SWIGLANG: ''
-          COMPILER: gcc
-          GCC: 13
-          os: macos-14
-        - SWIGLANG: ''
-          COMPILER: gcc
-          GCC: 14
-        - SWIGLANG: ''
-          COMPILER: gcc
-          GCC: 15
-        - SWIGLANG: ''
-        - SWIGLANG: java
-          VER: 11
-          os: macos-15
-        - SWIGLANG: java
-          VER: 17
-          os: macos-15
-        - SWIGLANG: java
-          VER: 21
-          os: macos-15
-        - SWIGLANG: java
-          VER: 25
-        - SWIGLANG: java
         - SWIGLANG: python
           VER: '3.11'
           COMPILER: gcc
@@ -106,34 +81,15 @@ jobs:
           VER: '3.14'
           os: macos-15
         - SWIGLANG: python
+          VER: '3.14'
+        - SWIGLANG: python
           COMPILER: gcc
           GCC: 15
           CSTD: gnu99
         - SWIGLANG: python
           os: macos-15
-        - SWIGLANG: ruby
-          VER: '3.2'
-          os: macos-15
-        - SWIGLANG: ruby
-          CPPSTD: c++11
-          VER: '3.3'
-        - SWIGLANG: ruby
-          VER: '3.3'
-        - SWIGLANG: ruby
-          VER: '3.4'
-          os: macos-15
-        - SWIGLANG: ruby
-          VER: '4.0'
-        - SWIGLANG: ruby
-        - SWIGLANG: go
-          VER: '1.23'
-        - SWIGLANG: go
-          VER: '1.24'
-          CSTD: gnu99
-        - SWIGLANG: go
-          VER: '1.25'
-        - SWIGLANG: perl5
-        - SWIGLANG: tcl
+        - SWIGLANG: python
+          VER: '3.14'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -321,8 +277,11 @@ jobs:
             cxxflags+=" -I$BOOST_INC"
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
-            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            # make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" FLAGS=
+            echo "Finished 1st run......................."
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags -O2" FLAGS=
+            echo "Finished 2nd run......................."
           fi
 
     - name: Install

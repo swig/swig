@@ -105,11 +105,13 @@ namespace swig {
     
     operator PyObject *() const
     {
+      printf("PyObject * cast (1) %p\n", _obj);
       return _obj;
     }
 
     PyObject *operator->() const
     {
+      printf("PyObject * cast (2) %p\n", _obj);
       return _obj;
     }
   };

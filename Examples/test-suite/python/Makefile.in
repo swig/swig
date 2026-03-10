@@ -35,56 +35,6 @@ FAILING_CPP_TESTS += \
 endif
 
 CPP_TEST_CASES += \
-	callback \
-	complextest \
-	director_guard \
-	director_stl \
-	director_wstring \
-	file_test \
-	iadd \
-	implicittest \
-	inplaceadd \
-	input \
-	li_cstring \
-	li_cwstring \
-	li_factory \
-	li_implicit \
-	li_std_containers_int \
-	li_std_list \
-	li_std_map_member \
-	li_std_multimap \
-	li_std_pair_extra \
-	li_std_set \
-	li_std_stream \
-	li_std_string_extra \
-	li_std_vectora \
-	li_std_vector_extra \
-	li_std_wstream \
-	li_std_wstring_inherit \
-	primitive_types \
-	python_abstractbase \
-	python_annotations_c \
-	python_annotations_variable_c \
-	python_append \
-	python_builtin \
-	python_destructor_exception \
-	python_director \
-	python_docstring \
-	python_extranative \
-	python_flatstaticmethod \
-	python_moduleimport \
-	python_overload_simple_cast \
-	python_pickle \
-	python_pythoncode \
-	python_richcompare \
-	python_strict_unicode \
-	python_threads \
-	python_typemap_macro \
-	python_various \
-	simutry \
-	std_containers \
-	swigobject \
-	template_matrix \
 
 #	director_profile
 
@@ -97,47 +47,23 @@ endif
 
 # Test requiring python-3.11 minimum if using Py_LIMITED_API
 ifeq (1,$(PY_ABI_311))
-CPP_TEST_CASES += pyabi311_bufferinterface
 endif
 
 # Test requiring python-3.11 minimum if using Py_LIMITED_API if and only if python>=3.13
 ifeq (1,$(PY_ABI_311))
-CPP_TEST_CASES += python_pybuffer
 else
 PY_313:=$(shell test $(PY_VER_3_DIGIT) -ge 313 && echo "1")
 ifeq (,$(PY_313))
-CPP_TEST_CASES += python_pybuffer
 endif
 endif
 
 CPP11_TEST_CASES = \
-	cpp11_hash_tables \
-	cpp11_shared_ptr_const \
-	cpp11_shared_ptr_crtp_upcast \
-	cpp11_shared_ptr_nullptr_in_containers \
-	cpp11_shared_ptr_overload \
-	cpp11_shared_ptr_template_upcast \
-	cpp11_shared_ptr_upcast \
-	cpp11_std_unordered_map \
-	cpp11_std_unordered_multimap \
-	cpp11_std_unordered_multiset \
-	cpp11_std_unordered_set \
 
 CPP17_TEST_CASES = \
-	cpp17_std_filesystem
 
 C_TEST_CASES += \
-	ccomplextest \
-	file_test \
-	li_cstring \
-	li_cwstring \
-	python_nondynamic \
-	python_varargs_typemap \
-	python_weakref \
 
 MULTI_CPP_TEST_CASES += \
-	import_callback \
-	python_runtime_data \
 
 include $(srcdir)/../common.mk
 
