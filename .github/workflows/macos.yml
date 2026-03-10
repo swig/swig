@@ -25,49 +25,12 @@ permissions:
   contents: read
 
 jobs:
-  # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
-  # The clang-format version used is slightly different for each OS workflow file
-  # This job gates the main build job so must succeed before the main build job is run
-  clang-format:
+  filters:
     runs-on: ubuntu-latest
-    name: clang-format 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v5.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
-
-  build:
-
-    # When continue-on-error is true for an individual build,
-    # that build can fail (it'll show red),
-    # but it won't fail the overall build
-    continue-on-error: ${{ matrix.continue-on-error || false }}
-
-    # https://github.com/actions/runner-images/tree/main/images/macos
-    runs-on: ${{ matrix.os || 'macos-26' }}
-
-    # The name of the test follow the tested language
-    name: >
-      ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.VER }}
-      ${{ matrix.SWIG_FEATURES }}
-      ${{ matrix.COMPILER || 'clang' }}
-      ${{ matrix.GCC }}
-      ${{ matrix.CPPSTD }}
-      ${{ matrix.CSTD }}
-      ${{ matrix.os }}
-      ${{ matrix.continue-on-error && '(can fail)' }}
-
-    needs: [clang-format]
-
-    strategy:
-      matrix:
-        include:
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    env:
+      MATRIX_BASE: |
         - SWIGLANG: ''
           os: macos-14
         - SWIGLANG: ''
@@ -132,6 +95,64 @@ jobs:
           VER: '1.25'
         - SWIGLANG: perl5
         - SWIGLANG: tcl
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+
+    # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
+    # The clang-format version used is slightly different for each OS workflow file
+    # This job gates the main build job so must succeed before the main build job is run
+    - name: Check with clang-format 20
+      uses: RafikFarhad/clang-format-github-action@v5.1
+      with:
+        sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+        style: file
+
+    - name: Get changed files
+      uses: tj-actions/changed-files@v47
+      with:
+        json: true
+        write_output_files: true
+
+    - name: Probe files and select tests in matrix
+      id: set_matrix
+      run: |
+        $GITHUB_WORKSPACE/Tools/GHA-dynamic-matrix.py
+
+# Uncomment to print the result
+#   - name: print dynamic matrix result
+#     env:
+#       RESULT: ${{ steps.set_matrix.outputs.matrix }}
+#     run: echo "$RESULT"
+
+  build:
+    # When continue-on-error is true for an individual build,
+    # that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    # https://github.com/actions/runner-images/tree/main/images/macos
+    runs-on: ${{ matrix.os || 'macos-26' }}
+
+    # The name of the test follow the tested language
+    name: >
+      ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.VER }}
+      ${{ matrix.SWIG_FEATURES }}
+      ${{ matrix.COMPILER || 'clang' }}
+      ${{ matrix.GCC }}
+      ${{ matrix.CPPSTD }}
+      ${{ matrix.CSTD }}
+      ${{ matrix.os }}
+      ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: filters
+
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.filters.outputs.matrix) }}
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -241,13 +262,15 @@ jobs:
                 ;;
               python)
                 echo "/Library/Frameworks/Python.framework/Versions/$VER/bin" >> $GITHUB_PATH
+                # Can also be found in:
+                # "$RUNNER_TOOL_CACHE/Python/$VER.*/$arc/bin"
                 ;;
               ruby)
-                ruby_dir="$(ls -d /Users/runner/hostedtoolcache/Ruby/$VER.*/$arc/bin)"
+                ruby_dir="$(ls -d $RUNNER_TOOL_CACHE/Ruby/$VER.*/$arc/bin)"
                 echo "$ruby_dir" >> $GITHUB_PATH
                 ;;
               go)
-                go_dir="$(ls -d /Users/runner/hostedtoolcache/go/$VER.*/$arc/bin)"
+                go_dir="$(ls -d $RUNNER_TOOL_CACHE/go/$VER.*/$arc/bin)"
                 echo "$go_dir" >> $GITHUB_PATH
                 ;;
               esac
