@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-10: xSetech
+            [Python] #3365 Fix descriptor() type lookup when SwigPyIterator is renamed
+            via #define for use in multiple modules.
+
 2026-03-06: wsfulton
             [Java] #3354 Fully qualify generated Java interfaces when using the %interface
             and %nspace features.

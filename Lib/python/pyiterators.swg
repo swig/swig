@@ -133,16 +133,7 @@ namespace swig {
     }
       
     static swig_type_info* descriptor() {
-      static int init = 0;
-      static swig_type_info* desc = 0;
-      if (!init) {
-#define _SwigPyIterator_STRINGIZE(name) #name
-#define _SwigPyIterator_NAME(name) _SwigPyIterator_STRINGIZE(name)
-        desc = SWIG_TypeQuery("swig::" _SwigPyIterator_NAME(SwigPyIterator) " *");
-#undef _SwigPyIterator_STRINGIZE
-#undef _SwigPyIterator_NAME
-        init = 1;
-      }
+      static swig_type_info* desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(SwigPyIterator) " *");
       return desc;
     }
   };

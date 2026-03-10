@@ -127,3 +127,6 @@
 #else
 # define SWIG_NOEXCEPT throw()
 #endif 
+
+#define SWIG_QUOTE_STRING(x) #x
+#define SWIG_STRINGIFY(x) SWIG_QUOTE_STRING(x)
