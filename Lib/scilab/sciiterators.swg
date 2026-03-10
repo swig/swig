@@ -101,7 +101,7 @@ namespace swig {
     }
 
     static swig_type_info* descriptor() {
-      static swig_type_info *desc = SWIG_TypeQuery("swig::SciSwigIterator *");
+      static swig_type_info *desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(SciSwigIterator) " *");
       return desc;
     }
   };

@@ -173,7 +173,7 @@ namespace swig {
     }
       
     static swig_type_info* descriptor() {
-      static swig_type_info *desc = SWIG_TypeQuery("swig::ConstIterator *");
+      static swig_type_info *desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(ConstIterator) " *");
       return desc;
     }
   };
@@ -199,7 +199,7 @@ namespace swig {
 
   public:
     static swig_type_info* descriptor() {
-      static swig_type_info *desc = SWIG_TypeQuery("swig::Iterator *");
+      static swig_type_info *desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(Iterator) " *");
       return desc;
     }
     
