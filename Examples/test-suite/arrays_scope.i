@@ -11,7 +11,7 @@ namespace foo {
       int  adata[ASIZE];
       int  bdata[BBSIZE];
       int  cdata[CCSIZE];
-      void blah(int x[ASIZE], int y[BBSIZE], int z[CCSIZE]) { };
+      void blah(int x[ASIZE], int y[BBSIZE], int z[CCSIZE]) { }
    };
 }
 

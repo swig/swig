@@ -54,7 +54,7 @@
   defined(SWIGJAVA) || defined(SWIGOCAML) || defined(SWIGCSHARP)
     virtual std::string do_step() const = 0;
 #else
-    virtual std::string do_step() const {return "";};
+    virtual std::string do_step() const {return "";}
 #endif
   };  
   

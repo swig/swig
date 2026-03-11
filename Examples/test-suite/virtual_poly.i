@@ -31,7 +31,7 @@
 %inline %{  
   struct NNumber
   {
-    virtual ~NNumber() {};
+    virtual ~NNumber() {}
     virtual NNumber* copy() const = 0;
     virtual NNumber& ref_this() 
     {

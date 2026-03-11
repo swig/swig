@@ -131,8 +131,8 @@ void show(void *count = 0, void *data = 0)
 %inline %{
   class Fl_Window {
   public:
-    Fl_Window() {};
-    ~Fl_Window() {};
+    Fl_Window() {}
+    ~Fl_Window() {}
   };
 %}
 

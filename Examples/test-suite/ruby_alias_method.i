@@ -17,10 +17,10 @@ public:
 
 Synonym::Synonym(std::string myName){
   this->myName = myName;
-};
+}
 
 std::string Synonym::getMyName(){
   return this->myName;
-};
+}
 
 %}

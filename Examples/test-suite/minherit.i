@@ -16,7 +16,7 @@ private:
 public:
     Foo() { x = 1; }
     virtual ~Foo() {}
-    virtual int  xget() {  return x; };
+    virtual int  xget() {  return x; }
 };
 typedef Foo *FooPtr;
 
