@@ -11,7 +11,6 @@ AC_CONFIG_HEADERS([config.h])
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_INSTALL
 AC_ARG_PROGRAM # for program_transform_name
 
 AC_SUBST(PROGRAM_NAME)

@@ -448,7 +448,8 @@ jobs:
       if: ${{ env.INSTALL == 'true' }}
       shell: bash
       run: |
-          make -s install > /dev/null
+          set -x
+          make install
 
           which swig.exe
           swig.exe -version
