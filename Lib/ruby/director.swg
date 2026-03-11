@@ -235,13 +235,13 @@ namespace Swig {
   private:
     typedef std::map<void *, GCItem_var> swig_ownership_map;
     mutable swig_ownership_map swig_owner;
-    SWIG_GUARD_DECLARATION(swig_mutex_own);
+    SWIG_GUARD_DECLARATION(swig_mutex_own)
 
   public:
     template <typename Type>
     void swig_acquire_ownership_array(Type *vptr) const {
       if (vptr) {
-	SWIG_GUARD(swig_mutex_own);
+	SWIG_GUARD(swig_mutex_own)
 	swig_owner[vptr] = new GCArray_T<Type>(vptr);
       }
     }
@@ -249,14 +249,14 @@ namespace Swig {
     template <typename Type>
     void swig_acquire_ownership(Type *vptr)  const {
       if (vptr) {	
-	SWIG_GUARD(swig_mutex_own);
+	SWIG_GUARD(swig_mutex_own)
 	swig_owner[vptr] = new GCItem_T<Type>(vptr);
       }
     }
 
     void swig_acquire_ownership_obj(void *vptr, swig_ruby_owntype own) const {
       if (vptr && own.datafree) {
-	SWIG_GUARD(swig_mutex_own);
+	SWIG_GUARD(swig_mutex_own)
 	swig_owner[vptr] = new GCItem_Object(own);
       }
     }
@@ -264,7 +264,7 @@ namespace Swig {
     swig_ruby_owntype swig_release_ownership(void *vptr) const {
       swig_ruby_owntype own = {0, 0};
       if (vptr) {
-	SWIG_GUARD(swig_mutex_own);
+	SWIG_GUARD(swig_mutex_own)
 	swig_ownership_map::iterator iter = swig_owner.find(vptr);
 	if (iter != swig_owner.end()) {
 	  own.datafree = iter->second->get_own().datafree;
@@ -274,6 +274,6 @@ namespace Swig {
       return own;
     }
   };
-  SWIG_GUARD_DEFINITION(Director, swig_mutex_own);
+  SWIG_GUARD_DEFINITION(Director, swig_mutex_own)
 }
 

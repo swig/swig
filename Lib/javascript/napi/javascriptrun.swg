@@ -140,7 +140,7 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
         size(0),
         info(nullptr)
         {}
-    virtual ~SWIG_NAPI_ObjectWrap_templ() {};
+    virtual ~SWIG_NAPI_ObjectWrap_templ() {}
 
     Napi::Value ToString(const Napi::CallbackInfo &info);
 };
