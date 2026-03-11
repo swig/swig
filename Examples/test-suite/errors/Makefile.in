@@ -55,12 +55,12 @@ STRIP_SRCDIR:= sed 's%\\%/%g;s%^$(SRCDIR)%%'
 %.cpptest:
 	$(ECHO_PROGRESS) "$(ACTION)ing errors testcase $*"
 	-$(SWIGINVOKE) -c++ -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff -c --ignore-all-space $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
+	$(COMPILETOOL) diff -cw $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.ctest:
 	$(ECHO_PROGRESS) "$(ACTION)ing errors testcase $*"
 	-$(SWIGINVOKE) -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
-	$(COMPILETOOL) diff -c --ignore-all-space $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
+	$(COMPILETOOL) diff -cw $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.clean:
 	@exit 0

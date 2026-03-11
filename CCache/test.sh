@@ -1,21 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # a simple test suite for ccache
 # tridge@samba.org
-
-call_ln()
-{
-  if test -z "$NOSOFTLINKSTEST"; then
-    ln $1 "$2" "$3"
-  else
-    if test "${2:0:1}" = '/'; then
-      cp -f "$2" "$3"
-    else
-      local bdir="$(dirname "$3")"
-      cp -f "$bdir/$2" "$3"
-    fi
-  fi
-}
 
 if test -n "$CC"; then
  COMPILER="$CC"
@@ -151,7 +137,7 @@ basetests() {
     checkstat 'bad compiler arguments' 1
 
     testname="c/c++"
-    call_ln '-f' test1.c test1.ccc
+    cp -f test1.c test1.ccc
     $CCACHE_COMPILE -c test1.ccc 2> /dev/null
     checkstat 'not a C/C++ file' 1
 
@@ -426,7 +412,7 @@ swigtests() {
 rm -rf $TESTDIR
 mkdir $TESTDIR
 if test -n "$CCACHE_PROG"; then
-  call_ln '-s' "$CCACHE" "$TESTDIR/$CCACHE_PROG"
+  cp "$CCACHE" $TESTDIR
   CCACHE=./$CCACHE_PROG
 fi
 cd $TESTDIR || exit 1
