@@ -203,19 +203,14 @@ jobs:
             # GCC front-end is available with versioned only!
             CC="gcc-$GCC"
             CXX="g++-$GCC"
-            CC_NAME="$CC"
-            echo "CC=$CC" >> $GITHUB_ENV
-            echo "CXX=$CXX" >> $GITHUB_ENV
           else # The defualt on MacOS is Clang
             CFLAGS+=" -Wno-deprecated-declarations"
             CXXFLAGS+=" -Wno-deprecated-declarations"
-            # These are the defualt in configure, no need to export
-            CC=cc
-            CXX=c++
-            CC_NAME='clang'
+            CC='clang'
+            CXX='clang++'
           fi
-          # Compiler name for Tools/testflags.py
-          echo "CC_NAME=$CC_NAME" >> $GITHUB_ENV
+          echo "CC=$CC" >> $GITHUB_ENV
+          echo "CXX=$CXX" >> $GITHUB_ENV
           ls -la $(which $CC) $(which $CXX)
           $CC --version
           $CXX --version
@@ -289,8 +284,8 @@ jobs:
           else
             # Stricter compile flags for examples.
             # Various headers and SWIG generated code prevents full use of -pedantic.
-            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC_NAME)"
-            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC_NAME)"
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
             # Include for the boost headers
             cxxflags+=" -I$BOOST_INC"
             make check-$SWIGLANG-version
