@@ -74,6 +74,13 @@
 <ul>
 <li><a href="#Lua_directors_enabling">Enabling directors</a>
 <li><a href="#Lua_directors_usage">Using directors in Lua</a>
+<ul>
+<li><a href="#Lua_directors_helpers">Helper Functions</a>
+<li><a href="#Lua_directors_basic_example">Basic Example</a>
+<li><a href="#Lua_directors_override_multiple_methods">Overriding multiple methods</a>
+<li><a href="#Lua_directors_derived_class">Creating derived class patterns</a>
+<li><a href="#Lua_directors_current_override">Getting the current override</a>
+</ul>
 <li><a href="#Lua_directors_exceptions">Exception handling in directors</a>
 <li><a href="#Lua_directors_caveats">Director caveats and limitations</a>
 </ul>
@@ -2061,6 +2068,8 @@ It is also currently not possible to change the ownership flag on the data (unli
 
 
 <H2><a name="Lua_directors">29.8 Cross language polymorphism using directors</a></H2>
+
+
 <p>
 Unlike languages such as Python or Java, Lua does not have built-in class inheritance or polymorphism.
 Lua uses prototype-based object orientation, where objects can be extended dynamically but there is no
@@ -2078,6 +2087,8 @@ SWIG provides helper functions (<tt>swig_override</tt>, <tt>swig_derive</tt>, <t
 that make it easy to set up these overrides without needing to understand the underlying implementation details.
 </p>
 <H3><a name="Lua_directors_enabling">29.8.1 Enabling directors</a></H3>
+
+
 <p>
 The director feature is disabled by default. To use directors you must make two changes to the interface file.
 First, add the "directors" option to the %module directive:
@@ -2108,11 +2119,15 @@ You can use %feature("nodirector") to disable directors for specific classes or 
 </pre>
 </div>
 <H3><a name="Lua_directors_usage">29.8.2 Using directors in Lua</a></H3>
+
+
 <p>
 When directors are enabled, SWIG provides helper functions to override virtual methods in Lua.
 These functions make it easy to extend C++ classes from Lua without exposing internal implementation details.
 </p>
-<H4>29.8.2.1 Helper Functions</H4>
+<H4><a name="Lua_directors_helpers">29.8.2.1 Helper Functions</a></H4>
+
+
 <p>
 SWIG provides the following helper functions when directors are enabled:
 </p>
@@ -2121,7 +2136,9 @@ SWIG provides the following helper functions when directors are enabled:
 <li><b>swig_get_override(obj, methodName)</b> - Get the current override function for a method</li>
 <li><b>swig_derive(obj, overrides)</b> - Override multiple virtual methods at once</li>
 </ul>
-<H4>29.8.2.2 Basic Example</H4>
+<H4><a name="Lua_directors_basic_example">29.8.2.2 Basic Example</a></H4>
+
+
 <p>
 Given a C++ class:
 </p>
@@ -2165,7 +2182,9 @@ end)
 obj:printMessage()  -- Prints: "Hello from Lua!"
 </pre>
 </div>
-<H4>29.8.2.3 Overriding multiple methods</H4>
+<H4><a name="Lua_directors_override_multiple_methods">29.8.2.3 Overriding multiple methods</a></H4>
+
+
 <p>
 Use <tt>swig_derive</tt> to override multiple methods at once:
 </p>
@@ -2182,7 +2201,9 @@ end
 })
 </pre>
 </div>
-<H4>29.8.2.4 Creating derived class patterns</H4>
+<H4><a name="Lua_directors_derived_class">29.8.2.4 Creating derived class patterns</a></H4>
+
+
 <p>
 You can create a pattern similar to class inheritance in Lua:
 </p>
@@ -2203,7 +2224,9 @@ local derived = MyDerivedClass()
 derived:printMessage()  -- Calls the Lua override
 </pre>
 </div>
-<H4>29.8.2.5 Getting the current override</H4>
+<H4><a name="Lua_directors_current_override">29.8.2.5 Getting the current override</a></H4>
+
+
 <p>
 Use <tt>swig_get_override</tt> to retrieve the current override function for a method.
 If no override has been set for the specified method, it returns <tt>nil</tt>.
@@ -2228,6 +2251,8 @@ assert(noFunc == nil)
 </pre>
 </div>
 <H3><a name="Lua_directors_exceptions">29.8.3 Exception handling in directors</a></H3>
+
+
 <p>
 When a Lua function overriding a virtual method throws an error (using Lua's <tt>error()</tt> function),
 the error will be caught and can be handled appropriately. The error message from Lua is preserved
@@ -2243,6 +2268,8 @@ end)
 </pre>
 </div>
 <H3><a name="Lua_directors_caveats">29.8.4 Director caveats and limitations</a></H3>
+
+
 <ul>
 <li>
 <b>Per-instance overrides:</b> Overrides are set per-instance, not per-class. Each object can have

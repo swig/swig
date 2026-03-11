@@ -3641,11 +3641,11 @@ How the tool is used during the development/building of SWIG depends on configur
 </tr>
 <tr>
   <td>./configure</td> <td>Look for clang-format and only use if found (default)</td> <td>SWIG developers if clang-format is installed, everyone else if not installed</td>
-<tr>
+</tr>
 <tr>
   <td>./configure --with-clang-format</td> <td>Look for clang-format and only use if found</td> <td>SWIG developers with a standard clang-format installation</td>
-<tr>
 </tr>
+<tr>
 <td>./configure --with-clang-format=&lt;path&gt;</td> <td>Use explicit/renamed clang-format binary</td> <td>SWIG developers with a non-standard clang-format installation</td>
 </tr>
 <tr>
@@ -3673,19 +3673,19 @@ If clang-format is found during configure time, the make targets listed below ca
 </tr>
 <tr>
   <td>format-review</td> <td>make format-review</td> <td>For invoking clang-format to warn about source formatting discrepancies</td>
-<tr>
+</tr>
 <tr>
   <td>format-check</td> <td>make format-check</td> <td>For invoking clang-format to error out when there are source formatting discrepancies</td>
-<tr>
+</tr>
 <tr>
   <td>format-inplace</td> <td>make format-inplace</td> <td>For invoking clang-format to correct source formatting - overwrites source files in-place</td>
-<tr>
+</tr>
 <tr>
   <td>format</td> <td>make format</td> <td>Identical to format-inplace target</td>
-<tr>
+</tr>
 <tr>
   <td></td> <td>make</td> <td>Default make target for building the swig executable and invoking the format-review target</td>
-<tr>
+</tr>
 </table>
 
 <p>
