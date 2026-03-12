@@ -256,6 +256,27 @@ class set {
     }
   }
 
+  // A user-defined conversion operator from HashSet<cstype>
+  public static implicit operator $csclassname(global::System.Collections.Generic.HashSet<$typemap(cstype, T)> convertInstance) {
+    var newInstance = new $csclassname();
+
+    foreach(var item in convertInstance) {
+      newInstance.Add(item);
+    }
+
+    return newInstance;
+  }
+
+  // A user-defined conversion operator to HashSet<cstype>
+  public static implicit operator global::System.Collections.Generic.HashSet<$typemap(cstype, T)>($csclassname convertInstance) {
+    var newInstance = new global::System.Collections.Generic.HashSet<$typemap(cstype, T)>();
+
+    foreach(var item in convertInstance) {
+      newInstance.Add(item);
+    }
+
+    return newInstance;
+  }
 %}
 
   public:
