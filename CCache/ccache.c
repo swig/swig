@@ -23,6 +23,17 @@
 
 #include "ccache.h"
 
+#ifndef HAVE_UNISTD_H
+__inline static unsigned __cdecl getpid()
+{
+#ifdef _WIN32
+	return (unsigned)GetCurrentProcessId();
+#else
+	return 0;
+#endif
+}
+#endif
+
 /* verbose mode */
 int ccache_verbose = 0;
 
@@ -771,7 +782,11 @@ static void find_compiler(int argc, char **argv)
 	base = str_basename(argv[0]);
 
 	/* we might be being invoked like "ccache gcc -c foo.c" */
-	if (strcmp(base, MYNAME) == 0) {
+	if (strcmp(base, MYNAME) == 0
+#ifdef _WIN32 /* can be invoked without the `.exe` extension */
+	    || strcmp(base, PROGRAM_NAME) == 0
+#endif
+	    ) {
 		args_remove_first(orig_args);
 		free(base);
 		if (strchr(argv[1],'/')
@@ -1135,7 +1150,8 @@ static void process_args(int argc, char **argv)
 static void detect_swig(void)
 {
 	char *basename = str_basename(orig_args->argv[0]);
-	if (strstr(basename, "swig") || getenv("CCACHE_SWIG")) {
+	char *ccache_swig = getenv("CCACHE_SWIG");
+	if (strstr(basename, "swig") || (ccache_swig != NULL && ccache_swig[0] != 0)) {
 		swig = 1;
 	}
 	free(basename);
