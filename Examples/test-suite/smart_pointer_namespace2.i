@@ -9,7 +9,7 @@ namespace one
         T* p;
     public:
         Ptr(T *tp) : p(tp) {}
-        ~Ptr() { };
+        ~Ptr() { }
         T* operator->() { return p; }
     };
 }
@@ -44,7 +44,7 @@ namespace one
         T* p;
     public:
         Ptr(T *tp) : p(tp) {}
-        ~Ptr() { };
+        ~Ptr() { }
         T* operator->() { return p; }
     };
 }

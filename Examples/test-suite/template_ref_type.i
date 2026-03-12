@@ -20,7 +20,7 @@ typedef Container<X> XC;
 %inline %{
 class Y {
 public:
-    Y () {};
+    Y () {}
     bool find (XC &) { return false; }
 };
 %}

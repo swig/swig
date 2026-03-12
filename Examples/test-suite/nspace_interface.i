@@ -21,7 +21,7 @@ namespace B {
   class Interface {
   public:
     virtual std::string Method() = 0;
-    virtual ~Interface() {};
+    virtual ~Interface() {}
   };
 }
 }
@@ -30,7 +30,7 @@ namespace A {
   class Implementer : public A::B::Interface {
   public:
     virtual std::string Method() { return "Implemented A::B::Interface::Method"; }
-    virtual ~Implementer() {};
+    virtual ~Implementer() {}
   };
 }
 %}

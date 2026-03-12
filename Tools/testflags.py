@@ -53,6 +53,10 @@ def get_cxxflags(language, std, compiler):
     else:
         cxx_common += " -Wno-deprecated-declarations"
 
+    # not applicable for these languages as headers emit the warning
+    if language not in ["octave", "javascript"]:
+        cxx_common += " -Wextra-semi"
+
     cxxflags = {
              "c":"-Werror " + cxx_common,
         "csharp":"-Werror " + cxx_common,

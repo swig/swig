@@ -20,7 +20,7 @@
 
   struct Alpha
   {
-    virtual ~Alpha() { };
+    virtual ~Alpha() { }
     virtual const char* abs_method() = 0;
   };
 

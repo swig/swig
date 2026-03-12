@@ -17,7 +17,7 @@ public:
   }
   virtual ~Shape() {
     nshapes--;
-  };
+  }
   double  x, y;
   double  *z;
 
@@ -31,7 +31,7 @@ class Circle : public Shape {
 private:
   double radius;
 public:
-  Circle(double r) : radius(r) { };
+  Circle(double r) : radius(r) { }
   virtual double area(void) const;
   virtual double perimeter(void) const;
 };
@@ -40,7 +40,7 @@ class Square : public Shape {
 private:
   double width;
 public:
-  Square(double w) : width(w) { };
+  Square(double w) : width(w) { }
   virtual double area(void) const;
   virtual double perimeter(void) const;
 };

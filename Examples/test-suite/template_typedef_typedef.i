@@ -17,13 +17,13 @@ namespace TT{
         class Object2:public T {
         public:
                 void getBlabla2(typename T::ABCD::CC2 c) {
-                };
+                }
         };
         template <typename T>
         class Object1:public T {
         public:
                 void getBlabla1(typename T::ABCD::CC1 c) {
-                };
+                }
         };
 }
 
@@ -32,9 +32,9 @@ class Factory {
         typedef TT::Object1<Base> CC1;
         typedef TT::Object2<Base> CC2;
         void getBlabla4(CC2 c) {
-        };
+        }
         void getBlabla3(CC1 c) {
-        };
+        }
 };
 %}
 

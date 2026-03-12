@@ -10,27 +10,27 @@ namespace A
     class X
     {
     public:
-        X(){};
+        X(){}
     };
 
     template<typename T>
     class Foo
     {
     public:
-        Foo(){};
+        Foo(){}
     };
 
     class Bar
     {
     public:
-        Bar(){};
+        Bar(){}
     };
 
     template<typename T>
     class Baz
     {
     public:
-        Baz(){};
+        Baz(){}
     };
 }
 
@@ -40,7 +40,7 @@ namespace B
     class X : public A::X
     {
     public:
-        X(){};
+        X(){}
         A::X do_x(){return A::X();}
     };
 
@@ -49,7 +49,7 @@ namespace B
     class Foo : public A::Foo<U>
     {
     public:
-        Foo(){};
+        Foo(){}
         A::Foo<U> do_foo(){return A::Foo<U>();}
     };
 
@@ -58,7 +58,7 @@ namespace B
     class Bar : public A::Bar
     {
     public:
-        Bar(){};
+        Bar(){}
         A::Bar do_bar(){return A::Bar();}
     };
 
@@ -67,7 +67,7 @@ namespace B
     class Baz : public A::Baz<T>
     {
     public:
-        Baz(){};
+        Baz(){}
         A::Baz<T> do_baz(){return A::Baz<T>();}
     };
 }

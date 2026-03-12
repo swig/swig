@@ -55,7 +55,7 @@ namespace swig {
     virtual VALUE value() const {
       throw std::invalid_argument("value not supported");
       return Qnil;
-    };
+    }
 
     virtual VALUE setValue( const VALUE& v ) {
       throw std::invalid_argument("value= not supported");

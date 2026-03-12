@@ -73,7 +73,7 @@
     public:
       enum speed { FAST, SLOW };
       // Note: default values should be EnumClass::FAST and SWEET
-      bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); };
+      bool blah(speed s = FAST, flavor f = SWEET) { return (s == FAST && f == SWEET); }
   };
 
   // using base class enum in a derived class

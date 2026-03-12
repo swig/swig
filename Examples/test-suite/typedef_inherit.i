@@ -18,7 +18,7 @@ class Bar : public FooObj {
  public:
   virtual char *blah() {
     return (char *) "Bar::blah";
-  };
+  }
 };
 
 char *do_blah(FooObj *f) {
