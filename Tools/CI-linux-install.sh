@@ -1,15 +1,8 @@
 #!/bin/bash
 # Expected to be called from elsewhere with certain variables set
 # e.g. RETRY=travis-retry SWIGLANG=python GCC=7
-# Also provide update_env() and update_path()
+# And provide update_env(), update_path(), probe_cached_tool()
 set -e # exit on failure (same as -o errexit)
-
-# See list of cached tools in:
-# https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md#cached-tools
-probe_cached_tool()
-{
-	tool_path=$(ls -d /opt/hostedtoolcache/$1/$VER.*/x64/bin 2> /dev/null | head -1 || true)
-}
 
 if [[ "$compiler" = 'clang' ]]; then
 	$RETRY sudo apt-get -qq update
