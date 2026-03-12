@@ -76,9 +76,6 @@ jobs:
           os: macos-14
         - SWIGLANG: ''
           COMPILER: gcc
-          GCC: 14
-        - SWIGLANG: ''
-          COMPILER: gcc
           GCC: 15
         - SWIGLANG: ''
         - SWIGLANG: java
@@ -91,6 +88,7 @@ jobs:
           VER: 21
           os: macos-15
         - SWIGLANG: java
+          CPPSTD: c++20
           VER: 25
         - SWIGLANG: java
         - SWIGLANG: python
@@ -185,62 +183,47 @@ jobs:
             echo "SWIGJOBS=-j$cpu_count" >> $GITHUB_ENV
           fi
 
+          # TODO: Tools/testflags.py defaults are too old
+          if test -z "$CPPSTD"; then
+            CPPSTD=c++14
+            echo "CPPSTD=$CPPSTD" >> $GITHUB_ENV
+          fi
           if test -z "$CSTD"; then
             case "$CPPSTD" in
             c++11) CSTD=c11 ;;
             c++14) CSTD=c11 ;;
             c++17) CSTD=c17 ;;
             c++20) CSTD=c17 ;;
+            *)     CSTD=c11 ;; # TODO: Tools/testflags.py defaults are too old
             esac
+            echo "CSTD=$CSTD" >> $GITHUB_ENV
           fi
 
           if test '${{ matrix.COMPILER }}' = 'gcc' && test -n "$GCC"; then
+            # GCC front-end is available with versioned only!
             CC="gcc-$GCC"
             CXX="g++-$GCC"
-            CC_NAME="$CC"
-            echo "CC=$CC" >> $GITHUB_ENV
-            echo "CXX=$CXX" >> $GITHUB_ENV
-            ls -la $(which $CC) $(which $CXX)
-            $CC --version
-            $CXX --version
-            if test -z "$CPPSTD"; then
-              $CXX -x c++ -dM -E - < /dev/null | grep __cplusplus
-            fi
-            if test -z "$CSTD"; then
-              $CC -dM -E - < /dev/null | grep __STDC_VERSION__
-            fi
-          else # The defualt is Clang
-            CC_NAME='clang'
+          else # The defualt on MacOS is Clang
             CFLAGS+=" -Wno-deprecated-declarations"
             CXXFLAGS+=" -Wno-deprecated-declarations"
-            ls -la $(which cc) $(which c++)
-            cc --version
-            c++ --version
-            if test -z "$CPPSTD"; then
-              c++ -x c++ -dM -E - < /dev/null | grep __cplusplus
-            fi
-            if test -z "$CSTD"; then
-              cc -dM -E - < /dev/null | grep __STDC_VERSION__
-            fi
+            CC='clang'
+            CXX='clang++'
           fi
-          # Compiler name for Tools/testflags.py
-          echo "CC_NAME=$CC_NAME" >> $GITHUB_ENV
+          echo "CC=$CC" >> $GITHUB_ENV
+          echo "CXX=$CXX" >> $GITHUB_ENV
+          ls -la $(which $CC) $(which $CXX)
+          $CC --version
+          $CXX --version
+          $CXX -x c++ -dM -E - < /dev/null | grep __cplusplus
+          $CC -dM -E - < /dev/null | grep __STDC_VERSION__
 
-          if test -n "$CPPSTD"; then
-            CXXFLAGS+=" -std=$CPPSTD"
-            echo "Use C++ standard $CPPSTD"
-          fi
-          if test -n "$CSTD"; then
-            echo "CSTD=$CSTD" >> $GITHUB_ENV
-            CFLAGS+=" -std=$CSTD"
-            echo "Use C standard $CSTD"
-          fi
-          if test -n "$CFLAGS"; then
-            echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
-          fi
-          if test -n "$CXXFLAGS"; then
-            echo "CXXFLAGS=$CXXFLAGS" >> $GITHUB_ENV
-          fi
+          echo "Use C++ standard $CPPSTD"
+          CXXFLAGS+=" -std=$CPPSTD"
+          echo "CXXFLAGS=$CXXFLAGS" >> $GITHUB_ENV
+
+          echo "Use C standard $CSTD"
+          CFLAGS+=" -std=$CSTD"
+          echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
 
           if test -n "$SWIGLANG"; then
             WITHLANG="$SWIGLANG"
@@ -275,18 +258,11 @@ jobs:
       run: |
           set -x
 
-          if test -z "$CPPSTD"; then
-            CONFIGOPTS+=(--disable-cpp11-testing)
-          fi
           if test -n "$WITHLANG"; then
             CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
           fi
-          if test -n "$CFLAGS"; then
-            CONFIGOPTS+=(CFLAGS="$CFLAGS")
-          fi
-          if test -n "$CXXFLAGS"; then
-            CONFIGOPTS+=(CXXFLAGS="$CXXFLAGS")
-          fi
+          CONFIGOPTS+=(CFLAGS="$CFLAGS")
+          CONFIGOPTS+=(CXXFLAGS="$CXXFLAGS")
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
@@ -306,17 +282,10 @@ jobs:
             make $SWIGJOBS check-ccache
             make $SWIGJOBS check-errors-test-suite
           else
-            # TODO: Tools/testflags.py defaults are too old
-            if test -z "$CPPSTD"; then
-              CPPSTD=c++14
-            fi
-            if test -z "$CSTD"; then
-              CSTD=gnu17
-            fi
             # Stricter compile flags for examples.
             # Various headers and SWIG generated code prevents full use of -pedantic.
-            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC_NAME)"
-            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC_NAME)"
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
             # Include for the boost headers
             cxxflags+=" -I$BOOST_INC"
             make check-$SWIGLANG-version
