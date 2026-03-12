@@ -132,6 +132,14 @@ jobs:
           VER: '3.3'
           COMPILER: gcc
           MSYS2_ENV: ucrt64
+        - SWIGLANG: go
+          VER: '1.25'
+          COMPILER: gcc
+          CSTD: gnu11
+        - SWIGLANG: go
+          COMPILER: gcc
+          CSTD: gnu11
+          MSYS2_ENV: ucrt64
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -217,6 +225,10 @@ jobs:
               # The matched MSYS2 packages prefix
               mingw_variant=mingw-w64-ucrt-x86_64-
               ;;
+            CLANG64) # Use LLVM/Clang
+              # The matched MSYS2 packages prefix
+              mingw_variant=mingw-w64-clang-x86_64-
+              ;;
             esac
             # The matched MSYS2 active environment path prefix
             if [[ -z "$mingw_dir" ]]; then
@@ -237,6 +249,16 @@ jobs:
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
                 MORE_MSYS_PKGS+=" ${mingw_variant}ruby"
+              fi
+              ;;
+            go)
+              if [[ -n "$VER" ]]; then
+                go_dir="$(ls -d /c/hostedtoolcache/windows/go/$VER.*)/x64/bin"
+                GODIR="$(cygpath -w $go_dir)"
+                echo "$GODIR" >> $GITHUB_PATH
+              else
+                MORE_MSYS_PKGS+=" ${mingw_variant}go"
+                echo "GOROOT=$mingw_dir/lib/go" >> $GITHUB_ENV
               fi
               ;;
             esac
