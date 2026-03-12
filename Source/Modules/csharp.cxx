@@ -1002,7 +1002,18 @@ public:
     // Now write code to make the function call
     if (!native_function_flag) {
 
-      Swig_director_emit_dynamic_cast(n, f);
+      if (Swig_director_emit_dynamic_cast(n, f)) {
+        /* Add protection */
+        Setattr(n, "csharp:canthrow", "1");
+        Append(f->code, "if (!darg) {\n");
+        Append(f->code, "  SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, \"'self' is not a director\", 0);\n");
+        if (!is_void_return) {
+          Append(f->code, "  jresult = 0;\n");
+          Append(f->code, "  return jresult;\n");
+        } else
+          Append(f->code, "  return;\n");
+        Append(f->code, "}\n");
+      }
       String *actioncode = emit_action(n);
 
       /* Return value if necessary  */
