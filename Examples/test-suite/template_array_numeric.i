@@ -8,7 +8,7 @@ class Arrayf
   float a[Len];
  public:
   Arrayf() {}
-  Arrayf(const float l[Len]) { };
+  Arrayf(const float l[Len]) { }
 };
 
 template <int Len>

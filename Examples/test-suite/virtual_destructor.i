@@ -11,12 +11,12 @@ public destructor.
 
 class VirtualVoidDestructor {
 public:
-  VirtualVoidDestructor() {};
-  virtual ~VirtualVoidDestructor(void) { };
+  VirtualVoidDestructor() {}
+  virtual ~VirtualVoidDestructor(void) { }
 };
 
 class Derived : public VirtualVoidDestructor {
 protected:
-  virtual ~Derived() {};
+  virtual ~Derived() {}
 };
 %}

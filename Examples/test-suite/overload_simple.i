@@ -203,7 +203,7 @@ long long as_ll(long long ll) { return ll; }
   class Graph {
   public:
     int val;
-    Graph(int i) : val(i) {};
+    Graph(int i) : val(i) {}
   };
 }
 

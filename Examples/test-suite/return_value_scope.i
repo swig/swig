@@ -4,7 +4,7 @@
 namespace Hell {
 class Foo {
 public:
-    Foo(int) { };
+    Foo(int) { }
 };
 
 class Bar {

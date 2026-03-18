@@ -25,7 +25,7 @@
 
 class A {
  public:
-  A() { };
+  A() { }
   virtual ~A() = 0;
   virtual void something() = 0;
   virtual void method() = 0;
@@ -33,25 +33,25 @@ class A {
 
 class B : public A {
 public:
-  B() {};
-  virtual ~B() { };
-  virtual void something() { };
-  virtual void method() { };
+  B() {}
+  virtual ~B() { }
+  virtual void something() { }
+  virtual void method() { }
 };
 
 /* class C is abstract because it doesn't define all methods in A */
 class C : public A {
  public:
-  virtual ~C() { };
-  virtual void method() { };
+  virtual ~C() { }
+  virtual void method() { }
 }
 ;
 
 /* class D is not abstract, it defines everything */
 class D : public C {
  public:
-  virtual ~D() { };
-  virtual void something() { };
+  virtual ~D() { }
+  virtual void something() { }
 }
 ;
 
@@ -65,7 +65,7 @@ class AA {
 /* Multiple inheritance between two abstract classes */
 class E : public C, public AA {
 public:
-   virtual void something() { };
+   virtual void something() { }
 };
 %}
 

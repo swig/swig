@@ -79,7 +79,7 @@ public:
 protected:
   std::string ping() { 
     return "Bar::ping();"; 
-  };
+  }
   using Foo::cheer;
 
   enum Hello {hola, chao};
@@ -109,19 +109,19 @@ class PrivateFoo : private Foo
 %inline %{
   class A {
   public:
-    A() {};
-    virtual ~A() {};
+    A() {}
+    virtual ~A() {}
   protected:
-    virtual void draw() {};
+    virtual void draw() {}
   };
 
   class B : public A {
   public:
-    B() {};
-    virtual ~B() {};
+    B() {}
+    virtual ~B() {}
   protected:
-    void draw() {};
-    void draw(int arg1) {};
+    void draw() {}
+    void draw(int arg1) {}
   };
 
 %}
@@ -132,23 +132,23 @@ class PrivateFoo : private Foo
 %inline %{
   class AA {
   public:
-    AA() {};
-    virtual ~AA() {};
+    AA() {}
+    virtual ~AA() {}
   protected:
-    virtual void draw() {};
-    virtual void plot() {};
+    virtual void draw() {}
+    virtual void plot() {}
   };
 
   class BB : public AA {
   public:
-    BB() {};
-    virtual ~BB() {};
+    BB() {}
+    virtual ~BB() {}
   protected:
-    void draw() {};
-    void draw(int arg1) {};
+    void draw() {}
+    void draw(int arg1) {}
 
-    void plot(int arg1) {};
-    void plot() {};
+    void plot(int arg1) {}
+    void plot() {}
   };
 %}
 

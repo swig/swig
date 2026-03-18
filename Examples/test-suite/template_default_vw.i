@@ -6,7 +6,7 @@ class SomeClass{ };
 template<class T>  
 class Handle { 
 public: 
-    Handle( T* t=0 ) { };   
+    Handle( T* t=0 ) { }
     // ... 
 }; 
  

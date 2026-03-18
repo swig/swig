@@ -7,7 +7,7 @@
 %inline %{
 class Foo {
 public:
-  double bar(double w) {return w;};
+  double bar(double w) {return w;}
   double bar(double *w) {return w[0];}
   double bar(std::vector<double> w) {return w[0];}
 

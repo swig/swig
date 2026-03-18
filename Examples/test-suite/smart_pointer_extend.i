@@ -33,7 +33,7 @@
     class CPtrConst
     {
     public:
-      const CDerived* operator->() const {return 0;};
+      const CDerived* operator->() const {return 0;}
     };
     
   }
@@ -41,9 +41,9 @@
 %}
 
 %extend hi::CBase {
-  int foo(void) {return 1;};
-  int bar(void) {return 2;};
-  int boo(int i) {return i;};
+  int foo(void) {return 1;}
+  int bar(void) {return 2;}
+  int boo(int i) {return i;}
 }
 
 %extend hi::CDerived {
@@ -78,10 +78,10 @@
 %extend CFoo
 {
 public:
-    static void StatFun() {};
-    static void StatFun(int i) {};
+    static void StatFun() {}
+    static void StatFun(int i) {}
 
-    static void HoHoHo(int i, int j) {};
+    static void HoHoHo(int i, int j) {}
 }
 
 %inline %{
@@ -93,7 +93,7 @@ class CFoo
 class CPtrFoo
 {
 public:
-    CFoo* operator->(void) {return 0;};
+    CFoo* operator->(void) {return 0;}
 };
 
 %}
@@ -113,13 +113,13 @@ public:
       {
       }
       
-      DFoo* operator->(void) {return p;};
+      DFoo* operator->(void) {return p;}
     };
     
     class DFoo
     {
     public:
-      void F(void) {};
+      void F(void) {}
     };
   }
 %}
@@ -127,6 +127,6 @@ public:
 
 
 %extend foo::DFoo {
-  static int SExt(int i = 1) {return i;};
-  int Ext(int i = 2) {return i;};
+  static int SExt(int i = 1) {return i;}
+  int Ext(int i = 2) {return i;}
 }
