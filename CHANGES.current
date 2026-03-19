@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-19: wsfulton
+            [C#, D] Always initialise the return type in the C/C++ code. Users with custom
+            typemaps may need to provide a valid initial value via the "null" attribute
+            in the "out" typemap if 0 is not a valid initial value.
+
+2026-03-19: erezgeva
+            #3348 Avoid a potential segfault by handling a failed dynamic_cast in generated
+            director code by instead throwing a language specific exception:
+            "'self' is not a director".
+
 2026-03-10: xSetech
             [Python] #3365 Fix descriptor() type lookup when SwigPyIterator is renamed
             via #define for use in multiple modules.
