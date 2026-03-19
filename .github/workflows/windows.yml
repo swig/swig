@@ -488,8 +488,6 @@ jobs:
             cflags="-Werror -std=$CSTD"
             cxxflags="-Werror -std=$CPPSTD"
           fi
-          # Include for the boost headers
-          cxxflags+=" -I$BOOST_PATH/include"
           make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" CXXFLAGS="$cxxflags"
           make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" CXXFLAGS="$cxxflags"
 
