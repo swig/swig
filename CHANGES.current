@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-20: christophe-calmejane
+            [Lua] #3306 Added support for nested classes.
+
 2026-03-19: wsfulton
             [C#, D] Always initialise the return type in the C/C++ code. Users with custom
             typemaps may need to provide a valid initial value via the "null" attribute

@@ -32,6 +32,7 @@
 <li><a href="#Lua_structures">Structures</a>
 <li><a href="#Lua_nn14">C++ classes</a>
 <li><a href="#Lua_nn15">C++ inheritance</a>
+<li><a href="#Lua_nested_classes">C++ nested classes</a>
 <li><a href="#Lua_nn16">Pointers, references, values, and arrays</a>
 <li><a href="#Lua_nn17">C++ overloaded functions</a>
 <li><a href="#Lua_nn18">C++ operators</a>
@@ -825,7 +826,64 @@ then the function <tt>spam()</tt> accepts a Foo pointer or a pointer to any clas
 <p>
 It is safe to use multiple inheritance with SWIG.
 </p>
-<H3><a name="Lua_nn16">29.3.9 Pointers, references, values, and arrays</a></H3>
+<H3><a name="Lua_nested_classes">29.3.9 C++ nested classes</a></H3>
+
+
+<p>
+SWIG fully supports C++ nested classes. A nested class is a class defined within the scope of another class. For example:
+</p>
+<div class="code"><pre>
+class Outer {
+public:
+  class Inner {
+  public:
+    int value;
+    Inner() : value(0) {}
+    void setValue(int v) { value = v; }
+  };
+  
+  Inner createInner() { return Inner(); }
+};
+</pre></div>
+<p>
+In Lua, nested classes are accessed through their parent class using dot notation:
+</p>
+<div class="targetlang"><pre>
+&gt; -- Create an instance of the nested class directly
+&gt; inner = example.Outer.Inner()
+&gt; inner:setValue(42)
+&gt; print(inner.value)
+42
+&gt;
+&gt; -- Or through a factory method of the outer class
+&gt; outer = example.Outer()
+&gt; inner2 = outer:createInner()
+&gt; print(inner2.value)
+0
+</pre></div>
+<p>
+Nested classes can have multiple levels of nesting, and all levels are accessible using the same dot notation:
+</p>
+<div class="code"><pre>
+class Level1 {
+public:
+  class Level2 {
+  public:
+    class Level3 {
+    public:
+      static int deepValue;
+    };
+  };
+};
+</pre></div>
+<div class="targetlang"><pre>
+&gt; print(example.Level1.Level2.Level3.deepValue)
+</pre></div>
+<p>
+Static members and methods of nested classes are also fully supported and accessible through the nested class path.
+</p>
+
+<H3><a name="Lua_nn16">29.3.10 Pointers, references, values, and arrays</a></H3>
 
 
 <p>
@@ -856,7 +914,7 @@ Foo  spam7();
 <p>
 then all three functions will return a pointer to some Foo object. Since the third function (spam7) returns a value, newly allocated memory is used to hold the result and a pointer is returned (Lua will release this memory when the return value is garbage collected). The other two are pointers which are assumed to be managed by the C code and so will not be garbage collected.
 </p>
-<H3><a name="Lua_nn17">29.3.10 C++ overloaded functions</a></H3>
+<H3><a name="Lua_nn17">29.3.11 C++ overloaded functions</a></H3>
 
 
 <p>
@@ -942,7 +1000,7 @@ Please refer to the "SWIG and C++" chapter for more information about overloadin
 <p>
 Dealing with the Lua coercion mechanism, the priority is roughly (integers, floats, strings, userdata). But it is better to rename the functions rather than rely upon the ordering.
 </p>
-<H3><a name="Lua_nn18">29.3.11 C++ operators</a></H3>
+<H3><a name="Lua_nn18">29.3.12 C++ operators</a></H3>
 
 
 <p>
@@ -1076,7 +1134,7 @@ operators and pseudo-operators):</p>
 </ul>
 <p>No other lua metafunction is inherited. For example, __gc is not inherited and must be redefined in every class. <tt>__tostring</tt> is subject to a special handling. If absent in class and in class bases, a default one will be provided by SWIG.
 </p>
-<H3><a name="Lua_nn19">29.3.12 Class extension with %extend</a></H3>
+<H3><a name="Lua_nn19">29.3.13 Class extension with %extend</a></H3>
 
 
 <p>
@@ -1133,7 +1191,7 @@ true
 Extend works with both C and C++ code, on classes and structs. It does not modify the underlying object in any way---the extensions only show up in the Lua interface. The only item to take note of is the code has to use the '$self' instead of 'this', and that you cannot access protected/private members of the code (as you are not officially part of the class).
 </p>
 
-<H3><a name="Lua_nn20">29.3.13 Using %newobject to release memory</a></H3>
+<H3><a name="Lua_nn20">29.3.14 Using %newobject to release memory</a></H3>
 
 
 <p> If you have a function that allocates memory like this,</p>
@@ -1157,7 +1215,7 @@ char *foo();
 </div>
 <p> This will release the allocated memory.</p>
 
-<H3><a name="Lua_nn21">29.3.14 C++ templates</a></H3>
+<H3><a name="Lua_nn21">29.3.15 C++ templates</a></H3>
 
 
 <p>
@@ -1192,7 +1250,7 @@ In Lua:
 <p>
 Obviously, there is more to template wrapping than shown in this example. More details can be found in the SWIG and C++ chapter. Some more complicated examples will appear later.
 </p>
-<H3><a name="Lua_nn22">29.3.15 C++ Smart Pointers</a></H3>
+<H3><a name="Lua_nn22">29.3.16 C++ Smart Pointers</a></H3>
 
 
 <p>
@@ -1244,7 +1302,7 @@ If you ever need to access the underlying pointer returned by <tt>operator-&gt;(
 &gt; f = p:__deref__()     -- Returns underlying Foo *
 </pre></div>
 
-<H3><a name="Lua_nn23">29.3.16 C++ Exceptions</a></H3>
+<H3><a name="Lua_nn23">29.3.17 C++ Exceptions</a></H3>
 
 
 <p>
@@ -1387,7 +1445,7 @@ and the "<a href="Customization.html#Customization_exception">Exception handling
 add exception specification to functions or globally (respectively).
 </p>
 
-<H3><a name="Lua_namespaces">29.3.17 Namespaces </a></H3>
+<H3><a name="Lua_namespaces">29.3.18 Namespaces </a></H3>
 
 
 <p>
@@ -1470,7 +1528,7 @@ The Lua code uses the completely modified hierarchies:
 19.0
 </pre></div>
 
-<H4><a name="Lua_nn27">29.3.17.1 Compatibility Note </a></H4>
+<H4><a name="Lua_nn27">29.3.18.1 Compatibility Note </a></H4>
 
 
 <p>
@@ -1491,7 +1549,7 @@ If SWIG is running in a backwards compatible way, i.e. without the <tt>-no-old-m
 The ability to move symbols into different namespaces via <tt>%nspacemove</tt> was introduced in SWIG-4.3.0.
 </p>
 
-<H4><a name="Lua_nn29">29.3.17.2 Names </a></H4>
+<H4><a name="Lua_nn29">29.3.18.2 Names </a></H4>
 
 
 <p> If SWIG is launched without <tt>-no-old-metatable-bindings</tt> option, then it enters backward-compatible mode. While in this mode, it tries
@@ -1536,7 +1594,7 @@ surrounding scope without any prefixing. Pretending that Test2 is a struct, not 
 &gt;
 </pre></div>
 
-<H4><a name="Lua_nn30">29.3.17.3 Inheritance </a></H4>
+<H4><a name="Lua_nn30">29.3.18.3 Inheritance </a></H4>
 
 
 <p> The internal organization of inheritance has changed. 
