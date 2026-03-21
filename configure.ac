@@ -1302,6 +1302,15 @@ else
           AC_SUBST(NODENAPI_DIR)
         fi
       fi
+      # Try Debian/Ubuntu 'node-addon-api' package location
+      if test -z "$JSNAPIENABLED" && which dpkg > /dev/null 2>&1; then
+        napi_dir="$(dpkg -L node-addon-api 2> /dev/null | grep '\/napi.h$' | head -1 | sed 's%/napi.h%%')"
+        if test -n "$napi_dir" && test -f "$napi_dir/napi.h"; then
+          NODENAPI_DIR="$napi_dir"
+          JSNAPIENABLED=1
+          AC_SUBST(NODENAPI_DIR)
+        fi
+      fi
       if test -n "$JSNAPIENABLED"; then
         AC_MSG_RESULT([$NODENAPI_DIR])
       else

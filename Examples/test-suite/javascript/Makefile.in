@@ -8,7 +8,8 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api
+NAPI_DIR = @NODENAPI_DIR@
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api -I $(NAPI_DIR)
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -23,9 +24,13 @@ CPP_TEST_CASES += \
 	inplaceadd \
 	input \
 	javascript_lib_arrays \
+	li_cdata_carrays_cpp \
 	li_factory \
 	li_std_containers_int \
 	li_std_map_member
+
+C_TEST_CASES += \
+	li_cdata_carrays \
 
 # napi fails
 FAILING_CPP_TESTS += \
