@@ -728,14 +728,35 @@ Now, in a script:
 
 
 <p>
-The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language type.
-The target language type is either:
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language.
 </p>
 
-<ul>
-  <li> A string for the scripting languages. The scripting language must support strings with embedded binary data in order for this to work.</li>
-  <li> A byte array for the statically typed languages; namely, <tt>byte[]</tt> for C# and Java, <tt>ubyte[]</tt> for D, <tt>[]byte</tt> for Go.</li>
-</ul>
+<p>
+The following table descripbe the specific type per language:
+</p>
+
+<table BORDER summary="cdata types">
+<tr VALIGN=TOP>
+<td><b>Langause</b></td>
+<td><b>cdata type</b></td>
+<td><b>mutability</b></td>
+</tr>
+<tr> <td>Ruby</td>       <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>PHP</td>        <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>Guile</td>      <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>Lua</td>        <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Perl5</td>      <td>string</td>                 <td>none</td> </tr>
+<tr> <td>OCaml</td>      <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Octave</td>     <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Python</td>     <td>binary string</td>          <td>none</td> </tr>
+<tr> <td>C#</td>         <td><tt>byte[]</tt></td>        <td>yes</td> </tr>
+<tr> <td>Java</td>       <td><tt>byte[]</tt></td>        <td>yes</td> </tr>
+<tr> <td>D</td>          <td><tt>ubyte[]</tt></td>       <td>yes</td> </tr>
+<tr> <td>Go</td>         <td><tt>[]byte</tt></td>        <td>yes</td> </tr>
+<tr> <td>Javascript</td> <td><tt>Uint8Array</tt></td>    <td>yes</td> </tr>
+<tr> <td>Scilab</td>     <td>list of <tt>uint8</tt></td> <td>yes</td> </tr>
+<tr> <td>Tcl</td>        <td>list of integers</td>       <td>yes</td> </tr>
+</table>
 
 <p>
 The primary applications of this module would be packing/unpacking of
@@ -796,7 +817,7 @@ Python example:
 ...    a[i] = i
 &gt;&gt;&gt; b = cdata(a, 40)
 &gt;&gt;&gt; b
-'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
+b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
 \x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
 &gt;&gt;&gt; c = intArray(10)
 &gt;&gt;&gt; memmove(c, b)
