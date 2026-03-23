@@ -2,6 +2,8 @@
 # Makefile for Go test-suite
 #######################################################################
 
+# Use to print the commands 'go build' use during build
+# GOBUILDDBG=-x
 LANGUAGE	= go
 GO		= @GO@
 GOGCC		= @GOGCC@
@@ -9,6 +11,7 @@ GCCGO		= @GCCGO@
 GOVERSIONOPTION	= @GOVERSIONOPTION@
 host		= @host@
 SCRIPTSUFFIX	= _runme.go
+GO_CYGPATH = @GO_CYGPATH@
 
 SO = @SO@
 
@@ -20,6 +23,7 @@ srcdir         = @srcdir@
 top_srcdir     = @top_srcdir@
 top_builddir   = @top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 
 CPP_TEST_CASES = \
 	go_inout \
@@ -50,9 +54,9 @@ SWIGOPT += -Werror
 
 %.multicpptest:
 	$(setup)
-	$(go_multicpp_setup)
 	+for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)') GOMOD="$*"; \
+	  n=`printf "$$f" | tr -d '\r\n\t '`; \
+	  $(call swig_and_compile_cpp_helper,$${n},'$(SWIGOPT)') GOMOD="$*"; \
 	done
 	$(run_multi_testcase)
 
@@ -62,9 +66,7 @@ li_windows.cpptest:
 
 go_subdir_import.multicpptest:
 	$(setup)
-	$(go_multicpp_setup)
-	mkdir -p testdir/go_subdir_import 2>/dev/null || true
-	mkdir -p gopath/go_subdir_import/src/testdir/go_subdir_import 2>/dev/null || true
+	mkdir -p testdir/go_subdir_import gopath/go_subdir_import/src/testdir/go_subdir_import
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	LIBS='$(LIBS)' INTERFACEPATH='$(SRCDIR)$(INTERFACEDIR)go_subdir_import_b.i' \
@@ -78,72 +80,97 @@ go_subdir_import.multicpptest:
 	done
 	$(run_multi_testcase)
 
-go_multicpp_setup = \
-	mkdir -p gopath/$*/src 2>/dev/null || true; \
-	if ! test -d gopath/$*/src/swigtests; then \
-	  (cd gopath/$*/src && ln -s . swigtests); \
-	fi
-
 # Runs the testcase.
 run_testcase = \
-	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  GOPATH=`pwd`/gopath/; \
-	  export GOPATH; \
-	  CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
-	  export CGO_CPPFLAGS; \
-	  CGO_CFLAGS="$(CFLAGS)"; \
-	  export CGO_CFLAGS; \
-	  CGO_CXXFLAGS="$(CXXFLAGS)"; \
-	  export CGO_CXXFLAGS; \
+	if test -f "$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)"; then \
+	  GOPATH="`pwd`/gopath/"; \
+	  includes="$(INCLUDES) -I `pwd` "; \
+	  if test -n '$(SRCDIR)'; then \
+	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	  fi; \
+	  if test -n "$(GO_CYGPATH)"; then \
+	    n_includes=''; \
+	    for n in $${includes//-I}; do \
+	      if test -d "$$n"; then \
+	        n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	      else \
+	        n_includes="$$n_includes $$n"; \
+	      fi; \
+	    done; \
+	    includes="$$n_includes"; \
+	  fi; \
+	  CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	  CGO_CFLAGS="$(CFLAGS) $$includes"; \
 	  CGO_LDFLAGS="$(LDFLAGS)"; \
-	  export CGO_LDFLAGS; \
-	  mkdir gopath/src/swigtests 2>/dev/null || true; \
-	  mkdir gopath/src/swigtests/$* 2>/dev/null || true; \
+	  export GOPATH CGO_CPPFLAGS CGO_CFLAGS CGO_LDFLAGS; \
+	  mkdir -p "gopath/src/swigtests/$*"; \
 	  cp gopath/src/$*/* gopath/src/swigtests/$*/; \
-	  mkdir gopath/src/$*/runme 2>/dev/null || true; \
+	  mkdir -p "gopath/src/$*/runme"; \
 	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/src/$*/runme/runme.go; \
-	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme runme.go); \
+	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme runme.go); \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
 run_testcase_cpp = \
 	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  GOPATH=`pwd`/gopath/; \
-	  export GOPATH; \
-	  CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
-	  export CGO_CPPFLAGS; \
-	  CGO_CFLAGS="$(CFLAGS)"; \
-	  export CGO_CFLAGS; \
-	  CGO_CXXFLAGS="$(CXXFLAGS)"; \
-	  export CGO_CXXFLAGS; \
+	  GOPATH="`pwd`/gopath/"; \
+	  includes="$(INCLUDES) -I `pwd` "; \
+	  if test -n '$(SRCDIR)'; then \
+	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	  fi; \
+	  if test -n "$(GO_CYGPATH)"; then \
+	    n_includes=''; \
+	    includes="$$includes $(BOOST_CPPFLAGS)"; \
+	    for n in $${includes//-I}; do \
+	      if test -d "$$n"; then \
+	        n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	      else \
+	        n_includes="$$n_includes $$n"; \
+	      fi; \
+	    done; \
+	    includes="$$n_includes"; \
+	  fi; \
+	  CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	  CGO_CXXFLAGS="$(CXXFLAGS) $$includes"; \
 	  CGO_LDFLAGS="$(LDFLAGS)"; \
-	  export CGO_LDFLAGS; \
-	  mkdir gopath/src/swigtests 2>/dev/null || true; \
-	  mkdir gopath/src/swigtests/$* 2>/dev/null || true; \
+	  export GOPATH CGO_CPPFLAGS CGO_CXXFLAGS CGO_LDFLAGS; \
+	  mkdir -p "gopath/src/swigtests/$*"; \
 	  cp gopath/src/$*/* gopath/src/swigtests/$*/; \
-	  mkdir gopath/src/$*/runme 2>/dev/null || true; \
+	  mkdir -p "gopath/src/$*/runme"; \
 	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/src/$*/runme/runme.go; \
-	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme runme.go); \
+	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme runme.go); \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
 run_multi_testcase = \
 	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  files=`cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; \
-	  mkdir gopath/$*/src/$* 2>/dev/null || true; \
-	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/$*/src/$*; \
+	  mkdir -p "gopath/$*/src/$*"; \
+	  cp "$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)" "gopath/$*/src/$*"; \
 	  GOPATH="`pwd`/gopath/$*"; \
-	  export GOPATH; \
-	  CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) `for f in $$files; do echo -I ../$$f; done`"; \
-	  export CGO_CPPFLAGS; \
-	  CGO_CFLAGS="$(CFLAGS)"; \
-	  export CGO_CFLAGS; \
-	  CGO_CXXFLAGS="$(CXXFLAGS)"; \
-	  export CGO_CXXFLAGS; \
+	  includes="$(INCLUDES) -I `pwd` "; \
+	  if test -n '$(SRCDIR)'; then \
+	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	  fi; \
+	  if test -n "$(GO_CYGPATH)"; then \
+	    n_includes=''; \
+	    includes="$$includes $(BOOST_CPPFLAGS)"; \
+	    for n in $${includes//-I}; do \
+	      if test -d "$$n"; then \
+	        n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	      else \
+	        n_includes="$$n_includes $$n"; \
+	      fi; \
+	    done; \
+	    includes="$$n_includes"; \
+	  fi; \
+	  CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	  CGO_CXXFLAGS="$(CXXFLAGS) $$includes"; \
 	  CGO_LDFLAGS="$(LDFLAGS)"; \
-	  export CGO_LDFLAGS; \
+	  export GOPATH CGO_CPPFLAGS CGO_CXXFLAGS CGO_LDFLAGS; \
+	  mkdir -p "gopath/$*/src/swigtests/$*"; \
+	  cp gopath/$*/src/$*/* gopath/$*/src/swigtests/$*/; \
 	  (cd gopath/$*/src/$* && \
-	    $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme) && \
+	    $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme) && \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
