@@ -261,7 +261,8 @@ AC_MSG_RESULT($LDSHARED)
 AC_MSG_CHECKING(CXXSHARED)
 if test -z "$CXXSHARED"
 then
-	CXXSHARED="$LDSHARED"
+	# Ensure we use CXX for C++
+	CXXSHARED="$(echo "$LDSHARED" | sed 's%\$(CC)%\$(CXX)%')"
 fi
 AC_MSG_RESULT($CXXSHARED)
 
