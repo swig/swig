@@ -2637,7 +2637,6 @@ void R::main(int argc, char *argv[]) {
       Swig_typemap_register_debug_set();
       Swig_file_debug_set();
     }
-    /// copyToR copyToC functions.
   }
 }
 

@@ -1,5 +1,6 @@
 import sys
 import inspect
+from swig_test_utils import swig_assert
 
 if sys.version_info[0:2] >= (3, 2):
     from python_annotations_typing import *
@@ -85,8 +86,8 @@ if sys.version_info[0:2] >= (3, 2):
         if anno != {"return": "typing.Optional[int]", "i": "typing.Optional[int]"}:
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
-        assert optional_square(None) is None
-        assert optional_square(3) == 9
+        swig_assert(optional_square(None) is None)
+        swig_assert(optional_square(3) == 9)
 
         anno = get_annotations(docs_do_something_out_type)
         if anno != {"return": "int", "t": "typing.Union[int, float]"}:

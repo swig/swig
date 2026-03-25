@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-25: Nerixyz
+            [Python] #3334 Add PEP 484 annotations for a few simple types - primitive
+            types and C strings.
+
 2026-03-20: christophe-calmejane
             [Lua] #3306 Added support for nested classes.
 

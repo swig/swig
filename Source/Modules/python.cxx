@@ -100,9 +100,7 @@ enum autodoc_t { AUTODOC_CLASS, AUTODOC_CTOR, AUTODOC_DTOR, AUTODOC_STATICFUNC, 
 
 enum type_annotation_t {
   TYPE_ANNOTATION_NONE = 0,
-  /// C/C++ type annotations ("c")
   TYPE_ANNOTATION_C,
-  /// PEP 408 type annotations ("typing")
   TYPE_ANNOTATION_TYPING,
 };
 }  // namespace
