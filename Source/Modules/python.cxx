@@ -3809,7 +3809,8 @@ public:
           Printv(f_s, "\n", NIL);
           Printv(f_s, module, ".", iname, "_swigconstant(", module, ")\n", NIL);
         }
-        Printv(f_s, iname, " = ", module, ".", iname, "\n", NIL);
+        String *annotation = variableAnnotation(n);
+        Printv(f_s, iname, annotation, " = ", module, ".", iname, "\n", NIL);
         if (have_docstring(n))
           Printv(f_s, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
       }
