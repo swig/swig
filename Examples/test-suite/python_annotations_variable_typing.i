@@ -5,7 +5,7 @@
 
 %feature("python:annotations", "typing");
 %feature("python:annotations:novar") member_variable_not_annotated;
-
+%feature("python:annotations:novar") A_CONSTANT_NOVAR;
 
 %inline %{
 namespace Space {
@@ -39,3 +39,6 @@ int is_python_fastproxy() { return 0; }
 #endif
 %}
 
+%constant int A_CONSTANT_INT = 42;
+%constant int A_CONSTANT_NOVAR = 42;
+%constant short A_CONSTANT_SHORT = 42;
