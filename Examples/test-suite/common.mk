@@ -228,7 +228,7 @@ CPP_TEST_CASES += \
 	director_redefined \
 	director_ref \
 	director_simple \
-	director_smartptr \
+	director_shared_ptr \
 	director_template \
 	director_thread \
 	director_unroll \
@@ -659,6 +659,12 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
 	cpp11_rvalue_reference_move \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_template_upcast \
+	cpp11_shared_ptr_upcast \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \

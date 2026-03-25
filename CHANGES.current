@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-03-25: christophe-calmejane
+            [Lua] #3387 Added support for std::shared_ptr and boost::shared_ptr.
+
 2026-03-25: Nerixyz
             [Python] #3334 Add PEP 484 annotations for a few simple types - primitive
             types and C strings.

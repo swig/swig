@@ -1,4 +1,4 @@
-%module(directors="1") director_smartptr
+%module(directors="1") director_shared_ptr
 
 #ifdef SWIGJAVA
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
@@ -34,7 +34,7 @@ public:
 
 %}
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 

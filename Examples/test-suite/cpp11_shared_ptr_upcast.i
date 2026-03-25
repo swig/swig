@@ -11,7 +11,14 @@
 
 %include <std_vector.i>
 %include <std_map.i>
+
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %include <std_shared_ptr.i>
+#endif
 
 %{
 
@@ -86,8 +93,10 @@ int base_num(std::map<int, BasePtr > v) {
 %}
 
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %shared_ptr(Base);
 %shared_ptr(Derived);
+#endif
 
 %template(BaseList) std::vector<std::shared_ptr<Base> >;
 %template(DerivedList) std::vector<std::shared_ptr<Derived> >;
@@ -130,8 +139,10 @@ int base_num(std::vector<std::shared_ptr<Base> > v);
 int base_num(std::map<int, BasePtr > v);
 
 // ptr to shared_ptr
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %shared_ptr(Base2);
 %shared_ptr(Derived2)
+#endif
 
 %inline %{
 class Base2 {

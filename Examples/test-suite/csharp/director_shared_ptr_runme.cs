@@ -1,18 +1,18 @@
-using director_smartptrNamespace;
+using director_shared_ptrNamespace;
 using System;
 
 public class runme
 {
-  private class director_smartptr_MyBarFoo : Foo
+  private class director_shared_ptr_MyBarFoo : Foo
   {
     public override string ping()
     {
-      return "director_smartptr_MyBarFoo.ping()";
+      return "director_shared_ptr_MyBarFoo.ping()";
     }
 
     public override string pong()
     {
-      return "director_smartptr_MyBarFoo.pong();" + ping();
+      return "director_shared_ptr_MyBarFoo.pong();" + ping();
     }
 
     public override string upcall(FooBar fooBarPtr)
@@ -26,16 +26,16 @@ public class runme
     }
   }
 
-  private class director_smartptr_MyBarFooDerived : FooDerived
+  private class director_shared_ptr_MyBarFooDerived : FooDerived
   {
     public override string ping()
     {
-      return "director_smartptr_MyBarFooDerived.ping()";
+      return "director_shared_ptr_MyBarFooDerived.ping()";
     }
 
     public override string pong()
     {
-      return "director_smartptr_MyBarFooDerived.pong();" + ping();
+      return "director_shared_ptr_MyBarFooDerived.pong();" + ping();
     }
 
     public override string upcall(FooBar fooBarPtr)
@@ -59,9 +59,9 @@ public class runme
   {
     FooBar fooBar = new FooBar();
 
-    Foo myBarFoo = new director_smartptr_MyBarFoo();
-    check(myBarFoo.ping(), "director_smartptr_MyBarFoo.ping()");
-    check(Foo.callPong(myBarFoo), "director_smartptr_MyBarFoo.pong();director_smartptr_MyBarFoo.ping()");
+    Foo myBarFoo = new director_shared_ptr_MyBarFoo();
+    check(myBarFoo.ping(), "director_shared_ptr_MyBarFoo.ping()");
+    check(Foo.callPong(myBarFoo), "director_shared_ptr_MyBarFoo.pong();director_shared_ptr_MyBarFoo.ping()");
     check(Foo.callUpcall(myBarFoo, fooBar), "override;Bar::Foo2::Foo2Bar()");
 
     Foo myFoo = myBarFoo.makeFoo();
@@ -73,9 +73,9 @@ public class runme
     check(myFoo2.pong(), "Foo::pong();Foo::ping()");
     check(Foo.callPong(myFoo2), "Foo::pong();Foo::ping()");
 
-    FooDerived myBarFooDerived = new director_smartptr_MyBarFooDerived();
-    check(myBarFooDerived.ping(), "director_smartptr_MyBarFooDerived.ping()");
-    check(FooDerived.callPong(myBarFooDerived), "director_smartptr_MyBarFooDerived.pong();director_smartptr_MyBarFooDerived.ping()");
+    FooDerived myBarFooDerived = new director_shared_ptr_MyBarFooDerived();
+    check(myBarFooDerived.ping(), "director_shared_ptr_MyBarFooDerived.ping()");
+    check(FooDerived.callPong(myBarFooDerived), "director_shared_ptr_MyBarFooDerived.pong();director_shared_ptr_MyBarFooDerived.ping()");
     check(FooDerived.callUpcall(myBarFooDerived, fooBar), "overrideDerived;Bar::Foo2::Foo2Bar()");
 
   }

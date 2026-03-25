@@ -17,11 +17,6 @@ CPP_TEST_CASES = \
 	exception_partial_info
 
 CPP11_TEST_CASES = \
-	cpp11_shared_ptr_const \
-	cpp11_shared_ptr_crtp_upcast \
-	cpp11_shared_ptr_nullptr_in_containers \
-	cpp11_shared_ptr_overload \
-	cpp11_shared_ptr_upcast \
 
 # "D classes support the single inheritance paradigm" https://dlang.org/spec/class.html
 FAILING_CPP_TESTS += \
