@@ -908,7 +908,7 @@ phpinfo() function.
 <div class="code"><pre>
 %module example;
 %pragma(php) phpinfo="
-  zend_printf("An example of PHP support through SWIG\n");
+  zend_printf(\"An example of PHP support through SWIG\\n\");
   php_info_print_table_start();
   php_info_print_table_header(2, \"Directive\", \"Value\");
   php_info_print_table_row(2, \"Example support\", \"enabled\");
