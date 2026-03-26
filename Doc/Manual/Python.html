@@ -7194,6 +7194,22 @@ def do_something(t: "int|float") -> "int":
     return _example.do_something(t)
 </pre></div>
 
+<p>
+The following special variables can be used:
+<dl>
+<dt><tt>$pytypename</tt></dt>
+<dd>
+Similar to Java's <a href="Java.html#Java_special_variables"><tt>$javaclassname</tt></a>. Expands to the wrapped Python typename.
+<ul>
+<li><tt>$pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *</tt></li>
+<li><tt>$&pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo</tt></li>
+<li><tt>$*pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *&</tt></li>
+</ul>
+If there is no named wrapper class, it expands to an opaque class. For example, if there's no wrapper for <tt>int *</tt>, <tt>$pytypename</tt> will expand to <tt>SWIGTYPE_p_int</tt>.
+</dd>
+</dl>
+</p>
+
 <H3><a name="Python_nn75">33.12.2 Buffer interface</a></H3>
 
 
