@@ -7171,16 +7171,16 @@ The generated code now contains the <tt>Optional</tt> annotation:
 </p>
 
 <div class="targetlang"><pre>
-def optional_square(i: "typing.Optional[int]") -> "typing.Optional[int]":
+def optional_square(i: "typing.Optional[int]") -&gt; "typing.Optional[int]":
     return _example.optional_square(i)
 </pre></div>
 
 <p>
-The <a href="https://docs.python.org/3/library/typing.html">typing</a> library is imported if available (Python >= 3.5).
+The <a href="https://docs.python.org/3/library/typing.html">typing</a> library is imported in the generated code if running with Python &gt;= 3.5.
 </p>
 
 <p>
-If the out type differs, you can overwrite it with the <tt>out</tt> attribute:
+If the out (return) type differs to an in type (parameter input), you can overwrite it with the <tt>out</tt> attribute:
 </p>
 
 <div class="code"><pre>
@@ -7190,9 +7190,13 @@ MyType do_something(MyType t) { /* ... */ }
 </pre></div>
 
 <div class="targetlang"><pre>
-def do_something(t: "int|float") -> "int":
+def do_something(t: "int|float") -&gt; "int":
     return _example.do_something(t)
 </pre></div>
+
+<p>
+<b>Compatibility Note:</b> SWIG-4.5.0 added support for PEP 484 annotation types.
+</p>
 
 <H3><a name="Python_nn75">33.12.2 Buffer interface</a></H3>
 
