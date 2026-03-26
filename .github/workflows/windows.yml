@@ -65,7 +65,7 @@ jobs:
 
     # The name of the test follow the tested language
     name: >
-      ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
+      ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.VER }}
       ${{ matrix.SWIG_FEATURES }}
       ${{ matrix.COMPILER || 'msvc' }}
       ${{ matrix.CPPSTD }}
@@ -79,6 +79,13 @@ jobs:
     strategy:
       matrix:
         include:
+        - SWIGLANG: ''
+          INSTALL: 'true'
+          COMPILER: gcc
+        - SWIGLANG: ''
+          INSTALL: 'true'
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
@@ -238,9 +245,12 @@ jobs:
             #  The MSYSTEM=MSYS, which supports 'Cygwin', uses the '/usr' path prefix.
             #  We do not use it at the moment.
 
+            # MinGW-w64 package list
+            ming_pkgs+=(binutils make autotools pcre2)
+
             case "$SWIGLANG" in
             python)
-              MORE_MSYS_PKGS+=" ${mingw_variant}python"
+              ming_pkgs+=(python)
               ;;
             ruby)
               if [[ -n "$VER" ]]; then
@@ -248,7 +258,7 @@ jobs:
                 RUBYDIR="$(cygpath -w $ruby_dir)"
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
-                MORE_MSYS_PKGS+=" ${mingw_variant}ruby"
+                ming_pkgs+=(ruby)
               fi
               ;;
             go)
@@ -263,8 +273,15 @@ jobs:
               ;;
             esac
 
-            # MinGW-w64 packages to install with MSYS2
-            for n in binutils make autotools pcre2 boost; do
+            # More MSYS2 packages to install
+            MORE_MSYS_PKGS+=" base-devel"
+
+            # Boost is needed with languages, we can skip for CCache tests
+            if [[ -n "$SWIGLANG" ]]; then
+              ming_pkgs+=(boost)
+            fi
+            # Add MinGW-w64 packages to MSYS2 packages list
+            for n in "${ming_pkgs[@]}"; do
               MORE_MSYS_PKGS+=" ${mingw_variant}$n"
             done
 
@@ -272,7 +289,7 @@ jobs:
             echo "PCRE2_CFLAGS=-I$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
             echo "PCRE2_LIBS=-L$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
 
-            echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
+            echo "MORE_MSYS_PKGS=$MORE_MSYS_PKGS" >> $GITHUB_ENV
             echo "BOOST_PATH=/c/msys64$mingw_dir" >> $GITHUB_ENV
 
             # Set MSYS2 GCC compiler location
@@ -305,11 +322,16 @@ jobs:
             fi
           fi # COMPILER
 
+          # Extra tools for debugging, like hexdump, rev, hardlink.
+          # See 'Files:' in https://packages.msys2.org/packages/util-linux
+          # MORE_MSYS_PKGS+=" util-linux"
+
           if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
             java_path="JAVA_HOME_${VER}_X64"
             echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
           fi
 
+          echo "LIBS_CCACHE=-luserenv" >> $GITHUB_ENV
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
 
           echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
@@ -317,6 +339,9 @@ jobs:
     - name: Install MSYS2 Packages
       shell: cmd
       run: |
+          # We must run in `cmd`.
+          # As the update will terminate all running bash terminals!
+          # Including the terminal that may be used to execute the 'pacman' itself.
           rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
           if %ErrorLevel% NEQ 0 (exit 1)
@@ -431,25 +456,30 @@ jobs:
       run: |
           set -x
           ./swig.exe -version
-          make check-$SWIGLANG-version
-          make check-$SWIGLANG-enabled
-          make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS
-          make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
+          if [[ -z "$SWIGLANG" ]]; then
+            make $SWIGJOBS check-ccache NOSOFTLINKSTEST=skip
+            make $SWIGJOBS check-errors-test-suite
+          else
+            make check-$SWIGLANG-version
+            make check-$SWIGLANG-enabled
+            make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS
+            make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
+          fi
 
     - name: Install
       if: ${{ env.INSTALL == 'true' }}
       shell: bash
       run: |
-          make -s install > /dev/null
+          set -x
+          make install
 
           which swig.exe
           swig.exe -version
 
-          # TODO: Make install of ccache-swig do not work on Windows
-          #if [[ "$COMPILER" = "gcc" ]]; then
-          #  which ccache-swig.exe
-          #  ccache-swig.exe -V
-          #fi
+          if [[ "$COMPILER" = "gcc" ]]; then
+            which ccache-swig.exe
+            ccache-swig.exe -V
+          fi
 
     # The test by itself is not related to the installation.
     # We just want to save testing time :-)

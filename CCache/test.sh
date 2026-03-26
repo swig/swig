@@ -137,7 +137,7 @@ basetests() {
     checkstat 'bad compiler arguments' 1
 
     testname="c/c++"
-    ln -f test1.c test1.ccc
+    cp -f test1.c test1.ccc
     $CCACHE_COMPILE -c test1.ccc 2> /dev/null
     checkstat 'not a C/C++ file' 1
 
@@ -412,7 +412,7 @@ swigtests() {
 rm -rf $TESTDIR
 mkdir $TESTDIR
 if test -n "$CCACHE_PROG"; then
-  ln -s $CCACHE $TESTDIR/$CCACHE_PROG
+  cp "$CCACHE" $TESTDIR
   CCACHE=./$CCACHE_PROG
 fi
 cd $TESTDIR || exit 1
