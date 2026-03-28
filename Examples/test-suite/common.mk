@@ -675,6 +675,7 @@ CPP11_TEST_CASES += \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_pack \
 	cpp11_template_parameters_decltype \
 	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
