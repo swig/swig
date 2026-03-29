@@ -383,6 +383,41 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
+<br>
+
+<p>
+<b><tt>%pointer_dynamic_cast(type1, type2, name)</tt></b>
+</p>
+
+<div class="indent">
+
+<p>
+Creates a dynamic conversion of an object stored in a pointer typed <tt>type1</tt> to a pointer typed <tt>type2</tt> or return <b>null</b> if the object is <b>not</b> polymorphic of the class pointed by <tt>type2</tt>.
+The name of the function is <tt>name</tt>.<br>
+For example:
+</p>
+
+<div class="code">
+<pre>
+%pointer_dynamic_cast(Base *, Derive *, base_to_derive);
+</pre>
+</div>
+
+<p>
+In this example, the function <tt>base_to_derive()</tt> can be use to convert a pointer typed <tt>Based *</tt> pointing to a <tt>Derived</tt> object to a pointer typed <tt>Derived *</tt>.
+</p>
+
+</div>
+
+<P>
+<b>Note:</b> The dynamic casting is using C++ run-time type identification (RTTI), the decision to return converted pointer or null pointer is done in run-time.
+</p>
+
+<P>
+<b>Note:</b> The dynamic casting is a C++ casting, when used in C, the function will use an explicit type conversion.
+</p>
+
+
 <H3><a name="Library_carrays">12.2.3 carrays.i</a></H3>
 
 

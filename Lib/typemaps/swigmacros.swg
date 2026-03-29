@@ -118,11 +118,13 @@ nocppval
 # define %static_cast(a,Type...)      static_cast< Type >(a)
 # define %reinterpret_cast(a,Type...) reinterpret_cast< Type >(a)
 # define %numeric_cast(a,Type...)     static_cast< Type >(a)
+# define %dynamic_cast(a,Type...)     dynamic_cast< Type >(a)
 #else /* C case */
 # define %const_cast(a,Type...)       (Type)(a)
 # define %static_cast(a,Type...)      (Type)(a)
 # define %reinterpret_cast(a,Type...) (Type)(a)
 # define %numeric_cast(a,Type...)     (Type)(a)
+# define %dynamic_cast(a,Type...)     (Type)(a)
 #endif /* __cplusplus */
 
 
