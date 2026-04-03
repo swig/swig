@@ -102,7 +102,8 @@ eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers t
 
 
 <p>
-The current SWIG implementation is designed to work with Lua 5.0.x, 5.1.x and 5.2.x. It should work with later versions of Lua, but certainly not with Lua 4.0 due to substantial API changes. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms). SWIG also has support for eLua starting from eLua 0.8. Due to substantial changes between SWIG 2.x and SWIG 3.0 and unavailability of testing platform, eLua status was downgraded to 'experimental'.
+The current SWIG implementation is designed to work with Lua version 5.2 and above. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
+SWIG support eLua on experimental level from eLua 0.8.
 </p>
 
 <H2><a name="Lua_nn3">29.2 Running SWIG</a></H2>
@@ -279,13 +280,13 @@ $ gcc -fPIC -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>
-The wrappers produced by SWIG can be compiled and linked with Lua 5.1.x and later. The loading is extremely simple.
+The wrappers produced by SWIG can be compiled and linked with Lua 5.2 and later. The loading is extremely simple.
 </p>
 <div class="targetlang"><pre>
 require("example")
 </pre></div>
 <p>
-For those using Lua 5.0.x, you will also need an interpreter with the loadlib function (such as the default interpreter compiled with Lua). In order to dynamically load a module you must call the loadlib function with two parameters: the filename of the shared library, and the function exported by SWIG. Calling loadlib should return the function, which you then call to initialise the module
+In order to dynamically load a module you must call the loadlib function with two parameters: the filename of the shared library, and the function exported by SWIG. Calling loadlib should return the function, which you then call to initialise the module
 </p>
 <div class="targetlang"><pre>
 my_init=loadlib("example.so", "luaopen_example") -- for Unix/Linux
@@ -309,10 +310,6 @@ a, b, c=package.loadlib("example.so", "luaopen_example") -- for Unix/Linux
 --a, b, c=package.loadlib("example.dll", "luaopen_example") -- for Windows
 print(a, b, c)
 </pre></div>
-<p>
-Note: for Lua 5.0:<br>
-The loadlib() function is in the global namespace, not in a package. So it's just loadlib().
-</p>
 <p>
 if 'a' is a function, this is all working fine, all you need to do is call it
 </p>
@@ -1078,8 +1075,12 @@ The current list of operators which can be overloaded (and the alternative funct
 Note: in Lua, only the equals, less than, and less than equals operators are defined. The other operators (!=, &gt;, &gt;=) are achieved by using a logical not applied to the results of other operators.
 </p>
 <p>
-The following operators cannot be overloaded (mainly because they are not supported in Lua)<ul>
-<li>++ and --<li>+=, -=, *= etc<li>% operator (you have to use math.mod)<li>assignment operator<li>all bitwise/logical operations</ul>
+Note: Lua uses <tt>~=</tt> for C++ not equals operator (!=).
+</p>
+<p>
+The following operators cannot be overloaded (mainly because they are not supported in Lua as operators)<ul>
+<li>++ and --<li>+=, -=, *= etc<li>% operator (you may use <tt>math.modf (x)</tt>)<li>assignment operator
+<li>bitwise operations<li>logical operations (Lua uses <tt>and</tt>, <tt>or</tt>, and <tt>not</tt>)</ul>
 <p>
 SWIG also accepts the <tt>__str__()</tt> member function which converts an object to a string. This function should return a const char*, preferably to static memory. This will be used for the <tt>print()</tt> and <tt>tostring()</tt> functions in Lua. Assuming the complex class has a function
 </p>
@@ -2038,7 +2039,7 @@ That way when you call '<tt>a=example.Foo</tt>', the interpreter looks at the ta
 As mentioned earlier, classes and structures, are all held as pointer, using the Lua 'userdata' structure. This structure is actually a pointer to a C structure 'swig_lua_userdata', which contains the pointer to the data, a pointer to the swig_type_info (an internal SWIG struct) and a flag which marks if the object is to be disposed of when the interpreter no longer needs it. The actual accessing of the object is done via the metatable attached to this userdata.
 </p>
 <p>
-The metatable is a Lua 5.0 feature (which is also why SWIG cannot wrap Lua 4.0). It's a table which holds a list of functions, operators and attributes. This is what gives the userdata the feeling that it is a real object and not just a hunk of memory.
+The metatable is a table which holds a list of functions, operators and attributes. This is what gives the userdata the feeling that it is a real object and not just a hunk of memory.
 </p>
 <p>
 Given a class
