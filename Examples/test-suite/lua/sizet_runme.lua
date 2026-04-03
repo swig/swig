@@ -1,7 +1,6 @@
-require("import")	-- the import fn
-import("sizet")	-- import code
+require("sizet")
 
-s = 2000
+local s = 2000
 s = sizet.test1(s+1)
 s = sizet.test2(s+1)
 s = sizet.test3(s+1)

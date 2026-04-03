@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("global_namespace")	-- import lib into global
-gn=global_namespace --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+gn=require("global_namespace")
+catch_undef_globs() -- catch "undefined" global variables
 
 k1 = gn.Klass1()
 k2 = gn.Klass2()

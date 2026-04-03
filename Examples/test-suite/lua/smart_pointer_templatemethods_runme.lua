@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("smart_pointer_templatemethods")	-- import lib into global
-spt=smart_pointer_templatemethods --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+spt=require("smart_pointer_templatemethods")
+catch_undef_globs() -- catch "undefined" global variables
 
 o1 = spt.Objct()
 

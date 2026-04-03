@@ -1,5 +1,4 @@
-require("import")	-- the import fn
-import("li_std_except")	-- import code
+require("li_std_except")
 
 test = li_std_except.Test()
 -- under lua, all the std::exceptions are just turned to strings, so we are only checking that is fails

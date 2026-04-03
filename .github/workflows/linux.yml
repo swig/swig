@@ -119,6 +119,7 @@ jobs:
           VER: '12'
           CPPSTD: c++11
         - SWIGLANG: lua
+          VER: '5.2'
         - SWIGLANG: lua
           VER: '5.3'
         - SWIGLANG: octave
@@ -270,6 +271,7 @@ jobs:
           VER: '14'
           CPPSTD: c++11
         - SWIGLANG: lua
+          VER: '5.2'
           CPPSTD: c++11
         - SWIGLANG: perl5
           CPPSTD: c++11
@@ -311,6 +313,7 @@ jobs:
           VER: '16'
           CPPSTD: c++14
         - SWIGLANG: lua
+          VER: '5.2'
           CPPSTD: c++14
         - SWIGLANG: octave
           CPPSTD: c++14
@@ -371,6 +374,7 @@ jobs:
           GCC: 13
           os: ubuntu-24.04
         - SWIGLANG: lua
+          VER: '5.4'
           CPPSTD: c++17
           GCC: 13
           os: ubuntu-24.04

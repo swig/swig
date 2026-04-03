@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_exception_catches") -- import lib
+require("director_exception_catches")
 
 local b = director_exception_catches.BaseClass()
 function description(self)

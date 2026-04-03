@@ -1,14 +1,14 @@
 /* embed2.c some more tests for an embedded interpreter
- 
+
 This will go a bit further as it will pass values to and from the lua code.
 It uses less of the SWIG code, and more of the raw lua API's
- 
+
 What it will do is load the wrapped lib, load runme.lua and then call some functions.
 To make life easier, all the printf's have either [C] or [Lua] at the start
 so you can see where they are coming from.
- 
-We will be using the luaL_dostring()/lua_dostring() function to call into lua 
- 
+
+We will be using the luaL_dostring()/lua_dostring() function to call into lua
+
 */
 
 /* Deal with Microsoft's attempt at deprecating C standard runtime functions */
@@ -32,15 +32,11 @@ We will be using the luaL_dostring()/lua_dostring() function to call into lua
 #include <stdarg.h>
 #include <string.h>
 
-#if LUA_VERSION_NUM > 501
-#define lua_open luaL_newstate
-#endif
-
 /* the SWIG wrapped library */
 extern int luaopen_example(lua_State*L);
 
 /* This is an example of how to call the Lua function
-    int add(int,int) 
+    int add(int,int)
   it's very tedious, but gives you an idea of the issues involved.
   (look below for a better idea)
 */
@@ -77,7 +73,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
 
 /* This is a varargs call function for calling from C into Lua.
 Original Code from Programming in Lua (PIL) by Roberto Ierusalimschy
-ISBN 85-903798-1-7 
+ISBN 85-903798-1-7
 http://www.lua.org/pil/25.3.html
 This has been modified slightly to make it compile, and it's still a bit rough.
 But it gives the idea of how to make it work.
@@ -182,7 +178,7 @@ int main(int argc,char* argv[]) {
   printf("[C] Welcome to the simple embedded Lua example v2\n");
   printf("[C] We are in C\n");
   printf("[C] opening a Lua state & loading the libraries\n");
-  L=lua_open();
+  L=luaL_newstate();
   luaopen_base(L);
   luaopen_string(L);
   luaopen_math(L);

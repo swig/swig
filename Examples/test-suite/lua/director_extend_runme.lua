@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_extend") -- import lib
+require("director_extend")
 
 local m = director_extend.SpObject()
 swig_override(m, 'getFoo', function(self)
