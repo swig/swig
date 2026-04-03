@@ -1,5 +1,4 @@
-require("import")
-import("long_long")
+require("long_long")
 
 assert(long_long.foo1(-1) == nil)
 assert(long_long.foo2(-1) == nil)

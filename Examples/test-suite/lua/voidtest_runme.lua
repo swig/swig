@@ -1,6 +1,5 @@
 -- demo of lua swig
-require("import")	-- the import fn
-import("voidtest")	-- import lib
+require("voidtest")
 
 -- test calling functions
 voidtest.globalfunc()

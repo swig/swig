@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_exception_nothrow") -- import lib
+require("director_exception_nothrow")
 
 local a = director_exception_nothrow.Bar()
 local b = director_exception_nothrow.Bar()

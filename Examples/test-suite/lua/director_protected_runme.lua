@@ -1,5 +1,4 @@
-require("import")	-- the import fn
-import("director_protected")	-- import lib
+require("director_protected")
 
 -- Create test objects
 local b = director_protected.Bar()

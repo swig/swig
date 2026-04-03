@@ -1,5 +1,4 @@
-require("import")	-- the import fn
-import("overload_null")	-- import lib into global
+require("overload_null")
 
 o = overload_null.Overload()
 x = overload_null.X()

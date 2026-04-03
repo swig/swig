@@ -1,4 +1,3 @@
-require("import")
 local v=require("li_cdata_bytes")
 
 local m = v.predefStr()

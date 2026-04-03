@@ -1,10 +1,9 @@
-require("import")             -- the import fn
-import("director_enum", true) -- import lib with global
+require("director_enum")
 
 -- Test director with enum parameters
 
 -- Create a derived class that overrides say_hi
-MyFoo = {}
+local MyFoo = {}
 MyFoo.__index = MyFoo
 setmetatable(MyFoo, { __index = director_enum.Foo })
 

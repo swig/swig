@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_unroll") -- import lib
+require("director_unroll")
 
 local a = director_unroll.Foo()
 function ping(self)
