@@ -1,11 +1,6 @@
-require("import")	-- the import fn
-import("li_std_auto_ptr")	-- import code
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
-
+require("import")
+require("li_std_auto_ptr")
+catch_undef_globs() -- catch "undefined" global variables
 
 function checkCount(expected_count)
   -- call gc to make unused objects are collected
@@ -77,9 +72,9 @@ end
 kini = nil -- Should not fail, even though already deleted
 checkCount(0)
 
-li_std_auto_ptr.takeKlassAutoPtr(nil);
-li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null());
-checkCount(0);
+li_std_auto_ptr.takeKlassAutoPtr(nil)
+li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null())
+checkCount(0)
 
 -- overloaded parameters
 if not (li_std_auto_ptr.overloadTest() == 0) then

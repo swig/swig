@@ -4,14 +4,7 @@
 -- by SWIG.
 
 ---- importing ----
-if string.sub(_VERSION,1,7)=='Lua 5.0' then
-	-- lua5.0 doesn't have a nice way to do this
-	lib=loadlib('example.dll','luaopen_example') or loadlib('example.so','luaopen_example')
-	assert(lib)()
-else
-	-- lua 5.1 does
-	require('example')
-end
+require('example')
 
 ex = example
 
@@ -27,7 +20,7 @@ print("example.module_variable: ", ex.module_variable)
 w1 = ex.MyWorld.World()
 print("Creating class instance: w1 = ex.MyWorld.World(): ", w1)
 
--- Accessing class members 
+-- Accessing class members
 assert( ex.MyWorld.World():create_world() == 17 )
 print( "w1:create_world() = ", w1:create_world() )
 assert( w1:create_world() == 17 )

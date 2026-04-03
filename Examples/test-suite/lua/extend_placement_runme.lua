@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("extend_placement")	-- import lib into global
-ep=extend_placement --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("extend_placement")
+ep=extend_placement
+catch_undef_globs() -- catch "undefined" global variables
 
 function test_obj(main, suppl)
   assert(main:spam() == 1)

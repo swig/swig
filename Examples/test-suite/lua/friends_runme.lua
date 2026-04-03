@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("friends")	-- import lib into global
-f=friends --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("friends")
+f=friends
+catch_undef_globs() -- catch "undefined" global variables
 
 f.globalscope()
 
@@ -19,7 +15,7 @@ assert(f.get_val3(a1) == 30)
 
 assert(f.get_val1(100, 1, 2) == 100)
 
-assert(f.mix(a1,b1) == 15);
+assert(f.mix(a1,b1) == 15)
 
 d1 = f.D_i(7)
 assert(f.get_val1(d1) == 7)

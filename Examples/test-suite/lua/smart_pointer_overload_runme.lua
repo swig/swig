@@ -1,6 +1,5 @@
-require("import")	-- the import fn
-import("smart_pointer_overload")	-- import code
-for k,v in pairs(smart_pointer_overload) do _G[k]=v end -- move to global
+require("import")
+import_to_globs("smart_pointer_overload")
 
 f = Foo()
 b = Bar(f)

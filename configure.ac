@@ -1455,14 +1455,14 @@ AC_SUBST(NODEGYP)
 # Look for Lua
 #----------------------------------------------------------------
 
-LUABIN=
-LUAINCLUDE=
-LUALIB=
-LUADYNAMICLOADLIB=
-LUAFLAGS=
-LUALINK=
 # note: if LUABIN is empty then lua tests will not be done
 # LUABIN will be cleared if certain dependencies cannot be found
+AS_UNSET([LUABIN])
+AS_UNSET([LUAINCLUDE])
+AS_UNSET([LUALIB])
+AS_UNSET([LUADYNAMICLOADLIB])
+AS_UNSET([LUAFLAGS])
+AS_UNSET([LUALINK])
 
 AC_ARG_WITH(lua, AS_HELP_STRING([--without-lua], [Disable Lua])
 AS_HELP_STRING([--with-lua=path], [Set location of Lua executable]),[ LUABIN="$withval"], [LUABIN="$alllang_default"])
@@ -1480,112 +1480,91 @@ else
 if test "x$LUABIN" = xyes; then
    # We look for a versioned Lua binary first, as there can be
    # multiple versions of Lua installed on some systems (like Debian).
-   AC_PATH_PROGS(LUABIN, [lua5.4 lua5.3 lua5.2 lua5.1 lua])
+   AC_PATH_PROGS(LUABIN, [lua5.5 lua5.4 lua5.3 lua5.2 lua])
 fi
 
-# check version: we need Lua 5.x
-if test "$LUABIN"; then
-  AC_MSG_CHECKING(Lua version)
-  [LUA_VERSION=`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`]
-  # For 5.0 and 5.1 header and libraries may be named using 50 or 51.
-  LUA_VERSION_NO_DOTS=
+# check version: we need Lua 5.2 or above
+LUA_MINVER='5.2'
+if test -n "$LUABIN"; then
+  AC_MSG_CHECKING([Lua version])
+  AS_VAR_SET([LUA_VERSION], [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])
   if test -n "$LUA_VERSION" ; then
     AC_MSG_RESULT([Lua $LUA_VERSION.x])
+    AS_VERSION_COMPARE(["$LUA_VERSION"], ["$LUA_MINVER"],
+                   [AC_MSG_WARN([Bellow Lua $LUA_MINVER, SWIG does not support this version of Lua])
+                    AS_UNSET([LUABIN])])
   else
     AC_MSG_RESULT([failed])
+    AS_UNSET([LUABIN])
   fi
-  case $LUA_VERSION in
-    5.0) LUA_VERSION_NO_DOTS=50 ;;
-    5.1) LUA_VERSION_NO_DOTS=51 ;;
-    5.*) ;;
-    *)
-      AC_MSG_WARN([Not Lua 5.x, SWIG does not support this version of Lua])
-      LUABIN=""
-      ;;
-  esac
 fi
 
 if test "$LUABIN"; then
-  AC_MSG_CHECKING(whether Lua dynamic loading is enabled)
-  # using Lua to check Lua
-  # lua 5.0 & 5.1 have different fn names
-  if test "$LUA_VERSION" = "5.0"; then
-    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-  else
-    LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
-  fi
+  AC_MSG_CHECKING([whether Lua dynamic loading is enabled])
+  LUADYNAMICLOADLIB=`$LUABIN -e '_,_,c=package.loadlib("no_such_lib","") if c~="absent" then print "1" end'`
 
   if test -z "$LUADYNAMICLOADLIB"; then
-    AC_MSG_RESULT(no)
+    AC_MSG_RESULT([no])
   else
-    AC_MSG_RESULT(yes)
+    AC_MSG_RESULT([yes])
   fi
 
   # look for the header files & set LUAFLAGS accordingly
   # will clear LUABIN if not present
   if test -n "$LUAINCLUDE"; then
-    AC_CHECK_FILE($LUAINCLUDE/lua.h,[LUAFLAGS="-I$LUAINCLUDE"],[LUABIN=])
+    AC_CHECK_FILE([$LUAINCLUDE/lua.h],[LUAFLAGS="-I$LUAINCLUDE"],[AS_UNSET([LUABIN])])
   else
     LUA_OK="1"
-    CFLAGS_SAVED=$CFLAGS
+    CFLAGS_SAVED="$CFLAGS"
     CFLAGS= # Use empty CFLAGS to avoid failure: "present but cannot be compiled"
-    AC_CHECK_HEADER([lua.h],[LUAFLAGS=""],[LUA_OK=""])
-    CFLAGS=$CFLAGS_SAVED
+    AC_CHECK_HEADER([lua.h],[AS_UNSET([LUAFLAGS])],[AS_UNSET([LUA_OK])])
+    CFLAGS="$CFLAGS_SAVED"
     # if we didn't get it, going to have to look elsewhere (the hard way)
     if test -z "$LUA_OK"; then
-      AC_MSG_CHECKING(for lua.h in other locations)
-      # note: Debian/Ubuntu seem to like /usr/include/lua5.1/lua.h
+      AC_MSG_CHECKING([for lua.h in other locations])
+      # note: Debian/Ubuntu seem to like /usr/include/lua5.2/lua.h
       # The ordering of the include directories to search should match
       # the ordering of libraries to search in the library test below.
-      inc=/usr/include
       incloc=/usr/local/include
-      dirs="$inc/lua$LUA_VERSION"
-      test -z "$LUA_VERSION_NO_DOTS" || dirs="$dirs $inc/lua$LUA_VERSION_NO_DOTS"
-      dirs="$dirs $incloc/lua$LUA_VERSION"
-      test -z "$LUA_VERSION_NO_DOTS" || dirs="$dirs $incloc/lua$LUA_VERSION_NO_DOTS"
-      dirs="$dirs $incloc"
+      dirs="/usr/include/lua$LUA_VERSION"
+      dirs="$dirs $incloc/lua$LUA_VERSION $incloc"
       for i in $dirs; do
         #echo "$i"
-        if test -r $i/lua.h; then
-          AC_MSG_RESULT($i/lua.h)
+        if test -r "$i/lua.h"; then
+          AC_MSG_RESULT([$i/lua.h])
           LUAFLAGS="-I$i"
           break
         fi
       done
       if test -z "$LUAFLAGS"; then
-        AC_MSG_RESULT(not found)
-        LUABIN="" # clear the bin
+        AC_MSG_RESULT([not found])
+        AS_UNSET([LUABIN]) # clear the bin
       fi
     fi
   fi
 
   # look for the library files & set LUALINK accordingly
   # will clear LUABIN if not present
-  lua_save_LIBS=$LIBS # the code seems to disrupt LIBS, so saving
 
   if test -n "$LUALIB"; then
-    AC_CHECK_FILE($LUALIB/liblua.a,[LUALINK="-L$LUALIB -llua"],[LUABIN=])
+    AC_CHECK_FILE([$LUALIB/liblua.a],[LUALINK="-L$LUALIB -llua"],[AS_UNSET([LUABIN])])
   else
+    lua_save_LIBS="$LIBS" # `AC_SEARCH_LIBS` Prepend -llibrary to LIBS
     libs="lua lua$LUA_VERSION"
-    test -z "$LUA_VERSION_NO_DOTS" || libs="$libs lua$LUA_VERSION_NO_DOTS"
-    AC_SEARCH_LIBS(lua_close, [$libs], [LUALINK="-l$ac_lib"],[LUABIN=])
+    AC_SEARCH_LIBS([lua_close],[$libs],[LUALINK="-l$ac_lib"],[AS_UNSET([LUABIN])])
+    LIBS="$lua_save_LIBS"	# restore LIBS
   fi
 
-  # adding lualib for lua 5.0
-  if test "$LUA_VERSION" = "5.0"; then
-    LUALINK="$LUALINK -llualib"
-  fi
+  # Add pthread to linking
   LUALINK="$LUALINK -pthread"
-
-  LIBS=$lua_save_LIBS	# restore LIBS
 fi
 
 fi # if not disabled
 
-AC_SUBST(LUADYNAMICLINKING)
-AC_SUBST(LUAFLAGS)
-AC_SUBST(LUALINK)
-AC_SUBST(LUABIN)
+AC_SUBST([LUADYNAMICLINKING])
+AC_SUBST([LUAFLAGS])
+AC_SUBST([LUALINK])
+AC_SUBST([LUABIN])
 
 #----------------------------------------------------------------
 # Look for OCaml

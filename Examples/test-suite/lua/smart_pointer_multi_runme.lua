@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("smart_pointer_multi")	-- import lib into global
-spm=smart_pointer_multi --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("smart_pointer_multi")
+spm=smart_pointer_multi
+catch_undef_globs() -- catch "undefined" global variables
 
 foo = spm.Foo()
 foo.x = 5

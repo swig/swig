@@ -131,63 +131,6 @@ typedef struct swig_elua_entry {
 #include "lrotable.h"
 #endif
 #endif /* SWIG_LUA_ELUA_EMULATE*/
-/* -----------------------------------------------------------------------------
- * compatibility defines
- * ----------------------------------------------------------------------------- */
-
-/* History of Lua C API length functions:  In Lua 5.0 (and before?)
-   there was "lua_strlen".  In Lua 5.1, this was renamed "lua_objlen",
-   but a compatibility define of "lua_strlen" was added.  In Lua 5.2,
-   this function was again renamed, to "lua_rawlen" (to emphasize that
-   it doesn't call the "__len" metamethod), and the compatibility
-   define of lua_strlen was removed.  All SWIG uses have been updated
-   to "lua_rawlen", and we add our own defines of that here for older
-   versions of Lua.  */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
-# define lua_rawlen lua_strlen
-#elif LUA_VERSION_NUM == 501
-# define lua_rawlen lua_objlen
-#endif
-
-/* lua_tolstring() was added in Lua 5.1.  It should be a little more
-   efficient than making two separate calls and it avoids problems with order
-   of evaluation so SWIG calls lua_tolstring() when it wants the length and
-   we provide a compatibility implementation for Lua 5.0.  */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
-static const char *(lua_tolstring)(lua_State *L, int idx, size_t *len) {
-  /* Call lua_tostring() first as it may convert the value from number to
-     string. */
-  const char *result = lua_tostring(L, idx);
-  if (len) *len = lua_strlen(L, idx);
-  return result;
-}
-#endif
-
-
-/* lua_pushglobaltable is the recommended "future-proof" way to get
-   the global table for Lua 5.2 and later.  Here we define
-   lua_pushglobaltable ourselves for Lua versions before 5.2.  */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
-# define lua_pushglobaltable(L) lua_pushvalue(L, LUA_GLOBALSINDEX)
-#endif
-
-/* lua_absindex was introduced in Lua 5.2 */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
-# define lua_absindex(L,i) ((i)>0 || (i) <= LUA_REGISTRYINDEX ? (i) : lua_gettop(L) + (i) + 1)
-#endif
-
-/* lua_rawsetp was introduced in Lua 5.2 */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
-#define lua_rawsetp(L,index,ptr)\
-  lua_pushlightuserdata(L,(void*)(ptr));\
-  lua_insert(L,-2);\
-  lua_rawset(L,index);
-
-#define lua_rawgetp(L,index,ptr)\
-  lua_pushlightuserdata(L,(void*)(ptr));\
-  lua_rawget(L,index);
-
-#endif
 
 /* --------------------------------------------------------------------------
  * Helper functions for error handling
@@ -2005,21 +1948,14 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
 #define SWIG_DOSTRING_FAIL(S) fprintf(stderr,"%s\n",S)
 #endif
 /* Executes a C string in Lua which is a really simple way of calling lua from C
-Unfortunately lua keeps changing its APIs, so we need a conditional compile
-In lua 5.0.X it's lua_dostring()
-In lua 5.1.X it's luaL_dostring()
 */
 SWIGINTERN int
 SWIG_Lua_dostring(lua_State *L, const char *str) {
   int ok,top;
   if (str==0 || str[0]==0) return 0; /* nothing to do */
   top=lua_gettop(L); /* save stack */
-#if (defined(LUA_VERSION_NUM) && (LUA_VERSION_NUM>=501))
-  ok=luaL_dostring(L,str);	/* looks like this is lua 5.1.X or later, good */
-#else
-  ok=lua_dostring(L,str);	/* might be lua 5.0.x, using lua_dostring */
-#endif
-  if (ok!=0) {
+  ok=luaL_dostring(L,str);
+  if (ok!=LUA_OK) {
     SWIG_DOSTRING_FAIL(lua_tostring(L,-1));
   }
   lua_settop(L,top); /* restore the stack */

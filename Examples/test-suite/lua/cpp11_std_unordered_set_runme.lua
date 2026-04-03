@@ -1,8 +1,6 @@
 -- Test for std::unordered_set wrapper in Lua
-require("import")                                        -- the import fn
-import("cpp11_std_unordered_set")                        -- import code
-
-for k, v in pairs(cpp11_std_unordered_set) do _G[k] = v end -- move to global
+require("import")
+import_to_globs("cpp11_std_unordered_set")
 
 -- Test UnorderedSetInt
 local intSet = UnorderedSetInt()

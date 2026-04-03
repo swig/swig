@@ -1,16 +1,10 @@
 -- demo of lua swig capacities (operator overloading)
-require("import")	-- the import fn
-import("operator_overload")	-- import lib
-
-for k,v in pairs(operator_overload) do _G[k]=v end -- move to global
+require("import")
+import_to_globs("operator_overload")
+catch_undef_globs() -- catch "undefined" global variables
 
 -- first check all the operators are implemented correctly from pure C++ code
 Op_sanity_check()
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
 -- test routine:
 a=Op()

@@ -1,8 +1,6 @@
 -- Test for std::array wrapper in Lua
 require("import")	-- the import fn
-import("cpp11_std_array")	-- import code
-
-for k,v in pairs(cpp11_std_array) do _G[k]=v end -- move to global
+import_to_globs("cpp11_std_array")	-- import code
 
 -- Helper function to compare arrays
 local function compareArrays(arr, expected)

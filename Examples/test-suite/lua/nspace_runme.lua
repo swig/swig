@@ -1,12 +1,8 @@
-require("import")	-- the import fn
-import("nspace")	-- import lib
+require("import")
+require("nspace")
+ns=nspace
+catch_undef_globs() -- catch "undefined" global variables
 
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
-
-ns = nspace
 
 -- Inheritance
 blue1 = ns.Outer.Inner3.Blue()
@@ -62,7 +58,7 @@ sc = ns.Outer.SomeClass()
 assert( sc:GetInner1ColorChannel() ~= sc:GetInner2Channel() )
 assert( sc:GetInner1Channel() ~= sc:GetInner2Channel() )
 
--- Backward compatibility 
+-- Backward compatibility
 assert(ns.Outer.Inner1.Diffuse ~= nil)
 -- Enums within class within namespace shouldn't have backward compatible name. Same for static methods
 assert(ns.Outer.Inner1.Color_Diffuse == nil)
