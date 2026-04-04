@@ -1,0 +1,10 @@
+local v=require("abstract_inherit_using")
+
+local cd1 = v.ConcreteDerived1()
+assert(cd1 ~= nil)
+cd1:f(1234)
+cd1:f("one")
+local cd2 = v.ConcreteDerived2()
+assert(cd2 ~= nil)
+cd2:f(1234)
+cd2:f("one")

@@ -1,0 +1,10 @@
+local v=require("valuewrapper_base")
+
+local ibp = v.make_Interface_BP()
+assert(swig_type(ibp) == "oss::Interface_< oss::BinaryPolarization > *")
+assert(v.UnaryPolarization == 0)
+assert(v.BinaryPolarization == 1)
+local b = v.Base()
+assert(swig_type(b) == "oss::Base *")
+local i = v.Interface_BP(b)
+assert(swig_type(i) == "oss::Interface_< oss::BinaryPolarization > *")

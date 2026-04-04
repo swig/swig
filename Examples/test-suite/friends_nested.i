@@ -159,7 +159,7 @@ int innerfriend() {
 ///////////////////////////////////////////////////////////////
 
 // %feature("flatnested"); // This ought to work for languages that don't support nested structs, but InnerInnerStruct is multiply defined at the time of writing
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGLUA)
 
 %inline %{
 namespace OuterSpace {
