@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("extend_template")	-- import lib into global
-et=extend_template--alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("extend_template")
+et=extend_template
+catch_undef_globs() -- catch "undefined" global variables
 
 foo1 = et.Foo_0()
 assert(foo1:test1(5) == 5)

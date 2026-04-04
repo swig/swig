@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("overload_complicated")	-- import lib into global
-oc=overload_complicated --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("overload_complicated")
+oc=overload_complicated
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(oc.foo(1,1,"test",1) == 15)
 

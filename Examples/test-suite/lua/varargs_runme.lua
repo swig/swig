@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("varargs")	-- import lib
+require("import")
+require("varargs")
 v=varargs
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(v.test("Hello") == "Hello")
 assert(v.test_def("Hello",0) == "Hello")

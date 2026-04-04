@@ -1,12 +1,5 @@
 ---- importing ----
-if string.sub(_VERSION,1,7)=='Lua 5.0' then
-	-- lua5.0 doesn't have a nice way to do this
-	lib=loadlib('example.dll','luaopen_example') or loadlib('example.so','luaopen_example')
-	assert(lib)()
-else
-	-- lua 5.1 does
-	require('example')
-end
+require('example')
 
 -- Try to set the values of some global variables
 
@@ -52,9 +45,9 @@ print("\nVariables (values printed from C)")
 
 example.print_vars()
 
-print "\nNow I'm going to try and modify some read only variables";
+print "\nNow I'm going to try and modify some read only variables"
 
-print "     Trying to set 'path' to 'Whoa!'";
+print "     Trying to set 'path' to 'Whoa!'"
 if pcall(function() example.path = "Whoa!" end)==true then
 	print "     That's funny, it didn't give an error!"
 else
@@ -62,7 +55,7 @@ else
 end
 print("     Just checking the value: path      =", example.path)
 
-print "     Trying to set 'status' to '0'";
+print "     Trying to set 'status' to '0'"
 if pcall(function() example.status = 0 end)==true then
 	print "     That's funny, it didn't give an error!"
 else

@@ -1,8 +1,6 @@
-require("import")	-- the import fn
-import("exception_partial_info")	-- import code
-
--- catch "undefined" global variables
-setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("exception_partial_info")
+catch_undef_globs() -- catch "undefined" global variables
 
 imp=exception_partial_info.Impl()
 

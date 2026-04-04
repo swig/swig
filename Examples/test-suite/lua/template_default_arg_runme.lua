@@ -1,6 +1,5 @@
-require("import")	-- the import fn
-import("template_default_arg")	-- import code
---for k,v in pairs(template_default_arg) do _G[k]=v end -- move to global
+require("import")
+require("template_default_arg")
 
 helloInt = template_default_arg.Hello_int()
 assert(template_default_arg.Hello_int_hi ~= nil)
@@ -50,7 +49,7 @@ assert(template_default_arg.ott(1, 1) == 10,"ott test 4 failed")
 assert(template_default_arg.ott("hi") == 20,"ott test 5 failed")
 assert(template_default_arg.ott("hi", 1) == 20,"ott test 6 failed")
 assert(template_default_arg.ott("hi", 1, 1) == 20,"ott test 7 failed")
- 
+
 -- %template(ott) ott<const char *>
 assert(template_default_arg.ottstring(template_default_arg.Hello_int(), "hi") == 40,"ott test 8 failed")
 assert(template_default_arg.ottstring(template_default_arg.Hello_int()) == 40,"ott test 9 failed")

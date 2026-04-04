@@ -1,15 +1,10 @@
-require("import")	-- the import fn
-import("li_std_string")	-- import lib
-
-for k,v in pairs(li_std_string) do _G[k]=v end -- move to global
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("li_std_string")
+move_to_globs(li_std_string) -- move to global
+catch_undef_globs() -- catch "undefined" global variables
 
 -- helper to check type
-function is_std_string(s) 
+function is_std_string(s)
 	return type(s)=='userdata' and swig_type(s)=='std::string *'
 end
 
@@ -62,7 +57,7 @@ assert(ok==false and type(ex)=="string")	-- failed & threw string
 ok,ex=pcall(test_const_pointer_throw)
 assert(ok==false and type(ex)=="string")	-- failed & threw object
 
--- ditto non const ptrs 
+-- ditto non const ptrs
 ok,ex=pcall(test_pointer_throw)
 assert(ok==false and type(ex)=="string")	-- failed & threw object
 
@@ -101,7 +96,7 @@ assert(pcall(function () struc.ConstMemberString="c" end)==false)
 assert(type(struc.MemberString2)=="string") -- typemaps make this a string
 assert(type(struc.ConstMemberString)=="string")
 
--- for static types: they are really variables, 
+-- for static types: they are really variables,
 -- so we must still use the module name
 
 -- check static type

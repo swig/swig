@@ -1,12 +1,7 @@
-require("import")	-- the import fn
-import("cpp17_string_view")	-- import lib
-
-for k,v in pairs(cpp17_string_view) do _G[k]=v end -- move to global
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("cpp17_string_view")
+move_to_globs(cpp17_string_view) -- move to global
+catch_undef_globs() -- catch "undefined" global variables
 
 -- Checking expected use of %typemap(in) std::string_view {}
 test_value("Fee")

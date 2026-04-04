@@ -189,7 +189,7 @@ int main(int argc, char* argv[])
   printf("%s: &lt;filename.lua&gt;\n", argv[0]);
   return 0;
  }
- L=lua_open();
+ L=luaL_newstate();
  luaopen_base(L);       // load basic libs (eg. print)
  luaopen_example(L);    // load the wrapped module
  if (luaL_loadfile(L, argv[1])==0) // load and run the file

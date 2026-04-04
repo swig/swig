@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("funcptr_cpp")	-- import lib into global
-fc=funcptr_cpp --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("funcptr_cpp")
+fc=funcptr_cpp
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(fc.addByValue(5,10) == 15)
 -- These two won't work. Lua will successfully store the answer as userdata, but there is
