@@ -1,12 +1,12 @@
-require("import")	-- the import fn
-import("exception_partial_info")	-- import code
+require("import")
+require("exception_partial_info")
 
 -- catch "undefined" global variables
-setmetatable(getfenv(),{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+setmetatable(_ENV,{__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 
 imp=exception_partial_info.Impl()
 
 -- trying to call throwing methods
 -- should fail
-assert(pcall(function() imp:f1() end)==false)
-assert(pcall(function() imp:f2() end)==false)
+assert(not pcall(function() imp:f1() end))
+assert(not pcall(function() imp:f2() end))

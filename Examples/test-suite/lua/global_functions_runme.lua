@@ -1,0 +1,10 @@
+local v=require("global_functions")
+
+v.global_void()
+assert(v.global_one(1) == 1)
+assert(v.global_two(2, 2) == 4)
+assert(not pcall(function() v.global_void(1) end))
+assert(not pcall(function() v.global_one() end))
+assert(not pcall(function() v.global_one(2, 2) end))
+assert(not pcall(function() v.global_two(1) end))
+assert(not pcall(function() v.global_two(3, 3, 3) end))
