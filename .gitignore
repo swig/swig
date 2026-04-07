@@ -134,14 +134,11 @@ Examples/d/**/runme
 
 # Go
 *.[5689]
-*_gc.c
-Examples/test-suite/go/*.go
-!Examples/test-suite/go/*runme.go
-Examples/test-suite/go/*runme
-Examples/test-suite/go/gopath
-Examples/test-suite/go/testdir
-Examples/go/*/gopath
-Examples/go/*/example.go
+Examples/test-suite/go/swigtests
+Examples/test-suite/go/runme
+Examples/test-suite/go/*/swigtests
+Examples/test-suite/go/*/runme
+Examples/go/*/swigtests
 Examples/go/*/runme
 
 # Guile
