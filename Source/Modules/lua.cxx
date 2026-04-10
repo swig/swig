@@ -87,18 +87,9 @@ static const char *usage = "\
 Lua Options (available with -lua)\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
-     -no-old-metatable-bindings\n\
-                     - Disable support for old-style bindings name generation, some\n\
-                       old-style members scheme etc.\n\
 \n";
 
 static int nomoduleglobal = 0;
-/* The new metatable bindings were introduced in SWIG 3.0.0.
- * old_metatable_bindings in v2:
- *                    1. static methods will be put into the scope their respective class
- *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
- */
-static int old_metatable_bindings = 1;
 static int old_compatible_names = 1;  // This flag can temporarily disable backward compatible names generation if old_metatable_bindings is enabled
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -217,9 +208,6 @@ public:
         } else if (strcmp(argv[i], "-nomoduleglobal") == 0) {
           nomoduleglobal = 1;
           Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
-          Swig_mark_arg(i);
-          old_metatable_bindings = 0;
         }
       }
     }
@@ -1053,11 +1041,9 @@ public:
     assert(s_const_tab);
     Printf(s_const_tab, "    %s,\n", constantRecord);
 
-    if (old_metatable_bindings) {
-      s_const_tab = Getattr(nspaceHash, "constants");
-      assert(s_const_tab);
-      Printf(s_const_tab, "    %s,\n", constantRecord);
-    }
+    s_const_tab = Getattr(nspaceHash, "constants");
+    assert(s_const_tab);
+    Printf(s_const_tab, "    %s,\n", constantRecord);
   }
 
   /* ------------------------------------------------------------
@@ -1111,7 +1097,7 @@ public:
     // v2 compatibility mode: add symbols with class prefix to NSpace
     // Skip this for nested classes to avoid duplicate symbol errors
     // (nested classes from different outer classes would have the same symbol name)
-    bool make_v2_compatible = old_metatable_bindings && getCurrentClass() && old_compatible_names;
+    bool make_v2_compatible = getCurrentClass() && old_compatible_names;
     bool in_nested_class = getCurrentClass() && Getattr(getCurrentClass(), "nested:outer") != 0;
 
     if (make_v2_compatible && !in_nested_class) {
@@ -1728,7 +1714,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (old_metatable_bindings && result == SWIG_OK && old_compatible_names) {
+    if (result == SWIG_OK && old_compatible_names) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1773,7 +1759,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (old_metatable_bindings && old_compatible_names) {
+      if (old_compatible_names) {
         Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
         String *lua_name = Getattr(n, "lua:name");
         // Although this function uses Swig_name_member, it actually generates the Lua name,
