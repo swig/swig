@@ -91,23 +91,13 @@ Lua Options (available with -lua)\n\
                        Incompatible with -elua/-eluac options.\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
-     -no-old-metatable-bindings\n\
-                     - Disable support for old-style bindings name generation, some\n\
-                       old-style members scheme etc.\n\
 \n";
 
 static int nomoduleglobal = 0;
 static int elua_ltr = 0;
 static int eluac_ltr = 0;
 static int elua_emulate = 0;
-/* The new metatable bindings were introduced in SWIG 3.0.0.
- * old_metatable_bindings in v2:
- *                    1. static methods will be put into the scope their respective class
- *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
- *                    2. The layout in elua mode is somewhat different
- */
-static int old_metatable_bindings = 1;
-static int old_compatible_names = 1;  // This flag can temporarily disable backward compatible names generation if old_metatable_bindings is enabled
+static int old_compatible_names = 1;  // This flag can temporarily disable backward compatible names generation
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from
@@ -231,9 +221,6 @@ public:
         } else if (strcmp(argv[i], "-eluac") == 0) {
           eluac_ltr = 1;
           Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
-          Swig_mark_arg(i);
-          old_metatable_bindings = 0;
         } else if (strcmp(argv[i], "-elua-emulate") == 0) {
           Swig_mark_arg(i);
           elua_emulate = 1;
@@ -1103,7 +1090,7 @@ public:
     assert(s_const_tab);
     Printf(s_const_tab, "    %s,\n", constantRecord);
 
-    if ((eluac_ltr || elua_ltr) && old_metatable_bindings) {
+    if (eluac_ltr || elua_ltr) {
       s_const_tab = Getattr(nspaceHash, "constants");
       assert(s_const_tab);
       Printf(s_const_tab, "    %s,\n", constantRecord);
@@ -1161,7 +1148,7 @@ public:
     // v2 compatibility mode: add symbols with class prefix to NSpace
     // Skip this for nested classes to avoid duplicate symbol errors
     // (nested classes from different outer classes would have the same symbol name)
-    bool make_v2_compatible = old_metatable_bindings && getCurrentClass() && old_compatible_names;
+    bool make_v2_compatible = getCurrentClass() && old_compatible_names;
     bool in_nested_class = getCurrentClass() && Getattr(getCurrentClass(), "nested:outer") != 0;
 
     if (make_v2_compatible && !in_nested_class) {
@@ -1807,7 +1794,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (old_metatable_bindings && result == SWIG_OK && old_compatible_names) {
+    if (result == SWIG_OK && old_compatible_names) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1852,7 +1839,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (old_metatable_bindings && old_compatible_names) {
+      if (old_compatible_names) {
         Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
         String *lua_name = Getattr(n, "lua:name");
         // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1865,7 +1852,7 @@ public:
           registerVariable(n, true, getNSpace());
         }
         // If static member variable was wrapped as a constant, then
-        // constant wrapper has already performed all actions necessary for old_metatable_bindings
+        // constant wrapper has already performed all actions necessary
         Delete(v2_name);
         Swig_restore(n);
       }
@@ -2165,7 +2152,7 @@ public:
     // For the sake of compiling with -Wall -Werror we print constants
     // only when necessary
     int need_constants = 0;
-    if ((elua_ltr || eluac_ltr) && (old_metatable_bindings))
+    if (elua_ltr || eluac_ltr)
       need_constants = 1;
     else if (!is_instance)  // static part need constants tab
       need_constants = 1;
@@ -2180,8 +2167,7 @@ public:
     String *methods_tab = Getattr(carrays_hash, "methods");
     String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
     if (elua_ltr || eluac_ltr) {
-      if (old_metatable_bindings)
-        Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
+      Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
       if (elua_ltr) {
         Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
       }
