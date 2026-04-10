@@ -161,10 +161,6 @@ swig -lua -help
   <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included in appropriate later sections.
       This option is considered deprecated and will be removed in the near future.</td>
 </tr>
-<tr>
-  <td>-squash-bases</td>
-  <td>Squashes symbols from all inheritance tree of a given class into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly speeds things up, but increases memory consumption.</td>
-</tr>
 </table>
 
 <H3><a name="Lua_nn4">29.2.2 Compiling and Linking and Interpreter</a></H3>
@@ -1534,9 +1530,7 @@ function
 nil
 &gt;
 </pre></div>
-<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived stores a list of its bases and if some symbol is not found in its own service tables
-then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
-</p>
+<p> This behaviour was changed.</p>
 
 <div class="targetlang"><pre>
 &gt; print(der.new_func) -- Now it works

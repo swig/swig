@@ -90,13 +90,9 @@ Lua Options (available with -lua)\n\
      -no-old-metatable-bindings\n\
                      - Disable support for old-style bindings name generation, some\n\
                        old-style members scheme etc.\n\
-     -squash-bases   - Squashes symbols from all inheritance tree of a given class\n\
-                       into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly\n\
-                       speeds things up, but increases memory consumption.\n\
 \n";
 
 static int nomoduleglobal = 0;
-static int squash_bases = 0;
 /* The new metatable bindings were introduced in SWIG 3.0.0.
  * old_metatable_bindings in v2:
  *                    1. static methods will be put into the scope their respective class
@@ -224,9 +220,6 @@ public:
         } else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
           Swig_mark_arg(i);
           old_metatable_bindings = 0;
-        } else if (strcmp(argv[i], "-squash-bases") == 0) {
-          Swig_mark_arg(i);
-          squash_bases = 1;
         }
       }
     }
@@ -307,8 +300,6 @@ public:
     } else {
       Printf(f_runtime, "#define SWIG_LUA_MODULE_GLOBAL\n");
     }
-    if (squash_bases)
-      Printf(f_runtime, "#define SWIG_LUA_SQUASH_BASES\n");
 
     /* Check if directors are enabled for this module */
     Node *mod = Getattr(n, "module");
