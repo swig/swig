@@ -977,32 +977,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
         clear = 0;
       }
       isfunction = 1;
-    } else if (SwigType_istemplate(element)) {
-      String *tprefix = SwigType_templateprefix(element);
-      String *tsuffix = SwigType_templatesuffix(element);
-      if (tsuffix && Len(tsuffix)) {
-        String *expand = SwigType_namestr(tsuffix);
-        Delete(tsuffix);
-        tsuffix = expand;
-      }
-      List *parms = SwigType_templateargslist(element);
-      String *t = tprefix;
-      Append(t, "< ");
-      int plen = Len(parms);
-      for (int j = 0; j < plen; j++) {
-        String *p = SwigType_str(Getitem(parms, j), 0);
-        Append(t, p);
-        Delete(p);
-        if (j < (plen - 1))
-          Append(t, ",");
-      }
-      Append(t, " >");
-      Append(t, tsuffix);
-      Append(t, " ");
-      Insert(result, 0, t);
-      Delete(parms);
-      Delete(t);
-      clear = 0;
     } else {
       String *bs = SwigType_namestr(element);
       Insert(result, 0, " ");
@@ -1012,32 +986,16 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     element = nextelement;
   }
   Delete(elements);
-
-  const char *ref = isreference ? "*" : "";
-  // Can't move cast without a named value
-  if (name && cparse_cplusplus && SwigType_type(s) == T_USER) {
-    if (clear || Len(result) == 0) {
-      // Move, no casting necessary
-      cast = NewStringf("SWIG_STD_MOVE(%s%s)", ref, name);
-    } else {
-      // Move cast with a type
-      cast = NewStringf("SWIG_STD_MOVE_CAST< %s >(%s%s)", result, ref, name);
-    }
-  } else if (clear && name) {
-    // Named value with no casting necessary
-    cast = NewStringf("%s%s", ref, name);
-  } else if (Len(result) && name) {
-    // C-style operator cast with value
-    cast = NewStringf("(%s)%s%s", result, ref, name);
-  } else if (Len(result)) {
-    // Only a C-style cast without a value
-    cast = NewStringf("(%s)", result);
-  } else if (name) {
-    // Named value, but no casting necessary
-    cast = NewStringf("%s%s", ref, name);
-  } else {
-    // No name given and no cast necessary
+  if (clear) {
     cast = NewStringEmpty();
+  } else {
+    cast = NewStringf("(%s)", result);
+  }
+  if (name) {
+    if (isreference) {
+      Append(cast, "*");
+    }
+    Append(cast, name);
   }
   Delete(result);
   Delete(tc);

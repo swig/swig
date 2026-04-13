@@ -22,11 +22,22 @@
     Unique(Unique &&) = default;
     Unique(int x): v{x} {};
   };
+%}
 
+//%template(Object_3int) Object<int, int, int>;
+
+%inline %{
+#if 1
   template <typename T, typename... U>
   int fnObject(Object<T, U...>) {
     return 1;
   }
+#else
+  template <typename T, typename U, typename V>
+  int fnObject(Object<T, U, V>) {
+    return 1;
+  }
+#endif
 
   template <typename T, typename... U>
   int fnUnique(Unique<T, U...> &&) {
