@@ -1490,7 +1490,7 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
             Putc(',', e);
           Append(e, type);
         } else {
-          assert(j = jlen - 1);
+          assert(j == jlen - 1); /* A variadic parm was replaced with zero parms, variadic parms are only changed at the end of the list */
         }
       }
       Append(e, ")>");
