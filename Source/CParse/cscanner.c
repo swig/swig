@@ -426,6 +426,7 @@ static int yylook(void) {
       {
         typedef enum { DOX_COMMENT_PRE = -1, DOX_COMMENT_NONE, DOX_COMMENT_POST } comment_kind_t;
         comment_kind_t existing_comment = DOX_COMMENT_NONE;
+        int in_structural_block = 0; /* True when a @file (or similar) block is being skipped */
 
         /* Concatenate or skip all consecutive comments at once. */
         do {
@@ -462,7 +463,12 @@ static int yylook(void) {
                 break;
               }
 
-              if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
+              if (this_comment == DOX_COMMENT_PRE && existing_comment == DOX_COMMENT_NONE && isStructuralDoxygen(loc)) {
+                /* @file and similar commands mark the whole block as file-scope documentation.
+                   Set a flag to discard all subsequent lines until a blank line separates
+                   this block from the next declaration's doc comment. */
+                in_structural_block = 1;
+              } else if (!in_structural_block && (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc))) {
                 String *str;
 
                 int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
@@ -492,10 +498,19 @@ static int yylook(void) {
               }
             }
           }
-          do {
-            tok = Scanner_token(scan);
-          } while (tok == SWIG_TOKEN_ENDLINE);
-          Delete(cmt_modified);
+          {
+            int endlines = 0;
+            do {
+              tok = Scanner_token(scan);
+              if (tok == SWIG_TOKEN_ENDLINE)
+                endlines++;
+            } while (tok == SWIG_TOKEN_ENDLINE);
+            Delete(cmt_modified);
+            /* A blank line (2+ newlines) ends a structural block, ensuring the next
+               declaration's doc comment is not bleed into the discarded file-level doc. */
+            if (in_structural_block && endlines >= 2)
+              break;
+          }
         } while (tok == SWIG_TOKEN_COMMENT);
 
         Scanner_pushtoken(scan, tok, Scanner_text(scan));

@@ -190,5 +190,13 @@
 
     #include "doxygen_misc_constructs.h"
 
+    // @file block (single-line //! style) must not bleed into the next class doc (GitHub issue #3403).
+    //! @file      doxygen_misc_constructs.i
+    //! @brief     File-level brief description.
+    //! @authors   Someone
+
+    //! This is the real class description.
+    struct FileHeaderTestClass {};
+
 %}
     %include "doxygen_misc_constructs.h"
