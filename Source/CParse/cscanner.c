@@ -464,11 +464,13 @@ static int yylook(void) {
               }
 
               if (this_comment == DOX_COMMENT_PRE && existing_comment == DOX_COMMENT_NONE && isStructuralDoxygen(loc)) {
-                /* @file and similar commands mark the whole block as file-scope documentation.
-                   Set a flag to discard all subsequent lines until a blank line separates
-                   this block from the next declaration's doc comment. */
+                /* @file and similar page-level commands mark the whole block as file-scope
+                   documentation.  Set a flag; if a blank line follows, the accumulated
+                   content will be discarded so it does not bleed into the next declaration's
+                   docstring.  If no blank line follows (e.g. @name/@{), the content is
+                   returned as usual — only the structural line itself is not accumulated. */
                 in_structural_block = 1;
-              } else if (!in_structural_block && (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc))) {
+              } else if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
                 String *str;
 
                 int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
@@ -506,10 +508,15 @@ static int yylook(void) {
                 endlines++;
             } while (tok == SWIG_TOKEN_ENDLINE);
             Delete(cmt_modified);
-            /* A blank line (2+ newlines) ends a structural block, ensuring the next
-               declaration's doc comment is not bleed into the discarded file-level doc. */
-            if (in_structural_block && endlines >= 2)
+            /* A blank line (2+ newlines) after a structural block (@file, @page, ...) means
+               all accumulated content is file-scope and must be discarded, so that the next
+               declaration's own doc comment is not polluted. */
+            if (in_structural_block && endlines >= 2) {
+              Delete(yylval.str);
+              yylval.str = 0;
+              existing_comment = DOX_COMMENT_NONE;
               break;
+            }
           }
         } while (tok == SWIG_TOKEN_COMMENT);
 
