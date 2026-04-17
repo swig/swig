@@ -10,7 +10,7 @@
 %}
 
 %include <std_string.i>
-%include <std/std_function.i>
+%include <std_function.i>
 %include <exception.i>
 
 %exception {
@@ -20,8 +20,6 @@
       SWIG_exception(SWIG_RuntimeError, e.what());
     }
 }
-
-%rename(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
 
 %inline %{
 std::function<std::string(int, const std::string &)> return_function(int ask_for_pass) {
@@ -35,4 +33,4 @@ std::function<std::string(int, const std::string &)> return_function(int ask_for
 %}
 
 %template(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
-%template(call_function) _SWIG_call_std_function<std::string, int, const std::string &>;
+%template(call_function) SWIG_call_std_function<std::string, int, const std::string &>;
