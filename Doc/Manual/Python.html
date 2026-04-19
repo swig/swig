@@ -540,10 +540,10 @@ you simply do something like this:
 $ swig -python -lembed.i example.i
 $ gcc example.c example_wrap.c \
         -Xlinker -export-dynamic \
-        -DHAVE_CONFIG_H -I/usr/include/python2.7 \
-        -I/usr/lib/python2.7/config-x86_64-linux-gnu \
-        -I/usr/lib/python2.7/config \
-        -L/usr/lib/python2.7/config -lpython2.7 -lm -ldl \
+        -DHAVE_CONFIG_H -I/usr/include/python3.14 \
+        -I/usr/lib/python3.14/config-x86_64-linux-gnu \
+        -I/usr/lib/python3.14/config \
+        -L/usr/lib/python3.14/config -lpython3.14 -lm -ldl \
         -o mypython
 </pre></div>
 <p>
@@ -748,7 +748,7 @@ compiler.  For example:
 <div class="shell"><pre>
 $ swig -c++ -python example.i
 $ g++ -O2 -fPIC -c example.cxx
-$ g++ -O2 -fPIC -c example_wrap.cxx -I/usr/local/include/python2.5
+$ g++ -O2 -fPIC -c example_wrap.cxx -I/usr/local/include/python3.14
 $ g++ -shared example.o example_wrap.o -o _example.so
 </pre></div>
 
@@ -769,7 +769,7 @@ Solaris, you often need to add an extra library <tt>-lCrun</tt> like this:
 <div class="shell"><pre>
 $ swig -c++ -python example.i
 $ CC -c example.cxx
-$ CC -c example_wrap.cxx -I/usr/local/include/python2.5
+$ CC -c example_wrap.cxx -I/usr/local/include/python3.14
 $ CC -G example.o example_wrap.o -L/opt/SUNWspro/lib -o _example.so -lCrun
 </pre></div>
 
@@ -862,19 +862,7 @@ extension.
 
 <p>
 Building a SWIG extension to Python under Windows is roughly similar to
-the process used with Unix. Using the distutils, it is essentially
-identical. If you have the same version of the MS compiler that Python
-was built with (the python2.4 and python2.5 distributed by python.org
-are built with Visual Studio 2003), the standard <tt>python setup.py
-build</tt> should just work.
-</p>
-
-
-<p>
-As of python2.5, the distutils support building extensions with MingGW out
-of the box. Following the instruction here:
-<a href="http://boodebr.org/main/python/build-windows-extensions">Building
-Python extensions for Windows with only free tools</a> should get you started.
+the process used with Unix.
 </p>
 
 <p>
@@ -884,11 +872,7 @@ If you need to build it on your own, the following notes are provided:
 <p>
 You will need to create a DLL that can be loaded into the interpreter.
 This section briefly describes the use of SWIG with Microsoft Visual
-C++.   As a starting point, many of SWIG's examples include project
-files (.dsp files) for Visual C++ 6. These can be opened by more
-recent versions of Visual Studio.
-You might want to take a quick look at these examples in addition to
-reading this section.
+C++.
 </p>
 
 <p>
@@ -924,7 +908,7 @@ installation under "Additional include directories".
 
 <li>Finally, select the settings for the entire project and go to
 "Link Options".  Add the Python library file to your link libraries.
-For example "python27.lib".  Also, set the name of the output file to
+For example "python314.lib".  Also, set the name of the output file to
 match the name of your Python module, i.e. <tt>_example.pyd</tt>
 
 <li>Build your project.
