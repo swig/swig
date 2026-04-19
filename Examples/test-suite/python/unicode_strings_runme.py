@@ -10,7 +10,6 @@ def check(s1, s2):
     if s1 != s2:
         raise RuntimeError("{} != {}".format(s1, s2))
 
-# Testing SWIG_PYTHON_2_UNICODE flag which allows unicode strings to be passed to C
 low_surrogate_string = "\udcff"
 try:
     unicode_strings.instring(low_surrogate_string)
