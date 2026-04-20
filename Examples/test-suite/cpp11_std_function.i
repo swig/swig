@@ -1,7 +1,7 @@
 %module cpp11_std_function
 
 // function is a reserved word in many languages
-%warnfilter(SWIGWARN_PARSE_KEYWORD);
+%warnfilter(SWIGWARN_LANG_IDENTIFIER, SWIGWARN_PARSE_KEYWORD) function;
 
 %header %{
 #include <functional>
