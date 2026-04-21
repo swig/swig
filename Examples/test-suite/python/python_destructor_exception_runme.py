@@ -1,10 +1,6 @@
 import python_destructor_exception
 import sys
-
-if sys.version_info[0:2] < (3, 0):
-    import StringIO as io
-else:
-    import io
+import io
 
 def error_function():
     python_destructor_exception.ClassWithThrowingDestructor().GetBlah()
