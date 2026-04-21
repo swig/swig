@@ -60,6 +60,9 @@ static String *builtin_default_unref = 0;
 static String *builtin_closures_code = 0;
 static String *f_varlinks = 0;
 
+/* Mapping of mangled type names ("SWIGTYPE{mangled}") to their type */
+static Hash *unknown_types_hash = 0;
+
 static String *methods;
 static String *methods_proxydocs;
 static String *class_name;
@@ -591,6 +594,7 @@ public:
     builtin_methods = NewString("");
     builtin_default_unref = NewString("delete $self;");
     f_varlinks = NewString("");
+    unknown_types_hash = NewHash();
 
     if (builtin) {
       f_builtins = NewString("");
@@ -935,6 +939,12 @@ public:
         Printv(f_shadow_py, "\n", f_shadow, "\n", NIL);
       if (Len(f_shadow_stubs) > 0)
         Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
+
+      // Create an incomplete class for unknown types
+      for (Iterator swig_type = First(unknown_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+        emitIncompleteClass(swig_type.key, swig_type.item);
+      }
+
       Delete(f_shadow_py);
     }
 
@@ -970,6 +980,7 @@ public:
     Delete(f_runtime);
     Delete(f_begin);
     Delete(f_varlinks);
+    Delete(unknown_types_hash);
 
     return SWIG_OK;
   }
@@ -2550,7 +2561,135 @@ public:
       if (outty)
         tm = outty;
     }
+    SwigType *pt = Getattr(n, "type");
+    if (pt)
+      substitutePytypingVars(pt, tm);
     return tm;
+  }
+
+  /* ---------------------------------------------------------------
+   * substitutePytypingVars()
+   *
+   * Perform substitution for special variables in 'pytyping'
+   * typemaps.
+   * --------------------------------------------------------------- */
+
+  bool substitutePytypingVars(SwigType *pt, String *tm) {
+    bool substitution_performed = false;
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+
+    if (Strstr(tm, "$pytypename")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteTypenameSpecialVariable(classnametype, tm, "$pytypename");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$*pytypename")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      if (Len(classnametype) > 0) {
+        substituteTypenameSpecialVariable(classnametype, tm, "$*pytypename");
+        substitution_performed = true;
+      }
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&pytypename")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteTypenameSpecialVariable(classnametype, tm, "$&pytypename");
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
+    return substitution_performed;
+  }
+
+  /*----------------------------------------------------------------------
+   * replaceSpecialVariables()
+   *--------------------------------------------------------------------*/
+
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    (void)method;
+    SwigType *type = Getattr(parm, "type");
+    substitutePytypingVars(type, tm);
+  }
+
+  /* ---------------------------------------------------------------
+   * substituteTypenameSpecialVariable()
+   *
+   * Substitute 'classnamespecialvariable' in 'tm' with the type of
+   * 'classnametype'.
+   * --------------------------------------------------------------- */
+
+  void substituteTypenameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    String *replacementname;
+
+    if (SwigType_isenum(classnametype)) {
+      replacementname = NewString("int");  // FIXME: is this always correct?
+    } else {
+      String *classname = getProxyClassLocalName(classnametype);
+      if (classname) {
+        replacementname = Copy(classname);
+      } else {
+        // SWIG does not know anything about this type, but we still want to
+        // distinguish different unknown types.
+        replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+
+        // Add to hash table so that an incomplete class can be emitted later.
+        Setattr(unknown_types_hash, replacementname, classnametype);
+      }
+    }
+    Replaceall(tm, classnamespecialvariable, replacementname);
+
+    Delete(replacementname);
+  }
+
+  /* ---------------------------------------------------------------
+   * getProxyClassLocalName()
+   *
+   * Get the name for a class as if referenced from this module.
+   * If the class is declared in this module, no prefix is added,
+   * otherwise, the module name is added as a prefix.
+   * --------------------------------------------------------------- */
+
+  String *getProxyClassLocalName(const SwigType *t) {
+    Node *n = classLookup(t);
+    if (!n)
+      return NULL;
+
+    String *symname = Getattr(n, "sym:name");
+    if (!symname)
+      return NULL;
+    Node *mod = Getattr(n, "module");
+    String *modname = mod ? Getattr(mod, "name") : 0;
+    if (modname && Strcmp(modname, mainmodule) != 0)
+      return NewStringf("%s.%s", modname, symname);
+    else
+      return Copy(symname);
+  }
+
+  /* ---------------------------------------------------------------
+   * emitIncompleteClass()
+   * --------------------------------------------------------------- */
+
+  void emitIncompleteClass(String *classname, SwigType *type) {
+    if (!f_shadow_py)
+      return;
+
+    String *tstr = SwigType_str(type, 0);
+    Printf(f_shadow_py, "class %s(object):\n", classname);
+    Printf(f_shadow_py, "    \"\"\"Opaque ``%s``.\n", tstr);
+    Printf(f_shadow_py,
+           "    This type is only used for type annotations and does not exist "
+           "at runtime.\"\"\"\n",
+           tstr);
+    Printf(f_shadow_py, "    ...\n\n");
+
+    Delete(tstr);
   }
 
   /* ------------------------------------------------------------

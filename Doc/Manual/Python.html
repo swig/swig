@@ -7195,6 +7195,22 @@ def do_something(t: "int|float") -&gt; "int":
 </pre></div>
 
 <p>
+The following special variables can be used:
+<dl>
+<dt><tt>$pytypename</tt></dt>
+<dd>
+Similar to Java's <a href="Java.html#Java_special_variables"><tt>$javaclassname</tt></a>. Expands to the wrapped Python typename.
+<ul>
+<li><tt>$pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *</tt></li>
+<li><tt>$&pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo</tt></li>
+<li><tt>$*pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *&</tt></li>
+</ul>
+If there is no named wrapper class, it expands to an opaque class. For example, if there's no wrapper for <tt>int *</tt>, <tt>$pytypename</tt> will expand to <tt>SWIGTYPE_p_int</tt>.
+</dd>
+</dl>
+</p>
+
+<p>
 <b>Compatibility Note:</b> SWIG-4.5.0 added support for PEP 484 annotation types.
 </p>
 

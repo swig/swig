@@ -19,26 +19,30 @@ if sys.version_info[0:2] >= (3, 2):
             return getattr(cls, "__annotations__", {})
 
     if annotations_supported:
-        anno = get_annotations(MakeShort)
-        if anno != {"x": "int", "return": "typing.Any"}:
-            raise RuntimeError("annotations mismatch: {}".format(anno))
-
         anno = get_annotations(global_ints)
-        if anno != {"ri":"typing.Any", "t": "typing.Any", "return": "typing.Any"}:
+        if anno != {
+            "ri": "SWIGTYPE_p_int",
+            "t": "TemplateShort",
+            "return": "typing.Optional[SWIGTYPE_p_int]",
+        }:
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(global_overloaded)
-        if anno != {"return": "typing.Any"}:
+        if anno != {"return": "typing.Optional[SWIGTYPE_p_int]"}:
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         ts = MakeShort(10)
 
         anno = get_annotations(MakeShort)
-        if anno != {"x": "int", "return": "typing.Any"}:
+        if anno != {"x": "int", "return": "TemplateShort"}:
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(ts.mymethod)
-        if anno != {"arg2": "int", "tt": "typing.Any", "return": "None"}:
+        if anno != {
+            "arg2": "int",
+            "tt": "typing.Optional[TemplateShort]",
+            "return": "None",
+        }:
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         # No annotations
@@ -75,11 +79,11 @@ if sys.version_info[0:2] >= (3, 2):
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(argcheck_fnptr)
-        if anno != make_argcheck("typing.Any", ["f"]):
+        if anno != make_argcheck("typing.Optional[SWIGTYPE_p_f_char_bool__int]", ["f"]):
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(argcheck_array)
-        if anno != make_argcheck("typing.Any", ["arr"]):
+        if anno != make_argcheck("typing.Optional[SWIGTYPE_p_float]", ["arr"]):
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(optional_square)
@@ -91,4 +95,80 @@ if sys.version_info[0:2] >= (3, 2):
 
         anno = get_annotations(docs_do_something_out_type)
         if anno != {"return": "int", "t": "typing.Union[int, float]"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        my_struct = MyStruct()
+
+        anno = get_annotations(my_struct.do_something)
+        if anno != {
+            "return": "None",
+            "ref": "MyStruct",
+            "ptr": "typing.Optional[MyStruct]",
+            "cref": "MyStruct",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(use_typedefs)
+        if anno != {
+            "return": "None",
+            "i": "int",
+            "mt": "int",
+            "cref_mst": "MyStruct",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(use_memberfn_ptr)
+        if anno != {
+            "return": "None",
+            "ptr": "typing.Optional[SWIGTYPE_m_MyStruct__f_r_MyStruct_p_MyStruct_r_q_const__MyStruct__void]",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(use_member_ptr)
+        if anno != {
+            "return": "None",
+            "ptr": "typing.Optional[SWIGTYPE_m_OptionalInt__int]",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(use_enums)
+        if anno != {
+            "return": "None",
+            "me": "bool",
+            "met": "bool",
+            "moe": "int",
+            "moet": "int",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(use_namespaced)
+        if anno != {
+            "return": "None",
+            "ns1": "MyNamespaced1",
+            "inner1": "MyInner",
+            "inner_ns1": "typing.Optional[MyNamespaced2]",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(wrap_ptr)
+        if anno != {"return": "typing.Optional[SWIGTYPE_p_void]", "val": "int"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+        anno = get_annotations(unwrap_ptr)
+        if anno != {"ptr": "typing.Optional[SWIGTYPE_p_void]", "return": "int"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(make_int_ref)
+        if anno != {"return": "SWIGTYPE_p_int"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+        
+        anno = get_annotations(make_int_cref)
+        if anno != {"return": "int"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(make_struct_ref)
+        if anno != {"return": "MyStruct"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(make_struct_cref)
+        if anno != {"return": "MyStruct"}:
             raise RuntimeError("annotations mismatch: {}".format(anno))

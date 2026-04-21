@@ -1,4 +1,16 @@
-%typemap(pytyping) SWIGTYPE "typing.Any"
+%typemap(pytyping) SWIGTYPE "$&pytypename"
+
+%typemap(pytyping) SWIGTYPE [] "typing.Optional[$pytypename]"
+
+%typemap(pytyping) SWIGTYPE * "typing.Optional[$pytypename]"
+
+%typemap(pytyping) SWIGTYPE & "$pytypename"
+
+%typemap(pytyping) SWIGTYPE const & "$typemap(pytyping, $*1_ltype)"
+
+%typemap(pytyping) SWIGTYPE && "$pytypename"
+
+%typemap(pytyping) enum SWIGTYPE "int"
 
 %typemap(pytyping) bool "bool"
 
