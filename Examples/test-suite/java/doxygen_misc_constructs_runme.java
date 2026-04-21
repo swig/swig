@@ -270,6 +270,13 @@ public class doxygen_misc_constructs_runme {
                 "\n" +
                 " @param fileName name of the log file\n");
 
+    wantedComments.put("doxygen_misc_constructs.FileHeaderTestClass",
+    		"\n" +
+    		"\n" +
+    		" This is the real class description.\n" +
+    		"\n" +
+    		"");
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.doc_ends_with_quote()",
             "This doc comment ends with a quote: \"and that's ok\"");
 

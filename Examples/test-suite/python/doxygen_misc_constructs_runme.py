@@ -141,3 +141,7 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_with_triple_qu
 
     """How quaint"""'''
 );
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.FileHeaderTestClass),
+    r"""This is the real class description."""
+)

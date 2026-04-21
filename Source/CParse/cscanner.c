@@ -426,6 +426,7 @@ static int yylook(void) {
       {
         typedef enum { DOX_COMMENT_PRE = -1, DOX_COMMENT_NONE, DOX_COMMENT_POST } comment_kind_t;
         comment_kind_t existing_comment = DOX_COMMENT_NONE;
+        int in_structural_block = 0; /* True when a @file (or similar) block is being skipped */
 
         /* Concatenate or skip all consecutive comments at once. */
         do {
@@ -462,7 +463,14 @@ static int yylook(void) {
                 break;
               }
 
-              if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
+              if (this_comment == DOX_COMMENT_PRE && existing_comment == DOX_COMMENT_NONE && isStructuralDoxygen(loc)) {
+                /* @file and similar page-level commands mark the whole block as file-scope
+                   documentation.  Set a flag; if a blank line follows, the accumulated
+                   content will be discarded so it does not bleed into the next declaration's
+                   docstring.  If no blank line follows (e.g. @name/@{), the content is
+                   returned as usual — only the structural line itself is not accumulated. */
+                in_structural_block = 1;
+              } else if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
                 String *str;
 
                 int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
@@ -492,10 +500,24 @@ static int yylook(void) {
               }
             }
           }
-          do {
-            tok = Scanner_token(scan);
-          } while (tok == SWIG_TOKEN_ENDLINE);
-          Delete(cmt_modified);
+          {
+            int endlines = 0;
+            do {
+              tok = Scanner_token(scan);
+              if (tok == SWIG_TOKEN_ENDLINE)
+                endlines++;
+            } while (tok == SWIG_TOKEN_ENDLINE);
+            Delete(cmt_modified);
+            /* A blank line (2+ newlines) after a structural block (@file, @page, ...) means
+               all accumulated content is file-scope and must be discarded, so that the next
+               declaration's own doc comment is not polluted. */
+            if (in_structural_block && endlines >= 2) {
+              Delete(yylval.str);
+              yylval.str = 0;
+              existing_comment = DOX_COMMENT_NONE;
+              break;
+            }
+          }
         } while (tok == SWIG_TOKEN_COMMENT);
 
         Scanner_pushtoken(scan, tok, Scanner_text(scan));

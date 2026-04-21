@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-04-17: jwuttke
+            #3403 Fix -doxygen: @file block bleeding into the first class
+            docstring. Single-line //! (or ///) comments forming a file-level
+            header (starting with @file) are now correctly discarded instead of
+            being concatenated into the next declaration's docstring.
+
 2026-03-26: Nerixyz
             [Python] #3389 Add missing C annotations and PEP 484 annotations to constants.
 
