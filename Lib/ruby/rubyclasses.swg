@@ -31,69 +31,11 @@
       %template(RubyVector) std::vector<swig::GC_VALUE>;
 
    and all the proper typemaps will be used.
-   
+
 */
 
 %fragment("GC_VALUE_definition","header") {
 namespace swig {
-  class SwigGCReferences {
-    VALUE _hash;
-
-    SwigGCReferences() : _hash(Qnil) {
-    }
-    ~SwigGCReferences() {
-      if (_hash != Qnil)
-        rb_gc_unregister_address(&_hash);
-    }
-    static void EndProcHandler(VALUE) {
-      // Ruby interpreter ending - _hash can no longer be accessed.
-      SwigGCReferences &s_references = instance();
-      s_references._hash = Qnil;
-    }
-  public:
-    static SwigGCReferences& instance() {
-      // Hash of all GC_VALUE's currently in use
-      static SwigGCReferences s_references;
-
-      return s_references;
-    }
-    static void initialize() {
-      SwigGCReferences &s_references = instance();
-      if (s_references._hash == Qnil) {
-        rb_set_end_proc(&EndProcHandler, Qnil);
-        s_references._hash = rb_hash_new();
-        rb_gc_register_address(&s_references._hash);
-      }
-    }
-    void GC_register(VALUE& obj) {
-      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
-        return;
-      if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(_hash, obj);
-        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
-        ++n;
-        rb_hash_aset(_hash, obj, INT2NUM(n));
-      }
-    }
-    void GC_unregister(const VALUE& obj) {
-      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
-        return;
-      // this test should not be needed but I've noticed some very erratic
-      // behavior of none being unregistered in some very rare situations.
-      if (BUILTIN_TYPE(obj) == T_NONE)
-        return;
-      if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(_hash, obj);
-        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
-        --n;
-        if (n)
-          rb_hash_aset(_hash, obj, INT2NUM(n));
-        else
-          rb_hash_delete(_hash, obj);
-      }
-    }
-  };
-
   class GC_VALUE {
   protected:
     VALUE  _obj;
@@ -134,28 +76,27 @@ namespace swig {
   public:
     GC_VALUE() : _obj(Qnil)
     {
+      rb_gc_register_address(&_obj);
     }
 
     GC_VALUE(const GC_VALUE& item) : _obj(item._obj)
     {
-      SwigGCReferences::instance().GC_register(_obj);
+      rb_gc_register_address(&_obj);
     }
-    
+
     GC_VALUE(VALUE obj) :_obj(obj)
     {
-      SwigGCReferences::instance().GC_register(_obj);
+      rb_gc_register_address(&_obj);
     }
-    
-    ~GC_VALUE() 
+
+    ~GC_VALUE()
     {
-      SwigGCReferences::instance().GC_unregister(_obj);
+      rb_gc_unregister_address(&_obj);
     }
-    
-    GC_VALUE & operator=(const GC_VALUE& item) 
+
+    GC_VALUE & operator=(const GC_VALUE& item)
     {
-      SwigGCReferences::instance().GC_unregister(_obj);
       _obj = item._obj;
-      SwigGCReferences::instance().GC_register(_obj);
       return *this;
     }
 
@@ -356,10 +297,6 @@ namespace swig {
   typedef GC_VALUE LANGUAGE_OBJ;
 }
 
-
-%init {
-  swig::SwigGCReferences::initialize();
-}
 
 
 
