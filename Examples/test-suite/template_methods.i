@@ -79,6 +79,27 @@ struct Klass {
 %template(KlassStaticTMethodBool) Klass::statictmethod<bool>;
 
 ////////////////////////////////////////////////////////////////////////////
+// Rename just one of the overloaded instance and static methods
+%rename("ClayBoolRenamed_%s") Clay::cmethod(bool);
+%rename("ClayBoolStaticRenamed_%s") Clay::staticcmethod(bool);
+// Rename all the methods
+%rename("ClayIntRenamed_%s") Clay::cmethod<int>;
+%rename("ClayIntStaticRenamed_%s") Clay::staticcmethod<int>;
+
+%inline %{
+struct Clay {
+  template<typename X> X cmethod(X x) { return x; }
+  template<typename X> void cmethod() {}
+  template<typename X> static X staticcmethod(X x) { return x; }
+  template<typename X> static void staticcmethod() {}
+};
+%}
+%template(ClayCMethodBool) Clay::cmethod<bool>;
+%template(ClayStaticCMethodBool) Clay::staticcmethod<bool>;
+%template(ClayCMethodInt) Clay::cmethod<int>;
+%template(ClayStaticCMethodInt) Clay::staticcmethod<int>;
+
+////////////////////////////////////////////////////////////////////////////
 
 %inline %{
   class ComponentProperties{

@@ -2003,13 +2003,13 @@ all declarations if the name of the identifier to be renamed is not specified:
 
 <p>
 This also shows that the argument of <tt>%rename</tt> doesn't have to be a
-literal string but can be a <tt>printf()</tt>-like format string. In the
+literal string but can be a <tt>printf()</tt>-like format specifier. In the
 simplest form, <tt>"%s"</tt> is replaced with the name of the original
 declaration, as shown above. However this is not always enough and SWIG
-provides extensions to the usual format string syntax to allow applying a
+provides extensions to the usual format specifier string syntax to allow applying a
 (SWIG-defined) function to the argument. For example, to wrap all C functions
 <tt>do_something_long()</tt> as more Java-like <tt>doSomethingLong()</tt> you
-can use the <tt>"lowercamelcase"</tt> extended format specifier like this:
+can use the <tt>"lowercamelcase"</tt> extended format specifier function like this:
 </p>
 
 <div class="code">
@@ -2036,7 +2036,7 @@ and a more descriptive one, but the two functions are otherwise equivalent:
 </p>
 <table summary="Format string functions" border="1" cellpadding="5">
 <tr>
-    <th>Function</th><th>Returns</th><th colspan=2>Example (in/out)</th>
+    <th>Format specifier function</th><th>Returns</th><th colspan=2>Example (in|out)</th>
 </tr>
 <tr>
     <td><tt>uppercase</tt> or <tt>upper</tt></td>
@@ -2301,9 +2301,9 @@ declaration name directly can be preferable and can also be done using
 </div>
 
 <p>
-Notice that the check is done only against the name of the declaration
-itself, if you need to match the full name of a C++ declaration you
-must use <tt>fullname</tt> attribute:
+Notice that the symbol name used for transforming is just the name of the simple symbol.
+If you need to match the full name of a C++ declaration, that is, the fully scoped name including class and namespace prefixes,
+then use the <tt>fullname</tt> attribute:
 </p>
 
 <div class="code">
@@ -2320,6 +2320,23 @@ except those consisting of capital letters only:
 <div class="code">
 <pre>
 %rename("$(lower)s", notregexmatch$name="^[A-Z]+$") "";
+</pre>
+</div>
+
+<p>
+When transforming C++ symbols, just the symbol name is used.
+All scoping prefixes, template parameters and parameters are stripped.
+For example, for <tt>Golden::goose&lt;int&gt;(int t)</tt> below, the symbol name is just <tt>goose</tt> which gets transformed to <tt>Goose</tt>:
+</p>
+
+<div class="code">
+<pre>
+namespace Golden {
+  template&lt;typename T&gt; T goose(T t);
+}
+
+%rename("%(firstuppercase)s") Golden::goose&lt;int&gt;(int t);
+%template() Golden::goose&gt;int&lt;;
 </pre>
 </div>
 

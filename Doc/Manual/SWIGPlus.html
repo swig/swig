@@ -67,6 +67,7 @@
 <li><a href="#SWIGPlus_template_specialization">Template specialization</a>
 <li><a href="#SWIGPlus_template_member">Member templates</a>
 <li><a href="#SWIGPlus_template_scoping">Scoping and templates</a>
+<li><a href="#SWIGPlus_template_renaming">Template renaming</a>
 <li><a href="#SWIGPlus_template_more">More on templates</a>
 </ul>
 <li><a href="#SWIGPlus_namespaces">Namespaces</a>
@@ -4146,7 +4147,71 @@ template class C&lt;int&gt;;
 </p>
 
  
-<H3><a name="SWIGPlus_template_more">6.18.9 More on templates</a></H3>
+<H3><a name="SWIGPlus_template_renaming">6.18.9 Template renaming</a></H3>
+
+
+<p>
+The primary purpose of the <tt>%template</tt> directive is to instantiate a template and make it available in the target language.
+The identifier name for use from the target language is determined by the name provided to <tt>%template</tt>.
+However, if <tt>%rename</tt> is used, it will override the name given to <tt>%template</tt>.
+This is somewhat unusual but there are a couple of corner case uses.
+</p>
+
+<p>
+In the case of overloaded template functions, the <tt>%template</tt> directive instantiates all the overloaded template functions
+and all the instantiations will have the same name.
+Consider the example below which uses <tt>%rename</tt> to rename just one of the overloaded templates:
+</p>
+
+<div class="code"><pre>
+namespace Quirky {
+  template&lt;typename T&gt; T funky(T a, T b) { return a+b; }
+  template&lt;typename T&gt; T funky(T a) { return a; }
+  template&lt;typename T&gt; void funky() {}
+}
+%}
+
+%rename(funky_void) Quirky::funky&lt;int&gt;(); // matches just the parameterless function
+%template(funky_int) Quirky::funky&lt;int&gt;;
+</pre></div>
+
+<p>
+Note that <tt>%rename</tt> is placed before <tt>%template</tt> in order to have any effect.
+The wrapped functions in Java are then:
+</p>
+
+<div class="targetlang"><pre>
+public static int funky_int(int a, int b) { ... }
+public static int funky_int(int a) { ... }
+public static void funky_void() { ... }
+</pre></div>
+
+<p>
+<a href="SWIG.html#SWIG_advanced_renaming">Advanced renaming support</a> can be used to modify the C++ symbol for the target language by using format specifiers and special functions/regular expression with <tt>%rename</tt>.
+This type of advanced renaming is not possible solely with the name given to <tt>%template</tt>.
+However, <tt>%rename</tt> can be used to get the same effect.
+Using the same example above using the <tt>uppercase</tt> function:
+</p>
+
+<div class="code"><pre>
+%rename("%(uppercase)s") Quirky::funky&lt;bool&gt;; // matches all 3 template methods
+%template() Quirky::funky&lt;bool&gt;;
+</pre></div>
+
+<p>
+Note that the empty template instantiation can be used - there is little point providing a name to <tt>%template</tt> if renaming all the instantiated templates with <tt>%rename</tt>.
+Normally empty template instantiations result in no wrapper, but providing a name via <tt>%rename</tt> will enable a wrapped function.
+The wrapped functions in Java are then:
+</p>
+
+<div class="targetlang"><pre>
+public static boolean FUNKY(boolean a, boolean b) { ... }
+public static boolean FUNKY(boolean a) { ... }
+public static void FUNKY() { ... }
+</pre></div>
+
+
+<H3><a name="SWIGPlus_template_more">6.18.10 More on templates</a></H3>
 
 
 <p>

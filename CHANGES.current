@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-04-25: wsfulton
+            Advanced %rename fixes for templates. It is now possible to use %rename
+	    on instantiated templates for various corner cases, see "Template renaming"
+	    section in SWIGPlus.html. For example, it is now possible to selectively rename
+	    overloaded templated functions. The full power of %rename (such as using regex)
+	    can now be used on templates.
+
+	    Example fix using %rename on templates:
+	      namespace Quirky {
+	        template<typename T> void funky() {}
+	      }
+	      %rename("%s_void") Quirky::funky<int>();
+	      %template(funky_int) Quirky::funky<int>;
+	    Will now generate funky_void() where previously there there was no wrapper, just
+	    a warning:
+		Warning 503: Can't wrap 'funky< int >_void' unless renamed to a valid identifier.
+
 2026-03-26: Nerixyz
             [Python] #3389 Add missing C annotations and PEP 484 annotations to constants.
 

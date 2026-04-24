@@ -455,6 +455,7 @@ CPP_TEST_CASES += \
 	swig_exception \
 	symbol_clash \
 	sym \
+	template_advanced_rename \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \

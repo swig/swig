@@ -1547,11 +1547,15 @@ static String *apply_rename(Node *n, String *newname, int fullname, String *pref
         String *fmt = newname;
         /* use name as a fmt, but avoid C++ "%" and "%=" operators */
         if (Len(newname) > 1 && strchr(cnewname, '%') && !(strcmp(cnewname, "%=") == 0)) {
+          /* Strip template parameters incase a template is used with %s, such as: %rename("myprefix_%s") func<int>; */
+          String *template_name = SwigType_istemplate_templateprefix(name);
+          String *name_simple = template_name ? template_name : name;
           if (fullname && prefix) {
-            result = NewStringf(fmt, prefix, name);
+            result = NewStringf(fmt, prefix, name_simple);
           } else {
-            result = NewStringf(fmt, name);
+            result = NewStringf(fmt, name_simple);
           }
+          Delete(template_name);
         } else {
           result = Copy(newname);
         }
@@ -1582,7 +1586,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 
   /* very specific hack for template constructors/destructors */
 #ifdef SWIG_DEBUG
-  Printf(stdout, "Swig_name_make: looking for %s %s %s %s\n", prefix, name, decl, oldname);
+  Printf(stdout, "Swig_name_make: looking for '%s' '%s' '%s' '%s'\n", prefix, name, decl, oldname);
 #endif
 
   if (name && n && SwigType_istemplate(name)) {
