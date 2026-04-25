@@ -165,6 +165,7 @@ SWIG_strdup(const char *str)
 
 %fragment("SWIG_FromCharPtrAndSize","header") 
 {
+#define SWIG_FromBinCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERN SEXP
 SWIG_FromCharPtrAndSize(const char* carray, size_t size) 
 {

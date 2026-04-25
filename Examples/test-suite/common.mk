@@ -309,6 +309,7 @@ CPP_TEST_CASES += \
 	li_boost_shared_ptr_template \
 	li_carrays_cpp \
 	li_cdata_cpp \
+	li_cdata_bytes_cpp \
 	li_cpointer_cpp \
 	li_std_auto_ptr \
 	li_stdint \
@@ -836,6 +837,7 @@ C_TEST_CASES += \
 	lextype \
 	li_carrays \
 	li_cdata \
+	li_cdata_bytes \
 	li_cmalloc \
 	li_constraints \
 	li_cpointer \

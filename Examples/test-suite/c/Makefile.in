@@ -23,6 +23,7 @@ FAILING_C_TESTS := \
     function_typedef \
     lextype \
     li_carrays \
+    li_cdata_bytes \
     nested \
     nested_extend_c \
     nested_structs \
@@ -56,6 +57,7 @@ FAILING_CPP_TESTS := \
     li_attribute \
     li_attribute_template \
     li_boost_shared_ptr_attribute \
+    li_cdata_bytes_cpp \
     li_std_auto_ptr \
     li_std_deque \
     li_std_wstring \
