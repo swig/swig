@@ -11,7 +11,7 @@ template<typename T> void funky() {}
 %rename("%s_void") Quirky::funky<int>();
 %template(funky_int) Quirky::funky<int>;
 
-%rename("%(firstuppercase)s_Void") Quirky::funky<double>();
+%rename("%(firstuppercase)s_NoParms") Quirky::funky<double>();
 %template(funky_double) Quirky::funky<double>;
 
 %rename("%(uppercase)s") Quirky::funky<bool>;

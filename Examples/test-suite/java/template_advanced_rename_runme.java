@@ -18,7 +18,7 @@ public class template_advanced_rename_runme {
 
     template_advanced_rename.funky_double(10.1, 20.2);
     template_advanced_rename.funky_double(30.3) ;
-    template_advanced_rename.Funky_Void();
+    template_advanced_rename.Funky_NoParms();
 
     template_advanced_rename.FUNKY(true, false);
     template_advanced_rename.FUNKY(true);
