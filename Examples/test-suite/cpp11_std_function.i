@@ -1,8 +1,5 @@
 %module cpp11_std_function
 
-// function is a reserved word in many languages
-%warnfilter(SWIGWARN_LANG_IDENTIFIER, SWIGWARN_PARSE_KEYWORD) function;
-
 %header %{
 #include <functional>
 #include <string>
@@ -20,6 +17,14 @@
       SWIG_exception(SWIG_RuntimeError, e.what());
     }
 }
+
+// function is a reserved word in many languages
+// These languages attempt to rename any symbol called function, which overrides the %template name
+#if defined(SWIGD) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGR)
+//%warnfilter(SWIGWARN_PARSE_KEYWORD) std::function<std::string(int, const std::string &)>;
+// %rename(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
+%rename(cpp_function_string_int_const_string) function;
+#endif
 
 %inline %{
 std::function<std::string(int, const std::string &)> return_function(int ask_for_pass) {
