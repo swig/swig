@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-04-26: wsfulton
+            Fix partial template specialization where the specialized argument
+            is a templated type carrying a parameter pack, eg:
+
+              template <typename...> struct Pack {};
+              template <typename T> struct Foo {};
+              template <typename... ARGS> struct Foo<Pack<ARGS...>> {};
+              %template(FooEmpty) Foo<Pack<>>;
+              %template(FooStr)   Foo<Pack<std::string>>;
+              %template(FooMix)   Foo<Pack<int, double>>;
+
+            Such partial specializations are now matched and instantiated
+            correctly for any pack length, including the empty pack.
+
 2026-04-25: wsfulton
             Advanced %rename fixes for templates. It is now possible to use %rename
 	    on instantiated templates for various corner cases, see "Template renaming"

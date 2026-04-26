@@ -421,6 +421,11 @@ static void cparse_postprocess_expanded_template(Node *n) {
  * replaced by a $ variable, for example: Vect<($1)>
  *
  * Returns a parameter of type 'int' and name $1 for the two example parameters above.
+ *
+ * For a variadic parameter, eg: Vect<(v.$1)>, the returned parameter's type holds the
+ * captured pack as a parenthesised parmlist, eg '(int,double)' for partialtype
+ * Vect<(int,double)>. It is still returned as a single Parm; the caller splits it
+ * with SwigType_parmlist.
  * ----------------------------------------------------------------------------- */
 
 static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
@@ -441,13 +446,28 @@ static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
     }
     parmname = NewStringWithSize(c, (int)(suffix - c)); /* $1, $2 etc */
     suffix_length = (int)strlen(suffix);
-    assert(Strstr(type, prefix) == Char(type));                            /* check that the start of both types match */
-    assert(strcmp(Char(type) + type_length - suffix_length, suffix) == 0); /* check that the end of both types match */
-    parmtype = NewStringWithSize(Char(type) + prefix_length, type_length - suffix_length - prefix_length);
+    /* Skip a trailing 2-character variadic marker "v." in the prefix - it is not present in the concrete type. */
+    int prefix_length_without_variadic = (prefix_length >= 2 && Strncmp(Char(prefix) + prefix_length - 2, "v.", 2) == 0) ? prefix_length - 2 : prefix_length;
+    String *real_prefix = NewStringWithSize(cp, prefix_length_without_variadic);
+    if (Strstr(type, real_prefix) == Char(type) && strcmp(Char(type) + type_length - suffix_length, suffix) == 0) {
+      /* Standard extraction when pattern matches */
+      parmtype = NewStringWithSize(Char(type) + prefix_length_without_variadic, type_length - suffix_length - prefix_length_without_variadic);
+      if (prefix_length_without_variadic < prefix_length) {
+        /* Variadic: wrap the captured pack as a proper parmlist */
+        SwigType *parmlist = NewStringf("(%s)", parmtype);
+        Delete(parmtype);
+        parmtype = parmlist;
+      }
+    } else {
+      /* Pattern doesn't match - fallback to using the full type */
+      parmtype = Copy(type);
+    }
     Delete(prefix);
+    Delete(real_prefix);
   } else {
     parmtype = Copy(type);
   }
+  Printf(stdout, "partial_arg type:%s partialtype:%s ret:%s\n", type, partialtype, parmtype);
   return NewParmWithoutFileLineInfo(parmtype, parmname);
 }
 
@@ -477,19 +497,27 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
   if (Getattr(n, "partialargs")) {
     /* Partial specialization */
+    Setattr(n, "templateparmsraw", CopyParmList(Getattr(n, "templateparms")));
+    templateparms = CopyParmList(Getattr(n, "templateparms"));
     Parm *p, *tp;
     ParmList *ptargs = SwigType_function_parms(Getattr(n, "partialargs"), n);
     p = ptargs;
     tp = tparms;
     /* Adjust templateparms so that the type is expanded, eg typename => int */
-    while (p && tp) {
+    while (p) {
       SwigType *ptype;
-      SwigType *tptype;
+      SwigType *tptype = 0;
       SwigType *partial_type;
       ptype = Getattr(p, "type");
-      tptype = Getattr(tp, "type");
-      if (ptype && tptype) {
-        SwigType *ty = Swig_symbol_typedef_reduce(tptype, tscope);
+      if (tp)
+        tptype = Getattr(tp, "type");
+      if (ptype && (tptype || SwigType_isvariadic(ptype))) {
+        SwigType *ty;
+        if (tptype) {
+          ty = Swig_symbol_typedef_reduce(tptype, tscope);
+        } else {
+          ty = NewStringEmpty();
+        }
         Parm *partial_parm = partial_arg(ty, ptype);
         String *partial_name = Getattr(partial_parm, "name");
         partial_type = Copy(Getattr(partial_parm, "type"));
@@ -501,7 +529,44 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
           parm = ParmList_nth_parm(templateparms, index);
           assert(parm);
           if (parm) {
-            Setattr(parm, "type", partial_type);
+            Parm *raw_parm = ParmList_nth_parm(Getattr(n, "templateparmsraw"), index);
+            int parm_is_variadic = raw_parm && SwigType_isvariadic(Getattr(raw_parm, "type"));
+            if (parm_is_variadic) {
+              List *types = SwigType_parmlist(partial_type);
+              ParmList *new_parms = 0;
+              Parm *last_new_parm = 0;
+              int i, nargs = Len(types);
+              for (i = 0; i < nargs; i++) {
+                SwigType *argtype = Copy((SwigType *)Getitem(types, i));
+                Parm *new_parm = NewParmWithoutFileLineInfo(argtype, 0);
+                if (!new_parms) {
+                  new_parms = new_parm;
+                } else {
+                  set_nextSibling(last_new_parm, new_parm);
+                }
+                last_new_parm = new_parm;
+              }
+              if (index == 0) {
+                if (new_parms) {
+                  set_nextSibling(last_new_parm, nextSibling(parm));
+                  templateparms = new_parms;
+                } else {
+                  templateparms = nextSibling(parm);
+                }
+              } else {
+                Parm *prev = ParmList_nth_parm(templateparms, index - 1);
+                assert(prev);
+                if (new_parms) {
+                  set_nextSibling(last_new_parm, nextSibling(parm));
+                  set_nextSibling(prev, new_parms);
+                } else {
+                  set_nextSibling(prev, nextSibling(parm));
+                }
+              }
+              Delete(types);
+            } else {
+              Setattr(parm, "type", partial_type);
+            }
           }
         }
         Delete(partial_parm);
@@ -509,16 +574,18 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
         Delete(ty);
       }
       p = nextSibling(p);
-      tp = nextSibling(tp);
+      if (tp)
+        tp = nextSibling(tp);
     }
     Delete(ptargs);
+    Setattr(n, "templateparms", templateparms);
   } else {
     Setattr(n, "templateparmsraw", Getattr(n, "templateparms"));
     templateparms = CopyParmList(tparms);
     Setattr(n, "templateparms", templateparms);
   }
 
-  /* TODO: variadic parms for partially specialized templates */
+  /* Handle variadic parms for partially specialized templates */
   templateparmsraw = Getattr(n, "templateparmsraw");
   unexpanded_variadic_parm = ParmList_variadic_parm(templateparmsraw);
   if (unexpanded_variadic_parm)
@@ -705,6 +772,10 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
   static const int EXACT_MATCH_PRIORITY = 99999; /* a number bigger than the length of any conceivable type */
   static const int TEMPLATE_MATCH_PRIORITY =
     1000; /* a priority added for each nested template, assumes max length of any prefix, such as r.q(const). , is less than this number */
+  if (!type || !partial_parm_type) {
+    *specialization_priority = -1;
+    return PartiallySpecializedNoMatch;
+  }
   SwigType *ty = Swig_symbol_typedef_reduce(type, tscope);
   SwigType *pp_prefix = SwigType_prefix(partial_parm_type);
   int pp_len = Len(pp_prefix);
@@ -737,6 +808,16 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
        */
       match = PartiallySpecializedMatch;
       *specialization_priority = pp_len;
+    } else if (SwigType_isvariadic(partial_parm_type)) {
+      /*
+         Variadic partial parameter matches any concrete parameter type,
+         e.g. matching int or double against v.$1.
+       */
+      if (template_debug) {
+        Printf(stdout, "      variadic partial parameter match for type='%s' partial='%s'\n", type, partial_parm_type);
+      }
+      match = PartiallySpecializedMatch;
+      *specialization_priority = pp_len;
     } else {
       /*
         Check for template types that are templates such as
@@ -764,22 +845,113 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
           if (Equal(qprefix, pp_qprefix)) {
             String *templateargs = SwigType_templateargs(qt);
             List *parms = SwigType_parmlist(templateargs);
-            Iterator pi = First(parms);
-            Parm *p = pi.item;
 
             String *pp_templateargs = SwigType_templateargs(pp_qt);
             List *pp_parms = SwigType_parmlist(pp_templateargs);
-            Iterator pp_pi = First(pp_parms);
-            Parm *pp = pp_pi.item;
 
-            if (p && pp) {
-              /* Implementation is limited to matching single parameter templates only for now */
-              int priority;
-              match = does_parm_match(p, pp, tscope, &priority);
-              if (match <= PartiallySpecializedNoMatch) {
-                *specialization_priority = priority;
-              } else {
-                *specialization_priority = priority + TEMPLATE_MATCH_PRIORITY;
+            int parms_len = Len(parms);
+            int pp_parms_len = Len(pp_parms);
+            if (template_debug) {
+              Printf(stdout,
+                     "        templateargs='%s' pp_templateargs='%s' parms_len=%d pp_parms_len=%d\n",
+                     templateargs ? templateargs : "(null)",
+                     pp_templateargs ? pp_templateargs : "(null)",
+                     parms_len,
+                     pp_parms_len);
+            }
+
+            /* Check if the partial specialization has variadic parameters */
+            int has_variadic = 0;
+            if (pp_parms_len > 0) {
+              SwigType *last_pp = (SwigType *)Getitem(pp_parms, pp_parms_len - 1);
+              if (last_pp) {
+                if (template_debug) {
+                  Printf(stdout, "        last_pp_type='%s' isvariadic=%d\n", last_pp, SwigType_isvariadic(last_pp));
+                }
+                if (SwigType_isvariadic(last_pp)) {
+                  has_variadic = 1;
+                }
+              }
+            }
+
+            if (parms_len > 0 || pp_parms_len > 0) {
+              /* Match all parameters, handling variadic packs */
+              int all_parameters_match = 1;
+              int priority = 0;
+
+              if (has_variadic && pp_parms_len > 0) {
+                /* Handle variadic packs: the pattern has at least one variadic parameter
+                   that can match zero or more arguments from the concrete template */
+                int required_parms = pp_parms_len - 1; /* All except the variadic */
+
+                if (parms_len >= required_parms) {
+                  /* Match required parameters first */
+                  for (int i = 0; i < required_parms && all_parameters_match; i++) {
+                    SwigType *p = (SwigType *)Getitem(parms, i);
+                    SwigType *pp = (SwigType *)Getitem(pp_parms, i);
+
+                    if (p && pp) {
+                      int param_priority;
+                      EMatch param_match = does_parm_match(p, pp, tscope, &param_priority);
+                      if (param_match < (int)PartiallySpecializedMatch) {
+                        all_parameters_match = 0;
+                      } else {
+                        priority += param_priority;
+                      }
+                    }
+                  }
+
+                  /* Match remaining concrete parameters against the variadic pack parameter */
+                  if (all_parameters_match && parms_len > required_parms) {
+                    SwigType *variadic_type = (SwigType *)Getitem(pp_parms, required_parms);
+                    if (template_debug) {
+                      Printf(stdout, "        variadic_type='%s'\n", variadic_type);
+                    }
+
+                    for (int i = required_parms; i < parms_len && all_parameters_match; i++) {
+                      SwigType *p = (SwigType *)Getitem(parms, i);
+                      if (p) {
+                        int param_priority;
+                        if (template_debug) {
+                          Printf(stdout, "        matching param[%d]='%s' against variadic='%s'\n", i, p, variadic_type);
+                        }
+                        /* Match concrete parameter against the variadic pattern */
+                        EMatch param_match = does_parm_match(p, variadic_type, tscope, &param_priority);
+                        if (param_match < (int)PartiallySpecializedMatch) {
+                          all_parameters_match = 0;
+                        } else {
+                          priority += param_priority;
+                        }
+                      }
+                    }
+                  }
+
+                  if (all_parameters_match) {
+                    match = PartiallySpecializedMatch;
+                    *specialization_priority = priority + TEMPLATE_MATCH_PRIORITY;
+                  }
+                }
+              } else if (parms_len == pp_parms_len) {
+                /* Non-variadic case: must have equal number of parameters */
+                for (int i = 0; i < parms_len && all_parameters_match; i++) {
+                  Parm *p = (Parm *)Getitem(parms, i);
+                  Parm *pp = (Parm *)Getitem(pp_parms, i);
+
+                  if (p && pp) {
+                    int param_priority;
+                    EMatch param_match = does_parm_match((SwigType *)p, (SwigType *)pp, tscope, &param_priority);
+                    if (param_match < (int)PartiallySpecializedMatch) {
+                      all_parameters_match = 0;
+                    } else {
+                      priority += param_priority;
+                    }
+                  }
+                }
+
+                if (all_parameters_match) {
+                  match = PartiallySpecializedMatch;
+                  *specialization_priority = priority + TEMPLATE_MATCH_PRIORITY;
+                }
               }
             }
 
