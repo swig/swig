@@ -21,40 +21,12 @@ permissions:
   contents: read
 
 jobs:
-  # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
-  # The clang-format version used is slightly different for each OS workflow file
-  # This job gates the main build job so must succeed before the main build job is run
-  clang-format:
+  filters:
     runs-on: ubuntu-latest
-    name: clang-format 18 # 18 is the oldest supported version
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v4.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
-
-  build:
-
-    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
-    # but it won't fail the overall build
-    continue-on-error: ${{ matrix.continue-on-error || false }}
-
-    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
-
-    # By default, the name of the build is the language used and SWIG options, but matrix entries
-    # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
-
-    needs: [clang-format]
-
-    strategy:
-      matrix:
-        include:
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    env:
+      MATRIX_BASE: |
         - SWIGLANG: ""
           CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
@@ -219,15 +191,15 @@ jobs:
           VER: '2.2'
         - SWIGLANG: ruby
           VER: '2.3'
-# Ruby 2.4 and 2.6 both fail with ubuntu-22.04 with error:
-#   Error running '__rvm_make -j4',
-#   please read /usr/share/rvm/log/1740710476_ruby-3.0.0/make.log
-#        - SWIGLANG: ruby
-#          VER: '2.4'
+        # Ruby 2.4 and 2.6 both fail with ubuntu-22.04 with error:
+        #   Error running '__rvm_make -j4',
+        #   please read /usr/share/rvm/log/1740710476_ruby-3.0.0/make.log
+        #- SWIGLANG: ruby
+        #  VER: '2.4'
         - SWIGLANG: ruby
           VER: '2.5'
-#        - SWIGLANG: ruby
-#          VER: '2.6'
+        #- SWIGLANG: ruby
+        #  VER: '2.6'
         - SWIGLANG: ruby
           VER: '2.7'
         - SWIGLANG: ruby
@@ -460,6 +432,55 @@ jobs:
           GCC: 13
           os: ubuntu-24.04
           continue-on-error: true
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+
+    # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
+    # The clang-format version used is slightly different for each OS workflow file
+    # This job gates the main build job so must succeed before the main build job is run
+    - name: Check with clang-format 18 # 18 is the oldest supported version
+      uses: RafikFarhad/clang-format-github-action@v4.1
+      with:
+        sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+        style: file
+
+    - name: Get changed files
+      uses: tj-actions/changed-files@v47
+      with:
+        json: true
+        write_output_files: true
+
+    - name: Probe files and select tests in matrix
+      id: set_matrix
+      run: |
+        $GITHUB_WORKSPACE/Tools/GHA-dynamic-matrix.py
+
+# Uncomment to print the result
+#   - name: print dynamic matrix result
+#     env:
+#       RESULT: ${{ steps.set_matrix.outputs.matrix }}
+#     run: echo "$RESULT"
+
+  build:
+    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+
+    # By default, the name of the build is the language used and SWIG options, but matrix entries
+    # can define the additional "desc" field with any additional information to include in the name.
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: filters
+
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.filters.outputs.matrix) }}
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -492,7 +513,6 @@ jobs:
       uses: actions/checkout@v6
       with:
         show-progress: false
-        submodules: recursive
 
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
