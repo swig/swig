@@ -1,0 +1,12 @@
+local v=require("template_typedef")
+
+local d = v.make_Identity_float()
+assert(swig_type(d) == "vfncs::ArithUnaryFunction< vfncs::arith_traits< float,float >::argument_type,vfncs::arith_traits< float,float >::result_type > *|vfncs::unary_func_traits< float,float >::base *|vfncs::ArithUnaryFunction< float,float > *")
+local c = v.make_Identity_reald()
+assert(swig_type(c) == "vfncs::ArithUnaryFunction< reald,reald > *|vfncs::ArithUnaryFunction< vfncs::arith_traits< double,double >::argument_type,vfncs::arith_traits< double,double >::result_type > *|vfncs::unary_func_traits< double,double >::base *|vfncs::ArithUnaryFunction< double,double > *")
+local e = v.make_Multiplies_float_float_float_float(d, d)
+assert(swig_type(e) == "vfncs::ArithUnaryFunction< vfncs::arith_traits< float,float >::argument_type,vfncs::arith_traits< float,float >::result_type > *|vfncs::unary_func_traits< float,float >::base *|vfncs::ArithUnaryFunction< float,float > *")
+local f = v.make_Multiplies_reald_reald_reald_reald(c, c)
+assert(swig_type(f) == "vfncs::ArithUnaryFunction< reald,reald > *|vfncs::ArithUnaryFunction< vfncs::arith_traits< double,double >::argument_type,vfncs::arith_traits< double,double >::result_type > *|vfncs::unary_func_traits< double,double >::base *|vfncs::ArithUnaryFunction< double,double > *")
+local g = v.make_Multiplies_float_float_reald_reald(d, c)
+assert(swig_type(g) == "vfncs::ArithUnaryFunction< float,reald > *|vfncs::ArithUnaryFunction< vfncs::arith_traits< float,double >::argument_type,vfncs::arith_traits< float,double >::result_type > *|vfncs::ArithUnaryFunction< float,double > *")

@@ -111,7 +111,7 @@ Alloc::Rebind< TDGlobalTable >::Integer Table5() { return 5; }
 Alloc::Rebind< ::TDGlobalTable >::Integer Table6() { return 6; }
 %}
 
-#if 0
+#if defined(SWIGLUA)
 %inline %{
 namespace Alloc {
   template<typename T=::Spade/*, typename T2=TDSpade, typename T3=::TDSpade, typename T4=TDGlobalSpade, typename T5=::TDGlobalSpade*/> struct Rejig {

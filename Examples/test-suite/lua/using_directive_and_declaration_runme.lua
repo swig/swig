@@ -1,0 +1,13 @@
+local v=require("using_directive_and_declaration")
+
+v.useit1(v.Thing1())
+v.useit2(v.Thing2())
+v.useit3(v.Thing3())
+v.useit4(v.Thing4())
+v.useit5(v.Thing5())
+local t6a = v.Thing6a()
+t6a:a()
+local t6b = v.Thing6()
+t6b:b()
+v.useit6(t6a, t6b)
+v.useit7(v.Thing7())

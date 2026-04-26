@@ -1,0 +1,10 @@
+require("sneaky1")
+
+local x = sneaky1.add(3, 4)
+assert(x == 7)
+local y = sneaky1.subtract(3, 4)
+assert(y == -1)
+local z = sneaky1.mul(3, 4)
+assert(z == 12)
+local w = sneaky1.divide(3, 4)
+assert(w == 0)

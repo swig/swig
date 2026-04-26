@@ -1,0 +1,63 @@
+local v=require("template_partial_specialization_typedef")
+
+local dub = 11.1
+local concrete = v.Concrete()
+
+-- One parameter tests
+v.A():a()
+v.B():b()
+v.B():bb(dub)
+v.C():c()
+v.C():cc(dub)
+v.D():d()
+v.D():dd(dub)
+v.E():e()
+v.E():ee(dub)
+
+v.F():f()
+v.G():g()
+v.H():h()
+
+v.J():j()
+v.K():k()
+v.M():m()
+v.N():n()
+
+v.BB():b()
+v.BB():bb(true)
+v.BBB():b()
+v.BBB():bb('A')
+v.BBBB():b()
+v.BBBB():bb(12)
+v.BBBBB():b()
+v.BBBBB():bb(123)
+
+v.B1():b()
+v.B2():b()
+v.B3():b()
+v.B4():b()
+
+-- Two parameter tests
+v.A_():a()
+v.B_():b()
+v.B_():bbb(dub)
+v.C_():c()
+v.C_():ccc(dub)
+v.D_():d()
+v.D_():ddd(123)
+v.E_():e()
+v.F_():f()
+v.G_():g()
+
+v.C1_():c()
+v.C1_():ccc(concrete)
+v.C2_():c()
+v.C2_():ccc(concrete)
+v.C3_():c()
+v.C3_():ccc(concrete)
+v.C4_():c()
+v.C4_():ccc(concrete)
+v.B1_():b()
+v.B1_():bbb(concrete)
+v.E1_():e()
+v.E2_():e()
