@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("static_const_member_2")	-- import lib
+require("import")
+require("static_const_member_2")
 scm=static_const_member_2
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(scm.CavityPackFlags.forward_field == 1)
 assert(scm.CavityPackFlags.backward_field == 2)

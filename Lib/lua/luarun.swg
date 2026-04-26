@@ -12,182 +12,21 @@ extern "C" {
 
 #include "lua.h"
 #include "lauxlib.h"
-#include <stdlib.h>  /* for malloc */
-#include <assert.h>  /* for a few sanity tests */
+#include <stdlib.h> /* for malloc */
+#include <assert.h> /* for a few sanity tests */
 
 /* -----------------------------------------------------------------------------
- * Lua flavors
+ * Lua constants
  * ----------------------------------------------------------------------------- */
 
-#define SWIG_LUA_FLAVOR_LUA 1
-#define SWIG_LUA_FLAVOR_ELUA 2
-#define SWIG_LUA_FLAVOR_ELUAC 3
-
-#if !defined(SWIG_LUA_TARGET)
-# error SWIG_LUA_TARGET not defined
-#endif
-
-#if defined(SWIG_LUA_ELUA_EMULATE)
-
-struct swig_elua_entry;
-
-typedef struct swig_elua_key {
-  int type;
-  union {
-    const char* strkey;
-    lua_Number numkey;
-  } key;
-} swig_elua_key;
-
-typedef struct swig_elua_val {
-  int type;
-  union {
-    lua_Number number;
-    const struct swig_elua_entry *table;
-    const char *string;
-    lua_CFunction function;
-    struct {
-      char member;
-      long lvalue;
-      void *pvalue;
-      swig_type_info **ptype;
-    } userdata;
-  } value;
-} swig_elua_val;
-
-typedef struct swig_elua_entry {
-  swig_elua_key key;
-  swig_elua_val value;
-} swig_elua_entry;
-
-#define LSTRKEY(x) {LUA_TSTRING, {.strkey = x} }
-#define LNUMKEY(x) {LUA_TNUMBER, {.numkey = x} }
-#define LNILKEY {LUA_TNIL, {.strkey = 0} }
-
-#define LNUMVAL(x) {LUA_TNUMBER, {.number = x} }
-#define LFUNCVAL(x) {LUA_TFUNCTION, {.function = x} }
-#define LROVAL(x) {LUA_TTABLE, {.table = x} }
-#define LNILVAL {LUA_TNIL, {.string = 0} }
-#define LSTRVAL(x) {LUA_TSTRING, {.string = x} }
-
-#define LUA_REG_TYPE swig_elua_entry
-
-#define SWIG_LUA_ELUA_EMUL_METATABLE_KEY "__metatable"
-
-#define lua_pushrotable(L,p)\
-  lua_newtable(L);\
-  assert(p);\
-  SWIG_Lua_elua_emulate_register(L,(swig_elua_entry*)(p));
-
+#define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
+#define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
+#define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
+#define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
 #define SWIG_LUA_CONSTTAB_POINTER(B,C,D)\
-  LSTRKEY(B), {LUA_TUSERDATA, { .userdata={0,0,(void*)(C),&D} } }
-
-#define SWIG_LUA_CONSTTAB_BINARY(B,S,C,D)\
-  LSTRKEY(B), {LUA_TUSERDATA, { .userdata={1,S,(void*)(C),&D} } }
-#endif
-
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-#  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
-#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
-#  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
-#  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
-    /* Those two types of constants are not supported in elua */
-
-#ifndef SWIG_LUA_CONSTTAB_POINTER
-#warning eLua does not support pointers as constants. By default, nil will be used as value
-#define SWIG_LUA_CONSTTAB_POINTER(B,C,D) LSTRKEY(B), LNILVAL
-#endif
-
-#ifndef SWIG_LUA_CONSTTAB_BINARY
-#warning eLua does not support pointers to member as constants. By default, nil will be used as value
-#define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D) LSTRKEY(B), LNILVAL
-#endif
-#else /* SWIG_LUA_FLAVOR_LUA */
-#  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
-#  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
-#  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
-#  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
-#  define SWIG_LUA_CONSTTAB_POINTER(B,C,D)\
-       SWIG_LUA_POINTER, (char *)B, 0, 0, (void *)C, &D
-#  define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D)\
-       SWIG_LUA_BINARY,  (char *)B, S, 0, (void *)C, &D
-#endif
-
-#ifndef SWIG_LUA_ELUA_EMULATE
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-#  define LRO_STRVAL(v) {{.p = (char *) v}, LUA_TSTRING}
-#  define LSTRVAL LRO_STRVAL
-#endif
-#endif /* SWIG_LUA_ELUA_EMULATE*/
-
-#ifndef SWIG_LUA_ELUA_EMULATE
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-
-#ifndef MIN_OPT_LEVEL
-#define MIN_OPT_LEVEL 2
-#endif
-
-#include "lrodefs.h"
-#include "lrotable.h"
-#endif
-#endif /* SWIG_LUA_ELUA_EMULATE*/
-/* -----------------------------------------------------------------------------
- * compatibility defines
- * ----------------------------------------------------------------------------- */
-
-/* History of Lua C API length functions:  In Lua 5.0 (and before?)
-   there was "lua_strlen".  In Lua 5.1, this was renamed "lua_objlen",
-   but a compatibility define of "lua_strlen" was added.  In Lua 5.2,
-   this function was again renamed, to "lua_rawlen" (to emphasize that
-   it doesn't call the "__len" metamethod), and the compatibility
-   define of lua_strlen was removed.  All SWIG uses have been updated
-   to "lua_rawlen", and we add our own defines of that here for older
-   versions of Lua.  */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
-# define lua_rawlen lua_strlen
-#elif LUA_VERSION_NUM == 501
-# define lua_rawlen lua_objlen
-#endif
-
-/* lua_tolstring() was added in Lua 5.1.  It should be a little more
-   efficient than making two separate calls and it avoids problems with order
-   of evaluation so SWIG calls lua_tolstring() when it wants the length and
-   we provide a compatibility implementation for Lua 5.0.  */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
-static const char *(lua_tolstring)(lua_State *L, int idx, size_t *len) {
-  /* Call lua_tostring() first as it may convert the value from number to
-     string. */
-  const char *result = lua_tostring(L, idx);
-  if (len) *len = lua_strlen(L, idx);
-  return result;
-}
-#endif
-
-
-/* lua_pushglobaltable is the recommended "future-proof" way to get
-   the global table for Lua 5.2 and later.  Here we define
-   lua_pushglobaltable ourselves for Lua versions before 5.2.  */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
-# define lua_pushglobaltable(L) lua_pushvalue(L, LUA_GLOBALSINDEX)
-#endif
-
-/* lua_absindex was introduced in Lua 5.2 */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
-# define lua_absindex(L,i) ((i)>0 || (i) <= LUA_REGISTRYINDEX ? (i) : lua_gettop(L) + (i) + 1)
-#endif
-
-/* lua_rawsetp was introduced in Lua 5.2 */
-#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 502
-#define lua_rawsetp(L,index,ptr)\
-  lua_pushlightuserdata(L,(void*)(ptr));\
-  lua_insert(L,-2);\
-  lua_rawset(L,index);
-
-#define lua_rawgetp(L,index,ptr)\
-  lua_pushlightuserdata(L,(void*)(ptr));\
-  lua_rawget(L,index);
-
-#endif
+     SWIG_LUA_POINTER, (char *)B, 0, 0, (void *)C, &D
+#define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D)\
+       SWIG_LUA_BINARY, (char *)B, S, 0, (void *)C, &D
 
 /* --------------------------------------------------------------------------
  * Helper functions for error handling
@@ -195,7 +34,7 @@ static const char *(lua_tolstring)(lua_State *L, int idx, size_t *len) {
 
 /* Push the string STR on the Lua stack, like lua_pushstring, but
    prefixed with the location of the innermost Lua call-point
-   (as formatted by luaL_where).  */
+   (as formatted by luaL_where). */
 SWIGRUNTIME void
 SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 {
@@ -206,7 +45,7 @@ SWIG_Lua_pusherrstring (lua_State *L, const char *str)
 
 /* Push a formatted string generated from FMT and following args on
    the Lua stack, like lua_pushfstring, but prefixed with the
-   location of the innermost Lua call-point (as formatted by luaL_where).  */
+   location of the innermost Lua call-point (as formatted by luaL_where). */
 SWIGRUNTIME void
 SWIG_Lua_pushferrstring (lua_State *L, const char *fmt, ...)
 {
@@ -217,7 +56,6 @@ SWIG_Lua_pushferrstring (lua_State *L, const char *fmt, ...)
   va_end(argp);
   lua_concat(L, 2);
 }
-
 
 /* -----------------------------------------------------------------------------
  * global swig types
@@ -237,10 +75,6 @@ typedef struct {
   lua_CFunction set;
 } swig_lua_var_info;
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-typedef const LUA_REG_TYPE swig_lua_method;
-typedef const LUA_REG_TYPE swig_lua_const_info;
-#else /* Normal lua */
 typedef luaL_Reg swig_lua_method;
 
 /* Constant information structure */
@@ -249,18 +83,15 @@ typedef struct {
     char *name;
     long lvalue;
     double dvalue;
-    void   *pvalue;
+    void *pvalue;
     swig_type_info **ptype;
 } swig_lua_const_info;
 
-#endif
-
 typedef struct {
-  const char     *name;
-  lua_CFunction   getmethod;
-  lua_CFunction   setmethod;
+  const char *name;
+  lua_CFunction getmethod;
+  lua_CFunction setmethod;
 } swig_lua_attribute;
-
 
 struct swig_lua_class;
 /* Can be used to create namespaces. Currently used to wrap class static methods/variables/constants */
@@ -324,7 +155,6 @@ typedef struct {
 #define SWIG_contract_assert(expr, msg)  \
   do { if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } } while (0)
 
-
 /* helper #defines */
 #define SWIG_fail {goto fail;}
 #define SWIG_fail_arg(func_name,argnum,type) \
@@ -337,7 +167,6 @@ typedef struct {
   if (lua_gettop(L)<a || lua_gettop(L)>b) \
   {SWIG_Lua_pushferrstring(L,"Error in %s expected %d..%d args, got %d",func_name,a,b,lua_gettop(L));\
   goto fail;}
-
 
 #define SWIG_Lua_get_table(L,n) \
   (lua_pushstring(L, n), lua_rawget(L,-2))
@@ -398,148 +227,6 @@ SWIGINTERN int SWIG_Lua_set_immutable(lua_State *L)
     return 0;   /* should not return anything */
 }
 
-#ifdef SWIG_LUA_ELUA_EMULATE
-
-SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *type, int own);
-SWIGRUNTIME void SWIG_Lua_NewPackedObj(lua_State *L,void *ptr,size_t size,swig_type_info *type);
-static int swig_lua_elua_emulate_unique_key;
-
-/* This function emulates eLua rotables behaviour. It loads a rotable definition into the usual lua table. */
-SWIGINTERN void SWIG_Lua_elua_emulate_register(lua_State *L, const swig_elua_entry *table)
-{
-  int i, table_parsed, parsed_tables_array, target_table;
-  assert(lua_istable(L,-1));
-  target_table = lua_gettop(L);
-  /* Get the registry where we put all parsed tables to avoid loops */
-  lua_rawgetp(L, LUA_REGISTRYINDEX, &swig_lua_elua_emulate_unique_key);
-  if(lua_isnil(L,-1)) {
-    lua_pop(L,1);
-    lua_newtable(L);
-    lua_pushvalue(L,-1);
-    lua_rawsetp(L,LUA_REGISTRYINDEX,(void*)(&swig_lua_elua_emulate_unique_key));
-  }
-  parsed_tables_array = lua_gettop(L);
-  lua_pushvalue(L,target_table);
-  lua_rawsetp(L, parsed_tables_array, table);
-  table_parsed = 0;
-  const int SWIGUNUSED pairs_start = lua_gettop(L);
-  for(i = 0;table[i].key.type != LUA_TNIL || table[i].value.type != LUA_TNIL;i++)
-  {
-    const swig_elua_entry *entry = table + i;
-    int is_metatable = 0;
-    switch(entry->key.type) {
-      case LUA_TSTRING:
-        lua_pushstring(L,entry->key.key.strkey);
-        if(strcmp(entry->key.key.strkey, SWIG_LUA_ELUA_EMUL_METATABLE_KEY) == 0)
-          is_metatable = 1;
-        break;
-      case  LUA_TNUMBER:
-        lua_pushnumber(L,entry->key.key.numkey);
-        break;
-      case LUA_TNIL:
-        lua_pushnil(L);
-        break;
-      default:
-        assert(0);
-    }
-    switch(entry->value.type) {
-      case LUA_TSTRING:
-        lua_pushstring(L,entry->value.value.string);
-        break;
-      case  LUA_TNUMBER:
-        lua_pushnumber(L,entry->value.value.number);
-        break;
-      case LUA_TFUNCTION:
-        lua_pushcfunction(L,entry->value.value.function);
-        break;
-      case LUA_TTABLE:
-        lua_rawgetp(L,parsed_tables_array, entry->value.value.table);
-        table_parsed = !lua_isnil(L,-1);
-        if(!table_parsed) {
-          lua_pop(L,1); /*remove nil */
-          lua_newtable(L);
-          SWIG_Lua_elua_emulate_register(L,entry->value.value.table);
-        }
-        if(is_metatable) {
-          assert(lua_istable(L,-1));
-          lua_pushvalue(L,-1);
-          lua_setmetatable(L,target_table);
-        }
-
-        break;
-      case LUA_TUSERDATA:
-        if(entry->value.value.userdata.member)
-          SWIG_NewMemberObj(L,entry->value.value.userdata.pvalue,
-              entry->value.value.userdata.lvalue,
-              *(entry->value.value.userdata.ptype));
-        else
-          SWIG_NewPointerObj(L,entry->value.value.userdata.pvalue,
-              *(entry->value.value.userdata.ptype),0);
-        break;
-      case LUA_TNIL:
-        lua_pushnil(L);
-        break;
-      default:
-        assert(0);
-    }
-    assert(lua_gettop(L) == pairs_start + 2);
-    lua_rawset(L,target_table);
-  }
-  lua_pop(L,1); /* Removing parsed tables storage */
-  assert(lua_gettop(L) == target_table);
-}
-
-SWIGINTERN void SWIG_Lua_elua_emulate_register_clear(lua_State *L)
-{
-  lua_pushnil(L);
-  lua_rawsetp(L, LUA_REGISTRYINDEX, &swig_lua_elua_emulate_unique_key);
-}
-
-SWIGINTERN void SWIG_Lua_get_class_registry(lua_State *L);
-
-SWIGINTERN int SWIG_Lua_emulate_elua_getmetatable(lua_State *L)
-{
-  SWIG_check_num_args("getmetatable(SWIG eLua emulation)", 1, 1);
-  SWIG_Lua_get_class_registry(L);
-  lua_getfield(L,-1,"lua_getmetatable");
-  lua_remove(L,-2); /* remove the registry*/
-  assert(!lua_isnil(L,-1));
-  lua_pushvalue(L,1);
-  assert(lua_gettop(L) == 3); /* object | function | object again */
-  lua_call(L,1,1);
-  if(!lua_isnil(L,-1)) /*There is an ordinary metatable */
-    return 1;
-  /*if it is a table, then emulate elua behaviour - check for __metatable attribute of a table*/
-  assert(lua_gettop(L) == 2);
-  if(lua_istable(L,-2)) {
-    lua_pop(L,1); /*remove the nil*/
-    lua_getfield(L,-1, SWIG_LUA_ELUA_EMUL_METATABLE_KEY);
-  }
-  assert(lua_gettop(L) == 2);
-  return 1;
-
-fail:
-  lua_error(L);
-  return 0;
-}
-
-SWIGINTERN void SWIG_Lua_emulate_elua_swap_getmetatable(lua_State *L)
-{
-  SWIG_Lua_get_class_registry(L);
-  lua_pushglobaltable(L);
-  lua_pushstring(L,"lua_getmetatable");
-  lua_getfield(L,-2,"getmetatable");
-  assert(!lua_isnil(L,-1));
-  lua_rawset(L,-4);
-  lua_pushstring(L, "getmetatable");
-  lua_pushcfunction(L, SWIG_Lua_emulate_elua_getmetatable);
-  lua_rawset(L,-3);
-  lua_pop(L,2);
-
-}
-/* END OF REMOVE */
-
-#endif
 /* -----------------------------------------------------------------------------
  * global variable support code: namespaces and modules (which are the same thing)
  * ----------------------------------------------------------------------------- */
@@ -613,7 +300,6 @@ SWIGINTERN int SWIG_Lua_namespace_set(lua_State *L)
   return 0;
 }
 
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) /* In elua this is useless */
 SWIGINTERN void SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]); /* forward declaration */
 SWIGINTERN void  SWIG_Lua_add_variable(lua_State *L,const char *name,lua_CFunction getFn,lua_CFunction setFn); /* forward declaration */
 SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss);
@@ -715,7 +401,6 @@ SWIGINTERN void SWIG_Lua_namespace_register(lua_State *L, swig_lua_namespace *ns
   }
   assert(lua_gettop(L) == begin+1);
 }
-#endif /* SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA */
 
 /* -----------------------------------------------------------------------------
  * global variable support code: classes
@@ -739,22 +424,10 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
     lua_getmetatable(L,first_arg);
 
     /* initialise base search */
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
     SWIG_Lua_get_table(L,".bases");
     assert(lua_istable(L,-1));
     bases_count = lua_rawlen(L,-1);
     bases_table = lua_gettop(L);
-#else
-    /* In elua .bases table doesn't exist. Use table from swig_lua_class */
-    (void)bases_table;
-    assert(swig_type!=0);
-    swig_module_info *module=SWIG_GetModule(L);
-    swig_lua_class **bases= ((swig_lua_class*)(swig_type->clientdata))->bases;
-    const char **base_names= ((swig_lua_class*)(swig_type->clientdata))->base_names;
-    bases_count = 0;
-    for(;base_names[bases_count];
-      bases_count++);/* get length of bases */
-#endif
 
     if(ret)
       *ret = 0;
@@ -774,7 +447,6 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
       /* Trick: temporarily replacing original metatable with metatable for base class and call getter */
       for(i=0;i<bases_count;i++) {
         /* Iteration through class bases */
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
         lua_rawgeti(L,bases_table,i+1);
         base_swig_type = 0;
         if(lua_isnil(L,-1)) {
@@ -783,17 +455,6 @@ SWIGINTERN int SWIG_Lua_iterate_bases(lua_State *L, swig_type_info * SWIGUNUSED 
         } else {
           valid = 1;
         }
-#else /* In elua .bases table doesn't exist. Use table from swig_lua_class */
-        swig_lua_class *base_class = bases[i];
-        if(!base_class) {
-          valid = 0;
-        } else {
-          valid = 1;
-          SWIG_Lua_get_class_metatable(L,base_class->fqname);
-          base_swig_type = SWIG_TypeQueryModule(module,module,base_names[i]);
-          assert(base_swig_type != 0);
-        }
-#endif
 
         if(!valid)
           continue;
@@ -858,7 +519,6 @@ SWIGINTERN int  SWIG_Lua_class_do_get_item(lua_State *L, swig_type_info *type, i
   bases_search_result = SWIG_Lua_iterate_bases(L,type,substack_start+1,SWIG_Lua_class_do_get_item,ret);
   return bases_search_result;  /* sorry not known */
 }
-
 
 /* The class.get method helper, performs the lookup of class attributes.
  * It returns an error code. Number of function return values is passed inside 'ret'.
@@ -1199,72 +859,6 @@ SWIGINTERN void SWIG_Lua_init_base_class(lua_State *L,swig_lua_class *clss)
   }
 }
 
-#if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
-/* Merges two tables  */
-SWIGINTERN void SWIG_Lua_merge_tables_by_index(lua_State *L, int target, int source)
-{
-  /* iterating */
-  lua_pushnil(L);
-  while (lua_next(L,source) != 0) {
-    /* -1 - value, -2 - index */
-    /* have to copy to assign */
-    lua_pushvalue(L,-2); /* copy of index */
-    lua_pushvalue(L,-2); /* copy of value */
-    lua_rawset(L, target);
-    lua_pop(L,1);
-    /* only key is left */
-  }
-}
-
-/* Merges two tables with given name. original - index of target metatable, base - index of source metatable */
-SWIGINTERN void SWIG_Lua_merge_tables(lua_State *L, const char* name, int original, int base)
-{
-  /* push original[name], then base[name] */
-  lua_pushstring(L,name);
-  lua_rawget(L,original);
-  int original_table = lua_gettop(L);
-  lua_pushstring(L,name);
-  lua_rawget(L,base);
-  int base_table = lua_gettop(L);
-  SWIG_Lua_merge_tables_by_index(L, original_table, base_table);
-  /* clearing stack */
-  lua_pop(L,2);
-}
-
-/* Function takes all symbols from base and adds it to derived class. It's just a helper. */
-SWIGINTERN void SWIG_Lua_class_squash_base(lua_State *L, swig_lua_class *base_cls)
-{
-  /* There is one parameter - original, i.e. 'derived' class metatable */
-  assert(lua_istable(L,-1));
-  int original = lua_gettop(L);
-  SWIG_Lua_get_class_metatable(L,base_cls->fqname);
-  int base = lua_gettop(L);
-  SWIG_Lua_merge_tables(L, ".fn", original, base );
-  SWIG_Lua_merge_tables(L, ".set", original, base );
-  SWIG_Lua_merge_tables(L, ".get", original, base );
-  lua_pop(L,1);
-}
-
-/* Function squashes all symbols from 'clss' bases into itself */
-SWIGINTERN void  SWIG_Lua_class_squash_bases(lua_State *L, swig_lua_class *clss)
-{
-  int i;
-  SWIG_Lua_get_class_metatable(L,clss->fqname);
-  for(i=0;clss->base_names[i];i++)
-  {
-    if (clss->bases[i]==0) /* Somehow it's not found. Skip it */
-      continue;
-    /* Thing is: all bases are already registered. Thus they have already executed
-     * this function. So we just need to squash them into us, because their bases
-     * are already squashed into them. No need for recursion here!
-     */
-    SWIG_Lua_class_squash_base(L, clss->bases[i]);
-  }
-  lua_pop(L,1); /*tidy stack*/
-}
-#endif
-
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA) /* In elua this is useless */
 /* helper add a variable to a registered class */
 SWIGINTERN void  SWIG_Lua_add_variable(lua_State *L,const char *name,lua_CFunction getFn,lua_CFunction setFn)
 {
@@ -1338,12 +932,10 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L, swig_lua_clas
     }
   }
 
-#if !defined(SWIG_LUA_SQUASH_BASES)
   /* Adding metamethods that are defined in base classes. If bases were squashed
    * then it is obviously unnecessary
    */
   SWIG_Lua_add_class_user_metamethods(L, clss);
-#endif
 }
 
 /* Helpers to add user defined class metamedhods - __add, __sub etc. The helpers are needed
@@ -1437,7 +1029,6 @@ SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L)
   lua_call(L, numargs, LUA_MULTRET);
   return lua_gettop(L); /* return all results */
 }
-
 
 /* If given metamethod must be present in given class, then creates appropriate proxy
  * Returns 1 if successfully added, 0 if not added because no base class has it, -1
@@ -1552,7 +1143,7 @@ SWIGINTERN void SWIG_Lua_class_register_static(lua_State *L, swig_lua_class *cls
 {
   const int SWIGUNUSED begin = lua_gettop(L);
   lua_checkstack(L,5); /* just in case */
-  assert(lua_istable(L,-1));  /* just in case */
+  assert(lua_istable(L,-1)); /* just in case */
   assert(strcmp(clss->name, clss->cls_static->name) == 0); /* in class those 2 must be equal */
 
   SWIG_Lua_namespace_register(L,clss->cls_static, 1);
@@ -1605,24 +1196,6 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   SWIG_Lua_get_class_registry(L);  /* get the registry */
   lua_pushstring(L,clss->fqname);  /* get the name */
   lua_newtable(L);    /* create the metatable */
-#if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
-  /* If squashing is requested, then merges all bases metatable into this one.
-   * It would get us all special methods: __getitem, __add etc.
-   * This would set .fn, .type, and other .xxx incorrectly, but we will overwrite it right away
-   */
-  {
-    int new_metatable_index = lua_absindex(L,-1);
-    for(i=0;clss->bases[i];i++)
-    {
-      int base_metatable;
-      SWIG_Lua_get_class_metatable(L,clss->bases[i]->fqname);
-      base_metatable = lua_absindex(L,-1);
-      SWIG_Lua_merge_tables_by_index(L,new_metatable_index, base_metatable);
-      lua_pop(L,1);
-    }
-  }
-  /* And now we will overwrite all incorrectly set data */
-#endif
   /* add string of class name called ".type" */
   lua_pushstring(L,".type");
   lua_pushstring(L,clss->fqname);
@@ -1654,10 +1227,6 @@ SWIGINTERN void  SWIG_Lua_class_register_instance(lua_State *L,swig_lua_class *c
   lua_pop(L,1);      /* tidy stack (remove registry) */
   assert(lua_gettop(L) == begin);
 
-#if defined(SWIG_LUA_SQUASH_BASES) && (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA)
-  /* Now merge all symbols from .fn, .set, .get etc from bases to our tables */
-  SWIG_Lua_class_squash_bases(L,clss);
-#endif
   SWIG_Lua_get_class_metatable(L,clss->fqname);
   SWIG_Lua_add_class_instance_details(L,clss);  /* recursive adding of details (atts & ops) */
   lua_pop(L,1);      /* tidy stack (remove class metatable) */
@@ -1699,38 +1268,6 @@ SWIGINTERN void  SWIG_Lua_class_register(lua_State *L,swig_lua_class *clss)
   lua_pop(L,2);
   assert(lua_gettop(L) == begin);
 }
-#endif /* SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_LUA */
-
-#if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-SWIGINTERN void SWIG_Lua_elua_class_register_instance(lua_State *L, swig_lua_class *clss)
-{
-  const int SWIGUNUSED begin = lua_gettop(L);
-  int i;
-  /* if name already there (class is already registered) then do nothing */
-  SWIG_Lua_get_class_registry(L);  /* get the registry */
-  lua_pushstring(L,clss->fqname);  /* get the name */
-  lua_rawget(L,-2);
-  if(!lua_isnil(L,-1)) {
-    lua_pop(L,2);
-    assert(lua_gettop(L)==begin);
-    return;
-  }
-  lua_pop(L,2); /* tidy stack */
-  /* Recursively initialize all bases */
-  for(i=0;clss->bases[i];i++)
-  {
-    SWIG_Lua_elua_class_register_instance(L,clss->bases[i]);
-  }
-  /* Again, get registry and push name */
-  SWIG_Lua_get_class_registry(L);  /* get the registry */
-  lua_pushstring(L,clss->fqname);  /* get the name */
-  assert(clss->metatable);
-  lua_pushrotable(L, (void*)(clss->metatable));    /* create the metatable */
-  lua_rawset(L,-3);
-  lua_pop(L,1);
-  assert(lua_gettop(L) == begin);
-}
-#endif /* elua && eluac */
 
 /* -----------------------------------------------------------------------------
  * Class/structure conversion fns
@@ -1765,9 +1302,7 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *t
   usr->ptr=ptr;  /* set the ptr */
   usr->type=type;
   usr->own=own;
-#if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)
   SWIG_Lua_AddMetatable(L,type); /* add metatable */
-#endif
 }
 
 /* takes a object from the lua stack & converts it into an object of the correct type
@@ -1950,7 +1485,6 @@ SWIGRUNTIME int SWIG_Lua_type(lua_State *L)
  * global variable support code: class/struct typemap functions
  * ----------------------------------------------------------------------------- */
 
-#if ((SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUA) && (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC))
 /* Install Constants */
 SWIGINTERN void
 SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
@@ -1995,7 +1529,6 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
     }
   }
 }
-#endif
 
 /* -----------------------------------------------------------------------------
  * executing lua code from within the wrapper
@@ -2005,21 +1538,14 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
 #define SWIG_DOSTRING_FAIL(S) fprintf(stderr,"%s\n",S)
 #endif
 /* Executes a C string in Lua which is a really simple way of calling lua from C
-Unfortunately lua keeps changing its APIs, so we need a conditional compile
-In lua 5.0.X it's lua_dostring()
-In lua 5.1.X it's luaL_dostring()
 */
 SWIGINTERN int
 SWIG_Lua_dostring(lua_State *L, const char *str) {
   int ok,top;
   if (str==0 || str[0]==0) return 0; /* nothing to do */
   top=lua_gettop(L); /* save stack */
-#if (defined(LUA_VERSION_NUM) && (LUA_VERSION_NUM>=501))
-  ok=luaL_dostring(L,str);	/* looks like this is lua 5.1.X or later, good */
-#else
-  ok=lua_dostring(L,str);	/* might be lua 5.0.x, using lua_dostring */
-#endif
-  if (ok!=0) {
+  ok=luaL_dostring(L,str);
+  if (ok!=LUA_OK) {
     SWIG_DOSTRING_FAIL(lua_tostring(L,-1));
   }
   lua_settop(L,top); /* restore the stack */

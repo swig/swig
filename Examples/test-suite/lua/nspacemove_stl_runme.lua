@@ -1,11 +1,6 @@
-require("import")	-- the import fn
-import("nspacemove_stl")	-- import lib
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
-
+require("import")
+require("nspacemove_stl")
+catch_undef_globs() -- catch "undefined" global variables
 
 vi = nspacemove_stl.CPlusPlus.Standard.Ints.VectorInt()
 vs = nspacemove_stl.CPlusPlus.Standard.Strings.VectorString()

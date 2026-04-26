@@ -1,6 +1,5 @@
-require("import")	-- the import fn
-import("overload_template")	-- import code
-for k,v in pairs(overload_template) do _G[k]=v end -- move to global
+require("import")
+import_to_globs("overload_template")
 
 -- lua has only one numeric type, so maximum(int,int) and maximum(double,double) are the same
 -- whichever one was wrapper first will be used (which is int)

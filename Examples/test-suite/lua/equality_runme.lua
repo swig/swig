@@ -1,19 +1,15 @@
-require("import")	-- the import fn
-import("equality")	-- import code
-eq=equality    -- renaming import
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("equality")
+eq=equality
+catch_undef_globs() -- catch "undefined" global variables
 
 -- === No equality operator ===
 
 -- logically same data without equality operator are not equal
-p1 = eq.MakePoint(10,9);
-p2 = eq.MakePoint(10,9);
+p1 = eq.MakePoint(10,9)
+p2 = eq.MakePoint(10,9)
 
-assert( p1 ~= p2 );
+assert( p1 ~= p2 )
 
 -- different wrappers for same Point* are equal
 p3 = eq.GetZeroPointPtr()
@@ -37,7 +33,7 @@ assert( ed1 ~= ed3 )
 ew1 = eq.EqualOpWrong()
 ew2 = eq.EqualOpWrong()
 
-assert( ew1 ~= ew2 );
+assert( ew1 ~= ew2 )
 
 ew3 = eq.EqualOpWrong.GetStaticObject()
 ew4 = eq.EqualOpWrong.GetStaticObject()

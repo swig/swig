@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("array_member")	-- import lib
+require("import")
+require("array_member")
 am = array_member
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(am.get_value(am.global_data,0) == 0)
 assert(am.get_value(am.global_data,7) == 7)

@@ -1,11 +1,6 @@
-require("import")	-- the import fn
-import("cpp11_std_unique_ptr")	-- import code
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
-
+require("import")
+require("cpp11_std_unique_ptr")
+catch_undef_globs() -- catch "undefined" global variables
 
 function checkCount(expected_count)
   -- call gc to make unused objects are collected
@@ -78,9 +73,9 @@ end
 kini = nil -- Should not fail, even though already deleted
 checkCount(0)
 
-cpp11_std_unique_ptr.takeKlassUniquePtr(nil);
-cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null());
-checkCount(0);
+cpp11_std_unique_ptr.takeKlassUniquePtr(nil)
+cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null())
+checkCount(0)
 
 -- overloaded parameters
 if not (cpp11_std_unique_ptr.overloadTest() == 0) then
@@ -147,9 +142,9 @@ end
 kini = nil -- Should not fail, even though already deleted
 checkCount(0)
 
-cpp11_std_unique_ptr.moveKlassUniquePtr(nil);
-cpp11_std_unique_ptr.moveKlassUniquePtr(cpp11_std_unique_ptr.make_null());
-checkCount(0);
+cpp11_std_unique_ptr.moveKlassUniquePtr(nil)
+cpp11_std_unique_ptr.moveKlassUniquePtr(cpp11_std_unique_ptr.make_null())
+checkCount(0)
 
 -- overloaded parameters
 if not (cpp11_std_unique_ptr.moveOverloadTest() == 0) then
@@ -216,9 +211,9 @@ end
 kini = nil -- Should not fail, even though already deleted
 checkCount(0)
 
-cpp11_std_unique_ptr.moveRefKlassUniquePtr(nil);
-cpp11_std_unique_ptr.moveRefKlassUniquePtr(cpp11_std_unique_ptr.make_null());
-checkCount(0);
+cpp11_std_unique_ptr.moveRefKlassUniquePtr(nil)
+cpp11_std_unique_ptr.moveRefKlassUniquePtr(cpp11_std_unique_ptr.make_null())
+checkCount(0)
 
 -- overloaded parameters
 if not (cpp11_std_unique_ptr.moveRefOverloadTest() == 0) then
@@ -255,9 +250,9 @@ end
 kini = nil
 checkCount(0)
 
-cpp11_std_unique_ptr.useRefKlassUniquePtr(nil);
-cpp11_std_unique_ptr.useRefKlassUniquePtr(cpp11_std_unique_ptr.make_null());
-checkCount(0);
+cpp11_std_unique_ptr.useRefKlassUniquePtr(nil)
+cpp11_std_unique_ptr.useRefKlassUniquePtr(cpp11_std_unique_ptr.make_null())
+checkCount(0)
 
 -- overloaded parameters
 if not (cpp11_std_unique_ptr.useRefOverloadTest() == 0) then

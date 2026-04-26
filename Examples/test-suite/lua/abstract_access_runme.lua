@@ -1,10 +1,6 @@
-require("import")	-- the import fn
-import("abstract_access")	-- import code
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("abstract_access")
+catch_undef_globs() -- catch "undefined" global variables
 
 -- trying to instantiate pure virtual classes
 -- should fail

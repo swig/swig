@@ -1,11 +1,7 @@
-require("import")	-- the import fn
-import("static_const_member")	-- import lib into global
-scm=static_const_member --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("static_const_member")
+scm=static_const_member
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(scm.X.PN == 0)
 assert(scm.X.CN == 1)

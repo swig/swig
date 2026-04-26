@@ -1,8 +1,6 @@
 -- Test for std::set wrapper in Lua
-require("import")	-- the import fn
-import("li_std_set")	-- import code
-
-for k,v in pairs(li_std_set) do _G[k]=v end -- move to global
+require("import")
+import_to_globs("li_std_set")
 
 -- Test IntSet
 local intSet = IntSet()

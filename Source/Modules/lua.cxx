@@ -85,32 +85,11 @@ static int compareByLen(const DOH *f, const DOH *s) {
 NEW LANGUAGE NOTE:END ************************************************/
 static const char *usage = "\
 Lua Options (available with -lua)\n\
-     -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
-     -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
-     -elua-emulate   - Emulates behaviour of eLua. Useful only for testing.\n\
-                       Incompatible with -elua/-eluac options.\n\
      -nomoduleglobal - Do not register the module name as a global variable \n\
                        but return the module table from calls to require.\n\
-     -no-old-metatable-bindings\n\
-                     - Disable support for old-style bindings name generation, some\n\
-                       old-style members scheme etc.\n\
-     -squash-bases   - Squashes symbols from all inheritance tree of a given class\n\
-                       into itself. Emulates pre-SWIG3.0 inheritance. Insignificantly\n\
-                       speeds things up, but increases memory consumption.\n\
 \n";
 
 static int nomoduleglobal = 0;
-static int elua_ltr = 0;
-static int eluac_ltr = 0;
-static int elua_emulate = 0;
-static int squash_bases = 0;
-/* The new metatable bindings were introduced in SWIG 3.0.0.
- * old_metatable_bindings in v2:
- *                    1. static methods will be put into the scope their respective class
- *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
- *                    2. The layout in elua mode is somewhat different
- */
-static int old_metatable_bindings = 1;
 static int old_compatible_names = 1;  // This flag can temporarily disable backward compatible names generation if old_metatable_bindings is enabled
 
 /* NEW LANGUAGE NOTE:***********************************************
@@ -229,33 +208,9 @@ public:
         } else if (strcmp(argv[i], "-nomoduleglobal") == 0) {
           nomoduleglobal = 1;
           Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-elua") == 0) {
-          elua_ltr = 1;
-          Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-eluac") == 0) {
-          eluac_ltr = 1;
-          Swig_mark_arg(i);
-        } else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
-          Swig_mark_arg(i);
-          old_metatable_bindings = 0;
-        } else if (strcmp(argv[i], "-squash-bases") == 0) {
-          Swig_mark_arg(i);
-          squash_bases = 1;
-        } else if (strcmp(argv[i], "-elua-emulate") == 0) {
-          Swig_mark_arg(i);
-          elua_emulate = 1;
         }
       }
     }
-
-    if (elua_emulate && (eluac_ltr || elua_ltr)) {
-      Printf(stderr, "Cannot have -elua-emulate with either -eluac or -elua\n");
-      Swig_arg_error();
-    }
-
-    // Set elua_ltr if elua_emulate is requested
-    if (elua_emulate)
-      elua_ltr = 1;
 
     /* NEW LANGUAGE NOTE:***********************************************
        This is the boilerplate code, setting a few #defines
@@ -328,15 +283,11 @@ public:
 
     Swig_obligatory_macros(f_runtime, "LUA");
 
-    emitLuaFlavor(f_runtime);
-
     if (nomoduleglobal) {
       Printf(f_runtime, "#define SWIG_LUA_NO_MODULE_GLOBAL\n");
     } else {
       Printf(f_runtime, "#define SWIG_LUA_MODULE_GLOBAL\n");
     }
-    if (squash_bases)
-      Printf(f_runtime, "#define SWIG_LUA_SQUASH_BASES\n");
 
     /* Check if directors are enabled for this module */
     Node *mod = Getattr(n, "module");
@@ -519,19 +470,13 @@ public:
     Hash *nspaceHash = getCArraysHash(luaScope);
     String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *lua_name = Getattr(n, "lua:name");
-    if (elua_ltr || eluac_ltr)
-      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
-    else
-      Printv(s_ns_methods_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
+    Printv(s_ns_methods_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
     // Add to the metatable if method starts with '__'
     const char *tn = Char(lua_name);
-    if (tn[0] == '_' && tn[1] == '_' && !eluac_ltr) {
+    if (tn[0] == '_' && tn[1] == '_') {
       String *metatable_tab = Getattr(nspaceHash, "metatable");
       assert(metatable_tab);
-      if (elua_ltr)
-        Printv(metatable_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
-      else
-        Printv(metatable_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
+      Printv(metatable_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
     }
   }
 
@@ -1042,8 +987,7 @@ public:
   /* ------------------------------------------------------------
    * registerVariable()
    *
-   * Add variable to the "attributes" (or "get"/"set" in
-   * case of elua_ltr) C arrays of given namespace or class
+   * Add variable to the "attributes" C arrays of given namespace or class
    * ------------------------------------------------------------ */
 
   void registerVariable(String *lua_nspace_or_class_name, Node *n, String *getName, String *setName) {
@@ -1052,20 +996,9 @@ public:
       setName = unassignable;
     }
     Hash *nspaceHash = getCArraysHash(lua_nspace_or_class_name);
-    String *s_ns_methods_tab = Getattr(nspaceHash, "methods");
     String *s_ns_var_tab = Getattr(nspaceHash, "attributes");
     String *lua_name = Getattr(n, "lua:name");
-    if (elua_ltr) {
-      String *s_ns_dot_get = Getattr(nspaceHash, "get");
-      String *s_ns_dot_set = Getattr(nspaceHash, "set");
-      Printf(s_ns_dot_get, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, lua_name, getName);
-      Printf(s_ns_dot_set, "%s{LSTRKEY(\"%s\"), LFUNCVAL(%s)},\n", tab4, lua_name, setName);
-    } else if (eluac_ltr) {
-      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "_get", "\")", ", LFUNCVAL(", getName, ")", "},\n", NIL);
-      Printv(s_ns_methods_tab, tab4, "{LSTRKEY(\"", lua_name, "_set", "\")", ", LFUNCVAL(", setName, ")", "},\n", NIL);
-    } else {
-      Printf(s_ns_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, lua_name, getName, setName);
-    }
+    Printf(s_ns_var_tab, "%s{ \"%s\", %s, %s },\n", tab4, lua_name, getName, setName);
   }
 
   /* ------------------------------------------------------------
@@ -1103,20 +1036,14 @@ public:
   void registerConstant(String *nspace, String *constantRecord) {
     Hash *nspaceHash = getCArraysHash(nspace);
     String *s_const_tab = 0;
-    if (eluac_ltr || elua_ltr)
-      // In elua everything goes to "methods" tab
-      s_const_tab = Getattr(nspaceHash, "methods");
-    else
-      s_const_tab = Getattr(nspaceHash, "constants");
+    s_const_tab = Getattr(nspaceHash, "constants");
 
     assert(s_const_tab);
     Printf(s_const_tab, "    %s,\n", constantRecord);
 
-    if ((eluac_ltr || elua_ltr) && old_metatable_bindings) {
-      s_const_tab = Getattr(nspaceHash, "constants");
-      assert(s_const_tab);
-      Printf(s_const_tab, "    %s,\n", constantRecord);
-    }
+    s_const_tab = Getattr(nspaceHash, "constants");
+    assert(s_const_tab);
+    Printf(s_const_tab, "    %s,\n", constantRecord);
   }
 
   /* ------------------------------------------------------------
@@ -1170,7 +1097,7 @@ public:
     // v2 compatibility mode: add symbols with class prefix to NSpace
     // Skip this for nested classes to avoid duplicate symbol errors
     // (nested classes from different outer classes would have the same symbol name)
-    bool make_v2_compatible = old_metatable_bindings && getCurrentClass() && old_compatible_names;
+    bool make_v2_compatible = getCurrentClass() && old_compatible_names;
     bool in_nested_class = getCurrentClass() && Getattr(getCurrentClass(), "nested:outer") != 0;
 
     if (make_v2_compatible && !in_nested_class) {
@@ -1312,14 +1239,6 @@ public:
     Hash *nspaceHash = getCArraysHash(scope);
     String *ns_classes = Getattr(nspaceHash, "classes");
     Printv(ns_classes, "&", wrap_class, ",\n", NIL);
-    if (elua_ltr || eluac_ltr) {
-      String *ns_methods = Getattr(nspaceHash, "methods");
-      Hash *class_hash = getCArraysHash(class_static_nspace);
-      assert(class_hash);
-      String *cls_methods = Getattr(class_hash, "methods:name");
-      assert(cls_methods);
-      Printv(ns_methods, tab4, "{LSTRKEY(\"", proxy_class_name, "\")", ", LROVAL(", cls_methods, ")", "},\n", NIL);
-    }
   }
 
   /* ------------------------------------------------------------
@@ -1532,7 +1451,6 @@ public:
 
     // Adding class to appropriate namespace (or outer class's static part for nested classes)
     registerClass(registration_scope, wrap_class_name);
-    Hash *nspaceHash = getCArraysHash(registration_scope);
 
     // Register the class structure with the type checker
     //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_full_proxy_class_name);
@@ -1569,22 +1487,6 @@ public:
       Printv(f_wrappers, "    return 1;\n}\n", NIL);
       Delete(constructor_name);
       constructor_name = constructor_proxy_name;
-      if (elua_ltr) {
-        String *static_cls_metatable_tab = Getattr(static_cls, "metatable");
-        assert(static_cls_metatable_tab);
-        Printf(static_cls_metatable_tab, "    {LSTRKEY(\"__call\"), LFUNCVAL(%s)},\n", constructor_name);
-      } else if (eluac_ltr) {
-        String *ns_methods_tab = Getattr(nspaceHash, "methods");
-        assert(ns_methods_tab);
-        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", proxy_class_name, "\")", ", LFUNCVAL(", constructor_name, ")", "},\n", NIL);
-      }
-    }
-    if (have_destructor) {
-      if (eluac_ltr) {
-        String *ns_methods_tab = Getattr(nspaceHash, "methods");
-        assert(ns_methods_tab);
-        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_full_proxy_class_name, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
-      }
     }
 
     closeCArraysHash(full_proxy_class_name, f_wrappers);
@@ -1661,11 +1563,7 @@ public:
     }
     Printf(f_wrappers, ", %s, %s, &%s", s_methods_tab_name, s_attr_tab_name, Getattr(static_cls, "cname"));
 
-    if (!eluac_ltr) {
-      Printf(f_wrappers, ", %s", Getattr(instance_cls, "metatable:name"));
-    } else {
-      Printf(f_wrappers, ", 0");
-    }
+    Printf(f_wrappers, ", %s", Getattr(instance_cls, "metatable:name"));
 
     Printf(f_wrappers, ", swig_%s_bases, swig_%s_base_names };\n\n", mangled_full_proxy_class_name, mangled_full_proxy_class_name);
 
@@ -1816,7 +1714,7 @@ public:
     const int result = Language::staticmemberfunctionHandler(n);
     registerMethod(n);
 
-    if (old_metatable_bindings && result == SWIG_OK && old_compatible_names) {
+    if (result == SWIG_OK && old_compatible_names) {
       Swig_require("lua_staticmemberfunctionHandler", n, "*lua:name", NIL);
       String *lua_name = Getattr(n, "lua:name");
       // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1861,7 +1759,7 @@ public:
 
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
-      if (old_metatable_bindings && old_compatible_names) {
+      if (old_compatible_names) {
         Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
         String *lua_name = Getattr(n, "lua:name");
         // Although this function uses Swig_name_member, it actually generates the Lua name,
@@ -1899,8 +1797,6 @@ public:
     String *s = NewString("");
     const char *filenames[] = {"luarun.swg", 0};  // must be 0 terminated
 
-    emitLuaFlavor(s);
-
     String *sfile = 0;
     for (int i = 0; filenames[i] != 0; i++) {
       sfile = Swig_include_sys(filenames[i]);
@@ -1917,23 +1813,6 @@ public:
 
   String *defaultExternalRuntimeFilename() {
     return NewString("swigluarun.h");
-  }
-
-  /* ---------------------------------------------------------------------
-   * helpers
-   * --------------------------------------------------------------------- */
-
-  void emitLuaFlavor(String *s) {
-    if (elua_emulate) {
-      Printf(s, "/*This is only emulation!*/\n");
-      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUA\n");
-      Printf(s, "#define SWIG_LUA_ELUA_EMULATE\n");
-    } else if (elua_ltr)
-      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUA\n");
-    else if (eluac_ltr)
-      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_ELUAC\n");
-    else
-      Printf(s, "#define SWIG_LUA_TARGET SWIG_LUA_FLAVOR_LUA\n");
   }
 
   /* -----------------------------------------------------------------------------
@@ -2020,10 +1899,7 @@ public:
     String *methods_tab = NewString("");
     String *methods_tab_name = NewStringf("swig_%s_methods", mangled_name);
     String *methods_tab_decl = NewString("");
-    if (elua_ltr || eluac_ltr)  // In this case methods array also acts as namespace rotable
-      Printf(methods_tab, "const LUA_REG_TYPE ");
-    else
-      Printf(methods_tab, "static swig_lua_method ");
+    Printf(methods_tab, "static swig_lua_method ");
     Printv(methods_tab, methods_tab_name, "[]", NIL);
     Printv(methods_tab_decl, methods_tab, ";\n", NIL);
     Printv(methods_tab, "= {\n", NIL);
@@ -2034,10 +1910,7 @@ public:
     String *const_tab = NewString("");
     String *const_tab_name = NewStringf("swig_%s_constants", mangled_name);
     String *const_tab_decl = NewString("");
-    if (elua_ltr || eluac_ltr)  // In this case const array holds rotable with namespace constants
-      Printf(const_tab, "const LUA_REG_TYPE ");
-    else
-      Printf(const_tab, "static swig_lua_const_info ");
+    Printf(const_tab, "static swig_lua_const_info ");
     Printv(const_tab, const_tab_name, "[]", NIL);
     Printv(const_tab_decl, const_tab, ";", NIL);
     Printv(const_tab, "= {\n", NIL);
@@ -2067,42 +1940,16 @@ public:
     Setattr(carrays_hash, "namespaces:name", namespaces_tab_name);
     Setattr(carrays_hash, "namespaces:decl", namespaces_tab_decl);
 
-    if (elua_ltr) {
-      String *get_tab = NewString("");
-      String *get_tab_name = NewStringf("swig_%s_get", mangled_name);
-      String *get_tab_decl = NewString("");
-      Printv(get_tab, "const LUA_REG_TYPE ", get_tab_name, "[]", NIL);
-      Printv(get_tab_decl, get_tab, ";", NIL);
-      Printv(get_tab, " = {\n", NIL);
-      Setattr(carrays_hash, "get", get_tab);
-      Setattr(carrays_hash, "get:name", get_tab_name);
-      Setattr(carrays_hash, "get:decl", get_tab_decl);
-
-      String *set_tab = NewString("");
-      String *set_tab_name = NewStringf("swig_%s_set", mangled_name);
-      String *set_tab_decl = NewString("");
-      Printv(set_tab, "const LUA_REG_TYPE ", set_tab_name, "[]", NIL);
-      Printv(set_tab_decl, set_tab, ";", NIL);
-      Printv(set_tab, " = {\n", NIL);
-      Setattr(carrays_hash, "set", set_tab);
-      Setattr(carrays_hash, "set:name", set_tab_name);
-      Setattr(carrays_hash, "set:decl", set_tab_decl);
-    }
-    if (!eluac_ltr) {
-      String *metatable_tab = NewString("");
-      String *metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
-      String *metatable_tab_decl = NewString("");
-      if (elua_ltr)  // In this case const array holds rotable with namespace constants
-        Printf(metatable_tab, "const LUA_REG_TYPE ");
-      else
-        Printf(metatable_tab, "static swig_lua_method ");
-      Printv(metatable_tab, metatable_tab_name, "[]", NIL);
-      Printv(metatable_tab_decl, metatable_tab, ";", NIL);
-      Printv(metatable_tab, " = {\n", NIL);
-      Setattr(carrays_hash, "metatable", metatable_tab);
-      Setattr(carrays_hash, "metatable:name", metatable_tab_name);
-      Setattr(carrays_hash, "metatable:decl", metatable_tab_decl);
-    }
+    String *metatable_tab = NewString("");
+    String *metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
+    String *metatable_tab_decl = NewString("");
+    Printf(metatable_tab, "static swig_lua_method ");
+    Printv(metatable_tab, metatable_tab_name, "[]", NIL);
+    Printv(metatable_tab_decl, metatable_tab, ";", NIL);
+    Printv(metatable_tab, " = {\n", NIL);
+    Setattr(carrays_hash, "metatable", metatable_tab);
+    Setattr(carrays_hash, "metatable:name", metatable_tab_name);
+    Setattr(carrays_hash, "metatable:decl", metatable_tab_decl);
 
     Setattr(scope, "lua:cdata", carrays_hash);
     assert(rawGetCArraysHash(nspace));
@@ -2122,10 +1969,6 @@ public:
       Hash *parent = getCArraysHash(parent_path, true);
       String *namespaces_tab = Getattr(parent, "namespaces");
       Printv(namespaces_tab, "&", cname, ",\n", NIL);
-      if (elua_ltr || eluac_ltr) {
-        String *methods_tab = Getattr(parent, "methods");
-        Printv(methods_tab, tab4, "{LSTRKEY(\"", name, "\")", ", LROVAL(", methods_tab_name, ")", "},\n", NIL);
-      }
       Setattr(carrays_hash, "name", name);
 
       Delete(components);
@@ -2165,40 +2008,15 @@ public:
     Printv(output, attr_tab, NIL);
 
     String *const_tab = Getattr(carrays_hash, "constants");
-    String *const_tab_name = Getattr(carrays_hash, "constants:name");
-    if (elua_ltr || eluac_ltr)
-      Printv(const_tab, "    {LNILKEY, LNILVAL}\n", "};\n", NIL);
-    else
-      Printf(const_tab, "    {0,0,0,0,0,0}\n};\n");
+    Printf(const_tab, "    {0,0,0,0,0,0}\n};\n");
 
     // For the sake of compiling with -Wall -Werror we print constants
     // only when necessary
-    int need_constants = 0;
-    if ((elua_ltr || eluac_ltr) && (old_metatable_bindings))
-      need_constants = 1;
-    else if (!is_instance)  // static part need constants tab
-      need_constants = 1;
-
-    if (need_constants)
+    if (!is_instance)  // static part need constants tab
       Printv(output, const_tab, NIL);
 
-    if (elua_ltr) {
-      // Put forward declaration of metatable array
-      Printv(output, "extern ", Getattr(carrays_hash, "metatable:decl"), "\n", NIL);
-    }
     String *methods_tab = Getattr(carrays_hash, "methods");
-    String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
-    if (elua_ltr || eluac_ltr) {
-      if (old_metatable_bindings)
-        Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
-      if (elua_ltr) {
-        Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
-      }
-
-      Printv(methods_tab, tab4, "{LSTRKEY(\"__disown\"), LFUNCVAL(SWIG_Lua_class_disown)},\n", NIL);
-      Printv(methods_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
-    } else
-      Printf(methods_tab, "    {0,0}\n};\n");
+    Printf(methods_tab, "    {0,0}\n};\n");
     Printv(output, methods_tab, NIL);
 
     if (!GetFlag(carrays_hash, "lua:no_classes")) {
@@ -2212,68 +2030,14 @@ public:
       Printf(namespaces_tab, "    0\n};\n");
       Printv(output, namespaces_tab, NIL);
     }
-    if (elua_ltr) {
-      String *get_tab = Getattr(carrays_hash, "get");
-      String *set_tab = Getattr(carrays_hash, "set");
-      Printv(get_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
-      Printv(set_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
-      Printv(output, get_tab, NIL);
-      Printv(output, set_tab, NIL);
-    }
 
     // Heuristic whether we need to print metatable or not.
     // For the sake of compiling with -Wall -Werror we don't print
     // metatable for static part.
-    int need_metatable = 0;
-    if (eluac_ltr)
-      need_metatable = 0;
-    else if (!is_instance)
-      need_metatable = 0;
-    else
-      need_metatable = 1;
-
-    if (need_metatable) {
+    if (is_instance) {
       String *metatable_tab = Getattr(carrays_hash, "metatable");
       assert(metatable_tab);
-      if (elua_ltr) {
-        String *get_tab_name = Getattr(carrays_hash, "get:name");
-        String *set_tab_name = Getattr(carrays_hash, "set:name");
-
-        if (GetFlag(carrays_hash, "lua:class_instance")) {
-          Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
-          Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
-        } else {
-          Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_namespace_get)},\n", NIL);
-          Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_namespace_set)},\n", NIL);
-        }
-
-        Printv(metatable_tab, tab4, "{LSTRKEY(\"__gc\"), LFUNCVAL(SWIG_Lua_class_destruct)},\n", NIL);
-        Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
-        Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
-        Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
-
-        if (GetFlag(carrays_hash, "lua:class_instance")) {
-          String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
-          assert(static_cls);
-          // static_cls is swig_lua_namespace. This structure can't be used with eLua(LTR)
-          // Instead a structure describing its methods is used
-          String *static_cls_cname = Getattr(static_cls, "methods:name");
-          assert(static_cls_cname);
-          Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
-          // Put forward declaration of this array
-          Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
-        } else if (GetFlag(carrays_hash, "lua:class_static")) {
-          Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
-          assert(instance_cls);
-          String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
-          assert(instance_cls_metatable_name);
-          Printv(metatable_tab, tab4, "{LSTRKEY(\".instance\"), LROVAL(", instance_cls_metatable_name, ")},\n", NIL);
-        }
-
-        Printv(metatable_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
-      } else {
-        Printf(metatable_tab, "    {0,0}\n};\n");
-      }
+      Printf(metatable_tab, "    {0,0}\n};\n");
 
       Printv(output, metatable_tab, NIL);
     }
