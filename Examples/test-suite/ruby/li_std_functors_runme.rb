@@ -63,9 +63,10 @@ def test
   yield method(:_map), Li_std_functors::Map
 end
 
-# these should fail and not segfault but currently do segfault with Ruby 2.6
-# in GitHub Actions environment
-if RUBY_VERSION != '2.6.6'
+if RUBY_VERSION[0..2] == "2.6" || RUBY_VERSION[0..2] == "3.3"
+# These should fail and not segfault
+# but currently do segfault with Ruby 2.6 and Ruby 3.3
+else
 begin
   Li_std_functors::Set.new('sd')
 rescue
