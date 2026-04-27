@@ -11,6 +11,9 @@
   int i, len = list.length();
   $1 = ($1_ltype) len;
   $2 = (char **) malloc((len+1)*sizeof(char *));
+  if ($2 == NULL) {
+    %argument_fail(SWIG_TypeError, "'int ARGC, char **ARGV' fail memory allocation", $symname, $argnum);
+  }
   for (i = 0; i < len; i++) {
     if (!list(i).is_string()) {
       $1 = 0;
@@ -19,6 +22,9 @@
     const std::string & s = list(i).string_value();
     size_t slen = s.size() + 1;
     char * p = (char*)malloc(slen);
+    if (p == NULL) {
+      %argument_fail(SWIG_TypeError, "'int ARGC, char **ARGV' fail memory allocation of a string", $symname, $argnum);
+    }
     $2[i] = p;
     memcpy(p, s.c_str(), slen);
   }
