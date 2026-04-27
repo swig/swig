@@ -25,3 +25,6 @@ namespace std {
 %typemaps_primitive(%checkcode(CPLXDBL), std::complex<double>);
 %typemaps_primitive(%checkcode(CPLXFLT), std::complex<float>);
 
+%typemap(pytyping) std::complex< float >,  std::complex< float >  const & "complex"
+%typemap(pytyping) std::complex< double >, std::complex< double > const & "complex"
+
