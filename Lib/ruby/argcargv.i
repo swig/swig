@@ -24,6 +24,9 @@
     int size = RARRAY_LEN($input);
     $1 = ($1_ltype) size;
     $2 = (char **) malloc((size+1)*sizeof(char *));
+    if ($2 == NULL) {
+      %argument_fail(SWIG_TypeError, "int ARGC, char **ARGV fail memory allocation", $symname, $argnum);
+    }
     VALUE *ptr = RARRAY_PTR($input);
     for (i=0; i < size; i++, ptr++) {
       $2[i]= StringValuePtr(*ptr);

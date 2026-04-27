@@ -14,6 +14,10 @@
   len = zend_array_count(ar);
   $1 = ($1_ltype) len;
   $2 = (char **) malloc((len+1)*sizeof(char *));
+  if ($2 == NULL) {
+    SWIG_PHP_Error(E_ERROR, "Fail allocating memory, in '$symname'.");
+    goto fail;
+  }
   i = 0;
   ZEND_HASH_FOREACH_VAL(ar, val) {
     if (Z_TYPE(*val) != IS_STRING) {

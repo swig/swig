@@ -13,6 +13,10 @@
   len = av_len(av) + 1;
   $1 = ($1_ltype) len;
   $2 = (char **) malloc((len+1)*sizeof(char *));
+  if ($2 == NULL) {
+    SWIG_croak("in method '$symname', fail allocate memory");
+    goto fail;
+  }
   for (i = 0; i < len; i++) {
     SV **tv = av_fetch(av, i, 0);
     $2[i] = SvPV_nolen(*tv);

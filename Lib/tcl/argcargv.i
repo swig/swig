@@ -11,6 +11,10 @@
   }
   $1 = ($1_ltype) nitems;
   $2 = (char **) malloc((nitems+1)*sizeof(char *));
+  if ($2 == NULL) {
+     SWIG_exception_fail(SWIG_MemoryError, "in method '$symname', fail allocating");
+     goto fail;
+  }
   for (i = 0; i < nitems; i++) {
     $2[i] = Tcl_GetString(listobjv[i]);
   }

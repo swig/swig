@@ -22,7 +22,14 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
   size_t i;
   res = SWIG_OK;
   size_t size = is_list ? PyList_Size(input) : PyTuple_Size(input);
-  if (argv) *argv = %new_array(size + 1, char*);
+  if (argv != NULL) {
+    char **p = %new_array(size + 1, char*);
+    if (p == NULL) {
+      SWIG_Error(SWIG_MemoryError, "int ARGC, char **ARGV: fail memory allocation");
+      return SWIG_ERROR;
+    }
+    *argv = p;
+  }
 
   for (i = 0; i < size; ++i) {
     /* Thread safety: a list could be modified by another thread while this function
@@ -40,7 +47,17 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
       res = SWIG_AsCharPtrAndSize(obj, &cptr, &sz, &alloc);
       if (SWIG_IsOK(res)) {
         if (cptr && sz) {
-          (*argv)[i] = (alloc == SWIG_NEWOBJ) ? cptr : %new_copy_array(cptr, sz, char);
+          if (alloc == SWIG_NEWOBJ) {
+            (*argv)[i] = cptr;
+          } else {
+            char *p = %new_array(sz, char);
+            if (p == NULL) {
+              SWIG_Error(SWIG_MemoryError, "int ARGC, char **ARGV: fail allocating string");
+              return SWIG_ERROR;
+            }
+            memcpy(p, cptr, sz);
+            (*argv)[i] = p;
+          }
         } else {
           (*argv)[i] = 0;
         }
