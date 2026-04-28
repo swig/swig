@@ -73,7 +73,7 @@
 
 /* varin */
 
-%typemap(varin,fragment=#SWIG_AsCharPtrAndSize) Char * {
+%typemap(varin,fragment=#SWIG_AsCharPtrAndSize,fragment=#SWIG_NewCopyCharArray) Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
   int res = SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -83,11 +83,11 @@
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
-    $1 = csize ? ($1_type)SWIG_NewCopyCharArray(cptr, csize, Char) : 0;
+    $1 = SWIG_NewCopyCharArray(cptr, csize);
   }
 }
 
-%typemap(varin,fragment=#SWIG_AsCharPtrAndSize,warning=WarningLeakMsg) const Char * {
+%typemap(varin,fragment=#SWIG_AsCharPtrAndSize,fragment=#SWIG_NewCopyCharArray,warning=WarningLeakMsg) const Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
   int res = SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -96,7 +96,7 @@
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
-    $1 = csize ? ($1_type)SWIG_NewCopyCharArray(cptr, csize, Char) : 0;
+    $1 = SWIG_NewCopyCharArray(cptr, csize);
   }
 }
 
@@ -108,20 +108,20 @@
 
 /* memberin */
 
-%typemap(memberin,noblock=1) Char * {
+%typemap(memberin,noblock=1,fragment=#SWIG_NewCopyCharArray) Char * {
   SWIG_DeleteCharArray($1);
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast($input, const Char *)) + 1;
-    $1 = ($1_type)SWIG_NewCopyCharArray(%reinterpret_cast($input, const Char *), size, Char);
+    $1 = SWIG_NewCopyCharArray($input, size);
   } else {
     $1 = 0;
   }
 }
 
-%typemap(memberin,noblock=1,warning=WarningLeakMsg) const Char * {
+%typemap(memberin,noblock=1,fragment=#SWIG_NewCopyCharArray,warning=WarningLeakMsg) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
-    $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
+    $1 = SWIG_NewCopyCharArray($input, size);
   } else {
     $1 = 0;
   }
@@ -129,20 +129,20 @@
 
 /* globalin */
 
-%typemap(globalin,noblock=1) Char * {
+%typemap(globalin,noblock=1,fragment=#SWIG_NewCopyCharArray) Char * {
   SWIG_DeleteCharArray($1);
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
-    $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
+    $1 = SWIG_NewCopyCharArray($input, size);
   } else {
     $1 = 0;
   }
 }
 
-%typemap(globalin,noblock=1,warning=WarningLeakMsg) const Char * {
+%typemap(globalin,noblock=1,fragment=#SWIG_NewCopyCharArray,warning=WarningLeakMsg) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
-    $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
+    $1 = SWIG_NewCopyCharArray($input, size);
   } else {
     $1 = 0;
   }
@@ -627,6 +627,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
 			 SWIG_CharBufLen,
+			 SWIG_NewCopyCharArray,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
 %_typemap2_string(StringCode, CharCode,
 		  WarningLeakMsg,
@@ -635,33 +636,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		  SWIG_FromCharPtrAndSize,
 		  SWIG_CharPtrLen,
 		  SWIG_CharBufLen,
-		  %new_copy_array,
-		  %delete_array,
-		  FragLimits, CHAR_MIN, CHAR_MAX)
-%enddef
-
-/* ------------------------------------------------------------
- *  String typemaps and fragments, with custom allocators
- * ------------------------------------------------------------ */
-
-%define %typemaps_string_alloc(StringCode, CharCode,
-			       WarningLeakMsg,
-			       Char, CharName,
-			       SWIG_AsCharPtrAndSize,
-			       SWIG_FromCharPtrAndSize,
-			       SWIG_CharPtrLen,
-			       SWIG_CharBufLen,
-			       SWIG_NewCopyCharArray,
-			       SWIG_DeleteCharArray,
-			       FragLimits, CHAR_MIN, CHAR_MAX)
-%_typemap2_string(StringCode, CharCode,
-		  WarningLeakMsg,
-		  Char, CharName,
-		  SWIG_AsCharPtrAndSize,
-		  SWIG_FromCharPtrAndSize,
-		  SWIG_CharPtrLen,
-		  SWIG_CharBufLen,
 		  SWIG_NewCopyCharArray,
-		  SWIG_DeleteCharArray,
+		  %delete_array,
 		  FragLimits, CHAR_MIN, CHAR_MAX)
 %enddef
