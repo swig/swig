@@ -135,7 +135,12 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 
     if (alloc) {
       if (*alloc == SWIG_NEWOBJ) {
-        *cptr = %new_copy_array(cstr, len + 1, char);
+        char *p = %new_array(len + 1, char);
+        if (p == NULL) {
+          return SWIG_MemoryError;
+        }
+        memcpy(p, cstr, len + 1);
+        *cptr = p;
         *alloc = SWIG_NEWOBJ;
       } else {
         *cptr = cstr;
