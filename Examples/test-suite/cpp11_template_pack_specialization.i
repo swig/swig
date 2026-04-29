@@ -14,6 +14,16 @@ template <typename... ARGS> struct SomeParms<Pack<ARGS...>> {
   void partial_method(ARGS...) {}
 };
 
+template <typename T> struct SomeParms2 {
+  void primary2_method() {}
+};
+
+template <typename A, typename... ARGS> struct SomeParms2<Pack<A, ARGS...>> {
+  void partial2_methodA(ARGS...) {}
+  void partial2_methodB(A, ARGS...) {}
+  void partial2_methodC(A) {}
+};
+
 void checker() {
   SomeParms<int> spi;
   spi.primary_method();
@@ -23,6 +33,12 @@ void checker() {
   sps.partial_method("hello");
   SomeParms<Pack<int, double>> spid;
   spid.partial_method(10, 11.1);
+  SomeParms2<Pack<int>> sp2i;
+  sp2i.partial2_methodC(20);
+  SomeParms2<Pack<int, double>> sp2id;
+  sp2id.partial2_methodA(11.1);
+  sp2id.partial2_methodB(55, 11.1);
+  sp2id.partial2_methodC(55);
 }
 %}
 
@@ -36,3 +52,6 @@ void checker() {
 
 %template(PackIntDouble) Pack<int, double>;
 %template(SomeParmsIntDouble) SomeParms<Pack<int, double>>;
+
+%template(SomeParms2PackInt) SomeParms2<Pack<int>>;
+%template(SomeParms2PackIntDouble) SomeParms2<Pack<int, double>>;
