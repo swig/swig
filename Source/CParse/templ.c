@@ -411,64 +411,177 @@ static void cparse_postprocess_expanded_template(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * partial_arg()
+ * splice_partial_slot()
  *
- * Return a parameter with type that matches the specialized template argument.
- * If the input has no partial type, the name is not set in the returned parameter.
- *
- * type: an instantiated template parameter type, for example: Vect<(int)>
- * partialtype: type from specialized template where parameter name has been
- * replaced by a $ variable, for example: Vect<($1)>
- *
- * Returns a parameter of type 'int' and name $1 for the two example parameters above.
- *
- * For a variadic parameter, eg: Vect<(v.$1)>, the returned parameter's type holds the
- * captured pack as a parenthesised parmlist, eg '(int,double)' for partialtype
- * Vect<(int,double)>. It is still returned as a single Parm; the caller splits it
- * with SwigType_parmlist.
+ * Bind a single $N substitution: at the given 0-based index in *templateparms_p,
+ * replace the slot's type with bound_type for a non-variadic primary parm, or
+ * splice bound_type (a parenthesised parmlist like "(int,double)" or "()") as
+ * zero or more parms in place of the slot for a variadic primary parm. The
+ * variadic-ness is read from templateparmsraw, which is the unmodified
+ * partial-spec parm list captured before any binding took place.
  * ----------------------------------------------------------------------------- */
 
-static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
-  SwigType *parmtype;
-  String *parmname = 0;
-  const char *cp = Char(partialtype);
-  const char *c = strchr(cp, '$');
-
-  if (c) {
-    int suffix_length;
-    int prefix_length = (int)(c - cp);
-    int type_length = Len(type);
-    const char *suffix = c;
-    String *prefix = NewStringWithSize(cp, prefix_length);
-    while (++suffix) {
-      if (!isdigit((int)*suffix))
-        break;
+static void splice_partial_slot(int index, SwigType *bound_type, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  ParmList *templateparms = *templateparms_p;
+  Parm *parm = ParmList_nth_parm(templateparms, index);
+  if (!parm)
+    return;
+  Parm *raw_parm = ParmList_nth_parm(templateparmsraw, index);
+  int parm_is_variadic = raw_parm && SwigType_isvariadic(Getattr(raw_parm, "type"));
+  if (parm_is_variadic) {
+    List *types = SwigType_parmlist(bound_type);
+    ParmList *new_parms = 0;
+    Parm *last_new_parm = 0;
+    int i, nargs = Len(types);
+    for (i = 0; i < nargs; i++) {
+      SwigType *argtype = Copy((SwigType *)Getitem(types, i));
+      Parm *new_parm = NewParmWithoutFileLineInfo(argtype, 0);
+      if (!new_parms) {
+        new_parms = new_parm;
+      } else {
+        set_nextSibling(last_new_parm, new_parm);
+      }
+      last_new_parm = new_parm;
     }
-    parmname = NewStringWithSize(c, (int)(suffix - c)); /* $1, $2 etc */
-    suffix_length = (int)strlen(suffix);
-    /* Skip a trailing 2-character variadic marker "v." in the prefix - it is not present in the concrete type. */
-    int prefix_length_without_variadic = (prefix_length >= 2 && Strncmp(Char(prefix) + prefix_length - 2, "v.", 2) == 0) ? prefix_length - 2 : prefix_length;
-    String *real_prefix = NewStringWithSize(cp, prefix_length_without_variadic);
-    if (Strstr(type, real_prefix) == Char(type) && strcmp(Char(type) + type_length - suffix_length, suffix) == 0) {
-      /* Standard extraction when pattern matches */
-      parmtype = NewStringWithSize(Char(type) + prefix_length_without_variadic, type_length - suffix_length - prefix_length_without_variadic);
-      if (prefix_length_without_variadic < prefix_length) {
-        /* Variadic: wrap the captured pack as a proper parmlist */
-        SwigType *parmlist = NewStringf("(%s)", parmtype);
-        Delete(parmtype);
-        parmtype = parmlist;
+    if (index == 0) {
+      if (new_parms) {
+        set_nextSibling(last_new_parm, nextSibling(parm));
+        *templateparms_p = new_parms;
+      } else {
+        *templateparms_p = nextSibling(parm);
       }
     } else {
-      /* Pattern doesn't match - fallback to using the full type */
-      parmtype = Copy(type);
+      Parm *prev = ParmList_nth_parm(templateparms, index - 1);
+      assert(prev);
+      if (new_parms) {
+        set_nextSibling(last_new_parm, nextSibling(parm));
+        set_nextSibling(prev, new_parms);
+      } else {
+        set_nextSibling(prev, nextSibling(parm));
+      }
     }
-    Delete(prefix);
-    Delete(real_prefix);
+    Delete(types);
   } else {
-    parmtype = Copy(type);
+    Setattr(parm, "type", bound_type);
   }
-  Printf(stdout, "partial_arg type:%s partialtype:%s ret:%s\n", type, partialtype, parmtype);
-  return NewParmWithoutFileLineInfo(parmtype, parmname);
+}
+
+/* -----------------------------------------------------------------------------
+ * bind_partial_leaf()
+ *
+ * Bind a leaf substitution: partialtype contains exactly one $N, optionally
+ * decorated with prefix elements (eg "p.$1", "r.q(const).$1") and/or a leading
+ * "v." marker for a variadic capture. The bound concrete type is extracted
+ * from `concrete` by matching the prefix and suffix around $N; for a variadic
+ * capture, the extracted text is wrapped as a parenthesised parmlist before
+ * being installed via splice_partial_slot.
+ * ----------------------------------------------------------------------------- */
+
+static void bind_partial_leaf(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  const char *cp = Char(partialtype);
+  const char *c = strchr(cp, '$');
+  assert(c);
+
+  int prefix_length = (int)(c - cp);
+  int type_length = Len(concrete);
+  const char *suffix = c + 1;
+  while (isdigit((int)*suffix))
+    suffix++;
+  int suffix_length = (int)strlen(suffix);
+  int index = atoi(c + 1) - 1;
+  assert(index >= 0);
+
+  /* Skip a trailing 2-character variadic marker "v." in the prefix - it is not present in the concrete type. */
+  int is_variadic_capture = (prefix_length >= 2 && Strncmp(cp + prefix_length - 2, "v.", 2) == 0);
+  int real_prefix_length = is_variadic_capture ? prefix_length - 2 : prefix_length;
+  String *real_prefix = NewStringWithSize(cp, real_prefix_length);
+  SwigType *bound;
+  if (Strstr(concrete, real_prefix) == Char(concrete) && strcmp(Char(concrete) + type_length - suffix_length, suffix) == 0) {
+    bound = NewStringWithSize(Char(concrete) + real_prefix_length, type_length - suffix_length - real_prefix_length);
+    if (is_variadic_capture) {
+      /* Wrap the captured pack as a proper parmlist for splice_partial_slot. */
+      SwigType *parmlist = NewStringf("(%s)", bound);
+      Delete(bound);
+      bound = parmlist;
+    }
+  } else {
+    /* Pattern doesn't match - fallback to using the full type. */
+    bound = Copy(concrete);
+  }
+  Delete(real_prefix);
+
+  splice_partial_slot(index, bound, templateparms_p, templateparmsraw);
+  Delete(bound);
+}
+
+/* -----------------------------------------------------------------------------
+ * resolve_partial_args()
+ *
+ * Walk partialtype against concrete, pairing each $N substitution with the
+ * corresponding sub-component of concrete and binding it into *templateparms_p.
+ *
+ * partialtype: type from a partial specialization where template-parameter
+ *   names have been replaced by $N variables, eg "Pack<($1,v.$2)>".
+ * concrete:    matching instantiated type, eg "Pack<(int,double)>".
+ * templateparmsraw: unmodified partial-spec parm list, used only to decide
+ *   whether each $N slot is variadic.
+ *
+ * If partialtype has at most one $ substitution, it is bound as a leaf via
+ * prefix/suffix extraction (handles decorated leaves like p.$1, r.q(const).$1).
+ *
+ * If partialtype has multiple $ substitutions, it must be a template wrapper:
+ * the inner partial parmlist (from SwigType_templateargslist) is paired
+ * pairwise with the inner concrete parmlist and resolved recursively. A
+ * trailing variadic v.$N in the inner partial list absorbs any remaining
+ * concrete inner items as a parenthesised parmlist.
+ * ----------------------------------------------------------------------------- */
+
+static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  int dollars = 0;
+  const char *s;
+  for (s = Char(partialtype); *s; s++) {
+    if (*s == '$')
+      dollars++;
+  }
+  if (dollars == 0)
+    return;
+  if (dollars == 1) {
+    bind_partial_leaf(concrete, partialtype, templateparms_p, templateparmsraw);
+    return;
+  }
+
+  /* Multiple substitutions: structurally decompose the template wrapper. */
+  List *pp_inner = SwigType_templateargslist(partialtype);
+  List *c_inner = SwigType_templateargslist(concrete);
+  if (pp_inner && c_inner) {
+    int n_pp = Len(pp_inner);
+    int n_c = Len(c_inner);
+    int i;
+    for (i = 0; i < n_pp; i++) {
+      SwigType *pp = (SwigType *)Getitem(pp_inner, i);
+      if (i == n_pp - 1 && SwigType_isvariadic(pp)) {
+        /* Trailing variadic captures all remaining concrete items as a parmlist. */
+        String *parmlist = NewString("(");
+        int j;
+        for (j = i; j < n_c; j++) {
+          if (j > i)
+            Append(parmlist, ",");
+          Append(parmlist, (SwigType *)Getitem(c_inner, j));
+        }
+        Append(parmlist, ")");
+        const char *pps = Char(pp);
+        assert(strncmp(pps, "v.$", 3) == 0);
+        int index = atoi(pps + 3) - 1;
+        splice_partial_slot(index, parmlist, templateparms_p, templateparmsraw);
+        Delete(parmlist);
+      } else if (i < n_c) {
+        SwigType *c = (SwigType *)Getitem(c_inner, i);
+        resolve_partial_args(c, pp, templateparms_p, templateparmsraw);
+      }
+    }
+  }
+  Delete(pp_inner);
+  Delete(c_inner);
 }
 
 /* -----------------------------------------------------------------------------
@@ -497,7 +610,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
   if (Getattr(n, "partialargs")) {
     /* Partial specialization */
-    Setattr(n, "templateparmsraw", CopyParmList(Getattr(n, "templateparms")));
+    ParmList *templateparmsraw = CopyParmList(Getattr(n, "templateparms"));
+    Setattr(n, "templateparmsraw", templateparmsraw);
     templateparms = CopyParmList(Getattr(n, "templateparms"));
     Parm *p, *tp;
     ParmList *ptargs = SwigType_function_parms(Getattr(n, "partialargs"), n);
@@ -505,72 +619,11 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     tp = tparms;
     /* Adjust templateparms so that the type is expanded, eg typename => int */
     while (p) {
-      SwigType *ptype;
-      SwigType *tptype = 0;
-      SwigType *partial_type;
-      ptype = Getattr(p, "type");
-      if (tp)
-        tptype = Getattr(tp, "type");
+      SwigType *ptype = Getattr(p, "type");
+      SwigType *tptype = tp ? Getattr(tp, "type") : 0;
       if (ptype && (tptype || SwigType_isvariadic(ptype))) {
-        SwigType *ty;
-        if (tptype) {
-          ty = Swig_symbol_typedef_reduce(tptype, tscope);
-        } else {
-          ty = NewStringEmpty();
-        }
-        Parm *partial_parm = partial_arg(ty, ptype);
-        String *partial_name = Getattr(partial_parm, "name");
-        partial_type = Copy(Getattr(partial_parm, "type"));
-        /*      Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
-        if (partial_name && strchr(Char(partial_name), '$') == Char(partial_name)) {
-          int index = atoi(Char(partial_name) + 1) - 1;
-          Parm *parm;
-          assert(index >= 0);
-          parm = ParmList_nth_parm(templateparms, index);
-          assert(parm);
-          if (parm) {
-            Parm *raw_parm = ParmList_nth_parm(Getattr(n, "templateparmsraw"), index);
-            int parm_is_variadic = raw_parm && SwigType_isvariadic(Getattr(raw_parm, "type"));
-            if (parm_is_variadic) {
-              List *types = SwigType_parmlist(partial_type);
-              ParmList *new_parms = 0;
-              Parm *last_new_parm = 0;
-              int i, nargs = Len(types);
-              for (i = 0; i < nargs; i++) {
-                SwigType *argtype = Copy((SwigType *)Getitem(types, i));
-                Parm *new_parm = NewParmWithoutFileLineInfo(argtype, 0);
-                if (!new_parms) {
-                  new_parms = new_parm;
-                } else {
-                  set_nextSibling(last_new_parm, new_parm);
-                }
-                last_new_parm = new_parm;
-              }
-              if (index == 0) {
-                if (new_parms) {
-                  set_nextSibling(last_new_parm, nextSibling(parm));
-                  templateparms = new_parms;
-                } else {
-                  templateparms = nextSibling(parm);
-                }
-              } else {
-                Parm *prev = ParmList_nth_parm(templateparms, index - 1);
-                assert(prev);
-                if (new_parms) {
-                  set_nextSibling(last_new_parm, nextSibling(parm));
-                  set_nextSibling(prev, new_parms);
-                } else {
-                  set_nextSibling(prev, nextSibling(parm));
-                }
-              }
-              Delete(types);
-            } else {
-              Setattr(parm, "type", partial_type);
-            }
-          }
-        }
-        Delete(partial_parm);
-        Delete(partial_type);
+        SwigType *ty = tptype ? Swig_symbol_typedef_reduce(tptype, tscope) : NewStringEmpty();
+        resolve_partial_args(ty, ptype, &templateparms, templateparmsraw);
         Delete(ty);
       }
       p = nextSibling(p);
