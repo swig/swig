@@ -18,12 +18,6 @@ std::function<bool(int, const std::string &)> pass_checker(int pass) {
 }
 %}
 
-// function is a reserved word in many languages
-// These languages attempt to rename any symbol called function, which overrides the %template name
-#if defined(SWIGD) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGR)
-%rename(cpp_lambda) std::function<bool(int, const std::string &)>;
-#endif
-
 %template(cpp_lambda) std::function<bool(int, const std::string &)>;
 
 
