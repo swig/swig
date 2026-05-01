@@ -64,6 +64,7 @@ The shared test makefile is `Examples/test-suite/common.mk` (included by each pe
 Related skills under `.github/skills/`:
 - `swig-test/SKILL.md` — running the test-suite for a target language and individual testcases
 - `swig-debug/SKILL.md` — debugging the SWIG compiler itself: `-debug-*` flags, parse-tree dumps, gdb, valgrind, and memory-pool diagnostics
+- `swig-doc/SKILL.md` — authoring and editing the user manual under `Doc/Manual/`: chapter conventions, manual heading anchors, content `<div>` classes, and the `make maketoc check` cycle
 
 ## Architecture
 
@@ -138,3 +139,7 @@ User-visible changes (bug fixes, new features, behavior changes, deprecations) g
 - `Doc/Manual/Extending.html` — guide to extending SWIG, adding a new target language, and the test-suite
 
 Useful background for contributors: C API design, the C++ type system, and SWIG's typemap mechanism. Adding a new target language follows the recipe in `Doc/Manual/Extending.html`.
+
+### Authoring the user manual
+
+For editing chapters under `Doc/Manual/` — chapter conventions, manual heading anchors (always use `<filebase>_topic`-style anchors, never the auto-generated `_nnN`), the `code` / `targetlang` / `shell` / `diagram` `<div>` classes, link/anchor rules, and the `make maketoc check` cycle that renumbers headings and validates HTML — see `.github/skills/swig-doc/SKILL.md`.
