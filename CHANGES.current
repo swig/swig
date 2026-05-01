@@ -7,6 +7,33 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-02: mmomtchev, wsfulton
+            #341 #3297 #3298 Add support for wrapping std::function via the SWIG library file
+            std_function.i.  The partial specialization
+            std::function<RET(ARGS...)> is wrapped so that a C++ callable
+            (free function, lambda, bound member function or functor) can be
+            returned from C++ to the target language and invoked there.
+
+              %include <std_function.i>
+
+              %inline %{
+              std::function<bool(int, const std::string &)> MakeFunctor(int pass) {
+                return [pass](int passcode, const std::string &name) -> bool {
+                  return passcode == pass && name == "magic";
+                };
+              }
+              %}
+
+              %template(MyFunctor) std::function<bool(int, const std::string &)>;
+
+            One %template instantiation is required per RET(ARGS...) signature.
+            std_function.i renames operator() to call so that target languages
+            which cannot wrap operator() as an identifier still get a usable
+            method name, and ignores the default constructor so std::function
+            instances always originate on the C++ side.  See the new section
+            "std::function" in the SWIG library chapter of the documentation
+            for the full pattern, limitations and target-language notes.
+
 2026-05-01: wsfulton
             Fix partial template specialization where the specialized argument
             is a function type, including function types carrying a parameter

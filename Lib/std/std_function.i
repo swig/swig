@@ -3,16 +3,28 @@
  *
  * Generic std::function wrappers.
  *
- * To create a wrapped caller, instantiate SWIG_call_std_function.
- * For example for
- *   int(double, double):
- * %template(my_wrapped_caller) SWIG_call_std_function<int, double, double>;
- * This will produce a wrapper that expects three arguments:
- *   a wrapped function object and two doubles,
- *   and returns an integer.
+ * To use std::function
+ *  1. Provide a factory function that will return the C++ callable std::function
+ *     required.
+ *  2. Instantiate the std::function template with a suitable parameter pack.
+ *
+ * Example:
+ *   std::function<bool(int, const std::string &)> MakeLambda(int pass) {
+ *     return [pass](int passcode, const std::string &name) -> bool {
+ *       return passcode == pass && name == "magic";
+ *     };
+ *   }
+ *   %template(MyLambda) std::function<bool(int, const std::string &)>;
+ *
+ * Instantiate it and call the operator() wrapper (renamed to call), for example
+ * from Java:
+ *
+ *   MyLambda fn = MakeLambda(10);
+ *   boolean result = fn.call(10, "magic");
  * ----------------------------------------------------------------------------- */
 
 %rename(call) std::function::operator();
+%ignore std::function::function();
 
 namespace std {
   template <typename> class function;
@@ -24,10 +36,3 @@ namespace std {
     RET operator()(ARGS...) const;
   };
 }
-
-%inline %{
-template <typename RET, typename... ARGS>
-RET SWIG_call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args) {
-  return fn(args...);
-}
-%}

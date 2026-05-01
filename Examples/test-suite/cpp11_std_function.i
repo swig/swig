@@ -10,32 +10,29 @@
 %include <std_function.i>
 %include <exception.i>
 
-%exception {
-    try {
-        $action
-    } catch (const std::exception& e) {
-      SWIG_exception(SWIG_RuntimeError, e.what());
-    }
-}
-
-// function is a reserved word in many languages
-// These languages attempt to rename any symbol called function, which overrides the %template name
-#if defined(SWIGD) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGR)
-//%warnfilter(SWIGWARN_PARSE_KEYWORD) std::function<std::string(int, const std::string &)>;
-// %rename(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
-%rename(cpp_function_string_int_const_string) function;
-#endif
-
 %inline %{
-std::function<std::string(int, const std::string &)> return_function(int ask_for_pass) {
-  return [ask_for_pass](int passcode, const std::string &name) -> std::string {
-    if (passcode == ask_for_pass) {
-      return name + " passed the test";
-    }
-    throw std::runtime_error{"Test failed"};
+std::function<bool(int, const std::string &)> pass_checker(int pass) {
+  return [pass](int passcode, const std::string &name) -> bool {
+    return passcode == pass && name == "Petka";
   };
 }
 %}
 
-%template(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
-%template(call_function) SWIG_call_std_function<std::string, int, const std::string &>;
+// function is a reserved word in many languages
+// These languages attempt to rename any symbol called function, which overrides the %template name
+#if defined(SWIGD) || defined(SWIGJAVASCRIPT) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGR)
+%rename(cpp_lambda) std::function<bool(int, const std::string &)>;
+#endif
+
+%template(cpp_lambda) std::function<bool(int, const std::string &)>;
+
+
+// Expose a wrapper function to call the functor
+%inline %{
+template <typename RET, typename... ARGS>
+RET call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args) {
+  return fn(args...);
+}
+%}
+
+%template(call_function) call_std_function<bool, int, const std::string &>;

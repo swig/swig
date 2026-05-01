@@ -12,12 +12,27 @@ public class cpp11_std_function_runme {
   }
 
   public static void main(String argv[]) {
-    cpp_function_string_int_const_string fn = (cpp11_std_function.return_function(420));
+    cpp_lambda fn = cpp11_std_function.pass_checker(420);
 
-    String r = cpp11_std_function.call_function(fn, 420, "Petka");
-    if (!r.equals("Petka passed the test"))
-      throw new RuntimeException("failed function call");
+    // invoke functor via call method
+    boolean result = fn.call(420, "Petka");
+    if (!result)
+      throw new RuntimeException("Petka 420 should be true");
 
+    result = fn.call(419, "Chapai");
+    if (result)
+      throw new RuntimeException("Chapai 419 should be false");
+
+    // call wrapper
+    result = cpp11_std_function.call_function(fn, 420, "Petka");
+    if (!result)
+      throw new RuntimeException("Petka 420 should be true");
+
+    result = cpp11_std_function.call_function(fn, 419, "Chapai");
+    if (result)
+      throw new RuntimeException("Chapai 419 should be false");
+
+    // NULL handling
     boolean passed = false;
     try {
       cpp11_std_function.call_function(null, 420, "Petka");
@@ -26,15 +41,5 @@ public class cpp11_std_function_runme {
     }
     if (!passed)
       throw new RuntimeException("call_function accepted invalid argument");
-
-
-    passed = false;
-    try {
-      cpp11_std_function.call_function(fn, 419, "Chapai");
-    } catch (RuntimeException e) {
-      passed = true;
-    }
-    if (!passed)
-      throw new RuntimeException("call_function did not throw");
   }
 }
