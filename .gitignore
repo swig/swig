@@ -219,9 +219,7 @@ Examples/python/import_packages/module_is_init/pkg1/__init__.py
 Examples/python/import_packages/namespace_pkg/path4.zip
 
 # R
-Examples/test-suite/r/*.R
-Examples/test-suite/r/*.Rout
-!Examples/test-suite/r/*runme.R
+Examples/test-suite/r/*/
 Examples/r/*/example.R
 Examples/r/*/*.Rout
 Examples/r/*/.RData
