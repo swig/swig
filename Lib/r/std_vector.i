@@ -203,7 +203,7 @@
          PROTECT(result = Rf_allocVector(STRSXP, val->size()));
          for (unsigned pos = 0; pos < val->size(); pos++)
            {
-             CHARACTER_POINTER(result)[pos] = Rf_mkChar(((*val)[pos]).c_str());
+             SET_STRING_ELT(result, pos, Rf_mkChar(((*val)[pos]).c_str()));
            }
         UNPROTECT(1);
         return(result);
@@ -669,7 +669,7 @@
             // Fill the R vector
             for (unsigned vpos = 0; vpos < val->at(pos).size(); ++vpos)
               {
-                CHARACTER_POINTER(VECTOR_ELT(result, pos))[vpos] = Rf_mkChar(val->at(pos).at(vpos).c_str());
+                SET_STRING_ELT(VECTOR_ELT(result, pos), vpos, Rf_mkChar(val->at(pos).at(vpos).c_str()));
               }
           }
         UNPROTECT(1);

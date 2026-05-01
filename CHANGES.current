@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-04-30: blowekamp
+            [R] #3407 Fix compilation with R 4.6.0 which removed the non-API macro
+            SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.
+            Use Rf_asS4, SET_STRING_ELT and STRING_ELT instead. These replacement
+            APIs have been available since R 2.x so no version guards are required.
+
 2026-04-25: wsfulton
             Advanced %rename fixes for templates. It is now possible to use %rename
 	    on instantiated templates for various corner cases, see "Template renaming"
