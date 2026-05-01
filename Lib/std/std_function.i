@@ -12,9 +12,10 @@
  *   and returns an integer.
  * ----------------------------------------------------------------------------- */
 
+%rename(call) std::function::operator();
+
 namespace std {
-  template <typename> class function {};
-  /* TODO: Fix bug where the primary template above is instantiated instead of the specialized template below - the operator() is thus not wrapped */
+  template <typename> class function;
   template <typename RET, typename... ARGS> class function<RET(ARGS...)> {
   public:
     using result_type = RET;

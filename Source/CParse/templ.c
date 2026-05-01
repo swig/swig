@@ -474,7 +474,27 @@ static void splice_partial_slot(int index, SwigType *bound_type, ParmList **temp
  * "v." marker for a variadic capture. The bound concrete type is extracted
  * from `concrete` by matching the prefix and suffix around $N; for a variadic
  * capture, the extracted text is wrapped as a parenthesised parmlist before
- * being installed via splice_partial_slot.
+ * being installed via splice_partial_slot. templateparmsraw is the unmodified
+ * partial-spec parm list, used to identify which $N slots are variadic.
+ *
+ * Example (decorated leaf):
+ *   template <typename T> struct Foo<T *const&> {};   // partial = r.q(const).p.$1
+ *   %template(FooIPCR) Foo<int *const&>;              // concrete = r.q(const).p.int
+ * partialtype       = r.q(const).p.$1
+ * concrete          = r.q(const).p.int
+ * templateparmsraw  = (typename T)                    /-- $1 is non-variadic --/
+ *   prefix "r.q(const).p." and empty suffix strip to leave "int"
+ *   $1 matches to int
+ *
+ * Example (variadic capture):
+ *   template <typename...> struct Pack {};
+ *   template <typename... R> struct Foo<Pack<R...>> {};   // inner partial = Pack<(v.$1)>
+ *   %template(FooPackID) Foo<Pack<int, double>>;          // inner concrete = Pack<(int,double)>
+ * partialtype       = Pack<(v.$1)>
+ * concrete          = Pack<(int,double)>
+ * templateparmsraw  = (typename... R)                     /-- $1 is variadic --/
+ *   prefix "Pack<(" (with the trailing "v." stripped) and suffix ")>" enclose "int,double"
+ *   v.$1 captures the pack and matches to (int,double)
  * ----------------------------------------------------------------------------- */
 
 static void bind_partial_leaf(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw) {
@@ -514,6 +534,56 @@ static void bind_partial_leaf(SwigType *concrete, SwigType *partialtype, ParmLis
   Delete(bound);
 }
 
+/* Forward declaration for recursion. */
+static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw);
+
+/* -----------------------------------------------------------------------------
+ * resolve_partial_arglists()
+ *
+ * Pair pp_inner (partial-spec arg list, may contain $N) against c_inner
+ * (concrete arg list) elementwise and bind each $N. A trailing variadic v.$N
+ * in pp_inner absorbs all remaining concrete items as a parenthesised
+ * parmlist for splice_partial_slot. templateparmsraw is the unmodified
+ * partial-spec parm list, used to identify which $N slots are variadic.
+ *
+ * Example:
+ *   template <typename A, typename... ARGS> struct Foo<Pack<A, ARGS...>> {};
+ *   %template(FooID) Foo<Pack<int, double, float>>;
+ * pp_inner          = ($1,v.$2)
+ * c_inner           = (int,double,float)
+ * templateparmsraw  = (typename A, typename... ARGS)  /-- $2 is variadic --/
+ *   $1   matches to int
+ *   v.$2 matches to the remaining args as (double,float)
+ * ----------------------------------------------------------------------------- */
+
+static void resolve_partial_arglists(List *c_inner, List *pp_inner, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  int n_pp = Len(pp_inner);
+  int n_c = Len(c_inner);
+  int i;
+  for (i = 0; i < n_pp; i++) {
+    SwigType *pp = (SwigType *)Getitem(pp_inner, i);
+    if (i == n_pp - 1 && SwigType_isvariadic(pp)) {
+      /* Trailing variadic captures all remaining concrete items as a parmlist. */
+      String *parmlist = NewString("(");
+      int j;
+      for (j = i; j < n_c; j++) {
+        if (j > i)
+          Append(parmlist, ",");
+        Append(parmlist, (SwigType *)Getitem(c_inner, j));
+      }
+      Append(parmlist, ")");
+      const char *pps = Char(pp);
+      assert(strncmp(pps, "v.$", 3) == 0);
+      int index = atoi(pps + 3) - 1;
+      splice_partial_slot(index, parmlist, templateparms_p, templateparmsraw);
+      Delete(parmlist);
+    } else if (i < n_c) {
+      SwigType *c = (SwigType *)Getitem(c_inner, i);
+      resolve_partial_args(c, pp, templateparms_p, templateparmsraw);
+    }
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * resolve_partial_args()
  *
@@ -529,11 +599,13 @@ static void bind_partial_leaf(SwigType *concrete, SwigType *partialtype, ParmLis
  * If partialtype has at most one $ substitution, it is bound as a leaf via
  * prefix/suffix extraction (handles decorated leaves like p.$1, r.q(const).$1).
  *
- * If partialtype has multiple $ substitutions, it must be a template wrapper:
- * the inner partial parmlist (from SwigType_templateargslist) is paired
- * pairwise with the inner concrete parmlist and resolved recursively. A
- * trailing variadic v.$N in the inner partial list absorbs any remaining
- * concrete inner items as a parenthesised parmlist.
+ * If partialtype has multiple $ substitutions, it is structurally decomposed:
+ *   - template wrapper Foo<(...)> via SwigType_templateargslist,
+ *   - function type f(args).result via SwigType_pop_function (return type
+ *     resolved separately, args resolved as a parmlist).
+ * The inner partial list is paired pairwise with the inner concrete list and
+ * resolved recursively. A trailing variadic v.$N in the inner partial list
+ * absorbs any remaining concrete inner items as a parenthesised parmlist.
  * ----------------------------------------------------------------------------- */
 
 static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw) {
@@ -550,36 +622,33 @@ static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, Parm
     return;
   }
 
+  /* Multiple substitutions: function type f(args).result */
+  if (SwigType_isfunction(partialtype) && SwigType_isfunction(concrete)) {
+    SwigType *pp_copy = Copy(partialtype);
+    SwigType *c_copy = Copy(concrete);
+    SwigType *pp_fpart = SwigType_pop_function(pp_copy); /* leaves return type in pp_copy */
+    SwigType *c_fpart = SwigType_pop_function(c_copy);
+    /* Resolve return type (pp_copy may itself contain $N substitutions). */
+    resolve_partial_args(c_copy, pp_copy, templateparms_p, templateparmsraw);
+    /* Resolve function args. */
+    List *pp_args = SwigType_parmlist(pp_fpart);
+    List *c_args = SwigType_parmlist(c_fpart);
+    if (pp_args && c_args)
+      resolve_partial_arglists(c_args, pp_args, templateparms_p, templateparmsraw);
+    Delete(pp_args);
+    Delete(c_args);
+    Delete(pp_fpart);
+    Delete(c_fpart);
+    Delete(pp_copy);
+    Delete(c_copy);
+    return;
+  }
+
   /* Multiple substitutions: structurally decompose the template wrapper. */
   List *pp_inner = SwigType_templateargslist(partialtype);
   List *c_inner = SwigType_templateargslist(concrete);
-  if (pp_inner && c_inner) {
-    int n_pp = Len(pp_inner);
-    int n_c = Len(c_inner);
-    int i;
-    for (i = 0; i < n_pp; i++) {
-      SwigType *pp = (SwigType *)Getitem(pp_inner, i);
-      if (i == n_pp - 1 && SwigType_isvariadic(pp)) {
-        /* Trailing variadic captures all remaining concrete items as a parmlist. */
-        String *parmlist = NewString("(");
-        int j;
-        for (j = i; j < n_c; j++) {
-          if (j > i)
-            Append(parmlist, ",");
-          Append(parmlist, (SwigType *)Getitem(c_inner, j));
-        }
-        Append(parmlist, ")");
-        const char *pps = Char(pp);
-        assert(strncmp(pps, "v.$", 3) == 0);
-        int index = atoi(pps + 3) - 1;
-        splice_partial_slot(index, parmlist, templateparms_p, templateparmsraw);
-        Delete(parmlist);
-      } else if (i < n_c) {
-        SwigType *c = (SwigType *)Getitem(c_inner, i);
-        resolve_partial_args(c, pp, templateparms_p, templateparmsraw);
-      }
-    }
-  }
+  if (pp_inner && c_inner)
+    resolve_partial_arglists(c_inner, pp_inner, templateparms_p, templateparmsraw);
   Delete(pp_inner);
   Delete(c_inner);
 }
@@ -787,6 +856,9 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 
 typedef enum { ExactNoMatch = -2, PartiallySpecializedNoMatch = -1, PartiallySpecializedMatch = 1, ExactMatch = 2 } EMatch;
 
+/* Forward declaration so the parmlist matcher and does_parm_match can call each other. */
+static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symtab *tscope, int *specialization_priority);
+
 /* -----------------------------------------------------------------------------
  * is_exact_partial_type()
  *
@@ -806,6 +878,99 @@ static int is_exact_partial_type(const SwigType *type) {
     is_exact = (*suffix == 0);
   }
   return is_exact;
+}
+
+/* -----------------------------------------------------------------------------
+ * match_partial_parmlists()
+ *
+ * Pair `parms` (concrete arg list) against `pp_parms` (partial-spec arg list,
+ * may contain $N) elementwise. A trailing variadic v.$N in pp_parms absorbs
+ * any trailing concrete entries.
+ *
+ * Returns 1 on full match with the summed sub-priorities written to *priority,
+ * 0 on no match (priority left untouched).
+ *
+ * Example:
+ *   template <typename A, typename... ARGS> struct Foo<Pack<A, ARGS...>> {};
+ *   %template(FooID) Foo<Pack<int, double, float>>;
+ * pp_parms = ($1,v.$2)
+ * parms    = (int,double,float)
+ *   $1   matches int     (one sub_priority)
+ *   v.$2 matches double  (one sub_priority)
+ *   v.$2 matches float   (one sub_priority)
+ *   -> returns 1, *priority = sum of sub-priorities
+ * ----------------------------------------------------------------------------- */
+
+static int match_partial_parmlists(List *parms, List *pp_parms, Symtab *tscope, int *priority) {
+  int parms_len = Len(parms);
+  int pp_parms_len = Len(pp_parms);
+  int has_variadic = 0;
+  int sum = 0;
+  int i;
+
+  if (parms_len == 0 && pp_parms_len == 0) {
+    *priority = 0;
+    return 1;
+  }
+  if (pp_parms_len > 0) {
+    SwigType *last_pp = (SwigType *)Getitem(pp_parms, pp_parms_len - 1);
+    if (last_pp && SwigType_isvariadic(last_pp))
+      has_variadic = 1;
+  }
+
+  if (has_variadic) {
+    int required_parms = pp_parms_len - 1;
+    SwigType *variadic_type;
+    if (parms_len < required_parms)
+      return 0;
+    for (i = 0; i < required_parms; i++) {
+      SwigType *p = (SwigType *)Getitem(parms, i);
+      SwigType *pp = (SwigType *)Getitem(pp_parms, i);
+      int sub_priority;
+      EMatch m;
+      if (!p || !pp)
+        return 0;
+      m = does_parm_match(p, pp, tscope, &sub_priority);
+      if (m < (int)PartiallySpecializedMatch)
+        return 0;
+      sum += sub_priority;
+    }
+    variadic_type = (SwigType *)Getitem(pp_parms, required_parms);
+    if (template_debug && parms_len > required_parms)
+      Printf(stdout, "        variadic_type='%s'\n", variadic_type);
+    for (i = required_parms; i < parms_len; i++) {
+      SwigType *p = (SwigType *)Getitem(parms, i);
+      int sub_priority;
+      EMatch m;
+      if (!p)
+        return 0;
+      if (template_debug)
+        Printf(stdout, "        matching param[%d]='%s' against variadic='%s'\n", i, p, variadic_type);
+      m = does_parm_match(p, variadic_type, tscope, &sub_priority);
+      if (m < (int)PartiallySpecializedMatch)
+        return 0;
+      sum += sub_priority;
+    }
+    *priority = sum;
+    return 1;
+  }
+
+  if (parms_len != pp_parms_len)
+    return 0;
+  for (i = 0; i < parms_len; i++) {
+    SwigType *p = (SwigType *)Getitem(parms, i);
+    SwigType *pp = (SwigType *)Getitem(pp_parms, i);
+    int sub_priority;
+    EMatch m;
+    if (!p || !pp)
+      return 0;
+    m = does_parm_match(p, pp, tscope, &sub_priority);
+    if (m < (int)PartiallySpecializedMatch)
+      return 0;
+    sum += sub_priority;
+  }
+  *priority = sum;
+  return 1;
 }
 
 /* -----------------------------------------------------------------------------
@@ -871,6 +1036,37 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
       }
       match = PartiallySpecializedMatch;
       *specialization_priority = pp_len;
+    } else if (SwigType_isfunction(partial_parm_type) && SwigType_isfunction(ty)) {
+      /*
+        Function type partial specialization, eg:
+          template <typename T> struct Func {};
+          template <typename R, typename... A> struct Func<R(A...)> {};
+          %template(FII) Func<int(int,int)>;
+        matches type="f(int,int).int" and partial_parm_type="f(v.$2).$1"
+      */
+      SwigType *pp_copy = Copy(partial_parm_type);
+      SwigType *t_copy = Copy(ty);
+      SwigType *pp_fpart = SwigType_pop_function(pp_copy); /* leaves return type in pp_copy */
+      SwigType *t_fpart = SwigType_pop_function(t_copy);
+      List *pp_args = SwigType_parmlist(pp_fpart);
+      List *t_args = SwigType_parmlist(t_fpart);
+      int args_priority = 0;
+      if (template_debug)
+        Printf(stdout, "        function args='%s' pp_args='%s'\n", t_fpart, pp_fpart);
+      if (match_partial_parmlists(t_args, pp_args, tscope, &args_priority)) {
+        int ret_priority;
+        EMatch ret_match = does_parm_match(t_copy, pp_copy, tscope, &ret_priority);
+        if (ret_match >= (int)PartiallySpecializedMatch) {
+          match = PartiallySpecializedMatch;
+          *specialization_priority = args_priority + ret_priority + TEMPLATE_MATCH_PRIORITY;
+        }
+      }
+      Delete(t_args);
+      Delete(pp_args);
+      Delete(t_fpart);
+      Delete(pp_fpart);
+      Delete(t_copy);
+      Delete(pp_copy);
     } else {
       /*
         Check for template types that are templates such as
@@ -902,110 +1098,19 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
             String *pp_templateargs = SwigType_templateargs(pp_qt);
             List *pp_parms = SwigType_parmlist(pp_templateargs);
 
-            int parms_len = Len(parms);
-            int pp_parms_len = Len(pp_parms);
             if (template_debug) {
               Printf(stdout,
                      "        templateargs='%s' pp_templateargs='%s' parms_len=%d pp_parms_len=%d\n",
                      templateargs ? templateargs : "(null)",
                      pp_templateargs ? pp_templateargs : "(null)",
-                     parms_len,
-                     pp_parms_len);
+                     Len(parms),
+                     Len(pp_parms));
             }
 
-            /* Check if the partial specialization has variadic parameters */
-            int has_variadic = 0;
-            if (pp_parms_len > 0) {
-              SwigType *last_pp = (SwigType *)Getitem(pp_parms, pp_parms_len - 1);
-              if (last_pp) {
-                if (template_debug) {
-                  Printf(stdout, "        last_pp_type='%s' isvariadic=%d\n", last_pp, SwigType_isvariadic(last_pp));
-                }
-                if (SwigType_isvariadic(last_pp)) {
-                  has_variadic = 1;
-                }
-              }
-            }
-
-            if (parms_len > 0 || pp_parms_len > 0) {
-              /* Match all parameters, handling variadic packs */
-              int all_parameters_match = 1;
-              int priority = 0;
-
-              if (has_variadic && pp_parms_len > 0) {
-                /* Handle variadic packs: the pattern has at least one variadic parameter
-                   that can match zero or more arguments from the concrete template */
-                int required_parms = pp_parms_len - 1; /* All except the variadic */
-
-                if (parms_len >= required_parms) {
-                  /* Match required parameters first */
-                  for (int i = 0; i < required_parms && all_parameters_match; i++) {
-                    SwigType *p = (SwigType *)Getitem(parms, i);
-                    SwigType *pp = (SwigType *)Getitem(pp_parms, i);
-
-                    if (p && pp) {
-                      int param_priority;
-                      EMatch param_match = does_parm_match(p, pp, tscope, &param_priority);
-                      if (param_match < (int)PartiallySpecializedMatch) {
-                        all_parameters_match = 0;
-                      } else {
-                        priority += param_priority;
-                      }
-                    }
-                  }
-
-                  /* Match remaining concrete parameters against the variadic pack parameter */
-                  if (all_parameters_match && parms_len > required_parms) {
-                    SwigType *variadic_type = (SwigType *)Getitem(pp_parms, required_parms);
-                    if (template_debug) {
-                      Printf(stdout, "        variadic_type='%s'\n", variadic_type);
-                    }
-
-                    for (int i = required_parms; i < parms_len && all_parameters_match; i++) {
-                      SwigType *p = (SwigType *)Getitem(parms, i);
-                      if (p) {
-                        int param_priority;
-                        if (template_debug) {
-                          Printf(stdout, "        matching param[%d]='%s' against variadic='%s'\n", i, p, variadic_type);
-                        }
-                        /* Match concrete parameter against the variadic pattern */
-                        EMatch param_match = does_parm_match(p, variadic_type, tscope, &param_priority);
-                        if (param_match < (int)PartiallySpecializedMatch) {
-                          all_parameters_match = 0;
-                        } else {
-                          priority += param_priority;
-                        }
-                      }
-                    }
-                  }
-
-                  if (all_parameters_match) {
-                    match = PartiallySpecializedMatch;
-                    *specialization_priority = priority + TEMPLATE_MATCH_PRIORITY;
-                  }
-                }
-              } else if (parms_len == pp_parms_len) {
-                /* Non-variadic case: must have equal number of parameters */
-                for (int i = 0; i < parms_len && all_parameters_match; i++) {
-                  Parm *p = (Parm *)Getitem(parms, i);
-                  Parm *pp = (Parm *)Getitem(pp_parms, i);
-
-                  if (p && pp) {
-                    int param_priority;
-                    EMatch param_match = does_parm_match((SwigType *)p, (SwigType *)pp, tscope, &param_priority);
-                    if (param_match < (int)PartiallySpecializedMatch) {
-                      all_parameters_match = 0;
-                    } else {
-                      priority += param_priority;
-                    }
-                  }
-                }
-
-                if (all_parameters_match) {
-                  match = PartiallySpecializedMatch;
-                  *specialization_priority = priority + TEMPLATE_MATCH_PRIORITY;
-                }
-              }
+            int sub_priority = 0;
+            if (match_partial_parmlists(parms, pp_parms, tscope, &sub_priority)) {
+              match = PartiallySpecializedMatch;
+              *specialization_priority = sub_priority + TEMPLATE_MATCH_PRIORITY;
             }
 
             Delete(pp_parms);

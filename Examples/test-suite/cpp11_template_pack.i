@@ -1,5 +1,7 @@
 %module cpp11_template_pack
 
+%rename(call) *::operator();
+
 %inline %{
   template <typename T, typename... U>
   class Object {

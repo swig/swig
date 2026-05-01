@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-01: wsfulton
+            Fix partial template specialization where the specialized argument
+            is a function type, including function types carrying a parameter
+            pack. This makes std::function and similar wrappers work correctly,
+            eg:
+
+              template <typename> class function;
+              template <typename RET, typename... ARGS>
+                class function<RET(ARGS...)> { ... };
+              %template(FuncIntInt)    function<int(int, int)>;
+              %template(FuncVoid)      function<int()>;
+              %template(FuncMixed)     function<int(int, double, int)>;
+
+            Previously the primary template was incorrectly chosen for these
+            instantiations.  The partial specialization is now matched, with
+            the function return type and parameter list (including trailing
+            parameter packs) bound correctly.  Lib/std/std_function.i has been
+            updated to use the standard forward declaration of std::function.
+
 2026-04-26: wsfulton
             Fix partial template specialization where the specialized argument
             is a templated type carrying a parameter pack, eg:
