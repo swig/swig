@@ -275,6 +275,8 @@ jobs:
         - SWIGLANG: python
           CPPSTD: c++11
         - SWIGLANG: r
+          VER: 4.0.0
+        - SWIGLANG: r
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
@@ -319,6 +321,7 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: r
           CPPSTD: c++14
+          VER: 4.5.0
         - SWIGLANG: ruby
           CPPSTD: c++14
         - SWIGLANG: scilab
@@ -386,6 +389,10 @@ jobs:
         - SWIGLANG: python
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
+        - SWIGLANG: r
+          CPPSTD: c++17
+          VER: 4.6.0
           os: ubuntu-24.04
         - SWIGLANG: r
           CPPSTD: c++17

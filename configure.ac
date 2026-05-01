@@ -2292,6 +2292,17 @@ else
 if test "x$RBIN" = xyes; then
    AC_PATH_PROG(RBIN, R)
 fi
+if test -n "$RBIN" && test -x "$RBIN"; then
+   r_min_version=2.4.0
+   AC_MSG_CHECKING([for R version])
+   r_version=`R --version | grep 'R version' | sed 's%^R version %%;s% (.*%%'`
+   AS_VERSION_COMPARE(["$r_version"], ["$r_min_version"],
+                  [AC_MSG_RESULT([older then $r_min_version])
+                   AS_UNSET([RBIN])],        dnl bellow r_min_version
+                  [AC_MSG_RESULT([$r_version])],   dnl equal r_min_version
+                  [AC_MSG_RESULT([$r_version])])   dnl above r_min_version
+fi
+
 fi
 
 AC_SUBST(RBIN)
