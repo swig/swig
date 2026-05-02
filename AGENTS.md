@@ -131,6 +131,20 @@ For debugging the SWIG compiler — gdb setup, the `swigprint`/`locswigprint` he
 
 User-visible changes (bug fixes, new features, behavior changes, deprecations) go in `CHANGES.current` for the in-progress release. On release, those entries are appended to `CHANGES`. `RELEASENOTES` holds higher-level per-release summaries. Entry style: see existing entries for date/issue-number format.
 
+## Disclosing AI assistance in source code contributions
+
+Any contribution produced with significant AI assistance to the SWIG source under the `Source/` or `Lib/` directories should disclose it in the commit message via an `Assisted-by:` trailer naming the tool/model. For example:
+
+```
+Assisted-by: Claude Code (Opus 4.7)
+```
+
+Place the trailer in the standard Git trailer block at the bottom of the commit message, alongside any `Co-Authored-By:` / `Signed-off-by:` lines. "Significant" means AI was used to generate, design, or substantially edit the code in the commit; trivial completions (single-line autocompletes, name suggestions, formatting) do not need disclosure.
+
+Disclosure is optional for other areas of the codebase such as the test-suite (`Examples/test-suite/`) and the documentation (`Doc/`).
+
+AI-assisted commit messages should be clear, concise and to the point - describe the change accurately without padding or marketing language.
+
 ## Developer Documentation
 
 - `Doc/Devel/internals.html` — SWIG internals (DOH, parse tree, type system)
