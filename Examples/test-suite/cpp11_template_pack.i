@@ -51,23 +51,6 @@
   int fnFuncPtr(T (*fn)(U...)) {
     return 3;
   }
-
-  // The special case of std::function
-  // SWIG cannot evaluate C++ metaprogramming which means
-  // that the types of the arguments must be specified manually
-  // (ie, reference and rvalue references)
-  template <typename> class cpp_function {};
-  template <typename RET, typename... ARGS> class cpp_function<RET(ARGS...)> {
-    public:
-    cpp_function() = default;
-    RET operator()(ARGS...) {
-      return RET{};
-    };
-  };
-  template <typename RET, typename... ARGS>
-  RET call_function(cpp_function<RET(ARGS...)> fn, ARGS ...args) {
-    return fn(args...);
-  }
 %}
 
 %{
@@ -81,6 +64,3 @@
 %template(fnObjekt_Objekt_Unique) fnObjekt<Objekt<const std::string &>, Unique<const std::string &>>;
 %template(fnUnique_Objekt_Unique) fnUnique<Objekt<const std::string &>, Unique<const std::string &>>;
 %template(fnFunctPtr_void_Objekt_Unique) fnFuncPtr<void, Objekt<const std::string &>, Unique<const std::string &>>;
-
-%template(CPPFunction) cpp_function<std::string(int, const std::string &)>;
-%template(CallFunction) call_function<std::string, int, const std::string &>;
