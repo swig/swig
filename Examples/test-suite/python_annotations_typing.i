@@ -4,21 +4,9 @@
 %include <std_wstring.i>
 
 // Tests the typing annotations
-%feature("python:annotations", "typing") mymethod;
-%feature("python:annotations", "typing") makeT<short>;
-%feature("python:annotations", "typing") global_ints;
-%feature("python:annotations", "typing") global_overloaded;
-%feature("python:annotations", "typing") argcheck_bool;
-%feature("python:annotations", "typing") argcheck_char;
-%feature("python:annotations", "typing") argcheck_int;
-%feature("python:annotations", "typing") argcheck_float;
-%feature("python:annotations", "typing") argcheck_str;
-%feature("python:annotations", "typing") argcheck_fnptr;
-%feature("python:annotations", "typing") argcheck_array;
-%feature("python:annotations", "typing") use_callable;
-%feature("python:annotations", "typing") return_callable;
-%feature("python:annotations", "typing") optional_square;
-%feature("python:annotations", "typing") docs_do_something_out_type;
+%feature("python:annotations", "typing");
+
+%feature("python:annotations", "0") no_annotations;
 
 %typemap(pytyping) OptionalInt "typing.Optional[int]";
 %typemap(pytyping, out = "$typemap(pytyping, short)") MyType "typing.Union[int, float]";
@@ -29,6 +17,10 @@
 %typemap(out) OptionalInt {
   $result = $1.has_value ? PyLong_FromLong($1.value) : Py_None;
 }
+
+// Test that a changed type for MyEnum will be picked up correctly.
+%typemap(pytyping) MyEnum "bool";
+%rename(MyNamespaced2) MyNamespace::Inner::MyNamespaced1;
 
 %inline %{
 namespace Space {
@@ -113,5 +105,71 @@ OptionalInt optional_square(OptionalInt i) {
 
 struct MyType {};
 MyType docs_do_something_out_type(MyType t) { return MyType(); }
+
+struct MyStruct {
+  void do_something(MyStruct& ref, MyStruct* ptr, const MyStruct& cref) {}
+};
+
+typedef int MyTypedef;
+typedef MyStruct MyStructTypedef;
+void use_typedefs(int i, MyTypedef mt, const MyStructTypedef &cref_mst) {}
+
+void use_memberfn_ptr(void (MyStruct::* ptr)(MyStruct&, MyStruct*, const MyStruct&)) {}
+
+void use_member_ptr(int OptionalInt::*ptr) {}
+
+enum MyEnum {
+  MyEnumMember1,
+  MyEnumMember2,
+  MyEnumMember3,
+};
+typedef MyEnum MyEnumTypedef;
+
+enum MyOtherEnum {
+  MyOtherEnumMember1,
+  MyOtherEnumMember2,
+};
+typedef MyOtherEnum MyOtherEnumTypedef;
+
+void use_enums(MyEnum me, MyEnumTypedef met, MyOtherEnum moe, MyOtherEnumTypedef moet) {}
+
+namespace MyNamespace {
+  struct MyNamespaced1 {
+    int foo;
+  };
+  namespace Inner {
+    struct MyInner {
+      int bar;
+    };
+    struct MyNamespaced1 {
+      int baz;
+    };
+  }
+}
+
+void use_namespaced(MyNamespace::MyNamespaced1 ns1, const MyNamespace::Inner::MyInner &inner1, MyNamespace::Inner::MyNamespaced1 *inner_ns1) {}
+
+void *wrap_ptr(size_t val) { return (void *)val; }
+size_t unwrap_ptr(void *ptr) { return (size_t)ptr; }
+
+short &make_short_ref() {
+  static short v = 1;
+  return v;
+}
+
+const short &make_short_cref() {
+  static short v = 1;
+  return v;
+}
+
+MyStruct &make_struct_ref() {
+  static MyStruct v;
+  return v;
+}
+
+const MyStruct &make_struct_cref() {
+  static MyStruct v;
+  return v;
+}
 
 %}
