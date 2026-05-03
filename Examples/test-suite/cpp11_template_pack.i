@@ -9,7 +9,7 @@
   class Objekt {
     int v;
   public:
-    Objekt(int x): v{x} {};
+    Objekt(int x): v{x} {}
   };
 
   template <typename T, typename... U>
@@ -19,7 +19,7 @@
     Unique() = delete;
     Unique(const Unique &) = delete;
     Unique(Unique &&) = default;
-    Unique(int x): v{x} {};
+    Unique(int x): v{x} {}
   };
 %}
 

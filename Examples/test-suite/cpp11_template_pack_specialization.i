@@ -79,12 +79,20 @@ public:
   RET call_operator(ARGS... args) const {
     return operator() (args...);
   }
+
+  // Sum the args
   RET operator()(ARGS... args) const {
-    if constexpr (sizeof...(args) == 0)
-      return RET();
-    else
-      return (... + args); // Unpacks as (arg1 + (arg2 + arg3...))
+    return sum(args...);
   }
+
+private:
+  // Recursive sum helpers:
+  // - zero args  -> returns RET()
+  // - one arg    -> returns single arg
+  // - many args  -> returns first + sum(rest...)
+  RET sum() const { return RET(); }
+  template <typename A> RET sum(A a) const { return a; }
+  template <typename A, typename B, typename... Rest> RET sum(A a, B b, Rest... rest) const { return a + sum(b, rest...); }
 };
 %}
 
