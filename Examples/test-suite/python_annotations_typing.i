@@ -2,23 +2,12 @@
 
 %include <std_string.i>
 %include <std_wstring.i>
+%include <std_complex.i>
 
 // Tests the typing annotations
-%feature("python:annotations", "typing") mymethod;
-%feature("python:annotations", "typing") makeT<short>;
-%feature("python:annotations", "typing") global_ints;
-%feature("python:annotations", "typing") global_overloaded;
-%feature("python:annotations", "typing") argcheck_bool;
-%feature("python:annotations", "typing") argcheck_char;
-%feature("python:annotations", "typing") argcheck_int;
-%feature("python:annotations", "typing") argcheck_float;
-%feature("python:annotations", "typing") argcheck_str;
-%feature("python:annotations", "typing") argcheck_fnptr;
-%feature("python:annotations", "typing") argcheck_array;
-%feature("python:annotations", "typing") use_callable;
-%feature("python:annotations", "typing") return_callable;
-%feature("python:annotations", "typing") optional_square;
-%feature("python:annotations", "typing") docs_do_something_out_type;
+%feature("python:annotations", "typing");
+
+%feature("python:annotations", "0") no_annotations;
 
 %typemap(pytyping) OptionalInt "typing.Optional[int]";
 %typemap(pytyping, out = "$typemap(pytyping, short)") MyType "typing.Union[int, float]";
@@ -65,11 +54,15 @@ int is_python_fastproxy() { return 0; }
 
 %inline %{
 
-void argcheck_bool(bool a_bool) {}
+void argcheck_bool(
+  bool a_bool,
+  const bool &a_bool_cref
+) {}
 
 void argcheck_char(
   char a_char,
-  wchar_t a_wchar
+  wchar_t a_wchar,
+  const char &a_char_cref
 ) {}
 
 void argcheck_int(
@@ -82,17 +75,29 @@ void argcheck_int(
   long a_long,
   unsigned long a_ulong,
   long long a_llong,
-  unsigned long long a_ullong
+  unsigned long long a_ullong,
+  const short &a_short_cref,
+  const int &a_int_cref
 ) {}
 
 void argcheck_float(
   float a_float,
-  double a_double
+  double a_double,
+  const double &a_double_cref
+) {}
+
+void argcheck_complex(
+  std::complex<float> a_cfloat,
+  std::complex<double> a_cdouble,
+  const std::complex<double> &a_cdouble_cref
 ) {}
 
 void argcheck_str(
   const char* a_cstr,
-  const wchar_t *a_wcstr
+  const wchar_t *a_wcstr,
+  std::string a_stdstr,
+  std::wstring a_stdwstr,
+  const std::string &a_stdstr_cref
 ) {}
 
 void argcheck_fnptr(int(*f)(char, bool)) {}

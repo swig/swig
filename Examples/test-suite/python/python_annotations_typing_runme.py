@@ -52,26 +52,47 @@ if sys.version_info[0:2] >= (3, 2):
             return d
 
         anno = get_annotations(argcheck_bool)
-        if anno != make_argcheck("bool", ["a_bool"]):
+        if anno != make_argcheck("bool", ["a_bool", "a_bool_cref"]):
             raise RuntimeError("annotations mismatch: {}".format(anno))
-        
-        anno = get_annotations( argcheck_char)
-        if anno != make_argcheck("str", ["a_char", "a_wchar"]):
+
+        anno = get_annotations(argcheck_char)
+        if anno != make_argcheck("str", ["a_char", "a_wchar", "a_char_cref"]):
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(argcheck_int)
-        if anno != make_argcheck("int", [
-            "a_schar", "a_uchar", "a_short", "a_ushort","a_int",
-            "a_uint", "a_long", "a_ulong", "a_llong", "a_ullong"
-        ]):
+        if anno != make_argcheck(
+            "int",
+            [
+                "a_schar",
+                "a_uchar",
+                "a_short",
+                "a_ushort",
+                "a_int",
+                "a_uint",
+                "a_long",
+                "a_ulong",
+                "a_llong",
+                "a_ullong",
+                "a_short_cref",
+                "a_int_cref",
+            ],
+        ):
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(argcheck_float)
-        if anno != make_argcheck("float", ["a_float", "a_double"]):
+        if anno != make_argcheck("float", ["a_float", "a_double", "a_double_cref"]):
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(argcheck_complex)
+        if anno != make_argcheck(
+            "complex", ["a_cfloat", "a_cdouble", "a_cdouble_cref"]
+        ):
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(argcheck_str)
-        if anno != make_argcheck("str", ["a_cstr", "a_wcstr"]):
+        if anno != make_argcheck(
+            "str", ["a_cstr", "a_wcstr", "a_stdstr", "a_stdwstr", "a_stdstr_cref"]
+        ):
             raise RuntimeError("annotations mismatch: {}".format(anno))
         
         anno = get_annotations(argcheck_fnptr)
