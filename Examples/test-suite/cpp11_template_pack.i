@@ -6,10 +6,10 @@
 
 %inline %{
   template <typename T, typename... U>
-  class Object {
+  class Objekt {
     int v;
   public:
-    Object(int x): v{x} {};
+    Objekt(int x): v{x} {};
   };
 
   template <typename T, typename... U>
@@ -23,17 +23,21 @@
   };
 %}
 
-//%template(Object_3int) Object<int, int, int>;
+%template(Objekt_3int) Objekt<int, int, int>;
+%template(Unique_3int) Unique<int, int, int>;
+
+%template(Objekt_String) Objekt<const std::string &>;
+%template(Unique_String) Unique<const std::string &>;
 
 %inline %{
 #if 1
   template <typename T, typename... U>
-  int fnObject(Object<T, U...>) {
+  int fnObjekt(Objekt<T, U...>) {
     return 1;
   }
 #else
   template <typename T, typename U, typename V>
-  int fnObject(Object<T, U, V>) {
+  int fnObjekt(Objekt<T, U, V>) {
     return 1;
   }
 #endif
@@ -70,13 +74,13 @@
 #include <string>
 %}
 
-%template(fnObject_3int) fnObject<int, int, int>;
+%template(fnObjekt_3int) fnObjekt<int, int, int>;
 %template(fnUnique_3int) fnUnique<int, int, int>;
 %template(fnFunctPtr_3int) fnFuncPtr<int, int, int>;
 
-%template(fnObject_Object_Unique) fnObject<Object<const std::string &>, Unique<const std::string &>>;
-%template(fnUnique_Object_Unique) fnUnique<Object<const std::string &>, Unique<const std::string &>>;
-%template(fnFunctPtr_void_Object_Unique) fnFuncPtr<void, Object<const std::string &>, Unique<const std::string &>>;
+%template(fnObjekt_Objekt_Unique) fnObjekt<Objekt<const std::string &>, Unique<const std::string &>>;
+%template(fnUnique_Objekt_Unique) fnUnique<Objekt<const std::string &>, Unique<const std::string &>>;
+%template(fnFunctPtr_void_Objekt_Unique) fnFuncPtr<void, Objekt<const std::string &>, Unique<const std::string &>>;
 
 %template(CPPFunction) cpp_function<std::string(int, const std::string &)>;
 %template(CallFunction) call_function<std::string, int, const std::string &>;
