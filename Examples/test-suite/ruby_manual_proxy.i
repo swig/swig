@@ -42,17 +42,28 @@ static void svn_swig_rb_raise_svn_fs_already_close(void) {
 }
 
 static VALUE svn_fs_swig_rb_close(VALUE self) {
-  if (!DATA_PTR(self)) {
+  void *ptr = 0;
+  int res;
+
+  res = SWIG_ConvertPtr(self, &ptr, NULL, 0);
+  if (res != SWIG_OK) SWIG_Error(res, "Can't get C++ pointer");
+  if (!ptr) {
     svn_swig_rb_raise_svn_fs_already_close();
   }
 
-  DATA_PTR(self) = NULL;
+  res = SWIG_ConvertPtr(self, NULL, NULL, SWIG_POINTER_CLEAR);
+  if (res != SWIG_OK) SWIG_Error(res, "Can't release C++ object");
 
   return Qnil;
 }
 
 static VALUE svn_fs_swig_rb_closed(VALUE self) {
-  return DATA_PTR(self) ? Qfalse : Qtrue;
+  void *ptr = 0;
+  int res;
+
+  res = SWIG_ConvertPtr(self, &ptr, NULL, 0);
+  if (res != SWIG_OK) SWIG_Error(res, "Can't get C++ pointer");
+  return ptr ? Qfalse : Qtrue;
 }
 %}
 
