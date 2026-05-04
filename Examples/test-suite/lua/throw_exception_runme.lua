@@ -1,0 +1,21 @@
+local v=require("throw_exception")
+
+function testException(func, except)
+    local ret, msg = pcall(func)
+    assert(not ret)
+    assert(msg == except)
+end
+
+local foo = v.Foo()
+testException(function() foo:test_int() end, 37)
+testException(function() foo:test_msg() end, "Dead")
+testException(function() foo:test_multi(1) end, 37)
+testException(function() foo:test_multi(2) end, "Dead")
+testException(function() foo:test_cls() end, "object exception:CError")
+testException(function() foo:test_cls_ptr() end, "object exception:CError *")
+testException(function() foo:test_cls_ref() end, "object exception:CError *")
+testException(function() foo:test_cls_td() end, "object exception:CError")
+testException(function() foo:test_cls_ptr_td() end, "object exception:CError *")
+testException(function() foo:test_cls_ref_td() end, "object exception:CError *")
+testException(function() foo:test_array() end, "object exception:int *")
+testException(function() foo:test_enum() end, 1)

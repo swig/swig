@@ -1,0 +1,11 @@
+local v=require("cpp17_hex_floating_literals")
+
+assert(v.f1 == 0)
+assert(v.f2 == 0)
+assert(v.f3 == 0)
+assert(v.f4 == 7.5)
+assert(v.f5 == 20)
+assert(v.f6 == 64)
+assert(v.f7 == 11452)
+assert(v.f8 == 149140)
+assert(v.f9 == 18253638)

@@ -1,0 +1,13 @@
+local v=require("template_default_arg_overloaded_extend")
+
+local rs = v.ResultSet()
+assert(rs:go_get_method(0, v.SearchPoint()) == -1)
+assert(rs:go_get_method(0, v.SearchPoint(), 100) == 100)
+assert(rs:go_get_template(0, v.SearchPoint()) == -2)
+assert(rs:go_get_template(0, v.SearchPoint(), 100) == 100)
+assert(rs:over() == "over(int)")
+assert(rs:over(10) == "over(int)")
+assert(rs:over(v.SearchPoint()) == "over(giai2::SearchPoint, int)")
+assert(rs:over(v.SearchPoint(), 10) == "over(giai2::SearchPoint, int)")
+assert(rs:over(true, v.SearchPoint()) == "over(bool, gaia2::SearchPoint, int)")
+assert(rs:over(true, v.SearchPoint(), 10) == "over(bool, gaia2::SearchPoint, int)")

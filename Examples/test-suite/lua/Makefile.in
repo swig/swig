@@ -17,8 +17,16 @@ top_builddir = @top_builddir@
 # sorry, currently very few test cases work/have been written
 
 CPP_TEST_CASES += \
+	director_keywords \
+	director_profile \
 	director_stl \
+	iadd \
+	exception_partial_info \
+	extend_variable \
+	li_factory \
+	li_std_map_member \
 	li_std_set \
+	lua_module_global \
 	lua_no_module_global \
 	lua_inherit_getitem  \
 	lua_lightuserdata  \
@@ -28,8 +36,8 @@ CPP11_TEST_CASES += \
 	cpp11_std_unordered_set \
 
 C_TEST_CASES += \
+	lua_module_global \
 	lua_no_module_global \
-
 
 include $(srcdir)/../common.mk
 
