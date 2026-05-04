@@ -174,9 +174,10 @@ jobs:
           # Ensure we use the newer version of bison
           bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
           echo "$bison_dir" >> $GITHUB_PATH
-          BOOST_INC="$(brew ls boost | grep 'boost/shared_ptr.hpp$' | head -1 | sed 's?/boost/shared_ptr.hpp$??')"
+          BOOST_PATH="$(brew ls boost | grep '/include/boost/shared_ptr.hpp$' |\
+            head -1 | sed 's?/include/boost/shared_ptr.hpp$??')"
           # Boost header include path, for testing
-          echo "BOOST_INC=$BOOST_INC" >> $GITHUB_ENV
+          echo "BOOST_PATH=$BOOST_PATH" >> $GITHUB_ENV
 
           cpu_count=$(sysctl -n hw.ncpu)
           if test $cpu_count -gt 1; then
@@ -259,6 +260,7 @@ jobs:
           set -x
 
           if test -n "$WITHLANG"; then
+            CONFIGOPTS+=(--with-boost="$BOOST_PATH")
             CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
           fi
           CONFIGOPTS+=(CFLAGS="$CFLAGS")
@@ -286,8 +288,6 @@ jobs:
             # Various headers and SWIG generated code prevents full use of -pedantic.
             cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
             cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
-            # Include for the boost headers
-            cxxflags+=" -I$BOOST_INC"
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
