@@ -729,8 +729,15 @@ fi
 case $host in
 *-*-cygwin* | *-*-mingw* | *-*-msys*)
     if test "$GCC" = yes; then
-        CSHARPDYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
-        CSHARPCFLAGS="$GCC_MNO_CYGWIN -mthreads"
+        if $CC -Wl,--version 2>&1 | grep -q "LLD"; then
+            # Clang/LLD: --add-stdcall-alias and -mthreads not supported
+            CSHARPDYNAMICLINKING=""
+            CSHARPCFLAGS=""
+        else
+            # GCC/GNU ld
+            CSHARPDYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
+            CSHARPCFLAGS="$GCC_MNO_CYGWIN -mthreads"
+        fi
     else
         CSHARPDYNAMICLINKING=""
         CSHARPCFLAGS=""
@@ -1179,8 +1186,15 @@ esac
 case $host in
 *-*-cygwin* | *-*-mingw* | *-*-msys*)
     if test "$GCC" = yes; then
-        JAVADYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
-        JAVACFLAGS="$GCC_MNO_CYGWIN -mthreads"
+        if $CC -Wl,--version 2>&1 | grep -q "LLD"; then
+            # Clang/LLD: --add-stdcall-alias and -mthreads not supported
+            JAVADYNAMICLINKING=""
+            JAVACFLAGS=""
+        else
+            # GCC/GNU ld
+            JAVADYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
+            JAVACFLAGS="$GCC_MNO_CYGWIN -mthreads"
+        fi
     else
         JAVADYNAMICLINKING=""
         JAVACFLAGS=""
