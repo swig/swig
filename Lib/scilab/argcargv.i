@@ -42,6 +42,9 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     /* Special case for empty matrix. */
     $1 = 0;
     $2 = ($2_ltype) malloc(sizeof($*2_ltype));
+    if ($2 == NULL) {
+      SWIG_exception_fail(SWIG_MemoryError, "fail allocate empty array");
+    }
     $2[0] = NULL;
   } else {
     /* first call to retrieve dimensions */

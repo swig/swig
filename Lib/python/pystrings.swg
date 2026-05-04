@@ -32,7 +32,13 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     /* The returned string is only duplicated if the char * returned is not owned and memory managed by obj */
     if (bytes && cptr) {
       if (alloc) {
-        cstr = %new_copy_array(cstr, (size_t)(len + 1), char);
+        size_t alen = (size_t)(len + 1);
+        char *p = %new_array(alen, char);
+        if (p == NULL) {
+           return SWIG_MemoryError;
+        }
+        memcpy(p, cstr, alen);
+        cstr = p;
         *alloc = SWIG_NEWOBJ;
       } else {
         /* alloc must be set in order to clean up allocated memory */
@@ -60,8 +66,13 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
         return SWIG_TypeError;
       if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
         if (cptr) {
+          char *p = %new_array(len + 1, char);
+          if (p == NULL) {
+            return SWIG_MemoryError;
+          }
           if (alloc) *alloc = SWIG_NEWOBJ;
-          *cptr = %new_copy_array(cstr, len + 1, char);
+          memcpy(p, cstr, len + 1);
+          *cptr = p;
         }
         if (psize) *psize = (size_t)(len + 1);
 
