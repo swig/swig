@@ -1,12 +1,7 @@
-require("import")	-- the import fn
-import("nspace_extend")	-- import lib
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
-
-ne = nspace_extend
+require("import")
+require("nspace_extend")
+ne=nspace_extend
+catch_undef_globs() -- catch "undefined" global variables
 
 -- Inner1
 

@@ -1,7 +1,5 @@
-require("import")	-- the import fn
-import("li_std_vector")	-- import code
-
-for k,v in pairs(li_std_vector) do _G[k]=v end -- move to global
+require("import")
+import_to_globs("li_std_vector")
 
 iv = IntVector(4)
 for i=0,3 do
@@ -32,7 +30,7 @@ for i=0,9 do dv[i] = i/2.0 end
 
 halve_in_place(dv)
 
-for i=0,9 do 
+for i=0,9 do
 	assert(near(dv[i],i/4))
 end
 

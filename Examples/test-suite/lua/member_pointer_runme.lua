@@ -1,12 +1,8 @@
 --Example using pointers to member functions
-require("import")	-- the import fn
-import("member_pointer")	-- import code
-mp = member_pointer
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("import")
+require("member_pointer")
+mp=member_pointer
+catch_undef_globs() -- catch "undefined" global variables
 
 function check(what, expected, actual)
 	assert(expected == actual,"Failed: "..what.." Expected: "..expected.." Actual: "..actual)
