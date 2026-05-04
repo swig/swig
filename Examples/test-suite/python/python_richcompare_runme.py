@@ -1,5 +1,4 @@
 import python_richcompare
-import sys
 
 def check_unorderable_types(exception):
 #    if str(exception).find("unorderable types") == -1:
@@ -83,9 +82,8 @@ if (a1 == 42) :
 if not (a1 != 42) :
     raise RuntimeError("Comparing class (with overloaded operator ==) to incompatible type, != returned False")
 
-if sys.version_info[0] >= 3:
-    if a1.__eq__(None) is not NotImplemented:
-        raise RuntimeError("Comparing to incompatible type should return NotImplemented")
+if a1.__eq__(None) is not NotImplemented:
+    raise RuntimeError("Comparing to incompatible type should return NotImplemented")
 
 # Check inequalities
 #-------------------------------------------------------------------------
@@ -104,37 +102,27 @@ if not (a2 <= b2):
 
 # Check inequalities to other objects
 #-------------------------------------------------------------------------------
-if sys.version_info[0:2] < (3, 0):
-    if (base1 < 42):
-        raise RuntimeError("Comparing class to incompatible type, < returned True")
-    if (base1 <= 42):
-        raise RuntimeError("Comparing class to incompatible type, <= returned True")
-    if not (base1 > 42):
-        raise RuntimeError("Comparing class to incompatible type, > returned False")
-    if not (base1 >= 42):
-        raise RuntimeError("Comparing class to incompatible type, >= returned False")
-else:
-    # Python 3 throws: TypeError: unorderable types
-    try:
-        res = base1 < 42
-        raise RuntimeError("Failed to throw")
-    except TypeError as e:
-        check_unorderable_types(e)
-    try:
-        res = base1 <= 42
-        raise RuntimeError("Failed to throw")
-    except TypeError as e:
-        check_unorderable_types(e)
-    try:
-        res = base1 > 42
-        raise RuntimeError("Failed to throw")
-    except TypeError as e:
-        check_unorderable_types(e)
-    try:
-        res = base1 >= 42
-        raise RuntimeError("Failed to throw")
-    except TypeError as e:
-        check_unorderable_types(e)
+# Python 3 throws: TypeError: unorderable types
+try:
+    res = base1 < 42
+    raise RuntimeError("Failed to throw")
+except TypeError as e:
+    check_unorderable_types(e)
+try:
+    res = base1 <= 42
+    raise RuntimeError("Failed to throw")
+except TypeError as e:
+    check_unorderable_types(e)
+try:
+    res = base1 > 42
+    raise RuntimeError("Failed to throw")
+except TypeError as e:
+    check_unorderable_types(e)
+try:
+    res = base1 >= 42
+    raise RuntimeError("Failed to throw")
+except TypeError as e:
+    check_unorderable_types(e)
 
 # Check inequalities used for ordering
 #-------------------------------------------------------------------------
@@ -185,30 +173,29 @@ try:
 except ValueError:
     pass
 
-if sys.version_info[0:2] >= (3, 0):
-    try:
-        x = et2 < 99
-        raise RuntimeError("ExceptionThrower (d) failed")
-    except TypeError:
-        pass
+try:
+    x = et2 < 99
+    raise RuntimeError("ExceptionThrower (d) failed")
+except TypeError:
+    pass
 
-    try:
-        x = 99 < et2
-        raise RuntimeError("ExceptionThrower (e) failed")
-    except TypeError:
-        pass
+try:
+    x = 99 < et2
+    raise RuntimeError("ExceptionThrower (e) failed")
+except TypeError:
+    pass
 
-    try:
-        x = et0 < 99
-        raise RuntimeError("ExceptionThrower (f) failed")
-    except TypeError:
-        pass
+try:
+    x = et0 < 99
+    raise RuntimeError("ExceptionThrower (f) failed")
+except TypeError:
+    pass
 
-    try:
-        x = 99 < et0
-        raise RuntimeError("ExceptionThrower (g) failed")
-    except TypeError:
-        pass
+try:
+    x = 99 < et0
+    raise RuntimeError("ExceptionThrower (g) failed")
+except TypeError:
+    pass
 
 
 # Overloaded operators and custom exceptions

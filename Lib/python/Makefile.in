@@ -71,7 +71,7 @@ BUILD         = @LDSHARED@
 
 # Python installation
 
-PY_INCLUDE    = -DHAVE_CONFIG_H @PYINCLUDE@
+PY_INCLUDE    = -DHAVE_CONFIG_H
 
 # Build libraries (needed for static builds)
 
