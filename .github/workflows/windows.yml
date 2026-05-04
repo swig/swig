@@ -25,60 +25,12 @@ permissions:
   contents: read
 
 jobs:
-  # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
-  # The clang-format version used is slightly different for each OS workflow file
-  # This job gates the main build job so must succeed before the main build job is run
-  clang-format:
+  filters:
     runs-on: ubuntu-latest
-    name: clang-format 21
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v6.0.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
-
-  # This action build using MSYS2 environment
-  # We use two compilers C/C++:
-  # - Microsoft Visual Studio compiler.
-  # - MinGW-w64 GCC compiler with MSVCRT or UCRT C standard library.
-  # We use 2 package managers
-  # - NuGet packages are compatible with Visual Studio compiler.
-  # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
-  #
-  # We try to use already installed software on GitHub windows
-  #  and install only missed software.
-  # We use different versions of installed languages by using
-  #  proper envirounment.
-  build:
-    # When continue-on-error is true for an individual build,
-    # that build can fail (it'll show red),
-    # but it won't fail the overall tests
-    continue-on-error: ${{ matrix.continue-on-error || false }}
-
-    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
-    runs-on: ${{ matrix.os || 'windows-2025' }}
-
-    # The name of the test follow the tested language
-    name: >
-      ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
-      ${{ matrix.SWIG_FEATURES }}
-      ${{ matrix.COMPILER || 'msvc' }}
-      ${{ matrix.CPPSTD }}
-      ${{ matrix.CSTD }}
-      ${{ matrix.MSYS2_ENV }}
-      ${{ matrix.os }}
-      ${{ matrix.continue-on-error && '(can fail)' }}
-
-    needs: [clang-format]
-
-    strategy:
-      matrix:
-        include:
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    env:
+      MATRIX_BASE: |
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
@@ -140,6 +92,76 @@ jobs:
           COMPILER: gcc
           CSTD: gnu11
           MSYS2_ENV: ucrt64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+
+    # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
+    # The clang-format version used is slightly different for each OS workflow file
+    # This job gates the main build job so must succeed before the main build job is run
+    - name: Check with clang-format 21
+      uses: RafikFarhad/clang-format-github-action@v6.0.1
+      with:
+        sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+        style: file
+
+    - name: Get changed files
+      uses: tj-actions/changed-files@v47
+      with:
+        json: true
+        write_output_files: true
+
+    - name: Probe files and select tests in matrix
+      id: set_matrix
+      run: |
+        $GITHUB_WORKSPACE/Tools/GHA-dynamic-matrix.py
+
+# Uncomment to print the result
+#   - name: print dynamic matrix result
+#     env:
+#       RESULT: ${{ steps.set_matrix.outputs.matrix }}
+#     run: echo "$RESULT"
+
+  # This action build using MSYS2 environment
+  # We use two compilers C/C++:
+  # - Microsoft Visual Studio compiler.
+  # - MinGW-w64 GCC compiler with MSVCRT or UCRT C standard library.
+  # We use 2 package managers
+  # - NuGet packages are compatible with Visual Studio compiler.
+  # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
+  #
+  # We try to use already installed software on GitHub windows
+  #  and install only missed software.
+  # We use different versions of installed languages by using
+  #  proper envirounment.
+  build:
+    # When continue-on-error is true for an individual build,
+    # that build can fail (it'll show red),
+    # but it won't fail the overall tests
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
+    runs-on: ${{ matrix.os || 'windows-2025' }}
+
+    # The name of the test follow the tested language
+    name: >
+      ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
+      ${{ matrix.SWIG_FEATURES }}
+      ${{ matrix.COMPILER || 'msvc' }}
+      ${{ matrix.CPPSTD }}
+      ${{ matrix.CSTD }}
+      ${{ matrix.MSYS2_ENV }}
+      ${{ matrix.os }}
+      ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: filters
+
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.filters.outputs.matrix) }}
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
