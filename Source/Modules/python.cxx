@@ -1792,6 +1792,7 @@ public:
     addMissingParameterNames(n, plist, arg_num);  // for $1_name substitutions done in Swig_typemap_attach_parms
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
+    Swig_typemap_attach_parms("pytyping", plist, 0);
 
     if (Strcmp(ParmList_protostr(plist), "void") == 0) {
       // No parameters actually
@@ -2535,7 +2536,9 @@ public:
    * ------------------------------------------------------------ */
 
   String *lookupPytyping(Node *n, bool out = false) {
-    String *tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
+    String *tm = Getattr(n, "tmap:pytyping");
+    if (!tm)
+      tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
     if (tm && out) {
       String *outty = Getattr(n, "tmap:pytyping:out");
       if (outty)

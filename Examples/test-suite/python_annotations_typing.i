@@ -4,21 +4,9 @@
 %include <std_wstring.i>
 
 // Tests the typing annotations
-%feature("python:annotations", "typing") mymethod;
-%feature("python:annotations", "typing") makeT<short>;
-%feature("python:annotations", "typing") global_ints;
-%feature("python:annotations", "typing") global_overloaded;
-%feature("python:annotations", "typing") argcheck_bool;
-%feature("python:annotations", "typing") argcheck_char;
-%feature("python:annotations", "typing") argcheck_int;
-%feature("python:annotations", "typing") argcheck_float;
-%feature("python:annotations", "typing") argcheck_str;
-%feature("python:annotations", "typing") argcheck_fnptr;
-%feature("python:annotations", "typing") argcheck_array;
-%feature("python:annotations", "typing") use_callable;
-%feature("python:annotations", "typing") return_callable;
-%feature("python:annotations", "typing") optional_square;
-%feature("python:annotations", "typing") docs_do_something_out_type;
+%feature("python:annotations", "typing");
+
+%feature("python:annotations", "0") no_annotations;
 
 %typemap(pytyping) OptionalInt "typing.Optional[int]";
 %typemap(pytyping, out = "$typemap(pytyping, short)") MyType "typing.Union[int, float]";
@@ -63,7 +51,39 @@ int is_python_fastproxy() { return 0; }
 #endif
 %}
 
+%typemap(in) (int argc, char **argv) {
+  /* Check if is a list */
+  if (PyList_Check($input)) {
+    int i;
+    $1 = PyList_Size($input);
+    $2 = (char **) malloc(($1+1)*sizeof(char *));
+    for (i = 0; i < $1; i++) {
+      PyObject *o = PyList_GetItem($input, i);
+      if (PyString_Check(o)) {
+        $2[i] = PyString_AsString(PyList_GetItem($input, i));
+      } else {
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
+        SWIG_fail;
+      }
+    }
+    $2[i] = 0;
+  } else {
+    PyErr_SetString(PyExc_TypeError, "not a list");
+    SWIG_fail;
+  }
+}
+
+%typemap(freearg) (int argc, char **argv) {
+  free((char *) $2);
+}
+
+%typemap(pytyping) (int argc, char **argv) "typing.List[str]"
+
 %inline %{
+
+void take_argv(int argc, char **argv) {}
+
+void take_argv_surround(double before, int argc, char **argv, short after) {}
 
 void argcheck_bool(bool a_bool) {}
 
