@@ -79,6 +79,7 @@ jobs:
     strategy:
       matrix:
         include:
+        # x64 builds
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
@@ -140,37 +141,46 @@ jobs:
           COMPILER: gcc
           CSTD: gnu11
           MSYS2_ENV: ucrt64
+        # arm64 builds
         - SWIGLANG: csharp
           os: windows-11-arm
+          arch: arm64
         - SWIGLANG: csharp
           os: windows-11-arm
+          arch: arm64
           COMPILER: clang
           MSYS2_ENV: clangarm64
         - SWIGLANG: java
           COMPILER: clang
           VER: 21
           os: windows-11-arm
+          arch: arm64
           MSYS2_ENV: clangarm64
         - SWIGLANG: java
           VER: 21
           os: windows-11-arm
+          arch: arm64
         - SWIGLANG: python
           COMPILER: clang
           VER: '3.14'
           os: windows-11-arm
+          arch: arm64
           MSYS2_ENV: clangarm64
         - SWIGLANG: python
           VER: '3.14'
           os: windows-11-arm
+          arch: arm64
         - SWIGLANG: ruby
           COMPILER: clang
           MSYS2_ENV: clangarm64
           os: windows-11-arm
+          arch: arm64
         - SWIGLANG: go
           COMPILER: clang
           CSTD: gnu11
           MSYS2_ENV: clangarm64
           os: windows-11-arm
+          arch: arm64
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -179,7 +189,7 @@ jobs:
       CXXFLAGS: '-O2'
       CCCL_OPTIONS: '--cccl-muffle /W3 /EHsc'
       PCRE2_CCCL_LD: '-lpcre2-8 --cccl-link /NODEFAULTLIB:MSVCRT'
-      CHECK_OPTIONS: ${{ matrix.os == 'windows-11-arm' && 'CSHARPOPTIONS=-platform:arm64' || 'CSHARPOPTIONS=-platform:x64' }}
+      CHECK_OPTIONS: ${{ (matrix.arch == 'arm64') && 'CSHARPOPTIONS=-platform:arm64' || 'CSHARPOPTIONS=-platform:x64' }}
       SWIGLANG: ${{ matrix.SWIGLANG }}
       VER: ${{ matrix.VER }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
@@ -187,7 +197,7 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       COMPILER: ${{ matrix.COMPILER }}
-      OS: ${{ matrix.os }}
+      ARCH: ${{ matrix.arch || 'x64' }}
       INSTALL: ${{ matrix.INSTALL }}
 
 # cl.exe:
@@ -202,17 +212,17 @@ jobs:
 #  /NODEFAULTLIB:lib   Ignore library 'lib'
 
     steps:
-    # On windows-11-arm, MSYS2 is not pre-installed.
-    # Install it manually via the official installer into C:\msys64,
-    - name: Install MSYS2 (windows-11-arm)
-      if: ${{ matrix.os == 'windows-11-arm' }}
+    # On arm64 runners, MSYS2 is not pre-installed.
+    # Install it manually via the official installer into C:\msys64.
+    - name: Install MSYS2 (arm64)
+      if: ${{ env.ARCH == 'arm64' }}
       shell: powershell
       run: |
           $installer = "$env:TEMP\msys2-arm64.exe"
           Invoke-WebRequest -Uri "https://github.com/msys2/msys2-installer/releases/download/2026-03-22/msys2-arm64-20260322.exe" -OutFile $installer
           Start-Process -FilePath $installer -ArgumentList "install --root C:\msys64 --confirm-command" -Wait -NoNewWindow
           C:\msys64\usr\bin\bash -lc "pacman -Syu --noconfirm --needed"
-  
+
     - name: Machine Info
       shell: powershell
       run: |
@@ -232,7 +242,7 @@ jobs:
       if: ${{ env.COMPILER == '' }}
       shell: powershell
       run: |
-          $triplet = if ($env:OS -eq 'windows-11-arm') { 'arm64-windows-static' } else { 'x64-windows-static' }
+          $triplet = "$env:ARCH-windows-static"
           vcpkg install pcre2:$triplet --triplet $triplet
           $vcpkgInstalled = "$env:VCPKG_INSTALLATION_ROOT\installed\$triplet"
           echo "VCPKG_INSTALLED=$vcpkgInstalled" >> $env:GITHUB_ENV
@@ -245,14 +255,14 @@ jobs:
       with:
         boost_version: 1.89.0
         toolset: msvc
-        arch: ${{ matrix.os == 'windows-11-arm' && 'aarch64' || 'x86' }}
-   
+        arch: ${{ env.ARCH == 'arm64' && 'aarch64' || 'x86' }}
+
       # Set MSVC compilers path and environment variables.
     - name: Setup MSVC
       if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
       uses: ilammy/msvc-dev-cmd@v1
       with:
-        arch: ${{ matrix.os == 'windows-11-arm' && 'arm64' || 'x64' }}
+        arch: ${{ env.ARCH }}
 
     - name: Prepare Environment
       shell: bash
@@ -352,7 +362,7 @@ jobs:
             echo "PCRE2_LIBS=-L$VCPKG_INSTALLED_UNIX/lib $PCRE2_CCCL_LD" >> $GITHUB_ENV
             echo "CXX=/usr/bin/cccl" >> $GITHUB_ENV
             echo "CC=/usr/bin/cccl" >> $GITHUB_ENV
-            echo "BOOST_PATH=$(cygpath -u "${{ steps.install-boost.outputs.BOOST_ROOT }}")/include/boost-1_89" >> $GITHUB_ENV            
+            echo "BOOST_PATH=$(cygpath -u "${{ steps.install-boost.outputs.BOOST_ROOT }}")/include/boost-1_89" >> $GITHUB_ENV
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
@@ -366,7 +376,7 @@ jobs:
           fi # COMPILER
 
           if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
-            if [[ "$OS" == "windows-11-arm" ]]; then
+            if [[ "$ARCH" == "arm64" ]]; then
               java_path="JAVA_HOME_${VER}_AARCH64"
             else
               java_path="JAVA_HOME_${VER}_X64"
@@ -375,8 +385,9 @@ jobs:
           fi
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
           echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
+
     - name: Install MSYS2 Packages for x64
-      if: ${{ matrix.os != 'windows-11-arm' }}
+      if: ${{ env.ARCH != 'arm64' }}
       shell: cmd
       run: |
           rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
@@ -384,12 +395,13 @@ jobs:
           if %ErrorLevel% NEQ 0 (exit 1)
           pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
           if %ErrorLevel% NEQ 0 (exit 1)
+
     - name: Install MSYS2 Packages for ARM64
-      if: ${{ matrix.os == 'windows-11-arm' }}
+      if: ${{ env.ARCH == 'arm64' }}
       shell: bash
       run: |
           C:/msys64/usr/bin/pacman -S --noconfirm --needed autoconf automake bison $MORE_MSYS_PKGS
-  
+
     - name: Autoconf
       shell: bash
       run: |
