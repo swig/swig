@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     sneaky1_runme
+relocations:     []
+...

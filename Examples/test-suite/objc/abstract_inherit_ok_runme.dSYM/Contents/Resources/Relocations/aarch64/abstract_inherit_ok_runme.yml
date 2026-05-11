@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     abstract_inherit_ok_runme
+relocations:     []
+...
