@@ -300,6 +300,10 @@ Space::Pair<std::string, int> makeStringInt(const std::string& s, int i) {
 %typemap(jtype) Space::Pair<std::string, int> = int;
 %typemap(jstype) Space::Pair<std::string, int> = int;
 %typemap(javain) Space::Pair<std::string, int> = int;
+#elif defined(SWIGOBJECTIVEC)
+%typemap(imtype) Space::Pair<std::string, int> = int;
+%typemap(objctype) Space::Pair<std::string, int> = int;
+%typemap(objcin) Space::Pair<std::string, int> = int;
 #endif
 %inline %{
 std::string provideStringInt(Space::Pair<std::string, int> p) {

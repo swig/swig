@@ -280,6 +280,16 @@
 
 /* please leave 760-779 free for C */
 
+#define WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF             780
+#define WARN_OBJC_TYPEMAP_IMTYPE_UNDEF               781
+#define WARN_OBJC_TYPEMAP_OBJCIN_UNDEF               782
+#define WARN_OBJC_TYPEMAP_OBJCOUT_UNDEF              783
+#define WARN_OBJC_MULTIPLE_INHERITANCE               784
+#define WARN_OBJC_INTERFACE_MOD                      785
+#define WARN_OBJC_IMPLEMENTATION_MOD                 786
+
+/* please leave 780-799 free for Objective-C */
+
 #define WARN_RUBY_WRONG_NAME                         801
 #define WARN_RUBY_MULTIPLE_INHERITANCE               802
 

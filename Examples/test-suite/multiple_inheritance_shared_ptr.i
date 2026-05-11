@@ -36,7 +36,7 @@
 #endif
 %enddef
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGOBJECTIVEC)
 %include <boost_shared_ptr.i>
 %shared_ptr(Space::ABase1)
 %shared_ptr(Space::CBase1)
@@ -47,7 +47,9 @@
 %shared_ptr(Space::Bottom1)
 %shared_ptr(Space::Bottom2)
 %shared_ptr(Space::Bottom3)
+#endif
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include <swiginterface.i>
 SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::ABase1)
 SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase1)

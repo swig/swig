@@ -10,6 +10,7 @@
   +defined(SWIGLUA)\
   +defined(SWIGOCAML)\
   +defined(SWIGOCTAVE)\
+  +defined(SWIGOBJECTIVEC)\
   +defined(SWIGPERL)\
   +defined(SWIGPHP)\
   +defined(SWIGPYTHON)\

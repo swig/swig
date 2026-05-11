@@ -141,4 +141,3 @@ struct wchar_test_struct {
 %}
 
 #endif
-
