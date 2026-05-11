@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     objc_director_runme
-relocations:     []
-...

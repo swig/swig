@@ -412,9 +412,10 @@ objc_version:
 # -----------------------------------------------------------------
 
 objc_clean:
-	rm -f *_wrap* *_proxy* .~* $(RUNME)
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@OBJCSO@
+	rm -rf *_wrap* *_proxy* .~* $(RUNME)
+	rm -rf core @EXTRA_CLEAN@
+	rm -rf *.@OBJEXT@ *@OBJCSO@
+	rm -rf *.dSYM
 
 ##################################################################
 #####                       D                               ######

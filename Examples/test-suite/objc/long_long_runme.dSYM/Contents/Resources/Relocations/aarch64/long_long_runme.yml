@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     long_long_runme
-relocations:     []
-...

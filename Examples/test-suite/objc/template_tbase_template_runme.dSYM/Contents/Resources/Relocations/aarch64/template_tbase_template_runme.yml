@@ -1,5 +1,0 @@
----
-triple:          'arm64-apple-darwin'
-binary-path:     template_tbase_template_runme
-relocations:     []
-...
