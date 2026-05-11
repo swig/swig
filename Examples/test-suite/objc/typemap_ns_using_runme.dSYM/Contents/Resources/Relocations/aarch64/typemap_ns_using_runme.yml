@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     typemap_ns_using_runme
+relocations:     []
+...

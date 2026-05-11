@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     return_const_value_runme
+relocations:     []
+...
