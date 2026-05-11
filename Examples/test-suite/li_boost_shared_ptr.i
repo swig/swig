@@ -44,7 +44,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA) || defined(SWIGOBJECTIVEC)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -427,4 +427,3 @@ namespace SwigBoost {
   #endif
 }
 %}
-

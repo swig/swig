@@ -1588,6 +1588,108 @@ AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
+# Look for Objective-C
+#----------------------------------------------------------------
+
+AC_ARG_WITH(objc, AS_HELP_STRING([--without-objc], [Disable Objective-C]), [with_objc="$withval"], [with_objc="$alllang_default"])
+AC_ARG_WITH(objc-compiler, [  --with-objc-compiler=path     Set location of Objective-C compiler], [OBJCBIN="$withval"], [OBJCBIN=])
+AC_ARG_WITH(objcincl, [  --with-objcincl=path    Set location of Objective-C include directory], [OBJCINCDIR="$withval"], [OBJCINCDIR=])
+AC_ARG_WITH(objclib, [  --with-objclib=path      Set location of Objective-C library directory], [OBJCLIB="-L$withval"], [OBJCLIB=])
+
+if test x"${with_objc}" = xno; then
+  AC_MSG_NOTICE([Disabling Objective-C])
+  OBJC=
+else
+  if test -n "$OBJCBIN"; then
+    OBJC="$OBJCBIN"
+  else
+    AC_PROG_OBJC
+  fi
+
+  OBJCCFLAGS=
+  if test -z "$OBJCINCDIR"; then
+    OBJCINCDIR="/usr/include /usr/local/include"
+    case $host in
+      *-*-cygwin* | *-*-mingw* | *-*-msys* | *-*-linux*)
+        OBJCINCDIR="/usr/include/GNUstep /usr/lib/GNUstep/System/Library/Headers $OBJCINCDIR"
+        if command -v gnustep-config >/dev/null 2>&1; then
+          OBJCCFLAGS="`gnustep-config --objc-flags`"
+        fi
+        ;;
+      *-*-darwin*)
+        OBJCINCDIR="/System/Library/Frameworks $OBJCINCDIR"
+        if command -v xcrun >/dev/null 2>&1; then
+          objc_sdk_path=`xcrun --show-sdk-path 2>/dev/null`
+          if test -n "$objc_sdk_path"; then
+            OBJCINCDIR="$objc_sdk_path/System/Library/Frameworks $OBJCINCDIR"
+          fi
+        fi
+        ;;
+    esac
+  fi
+
+  AC_MSG_CHECKING([for Objective-C Foundation headers])
+  for d in $OBJCINCDIR; do
+    if test -r "$d/Foundation/Foundation.h"; then
+      OBJCINCDIR=$d
+      OBJCINC="-I$d"
+      break
+    elif test -r "$d/Foundation.framework/Headers/Foundation.h"; then
+      OBJCINCDIR=$d
+      OBJCINC="-F$d"
+      break
+    fi
+  done
+  if test -n "$OBJCINC"; then
+    AC_MSG_RESULT([$OBJCINCDIR])
+  else
+    AC_MSG_RESULT([not found])
+  fi
+
+  if test -z "$OBJCLIB"; then
+    case $host in
+      *-*-darwin*)
+        OBJCLIBS="-framework Foundation"
+        ;;
+      *-*-cygwin* | *-*-mingw* | *-*-msys* | *-*-linux*)
+        if command -v gnustep-config >/dev/null 2>&1; then
+          OBJCLIBS="`gnustep-config --objc-libs` -lgnustep-base"
+        fi
+        ;;
+    esac
+  else
+    OBJCLIBS="$OBJCLIB"
+  fi
+
+  case $host in
+    *-*-cygwin* | *-*-mingw* | *-*-msys*) OBJCLIBRARYPREFIX="";;
+    *) OBJCLIBRARYPREFIX="lib";;
+  esac
+
+  case $host in
+    *-*-darwin*)
+      OBJCSO=".dylib"
+      OBJCLDSHARED='$(CC) -dynamiclib -undefined dynamic_lookup -flat_namespace'
+      OBJCCXXSHARED='$(CXX) -dynamiclib -undefined dynamic_lookup -flat_namespace'
+      ;;
+    *)
+      OBJCSO=$SO
+      OBJCLDSHARED='$(LDSHARED)'
+      OBJCCXXSHARED='$(CXXSHARED)'
+      ;;
+  esac
+fi
+
+AC_SUBST(OBJC)
+AC_SUBST(OBJCINC)
+AC_SUBST(OBJCCFLAGS)
+AC_SUBST(OBJCLIBS)
+AC_SUBST(OBJCLIBRARYPREFIX)
+AC_SUBST(OBJCSO)
+AC_SUBST(OBJCLDSHARED)
+AC_SUBST(OBJCCXXSHARED)
+
+#----------------------------------------------------------------
 # Look for OCaml
 #----------------------------------------------------------------
 
@@ -2735,6 +2837,13 @@ fi
 AC_SUBST(SKIP_LUA)
 
 
+SKIP_OBJC=
+if test -z "$OBJC" || test -z "$OBJCINC" || test -z "$OBJCLIBS" ; then
+    SKIP_OBJC="1"
+fi
+AC_SUBST(SKIP_OBJC)
+
+
 SKIP_OCAML=
 if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
@@ -2879,6 +2988,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/lua/Makefile
+    Examples/test-suite/objc/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
@@ -2941,6 +3051,7 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
+test -n "$SKIP_OBJC"		|| langs="${langs}objc "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "

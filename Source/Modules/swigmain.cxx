@@ -34,6 +34,7 @@ Language *swig_guile(void);
 Language *swig_java(void);
 Language *swig_javascript(void);
 Language *swig_lua(void);
+Language *swig_objectivec(void);
 Language *swig_ocaml(void);
 Language *swig_octave(void);
 Language *swig_perl5(void);
@@ -63,6 +64,7 @@ static TargetLanguageModule modules[] = {
   {"-javascript", swig_javascript, "Javascript",         Supported   },
   {"-lua",        swig_lua,        "Lua",                Supported   },
   {"-modula3",    NULL,            "Modula 3",           Disabled    },
+  {"-objc",       swig_objectivec, "Objective-C",        Supported   },
   {"-ocaml",      swig_ocaml,      "OCaml",              Experimental},
   {"-octave",     swig_octave,     "Octave",             Supported   },
   {"-perl",       swig_perl5,      NULL,                 Supported   },

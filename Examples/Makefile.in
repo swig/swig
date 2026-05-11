@@ -340,6 +340,83 @@ csharp_clean:
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
 ##################################################################
+#####                       OBJC                            ######
+##################################################################
+
+OBJC = @OBJC@
+OBJCXXSRCS = $(INTERFACE:.i=_wrap.mm) $(INTERFACE:.i=_proxy.mm)
+OBJCXXOBJS = $(OBJCXXSRCS:.mm=.@OBJEXT@)
+OBJCINCLUDES = @OBJCINC@
+OBJCLIBS = @OBJCLIBS@
+OBJCLIBPREFIX = @OBJCLIBRARYPREFIX@
+OBJCSO = @OBJCSO@
+OBJCLDSHARED = @OBJCLDSHARED@
+OBJCCXXSHARED = @OBJCCXXSHARED@
+OBJCXXFLAGS = @OBJCCFLAGS@
+OBJCFLAGS = @OBJCFLAGS@
+OBJC_RUNME = ./$(RUNME)
+OBJC_CXX_CSRCS = $(filter %.c,$(CXXSRCS))
+OBJC_CXX_CXXSRCS = $(filter %.cxx,$(CXXSRCS))
+SRCDIR_OBJC_CXX_CSRCS = $(addprefix $(SRCDIR),$(OBJC_CXX_CSRCS))
+SRCDIR_OBJC_CXX_CXXSRCS = $(addprefix $(SRCDIR),$(OBJC_CXX_CXXSRCS))
+OBJC_COBJS = $(patsubst %.c,%.@OBJEXT@,$(filter %.c,$(SRCS)))
+OBJC_CXX_COBJS = $(patsubst %.c,%.@OBJEXT@,$(OBJC_CXX_CSRCS))
+OBJC_CXXOBJS = $(patsubst %.cxx,%.@OBJEXT@,$(OBJC_CXX_CXXSRCS))
+OBJC_OBJS = $(OBJC_COBJS) $(OBJC_CXXOBJS)
+OBJC_CPP_OBJS = $(OBJC_COBJS) $(OBJC_CXX_COBJS) $(OBJC_CXXOBJS)
+
+# ----------------------------------------------------------------
+# Build an Objective-C dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+objc: $(SRCDIR_SRCS)
+	$(SWIG) -objc $(SWIGOPT) -o $(INTERFACE:.i=_wrap.mm) $(INTERFACEPATH)
+	$(OBJC) -x objective-c -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(OBJCFLAGS) $(OBJCXXFLAGS) $(SRCDIR_SRCS) $(OBJCXXSRCS) $(INCLUDES) $(OBJCINCLUDES)
+	$(OBJCLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJC_OBJS) $(OBJCXXOBJS) $(OBJCLIBS) $(LIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
+
+# ----------------------------------------------------------------
+# Build an Objective-C dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+objc_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -objc -c++ $(SWIGOPT) -o $(INTERFACE:.i=_wrap.mm) $(INTERFACEPATH)
+	if test -n "$(SRCDIR_SRCS)"; then $(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(INCLUDES); fi
+	if test -n "$(SRCDIR_OBJC_CXX_CSRCS)"; then $(CXX) -x c++ -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_OBJC_CXX_CSRCS) $(INCLUDES); fi
+	if test -n "$(SRCDIR_OBJC_CXX_CXXSRCS)"; then $(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_OBJC_CXX_CXXSRCS) $(INCLUDES); fi
+	$(OBJC) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(OBJCFLAGS) $(OBJCXXFLAGS) $(OBJCXXSRCS) $(INCLUDES) $(OBJCINCLUDES)
+	$(OBJCCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJC_CPP_OBJS) $(OBJCXXOBJS) $(OBJCLIBS) $(LIBS) $(CPP_DLLIBS) -o $(OBJCLIBPREFIX)$(TARGET)$(OBJCSO)
+
+# ----------------------------------------------------------------
+# Compile and run Objective-C files
+# ----------------------------------------------------------------
+
+ifneq (,$(SRCDIR))
+SRCDIR_OBJCSRCS = $(addprefix $(SRCDIR),$(OBJCSRCS))
+else
+SRCDIR_OBJCSRCS =
+endif
+
+objc_run:
+	$(COMPILETOOL) $(OBJC) $(CPPFLAGS) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) $(OBJCSRCS) $(SRCDIR_OBJCSRCS) $(LDFLAGS) $(OBJCLIBS) -L. -l$(TARGET) -o $(RUNME)
+	env LD_LIBRARY_PATH=$$PWD:$$LD_LIBRARY_PATH DYLD_LIBRARY_PATH=$$PWD:$$DYLD_LIBRARY_PATH $(RUNTOOL) $(OBJC_RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+objc_version:
+	$(OBJC) --version | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the Objective-C examples
+# -----------------------------------------------------------------
+
+objc_clean:
+	rm -f *_wrap* *_proxy* .~* $(RUNME)
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@OBJCSO@
+
+##################################################################
 #####                       D                               ######
 ##################################################################
 
