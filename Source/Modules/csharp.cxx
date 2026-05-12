@@ -1793,7 +1793,7 @@ public:
       SwigType *bsmart = Getattr(base, "smart");
       if (Len(interface_list))
 	Append(interface_list, ", ");
-      Append(interface_list, interface_name);
+      Append(interface_list, getInterfaceName(c_baseclassname, true));
 
       Node *attributes = NewHash();
       String *interface_code = Copy(typemapLookup(base, "csinterfacecode", Getattr(base, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACECODE_UNDEF, attributes));
@@ -2263,7 +2263,6 @@ public:
 	interface_class_code = NewString("");
 	String *output_directory = outputDirectory(nspace);
 	f_interface = getOutputFile(output_directory, interface_name);
-	addOpenNamespace(nspace, f_interface);
 	emitInterfaceDeclaration(n, interface_name, interface_class_code);
         Delete(output_directory);
       }
@@ -2341,6 +2340,7 @@ public:
       }
 
       if (f_interface) {
+	addOpenNamespace(nspace, f_interface);
 	Printv(f_interface, interface_class_code, "}\n", NIL);
 	addCloseNamespace(nspace, f_interface);
 	if (f_interface != f_single_out)
