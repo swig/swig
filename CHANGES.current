@@ -7,6 +7,43 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-16: erezgeva
+            [Lua, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] #3409 Add memory allocation
+            failure protection to the argcargv typemaps and to the string duplication paths
+            in pystrings.swg, perlstrings.swg, rubystrings.swg and rfragments.swg.
+
+            *Potentially incompatible change*: the `%new_copy_array` macro
+            has been removed. User interface files calling `%new_copy_array(ptr, size, T)`
+            will be passed through to the C/C++ compiler unchanged and fail with
+            an error such as:
+
+                error: expected expression before '%' token
+
+            Replace such calls with an explicit allocate and copy that checks
+            for allocation failure, e.g.
+
+                T *p = %new_array(size, T);
+                if (p) memcpy(p, ptr, size * sizeof(T));
+
+            *Potentially incompatible change*: the `%typemaps_string` macro in
+            `Lib/typemaps/strings.swg` now takes an additional argument naming a
+            `SWIG_NewCopyCharArray` style fragment, and the related
+            `%typemaps_string_alloc` macro has been removed (its allocator
+            customisation is now expressed by passing the new argument to
+            `%typemaps_string` directly). Existing callers of
+            `%typemaps_string` with the old signature will fail with:
+
+                Error: Macro '%typemaps_string' expects 13 arguments
+
+            Existing callers of `%typemaps_string_alloc` will fail with:
+
+                Error: Unknown directive '%typemaps_string_alloc'.
+
+            Update such calls to pass the additional fragment, modelled on
+            `SWIG_NewCopyWCharArray` in `Lib/typemaps/wstring.swg`.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-05-15: blowekamp
             [R] #3407 Fix compilation with R 4.6.0 which removed the non-API macro
             SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.

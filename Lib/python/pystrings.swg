@@ -35,13 +35,15 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
         size_t alen = (size_t)(len + 1);
         char *p = %new_array(alen, char);
         if (p == NULL) {
-           return SWIG_MemoryError;
+          SWIG_Py_XDECREF(bytes);
+          return SWIG_MemoryError;
         }
         memcpy(p, cstr, alen);
         cstr = p;
         *alloc = SWIG_NEWOBJ;
       } else {
         /* alloc must be set in order to clean up allocated memory */
+        SWIG_Py_XDECREF(bytes);
         return SWIG_RuntimeError;
       }
     }
@@ -68,6 +70,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
         if (cptr) {
           char *p = %new_array(len + 1, char);
           if (p == NULL) {
+            SWIG_Py_XDECREF(obj);
             return SWIG_MemoryError;
           }
           if (alloc) *alloc = SWIG_NEWOBJ;
