@@ -104,6 +104,20 @@ SWIG_XMLStringNLen(const XMLCh* s, size_t maxlen)
 }
 }
 
+%fragment("SWIG_NewCopyXMLChArray","header") {
+SWIGINTERNINLINE XMLCh *SWIG_NewCopyXMLChArray(const XMLCh *cptr, size_t size)
+{
+  XMLCh *ret = NULL;
+  if (size > 0 && cptr != NULL) {
+    ret = %new_array(size, XMLCh);
+    if (ret != NULL) {
+      memcpy(ret, cptr, size * sizeof(XMLCh));
+    }
+  }
+  return ret;
+}
+}
+
 %init {
   if (!SWIG_UTF8Transcoder()) {
     croak("ERROR: XML::Xerces: INIT: Could not create UTF-8 transcoder");
@@ -113,11 +127,13 @@ SWIG_XMLStringNLen(const XMLCh* s, size_t maxlen)
 
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(UNISTRING), %checkcode(UNICHAR),
+		 SWIGWARN_TYPEMAP_WCHARLEAK_MSG,
 		 XMLCh, XMLCh,
-		 SWIG_AsXMLChPtrAndSize, 
+		 SWIG_AsXMLChPtrAndSize,
 		 SWIG_FromXMLChPtrAndSize,
 		 XERCES_CPP_NAMESPACE::XMLString::stringLen,
 		 SWIG_XMLStringNLen,
+		 SWIG_NewCopyXMLChArray,
 		 "<XMLCh.h>", INT_MIN, INT_MAX);
 
 

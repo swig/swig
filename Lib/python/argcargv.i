@@ -25,7 +25,7 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
   if (argv != NULL) {
     char **p = %new_array(size + 1, char*);
     if (p == NULL) {
-      SWIG_Error(SWIG_MemoryError, "int ARGC, char **ARGV: fail memory allocation");
+      SWIG_Error(SWIG_MemoryError, "Failed to allocate memory for 'int ARGC, char **ARGV'");
       return SWIG_ERROR;
     }
     *argv = p;
@@ -52,11 +52,13 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
           } else {
             char *p = %new_array(sz, char);
             if (p == NULL) {
-              SWIG_Error(SWIG_MemoryError, "int ARGC, char **ARGV: fail allocating string");
-              return SWIG_ERROR;
+              SWIG_Error(SWIG_MemoryError, "Failed to allocate string for 'int ARGC, char **ARGV'");
+              (*argv)[i] = 0;
+              res = SWIG_MemoryError;
+            } else {
+              memcpy(p, cptr, sz);
+              (*argv)[i] = p;
             }
-            memcpy(p, cptr, sz);
-            (*argv)[i] = p;
           }
         } else {
           (*argv)[i] = 0;

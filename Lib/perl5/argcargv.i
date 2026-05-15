@@ -8,14 +8,12 @@
   AV *av = (AV *)SvRV($input);
   if (SvTYPE(av) != SVt_PVAV) {
     SWIG_croak("in method '$symname', Expecting reference to argv array");
-    goto fail;
   }
   len = av_len(av) + 1;
   $1 = ($1_ltype) len;
   $2 = (char **) malloc((len+1)*sizeof(char *));
   if ($2 == NULL) {
-    SWIG_croak("in method '$symname', fail allocate memory");
-    goto fail;
+    SWIG_croak("Failed to allocate memory for 'int ARGC, char **ARGV' in '$symname'");
   }
   for (i = 0; i < len; i++) {
     SV **tv = av_fetch(av, i, 0);

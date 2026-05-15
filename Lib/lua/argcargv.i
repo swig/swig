@@ -34,13 +34,15 @@ SWIGINTERN int SWIG_argv_size(lua_State* L, int index) {
     $1 = size;
     $2 = (char **) malloc((size+1)*sizeof(char *));
     if ($2 == NULL) {
-      lua_pushstring(L,"fail allocate memory");
+      lua_pushstring(L,"Failed to allocate memory for 'int ARGC, char **ARGV' in '$symname'");
       SWIG_fail;
     }
     for (i = 0; i < size; i++) {
       lua_rawgeti(L,$input,i+1);
       if (lua_isnil(L,-1)) {
-        $1 = i + 1; /* shrink size to match actual size */
+        /* nil terminates the table early; shrink ARGC to the actual count */
+        $1 = i;
+        lua_pop(L,1);
         break;
       }
       $2[i] = (char *)lua_tostring(L, -1);
