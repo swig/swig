@@ -80,6 +80,9 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     for(i = 0 ; i < len ; i++) {
       $2[i] = ($*2_ltype)malloc(aLen[i] + 1);
       if ($2[i] == NULL) {
+        while (i) free((void *)$2[--i]);
+        free((void *)$2);
+        $2 = NULL;
         free((void *)aLen);
         SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for a string in 'int ARGC, char **ARGV'");
       }
@@ -88,6 +91,9 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     sciErr = getMatrixOfString(pvApiCtx, array, &rows, &cols, aLen, $2);
     if(sciErr.iErr) {
       printError(&sciErr, 0);
+      for (i = 0; i < len; i++) free((void *)$2[i]);
+      free((void *)$2);
+      $2 = NULL;
       free((void *)aLen);
       SWIG_fail;
     }
