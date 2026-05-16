@@ -2,7 +2,6 @@
 
 //Bug #1832613
 
-#if !defined(SWIGR)
 // R Swig fails on this test.  Because it tries to return a nil SEXP in
 // an error
 
@@ -49,5 +48,3 @@ typedef MCContractPtr* ContractPtrPtr;
 %}
 // Plain pointers were also causing problems...
 %template(MCContractFactory2) ContractFactory<MCContract, std::string, ContractPtrPtr>;
-
-#endif

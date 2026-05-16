@@ -3,17 +3,21 @@ name: linux
 on:
   push:
     paths-ignore:
+      - '.agents/**'
       - '.github/workflows/macos.yml'
       - '.github/workflows/windows.yml'
       - '.github/workflows/cmake.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
   pull_request:
     branches: master
     paths-ignore:
+      - '.agents/**'
       - '.github/workflows/macos.yml'
       - '.github/workflows/windows.yml'
       - '.github/workflows/cmake.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
 

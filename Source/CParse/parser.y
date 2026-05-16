@@ -176,6 +176,16 @@ static Node *copy_node(Node *n) {
       Setattr(nn, "needs_defaultargs", "1");
       continue;
     }
+    /* C++20 constraint subtree must be deep copied: cparse_template_expand patches the subtree
+       in place, so a shallow Copy() (which only duplicates the root hash) would alias the inner
+       atom and requires-expression / requirement nodes between the primary and every instantiation,
+       leaking the first instantiation's substitutions into all subsequent ones. */
+    if (strcmp(ckey,"constraint") == 0) {
+      Node *cs = copy_node((Node *)k.item);
+      Setattr(nn, key, cs);
+      Delete(cs);
+      continue;
+    }
     /* same for abstracts, which contains pointers to the source node children, and so will need to be patch too */
     if (strcmp(ckey,"abstracts") == 0) {
       SetFlag(nn, "needs_abstracts");
@@ -398,6 +408,159 @@ static String *make_unnamed(void) {
 
 static int is_operator(String *name) {
   return Strncmp(name,"operator ", 9) == 0;
+}
+
+/* Classifier for the 'type' attribute of a parm reaching the templateparameter
+ * 'parm' fallback with a name set.  Distinguishes a C++20 type-constraint
+ * ('template<Numeric T>' / 'template<Printable... Ts>' / 'template<Pair<int> T>')
+ * from a real non-type template parameter and from an undeclared identifier.
+ * The "candidate concept-id" test (below) accepts a possibly variadic prefixed
+ * scope qualified identifier (with or without template arguments) that names
+ * neither a built in primitive nor an enum and carries no SwigType decoration (where
+ * 'type' contains the template parameters in the examples below):
+ *
+ *   TPC_REMAP    candidate and the symbol resolves to a concept (for a
+ *                template-id like 'Pair<int>' the bare prefix 'Pair' is the
+ *                symbol that must resolve to a concept)
+ *                -> rewrite the parm to 'typename T' (or 'v.typename Ts...')
+ *                   and attach a concept-id constraint atom carrying the full
+ *                   (possibly template-id) concept-id string
+ *                Examples:
+ *                  template<Numeric T>                  T cube(T x);
+ *                  template<nest::Integral T>           T half(T x);
+ *                  template<Numeric... Ts>              int count(Ts...);
+ *                  template<std::convertible_to<int> T> T as_int(T x);    // template-id is a concept (and SWIG has parsed the concept definition)
+ *                  template<Pair<int> T>                T first_int(T x); // template-id is a concept (not a class)
+ *   TPC_KEEP     not a candidate, or the symbol resolves to a type (non-concept)
+ *                (typedef, class, enum) -> leave as a non-type parameter
+ *                Examples:
+ *                  template<int N>                 int times_n(int x);  // primitive
+ *                  template<unsigned long N>       int times_n(int x);  // multi word primitive
+ *                  template<size_t N>              int times_n(int x);  // typedef'd alias
+ *                  template<Color C>               int as_int();        // enum
+ *                  template<MyClass *P>            void deref();        // decorated
+ *                  template<std::convertible_to<int> T> T as_int(T x);  // template-id is a concept (and SWIG has NOT parsed the concept definition)
+ *                  template<std::array<int,4> A>   int sum_array();     // template-id naming a class (not a concept)
+ *   TPC_UNKNOWN  candidate but the symbol is not declared in the current
+ *                scope -> the user almost certainly meant a concept that
+ *                hasn't been made visible to SWIG - the action remaps anyway but should warn later.
+ *                Examples:
+ *                  template<Numeric T>                  T cube(T x);   // 'Numeric' not declared
+ *                  template<MisspeltConcept T>          T f(T);        // typo
+ *                  template<UndeclaredConcept<int> T>   T g(T);        // template-id, prefix unknown
+ */
+enum {
+  TPC_KEEP = 0,
+  TPC_REMAP = 1,
+  TPC_UNKNOWN = 2
+};
+static int classify_template_param_type(const SwigType *type) {
+  SwigType *probe;
+  Node *n;
+  String *templatetype;
+  int verdict;
+  if (!type || Len(type) == 0) return TPC_KEEP;
+  /* Strip the variadic prefix - 'v.' is the only decoration we look past.  Any other
+   * SwigType decoration (pointer, reference, array, qualifier, function, member pointer)
+   * makes SwigType_issimple() false and falls into TPC_KEEP below. */
+  probe = SwigType_isvariadic(type) ? SwigType_del_variadic(Copy(type)) : Copy(type);
+  /* SwigType_type() maps every recognised primitive (including multi word forms like
+   * 'unsigned int' / 'long long' and resolvable typedefs such as 'size_t') to a
+   * non-T_USER code; T_USER means SWIG has no record of this name, which is exactly
+   * the population we want to consider for a type-constraint remap.  Enums are
+   * T_INT in SwigType_type, so SwigType_isenum() rejects them separately. */
+  if (SwigType_type(probe) != T_USER ||
+      SwigType_isenum(probe) ||
+      !SwigType_issimple(probe)) {
+    Delete(probe);
+    return TPC_KEEP;
+  }
+  /* For a template-id concept-id like 'Pair<(int)>' or 'std::convertible_to<(int)>'
+   * the concept declaration is registered under the bare template prefix.  Look that
+   * up; for a probe that is not a template-id the prefix is the probe itself. */
+  if (SwigType_istemplate(probe)) {
+    String *prefix = SwigType_templateprefix(probe);
+    n = Swig_symbol_clookup(prefix, 0);
+    Delete(prefix);
+  } else {
+    n = Swig_symbol_clookup(probe, 0);
+  }
+  templatetype = n ? Getattr(n, "templatetype") : 0;
+  if (templatetype && Equal(templatetype, "concept")) {
+    verdict = TPC_REMAP;
+  } else if (!n) {
+    verdict = TPC_UNKNOWN;
+  } else {
+    verdict = TPC_KEEP;
+  }
+  Delete(probe);
+  return verdict;
+}
+
+/* If the cdecl 'n' has any parameter whose type is 'auto' or 'Concept auto' (a C++20 abbreviated function template) replace
+ * each such parm with an invented type template parameter (named '__dummy_auto_<N>__') and convert 'n' to a template node
+ * carrying those typenames as templateparms.  When a concept type-constraint is present, attach it as a 'constraint' attribute
+ * on the invented template parm. This lets the existing %template machinery work for abbreviated function templates.
+ * Detection uses SwigType_isauto, which looks through any decoration prefix and recognises both the bare 'auto' base form and
+ * the C++20 'auto.c(<id>)' constrained form.  The concept-id (if any) is read via SwigType_concept_name.
+ * Returns 1 if a transformation happened, 0 otherwise. */
+static int promote_abbreviated_template(Node *n) {
+  ParmList *parms = Getattr(n, "parms");
+  Parm *p;
+  int auto_count = 0;
+  ParmList *templateparms = 0;
+  Parm *last_invented = 0;
+  static int auto_cnt = 0;
+
+  if (!parms)
+    return 0;
+
+  for (p = parms; p; p = nextSibling(p)) {
+    SwigType *ty = Getattr(p, "type");
+    if (SwigType_isauto(ty))
+      auto_count++;
+  }
+
+  if (auto_count == 0)
+    return 0;
+
+  for (p = parms; p; p = nextSibling(p)) {
+    SwigType *ty = Getattr(p, "type");
+    String *concept_name;
+    if (!ty || !SwigType_isauto(ty))
+      continue;
+    {
+      String *invented_name = NewStringf("__dummy_auto_%d__", auto_cnt++);
+      Parm *tp = NewParmWithoutFileLineInfo(NewString("typename"), invented_name);
+      Setfile(tp, Getfile(n));
+      Setline(tp, Getline(n));
+      SetFlag(tp, "abbreviated_auto");
+      concept_name = SwigType_concept_name(ty);
+      if (concept_name) {
+        Node *atom = Constraint_new_atom("concept-id");
+        Setattr(atom, "type", concept_name);
+        Setattr(tp, "constraint", atom);
+      }
+      /* Replace the 'auto' placeholder (and any 'c(<id>)' base) with the invented name,
+       * preserving outer decoration so 'r.auto' -> 'r.__dummy_auto_N__',
+       * 'r.q(const).auto.c(Numeric)' -> 'r.q(const).__dummy_auto_N__', etc. */
+      Setattr(p, "type", SwigType_replace_auto_base(ty, invented_name));
+      if (last_invented) {
+        set_nextSibling(last_invented, tp);
+      } else {
+        templateparms = tp;
+      }
+      last_invented = tp;
+      Delete(invented_name);
+      Delete(concept_name);
+    }
+  }
+
+  Setattr(n, "templatetype", nodeType(n));
+  set_nodeType(n, "template");
+  Setattr(n, "templateparms", templateparms);
+  Setattr(n, "sym:typename", "1");
+  return 1;
 }
 
 /* Add declaration list to symbol table */
@@ -1706,6 +1869,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *throwf;
     String *nexcept;
     String *final;
+    /* C++20 trailing requires-clause attached to this declaration's qualifiers, as a structured constraint subtree. */
+    Node *constraint_node;
   } dtype;
   struct {
     String *filename;
@@ -1723,6 +1888,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String    *throwf;
     String    *nexcept;
     String    *final;
+    /* C++20 trailing requires-clause on a constructor. */
+    Node      *constraint_node;
   } decl;
   Parm         *tparms;
   struct {
@@ -1771,6 +1938,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT
 %token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE AUTO NOEXCEPT /* C++11 keywords */
 %token OVERRIDE FINAL /* C++11 identifiers with special meaning */
+%token CONCEPT REQUIRES /* C++20 keywords */
 %token USING
 %token NAMESPACE
 %token NATIVE INLINE
@@ -1827,7 +1995,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member cpp_member_no_dox;
 %type <nodebuilder> cpp_members_builder;
-%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
+%type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert cpp_concept_decl;
 %type <node>     cpp_swig_directive cpp_template_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
@@ -1857,6 +2025,10 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
 %type <str>      ref_qualifier;
+%type <node>     requires_clause_opt;
+%type <node>     constraint constraint_or constraint_and constraint_primary;
+%type <node>     requires_expression requirement_body;
+%type <pl>       requirement_parameter_list_opt;
 %type <id>       type_qualifier_raw;
 %type <id>       idstring idstringopt;
 %type <id>       pragma_lang;
@@ -3118,6 +3290,38 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  }
                           add_symbols_copy(templnode);
 
+                          /* Warning 332 (WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF) for any C++20 type-constraint in the
+                           * template whose concept-id SWIG could not resolve during earlier parsing is intentionally
+                           * disabled below.  SWIG's template substitution machinery (templ.c) is name based: a
+                           * templateparm's name is replaced throughout the body by the valparm's value/type regardless
+                           * of whether the templateparm was classified as 'typename T' or as a non-type parm.  The
+                           * 'constraint:unresolved' remap of 'Concept T' to 'typename T' therefore has no observable
+                           * effect on the generated wrapper. The warning would just result in unnecessary warnings about
+                           * any missing typedef info for NNTP parameters, that wouldn't make any difference to the generated
+                           * code if addressed.
+                           *
+                          {
+                            Parm *tp = Getattr(nn, "templateparms");
+                            SWIG_WARN_NODE_BEGIN(templnode);
+                            while (tp) {
+                              if (GetFlag(tp, "constraint:unresolved")) {
+                                Node *atom = Getattr(tp, "constraint");
+                                String *concept_name = atom ? Getattr(atom, "type") : 0;
+                                concept_name = concept_name ? Copy(concept_name) : NewString("<unknown>");
+                                Swig_warning(WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF, cparse_file, cparse_line,
+                                             "In instantiation of template '%s' with name '%s',\n",
+                                             Swig_name_str(templnode), Getattr(templnode, "sym:name"));
+                                Swig_warning(WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF, Getfile(nn), Getline(nn),
+                                             "nothing known about type-constraint '%s' - treated as 'typename'.\n",
+                                             SwigType_str(concept_name, 0));
+                                Delete(concept_name);
+                              }
+                              tp = nextSibling(tp);
+                            }
+                            SWIG_WARN_NODE_END(templnode);
+                          }
+                          */
+
 			  if (Equal(nodeType(templnode), "classforward") && !(GetFlag(templnode, "feature:ignore") || GetFlag(templnode, "hidden"))) {
 			    SWIG_WARN_NODE_BEGIN(templnode);
 			    /* A full template class definition is required in order to wrap a template class as a proxy class so this %template is ineffective. */
@@ -3348,6 +3552,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throw",$cpp_const.throwf);
 	      Setattr($$,"noexcept",$cpp_const.nexcept);
 	      Setattr($$,"final",$cpp_const.final);
+              if ($cpp_const.constraint_node)
+                Setattr($$, "constraint", $cpp_const.constraint_node);
 	      if ($initializer.val && $initializer.type) {
 		/* store initializer type as it might be different to the declared type */
 		SwigType *valuetype = NewSwigType($initializer.type);
@@ -3411,6 +3617,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+              /* C++20 abbreviated function template: any parm typed 'auto' becomes an invented type template parameter. */
+              if ($$) promote_abbreviated_template($$);
 	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
@@ -3459,6 +3667,73 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
+           /* C++20 abbreviated function template with a constrained auto return type
+            * combined with an explicit trailing return type, e.g.
+            *   Numeric auto fn(int x) -> int { return x; }
+            * The trailing return type is what SWIG wraps; the concept-id is captured as a
+            * 'concept-id' atom on the 'constraint' attribute for downstream inspection. */
+           | storage_class idcolon AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
+              Node *atom;
+              $$ = new_node("cdecl");
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
+	      Setattr($$,"type",$cpp_alternate_rettype);
+	      Setattr($$,"storage",$storage_class);
+	      Setattr($$,"name",$declarator.id);
+	      Setattr($$,"decl",$declarator.type);
+	      Setattr($$,"parms",$declarator.parms);
+	      Setattr($$,"throws",$cpp_const.throws);
+	      Setattr($$,"throw",$cpp_const.throwf);
+	      Setattr($$,"noexcept",$cpp_const.nexcept);
+	      Setattr($$,"final",$cpp_const.final);
+	      atom = Constraint_new_atom("concept-id");
+	      Setattr(atom, "type", $idcolon);
+	      Setattr($$, "constraint", atom);
+	      if (!$c_decl_tail) {
+		if (Len(scanner_ccode)) {
+		  String *code = Copy(scanner_ccode);
+		  Setattr($$,"code",code);
+		  Delete(code);
+		}
+	      } else {
+		Node *n = $c_decl_tail;
+		while (n) {
+		  String *type = Copy($cpp_alternate_rettype);
+		  Setattr(n,"type",type);
+		  Setattr(n,"storage",$storage_class);
+		  n = nextSibling(n);
+		  Delete(type);
+		}
+	      }
+
+	      if ($declarator.id) {
+		String *p = Swig_scopename_prefix($declarator.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($declarator.id);
+		    Setattr($$,"name",lstr);
+		    Delete(lstr);
+		    set_nextSibling($$, $c_decl_tail);
+		  } else {
+		    Delete($$);
+		    $$ = $c_decl_tail;
+		  }
+		  Delete(p);
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
+		  Delete($$);
+		  $$ = $c_decl_tail;
+		}
+	      } else {
+		set_nextSibling($$, $c_decl_tail);
+	      }
+
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+              /* Promote any 'auto' / 'Concept auto' parm to an invented type template parameter. */
+              if ($$) promote_abbreviated_template($$);
+	      Delete($storage_class);
+           }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
            | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
@@ -3517,6 +3792,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+              /* Promote any 'auto' / 'Concept auto' parm to an invented type template parameter. */
+              if ($$) promote_abbreviated_template($$);
 	      Delete($storage_class);
            }
            /* C++14 allows the trailing return type to be omitted.  It's
@@ -3567,6 +3844,54 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
+	   /* C++20 abbreviated function template with a constrained auto return type,
+	    * e.g. 'Numeric auto fn(int x) { return x; }'.  Parses identically to the plain
+	    * 'auto' return form above and inherits the same warn and ignore behaviour when
+	    * SWIG cannot deduce the return type; the concept-id is preserved on the
+	    * 'constraint' attribute as a 'concept-id' atom for downstream inspection. */
+	   | storage_class idcolon AUTO declarator cpp_const LBRACE {
+	      Node *atom;
+	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+
+              $$ = new_node("cdecl");
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
+	      Setattr($$, "type", NewString("auto"));
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $declarator.id);
+	      Setattr($$, "decl", $declarator.type);
+	      Setattr($$, "parms", $declarator.parms);
+	      Setattr($$, "throws", $cpp_const.throws);
+	      Setattr($$, "throw", $cpp_const.throwf);
+	      Setattr($$, "noexcept", $cpp_const.nexcept);
+	      Setattr($$, "final", $cpp_const.final);
+	      atom = Constraint_new_atom("concept-id");
+	      Setattr(atom, "type", $idcolon);
+	      Setattr($$, "constraint", atom);
+
+	      if ($declarator.id) {
+		String *p = Swig_scopename_prefix($declarator.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($declarator.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		  } else {
+		    Delete($$);
+		    $$ = 0;
+		  }
+		  Delete(p);
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
+		  Delete($$);
+		  $$ = 0;
+		}
+	      }
+
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
+	   }
 	   // C++14.  Like the previous case but a declaration rather than a
 	   // definition.  A C++ compiler will deduce the return type when it
 	   // sees the corresponding definition, but SWIG may never see that
@@ -3601,6 +3926,50 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		  Delete(p);
 		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  /* global scope declaration/definition ignored */
+		  Delete($$);
+		  $$ = 0;
+		}
+	      }
+
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
+	   }
+	   /* C++20 abbreviated function template with a constrained auto return type,
+	    * declaration form, e.g. 'Numeric auto fn(int x);'.  Inherits the same warn and ignore
+	    * behaviour as the plain 'auto fn(...)' declaration above. */
+	   | storage_class idcolon AUTO declarator cpp_const SEMI {
+	      Node *atom;
+	      $$ = new_node("cdecl");
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
+	      Setattr($$, "type", NewString("auto"));
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $declarator.id);
+	      Setattr($$, "decl", $declarator.type);
+	      Setattr($$, "parms", $declarator.parms);
+	      Setattr($$, "throws", $cpp_const.throws);
+	      Setattr($$, "throw", $cpp_const.throwf);
+	      Setattr($$, "noexcept", $cpp_const.nexcept);
+	      Setattr($$, "final", $cpp_const.final);
+	      atom = Constraint_new_atom("concept-id");
+	      Setattr(atom, "type", $idcolon);
+	      Setattr($$, "constraint", atom);
+
+	      if ($declarator.id) {
+		String *p = Swig_scopename_prefix($declarator.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($declarator.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		  } else {
+		    Delete($$);
+		    $$ = 0;
+		  }
+		  Delete(p);
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  Delete($$);
 		  $$ = 0;
 		}
@@ -3733,19 +4102,19 @@ cpp_alternate_rettype : primitive_type
    auto myFunc = [](int x, int y) throw() -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$idcolon);
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$idcolon);
 		  Delete($storage_class);
 		  add_symbols($$);
 		}
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template lambda_body lambda_tail {
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$idcolon);
 		  Delete($storage_class);
@@ -4461,10 +4830,10 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
    template<...> decl
    ------------------------------------------------------------ */
 
-cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { 
+cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt {
 		    if (currentOuterClass)
 		      Setattr(currentOuterClass, "template_parameters", template_parameters);
-		    template_parameters = $template_parms; 
+		    template_parameters = $template_parms;
 		    parsing_template_declaration = 1;
 		  } cpp_template_possible {
 			String *tname = 0;
@@ -4626,9 +4995,23 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			    Delete(fname);
 			  }
 			} else if ($$) {
-			  Setattr($$, "templatetype", nodeType($$));
-			  set_nodeType($$,"template");
-			  Setattr($$,"templateparms", $template_parms);
+			  ParmList *invented = Getattr($$, "templateparms");
+			  if (invented && Equal(nodeType($$), "template")) {
+			    /* The inner cdecl was already promoted to a template by promote_abbreviated_template
+			     * (its parms contain auto / Concept auto), so it already has templatetype, nodeType
+			     * and a templateparms list of invented __dummy_auto_N__ parms.  Per C++20 [dcl.fct]/19
+			     * the invented type template parameters are appended to the explicit template parameter
+			     * list, so merge here rather than overwriting (which would orphan the invented parms
+			     * and trigger an infinite recursion in cparse_template_expand).  The nodeType check
+			     * keeps us out of this branch when the templateparms attribute was propagated from a
+			     * matching forward declaration onto an out of line nested class definition - that case
+			     * has nodeType "class", and the else branch correctly overwrites with $template_parms. */
+			    Setattr($$, "templateparms", ParmList_join($template_parms, invented));
+			  } else {
+			    Setattr($$, "templatetype", nodeType($$));
+			    set_nodeType($$, "template");
+			    Setattr($$, "templateparms", $template_parms);
+			  }
 			  if (!Getattr($$,"sym:weak")) {
 			    Setattr($$,"sym:typename","1");
 			  }
@@ -4650,6 +5033,21 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			    Swig_symbol_cadd(fname,$$);
 			  }
 			}
+                        /* Attach prefix requires-clause subtree (e.g. 'template<T> requires C<T>') to the
+                           inner template node's "constraint" attribute.  If a trailing requires-clause is
+                           already present on the cdecl (set by c_decl), conjoin the two structurally into
+                           a single op="and" constraint subtree per [temp.constr.decl]. */
+                        if (ni && $requires_clause_opt) {
+                          Node *trailing = Getattr(ni, "constraint");
+                          Node *combined;
+                          if (trailing) {
+                            Delattr(ni, "constraint");
+                            combined = Constraint_combine("and", $requires_clause_opt, trailing);
+                          } else {
+                            combined = $requires_clause_opt;
+                          }
+                          Setattr(ni, "constraint", combined);
+                        }
 			$$ = ntop;
 			Swig_symbol_setscope(cscope);
 			Delete(Namespaceprefix);
@@ -4697,6 +5095,22 @@ cpp_template_possible:  c_decl
                 }
                 | cpp_forward_class_decl
                 | cpp_conversion_operator
+                | cpp_concept_decl
+                ;
+
+/* ------------------------------------------------------------
+   C++20 concept declaration: "concept Name = constraint-expression;".
+   Always appears after a template head, so attached via cpp_template_possible.
+   The wrapping cpp_template_decl rule converts the resulting node to a
+   "template" node with templatetype "concept", and registers it in the symbol
+   table.  The constraint subtree is stored in the "constraint" attribute.
+   ------------------------------------------------------------ */
+cpp_concept_decl : CONCEPT idcolon EQUAL constraint SEMI {
+                  $$ = new_node("concept");
+                  Setattr($$, "name", $idcolon);
+                  Setattr($$, "type", NewString("bool"));
+                  Setattr($$, "constraint", $constraint);
+                }
                 ;
 
 template_parms : template_parms_builder {
@@ -4764,7 +5178,51 @@ templateparameter : templcpptype def_args {
 			Setattr(p, "name", t + 1);
 			Setattr(p, "type", NewStringWithSize(type, (int)(t - Char(type))));
 		      }
-		    }
+                    } else {
+                      /* C++20 type-constraint in template parameter list, e.g. 'Numeric T',
+                       * 'std::floating_point T', 'Printable ...Ts'.  The 'parm' rule consumed
+                       * the concept-id as an idcolon style rawtype; the classifier decides
+                       * whether to remap to 'typename T' (or 'v.typename Ts...') plus a
+                       * concept-id constraint atom on the parm's "constraint" attribute
+                       * (the same parm representation promote_abbreviated_template() builds
+                       * for 'Concept auto x'), to leave the parm as a non-type template
+                       * parameter, or to flag the identifier as undeclared. */
+                      SwigType *t = Getattr(p, "type");
+                      int verdict = t ? classify_template_param_type(t) : TPC_KEEP;
+                      if (verdict == TPC_REMAP || verdict == TPC_UNKNOWN) {
+                        /* In keeping with SWIG's "best effort wrap on partial type information" policy,
+                         * the unresolved (TPC_UNKNOWN) case is handled the same way as a confirmed concept
+                         * (TPC_REMAP): rewrite the parm to 'typename T' and attach the captured concept-id
+                         * as a constraint atom on the "constraint" attribute.  Reasoning:
+                         *   - The wrapper SWIG eventually emits invokes the user's templated function
+                         *     literally (e.g. 'cube< int >(arg1)') - whether SWIG saw the concept declaration
+                         *     plays no part in that emission.  If the user's C++ build environment has the
+                         *     concept visible the wrapper compiles; if not, the C++ compiler issues its own
+                         *     clear "does not name a concept" error.
+                         *   - In modern C++ a bare unknown identifier in template-parameter position is far
+                         *     more likely a concept-id than a non-type template parameter type (NTTP) which
+                         *     are almost always primitives or registered typedefs and reach TPC_KEEP via
+                         *     SwigType_type / typedef resolution.  Defaulting to remap therefore has a
+                         *     strictly smaller failure surface than rejecting outright.
+                         * For TPC_UNKNOWN we additionally flag the parm with 'constraint:unresolved' so
+                         * the %template instantiation path can warn about a missing concept-id, noting
+                         * that an unused declaration that happens to reference an unparsed concept is silent. */
+                        SwigType *new_type = NewString("typename");
+                        String *concept_name = Copy(t);
+                        Node *atom = Constraint_new_atom("concept-id");
+                        if (SwigType_isvariadic(t)) {
+                          SwigType_del_variadic(concept_name);
+                          SwigType_add_variadic(new_type);
+                        }
+                        Setattr(atom, "type", concept_name);
+                        Setattr(p, "constraint", atom);
+                        Setattr(p, "type", new_type);
+                        if (verdict == TPC_UNKNOWN)
+                          SetFlag(p, "constraint:unresolved");
+                        Delete(new_type);
+                        Delete(concept_name);
+                      }
+                    }
                   }
                   ;
 
@@ -5065,6 +5523,8 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		Setattr($$,"throw",$ctor_end.throwf);
 		Setattr($$,"noexcept",$ctor_end.nexcept);
 		Setattr($$,"final",$ctor_end.final);
+		if ($ctor_end.constraint_node)
+		  Setattr($$, "constraint", $ctor_end.constraint_node);
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
@@ -5464,6 +5924,68 @@ parm_no_dox	: rawtype parameter_declarator {
 		   if ($parameter_declarator.numdefarg)
 		     Setattr($$, "numval", $parameter_declarator.numdefarg);
 		}
+                | AUTO parameter_declarator {
+                   /* C++14 generic lambda / C++20 abbreviated function template parm, e.g. 'auto x'.  Placed in parm_no_dox
+                    * rather than type_right so it does not collide with the 'storage_class AUTO declarator ...' rules. */
+                   SwigType *t = NewString("auto");
+                   SwigType_push(t, $parameter_declarator.type);
+                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
+                   Setfile($$, cparse_file);
+                   Setline($$, cparse_line);
+                   if ($parameter_declarator.defarg)
+                     Setattr($$, "value", $parameter_declarator.defarg);
+                   if ($parameter_declarator.stringdefarg)
+                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
+                   if ($parameter_declarator.numdefarg)
+                     Setattr($$, "numval", $parameter_declarator.numdefarg);
+                }
+                | idcolon AUTO parameter_declarator {
+                   /* C++20 abbreviated function template with concept type-constraint, e.g. 'Numeric auto x'. */
+                   SwigType *t = NewStringf("c(%s)", $idcolon);
+                   SwigType_push(t, "auto.");
+                   SwigType_push(t, $parameter_declarator.type);
+                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
+                   Setfile($$, cparse_file);
+                   Setline($$, cparse_line);
+                   if ($parameter_declarator.defarg)
+                     Setattr($$, "value", $parameter_declarator.defarg);
+                   if ($parameter_declarator.stringdefarg)
+                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
+                   if ($parameter_declarator.numdefarg)
+                     Setattr($$, "numval", $parameter_declarator.numdefarg);
+                }
+                | type_qualifier AUTO parameter_declarator {
+                   /* C++20 abbreviated function template with a CV-qualifier on the auto placeholder, e.g.
+                    * 'const auto x', 'const auto& x', 'volatile auto* x'. */
+                   SwigType *t = NewString("auto");
+                   SwigType_push(t, $type_qualifier);
+                   SwigType_push(t, $parameter_declarator.type);
+                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
+                   Setfile($$, cparse_file);
+                   Setline($$, cparse_line);
+                   if ($parameter_declarator.defarg)
+                     Setattr($$, "value", $parameter_declarator.defarg);
+                   if ($parameter_declarator.stringdefarg)
+                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
+                   if ($parameter_declarator.numdefarg)
+                     Setattr($$, "numval", $parameter_declarator.numdefarg);
+                }
+                | type_qualifier idcolon AUTO parameter_declarator {
+                   /* C++20 abbreviated function template with a CV-qualified type-constraint, e.g. 'const Numeric auto& x'. */
+                   SwigType *t = NewStringf("c(%s)", $idcolon);
+                   SwigType_push(t, "auto.");
+                   SwigType_push(t, $type_qualifier);
+                   SwigType_push(t, $parameter_declarator.type);
+                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
+                   Setfile($$, cparse_file);
+                   Setline($$, cparse_line);
+                   if ($parameter_declarator.defarg)
+                     Setattr($$, "value", $parameter_declarator.defarg);
+                   if ($parameter_declarator.stringdefarg)
+                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
+                   if ($parameter_declarator.numdefarg)
+                     Setattr($$, "numval", $parameter_declarator.numdefarg);
+                }
                 | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParmWithoutFileLineInfo(t, 0);
@@ -6101,12 +6623,13 @@ direct_declarator : idcolon {
 		    }
 		  }
                  /* User-defined string literals. eg.
-                    int operator"" _mySuffix(const char* val, int length) {...} */
+                    int operator""_mySuffix(const char* val, int length) {...}
+                    The whitespace form 'operator "" _suffix' is deprecated by CWG2521 (applied to
+                    C++23), so SWIG emits the joined form: 'operator ""_suffix'. */
 		 /* This produces one S/R conflict. */
                  | OPERATOR ID LPAREN parms RPAREN {
 		    $$ = default_decl;
 		    SwigType *t;
-                    Append($OPERATOR, " "); /* intervening space is mandatory */
 		    Append($OPERATOR, $ID);
 		    $$.id = Char($OPERATOR);
 		    t = NewStringEmpty();
@@ -6805,6 +7328,102 @@ exprmem        : idcolon ARROW ID {
 	       }
 	       ;
 
+/* ------------------------------------------------------------
+   C++20 constraint-expression and requires-expression productions.
+
+   The constraint grammar has its own logical-or / logical-and / primary
+   layering, distinct from the regular C++ expression grammar (which uses
+   '||' and '&&' too but reaches them through valexpr).  Keeping the two
+   subgrammars disjoint avoids shift/reduce conflicts: nothing in the
+   constraint subgrammar reduces from valexpr or vice versa.
+
+   constraint_primary uses idcolon directly for concept-ids; idcolon's
+   existing 'identifier less_valparms_greater' alternative covers
+   concept-id template-argument-lists like 'Numeric<T>' without needing
+   a separate LESSTHAN production here.
+
+   The requirement-body of a requires-expression is captured opaquely at
+   the scanner level: SWIG does not need to evaluate the individual
+   requirements, and reusing valexpr inside the requirement grammar
+   would reintroduce expression vs constraint conflicts.  parse_requirement_seq()
+   in cscanner.c walks the captured text and returns a chain of structured
+   "requirement" nodes (kind="simple"/"type"/"compound"/"nested").
+   ------------------------------------------------------------ */
+constraint     : constraint_or
+               ;
+
+constraint_or  : constraint_and
+               | constraint_or LOR constraint_and {
+                    $$ = Constraint_combine("or", $1, $3);
+                 }
+               ;
+
+constraint_and : constraint_primary
+               | constraint_and LAND constraint_primary {
+                    $$ = Constraint_combine("and", $1, $3);
+                 }
+               ;
+
+constraint_primary : idcolon {
+                    /* idcolon's value is a SwigType encoded concept-id (e.g. 'AllNumeric<(T,v.Rest)>'),
+                       so it lives on a "type" attribute, not "name". */
+                    $$ = Constraint_new_atom("concept-id");
+                    Setattr($$, "type", $idcolon);
+                 }
+               | LPAREN <node>{
+                    /* Parenthesised primary - opaque captured at the scanner
+                     * level so the body can be any C++ expression, not only a
+                     * constraint.  This handles forms like '(sizeof(T) <= 4)'
+                     * that are valid constraint primaries but not constraint
+                     * expressions, and avoids the LALR(1) conflict between
+                     * 'LPAREN constraint RPAREN' and an expression alternative.
+                     * The captured text retains its surrounding parens. */
+                    String *captured;
+                    if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+                    captured = Copy(scanner_ccode);
+                    $$ = Constraint_new_atom("expression");
+                    Setattr($$, "value", captured);
+                    Delete(captured);
+                 }[atom] {
+                    $$ = $atom;
+                 }
+               | requires_expression {
+                    $$ = Constraint_new_atom("requires-expression");
+                    appendChild($$, $requires_expression);
+                 }
+               ;
+
+requires_expression : REQUIRES requirement_parameter_list_opt requirement_body {
+                    $$ = Constraint_new_requires_expression();
+                    if ($requirement_parameter_list_opt)
+                      Setattr($$, "parms", $requirement_parameter_list_opt);
+                    {
+                      Node *r = $requirement_body;
+                      while (r) {
+                        Node *next = nextSibling(r);
+                        set_nextSibling(r, 0);
+                        set_previousSibling(r, 0);
+                        appendChild($$, r);
+                        r = next;
+                      }
+                    }
+                 }
+               ;
+
+requirement_parameter_list_opt : LPAREN parms RPAREN {
+                    $$ = $parms;
+                 }
+               | %empty {
+                    $$ = 0;
+                 }
+               ;
+
+requirement_body : LBRACE {
+                    if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
+                    $$ = parse_requirement_seq(scanner_ccode);
+                 }
+               ;
+
 /* Non-compound expression */
 exprsimple     : exprnum
                | exprmem
@@ -6880,6 +7499,21 @@ exprsimple     : exprnum
 
 valexpr        : exprsimple
 	       | exprcompound
+
+/* ------------------------------------------------------------
+   C++20 requires-expression as a primary.  The structured node is built by
+   the requires_expression production but its children do not affect the
+   value position semantics: SWIG cannot evaluate the requirement body, so
+   the val rendered for downstream is an empty string typed as bool, and
+   the C++ compiler decides at instantiation time whether the expression
+   is true or false.
+   ------------------------------------------------------------ */
+               | requires_expression {
+		    $$ = default_dtype;
+		    $$.val = NewString("");
+		    $$.type = T_BOOL;
+		    Delete($requires_expression);
+	       }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
@@ -7468,6 +8102,21 @@ virt_specifier_seq_opt : virt_specifier_seq
                }
                ;
 
+/* ------------------------------------------------------------
+   Optional C++20 prefix requires-clause that may appear between the closing
+   '>' of a template parameter list and the constrained declaration.  The
+   constraint expression is parsed structurally as a constraint subtree, so
+   the wrapping cpp_template_decl rule can attach it to the resulting node.
+   Returns NULL when no clause is present.
+   ------------------------------------------------------------ */
+requires_clause_opt : REQUIRES constraint {
+                   $$ = $constraint;
+               }
+               | %empty {
+                   $$ = 0;
+               }
+               ;
+
 class_virt_specifier_opt : FINAL {
                    $$ = NewString("1");
                }
@@ -7522,22 +8171,31 @@ qualifiers_exception_specification : cv_ref_qualifier {
                ;
 
 cpp_const      : qualifiers_exception_specification
+               | qualifiers_exception_specification REQUIRES constraint {
+                 $$ = $qualifiers_exception_specification;
+                 $$.constraint_node = $constraint;
+               }
+               | REQUIRES constraint {
+                 $$ = default_dtype;
+                 $$.constraint_node = $constraint;
+               }
                | %empty {
                  $$ = default_dtype;
                }
                ;
 
-ctor_end       : cpp_const ctor_initializer SEMI { 
-                    Clear(scanner_ccode); 
+ctor_end       : cpp_const ctor_initializer SEMI {
+                    Clear(scanner_ccode);
 		    $$ = default_decl;
 		    $$.throws = $cpp_const.throws;
 		    $$.throwf = $cpp_const.throwf;
 		    $$.nexcept = $cpp_const.nexcept;
 		    $$.final = $cpp_const.final;
+		    $$.constraint_node = $cpp_const.constraint_node;
                     if ($cpp_const.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
-               | cpp_const ctor_initializer LBRACE { 
+               | cpp_const ctor_initializer LBRACE {
                     if ($cpp_const.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                     if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
@@ -7546,6 +8204,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.throwf = $cpp_const.throwf;
                     $$.nexcept = $cpp_const.nexcept;
                     $$.final = $cpp_const.final;
+		    $$.constraint_node = $cpp_const.constraint_node;
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 

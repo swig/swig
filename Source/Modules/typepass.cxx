@@ -712,6 +712,10 @@ class TypePass : private Dispatcher {
       String *rname = SwigType_typedef_resolve_all(name);
       SwigType_typedef_class(rname);
       Delete(rname);
+    } else if (Strcmp(ttype, "concept") == 0) {
+      /* A C++20 concept is a constexpr bool, not a type, so no typedef class
+         registration is needed; the branch is here to mark "concept" as a
+         known templatetype. */
     }
     return SWIG_OK;
   }

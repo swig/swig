@@ -88,7 +88,7 @@ void test_list() {
 
     PlainStruct ps;
     int myint = 0;
-    std::string mystring = 0;
+    std::string mystring;
     Lyst<PlainStruct *>().specialized1(ps, Allocator<PlainStruct *>());
     Lyst<double **>().specialized2(mydouble, (double **)0);
     Lyst<const int&>().specialized3(myint);

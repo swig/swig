@@ -669,11 +669,14 @@ CPP11_TEST_CASES += \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
+	cpp11_std_function \
 	cpp11_std_unique_ptr \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_pack \
+	cpp11_template_pack_specialization \
 	cpp11_template_parameters_decltype \
 	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
@@ -695,6 +698,8 @@ CPP11_TEST_BROKEN = \
 CPP14_TEST_CASES += \
 	cpp14_auto_return_type \
 	cpp14_binary_integer_literals \
+	cpp14_generic_lambda \
+	cpp14_variable_templates \
 
 # Broken C++14 test cases.
 CPP14_TEST_BROKEN = \
@@ -715,9 +720,20 @@ CPP17_TEST_BROKEN = \
 
 # C++20 test cases.
 CPP20_TEST_CASES += \
+	cpp20_abbreviated_template \
+	cpp20_abbreviated_template_decorated \
+	cpp20_abbreviated_template_mixed \
+	cpp20_concepts \
+	cpp20_concepts_class_methods \
+	cpp20_concepts_classes \
+	cpp20_concepts_constrained_param \
+	cpp20_concepts_extra \
+	cpp20_concepts_lambda \
+	cpp20_concepts_overloads \
 	cpp20_constexpr_destructor \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
+	cpp20_variable_templates \
 
 # Broken C++20 test cases.
 CPP20_TEST_BROKEN = \

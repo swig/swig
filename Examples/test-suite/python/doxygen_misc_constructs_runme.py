@@ -3,6 +3,7 @@ import inspect
 import string
 import sys
 import comment_verifier
+from swig_test_utils import swig_check
 
 
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.getAddress),
@@ -141,3 +142,19 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_with_triple_qu
 
     """How quaint"""'''
 );
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.FileHeaderTestClass),
+    r"""This is the real class description."""
+)
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.SlashFileHeaderTestClass),
+    r"""Real class description (slash style)."""
+)
+
+comment_verifier.check(doxygen_misc_constructs.GroupedMembers.loggingMember1.__doc__,
+    r"""Doc for the first grouped member."""
+)
+comment_verifier.check(doxygen_misc_constructs.GroupedMembers.loggingMember2.__doc__,
+    r"""Doc for the second grouped member."""
+)
+swig_check(inspect.getdoc(doxygen_misc_constructs.GroupedMembers), None)

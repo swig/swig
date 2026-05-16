@@ -91,6 +91,7 @@ FAILING_CPP_TESTS := \
     cpp11_rvalue_reference \
     cpp11_rvalue_reference2 \
     cpp11_rvalue_reference3 \
+    cpp11_template_pack \
     cpp11_type_aliasing \
 
 # Ignore warnings about failing to apply typemaps because none are defined:
