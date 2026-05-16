@@ -1,0 +1,392 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SWIG and Objective-C</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body bgcolor="#FFFFFF">
+<H1><a name="ObjectiveC">41 SWIG and Objective-C</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#ObjectiveC_overview">Overview</a>
+<li><a href="#ObjectiveC_examples">Examples</a>
+<li><a href="#ObjectiveC_running_swig">Running SWIG with Objective-C</a>
+<ul>
+<li><a href="#ObjectiveC_commandline">Objective-C command line options</a>
+<li><a href="#ObjectiveC_outputs">Generated files</a>
+<li><a href="#ObjectiveC_compiling">Compiling a module</a>
+</ul>
+<li><a href="#ObjectiveC_basic_tour">A tour of basic C/C++ wrapping</a>
+<ul>
+<li><a href="#ObjectiveC_functions">Functions</a>
+<li><a href="#ObjectiveC_variables">Global variables</a>
+<li><a href="#ObjectiveC_constants">Constants and enums</a>
+<li><a href="#ObjectiveC_classes">Structures and C++ classes</a>
+<li><a href="#ObjectiveC_memory">Memory management</a>
+<li><a href="#ObjectiveC_inheritance">Inheritance</a>
+<li><a href="#ObjectiveC_templates">Templates</a>
+<li><a href="#ObjectiveC_stl">STL and smart pointers</a>
+<li><a href="#ObjectiveC_directors">Directors</a>
+</ul>
+<li><a href="#ObjectiveC_typemaps">Objective-C typemaps</a>
+<li><a href="#ObjectiveC_foundation">Foundation headers and naming</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<p>
+This chapter describes SWIG's Objective-C module. The module generates
+Objective-C proxy classes and Objective-C++ wrapper code for calling existing
+C and C++ libraries from Objective-C applications.
+</p>
+
+<p>
+Objective-C is currently an experimental target language. The module supports
+the core SWIG wrapping model, examples and test-suite coverage described here,
+but it should continue to mature before being treated as a fully supported
+target with long-term backwards compatibility guarantees.
+</p>
+
+<p>
+The generated code is intended for manual reference-counted Objective-C code.
+It can be used from Automatic Reference Counting projects by compiling the
+generated proxy implementation files with ARC disabled.
+</p>
+
+<H2><a name="ObjectiveC_overview">41.1 Overview</a></H2>
+
+
+<p>
+Objective-C support is selected with the <tt>-objc</tt> option. The default
+mode generates both the C/C++ wrapper layer and an Objective-C proxy layer.
+The proxy layer exposes C functions, C variables, constants, enums, structures,
+C++ classes, inheritance and selected standard library types as Objective-C
+interfaces.
+</p>
+
+<p>
+The Objective-C module supports directors for cross-language polymorphism. A
+C++ virtual method can call back into an Objective-C subclass when the class is
+wrapped with director support enabled.
+</p>
+
+<H2><a name="ObjectiveC_examples">41.2 Examples</a></H2>
+
+
+<p>
+Examples are provided in the SWIG source tree under <tt>Examples/objc</tt>.
+The <tt>simple</tt> example demonstrates C function and variable wrapping. The
+<tt>class</tt> example demonstrates C++ class wrapping. Additional examples
+cover callbacks, constants, enums, pointers, references, templates and global
+variables.
+</p>
+
+<H2><a name="ObjectiveC_running_swig">41.3 Running SWIG with Objective-C</a></H2>
+
+
+<p>
+For a C interface file:
+</p>
+
+<div class="code"><pre>
+$ swig -objc example.i
+</pre></div>
+
+<p>
+For a C++ interface file:
+</p>
+
+<div class="code"><pre>
+$ swig -c++ -objc example.i
+</pre></div>
+
+<H3><a name="ObjectiveC_commandline">41.3.1 Objective-C command line options</a></H3>
+
+
+<p>
+The Objective-C-specific options are:
+</p>
+
+<table summary="Objective-C specific options">
+<tr>
+<th>Objective-C specific options</th>
+</tr>
+
+<tr>
+<td>-noproxy</td>
+<td>Do not generate Objective-C proxy files. Only the lower-level wrapper files are generated.</td>
+</tr>
+</table>
+
+<p>
+These options can also be shown by running:
+</p>
+
+<div class="code"><pre>
+$ swig -objc -help
+</pre></div>
+
+<H3><a name="ObjectiveC_outputs">41.3.2 Generated files</a></H3>
+
+
+<p>
+For a module named <tt>example</tt>, SWIG normally generates these files:
+</p>
+
+<table summary="Objective-C generated files">
+<tr>
+<th>File</th>
+<th>Description</th>
+</tr>
+
+<tr>
+<td>example_wrap.h</td>
+<td>C declarations for the lower-level wrapper interface.</td>
+</tr>
+
+<tr>
+<td>example_wrap.mm</td>
+<td>Objective-C++ implementation of the lower-level wrapper interface.</td>
+</tr>
+
+<tr>
+<td>example_proxy.h</td>
+<td>Objective-C declarations for the generated proxy API.</td>
+</tr>
+
+<tr>
+<td>example_proxy.mm</td>
+<td>Objective-C++ implementation of the generated proxy API.</td>
+</tr>
+</table>
+
+<p>
+When <tt>-noproxy</tt> is used, only the lower-level wrapper files are
+generated.
+</p>
+
+<H3><a name="ObjectiveC_compiling">41.3.3 Compiling a module</a></H3>
+
+
+<p>
+On macOS, the generated wrapper and proxy implementation files can be compiled
+with an Objective-C compiler and linked with Foundation:
+</p>
+
+<div class="code"><pre>
+$ swig -c++ -objc example.i
+$ clang++ -c example_wrap.mm example_proxy.mm -I.
+$ clang++ -dynamiclib example_wrap.o example_proxy.o -framework Foundation -o libexample.dylib
+$ clang -x objective-c runme.m -I. -L. -lexample -framework Foundation -o runme
+</pre></div>
+
+<p>
+When the wrapped library is written in C rather than C++, the generated wrapper
+file still uses the <tt>.mm</tt> extension and can be compiled as Objective-C.
+This lets the proxy implementation and the wrapper implementation share the
+same Objective-C runtime support.
+</p>
+
+<H2><a name="ObjectiveC_basic_tour">41.4 A tour of basic C/C++ wrapping</a></H2>
+
+
+<H3><a name="ObjectiveC_functions">41.4.1 Functions</a></H3>
+
+
+<p>
+C global functions are emitted as Objective-C functions in the proxy layer. To
+avoid collisions with ordinary C function names, non-accessor proxy functions
+are prefixed with <tt>Objc</tt>.
+</p>
+
+<H3><a name="ObjectiveC_variables">41.4.2 Global variables</a></H3>
+
+
+<p>
+Global variables are exposed through getter and setter proxy functions. For a
+variable named <tt>value</tt>, the proxy layer emits <tt>getValue()</tt> and
+<tt>setValue(...)</tt> where the input variable is mutable. Variables marked
+with <tt>%immutable</tt> only receive a getter.
+</p>
+
+<H3><a name="ObjectiveC_constants">41.4.3 Constants and enums</a></H3>
+
+
+<p>
+Simple numeric constants and enums are emitted into the proxy API. Constants
+which cannot be represented as Objective-C compile-time initializers are exposed
+through generated accessor functions.
+</p>
+
+<H3><a name="ObjectiveC_classes">41.4.4 Structures and C++ classes</a></H3>
+
+
+<p>
+Structures and C++ classes are represented by Objective-C proxy classes. Each
+proxy object stores the underlying C/C++ pointer and an ownership flag. Public
+constructors are mapped to Objective-C initializers and public methods are
+mapped to instance or class methods.
+</p>
+
+<H3><a name="ObjectiveC_memory">41.4.5 Memory management</a></H3>
+
+
+<p>
+Proxy objects use manual reference counting. A proxy owns the C/C++ object when
+it is created by a generated constructor or when a typemap explicitly transfers
+ownership. The generated <tt>dealloc</tt> method deletes the underlying C/C++
+object only when the proxy owns it.
+</p>
+
+<p>
+The generated proxy classes also provide <tt>swigRelease</tt> methods which
+detach ownership from the Objective-C proxy and return the raw C/C++ pointer.
+</p>
+
+<H3><a name="ObjectiveC_inheritance">41.4.6 Inheritance</a></H3>
+
+
+<p>
+The Objective-C module mirrors C++ single inheritance using Objective-C
+inheritance where possible. For multiple C++ bases, the generated proxy class
+stores additional base-class pointers and emits conversion accessors, because
+Objective-C classes can have only one superclass.
+</p>
+
+<H3><a name="ObjectiveC_templates">41.4.7 Templates</a></H3>
+
+
+<p>
+Template instantiations are wrapped using the standard SWIG template
+declarations. The generated Objective-C proxy class names are derived from the
+SWIG symbol names, so <tt>%rename</tt> can be used to choose Objective-C API
+names for template specializations.
+</p>
+
+<H3><a name="ObjectiveC_stl">41.4.8 STL and smart pointers</a></H3>
+
+
+<p>
+The Objective-C library includes support files for common C++ standard library
+types including <tt>std::string</tt>, <tt>std::wstring</tt>,
+<tt>std::vector</tt>, <tt>std::deque</tt>, <tt>std::map</tt> and
+<tt>std::pair</tt>. The library also includes support for
+<tt>std::auto_ptr</tt> and <tt>boost::shared_ptr</tt>.
+</p>
+
+<H3><a name="ObjectiveC_directors">41.4.9 Directors</a></H3>
+
+
+<p>
+Directors are enabled in the usual SWIG way with the <tt>-directors</tt>
+command-line option and <tt>%feature("director")</tt> on the classes which
+need Objective-C overrides.
+</p>
+
+<div class="code"><pre>
+%module(directors="1") example
+%feature("director") Base;
+</pre></div>
+
+<p>
+When a director-enabled C++ virtual method is called, the director checks
+whether the Objective-C object overrides the corresponding selector. If it
+does, the call is dispatched to the Objective-C method; otherwise the C++ base
+implementation is used.
+</p>
+
+<H2><a name="ObjectiveC_typemaps">41.5 Objective-C typemaps</a></H2>
+
+
+<p>
+The Objective-C module uses a family of typemaps to translate between C/C++
+types, wrapper function types and Objective-C proxy types.
+</p>
+
+<table summary="Objective-C typemaps">
+<tr>
+<th>Typemap</th>
+<th>Purpose</th>
+</tr>
+
+<tr>
+<td>imtype</td>
+<td>The lower-level wrapper function type.</td>
+</tr>
+
+<tr>
+<td>objctype</td>
+<td>The public Objective-C proxy type.</td>
+</tr>
+
+<tr>
+<td>in</td>
+<td>Convert wrapper arguments to C/C++ arguments.</td>
+</tr>
+
+<tr>
+<td>out</td>
+<td>Convert C/C++ return values to wrapper return values.</td>
+</tr>
+
+<tr>
+<td>objcin</td>
+<td>Convert Objective-C proxy values to wrapper argument values.</td>
+</tr>
+
+<tr>
+<td>objcout</td>
+<td>Convert wrapper return values to Objective-C proxy values.</td>
+</tr>
+
+<tr>
+<td>objcdirectorin</td>
+<td>Convert C++ director callback arguments to Objective-C values.</td>
+</tr>
+
+<tr>
+<td>objcdirectorout</td>
+<td>Convert Objective-C director callback return values to C++ values.</td>
+</tr>
+</table>
+
+<p>
+Additional class customization typemaps such as <tt>objcbase</tt>,
+<tt>objcprotocols</tt>, <tt>objcinterfacecode</tt>,
+<tt>objcimplementationcode</tt> and <tt>objcdestructor</tt> can be used to
+customize generated proxy classes.
+</p>
+
+<H2><a name="ObjectiveC_foundation">41.6 Foundation headers and naming</a></H2>
+
+
+<p>
+Objective-C user code commonly imports Foundation before importing generated
+proxy headers:
+</p>
+
+<div class="code"><pre>
+#import &lt;Foundation/Foundation.h&gt;
+#import "example_proxy.h"
+</pre></div>
+
+<p>
+The generated proxy headers avoid importing Foundation directly. This keeps
+common C and C++ identifiers from being accidentally hidden by Foundation or
+system C header macros. Instead, the proxy headers use lightweight forward
+declarations for Foundation classes such as <tt>NSString</tt>,
+<tt>NSArray</tt>, <tt>NSData</tt> and <tt>NSException</tt>.
+</p>
+
+<p>
+Some Objective-C and Foundation names are reserved by the Objective-C backend.
+If user code wraps a C/C++ symbol with a reserved name, SWIG renames the
+generated Objective-C symbol and emits the standard keyword warning.
+</p>
+
+</body>
+</html>

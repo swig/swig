@@ -1233,7 +1233,7 @@ fi
 # Allow using 'System.loadLibrary', which is marked restricted!
 # https://docs.oracle.com/en/java/javase/25/core/restricted-methods.html
 # https://bugs.openjdk.org/browse/JDK-8317242
-if test $JAVA_VERSION_MAJOR -gt 21; then
+if test -n "$JAVA_VERSION_MAJOR" && test $JAVA_VERSION_MAJOR -gt 21; then
     JAVAC_OPTIONS+=" -Xlint:-restricted"
     JAVAFLAGS+=" --enable-native-access=ALL-UNNAMED"
 fi
