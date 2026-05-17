@@ -102,6 +102,7 @@ public class runme
     if (myCaller.ValCall(dh).val != dh.val) throw new Exception("failed");
     if (myCaller.RefCall(dh).val != dh.val) throw new Exception("failed");
     if (myCaller.PtrCall(dh).val != dh.val) throw new Exception("failed");
+    if (myCaller.ConstPtrCall(dh).val != dh.val) throw new Exception("failed");
     if (myCaller.ConstPtrRefCall(dh).val != dh.val) throw new Exception("failed");
 
     // Fully overloaded method test (all methods in base class are overloaded)
@@ -144,6 +145,11 @@ public class CSharpDerived : Base
   public override DoubleHolder Ptr(DoubleHolder x)
   {
     if (director_classes.PrintDebug) Console.WriteLine("CSharpDerived - Ptr({0})", x.val);
+    return x;
+  }
+  public override DoubleHolder ConstPtr(DoubleHolder x)
+  {
+    if (director_classes.PrintDebug) Console.WriteLine("CSharpDerived - ConstPtr({0})", x.val);
     return x;
   }
   public override DoubleHolder ConstPtrRef(DoubleHolder x)
