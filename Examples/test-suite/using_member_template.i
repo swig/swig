@@ -14,14 +14,14 @@ struct Impl {};
 
 struct Base {
   template <typename T>
-  T *getImpl() const { return nullptr; }
+  T *getImpl() const { return 0; }
 };
 
 struct Derived : public Base {
   using Base::getImpl;
 
 protected:
-  Impl *getImpl() const { return nullptr; }
+  Impl *getImpl() const { return 0; }
 };
 
 // A further-derived class exercises the inherited using declaration path.
