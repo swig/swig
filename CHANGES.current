@@ -97,6 +97,14 @@ Version 4.5.0 (in progress)
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 
+2026-05-18: wsfulton
+            [Python] Doxygen comments on constructors are now emitted on
+            __init__ when wrapping with -builtin, matching the default
+            (non-builtin) behaviour.  Previously inspect.getdoc(Cls.__init__)
+            returned the generic "Initialize self.  See help(type(self)) for
+            accurate signature." regardless of the Doxygen documentation on
+            the C++ constructor.
+
 2026-05-15: blowekamp
             [R] #3407 Fix compilation with R 4.6.0 which removed the non-API macro
             SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.

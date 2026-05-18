@@ -4211,6 +4211,27 @@ public:
     Printf(f, "  return result;\n");
     Printf(f, "}\n\n");
 
+    /* For adding docstrings to constructor wrappers:
+       We can't just append {"__init__", ..., "doc"} to the tp_methods array as PyType_Ready
+       installs a wrapper_descriptor for tp_init in tp_dict["__init__"] with a fixed generic doc.
+       When the Python interpreter then adds the methods in the tp_methods, the "__init__" entry
+       is silently dropped as it already exists.
+
+       Instead, emit an adapter for tp_init and a standalone PyMethodDef and overwrite the slot
+       after PyType_Ready has been called. type.__call__ keeps using the tp_init slot directly, so
+       instantiation is unaffected. */
+    String *tp_init_doc = Getattr(n, "python:tp_init_doc");
+    if (tp_init_doc && builtin_tp_init) {
+      Printf(f, "SWIGINTERN PyObject *%s_pyinit_wrapper(PyObject *self, PyObject *args, PyObject *kwargs) {\n", templ);
+      Printf(f, "  if (%s(self, args, kwargs) < 0) return NULL;\n", builtin_tp_init);
+      Printf(f, "  Py_RETURN_NONE;\n");
+      Printf(f, "}\n");
+      Printf(f, "\n");
+      Printf(f, "SWIGINTERN PyMethodDef %s_pyinit_methoddef = {\n", templ);
+      Printf(f, "  \"__init__\", (PyCFunction)(void(*)(void))%s_pyinit_wrapper, METH_VARARGS|METH_KEYWORDS, \"%s\"\n", templ, tp_init_doc);
+      Printf(f, "};\n\n");
+    }
+
     // Methods
     Printf(f, "SWIGINTERN PyMethodDef %s_methods[] = {\n", templ);
     Dump(builtin_methods, f);
@@ -4701,6 +4722,20 @@ public:
     Printv(f_init, "      return -1;\n", NIL);
     Printf(f_init, "    }\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
+    if (Getattr(n, "python:tp_init_doc")) {
+      /* Replace the default tp_init slot wrapper for __init__ with a method descriptor that carries
+         the doxygen docstring. type.__call__ still uses the tp_init slot for instantiation. */
+      Printf(f_init, "    {\n");
+      Printf(f_init, "      PyObject *init_desc = PyDescr_NewMethod(builtin_pytype, &%s_pyinit_methoddef);\n", templ);
+      Printf(f_init, "      if (!init_desc) return -1;\n");
+      Printf(f_init, "      if (PyDict_SetItemString(builtin_pytype->tp_dict, \"__init__\", init_desc) != 0) {\n");
+      Printf(f_init, "        SWIG_Py_DECREF(init_desc);\n");
+      Printf(f_init, "        return -1;\n");
+      Printf(f_init, "      }\n");
+      Printf(f_init, "      SWIG_Py_DECREF(init_desc);\n");
+      Printf(f_init, "      PyType_Modified(builtin_pytype);\n");
+      Printf(f_init, "    }\n");
+    }
     Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
@@ -5306,6 +5341,18 @@ public:
           }
         }
         Delete(subfunc);
+      }
+
+      if (builtin && in_class) {
+        if (Node *node_with_doc = find_overload_with_docstring(n)) {
+          Node *cls = getCurrentClass();
+          if (cls && !Getattr(cls, "python:tp_init_doc")) {
+            String *ds = cdocstring(node_with_doc, AUTODOC_CTOR);
+            if (ds && Len(ds) > 0)
+              Setattr(cls, "python:tp_init_doc", ds);
+            Delete(ds);
+          }
+        }
       }
     }
     return SWIG_OK;

@@ -760,6 +760,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_translate_style2 \
 	doxygen_basic_translate_style3 \
 	doxygen_code_blocks \
+	doxygen_constructors \
 	doxygen_ignore \
 	doxygen_interface \
 	doxygen_misc_constructs \
