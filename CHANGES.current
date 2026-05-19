@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-19: jmarrec
+            #3415 Fix segmentation fault when a class declares a public
+            'using Base::method;' that names a base-class member template with
+            no %template instantiations and also declares a protected concrete
+            override of the same name.
+
 2026-05-16: erezgeva
             [Lua, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] #3409 Add memory allocation
             failure protection to the argcargv typemaps and to the string duplication paths
