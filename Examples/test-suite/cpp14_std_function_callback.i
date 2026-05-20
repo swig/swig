@@ -1,5 +1,8 @@
-/* Test std_function support for Lua */
-%module(directors="1") lua_std_function
+/* Test std_function callback support (Lua -> C++ direction).
+ * This tests the %std_function macro which allows passing target language
+ * functions directly where C++ expects std::function parameters.
+ * Requires C++14 (generic lambdas, init-captures in generated code). */
+%module(directors="1") cpp14_std_function_callback
 
 %include <std_string.i>
 %include <std_function.i>

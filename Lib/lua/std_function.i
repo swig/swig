@@ -1,30 +1,46 @@
 /* -----------------------------------------------------------------------------
  * std_function.i
  *
- * SWIG typemaps for std::function in Lua.
+ * Lua-specific std::function support.
  *
- * Provides the %std_function(Name, Ret, ...) macro to wrap
- * std::function<Ret(Args...)> so that plain Lua functions can be passed
- * directly where C++ expects a std::function parameter.
+ * This file first includes the generic std::function support from
+ * Lib/std/std_function.i (which provides %template-based wrapping of
+ * std::function objects returned from C++), then adds Lua-specific typemaps
+ * that allow passing plain Lua functions directly where C++ expects a
+ * std::function parameter.
  *
- * Usage example:
+ * The generic support covers:
+ *   C++ -> Lua: C++ returns a std::function, Lua receives a wrapped object
+ *               and can call it via :call() or via the __call metamethod.
+ *
+ * This file adds:
+ *   Lua -> C++: Lua passes a plain function where C++ expects std::function.
+ *               The conversion is automatic and transparent to the user.
+ *
+ * Usage for Lua->C++ direction (the %std_function macro):
  *   %std_function(IntCallback, int, int)
  *   // This wraps std::function<int(int)>
  *   // C++ side: int callMe(std::function<int(int)> cb) { return cb(42); }
  *   // Lua side: result = module.callMe(function(x) return x * 2 end)
  *
- * Requirements:
+ * Requirements for %std_function macro:
  *   - Directors must be enabled: %module(directors="1")
  *   - C++14 or later (uses generic lambdas with parameter packs)
+ *
+ * Usage for C++->Lua direction (generic %template approach):
+ *   %template(MyFunc) std::function<bool(int, const std::string &)>;
+ *   // C++ side: std::function<...> makeFunc() { ... }
+ *   // Lua side: local fn = module.makeFunc(); fn:call(42, "hello")
  * ----------------------------------------------------------------------------- */
+
+/* Include the generic (language-independent) std::function support first.
+ * This provides the std::function template class definition, %rename(call),
+ * and the %template instantiation mechanism. */
+%include <std/std_function.i>
 
 %{
 #include <functional>
 #include <memory>
-
-#ifndef SWIG_DIRECTORS
-#error "Directors must be enabled in your SWIG module for std_function.i to work correctly"
-#endif
 %}
 
 /* Fragment containing all helper functions for std_function support. */

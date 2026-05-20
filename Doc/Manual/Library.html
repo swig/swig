@@ -2529,8 +2529,10 @@ Limitations and notes:
 through to the empty primary template and produces no useful interface.</li>
 <li>The wrapper does not let target-language code construct a
 <tt>std::function</tt> from a target-language callable. <tt>std::function</tt>
-moves a C++ callable <i>out</i> to the target language; to go the other way,
-see
+moves a C++ callable <i>out</i> to the target language; to go the other way
+(pass a target-language function to C++ as a <tt>std::function</tt>), see the
+<a href="#Library_std_function_callback">%std_function callback macro</a> below,
+or alternatively
 <a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
 or
 <a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.</li>
@@ -2540,6 +2542,141 @@ or
 <b>Compatibility note:</b> SWIG-4.5.0 is the first version to add
 <tt>std_function.i</tt> so that
 <tt>std::function</tt> can be usefully used.
+</p>
+
+<H4><a name="Library_std_function_callback">12.5.8.1 Passing target language functions to C++ (std::function callbacks)</a></H4>
+
+<p>
+Some language modules extend the base <tt>std_function.i</tt> support with
+the ability to pass a target-language function directly where C++ expects a
+<tt>std::function</tt> parameter. This is the reverse direction: instead of C++
+returning a callable to the target language, the target language <i>passes</i>
+a callable <i>to</i> C++.
+</p>
+
+<p>
+This is achieved via the <tt>%std_function</tt> macro, which uses directors
+internally to create a transparent bridge. The user simply passes a native
+function and the macro-generated typemaps handle the conversion automatically.
+</p>
+
+<p>
+<b>Requirements:</b>
+</p>
+
+<ul>
+<li>Directors must be enabled: <tt>%module(directors="1")</tt></li>
+<li>C++14 or later (the generated wrapper code uses generic lambdas and init-captures)</li>
+<li>The language module must provide the language-specific <tt>std_function.i</tt></li>
+</ul>
+
+<p>
+<b>Usage:</b>
+</p>
+
+<div class="code"><pre>
+%module(directors="1") example
+%include &lt;std_function.i&gt;
+
+// Declare a std::function type with a name, return type, and argument types
+%std_function(IntCallback, int, int)
+// This declares support for std::function&lt;int(int)&gt;
+
+%inline %{
+int callMe(std::function&lt;int(int)&gt; cb) {
+  return cb(42);
+}
+%}
+</pre></div>
+
+<p>
+From Lua, a plain function can now be passed directly:
+</p>
+
+<div class="targetlang"><pre>
+-- Lua: pass a function directly where C++ expects std::function
+local result = example.callMe(function(x) return x * 2 end)
+-- result is 84
+</pre></div>
+
+<p>
+The <tt>%std_function(Name, Ret, ...)</tt> macro takes three kinds of arguments:
+</p>
+
+<ul>
+<li><tt>Name</tt> &mdash; A unique identifier for this std::function specialization (e.g. <tt>IntCallback</tt>)</li>
+<li><tt>Ret</tt> &mdash; The return type of the function</li>
+<li><tt>...</tt> &mdash; The argument types (comma-separated)</li>
+</ul>
+
+<p>
+The macro generates:
+</p>
+
+<ul>
+<li>A director-enabled handler class (<tt>Name</tt>) with a virtual <tt>Invoke</tt> method</li>
+<li>A native wrapper type (<tt>Name_native_type</tt>, a typedef for the <tt>std::function</tt>)</li>
+<li>Typemaps for by-value, const-reference, pointer (nullable), and rvalue-reference parameters</li>
+</ul>
+
+<p>
+All standard calling conventions are supported:
+</p>
+
+<div class="code"><pre>
+// By value
+void callByValue(std::function&lt;int(int)&gt; cb);
+
+// By const reference
+void callByRef(const std::function&lt;int(int)&gt; &amp;cb);
+
+// By pointer (accepts nil/null for no callback)
+void callByPtr(std::function&lt;int(int)&gt; *cb);
+
+// By rvalue reference
+void callByRvalue(std::function&lt;int(int)&gt; &amp;&amp;cb);
+</pre></div>
+
+<p>
+You can also receive a <tt>std::function</tt> returned from C++ and pass it back,
+or store callbacks in C++ objects:
+</p>
+
+<div class="targetlang"><pre>
+-- Receive a C++ std::function and call it directly
+local doubler = example.makeDoubler()
+print(doubler(21))  -- prints 42
+
+-- Pass it back to C++ (existing std::function objects are also accepted)
+local result = example.callMe(doubler)  -- result is 84
+</pre></div>
+
+<p>
+<b>Comparison with existing approaches:</b>
+</p>
+
+<ul>
+<li><tt>%callback</tt> only picks from a fixed list of C functions known at wrap
+time; it cannot use a function defined in the target language at runtime.</li>
+<li>Directors allow C++ to call back into the target language, but require the
+user to explicitly create a class, override methods, and pass the object &mdash;
+which is verbose. <tt>%std_function</tt> automates this entirely.</li>
+<li>The base <tt>std_function.i</tt> (without <tt>%std_function</tt>) only
+supports the C++ &rarr; target language direction. <tt>%std_function</tt> adds
+the target language &rarr; C++ direction.</li>
+</ul>
+
+<p>
+<b>Cross-language applicability:</b> The <tt>%std_function</tt> macro pattern
+is language-independent (director class + shared_ptr lifetime management +
+conversion typemaps). Each language provides its own typemap implementations
+in <tt>Lib/&lt;lang&gt;/std_function.i</tt>. Currently supported: Lua.
+</p>
+
+<p>
+<b>Compatibility note:</b> The <tt>%std_function</tt> callback macro requires
+C++14 due to the use of generic lambdas (<tt>auto&amp;&amp;...param</tt>) and
+init-captures in the generated wrapper code.
 </p>
 
 <H2><a name="Library_nn16">12.6 Utility Libraries</a></H2>
