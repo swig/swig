@@ -22,7 +22,7 @@
    you really have no choice but to do it, make sure you clearly document each
    new conflict in this file.
  */
-%expect 7
+%expect 5
 
 /* Make the internal token numbers the same as the external token numbers
  * which saves Bison generating a lookup table to map between them, giving
@@ -2035,8 +2035,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      pragma_arg;
 %type <includetype> includetype;
 %type <type>     pointer primitive_type;
-%type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
-%type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
+%type <decl>     declarator declarator_valparm direct_declarator notso_direct_declarator parameter_declarator parameter_declarator_valparm plain_declarator;
+%type <decl>     abstract_declarator abstract_declarator_valparm direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      string stringnum wstring;
@@ -6028,43 +6028,75 @@ valparms_builder : valparm {
 		  }
 		  ;
 
-valparm        : parm {
-		  $$ = $parm;
-		  {
-		    /* We need to make a possible adjustment for integer parameters. */
-		    SwigType *type;
-		    Node     *n = 0;
+/* parameter_declarator_valparm -- Like parameter_declarator but uses
+   declarator_valparm and abstract_declarator_valparm (no bare AND/LAND
+   alternatives, to avoid conflict with expression operators in template
+   argument contexts, issue #2228). */
+parameter_declarator_valparm : declarator_valparm def_args {
+                  $$ = $declarator_valparm;
+		  $$.defarg = $def_args.val;
+		  $$.stringdefarg = $def_args.stringval;
+		  $$.numdefarg = $def_args.numval;
+             }
+             | abstract_declarator_valparm def_args {
+	       $$ = $abstract_declarator_valparm;
+	       $$.defarg = $def_args.val;
+	       $$.stringdefarg = $def_args.stringval;
+	       $$.numdefarg = $def_args.numval;
+             }
+             | def_args {
+	       $$ = default_decl;
+	       $$.defarg = $def_args.val;
+	       $$.stringdefarg = $def_args.stringval;
+	       $$.numdefarg = $def_args.numval;
+             }
+             ;
 
-		    while (!n) {
-		      type = Getattr($parm,"type");
-		      n = Swig_symbol_clookup(type,0);     /* See if we can find a node that matches the typename */
-		      if ((n) && (Strcmp(nodeType(n),"cdecl") == 0)) {
-			SwigType *decl = Getattr(n,"decl");
-			if (!SwigType_isfunction(decl)) {
-			  String *value = Getattr(n,"value");
-			  if (value) {
-			    String *v = Copy(value);
-			    Setattr($parm,"type",v);
-			    Delete(v);
-			    n = 0;
-			  }
-			}
-		      } else {
-			break;
-		      }
-		    }
-		  }
-
-               }
-               | valexpr {
+valparm        : rawtype parameter_declarator_valparm {
+		   SwigType_push($rawtype, $parameter_declarator_valparm.type);
+		   $$ = NewParmWithoutFileLineInfo($rawtype, $parameter_declarator_valparm.id);
+		   Setfile($$,cparse_file);
+		   Setline($$,cparse_line);
+		   if ($parameter_declarator_valparm.defarg)
+		     Setattr($$, "value", $parameter_declarator_valparm.defarg);
+		   if ($parameter_declarator_valparm.stringdefarg)
+		     Setattr($$, "stringval", $parameter_declarator_valparm.stringdefarg);
+		   if ($parameter_declarator_valparm.numdefarg)
+		     Setattr($$, "numval", $parameter_declarator_valparm.numdefarg);
+		   /* Adjust for integer template parameters -- look up the type
+		    * in the symbol table and if it's a constant, use its value. */
+		   {
+		     SwigType *type;
+		     Node *n = 0;
+		     while (!n) {
+		       type = Getattr($$, "type");
+		       n = Swig_symbol_clookup(type, 0);
+		       if (n && Strcmp(nodeType(n), "cdecl") == 0) {
+			 SwigType *decl = Getattr(n, "decl");
+			 if (!SwigType_isfunction(decl)) {
+			   String *value = Getattr(n, "value");
+			   if (value) {
+			     String *v = Copy(value);
+			     Setattr($$, "type", v);
+			     Delete(v);
+			     n = 0;
+			   }
+			 }
+		       } else {
+			 break;
+		       }
+		     }
+		   }
+		}
+                | valexpr {
                   $$ = NewParmWithoutFileLineInfo(0,0);
                   Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		  Setattr($$,"value",$valexpr.val);
 		  if ($valexpr.stringval) Setattr($$, "stringval", $valexpr.stringval);
 		  if ($valexpr.numval) Setattr($$, "numval", $valexpr.numval);
-               }
-               ;
+                }
+                ;
 
 def_args       : EQUAL definetype { 
                  $$ = $definetype;
@@ -6388,30 +6420,183 @@ declarator :  pointer notso_direct_declarator {
 	     $$.type = $pointer;
 	   }
            | idcolon DSTAR AND ELLIPSIS notso_direct_declarator {
-	     SwigType *t = NewStringEmpty();
-	     $$ = $notso_direct_declarator;
-	     SwigType_add_memberpointer(t,$idcolon);
-	     SwigType_add_reference(t);
-	     SwigType_add_variadic(t);
-	     if ($$.type) {
-	       SwigType_push(t,$$.type);
-	       Delete($$.type);
-	     } 
-	     $$.type = t;
-	   }
+		     SwigType *t = NewStringEmpty();
+		     $$ = $notso_direct_declarator;
+		     SwigType_add_memberpointer(t,$idcolon);
+		     SwigType_add_reference(t);
+		     SwigType_add_variadic(t);
+		     if ($$.type) {
+		       SwigType_push(t,$$.type);
+		       Delete($$.type);
+		     } 
+		     $$.type = t;
+		   }
            | idcolon DSTAR LAND ELLIPSIS notso_direct_declarator {
-	     SwigType *t = NewStringEmpty();
-	     $$ = $notso_direct_declarator;
-	     SwigType_add_memberpointer(t,$idcolon);
-	     SwigType_add_rvalue_reference(t);
-	     SwigType_add_variadic(t);
-	     if ($$.type) {
-	       SwigType_push(t,$$.type);
-	       Delete($$.type);
-	     } 
-	     $$.type = t;
-	   }
+		     SwigType *t = NewStringEmpty();
+		     $$ = $notso_direct_declarator;
+		     SwigType_add_memberpointer(t,$idcolon);
+		     SwigType_add_rvalue_reference(t);
+		     SwigType_add_variadic(t);
+		     if ($$.type) {
+		       SwigType_push(t,$$.type);
+		       Delete($$.type);
+		     } 
+		     $$.type = t;
+		   }
            ;
+
+/* declarator_valparm -- Like declarator but without bare AND/LAND alternatives
+   that would conflict with logical AND/OR expression operators in template
+   argument contexts (issue #2228). */
+declarator_valparm : pointer notso_direct_declarator {
+               $$ = $notso_direct_declarator;
+	       if ($$.type) {
+		 SwigType_push($pointer,$$.type);
+		 Delete($$.type);
+	       }
+	       $$.type = $pointer;
+            }
+            | pointer AND notso_direct_declarator {
+               $$ = $notso_direct_declarator;
+	       SwigType_add_reference($pointer);
+               if ($$.type) {
+		 SwigType_push($pointer,$$.type);
+		 Delete($$.type);
+	       }
+	       $$.type = $pointer;
+            }
+            | pointer LAND notso_direct_declarator {
+               $$ = $notso_direct_declarator;
+	       SwigType_add_rvalue_reference($pointer);
+               if ($$.type) {
+		 SwigType_push($pointer,$$.type);
+		 Delete($$.type);
+	       }
+	       $$.type = $pointer;
+            }
+            | direct_declarator {
+               $$ = $direct_declarator;
+	       if (!$$.type) $$.type = NewStringEmpty();
+            }
+            | idcolon DSTAR notso_direct_declarator {
+	      SwigType *t = NewStringEmpty();
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer(t,$idcolon);
+	      if ($$.type) {
+		SwigType_push(t,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = t;
+	      }
+            | pointer idcolon DSTAR notso_direct_declarator {
+	      SwigType *t = NewStringEmpty();
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer(t,$idcolon);
+	      SwigType_push($pointer,t);
+	      if ($$.type) {
+		SwigType_push($pointer,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $pointer;
+	      Delete(t);
+	    }
+            | pointer idcolon DSTAR AND notso_direct_declarator {
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer($pointer,$idcolon);
+	      SwigType_add_reference($pointer);
+	      if ($$.type) {
+		SwigType_push($pointer,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $pointer;
+	    }
+            | idcolon DSTAR AND notso_direct_declarator {
+	      SwigType *t = NewStringEmpty();
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer(t,$idcolon);
+	      SwigType_add_reference(t);
+	      if ($$.type) {
+		SwigType_push(t,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = t;
+	    }
+            | pointer notso_direct_declarator ELLIPSIS {
+               $$ = $notso_direct_declarator;
+	       if ($$.type) {
+		 SwigType_push($pointer,$$.type);
+		 Delete($$.type);
+	       }
+	       $$.type = $pointer;
+	       SwigType_add_variadic($$.type);
+            }
+            | pointer AND notso_direct_declarator ELLIPSIS {
+               $$ = $notso_direct_declarator;
+	       SwigType_add_reference($pointer);
+               if ($$.type) {
+		 SwigType_push($pointer,$$.type);
+		 Delete($$.type);
+	       }
+	       $$.type = $pointer;
+	       SwigType_add_variadic($$.type);
+            }
+            | pointer LAND notso_direct_declarator ELLIPSIS {
+               $$ = $notso_direct_declarator;
+	       SwigType_add_rvalue_reference($pointer);
+               if ($$.type) {
+		 SwigType_push($pointer,$$.type);
+		 Delete($$.type);
+	       }
+	       $$.type = $pointer;
+	       SwigType_add_variadic($$.type);
+            }
+            | idcolon DSTAR ELLIPSIS notso_direct_declarator {
+	      SwigType *t = NewStringEmpty();
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer(t,$idcolon);
+	      SwigType_add_variadic(t);
+	      if ($$.type) {
+		SwigType_push(t,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = t;
+	      }
+            | pointer idcolon DSTAR ELLIPSIS notso_direct_declarator {
+	      SwigType *t = NewStringEmpty();
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer(t,$idcolon);
+	      SwigType_add_variadic(t);
+	      SwigType_push($pointer,t);
+	      if ($$.type) {
+		SwigType_push($pointer,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $pointer;
+	      Delete(t);
+	    }
+            | pointer idcolon DSTAR AND ELLIPSIS notso_direct_declarator {
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer($pointer,$idcolon);
+	      SwigType_add_reference($pointer);
+	      SwigType_add_variadic($pointer);
+	      if ($$.type) {
+		SwigType_push($pointer,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $pointer;
+	    }
+            | pointer idcolon DSTAR LAND ELLIPSIS notso_direct_declarator {
+	      $$ = $notso_direct_declarator;
+	      SwigType_add_memberpointer($pointer,$idcolon);
+	      SwigType_add_rvalue_reference($pointer);
+	      SwigType_add_variadic($pointer);
+	      if ($$.type) {
+		SwigType_push($pointer,$$.type);
+		Delete($$.type);
+	      }
+	      $$.type = $pointer;
+	    }
+            ;
 
 notso_direct_declarator : idcolon {
                 /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
@@ -6731,6 +6916,80 @@ abstract_declarator : pointer variadic_opt {
 		    SwigType_push($$.type,t);
 		    Delete(t);
                   }
+                   | pointer idcolon DSTAR direct_abstract_declarator { 
+		    $$ = $direct_abstract_declarator;
+		    SwigType_add_memberpointer($pointer,$idcolon);
+		    if ($$.type) {
+		      SwigType_push($pointer,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $pointer;
+                  }
+                   ;
+
+/* abstract_declarator_valparm -- Like abstract_declarator but without bare
+   AND/LAND alternatives (issue #2228). */
+abstract_declarator_valparm : pointer variadic_opt {
+		    $$ = default_decl;
+		    $$.type = $pointer;
+		    if ($variadic_opt) SwigType_add_variadic($$.type);
+                  }
+                  | pointer direct_abstract_declarator { 
+                     $$ = $direct_abstract_declarator;
+                     SwigType_push($pointer,$direct_abstract_declarator.type);
+		     $$.type = $pointer;
+		     Delete($direct_abstract_declarator.type);
+                  }
+                  | pointer AND variadic_opt {
+		    $$ = default_decl;
+		    $$.type = $pointer;
+		    SwigType_add_reference($$.type);
+		    if ($variadic_opt) SwigType_add_variadic($$.type);
+		  }
+                  | pointer LAND variadic_opt {
+		    $$ = default_decl;
+		    $$.type = $pointer;
+		    SwigType_add_rvalue_reference($$.type);
+		    if ($variadic_opt) SwigType_add_variadic($$.type);
+		  }
+                  | pointer AND direct_abstract_declarator {
+		    $$ = $direct_abstract_declarator;
+		    SwigType_add_reference($pointer);
+		    if ($$.type) {
+		      SwigType_push($pointer,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $pointer;
+                  }
+                  | pointer LAND direct_abstract_declarator {
+		    $$ = $direct_abstract_declarator;
+		    SwigType_add_rvalue_reference($pointer);
+		    if ($$.type) {
+		      SwigType_push($pointer,$$.type);
+		      Delete($$.type);
+		    }
+		    $$.type = $pointer;
+                  }
+                  | direct_abstract_declarator
+                  | idcolon DSTAR { 
+		    $$ = default_decl;
+		    $$.type = NewStringEmpty();
+                    SwigType_add_memberpointer($$.type,$idcolon);
+       	          }
+                  | idcolon DSTAR type_qualifier {
+		    $$ = default_decl;
+		    $$.type = NewStringEmpty();
+		    SwigType_add_memberpointer($$.type, $idcolon);
+		    SwigType_push($$.type, $type_qualifier);
+		  }
+                  | pointer idcolon DSTAR { 
+		    $$ = default_decl;
+		    SwigType *t = NewStringEmpty();
+                    $$.type = $pointer;
+		    SwigType_add_memberpointer(t,$idcolon);
+		    SwigType_push($$.type,t);
+		    Delete(t);
+                  }
                   | pointer idcolon DSTAR direct_abstract_declarator { 
 		    $$ = $direct_abstract_declarator;
 		    SwigType_add_memberpointer($pointer,$idcolon);
@@ -6740,9 +6999,9 @@ abstract_declarator : pointer variadic_opt {
 		    }
 		    $$.type = $pointer;
                   }
-                  ;
+                   ;
 
-direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET { 
+direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
 		    SwigType *t;
 		    $$ = $in;
 		    t = NewStringEmpty();
@@ -6886,7 +7145,7 @@ type_qualifier_raw :  CONST_QUAL { $$ = "const"; }
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
 
-type            : rawtype %expect 4 {
+type            : rawtype %expect 2 {
                    $$ = $rawtype;
                    Replace($$,"typename ","", DOH_REPLACE_ANY);
                 }

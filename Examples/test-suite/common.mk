@@ -550,6 +550,7 @@ CPP_TEST_CASES += \
 	template_using \
 	template_virtual \
 	template_whitespace \
+	template_land_op \
 	threads \
 	threads_exception \
 	throw_exception \
