@@ -3,7 +3,7 @@
 // Tests nested classes for badly configured %nspace, %nonspace, %nspacemove combinations
 // Based off Examples/test-suite/errors/swig_nspacemove.i
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT) || defined(SWIGPYTHON)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT) || defined(SWIGPYTHON) || defined(SWIGPHP)
 
 #if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
 %feature ("flatnested");

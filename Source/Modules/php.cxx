@@ -1709,8 +1709,23 @@ public:
     String *value = Getattr(n, "value");
     String *tm;
 
-    if (!addSymbol(iname, n))
+    /* Handle nspace: prefix the constant name */
+    String *nspace = getNSpace();
+    bool nspace_active = nspace && Len(nspace) > 0;
+    if (nspace_active) {
+      Swig_save("php_constantWrapper", n, "sym:name", NIL);
+      String *ns = Copy(nspace);
+      Replaceall(ns, NSPACE_SEPARATOR, "_");
+      iname = NewStringf("%s_%s", ns, iname);
+      Delete(ns);
+      Setattr(n, "sym:name", iname);
+    }
+
+    if (!addSymbol(iname, n)) {
+      if (nspace_active)
+        Swig_restore(n);
       return SWIG_ERROR;
+    }
 
     SwigType_remember(type);
 
@@ -1751,6 +1766,8 @@ public:
     }
 
     wrapperType = standard;
+    if (nspace_active)
+      Swig_restore(n);
     return SWIG_OK;
   }
 
@@ -1809,7 +1826,19 @@ public:
   virtual int classHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
 
-    class_name = symname;
+    class_name = Copy(symname);
+
+    /* Build nspace-prefixed class name */
+    String *nspace = getNSpace();
+    if (nspace && Len(nspace) > 0) {
+      String *ns = Copy(nspace);
+      Replaceall(ns, NSPACE_SEPARATOR, "_");
+      String *nspace_class_name = NewStringf("%s_%s", ns, class_name);
+      Delete(ns);
+      Delete(class_name);
+      class_name = nspace_class_name;
+    }
+
     base_class = NULL;
     destructor_action = NULL;
 
@@ -1822,9 +1851,7 @@ public:
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s%s\", class_%s_functions);\n", prefix, class_name, class_name);
 
     if (shadow) {
-      char *rename = GetChar(n, "sym:name");
-
-      if (!addSymbol(rename, n))
+      if (!addSymbol(class_name, n))
         return SWIG_ERROR;
 
       /* Deal with inheritance */
@@ -1834,7 +1861,16 @@ public:
         while (base.item) {
           if (!GetFlag(base.item, "feature:ignore")) {
             if (!base_class) {
-              base_class = Getattr(base.item, "sym:name");
+              base_class = Copy(Getattr(base.item, "sym:name"));
+              String *base_nspace = Getattr(base.item, "sym:nspace");
+              if (base_nspace && Len(base_nspace) > 0) {
+                String *ns = Copy(base_nspace);
+                Replaceall(ns, NSPACE_SEPARATOR, "_");
+                String *nspace_base = NewStringf("%s_%s", ns, base_class);
+                Delete(base_class);
+                Delete(ns);
+                base_class = nspace_base;
+              }
             } else {
               /* Warn about multiple inheritance for additional base class(es) */
               String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
@@ -2068,6 +2104,7 @@ public:
     generate_magic_property_methods(n);
     Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
+    Delete(class_name);
     class_name = NULL;
     base_class = NULL;
     return SWIG_OK;
