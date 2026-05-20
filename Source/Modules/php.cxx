@@ -2098,26 +2098,104 @@ public:
 
     String *v_name = GetChar(n, "name");
 
-    Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_set, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", v_name);
-    Append(magic_set, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
-    Append(magic_set, "zend_string_release(swig_funcname);\n");
-    Printf(magic_set, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
-    Printf(magic_set, "}\n");
-
-    Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_get, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_get\", 0);\n", v_name);
-    Append(magic_get, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
-    Append(magic_get, "zend_string_release(swig_funcname);\n");
-    Printf(magic_get, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
-    Printf(magic_get, "}\n");
-
     Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_isset, "RETVAL_TRUE;\n}\n");
 
     wrapperType = membervar;
     Language::membervariableHandler(n);
     wrapperType = standard;
+
+    SwigType *ty = Getattr(n, "type");
+    int tc = SwigType_type(ty);
+    int is_const = SwigType_isconst(ty);
+    int is_array = SwigType_isarray(ty);
+    int is_enum = SwigType_isenum(ty);
+    String *access = Getattr(n, "access");
+    /* Only inline simple, accessible (public, non-const, non-enum) members */
+    int can_inline = !is_const && !is_array && !is_enum && access && Cmp(access, "public") == 0;
+    String *cpp_classtype = Getattr(Swig_methodclass(n), "classtype");
+    if (!cpp_classtype)
+      cpp_classtype = class_name;
+    const char *cl = Char(cpp_classtype);
+    const char *vn = Char(v_name);
+
+    /* --- __set inline (issue #2809) --- */
+    Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", vn);
+    if (is_const || is_array) {
+      Printf(magic_set, "  zend_throw_exception(zend_ce_type_error, \"Cannot assign to read-only property %s::%s\", 0);\n", cl, vn);
+    } else if (!can_inline) {
+      Printf(magic_set, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", vn);
+      Printf(magic_set, "  zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+      Printf(magic_set, "  zend_string_release(swig_funcname);\n");
+      Printf(magic_set, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
+    } else {
+      Printf(magic_set, "  %s *arg1 = (%s *)SWIG_Z_FETCH_OBJ_P(ZEND_THIS)->ptr;\n", cl, cl);
+      switch (tc) {
+      case T_INT:
+      case T_SHORT:
+      case T_LONG:
+      case T_UINT:
+      case T_ULONG:
+      case T_USHORT:
+        Printf(magic_set, "  if (arg1) arg1->%s = (%s)zval_get_long(&args[1]);\n", vn, SwigType_str(ty, 0));
+        break;
+      case T_FLOAT:
+      case T_DOUBLE:
+        Printf(magic_set, "  if (arg1) arg1->%s = (%s)zval_get_double(&args[1]);\n", vn, SwigType_str(ty, 0));
+        break;
+      case T_BOOL:
+        Printf(magic_set, "  if (arg1) arg1->%s = (bool)zval_is_true(&args[1]);\n", vn);
+        break;
+      case T_CHAR:
+        Printf(magic_set, "  if (arg1 && Z_TYPE(args[1]) == IS_LONG) arg1->%s = (char)zval_get_long(&args[1]);\n", vn);
+        break;
+      default:
+        Printf(magic_set, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", vn);
+        Printf(magic_set, "  zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+        Printf(magic_set, "  zend_string_release(swig_funcname);\n");
+        Printf(magic_set, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
+        break;
+      }
+    }
+    Printf(magic_set, "}\n");
+
+    /* --- __get inline (issue #2809) --- */
+    Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", vn);
+    if (!can_inline) {
+      Printf(magic_get, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_get\", 0);\n", vn);
+      Printf(magic_get, "  zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+      Printf(magic_get, "  zend_string_release(swig_funcname);\n");
+      Printf(magic_get, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
+    } else {
+      Printf(magic_get, "  %s *arg1 = (%s *)SWIG_Z_FETCH_OBJ_P(ZEND_THIS)->ptr;\n", cl, cl);
+      switch (tc) {
+      case T_INT:
+      case T_SHORT:
+      case T_LONG:
+      case T_UINT:
+      case T_ULONG:
+      case T_USHORT:
+        Printf(magic_get, "  RETVAL_LONG((long)(arg1->%s));\n", vn);
+        break;
+      case T_FLOAT:
+      case T_DOUBLE:
+        Printf(magic_get, "  RETVAL_DOUBLE((double)(arg1->%s));\n", vn);
+        break;
+      case T_BOOL:
+        Printf(magic_get, "  RETVAL_BOOL((bool)(arg1->%s));\n", vn);
+        break;
+      case T_CHAR:
+        Printf(magic_get, "  RETVAL_LONG((unsigned char)(arg1->%s));\n", vn);
+        break;
+      default:
+        Printf(magic_get, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_get\", 0);\n", vn);
+        Printf(magic_get, "  zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+        Printf(magic_get, "  zend_string_release(swig_funcname);\n");
+        Printf(magic_get, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
+        break;
+      }
+    }
+    Printf(magic_get, "}\n");
 
     return SWIG_OK;
   }

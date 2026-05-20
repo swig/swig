@@ -20,6 +20,7 @@ CPP_TEST_CASES += \
 	li_cdata_carrays_cpp \
 	li_factory \
 	php_iterator \
+	php_magic_props \
 	php_namewarn_rename \
 	php_pragma \
 	prefix \
