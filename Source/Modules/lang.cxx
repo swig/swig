@@ -1644,10 +1644,8 @@ int Language::staticmembervariableHandler(Node *n) {
     }
 
     SwigType *t1 = SwigType_typedef_resolve_all(Getattr(n, "type"));
-    SwigType *t2 = SwigType_strip_qualifiers(t1);
-    Setattr(n, "type", t2);
+    Setattr(n, "type", t1);
     Delete(t1);
-    Delete(t2);
     SetFlag(n, "wrappedasconstant");
     memberconstantHandler(n);
     Delete(cname);

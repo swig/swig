@@ -73,6 +73,9 @@
 
     static constexpr decltype(&hidden_global_char) should_be_string = "xyzzy";
 
+    // Test wrapping of static constexpr const char * member variable (#2724)
+    static constexpr const char * plain_string = "hello";
+
     // SWIG < 4.2.0 incorrectly used int for the result of logical not in C++
     // so this would end up wrapped as int.
     decltype(!0) should_be_bool;

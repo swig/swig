@@ -1582,7 +1582,14 @@ int Swig_VargetToFunction(Node *n, int flags) {
   int varcref = flags & CWRAP_NATURAL_VAR;
 
   name = Getattr(n, "name");
-  type = Getattr(n, "type");
+  type = Copy(Getattr(n, "type"));
+  /* Merge the declarator into the type to get the full type */
+  {
+    String *decl = Getattr(n, "decl");
+    if (decl) {
+      SwigType_push(type, decl);
+    }
+  }
   ty = Swig_wrapped_var_type(type, varcref);
 
   if (flags & CWRAP_EXTEND) {
