@@ -642,6 +642,16 @@ typedef struct {
 SWIGRUNTIME PyObject *
 SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 {
+#if PY_VERSION_HEX >= 0x030c0000
+  PyObject **dictptr = _PyObject_GetDictPtr(v);
+  if (dictptr) {
+    if (!*dictptr)
+      *dictptr = PyDict_New();
+    SWIG_Py_XINCREF(*dictptr);
+    return *dictptr;
+  }
+  Py_RETURN_NONE;
+#else
   SwigPyObject *sobj = (SwigPyObject *)v;
 
   if (!sobj->swigdict)
@@ -649,6 +659,7 @@ SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 
   SWIG_Py_XINCREF(sobj->swigdict);
   return sobj->swigdict;
+#endif
 }
 
 #endif

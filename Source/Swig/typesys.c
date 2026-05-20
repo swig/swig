@@ -2182,6 +2182,19 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
         if (!Equal(dn, rn) && !Equal(dn, ln)) {
           Setattr(nthash, dn, "1");
         }
+        /* also add a version with 'enum ' stripped from the default type,
+         * so that template type queries (e.g. swig::asptr) can match even
+         * when they don't use the 'enum' keyword in template arguments */
+        {
+          SwigType *dt_stripped = Copy(dt);
+          Replaceall(dt_stripped, "enum ", "");
+          String *dn_stripped = SwigType_lstr(dt_stripped, 0);
+          if (!Equal(dn_stripped, dn) && !Equal(dn_stripped, rn) && !Equal(dn_stripped, ln)) {
+            Setattr(nthash, dn_stripped, "1");
+          }
+          Delete(dn_stripped);
+          Delete(dt_stripped);
+        }
         Delete(dt);
         Delete(dn);
       }
