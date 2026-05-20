@@ -7244,6 +7244,7 @@ etype            : expr {
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL) &&
+		       ($$.type != T_WCHAR) &&
 		       ($$.type != T_UNKNOWN) && ($$.type != T_USER)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }

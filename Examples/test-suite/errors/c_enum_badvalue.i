@@ -7,3 +7,7 @@ enum stuff {
    BADOCTAL = 018118055
 };
 
+enum stuff2 {
+   WFOO = L'x',
+};
+
