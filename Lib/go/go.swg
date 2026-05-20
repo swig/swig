@@ -440,9 +440,12 @@ rvrdeleter.reset($1); %}
 %typemap(in)
 	char *, char[ANY], char[]
 %{
-  $1 = ($1_ltype)malloc($input.n + 1);
-  memcpy($1, $input.p, $input.n);
-  $1[$input.n] = '\0';
+  {
+    char *swig_str = (char *)malloc($input.n + 1);
+    memcpy(swig_str, $input.p, $input.n);
+    swig_str[$input.n] = '\0';
+    $1 = ($1_ltype)swig_str;
+  }
 %}
 
 %typemap(in) char *& (char *temp)
@@ -455,7 +458,7 @@ rvrdeleter.reset($1); %}
 
 %typemap(freearg)
 	char *, char[ANY], char[]
-%{ free($1); %}
+%{ free((char *)$1); %}
 
 %typemap(freearg) char *&
 %{ free(temp$argnum); %}
