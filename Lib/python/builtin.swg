@@ -128,6 +128,7 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
   return result ? 0 : -1;
 }
 
+#ifndef Py_LIMITED_API
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
   PyObject_GC_UnTrack(descr);
@@ -164,6 +165,7 @@ SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) 
   PyErr_Format(PyExc_AttributeError, "attribute '%S' of '%s' objects is not writable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
   return -1;
 }
+#endif
 
 SWIGINTERN int
 SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value) {
@@ -172,10 +174,18 @@ SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value)
 
   assert(PyType_Check(typeobject));
   type = (PyTypeObject *)typeobject;
+#ifndef Py_LIMITED_API
   attribute = _PyType_Lookup(type, name);
+#else
+  attribute = SWIG_PyType_Lookup(type, name);
+#endif
   if (attribute != NULL) {
     /* Implement descriptor functionality, if any */
+#ifndef Py_LIMITED_API
     descrsetfunc local_set = Py_TYPE(attribute)->tp_descr_set;
+#else
+    descrsetfunc local_set = (descrsetfunc)PyType_GetSlot(Py_TYPE(attribute), Py_tp_descr_set);
+#endif
     if (local_set == NULL) {
       PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(type);
       PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%S.%S'", tpname, name);
@@ -192,6 +202,7 @@ SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value)
   return -1;
 }
 
+#ifndef Py_LIMITED_API
 SWIGINTERN PyTypeObject*
 SwigPyStaticVar_TypeOnce(void) {
   static char SwigPyStaticVar_doc[] = "Swig member static variables";
@@ -312,10 +323,18 @@ SwigPyStaticVar_Type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyStaticVar_TypeOnce();
   return type;
 }
+#else
+SWIGRUNTIME PyTypeObject *
+SwigPyStaticVar_Type(void) {
+  return NULL;
+}
+#endif
 
 SWIGINTERN PyTypeObject*
 SwigPyObjectType_TypeOnce(void) {
+#if !defined(SWIG_HEAPTYPES) || !defined(Py_LIMITED_API)
   static char SwigPyObjectType_doc[] = "Metaclass for SWIG wrapped types";
+#endif
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpyobjecttype_type;
   static int type_init = 0;
@@ -403,7 +422,7 @@ SwigPyObjectType_TypeOnce(void) {
       SWIG_Py_INCREF((PyObject *)&swigpyobjecttype_type);
   }
   return &swigpyobjecttype_type;
-#else
+#elif !defined(Py_LIMITED_API)
   PyType_Slot slots[] = {
     { Py_tp_setattro, (void *)SwigPyObjectType_setattro },
     { Py_tp_doc, (void *)SwigPyObjectType_doc},
@@ -422,6 +441,12 @@ SwigPyObjectType_TypeOnce(void) {
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
+#else
+  /* The limited API cannot create a subclass of PyType_Type because
+     PyType_Type's size is opaque.  Return a pointer to PyType_Type
+     itself - types will be dynamic (allow arbitrary type attributes),
+     which is acceptable in abi3 mode. */
+  return &PyType_Type;
 #endif
 }
 
@@ -431,6 +456,7 @@ SwigPyObjectType_Type(void) {
   return type;
 }
 
+#ifndef Py_LIMITED_API
 SWIGINTERN PyGetSetDescrObject *
 SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
 
@@ -447,6 +473,7 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   }
   return descr;
 }
+#endif
 
 SWIGINTERN PyObject *
 SwigPyBuiltin_InitBases(PyTypeObject **bases) {
