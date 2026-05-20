@@ -119,8 +119,14 @@ namespace aa {
     Holder(int n = 0) : number(n) {}
     int number;
   };
+
+  struct UsedFromNS {};
 }
 %}
+
+using aa::UsedFromNS;
+using aa::UsedFromNS; // Duplicate using declarations (regression test for #2933)
+%template(VectorUsedFromNS) std::vector< UsedFromNS >;
 
 #if !defined(SWIGOCTAVE)
 // To fix: something different in Octave is preventing this from working
