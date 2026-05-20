@@ -66,7 +66,7 @@ namespace swig {
       }
     }
     void GC_register(VALUE& obj) {
-      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
+      if (NIL_P(obj) || FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
         return;
       if (_hash != Qnil) {
         VALUE val = rb_hash_aref(_hash, obj);
@@ -76,7 +76,7 @@ namespace swig {
       }
     }
     void GC_unregister(const VALUE& obj) {
-      if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
+      if (NIL_P(obj) || FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
         return;
       // this test should not be needed but I've noticed some very erratic
       // behavior of none being unregistered in some very rare situations.
