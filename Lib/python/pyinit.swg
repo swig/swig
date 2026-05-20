@@ -240,6 +240,7 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
 
 #if defined(SWIGPYTHON_BUILTIN)
   static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
+#ifndef Py_LIMITED_API
   static PyGetSetDef this_getset_def = {
     (char *)"this", &SwigPyBuiltin_ThisClosure, NULL, NULL, NULL
   };
@@ -250,17 +251,22 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   static PyGetSetDef thisown_getset_def = {
     (char *)"thisown", SwigPyBuiltin_GetterClosure, SwigPyBuiltin_SetterClosure, NULL, &thisown_getset_closure
   };
+#endif
   PyTypeObject *builtin_pytype;
   int builtin_base_count;
   swig_type_info *builtin_basetype;
   PyObject *tuple;
+#ifndef Py_LIMITED_API
   PyGetSetDescrObject *static_getset;
+#endif
   PyTypeObject *metatype;
   PyTypeObject *swigpyobject;
   SwigPyClientData *cd;
   PyObject *public_interface, *public_symbol;
-  PyObject *this_descr;
-  PyObject *thisown_descr;
+#ifndef Py_LIMITED_API
+  PyObject *this_descr = NULL;
+  PyObject *thisown_descr = NULL;
+#endif
   PyObject *self = 0;
   int i;
 
@@ -268,7 +274,9 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   (void)builtin_base_count;
   (void)builtin_basetype;
   (void)tuple;
+#ifndef Py_LIMITED_API
   (void)static_getset;
+#endif
   (void)self;
 
   /* Metaclass is used to implement static member variables */
@@ -313,18 +321,24 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   if (!cd) {
     SwigPyObject_stype->clientdata = &SwigPyObject_clientdata;
     SwigPyObject_clientdata.pytype = swigpyobject;
+#ifndef Py_LIMITED_API
   } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
     return -1;
   }
+#else
+  }
+#endif
 
   /* All objects have a 'this' attribute */
+#ifndef Py_LIMITED_API
   this_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &this_getset_def);
   (void)this_descr;
 
   /* All objects have a 'thisown' attribute */
   thisown_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &thisown_getset_def);
   (void)thisown_descr;
+#endif
 
   public_interface = PyList_New(0);
   public_symbol = 0;
