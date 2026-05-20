@@ -666,6 +666,10 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
     Swig_error(Getfile(n), Getline(n), "Declaration of '%s' shadows template parameter,\n", name);
     Swig_error(Getfile(cn), Getline(cn), "previous template parameter declaration '%s'.\n", name);
     return;
+  } else if (cn && Checkattr(cn, "nodeType", "using") && Checkattr(n, "nodeType", "using") && Equal(Getattr(cn, "uname"), Getattr(n, "uname"))) {
+    /* Duplicate using declaration - skip to avoid creating a spurious csym:nextSibling chain
+     * that would cause Swig_symbol_clookup to bail out without resolving the using declaration. */
+    return;
   } else if (cn) {
     append = n;
   } else if (!cn) {
