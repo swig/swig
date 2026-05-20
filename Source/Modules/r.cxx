@@ -2749,7 +2749,13 @@ String *R::enumValue(Node *n) {
     newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
     // Strange hack to change the name
     Setattr(n, "name", Getattr(n, "value"));
-    Setattr(n, "sym:name", newsymname);
+    if (GetFlag(parent, "scopedenum")) {
+      // Language::variableWrapper will prefix with EnumClassPrefix for scoped
+      // enums (non-class). Avoid double prefixing by not adding it here.
+      Setattr(n, "sym:name", Copy(symname));
+    } else {
+      Setattr(n, "sym:name", Copy(newsymname));
+    }
     variableWrapper(n);
     value = Swig_name_get(NSPACE_TODO, newsymname);
   } else {
