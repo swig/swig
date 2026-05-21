@@ -7217,7 +7217,7 @@ edecl          :  identifier {
 		   Delete(type);
 		 }
                  | identifier EQUAL etype {
-		   SwigType *type = NewSwigType($etype.type == T_BOOL ? T_BOOL : ($etype.type == T_CHAR ? T_CHAR : T_INT));
+		   SwigType *type = NewSwigType(T_INT);
 		   $$ = new_node("enumitem");
 		   Setattr($$,"name",$identifier);
 		   Setattr($$,"type",type);
@@ -7244,6 +7244,7 @@ etype            : expr {
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL) &&
+		       ($$.type != T_WCHAR) &&
 		       ($$.type != T_UNKNOWN) && ($$.type != T_USER)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
@@ -7444,12 +7445,14 @@ exprsimple     : exprnum
 		  $$.stringval = $CHARCONST;
 		  $$.val = NewStringf("'%(escape)s'", $CHARCONST);
 		  $$.type = T_CHAR;
+		  $$.numval = NewStringf("%d", (unsigned char)Char($CHARCONST)[0]);
 	       }
 	       | WCHARCONST {
 		  $$ = default_dtype;
 		  $$.stringval = $WCHARCONST;
 		  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST);
 		  $$.type = T_WCHAR;
+		  $$.numval = NewStringf("%d", (unsigned char)Char($WCHARCONST)[0]);
 	       }
 
 	       /* In sizeof(X) X can be a type or expression.  We don't actually

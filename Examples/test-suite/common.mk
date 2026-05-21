@@ -248,6 +248,7 @@ CPP_TEST_CASES += \
 	enum_scope_template \
 	enum_template \
 	enum_thorough \
+	char_enum_value \
 	enum_var \
 	equality \
 	evil_diamond \
