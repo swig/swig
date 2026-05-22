@@ -530,10 +530,32 @@ static void find_hash(ARGS *args)
 
 	if (!direct_i_file) {
 		/* run cpp on the input file to obtain the .i */
-		args_add(args, "-E");
-		args_add(args, input_file);
-		status = execute(args->argv, path_stdout, path_stderr);
-		args_pop(args, 2);
+		/* Remove -c if present (it is unused with -E) to avoid compiler
+		   warnings (e.g. clang on macOS) that would pollute the hash and
+		   make it differ from what is computed for a direct .i file
+		   compilation. Add it back after the preprocessor run since the
+		   same args list is used for the real compilation in to_cache(). */
+		{
+			int ci;
+			int found_c = 0;
+			for (ci = 1; ci < args->argc; ci++) {
+				if (strcmp(args->argv[ci], "-c") == 0) {
+					found_c = 1;
+					free(args->argv[ci]);
+					memmove(&args->argv[ci], &args->argv[ci + 1],
+						(args->argc - ci) * sizeof(args->argv[0]));
+					args->argc--;
+					break;
+				}
+			}
+			args_add(args, "-E");
+			args_add(args, input_file);
+			status = execute(args->argv, path_stdout, path_stderr);
+			args_pop(args, 2);
+			if (found_c) {
+				args_add(args, "-c");
+			}
+		}
 	} else {
 		/* we are compiling a .i or .ii file - that means we
 		   can skip the cpp stage and directly form the
