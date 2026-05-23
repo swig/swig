@@ -569,12 +569,12 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         Swig_mark_arg(i);
         engine = JSEmitter::NAPI;
       } else if (strcmp(argv[i], "-quickjs") == 0) {
-	if (engine != -1) {
-	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
-	  Exit(EXIT_FAILURE);
-	}
-	Swig_mark_arg(i);
-	engine = JSEmitter::QuickJS;
+        if (engine != -1) {
+          Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+          Exit(EXIT_FAILURE);
+        }
+        Swig_mark_arg(i);
+        engine = JSEmitter::QuickJS;
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         js_template_enable_debug = true;
@@ -1960,6 +1960,7 @@ int JSCEmitter::emitNamespaces() {
     Template namespace_definition(getTemplate("jsc_nspace_declaration"));
     namespace_definition.replace("$jsglobalvariables", variables)
       .replace("$jsglobalfunctions", functions)
+      .replace("$jsglobalconstants", constants)
       .replace("$jsnspace", name_mangled)
       .replace("$jsmangledname", name_mangled)
       .pretty_print(f_wrap_cpp);
@@ -3457,7 +3458,7 @@ int QuickJSEmitter::exitClass(Node *n) {
 	.replace("$jsname", state.clazz(NAME))
 	.pretty_print(f_wrappers);
   }
-  
+
   Template t_class_tables(getTemplate("quickjs_class_tables"));
   t_class_tables.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsclassconstants", state.clazz(CONSTANTS))
@@ -3467,7 +3468,7 @@ int QuickJSEmitter::exitClass(Node *n) {
       .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
       .replace("$jsclassbases", jsclass_inheritance)
       .replace("$jsctor", state.clazz(CTOR))
-      .replace("$jsdtor", state.clazz(DTOR))      
+      .replace("$jsdtor", state.clazz(DTOR))
       .pretty_print(f_wrappers);
   Delete(jsclass_inheritance);
 
