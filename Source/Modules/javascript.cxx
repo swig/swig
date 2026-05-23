@@ -118,9 +118,6 @@ protected:
   enum MarshallingMode { Setter, Getter, Ctor, Function };
 
 public:
-  enum JSEngine { JavascriptCore, V8, NodeJS, NAPI };
-
-<<<<<<< HEAD
    enum JSEngine {
      JavascriptCore,
      V8,
@@ -128,9 +125,8 @@ public:
      NAPI,
      QuickJS
    };
-=======
+
   JSEmitter(JSEngine engine);
->>>>>>> f3f7fd641407d422330709391738e7b912398190
 
   virtual ~JSEmitter();
 
@@ -533,13 +529,9 @@ Javascript Options (available with -javascript)\n\
      -v8                    - creates a v8 extension \n\
      -node                  - creates a node.js extension \n\
      -napi                  - creates a NAPI extension \n\
-<<<<<<< HEAD
      -quickjs               - creates a QuickJS extension \n\
-     -debug-codetemplates   - generates information about the origin of code templates\n";
-=======
      -debug-codetemplates   - generates information about the origin of code templates\n\
 \n";
->>>>>>> f3f7fd641407d422330709391738e7b912398190
 
 /* ---------------------------------------------------------------------
  * main()
@@ -577,7 +569,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
         Swig_mark_arg(i);
         engine = JSEmitter::NodeJS;
       } else if (strcmp(argv[i], "-napi") == 0) {
-<<<<<<< HEAD
 	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
 	  Exit(EXIT_FAILURE);
@@ -591,14 +582,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
 	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::QuickJS;
-=======
-        if (engine != -1) {
-          Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
-          Exit(EXIT_FAILURE);
-        }
-        Swig_mark_arg(i);
-        engine = JSEmitter::NAPI;
->>>>>>> f3f7fd641407d422330709391738e7b912398190
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
         Swig_mark_arg(i);
         js_template_enable_debug = true;
@@ -1985,18 +1968,11 @@ int JSCEmitter::emitNamespaces() {
 
     Template namespace_definition(getTemplate("jsc_nspace_declaration"));
     namespace_definition.replace("$jsglobalvariables", variables)
-<<<<<<< HEAD
-	.replace("$jsglobalfunctions", functions)
-	.replace("$jsglobalconstants", constants)
-	.replace("$jsnspace", name_mangled)
-	.replace("$jsmangledname", name_mangled)
-	.pretty_print(f_wrap_cpp);
-=======
       .replace("$jsglobalfunctions", functions)
+      .replace("$jsglobalconstants", constants)
       .replace("$jsnspace", name_mangled)
       .replace("$jsmangledname", name_mangled)
       .pretty_print(f_wrap_cpp);
->>>>>>> f3f7fd641407d422330709391738e7b912398190
 
     Template t_createNamespace(getTemplate("jsc_nspace_definition"));
     t_createNamespace.replace("$jsmangledname", name_mangled);
