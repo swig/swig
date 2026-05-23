@@ -11,9 +11,7 @@
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
-# define SWIG_QUOTE_STRING(x) #x
-# define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
-# define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
+# define SWIG_TYPE_TABLE_NAME SWIG_STRINGIFY(SWIG_TYPE_TABLE)
 #else
 # define SWIG_TYPE_TABLE_NAME
 #endif
@@ -476,7 +474,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 
   while (head) {
     swig_cast_info *cast;
-    for (cast = head; (cast - head) <= head->value; cast++) {
+    for (cast = head; (unsigned int)(cast - head) <= head->value; cast++) {
       if (!cast->converter) {
         swig_type_info *tc = cast->type;
         if (!tc->clientdata) {

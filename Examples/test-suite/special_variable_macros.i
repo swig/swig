@@ -28,14 +28,14 @@ struct Name {
     return *this;
   }
   ~Name () { free(this->name); }
-  const char *getName() const { return name; };
-  Name *getNamePtr() { return this; };
+  const char *getName() const { return name; }
+  Name *getNamePtr() { return this; }
 private:
   char *name;
 };
 struct NameWrap {
   NameWrap(const char *n="casternone") : name(n) {}
-  Name *getNamePtr() { return &name; };
+  Name *getNamePtr() { return &name; }
 private:
   Name name;
 };

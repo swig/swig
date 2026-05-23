@@ -2,7 +2,7 @@
 # SWIG top level Makefile
 #######################################################################
 
-.PHONY: ccache source swig
+.PHONY: swig source format-review format-check format-inplace format ccache
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -34,6 +34,17 @@ swig: libfiles source ccache
 
 source:
 	@$(MAKE) -C $(SOURCE)
+
+format-review:
+	@$(MAKE) -C $(SOURCE) format-review
+
+format-check:
+	@$(MAKE) -C $(SOURCE) format-check
+
+format-inplace:
+	@$(MAKE) -C $(SOURCE) format-inplace
+
+format: format-inplace
 
 ccache:
 	test -z "$(ENABLE_CCACHE)" || $(MAKE) -C $(CCACHE)

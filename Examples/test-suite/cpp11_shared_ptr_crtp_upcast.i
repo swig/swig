@@ -9,7 +9,16 @@
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) stir::DiscretisedDensity<3,float>;
 
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %include <std_shared_ptr.i>
+%shared_ptr(stir::Array<3,float>)
+%shared_ptr(stir::ExamData);
+%shared_ptr(stir::DiscretisedDensity<3,float>)
+#endif
 
 %{
 #include <memory>
@@ -26,7 +35,6 @@ namespace stir {
 }
 %}
 
-%shared_ptr(stir::Array<3,float>)
 %inline %{
 namespace stir {
   template <int num_dimensions, typename elemT>
@@ -36,7 +44,6 @@ namespace stir {
 %}
 %template(FloatArray3D) stir::Array<3,float>;
 
-%shared_ptr(stir::ExamData);
 %inline %{
 namespace stir {
   class ExamData {
@@ -44,7 +51,6 @@ namespace stir {
 }
 %}
 
-%shared_ptr(stir::DiscretisedDensity<3,float>)
 %inline %{
 namespace stir {
   template<int num_dimensions, typename elemT>
@@ -53,12 +59,14 @@ namespace stir {
 }
 %}
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %shared_ptr(stir::DataProcessor<stir::DiscretisedDensity<3,float> >)
 %shared_ptr(stir::RegisteredParsingObject<
             stir::ChainedDataProcessor<stir::DiscretisedDensity<3,float> >,
             stir::DataProcessor<DiscretisedDensity<3,float> >,
 	    stir::DataProcessor<DiscretisedDensity<3,float> > >)
 %shared_ptr(stir::ChainedDataProcessor<stir::DiscretisedDensity<3,float> >)
+#endif
 
 %inline %{
 namespace stir {

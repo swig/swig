@@ -65,7 +65,7 @@ unsigned char myarray[std::numeric_limits<unsigned char>::max()];
 // Also check that `<(` and `)>` in the expression are handled, since these have
 // special meanings for SWIG's type system.  SWIG should rewrite them as `< (`
 // and `) >` here to avoid problems.
-template<int N> constexpr int inc() { return N + 1; };
+template<int N> constexpr int inc() { return N + 1; }
 unsigned char myarray2[inc<(1)>()];
 
 // Test handling of ID PERIOD ID in constant expressions (supported since 4.1.0).

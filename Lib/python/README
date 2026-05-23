@@ -85,6 +85,7 @@ pywstrings.swg		Wchar Strings (wchar_t *)
 pyprimtypes.swg		Primitive types (shot,int,double,etc)
 pycomplex.swg		PyComplex and helper for C/C++ complex types
 pydocs.swg		Typemaps documentation
+pytyping.swg        PEP 484 type hints
 
 /* -----------------------------------------------------------------------------
  *  C++ STD + STL

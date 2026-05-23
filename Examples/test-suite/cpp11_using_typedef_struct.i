@@ -25,8 +25,8 @@ using typename nspace1::Abstract;
 
 void _internal(const Abstract *) {}
 
-int fn1(AffineMatrix a) { return a.x; };
-int fn2(CacheView a) { return a.x; };
-int fn3(Abstract *a) { _internal(a); return 0; };
-int fn4(const Abstract *a) { _internal(a); return 0; };
+int fn1(AffineMatrix a) { return a.x; }
+int fn2(CacheView a) { return a.x; }
+int fn3(Abstract *a) { _internal(a); return 0; }
+int fn4(const Abstract *a) { _internal(a); return 0; }
 %}

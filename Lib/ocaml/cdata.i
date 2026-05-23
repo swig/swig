@@ -3,7 +3,6 @@
  *
  * SWIG library file containing macros for manipulating raw C data.
  *
- * TODO: Need to test with li_cdata_cpp and li_cdata
  * ----------------------------------------------------------------------------- */
 
 %typemap(in) (const void *BYTES, size_t LENGTH) {
@@ -14,6 +13,11 @@
 
 %include <typemaps/cdata_begin.swg>
 
-%typemap(out) SWIGCDATA %{ caml_val_string_len($1.data,$1.len); %}
+%typemap(out) SWIGCDATA {
+    $result = caml_val_string_len(($1).data, ($1).len);
+}
+%typemap(argout) SWIGCDATA {
+    $result = caml_list_append($result, caml_val_string_len(($1).data, ($1).len));
+}
 
 %include <typemaps/cdata_end.swg>

@@ -17,7 +17,7 @@
     {
       class Bar : public Foo {
       public:
-	void foo(void) {};
+	void foo(void) {}
 	
 	virtual char *blah() { return (char *) "Bar::blah"; }
       };

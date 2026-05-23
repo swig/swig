@@ -802,6 +802,12 @@ auto six = [](int x, int y) { return x+y; }(4, 2);
 Better support should be available in a later release.
 </p>
 
+<p>
+Lambdas are most useful at the SWIG boundary when returned to the target language as a
+<tt>std::function</tt> object - see
+<a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphic wrappers for function objects</a>.
+</p>
+
 <H3><a name="CPlusPlus11_alternate_function_syntax">7.2.9 Alternate function syntax</a></H3>
 
 
@@ -1654,8 +1660,9 @@ Users would need to write their own typemaps if wrapper references are being use
 
 <p>
 SWIG supports functor classes in a few languages in a very natural way.
-However nothing is provided yet for the new <tt>std::function</tt> template.
-SWIG will parse usage of the template like any other template.
+A plain functor - a class with <tt>operator()</tt> - can be wrapped
+directly; from Python the rename to <tt>__call__</tt> makes the wrapped
+instance directly invocable as a function:
 </p>
 
 <div class="code"><pre>
@@ -1664,21 +1671,33 @@ SWIG will parse usage of the template like any other template.
 struct Test {
   bool operator()(int x, int y); // function object
 };
-
-#include &lt;functional&gt;
-std::function&lt;void (int, int)&gt; pF = Test;   // function template wrapper
-
 </pre></div>
-
-<p>
-Example of supported usage of the plain functor from Python is shown below.
-It does not involve <tt>std::function</tt>.
-</p>
 
 <div class="targetlang"><pre>
 t = Test()
 b = t(1, 2) # invoke C++ function object
 </pre></div>
+
+<p>
+For the polymorphic <tt>std::function</tt> wrapper, SWIG provides
+<tt>std_function.i</tt> in the SWIG library. It wraps the partial specialisation
+<tt>std::function&lt;RET(ARGS...)&gt;</tt> so that any C++ callable - a
+free function, a lambda, a bound member function, or a functor - can be
+returned from C++ to the target language and invoked there. See
+<a href="Library.html#Library_std_function">std::function</a>
+in the SWIG library chapter for the worked example, the supported pattern,
+and the list of caveats.
+</p>
+
+<p>
+<tt>std::function</tt> moves a callable from C++ <i>out</i> to the target
+language. To go the other way - have C++ accept a callable defined in
+the target language - see
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
+for the C-side <tt>%callback</tt> mechanism, and
+<a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>
+for the C++ director-based mechanism.
+</p>
 
 <H3><a name="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</a></H3>
 

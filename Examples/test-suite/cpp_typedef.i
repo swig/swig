@@ -41,10 +41,10 @@ typedef TypedefNamedStruct DoubleTypedef;
 
 class Test {
 public:
-    UnnamedStruct test1(UnnamedStruct a) {return a;};
-    struct NamedStruct test2(struct NamedStruct a) {return a;};
-    TypedefNamedStruct test3(TypedefNamedStruct a) {return a;};
-    DoubleTypedef test4(DoubleTypedef a) {return a;};
+    UnnamedStruct test1(UnnamedStruct a) {return a;}
+    struct NamedStruct test2(struct NamedStruct a) {return a;}
+    TypedefNamedStruct test3(TypedefNamedStruct a) {return a;}
+    DoubleTypedef test4(DoubleTypedef a) {return a;}
 };
 
 %}

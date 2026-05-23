@@ -23,7 +23,7 @@ namespace ns_b {
     namespace iface1 {
         class Model {
         public:
-            ns_a::ModelPtr foo() { return ns_a::ModelPtr(); };
+            ns_a::ModelPtr foo() { return ns_a::ModelPtr(); }
         };
         typedef d::d<Model> ModelPtr;
         ns_a::ModelPtr get_mp_a() { return ns_a::ModelPtr(); }

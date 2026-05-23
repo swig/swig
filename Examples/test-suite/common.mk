@@ -211,7 +211,7 @@ CPP_TEST_CASES += \
 	director_finalizer \
 	director_frob \
 	director_ignore \
-	director_keywords \
+	director_minimal \
 	director_multiple_inheritance \
 	director_namespace_clash \
 	director_nested \
@@ -228,7 +228,7 @@ CPP_TEST_CASES += \
 	director_redefined \
 	director_ref \
 	director_simple \
-	director_smartptr \
+	director_shared_ptr \
 	director_template \
 	director_thread \
 	director_unroll \
@@ -363,6 +363,7 @@ CPP_TEST_CASES += \
 	newobject3 \
 	nspace \
 	nspace_extend \
+	nspace_interface \
 	nspacemove \
 	nspacemove_nested \
 	nspacemove_stl \
@@ -454,6 +455,7 @@ CPP_TEST_CASES += \
 	swig_exception \
 	symbol_clash \
 	sym \
+	template_advanced_rename \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
@@ -658,14 +660,23 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
 	cpp11_rvalue_reference_move \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_template_upcast \
+	cpp11_shared_ptr_upcast \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
+	cpp11_std_function \
 	cpp11_std_unique_ptr \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_pack \
+	cpp11_template_pack_specialization \
 	cpp11_template_parameters_decltype \
 	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
@@ -675,6 +686,7 @@ CPP11_TEST_CASES += \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
 	cpp11_using_constructor \
+	cpp11_using_member_template \
 	cpp11_using_typedef_struct \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
@@ -687,6 +699,8 @@ CPP11_TEST_BROKEN = \
 CPP14_TEST_CASES += \
 	cpp14_auto_return_type \
 	cpp14_binary_integer_literals \
+	cpp14_generic_lambda \
+	cpp14_variable_templates \
 
 # Broken C++14 test cases.
 CPP14_TEST_BROKEN = \
@@ -707,9 +721,20 @@ CPP17_TEST_BROKEN = \
 
 # C++20 test cases.
 CPP20_TEST_CASES += \
+	cpp20_abbreviated_template \
+	cpp20_abbreviated_template_decorated \
+	cpp20_abbreviated_template_mixed \
+	cpp20_concepts \
+	cpp20_concepts_class_methods \
+	cpp20_concepts_classes \
+	cpp20_concepts_constrained_param \
+	cpp20_concepts_extra \
+	cpp20_concepts_lambda \
+	cpp20_concepts_overloads \
 	cpp20_constexpr_destructor \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
+	cpp20_variable_templates \
 
 # Broken C++20 test cases.
 CPP20_TEST_BROKEN = \
@@ -735,6 +760,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_translate_style3 \
 	doxygen_code_blocks \
 	doxygen_ignore \
+	doxygen_interface \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
 	doxygen_overloads \
@@ -868,6 +894,7 @@ C_TEST_CASES += \
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
+	import_share \
 	import_stl \
 	imports \
 	mod \

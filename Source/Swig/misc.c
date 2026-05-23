@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -22,7 +22,10 @@
 #ifdef _WIN32
 #include <direct.h>
 #ifndef S_ISDIR
+/* Formatting changed/corrected in clang-format-17 */
+/* clang-format off */
 #define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
+/* clang-format on */
 #endif
 #endif
 
@@ -37,7 +40,7 @@ static char *fake_version = 0;
 char *Swig_copy_string(const char *s) {
   char *c = 0;
   if (s) {
-    c = (char *) Malloc(strlen(s) + 1);
+    c = (char *)Malloc(strlen(s) + 1);
     strcpy(c, s);
   }
   return c;
@@ -111,7 +114,6 @@ void Swig_banner(File *f) {
   Printf(f, "/* ----------------------------------------------------------------------------\n");
   Swig_banner_target_lang(f, " *");
   Printf(f, " * ----------------------------------------------------------------------------- */\n");
-
 }
 
 /* -----------------------------------------------------------------------------
@@ -147,7 +149,7 @@ String *Swig_strip_c_comments(const String *s) {
       if (!*c)
         break;
       if (*c == '*')
-        comment_begin = c-1;
+        comment_begin = c - 1;
     } else if (comment_begin && !comment_end && *c == '*') {
       ++c;
       if (*c == '/') {
@@ -219,17 +221,19 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
       result = mkdir(Char(dir), 0777);
 #endif
       if (result != 0 && errno != EEXIST) {
-	error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
-	break;
+        error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
+        break;
       }
       if (!is_directory(dir)) {
-	error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
-	break;
+        error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
+        break;
       }
       Printf(dir, SWIG_FILE_DELIMITER);
     }
   } else {
-    error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.", subdirectory, basedirectory);
+    error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.",
+                       subdirectory,
+                       basedirectory);
   }
   return error;
 }
@@ -275,7 +279,7 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
   Swig_filename_correct(adjusted_filename);
-#if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
+#if defined(_WIN32) /* Note not on Cygwin else filename is displayed with double '/' */
   Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
   return adjusted_filename;
@@ -389,10 +393,10 @@ String *Swig_string_escape(String *s) {
       int next_c = Getc(s);
       assert(c >= 0);
       if (next_c >= '0' && next_c < '8') {
-	/* We need to emit 3 octal digits. */
-	Printf(ns, "\\%03o", c);
+        /* We need to emit 3 octal digits. */
+        Printf(ns, "\\%03o", c);
       } else {
-	Printf(ns, "\\%o", c);
+        Printf(ns, "\\%o", c);
       }
       c = next_c;
       continue;
@@ -508,7 +512,6 @@ String *Swig_string_lower(String *s) {
   return ns;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_string_title()
  *
@@ -623,7 +626,8 @@ static String *Swig_string_ucase(String *s) {
   Seek(s, 0, SEEK_SET);
 
   while ((c = Getc(s)) != EOF) {
-    nextC = Getc(s); Ungetc(nextC, s);
+    nextC = Getc(s);
+    Ungetc(nextC, s);
     if (isdigit(c) && isalpha(lastC) && nextC != EOF)
       underscore = 1;
     else if (isupper(c) && isalpha(lastC) && !isupper(lastC))
@@ -644,12 +648,12 @@ static String *Swig_string_ucase(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_first_upper()
  *
- * Make the first character in the string uppercase, leave all the 
+ * Make the first character in the string uppercase, leave all the
  * rest the same.  This is used by the Ruby module to provide backwards
  * compatibility with the old way of naming classes and constants.  For
  * more info see the Ruby documentation.
  *
- *      firstUpper -> FirstUpper 
+ *      firstUpper -> FirstUpper
  * ----------------------------------------------------------------------------- */
 
 static String *Swig_string_first_upper(String *s) {
@@ -665,12 +669,12 @@ static String *Swig_string_first_upper(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_first_lower()
  *
- * Make the first character in the string lowercase, leave all the 
+ * Make the first character in the string lowercase, leave all the
  * rest the same.  This is used by the Ruby module to provide backwards
  * compatibility with the old way of naming classes and constants.  For
  * more info see the Ruby documentation.
  *
- *      firstLower -> FirstLower 
+ *      firstLower -> FirstLower
  * ----------------------------------------------------------------------------- */
 
 static String *Swig_string_first_lower(String *s) {
@@ -700,7 +704,6 @@ static String *Swig_string_schemify(String *s) {
 static String *string_mangle(String *s) {
   return Swig_name_mangle_string(s);
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_scopename_split()
@@ -738,17 +741,17 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
       c += 2;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -793,17 +796,17 @@ String *Swig_scopename_prefix(const String *s) {
       c += 2;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -819,7 +822,7 @@ String *Swig_scopename_prefix(const String *s) {
  * Swig_scopename_last()
  *
  * Take a qualified name like "A::B::C" and returns the last.  In this
- * case, "C". 
+ * case, "C".
  * ----------------------------------------------------------------------------- */
 
 String *Swig_scopename_last(const String *s) {
@@ -835,24 +838,23 @@ String *Swig_scopename_last(const String *s) {
     return NewString(co);
   }
 
-
   while (*c) {
     if ((*c == ':') && (*(c + 1) == ':')) {
       c += 2;
       cc = c;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -887,17 +889,17 @@ String *Swig_scopename_first(const String *s) {
       break;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -907,7 +909,6 @@ String *Swig_scopename_first(const String *s) {
     return 0;
   }
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_scopename_suffix()
@@ -933,17 +934,17 @@ String *Swig_scopename_suffix(const String *s) {
       break;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -1026,17 +1027,17 @@ int Swig_scopename_check(const String *s) {
       return 1;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -1058,7 +1059,7 @@ static String *Swig_string_command(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_strip()
  *
- * Strip given prefix from identifiers 
+ * Strip given prefix from identifiers
  *
  *  Printf(stderr,"%(strip:[wx])s","wxHello") -> Hello
  * ----------------------------------------------------------------------------- */
@@ -1073,12 +1074,12 @@ static String *Swig_string_strip(String *s) {
     if (*cs != '[' || !ce) {
       ns = NewString(s);
     } else {
-      String *fmt = NewStringf("%%.%ds", ce-cs-1);
-      String *prefix = NewStringf(fmt, cs+1);
-      if (0 == Strncmp(ce+1, prefix, Len(prefix))) {
-        ns = NewString(ce+1+Len(prefix));
+      String *fmt = NewStringf("%%.%ds", ce - cs - 1);
+      String *prefix = NewStringf(fmt, cs + 1);
+      if (0 == Strncmp(ce + 1, prefix, Len(prefix))) {
+        ns = NewString(ce + 1 + Len(prefix));
       } else {
-        ns = NewString(ce+1);
+        ns = NewString(ce + 1);
       }
     }
   }
@@ -1088,7 +1089,7 @@ static String *Swig_string_strip(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_rstrip()
  *
- * Strip given suffix from identifiers 
+ * Strip given suffix from identifiers
  *
  *  Printf(stderr,"%(rstrip:[Cls])s","HelloCls") -> Hello
  * ----------------------------------------------------------------------------- */
@@ -1104,14 +1105,14 @@ static String *Swig_string_rstrip(String *s) {
     if (*cs != '[' || !ce) {
       ns = NewString(s);
     } else {
-      String *fmt = NewStringf("%%.%ds", ce-cs-1);
-      String *suffix = NewStringf(fmt, cs+1);
+      String *fmt = NewStringf("%%.%ds", ce - cs - 1);
+      String *suffix = NewStringf(fmt, cs + 1);
       int suffix_len = Len(suffix);
-      if (0 == Strncmp(cs+len-suffix_len, suffix, suffix_len)) {
-	int copy_len = len-suffix_len-(int)(ce+1-cs);
-        ns = NewStringWithSize(ce+1, copy_len);
+      if (0 == Strncmp(cs + len - suffix_len, suffix, suffix_len)) {
+        int copy_len = len - suffix_len - (int)(ce + 1 - cs);
+        ns = NewStringWithSize(ce + 1, copy_len);
       } else {
-        ns = NewString(ce+1);
+        ns = NewString(ce + 1);
       }
     }
   }
@@ -1137,19 +1138,19 @@ void Swig_offset_string(String *s, int number) {
     start = strchr(start + 1, '\n');
   }
   /* do not count pending new line */
-  if ((Char(s))[len-1] == '\n')
+  if ((Char(s))[len - 1] == '\n')
     --lines;
   /* allocate a temporary storage for a padded string */
-  res = (char*)Malloc(len + lines * number * 2 + 1);
+  res = (char *)Malloc(len + lines * number * 2 + 1);
   res[len + lines * number * 2] = 0;
 
   /* copy lines to res, prepending tabs to each line */
-  p = res; /* output pointer */
-  start = Char(s); /* start of a current line */
+  p = res;                   /* output pointer */
+  start = Char(s);           /* start of a current line */
   end = strchr(start, '\n'); /* end of a current line */
   while (end) {
-    memset(p, ' ', number*2);
-    p += number*2;
+    memset(p, ' ', number * 2);
+    p += number * 2;
     memcpy(p, start, end - start + 1);
     p += end - start + 1;
     start = end + 1;
@@ -1157,8 +1158,8 @@ void Swig_offset_string(String *s, int number) {
   }
   /* process the last line */
   if (*start) {
-    memset(p, ' ', number*2);
-    p += number*2;
+    memset(p, ' ', number * 2);
+    p += number * 2;
     strcpy(p, start);
   }
   /* replace 's' contents with 'res' */
@@ -1167,33 +1168,34 @@ void Swig_offset_string(String *s, int number) {
   Free(res);
 }
 
-
 #ifdef HAVE_PCRE
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
-static int split_regex_pattern_subst(String *s, String **pattern, String **subst, const char **input)
-{
+static int split_regex_pattern_subst(String *s, String **pattern, String **subst, const char **input) {
   const char *pats, *pate;
   const char *subs, *sube;
 
   /* Locate the search pattern */
   const char *p = Char(s);
-  if (*p++ != '/') goto err_out;
+  if (*p++ != '/')
+    goto err_out;
   pats = p;
   p = strchr(p, '/');
-  if (!p) goto err_out;
+  if (!p)
+    goto err_out;
   pate = p;
 
   /* Locate the substitution string */
   subs = ++p;
   p = strchr(p, '/');
-  if (!p) goto err_out;
+  if (!p)
+    goto err_out;
   sube = p;
 
   *pattern = NewStringWithSize(pats, (int)(pate - pats));
-  *subst   = NewStringWithSize(subs, (int)(sube - subs));
-  *input   = p + 1;
+  *subst = NewStringWithSize(subs, (int)(sube - subs));
+  *input = p + 1;
   return 1;
 
 err_out:
@@ -1204,15 +1206,14 @@ err_out:
 
 /* This function copies len characters from src to dst, possibly applying case conversions to them: if convertCase is 1, to upper case and if it is -1, to lower
  * case. If convertNextOnly is 1, only a single character is converted (and convertCase is reset), otherwise all of them are. */
-static void copy_with_maybe_case_conversion(String *dst, const char *src, int len, int *convertCase, int convertNextOnly)
-{
+static void copy_with_maybe_case_conversion(String *dst, const char *src, int len, int *convertCase, int convertNextOnly) {
   /* Deal with the trivial cases first. */
   if (!len)
     return;
 
   if (!*convertCase) {
-      Write(dst, src, len);
-      return;
+    Write(dst, src, len);
+    return;
   }
 
   /* If we must convert only the first character, do it and write the rest at once. */
@@ -1233,8 +1234,7 @@ static void copy_with_maybe_case_conversion(String *dst, const char *src, int le
   }
 }
 
-static String *replace_captures(int num_captures, const char *input, String *subst, size_t captures[], String *pattern, String *s)
-{
+static String *replace_captures(int num_captures, const char *input, String *subst, size_t captures[], String *pattern, String *s) {
   int convertCase = 0, convertNextOnly = 0;
   String *result = NewStringEmpty();
   const char *p = Char(subst);
@@ -1255,41 +1255,45 @@ static String *replace_captures(int num_captures, const char *input, String *sub
     } else if (isdigit((unsigned char)*p)) {
       int group = *p++ - '0';
       if (group < num_captures) {
-	int l = (int)captures[group*2], r = (int)captures[group*2 + 1];
-	if (l != -1) {
-	  copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
-	}
+        int l = (int)captures[group * 2], r = (int)captures[group * 2 + 1];
+        if (l != -1) {
+          copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
+        }
       } else {
-	Swig_error("SWIG", Getline(s), "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
-	    Char(pattern), input, group, num_captures-1);
+        Swig_error("SWIG",
+                   Getline(s),
+                   "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
+                   Char(pattern),
+                   input,
+                   group,
+                   num_captures - 1);
       }
     } else {
-	/* Handle Perl-like case conversion escapes. */
-	switch (*p) {
-	case 'u':
-	  convertCase = 1;
-	  convertNextOnly = 1;
-	  break;
-	case 'U':
-	  convertCase = 1;
-	  convertNextOnly = 0;
-	  break;
-	case 'l':
-	  convertCase = -1;
-	  convertNextOnly = 1;
-	  break;
-	case 'L':
-	  convertCase = -1;
-	  convertNextOnly = 0;
-	  break;
-	case 'E':
-	  convertCase = 0;
-	  break;
-	default:
-	  Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n",
-	      *p, Char(subst));
-	}
-	p++;
+      /* Handle Perl-like case conversion escapes. */
+      switch (*p) {
+      case 'u':
+        convertCase = 1;
+        convertNextOnly = 1;
+        break;
+      case 'U':
+        convertCase = 1;
+        convertNextOnly = 0;
+        break;
+      case 'l':
+        convertCase = -1;
+        convertNextOnly = 1;
+        break;
+      case 'L':
+        convertCase = -1;
+        convertNextOnly = 0;
+        break;
+      case 'E':
+        convertCase = 0;
+        break;
+      default:
+        Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n", *p, Char(subst));
+      }
+      p++;
     }
   }
 
@@ -1318,22 +1322,19 @@ static String *Swig_string_regex(String *s) {
   if (split_regex_pattern_subst(s, &pattern, &subst, &input)) {
     int rc;
 
-    compiled_pat = pcre2_compile(
-          (PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, pcre_options, &pcre_errornum, &pcre_errorpos, NULL);
+    compiled_pat = pcre2_compile((PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, pcre_options, &pcre_errornum, &pcre_errorpos, NULL);
     if (!compiled_pat) {
-      pcre2_get_error_message (pcre_errornum, pcre_error, sizeof pcre_error);
-      Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n",
-          pcre_error, Char(pattern), pcre_errorpos);
+      pcre2_get_error_message(pcre_errornum, pcre_error, sizeof pcre_error);
+      Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n", pcre_error, Char(pattern), pcre_errorpos);
       Exit(EXIT_FAILURE);
     }
-    match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
+    match_data = pcre2_match_data_create_from_pattern(compiled_pat, NULL);
     rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)input, PCRE2_ZERO_TERMINATED, 0, 0, match_data, NULL);
-    captures = pcre2_get_ovector_pointer (match_data);
+    captures = pcre2_get_ovector_pointer(match_data);
     if (rc >= 0) {
       res = replace_captures(rc, input, subst, captures, pattern, s);
     } else if (rc != PCRE2_ERROR_NOMATCH) {
-      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n",
-	rc, Char(pattern), input);
+      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n", rc, Char(pattern), input);
       Exit(EXIT_FAILURE);
     }
   }
@@ -1372,7 +1373,7 @@ String *Swig_pcre_version(void) {
 /* ------------------------------------------------------------
  * Swig_is_generated_overload()
  * Check if the function is an automatically generated
- * overload created because a method has default parameters. 
+ * overload created because a method has default parameters.
  * ------------------------------------------------------------ */
 
 int Swig_is_generated_overload(Node *n) {
@@ -1395,8 +1396,8 @@ Node *Swig_item_in_list(List *list, const DOH *item) {
     Iterator it;
     for (it = First(list); it.item; it = Next(it)) {
       if (DohCmp(item, it.item) == 0) {
-	found_item = it.item;
-	break;
+        found_item = it.item;
+        break;
       }
     }
   }

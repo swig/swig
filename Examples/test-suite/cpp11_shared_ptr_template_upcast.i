@@ -5,7 +5,14 @@
 #include <string>
 %}
 
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %include <std_shared_ptr.i>
+#endif
+
 %include <std_string.i>
 
 %{
@@ -43,9 +50,11 @@ std::shared_ptr<Printable<Derived> > MakePrintableDerived(int param) {
 
 %}
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %shared_ptr(Base);
 %shared_ptr(Derived);
 %shared_ptr(Printable<Derived>)
+#endif
 
 class Base {
 public:

@@ -7,6 +7,423 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-19: jmarrec
+            #3415 Fix segmentation fault when a class declares a public
+            'using Base::method;' that names a base-class member template with
+            no %template instantiations and also declares a protected concrete
+            override of the same name.
+
+2026-05-16: erezgeva
+            [Lua, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] #3409 Add memory allocation
+            failure protection to the argcargv typemaps and to the string duplication paths
+            in pystrings.swg, perlstrings.swg, rubystrings.swg and rfragments.swg.
+
+            *Potentially incompatible change*: the `%new_copy_array` macro
+            has been removed. User interface files calling `%new_copy_array(ptr, size, T)`
+            will be passed through to the C/C++ compiler unchanged and fail with
+            an error such as:
+
+                error: expected expression before '%' token
+
+            Replace such calls with an explicit allocate and copy that checks
+            for allocation failure, e.g.
+
+                T *p = %new_array(size, T);
+                if (p) memcpy(p, ptr, size * sizeof(T));
+
+            *Potentially incompatible change*: the `%typemaps_string` macro in
+            `Lib/typemaps/strings.swg` now takes an additional argument naming a
+            `SWIG_NewCopyCharArray` style fragment, and the related
+            `%typemaps_string_alloc` macro has been removed (its allocator
+            customisation is now expressed by passing the new argument to
+            `%typemaps_string` directly). Existing callers of
+            `%typemaps_string` with the old signature will fail with:
+
+                Error: Macro '%typemaps_string' expects 13 arguments
+
+            Existing callers of `%typemaps_string_alloc` will fail with:
+
+                Error: Unknown directive '%typemaps_string_alloc'.
+
+            Update such calls to pass the additional fragment, modelled on
+            `SWIG_NewCopyWCharArray` in `Lib/typemaps/wstring.swg`.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-15: blowekamp
+            [R] #3407 Fix compilation with R 4.6.0 which removed the non-API macro
+            SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.
+            Use Rf_asS4, SET_STRING_ELT and STRING_ELT instead. These replacement
+            APIs have been available since R 2.x so no version guards are required.
+
+2026-05-12: wsfulton
+            C++20: %template can now instantiate abbreviated function templates
+            that mix 'auto' parameters with a variadic explicit template pack,
+            e.g.
+
+              template<typename... Ts>
+              std::string f_mix(auto x, Ts... ys);
+              %template(f_mix_isd) f_mix<int, std::string, double>;
+
+            Per the C++20 standard ([dcl.fct]/19) the invented type template-
+            parameter for each 'auto' parm is appended after the explicit list,
+            so the %template argument list is bound positionally: leading
+            non-variadic parameters first, the variadic pack absorbs the middle
+            args, then one trailing arg per 'auto' in declaration order.  Above,
+            Ts={int, std::string} (absorbed by the pack) and the trailing
+            'double' binds to the invented parm for 'x', giving the effective
+            wrapper signature as:
+
+              f_mix(double x, int y1, std::string y2)
+
+2026-05-12: wsfulton
+            C++20: parse and support decorated 'auto' parameters in abbreviated
+            function templates:
+
+              int h(auto& x);                  // reference
+              int i(auto* x);                  // pointer
+              int j(auto&& x);                 // forwarding reference
+              int k(const auto x);             // const by value
+              int l(const auto& x);            // const reference
+              int m(Numeric auto& x);          // constrained reference
+              int n(const Numeric auto& x);    // const constrained reference
+
+2026-05-12: wsfulton
+            C++20: fix segmentation fault when mixing abbreviated function template
+            'auto' parameters with an explicit template parameter list, e.g.
+
+              template<typename T>
+              T mix(T x, auto y) { return T(x + y); }
+              %template(mix_id) mix<int, double>;
+
+            Each 'auto' parameter introduces an invented type template parameter
+            appended to the explicit template parameter list.  When using
+            %template, supply arguments for the explicit parameters first, then
+            one for each 'auto' parameter in declaration order.
+
+2026-05-11: wsfulton
+            C++20: warning 332 (unresolved type-constraint in a templated
+            parameter list) is no longer emitted. The remap to 'typename T' is
+            still applied silently, so wrappers continue to compile when the
+            concept definition is visible only to the C++ compiler.
+
+2026-05-10: wsfulton
+            C++20: template parameters with a type-constraint now accept a
+            template-id concept-id as the constraint, the form most often seen with
+            STL concepts like 'std::convertible_to', 'std::same_as', 'std::derived_from'
+            or 'std::predicate'. Examples:
+
+              template<std::convertible_to<int> T> int to_int(T x);
+              template<typename T, typename U> concept Pair = std::convertible_to<T, U>;
+              template<Pair<int> T>                int first_int(T x);
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates with a constrained auto return
+            type, including the trailing return form:
+
+              Numeric auto half(int x) -> int { return x / 2; }
+              Numeric auto cube_constrained(Sized auto x) -> int { return x*x*x; }
+              %template(cube_constrained_int) cube_constrained<int>;
+
+            When an explicit (non-auto) trailing return type is provided the function
+            wraps normally (the trailing return is the wrapped type); without one, the
+            function is ignored with a warning since SWIG cannot deduce the return type,
+            matching plain 'auto fn(...)' behaviour.  As a side fix, plain 'auto
+            fn(Concept auto x) -> Type' now correctly introduces an invented type template
+            parameter for the auto parameter so '%template' instantiates it.
+
+2026-05-09: wsfulton
+            C++20: parse and support type-constraints on template parameters.
+            'template<Numeric T>' is now accepted as the standard shorthand for
+            'template<typename T> requires Numeric<T>', as per the C++20 standard. This includes
+            ::-qualified concept-ids, variadic packs, default arguments and class templates.
+
+              template<typename T>
+              concept Numeric = std::integral<T> || std::floating_point<T>;
+
+              template<Numeric T> T cube(T x) { return x * x * x; }
+              %template(cube_int) cube<int>;
+
+            If the type-constraint identifier has not been parsed by SWIG, the parameter
+            is silently remapped to 'typename T'; the generated wrapper compiles when
+            the concept is visible to the C++ compiler.
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates with constrained auto parameters.
+            Each auto parameter with a type-constraint (e.g. 'Numeric auto') introduces
+            an invented type template parameter carrying the type-constraint as a
+            captured constraint.
+
+              int twice_numeric(Numeric auto x) { return x + x; }
+              %template(twice_numeric_int) twice_numeric<int>;
+
+2026-05-09: wsfulton
+            C++14: parse generic lambdas - lambdas with one or more 'auto' parameters.
+            Like non-templated lambdas, generic lambdas are not wrapped, but they no
+            longer cause a syntax error when SWIG parses a header that contains them.
+
+              auto twice = [](auto x) { return x + x; };
+              auto add = [](auto a, auto b) { return a + b; };
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates - ordinary functions with one or
+            more 'auto' parameters. C++20 treats the function as a function template with
+            invented type template parameters for each auto parameter. Abbreviated
+            function templates can now be wrapped with %template, just like a regular
+            templated function. Note that an explicit (non-auto) return type is required.
+            The return type is not included in the %template instantiation and SWIG
+            remains unable to deduce auto return types.
+
+              double scale(auto x, auto factor) { return x * factor; }
+              %template(scale_id) scale<int, double>;
+
+2026-05-09: wsfulton
+            #3413 C++20: accept prefix requires-clauses on templated lambdas, and trailing
+            requires-clauses placed after the lambda's return type.
+
+              auto prefix = []<typename T> requires Numeric<T> (T x) { return x + x; };
+
+2026-05-07: wsfulton
+            #3413 %template applied to a C++20 concept now reports an error instead of
+            silently producing a malformed wrapper.
+
+2026-05-05: wsfulton
+            #3413 C++20: parse a requires-expression as a primary in expression position,
+            not just inside a requires-clause.  This allows a namespace scope variable
+            template to be initialised from a requires-expression.
+
+              template<typename T>
+              constexpr bool Addable = requires (T t) { t + t; };
+
+              %template(addable_int) Addable<int>;
+
+2026-05-05: wsfulton
+            Document existing coverage for C++14 variable templates which requires a
+            %template instantiation of the variable template, resulting in a read only
+            variable wrapper.
+
+              template<typename T>
+              constexpr int bits_in = sizeof(T) * 8;
+
+              %template(bits_in_char) bits_in<char>;
+
+2026-05-04: wsfulton
+            #3413 Basic support for C++20 concept declarations and requires-clauses on
+            function templates, in both the trailing position and the prefix position
+            (between the template parameter list and the declarator).  Both constructs are silently
+            consumed: a concept declaration produces no parse tree node, and a constrained
+            template wraps as if it were unconstrained.
+
+              template<typename T>
+              concept Numeric = std::integral<T> || std::floating_point<T>;
+
+              template<typename T>
+              T cube(T x) requires Numeric<T> { return x * x * x; }
+
+              template<typename T>
+              requires Numeric<T>
+              T quad(T x) { return x * x * x * x; }
+
+              template<typename T>
+              concept Summable = requires (T t) { t + t; };
+              template<typename T>
+              T sum_pair(T a, T b) requires Summable<T> { return a + b; }
+
+            Compound constraints containing trailing return type constraints also work:
+
+              template<typename T>
+              concept AddableSame = requires(T a, T b) {
+                { a + b } -> std::same_as<T>;
+              };
+
+2026-05-03: wsfulton
+            [R] Fix function pointer wrappers involving move-only types.
+
+2026-05-02: mmomtchev, wsfulton
+            #341 #3297 #3298 Add support for wrapping std::function via the SWIG library file
+            std_function.i.  The partial specialization
+            std::function<RET(ARGS...)> is wrapped so that a C++ callable
+            (free function, lambda, bound member function or functor) can be
+            returned from C++ to the target language and invoked there.
+
+              %include <std_function.i>
+
+              %inline %{
+              std::function<bool(int, const std::string &)> MakeFunctor(int pass) {
+                return [pass](int passcode, const std::string &name) -> bool {
+                  return passcode == pass && name == "magic";
+                };
+              }
+              %}
+
+              %template(MyFunctor) std::function<bool(int, const std::string &)>;
+
+            One %template instantiation is required per RET(ARGS...) signature.
+            std_function.i renames operator() to call so that target languages
+            which cannot wrap operator() as an identifier still get a usable
+            method name, and ignores the default constructor so std::function
+            instances always originate on the C++ side.  See the new section
+            "std::function" in the SWIG library chapter of the documentation
+            for the full pattern, limitations and target-language notes.
+
+2026-05-01: wsfulton
+            Fix partial template specialization where the specialized argument
+            is a function type, including function types carrying a parameter
+            pack. This makes std::function and similar wrappers work correctly,
+            eg:
+
+              template <typename> class function;
+              template <typename RET, typename... ARGS>
+                class function<RET(ARGS...)> { ... };
+              %template(FuncIntInt)    function<int(int, int)>;
+              %template(FuncVoid)      function<int()>;
+              %template(FuncMixed)     function<int(int, double, int)>;
+
+            Previously the primary template was incorrectly chosen for these
+            instantiations.  The partial specialization is now matched, with
+            the function return type and parameter list (including trailing
+            parameter packs) bound correctly.  Lib/std/std_function.i has been
+            updated to use the standard forward declaration of std::function.
+
+2026-04-26: wsfulton
+            Fix partial template specialization where the specialized argument
+            is a templated type carrying a parameter pack, eg:
+
+              template <typename...> struct Pack {};
+              template <typename T> struct Foo {};
+              template <typename... ARGS> struct Foo<Pack<ARGS...>> {};
+              %template(FooEmpty) Foo<Pack<>>;
+              %template(FooStr)   Foo<Pack<std::string>>;
+              %template(FooMix)   Foo<Pack<int, double>>;
+
+            Such partial specializations are now matched and instantiated
+            correctly for any pack length, including the empty pack.
+
+2026-04-25: wsfulton
+            Advanced %rename fixes for templates. It is now possible to use %rename
+	    on instantiated templates for various corner cases, see "Template renaming"
+	    section in SWIGPlus.html. For example, it is now possible to selectively rename
+	    overloaded templated functions. The full power of %rename (such as using regex)
+	    can now be used on templates.
+
+	    Example fix using %rename on templates:
+	      namespace Quirky {
+	        template<typename T> void funky() {}
+	      }
+	      %rename("%s_void") Quirky::funky<int>();
+	      %template(funky_int) Quirky::funky<int>;
+	    Will now generate funky_void() where previously there there was no wrapper, just
+	    a warning:
+		Warning 503: Can't wrap 'funky< int >_void' unless renamed to a valid identifier.
+
+2026-04-17: jwuttke
+            #3403 Fix -doxygen: @file block bleeding into the first class
+            docstring. Single-line //! (or ///) comments forming a file-level
+            header (starting with @file) are now correctly discarded instead of
+            being concatenated into the next declaration's docstring.
+
+2026-03-26: Nerixyz
+            [Python] #3389 Add missing C annotations and PEP 484 annotations to constants.
+
+2026-03-25: christophe-calmejane
+            [Lua] #3387 Added support for std::shared_ptr and boost::shared_ptr.
+
+2026-03-25: Nerixyz
+            [Python] #3334 Add PEP 484 annotations for a few simple types - primitive
+            types and C strings.
+
+2026-03-23: christophe-calmejane
+            [Lua] #3386 Add support for std::unordered_set and std::unordered_map.
+
+2026-03-23: erezgeva
+            [Go] #3360 Makefile support for using and testing Go on Windows.
+
+2026-03-20: christophe-calmejane
+            [Lua] #3306 Added support for nested classes.
+
+2026-03-19: wsfulton
+            [C#, D] Always initialise the return type in the C/C++ code. Users with custom
+            typemaps may need to provide a valid initial value via the "null" attribute
+            in the "out" typemap if 0 is not a valid initial value.
+
+2026-03-19: erezgeva
+            #3348 Avoid a potential segfault by handling a failed dynamic_cast in generated
+            director code by instead throwing a language specific exception:
+            "'self' is not a director".
+
+2026-03-10: xSetech
+            [Python] #3365 Fix descriptor() type lookup when SwigPyIterator is renamed
+            via #define for use in multiple modules.
+
+2026-03-06: wsfulton
+            [Java] #3354 Fully qualify generated Java interfaces when using the %interface
+            and %nspace features.
+
+2026-03-05: FilipAlg
+            [C#] #3354 Fully qualify generated C# interfaces when using the %interface
+            and %nspace features.
+
+2026-03-05: christophe-calmejane
+            [Lua] #3305 Added std::array and std::set support.
+
+2026-03-04: wsfulton
+            #3312 SWIG source code in Source directory is now formatted with clang-format.
+
+            Supported versions of clang-format are 18 and later (tested up to and including
+            version 22). Formatting is enforced in Github Actions so contributors to the
+            source code base must use clang-format before raising Github pull requests.
+            Separate formatting only commits are strongly discouraged; each commit should
+            be correctly formatted when committing (or format only commits squashed into
+            prior commits prior to pushing to Github).
+
+            Please see docs in Doc/Manual/Extending.html.
+
+            In order to the ease pain of working on git branches that were branched prior to the
+            commit on master that reformatted the code (bbdec1f7), the following is suggested.
+            1. Merge/rebase onto the prior commit bbdec1f7^
+            2. Copy Source/.clang-format from bbdec1f7 into your working directory
+            3. Run the identical commands specified in the bbdec1f7 commit message
+            The branch should then merge cleanly onto bbdec1f7.
+
+2026-02-28: ArtemKozak666
+            [C#] #3321 Fix undefined behaviour in std::string_view directorin typemap.
+
+2026-02-27: erezgeva
+            Various improvements to Github Actions CI testing to increase coverage notably
+            with additional Windows and MacOS testing including via CMake.
+
+2026-02-27: phetdam
+            #3191 #3332 Buiding SWIG executable with CMake enhancements.
+            - Update PCRE2 find module to be compatible with upstream CMake config script.
+            - Update docs for users wishing to use CMake to build SWIG.
+
+2026-02-23: aryler
+            #3304 Correct LDSHARED for OpenBSD.
+
+2026-02-20: benzwick
+            [Guile] #3336 Fix segfault in Guile -proxy when class has public member variable.
+
+2026-02-20: benzwick
+            #3337 Fix cross-module type cast lookup in SWIG_InitializeModule
+            using multiple modules.
+
+2026-02-11: degasus, wsfulton
+            #3327 [Java, C#] Add missing Doxygen documentation comments to code using the
+            %interface directives.
+
+2026-02-07: wsfulton
+	    #3323 Fix -Wsign-compare warning in 32-bit builds in SWIG_TypeClientData.
+
+2026-02-04: jschueller
+	    #3325 Add include guard when generating SWIG runtime header.
+
+2026-01-21: jschueller
+	    #3019 Issue deprecation warning if `%typedef` is used.  This is
+	    an undocumented directive which SWIG has treated as an alias for
+	    the standard C/C++ `typedef` since at least 1996.  Replace any
+	    remaining uses with `typedef`, which also works with older SWIG
+	    versions.
+
 2026-01-15: olly
 	    [Octave] Octave 6 is now the oldest version we aim to support.  We
 	    haven't had any automated testing of older Octave versions since
@@ -15,9 +432,10 @@ Version 4.5.0 (in progress)
 2026-01-15: jschueller
 	    [Octave] Fix save_binary prototype to be correct for Octave >= 6.
 
-2025-17-12: ysmilda
+2025-12-17: ysmilda
             [Go] #3291 
-               - Add `-unique-id` and `-no-unique-id` flags to enable/disable the addition of a unique id to the generated function names.
+               - Add `-unique-id` and `-no-unique-id` flags to enable/disable the addition of a
+                 unique id to the generated function names.
                - Deprecate `-cgo` flag as this doesn't do anything.
                - Cleanup docs and help output.
                

@@ -44,7 +44,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -345,7 +345,7 @@ template <class T1, class T2> struct Base {
   T1 baseVal1;
   T2 baseVal2;
   Base(T1 t1, T2 t2) : baseVal1(t1*2), baseVal2(t2*2) {}
-  virtual std::string getValue() const { return "Base<>"; };
+  virtual std::string getValue() const { return "Base<>"; }
   virtual ~Base() {}
 };
 %}
@@ -362,7 +362,7 @@ template <class T1, class T2> struct Pair : Base<T1, T2> {
   T1 val1;
   T2 val2;
   Pair(T1 t1, T2 t2) : Base<T1, T2>(t1, t2), val1(t1), val2(t2) {}
-  virtual std::string getValue() const { return "Pair<>"; };
+  virtual std::string getValue() const { return "Pair<>"; }
 };
 Pair<int, double> pair_id2(Pair<int, double> p) { return p; }
 SwigBoost::shared_ptr< Pair<int, double> > pair_id1(SwigBoost::shared_ptr< Pair<int, double> > p) { return p; }

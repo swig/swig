@@ -86,10 +86,10 @@ else
     echo "Building native Windows executable on Linux"
     if test x$zip = x; then
       zip=zip
-      wine=$(which wine)
     fi
+    wine=$(which wine)
     if test x$wine = x; then
-      echo_error_exit "Could not detect wine - please install wine-stable package."
+      echo_error_exit "Could not detect wine - please install wine package."
     fi
     if [ "$bits" = "32" ]; then
       echo "Checking that mingw 32-bit gcc is installed/available"

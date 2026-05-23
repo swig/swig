@@ -38,7 +38,7 @@
 %typemap(csdirectorout) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "$cscall.GetInterfaceCPtr()"
 %typemap(csinterfacecode, declaration="  [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]\n  global::System.Runtime.InteropServices.HandleRef GetInterfaceCPtr();\n", cptrmethod="$interfacename_GetInterfaceCPtr") CTYPE %{
   [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-  global::System.Runtime.InteropServices.HandleRef $interfacename.GetInterfaceCPtr() {
+  global::System.Runtime.InteropServices.HandleRef $csinterfacename.GetInterfaceCPtr() {
     return new global::System.Runtime.InteropServices.HandleRef(this, $imclassname.$csclazzname$interfacename_GetInterfaceCPtr(swigCPtr.Handle));
   }
 %}

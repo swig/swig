@@ -3,13 +3,13 @@
 // One parameter templates
 %inline %{
 namespace Space {
-  template <bool B> struct Bool1        { void tt(){}; void ff(){}; };
-  template <bool B = true> struct Bool2 { void tt(){}; void ff(){}; };
+  template <bool B> struct Bool1        { void tt(){} void ff(){} };
+  template <bool B = true> struct Bool2 { void tt(){} void ff(){} };
   template <bool B> struct Bool3        {};
-  template <> struct Bool3<true>        { void tt(){}; };
-  template <> struct Bool3<false>       { void ff(){}; };
-  template <bool B = true> struct Bool4 { void tt(){}; };
-  template <> struct Bool4<false>       { void ff(){}; };
+  template <> struct Bool3<true>        { void tt(){} };
+  template <> struct Bool3<false>       { void ff(){} };
+  template <bool B = true> struct Bool4 { void tt(){} };
+  template <> struct Bool4<false>       { void ff(){} };
 }
 %}
 
@@ -34,13 +34,15 @@ namespace Space {
   template <bool B> struct BoolForward3;
   template <bool B> struct BoolForward4;
 
-  template <bool B> struct BoolForward1        { void tt(){}; void ff(){}; };
-  template <bool B = true> struct BoolForward2 { void tt(){}; void ff(){}; };
+  template <bool B> struct BoolForward1        { void tt(){}
+                                                 void ff(){} };
+  template <bool B = true> struct BoolForward2 { void tt(){}
+                                                 void ff(){} };
   template <bool B> struct BoolForward3        {};
-  template <> struct BoolForward3<true>        { void tt(){}; };
-  template <> struct BoolForward3<false>       { void ff(){}; };
-  template <bool B = true> struct BoolForward4 { void tt(){}; };
-  template <> struct BoolForward4<false>       { void ff(){}; };
+  template <> struct BoolForward3<true>        { void tt(){} };
+  template <> struct BoolForward3<false>       { void ff(){} };
+  template <bool B = true> struct BoolForward4 { void tt(){} };
+  template <> struct BoolForward4<false>       { void ff(){} };
 }
 %}
 
@@ -60,13 +62,15 @@ namespace Space {
 // Two parameter templates
 %inline %{
 namespace Space {
-  template <int I, bool B> struct IntBool1        { void tt(){}; void ff(){}; };
-  template <int I, bool B = true> struct IntBool2 { void tt(){}; void ff(){}; };
+  template <int I, bool B> struct IntBool1        { void tt(){}
+                                                    void ff(){} };
+  template <int I, bool B = true> struct IntBool2 { void tt(){}
+                                                    void ff(){} };
   template <int I, bool B> struct IntBool3        {};
-  template <int I> struct IntBool3<I, true>       { void tt(){}; };
-  template <int I> struct IntBool3<I, false>      { void ff(){}; };
-  template <int I, bool B = true> struct IntBool4 { void tt(){}; };
-  template <int I> struct IntBool4<I, false>      { void ff(){}; };
+  template <int I> struct IntBool3<I, true>       { void tt(){} };
+  template <int I> struct IntBool3<I, false>      { void ff(){} };
+  template <int I, bool B = true> struct IntBool4 { void tt(){} };
+  template <int I> struct IntBool4<I, false>      { void ff(){} };
 }
 %}
 
@@ -85,14 +89,14 @@ namespace Space {
 
 %{
 namespace Space {
-  template <bool B> struct Duplicate1 { void ff(){}; };
+  template <bool B> struct Duplicate1 { void ff(){} };
 }
 %}
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Space::Duplicate1;
 namespace Space {
-  template <bool B> struct Duplicate1 { void ff(){}; };
-  template <bool B> struct Duplicate1 { void ff(){}; };
+  template <bool B> struct Duplicate1 { void ff(){} };
+  template <bool B> struct Duplicate1 { void ff(){} };
 }
 
 
@@ -100,7 +104,7 @@ namespace Space {
 %warnfilter(SWIGWARN_TYPE_REDEFINED) Space::Duplicate2;
 %inline %{
 namespace Space {
-  template <int I> struct Duplicate2 { void n(){}; };
+  template <int I> struct Duplicate2 { void n(){} };
 }
 %}
 %template(Duplicate2_0) Space::Duplicate2<0>;
@@ -111,7 +115,7 @@ namespace Space {
 %warnfilter(SWIGWARN_TYPE_REDEFINED) Space::Duplicate3;
 %inline %{
 namespace Space {
-  template <int I> struct Duplicate3 { void n(){}; };
+  template <int I> struct Duplicate3 { void n(){} };
 }
 %}
 %template(Duplicate3) Space::Duplicate3<0>;
@@ -120,15 +124,15 @@ namespace Space {
 
 %{
 namespace Space {
-  template <bool B> struct Duplicate4 { void ff(){}; };
+  template <bool B> struct Duplicate4 { void ff(){} };
 }
 %}
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Space::Duplicate4;
 %warnfilter(SWIGWARN_TYPE_REDEFINED) Space::Duplicate4<0>;
 namespace Space {
-  template <bool B> struct Duplicate4 { void ff(){}; };
-  template <bool B> struct Duplicate4 { void ff(){}; };
+  template <bool B> struct Duplicate4 { void ff(){} };
+  template <bool B> struct Duplicate4 { void ff(){} };
 }
 %template(Duplicate4) Space::Duplicate4<0>;
 %template(Duplicate4) Space::Duplicate4<0>;

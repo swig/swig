@@ -14,18 +14,15 @@
 
 #include "doxytranslator.h"
 
-DoxygenTranslator::DoxygenTranslator(int flags) : m_flags(flags), parser((flags &debug_parser) != 0) {
+DoxygenTranslator::DoxygenTranslator(int flags) : m_flags(flags), parser((flags & debug_parser) != 0) {
 }
-
 
 DoxygenTranslator::~DoxygenTranslator() {
 }
 
-
 bool DoxygenTranslator::hasDocumentation(Node *node) {
   return getDoxygenComment(node) != NULL;
 }
-
 
 String *DoxygenTranslator::getDoxygenComment(Node *node) {
   return Getattr(node, "doxygen");
@@ -43,7 +40,7 @@ void DoxygenTranslator::extraIndentation(String *comment, const_String_or_char_p
     Replaceall(comment, "\n", replace);
     if (trailing_newline) {
       len = Len(comment);
-      Delslice(comment, len - 2, len); // Remove added trailing spaces on last line
+      Delslice(comment, len - 2, len);  // Remove added trailing spaces on last line
     }
     Delete(replace);
   }
@@ -59,7 +56,6 @@ String *DoxygenTranslator::getDocumentation(Node *node, const_String_or_char_ptr
   extraIndentation(documentation, indentationString);
   return documentation;
 }
-
 
 void DoxygenTranslator::printTree(const DoxygenEntityList &entityList) {
 

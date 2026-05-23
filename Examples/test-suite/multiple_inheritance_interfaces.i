@@ -12,7 +12,7 @@
 
 %inline %{
 struct IA {
-  virtual void ia() {};
+  virtual void ia() {}
   virtual void ia(const char *s, bool b = true) {}
   virtual void ia(int i) {}
   virtual ~IA() {}
@@ -29,7 +29,8 @@ struct E : D {};
 %interface_custom("L", "IL", IL)
 #endif
 %inline %{
-struct IJ { virtual ~IJ() {}; virtual void ij() {} };
+struct IJ { virtual ~IJ() {}
+            virtual void ij() {} };
 struct IK : IJ {};
 struct IL : IK {};
 struct M : IL {};

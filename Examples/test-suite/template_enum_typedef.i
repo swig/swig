@@ -25,7 +25,7 @@
       typedef Traits traits;
       static const Polarization P = traits::pmode;
  
-      void get(Interface_<P> arg) { };   // Here P is only replace by traits::pmode
+      void get(Interface_<P> arg) { }   // Here P is only replace by traits::pmode
  
     };
   }

@@ -8,7 +8,7 @@ namespace SpatialIndex
         class Variant 
         { 
         public: 
-                Variant() { }; 
+                Variant() { }
                 int varType; 
                 union 
                 { 

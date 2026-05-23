@@ -670,7 +670,7 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
   class $jsmangledname_inst : public $jsmangledname_templ<$jsmangledname_inst> {
     public:
       using $jsmangledname_templ::$jsmangledname_templ;
-      virtual ~$jsmangledname_inst() {};
+      virtual ~$jsmangledname_inst() {}
       static void GetMembers(
         Napi::Env,
         std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &,

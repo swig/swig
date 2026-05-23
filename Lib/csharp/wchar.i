@@ -159,8 +159,8 @@ static wchar_t * Swig_csharp_UTF16ToWCharPtr(const unsigned short *str) {
     wchar_t *result = 0;
 
     if (str) {
-      const unsigned short *pBegin(str);
-      const unsigned short *pEnd(pBegin);
+      const unsigned short *pBegin = str;
+      const unsigned short *pEnd = pBegin;
       wchar_t *ptr = 0;
 
       while (*pEnd != 0)

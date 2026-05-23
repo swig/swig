@@ -1,0 +1,4 @@
+cpp_concept_redefinition.i:15: Warning 302: Redefinition of identifier 'process' ignored,
+cpp_concept_redefinition.i:12: Warning 302: previous definition of 'process'.
+cpp_concept_redefinition.i:22: Warning 302: Redefinition of identifier 'Box' as Box::Box(T) ignored,
+cpp_concept_redefinition.i:21: Warning 302: previous definition of 'Box' as Box::Box(T).

@@ -19,9 +19,9 @@ class Foo { };
 
 class Bar {
 public:
-  void baz() const { };
-  void foo() TESTCASE_THROW1(Foo) { };
-  void bazfoo() const TESTCASE_THROW1(int) { };
+  void baz() const { }
+  void foo() TESTCASE_THROW1(Foo) { }
+  void bazfoo() const TESTCASE_THROW1(int) { }
 };
 
 %}

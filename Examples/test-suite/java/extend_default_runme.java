@@ -17,15 +17,15 @@ public class extend_default_runme {
     // %extend before the class definition
     {
       Before ex = new Before();
-      if (ex.getI() != -1.0 && ex.getD() != -1.0)
+      if (ex.getI() != -1.0 || ex.getD() != -1.0)
         throw new RuntimeException("Before constructor 1 failed");
 
       ex = new Before(10);
-      if (ex.getI() != 10.0 && ex.getD() != -1.0)
+      if (ex.getI() != 10.0 || ex.getD() != -1.0)
         throw new RuntimeException("Before constructor 2 failed");
 
       ex = new Before(20, 30.0);
-      if (ex.getI() != 20 && ex.getD() != 30.0)
+      if (ex.getI() != 20 || ex.getD() != 30.0)
         throw new RuntimeException("Before constructor 3 failed");
     }
     {
@@ -49,15 +49,15 @@ public class extend_default_runme {
     // %extend after the class definition
     {
       After ex = new After();
-      if (ex.getI() != -1.0 && ex.getD() != -1.0)
+      if (ex.getI() != -1.0 || ex.getD() != -1.0)
         throw new RuntimeException("After constructor 1 failed");
 
       ex = new After(10);
-      if (ex.getI() != 10.0 && ex.getD() != -1.0)
+      if (ex.getI() != 10.0 || ex.getD() != -1.0)
         throw new RuntimeException("After constructor 2 failed");
 
       ex = new After(20, 30.0);
-      if (ex.getI() != 20 && ex.getD() != 30.0)
+      if (ex.getI() != 20 || ex.getD() != 30.0)
         throw new RuntimeException("After constructor 3 failed");
     }
     {
@@ -81,15 +81,15 @@ public class extend_default_runme {
     // %extend before the class definition - with overloading and default args
     {
       OverBefore ex = new OverBefore();
-      if (ex.getI() != -1.0 && ex.getD() != -1.0)
+      if (ex.getI() != -1.0 || ex.getD() != -1.0)
         throw new RuntimeException("OverBefore constructor 1 failed");
 
       ex = new OverBefore(10);
-      if (ex.getI() != 10.0 && ex.getD() != -1.0)
+      if (ex.getI() != 10.0 || ex.getD() != -1.0)
         throw new RuntimeException("OverBefore constructor 2 failed");
 
       ex = new OverBefore(20, 30.0);
-      if (ex.getI() != 20 && ex.getD() != 30.0)
+      if (ex.getI() != 20 || ex.getD() != 30.0)
         throw new RuntimeException("OverBefore constructor 3 failed");
     }
     {
@@ -111,15 +111,15 @@ public class extend_default_runme {
     }
     {
       OverBefore ex = new OverBefore("hello");
-      if (ex.getI() != -2.0 && ex.getD() != -2.0)
+      if (ex.getI() != -2.0 || ex.getD() != -2.0)
         throw new RuntimeException("OverBefore overload constructor 1 failed");
 
       ex = new OverBefore("hello", 10);
-      if (ex.getI() != 10.0 && ex.getD() != -1.0)
+      if (ex.getI() != 10.0 || ex.getD() != -2.0)
         throw new RuntimeException("OverBefore overload constructor 2 failed");
 
       ex = new OverBefore("hello", 20, 30.0);
-      if (ex.getI() != 20 && ex.getD() != 30.0)
+      if (ex.getI() != 20 || ex.getD() != 30.0)
         throw new RuntimeException("OverBefore overload constructor 3 failed");
     }
     {
@@ -143,15 +143,15 @@ public class extend_default_runme {
     // %extend after the class definition - with overloading and default args
     {
       OverAfter ex = new OverAfter();
-      if (ex.getI() != -1.0 && ex.getD() != -1.0)
+      if (ex.getI() != -1.0 || ex.getD() != -1.0)
         throw new RuntimeException("OverAfter constructor 1 failed");
 
       ex = new OverAfter(10);
-      if (ex.getI() != 10.0 && ex.getD() != -1.0)
+      if (ex.getI() != 10.0 || ex.getD() != -1.0)
         throw new RuntimeException("OverAfter constructor 2 failed");
 
       ex = new OverAfter(20, 30.0);
-      if (ex.getI() != 20 && ex.getD() != 30.0)
+      if (ex.getI() != 20 || ex.getD() != 30.0)
         throw new RuntimeException("OverAfter constructor 3 failed");
     }
     {
@@ -173,15 +173,15 @@ public class extend_default_runme {
     }
     {
       OverAfter ex = new OverAfter("hello");
-      if (ex.getI() != -2.0 && ex.getD() != -2.0)
+      if (ex.getI() != -2.0 || ex.getD() != -2.0)
         throw new RuntimeException("OverAfter overload constructor 1 failed");
 
       ex = new OverAfter("hello", 10);
-      if (ex.getI() != 10.0 && ex.getD() != -1.0)
+      if (ex.getI() != 10.0 || ex.getD() != -2.0)
         throw new RuntimeException("OverAfter overload constructor 2 failed");
 
       ex = new OverAfter("hello", 20, 30.0);
-      if (ex.getI() != 20 && ex.getD() != 30.0)
+      if (ex.getI() != 20 || ex.getD() != 30.0)
         throw new RuntimeException("OverAfter overload constructor 3 failed");
     }
     {

@@ -10,7 +10,7 @@ Foo *blah() {
 %inline %{
 class Foo {
 public:
-  Foo() { };
+  Foo() { }
 };
 
 %}

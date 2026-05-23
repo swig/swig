@@ -9,7 +9,7 @@
 class Foo {
 public:
    explicit Foo() { }
-   explicit Foo(int) {};
+   explicit Foo(int) {}
 };
 
 Foo test(Foo x) {

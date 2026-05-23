@@ -16,7 +16,7 @@ struct Template {
 template<typename T>
 Space::Template<T> makeT(int x) {
   return Space::Template<T>();
-};
+}
 int *global_ints(int &ri, Space::Template<short> t) { return &ri; }
 int *global_overloaded(int &ri) { return &ri; }
 int *global_overloaded() { return NULL; }

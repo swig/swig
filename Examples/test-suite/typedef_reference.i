@@ -21,5 +21,5 @@
   };
 
   int global_int = 1234;
-  IntRefAgain global_ref = global_int;;
+  IntRefAgain global_ref = global_int;
 %}

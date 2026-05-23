@@ -3,25 +3,62 @@ name: windows
 on:
   push:
     paths-ignore:
+      - '.agents/**'
+      - '.github/workflows/linux.yml'
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/cmake.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
       - 'Tools/GHA-linux-*'
-      - 'appveyor.yml'
   pull_request:
     branches: master
     paths-ignore:
+      - '.agents/**'
+      - '.github/workflows/linux.yml'
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/cmake.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
       - 'Tools/GHA-linux-*'
-      - 'appveyor.yml'
 
 permissions:
   contents: read
 
 jobs:
-  win_ci:
+  # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
+  # The clang-format version used is slightly different for each OS workflow file
+  # This job gates the main build job so must succeed before the main build job is run
+  clang-format:
+    runs-on: ubuntu-latest
+    name: clang-format 21
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+      - name: Check with clang-format
+        uses: RafikFarhad/clang-format-github-action@v6.0.1
+        with:
+          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+          style: file
+
+  # This action build using MSYS2 environment
+  # We use two compilers C/C++:
+  # - Microsoft Visual Studio compiler.
+  # - MinGW-w64 GCC compiler with MSVCRT or UCRT C standard library.
+  # We use 2 package managers
+  # - NuGet packages are compatible with Visual Studio compiler.
+  # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
+  #
+  # We try to use already installed software on GitHub windows
+  #  and install only missed software.
+  # We use different versions of installed languages by using
+  #  proper envirounment.
+  build:
     # When continue-on-error is true for an individual build,
     # that build can fail (it'll show red),
     # but it won't fail the overall tests
@@ -34,8 +71,14 @@ jobs:
     name: >
       ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
       ${{ matrix.SWIG_FEATURES }}
-      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }}
+      ${{ matrix.COMPILER || 'msvc' }}
+      ${{ matrix.CPPSTD }}
+      ${{ matrix.CSTD }}
+      ${{ matrix.MSYS2_ENV }}
+      ${{ matrix.os }}
       ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: [clang-format]
 
     strategy:
       matrix:
@@ -43,8 +86,13 @@ jobs:
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
+          os: windows-2025-vs2026
+        - SWIGLANG: csharp
           INSTALL: 'true'
           COMPILER: gcc
+        - SWIGLANG: csharp
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
@@ -52,30 +100,50 @@ jobs:
         - SWIGLANG: java
           VER: 21
         - SWIGLANG: java
+          VER: 25
+        - SWIGLANG: java
           COMPILER: gcc
+          CSTD: gnu99
           VER: 8
         - SWIGLANG: java
           COMPILER: gcc
           VER: 11
-# 3.9 has been removed - try with 3.14 instead?
-#       - SWIGLANG: python
-#         VER: '3.9'
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 25
+        - SWIGLANG: java
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: python
           VER: '3.10'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
-# Disabled for now: At some point between 9-13 Jan 2026 the mingw python package seemed to start depending on the ucrt.
-#       - SWIGLANG: python
-#         COMPILER: gcc
+        - SWIGLANG: python
+          VER: '3.14'
+        - SWIGLANG: python
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
           COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
           VER: '3.2'
           COMPILER: gcc
+          CPPSTD: c++11
+          MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
           VER: '3.3'
           COMPILER: gcc
+          MSYS2_ENV: ucrt64
+        - SWIGLANG: go
+          VER: '1.25'
+          COMPILER: gcc
+          CSTD: gnu11
+        - SWIGLANG: go
+          COMPILER: gcc
+          CSTD: gnu11
+          MSYS2_ENV: ucrt64
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -88,6 +156,9 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       VER: ${{ matrix.VER }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      MSYS2_ENV: ${{ matrix.MSYS2_ENV || 'mingw64' }}
+      CSTD: ${{ matrix.CSTD }}
+      CPPSTD: ${{ matrix.CPPSTD }}
       COMPILER: ${{ matrix.COMPILER }}
       OS: ${{ matrix.os }}
       INSTALL: ${{ matrix.INSTALL }}
@@ -110,7 +181,7 @@ jobs:
           systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         show-progress: false
 
@@ -137,59 +208,81 @@ jobs:
     - name: Prepare Environment
       shell: bash
       run: |
+          set -x
           uname --all
 
           if [[ "$COMPILER" = "gcc" ]]; then
             # MinGW-w64 variant to use
-            mingw_variant=mingw-w64-x86_64
-            mingw_dir=mingw64
+            # See: https://www.msys2.org/docs/environments
+            MSYS2_UENV="${MSYS2_ENV^^}" # Change to uppercase
+            if [[ "$MSYSTEM" != "$MSYS2_UENV" ]]; then
+                MSYSTEM="$MSYS2_UENV"
+                # Change MSYS2 active environment
+                echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
+            fi
+            case "$MSYSTEM" in
+            MINGW64) # Use MinGW-w64 with old Microsoft Visual C++ Runtime
+              # The matched MSYS2 packages prefix
+              mingw_variant=mingw-w64-x86_64-
+              ;;
+            UCRT64) # Use MinGW-w64 with new Microsoft Universal C Runtime
+              # The matched MSYS2 packages prefix
+              mingw_variant=mingw-w64-ucrt-x86_64-
+              ;;
+            CLANG64) # Use LLVM/Clang
+              # The matched MSYS2 packages prefix
+              mingw_variant=mingw-w64-clang-x86_64-
+              ;;
+            esac
+            # The matched MSYS2 active environment path prefix
+            if [[ -z "$mingw_dir" ]]; then
+              mingw_dir="/${MSYSTEM,,}" # Change to lowecase
+            fi
+            # Note regarding 'mingw_dir':
+            #  The MSYSTEM=MSYS, which supports 'Cygwin', uses the '/usr' path prefix.
+            #  We do not use it at the moment.
 
             case "$SWIGLANG" in
             python)
-              MORE_MSYS_PKGS+=" $mingw_variant-python"
-              # MinGW-w64 using MSVCRT runtime seems to have an issue with finding
-              # the proper STL library (iostream classes) on runtime,
-              # As a workaround we use static link.
-              # Once we switch to MinGW-w64 with UCRT runtime, the issue will be solved.
-              # See: https://www.msys2.org/docs/environments/#msvcrt-vs-ucrt
-              if [[ "$mingw_variant" = "mingw-w64-x86_64" ]]; then
-                echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
-              fi
+              MORE_MSYS_PKGS+=" ${mingw_variant}python"
               ;;
             ruby)
-              mingw_variant=mingw-w64-ucrt-x86_64
-              MORE_MSYS_PKGS+=" $mingw_variant-gcc"
-              # We need the MinGW-w64 using Universal CRT
-              mingw_dir=ucrt64
               if [[ -n "$VER" ]]; then
-                ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64/bin
-                RUBYDIR=$(cygpath -w $ruby_dir)
+                ruby_dir="$(ls -d /c/hostedtoolcache/windows/Ruby/$VER.*)/x64/bin"
+                RUBYDIR="$(cygpath -w $ruby_dir)"
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
-                MORE_MSYS_PKGS+=" $mingw_variant-ruby"
+                MORE_MSYS_PKGS+=" ${mingw_variant}ruby"
               fi
               ;;
-            perl)
-              MORE_MSYS_PKGS+=" $mingw_variant-perl"
+            go)
+              if [[ -n "$VER" ]]; then
+                go_dir="$(ls -d /c/hostedtoolcache/windows/go/$VER.*)/x64/bin"
+                GODIR="$(cygpath -w $go_dir)"
+                echo "$GODIR" >> $GITHUB_PATH
+              else
+                MORE_MSYS_PKGS+=" ${mingw_variant}go"
+                echo "GOROOT=$mingw_dir/lib/go" >> $GITHUB_ENV
+              fi
               ;;
             esac
 
             # MinGW-w64 packages to install with MSYS2
             for n in binutils make autotools pcre2 boost; do
-              MORE_MSYS_PKGS+=" $mingw_variant-$n"
+              MORE_MSYS_PKGS+=" ${mingw_variant}$n"
             done
 
             # MinGW-w64 pcre2
-            echo "PCRE2_CFLAGS=-I/$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
-            echo "PCRE2_LIBS=-L/$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
+            echo "PCRE2_CFLAGS=-I$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
 
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
-            echo "BOOST_PATH=/c/msys64/$mingw_dir" >> $GITHUB_ENV
+            echo "BOOST_PATH=/c/msys64$mingw_dir" >> $GITHUB_ENV
 
-            # gcc compiler location
-            echo "MINGW_CC=/$mingw_dir/bin" >> $GITHUB_ENV
+            # Set MSYS2 GCC compiler location
+            echo "$mingw_dir/bin" >> $GITHUB_PATH
           else
-             # COMPILER: cccl wrapping MSVC
+            # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
             chmod +x /usr/bin/cccl
             /usr/bin/cccl --version
@@ -207,24 +300,18 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                PYTHONDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64
-                PYTHONDIR=$(cygpath -w $PYTHONDIR_UNIX)
+                python_dir="$(ls -d /c/hostedtoolcache/windows/Python/$VER.*)/x64"
+                PYTHONDIR="$(cygpath -w $python_dir)"
                 echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
                 echo "$PYTHONDIR" >> $GITHUB_PATH
-                ;;
-              ruby)
-                RUBYDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64
-                RUBYDIR=$(cygpath -w $RUBYDIR_UNIX)
-                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
                 ;;
               esac
             fi
           fi # COMPILER
 
-          # Java must use VER!
-          if [[ "$SWIGLANG" = "java" ]]; then
-            declare -n java_path="JAVA_HOME_${VER}_X64"
-            echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+          if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
+            java_path="JAVA_HOME_${VER}_X64"
+            echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
           fi
 
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
@@ -243,22 +330,18 @@ jobs:
     - name: Autoconf
       shell: bash
       run: |
-          uname --all
-
+          set -x
           if [[ -z "$COMPILER" ]]; then
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
-            # Use MinGW-w64 compiler
-            # We can not use GITHUB_PATH, as bash insert /usr/bin
-            export PATH="$MINGW_CC:$PATH"
-
             which gcc
             gcc --version | head -n1
             which g++
             g++ --version | head -n1
           fi
 
+          WITHLANG="$SWIGLANG"
           case "$SWIGLANG" in
           csharp)
             which csc.exe
@@ -267,16 +350,32 @@ jobs:
           python)
             which python.exe
             python -V
+            WITHLANG=python3
             ;;
           ruby)
             which ruby.exe
             ruby -v
             ;;
-          perl)
-            which perl.exe
-            perl -v | head -n3
-            ;;
           esac
+          echo "WITHLANG=$WITHLANG" >> $GITHUB_ENV
+
+          if [[ -z "$CSTD" ]]; then
+            case "$CPPSTD" in
+              c++11) CSTD=c11 ;;
+              c++14) CSTD=c11 ;;
+              c++17) CSTD=c17 ;;
+              c++20) CSTD=c17 ;;
+            esac
+            if [[ -n "$CSTD" ]]; then
+              echo "CSTD=$CSTD" >> $GITHUB_ENV
+            fi
+          fi
+          if [[ -n "$CSTD" ]]; then
+            echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
+          fi
+          if [[ -n "$CPPSTD" ]]; then
+            echo "CXXFLAGS=$CXXFLAGS -std=$CPPSTD" >> $GITHUB_ENV
+          fi
 
           make --version | head -n2
 
@@ -285,41 +384,56 @@ jobs:
     - name: Configure
       shell: bash
       run: |
-          if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MinGW-w64 compiler
-            export PATH="$MINGW_CC:$PATH"
-            ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
-          else
-             # cccl wrapping MSVC
-            ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe" --disable-ccache
+          set -x
+          CONFIGOPTS+=(--disable-dependency-tracking)
+          if [[ -n "$WITHLANG" ]]; then
+            CONFIGOPTS+=(--with-boost="$BOOST_PATH")
+            CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
           fi
+          if [[ $SWIGLANG = 'csharp' ]]; then
+            CONFIGOPTS+=(--with-csharp-compiler="csc.exe")
+          fi
+          if [[ -z "$COMPILER" ]]; then
+            # MSVC do not support C cache
+            CONFIGOPTS+=(--disable-ccache)
+          fi
+          echo "${CONFIGOPTS[@]}"
+          ./configure "${CONFIGOPTS[@]}"
 
     - name: Build
       shell: bash
       run: |
-          if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MinGW-w64 compiler
-            export PATH="$MINGW_CC:$PATH"
-          fi
-
           make -s $SWIGJOBS
 
     # Test the Windows swig have a proper SWIG library path
     - name: Test swiglib
       shell: bash
       run: |
+          echo "Output of ./swig.exe -swiglib"
+          ./swig.exe -swiglib
+          # Use first line with SWIG_LIB,
+          # ignore second line which uses SWIG_LIB_WIN_UNIX
+          win_swig_lib="$(./swig.exe -swiglib | head -1)"
+          pwd_based_lib="$(cygpath -w "$PWD/Lib")"
           # path is based on executable location
-          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\\Lib" ]]; then
+          if ! [[ "$win_swig_lib" = "$pwd_based_lib" ]]; then
+            echo "First test fail"
+            exit 1
+          fi
+          # Ensure path change based on application path
+          mkdir other_dir
+          cp swig.exe other_dir/
+          win_swig_lib2="$(./other_dir/swig.exe -swiglib | head -1)"
+          pwd_based_lib2="$(cygpath -w "$PWD/other_dir/Lib")"
+          if ! [[ "$win_swig_lib2" = "$pwd_based_lib2" ]]; then
+            echo "Second test fail"
             exit 1
           fi
 
     - name: Test
       shell: bash
       run: |
-          if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MinGW-w64 compiler
-            export PATH="$MINGW_CC:$PATH"
-          fi
+          set -x
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled

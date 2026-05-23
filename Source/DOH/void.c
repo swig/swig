@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -16,7 +16,7 @@
 
 typedef struct {
   void *ptr;
-  void (*del) (void *);
+  void (*del)(void *);
 } VoidObj;
 
 /* -----------------------------------------------------------------------------
@@ -26,9 +26,9 @@ typedef struct {
  * ----------------------------------------------------------------------------- */
 
 static void Void_delete(DOH *vo) {
-  VoidObj *v = (VoidObj *) ObjData(vo);
+  VoidObj *v = (VoidObj *)ObjData(vo);
   if (v->del)
-    (*v->del) (v->ptr);
+    (*v->del)(v->ptr);
   DohFree(v);
 }
 
@@ -40,7 +40,7 @@ static void Void_delete(DOH *vo) {
  * ----------------------------------------------------------------------------- */
 
 static DOH *Void_copy(DOH *vo) {
-  VoidObj *v = (VoidObj *) ObjData(vo);
+  VoidObj *v = (VoidObj *)ObjData(vo);
   return NewVoid(v->ptr, 0);
 }
 
@@ -51,34 +51,34 @@ static DOH *Void_copy(DOH *vo) {
  * ----------------------------------------------------------------------------- */
 
 static void *Void_data(DOH *vo) {
-  VoidObj *v = (VoidObj *) ObjData(vo);
+  VoidObj *v = (VoidObj *)ObjData(vo);
   return v->ptr;
 }
 
 static DohObjInfo DohVoidType = {
-  "VoidObj",			/* objname */
-  Void_delete,			/* doh_del */
-  Void_copy,			/* doh_copy */
-  0,				/* doh_clear */
-  0,				/* doh_str */
-  Void_data,			/* doh_data */
-  0,				/* doh_dump */
-  0,				/* doh_len */
-  0,				/* doh_hash    */
-  0,				/* doh_cmp */
-  0,				/* doh_equal    */
-  0,				/* doh_first    */
-  0,				/* doh_next     */
-  0,				/* doh_setfile */
-  0,				/* doh_getfile */
-  0,				/* doh_setline */
-  0,				/* doh_getline */
-  0,				/* doh_mapping */
-  0,				/* doh_sequence */
-  0,				/* doh_file  */
-  0,				/* doh_string */
-  0,				/* doh_reserved */
-  0,				/* clientdata */
+  "VoidObj",   /* objname */
+  Void_delete, /* doh_del */
+  Void_copy,   /* doh_copy */
+  0,           /* doh_clear */
+  0,           /* doh_str */
+  Void_data,   /* doh_data */
+  0,           /* doh_dump */
+  0,           /* doh_len */
+  0,           /* doh_hash    */
+  0,           /* doh_cmp */
+  0,           /* doh_equal    */
+  0,           /* doh_first    */
+  0,           /* doh_next     */
+  0,           /* doh_setfile */
+  0,           /* doh_getfile */
+  0,           /* doh_setline */
+  0,           /* doh_getline */
+  0,           /* doh_mapping */
+  0,           /* doh_sequence */
+  0,           /* doh_file  */
+  0,           /* doh_string */
+  0,           /* doh_reserved */
+  0,           /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------
@@ -87,9 +87,9 @@ static DohObjInfo DohVoidType = {
  * Creates a new Void object given a void * and an optional destructor function.
  * ----------------------------------------------------------------------------- */
 
-DOH *DohNewVoid(void *obj, void (*del) (void *)) {
+DOH *DohNewVoid(void *obj, void (*del)(void *)) {
   VoidObj *v;
-  v = (VoidObj *) DohMalloc(sizeof(VoidObj));
+  v = (VoidObj *)DohMalloc(sizeof(VoidObj));
   v->ptr = obj;
   v->del = del;
   return DohObjMalloc(&DohVoidType, v);

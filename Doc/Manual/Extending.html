@@ -1942,6 +1942,8 @@ r.                    C++ reference
 m(class).             Member pointer to class
 f(args).              Function.
 q(qlist).             Qualifiers
+auto.                 C++20 constrained placeholder marker (paired with c(...))
+c(id)                 Base carrying the concept-id of a C++20 'Concept auto'
 </pre>
 </div>
 
@@ -3616,29 +3618,133 @@ Some topics that you'll want to be sure to address include:
 
 
 <p>
-The coding guidelines for the C/C++ source code are pretty much K&amp;R C style.
-The style can be inferred from the existing code base and is
-largely dictated by the <tt>indent</tt> code beautifier tool set to K&amp;R style.
-The code can be formatted using the make targets in the Source directory.
-Below is an example of how to format the emit.cxx file:
-</p>
-
-<blockquote>
-<pre>
-$ cd Source
-$ make beautify-file INDENTFILE=Modules/emit.cxx
-</pre>
-</blockquote>
-
-<p>
-The tool is far from perfect as it is more of a C beautify than a C++ beautifier; sometimes the output it
-generates need fixing up.
+The coding guidelines for the C/C++ source code are defined and implemented by the clang-format tool using
+the <tt>Source/.clang-format</tt> config file.
+Interested readers should take a look at the <a href="https://clang.llvm.org/docs/ClangFormat.html">ClangFormat documentation</a> for more details.
+SWIG developers are encouraged to use this ClangFormat documentation for setting up their chosen editor for integrating clang-format during editing and development.
 </p>
 
 <p>
-Of particular note regarding the code style is indentation is set to 2 spaces and a tab is used instead of 8 spaces.
-The generated C/C++ code should also follow this style as close as possible. However, tabs
-should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
+The clang-format tool is searched for during the configuration of SWIG and if found
+it will automatically be used to warn about code formatting discrepancies during the build.
+The tool can be invoked during compilation and linking of the SWIG executable.
+There are various make target which allow a developer to invoke clang-format
+to check the code format as well as reformat the code.
+These coding style guidelines are just for the SWIG C and C++ source code including header files.
+</p>
+
+<p>
+How the tool is used during the development/building of SWIG depends on configure time options as follows:
+</p>
+
+<table BORDER summary="clang-format configure options">
+<tr>
+  <td><b>Configure options</b></td> <td><b>Description</b></td> <td><b>Recommended for</b></td>
+</tr>
+<tr>
+  <td>./configure</td> <td>Look for clang-format and only use if found (default)</td> <td>SWIG developers if clang-format is installed, everyone else if not installed</td>
+</tr>
+<tr>
+  <td>./configure --with-clang-format</td> <td>Look for clang-format and only use if found</td> <td>SWIG developers with a standard clang-format installation</td>
+</tr>
+<tr>
+<td>./configure --with-clang-format=&lt;path&gt;</td> <td>Use explicit/renamed clang-format binary</td> <td>SWIG developers with a non-standard clang-format installation</td>
+</tr>
+<tr>
+  <td>./configure --without-clang-format</td> <td>Don't use clang-format even if installed on system</td> <td>SWIG users, system builders and other non-developers</td>
+</tr>
+</table>
+
+<p>
+The version of clang-format is inspected at configure time.
+If the <tt>--with-clang-format</tt> option is not passed to configure then named versions,
+such as clang-format-18, are searched for first before clang-format.
+It is only enabled if the version is recent enough and this is clearly shown in the output of configure.
+Version 18 is the minimum supported version and was carefully chosen when clang-format was first used for SWIG as this is the first version to support the
+<tt>Source/.clang-format-ignore</tt> file that SWIG requires.
+The ignore file helps the clang-format tooling format just the files in the source tree that should be formatted.
+</p>
+
+<p>
+If clang-format is found during configure time, the make targets listed below can be used:
+</p>
+
+<table BORDER summary="make targets for formatting">
+<tr>
+  <td><b>Make target</b></td> <td><b>Example usage</b></td> <td><b>Description</b></td>
+</tr>
+<tr>
+  <td>format-review</td> <td>make format-review</td> <td>For invoking clang-format to warn about source formatting discrepancies</td>
+</tr>
+<tr>
+  <td>format-check</td> <td>make format-check</td> <td>For invoking clang-format to error out when there are source formatting discrepancies</td>
+</tr>
+<tr>
+  <td>format-inplace</td> <td>make format-inplace</td> <td>For invoking clang-format to correct source formatting - overwrites source files in-place</td>
+</tr>
+<tr>
+  <td>format</td> <td>make format</td> <td>Identical to format-inplace target</td>
+</tr>
+<tr>
+  <td></td> <td>make</td> <td>Default make target for building the swig executable and invoking the format-review target</td>
+</tr>
+</table>
+
+<p>
+The targets are available in both the root directory and the Source subdirectory.
+The <tt>CLANG_FORMAT_OPTIONS</tt> variable can be used to add options to the clang-format invocation (the variable is empty by default).
+For example, clang-format has a <tt>--verbose</tt> option to output the name of the file it is currently working on:
+</p>
+
+<div class="shell"><pre>
+$ make format CLANG_FORMAT_OPTIONS=--verbose
+</pre></div>
+
+<p>
+As mentioned, if clang-format is configured to be used during configure time, the <tt>format-review</tt> target is always invoked after the SWIG executable has been built.
+This can be temporarily avoided without rerunning configure.
+Instead set the <tt>CLANG_FORMAT</tt> variable set to nothing (it normally holds the name of the clang-format executable):
+</p>
+
+<div class="shell"><pre>
+$ make format CLANG_FORMAT=
+</pre></div>
+
+<p>
+Developers are also urged to use the SWIG pre-commit git hook script which is available in <tt>Tools/pre-commit</tt>.
+This is useful for preventing accidental commits with incorrectly formatted code.
+It invokes clang-format to validate the formatting is correct on all modified (both git staged and unstaged) files in the Source directory.
+Find the .git/hooks directory for the SWIG repository (usually in your git working directory) and copy it there, such as:
+</p>
+
+<div class="shell"><pre>
+$ cp Tools/pre-commit .git/hooks/
+</pre></div>
+
+<p>
+Modify the <tt>clang_format</tt> variable in the script if clang-format is not the name of the clang-format executable that is version 18 or later.
+Then when committing code, you'll see something like the following if the code is not formatted correctly:
+</p>
+
+<div class="shell"><pre>
+$ git commit .
+Running clang-format in git pre-commit hook to validate modified files...
+Source/Modules/java.cxx:26:30: error: code should be clang-formatted [-Wclang-format-violations]
+  const String *empty_string;
+                             ^
+Error: Fix formatting before committing, see Doc/Manual/Extending.html#Extending_coding_style_guidelines.
+</pre></div>
+
+<p>
+Of particular note regarding the code style is only spaces are used and indentation is 2 spaces.
+The generated C/C++ code should also follow this whitespace style as close as possible.
+</p>
+
+<p>
+<b>Compatibility Note:</b> The clang-formatting was introduced during the development of SWIG-4.5.0.
+Prior to that the GNU <tt>indent</tt> tool was recommended for formatting.
+The switch to clang-format was made in order to gain automated, consistent and working reformatting for C++ source code.
+The SWIG code base had to undergo some subtle formatting changes as a result.
 </p>
 
 
@@ -3906,6 +4012,7 @@ and D is a declarator.
 "parms"         - Function parameters (if a function)
 "code"          - Function body code (if supplied)
 "value"         - Default value (if supplied)
+"constraint"    - C++20 trailing requires-clause subtree (if any)
 </pre>
 
 </div>
@@ -3925,6 +4032,7 @@ C++ constructor declaration.
 "decl"          - Declarator (function with parameters)
 "code"          - Function body code (if any)
 "feature:new"   - Set to indicate return of new object.
+"constraint"    - C++20 trailing requires-clause subtree (if any)
 </pre>
 </div>
 
@@ -3998,6 +4106,7 @@ C++ class definition or C structure definition.
 "baselist"      - List of base class names.
 "storage"       - Storage class (if any)
 "unnamed"       - Set if class is unnamed.
+"constraint"    - C++20 prefix requires-clause subtree (class templates)
 </pre>
 </div>
 
@@ -4085,6 +4194,68 @@ A forward C++ class declaration.
 <pre>
 "name"          - Name of the class.
 "kind"          - Class kind ("union", "struct", "class")
+</pre>
+</div>
+
+
+<p>
+<b>constraint</b>
+</p>
+
+<p>
+C++20 constraint-expression node, held on the host's "constraint" attribute (cdecl, class,
+template, concept, constructor).  A single nodeType covers the constraint-logical-or grammar;
+the operator structure is in the "op" attribute, not in the type tag.
+</p>
+
+<div class="diagram">
+<pre>
+"op"            - "or" / "and" / "atom"
+"kind"          - For atom only: "concept-id" / "parens" / "requires-expression" / "fold" / "expression"
+"type"          - For atom kind="concept-id": SwigType encoded concept-id (e.g. Numeric&lt;(T)&gt;)
+"value"         - For atom kind="expression": opaque source text
+"valuetype"     - For atom kind="expression": typically T_BOOL
+"fold_op"       - For atom kind="fold": "&amp;&amp;" or "||"
+"fold_kind"     - For atom kind="fold": "unary-left" / "unary-right" / "binary"
+"firstChild"    - For op "and"/"or": chain of operand constraints (n-ary, flattened);
+                  for atom kind="parens" / "requires-expression" / "fold": the inner subtree
+</pre>
+</div>
+
+
+<p>
+<b>requires-expression</b>
+</p>
+
+<p>
+C++20 'requires (parms) { requirements }' primary, appearing as the firstChild of an atomic
+constraint with kind="requires-expression".
+</p>
+
+<div class="diagram">
+<pre>
+"parms"         - Requirement-parameter-list as a ParmList (NULL if absent)
+"firstChild"    - Chain of requirement nodes
+</pre>
+</div>
+
+
+<p>
+<b>requirement</b>
+</p>
+
+<p>
+A single requirement inside a requires-expression body.
+</p>
+
+<div class="diagram">
+<pre>
+"kind"          - "simple" / "type" / "compound" / "nested"
+"type"          - For kind="type": the named type (SwigType)
+"value"         - For kind="simple"/"compound"/"nested": opaque expression text
+"noexcept"      - For kind="compound": "1" if 'noexcept' was present
+"firstChild"    - For kind="compound": atomic concept-id constraint for the optional
+                  return-type-requirement (-&gt; Concept)
 </pre>
 </div>
 

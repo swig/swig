@@ -4,7 +4,7 @@
 class OverrideMe {
 public:
   virtual ~OverrideMe() {}
-  virtual void funk() {};
+  virtual void funk() {}
 };
 
 #include "java_director_assumeoverride_wrap.h"

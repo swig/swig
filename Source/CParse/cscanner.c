@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -31,9 +31,9 @@ String *scanner_ccode = 0;
 static String *main_input_file = 0;
 
 /* Error reporting/location information */
-int     cparse_line = 1;
+int cparse_line = 1;
 String *cparse_file = 0;
-int     cparse_start_line = 0;
+int cparse_start_line = 0;
 
 /* C++ mode */
 int cparse_cplusplus = 0;
@@ -59,47 +59,27 @@ static int rename_active = 0;
 int scan_doxygen_comments = 0;
 
 static int isStructuralDoxygen(String *s) {
-  static const char* const structuralTags[] = {
-    "addtogroup",
-    "callgraph",
-    "callergraph",
-    "category",
-    "def",
-    "defgroup",
-    "dir",
-    "example",
-    "file",
-    "headerfile",
-    "internal",
-    "mainpage",
-    "name",
-    "nosubgrouping",
-    "overload",
-    "package",
-    "page",
-    "protocol",
-    "relates",
-    "relatesalso",
-    "showinitializer",
-    "weakgroup",
+  static const char *const structuralTags[] = {
+    "addtogroup", "callgraph", "callergraph",   "category", "def",     "defgroup", "dir",      "example", "file",        "headerfile",      "internal",
+    "mainpage",   "name",      "nosubgrouping", "overload", "package", "page",     "protocol", "relates", "relatesalso", "showinitializer", "weakgroup",
   };
 
   unsigned n;
   char *slashPointer = Strchr(s, '\\');
-  char *atPointer = Strchr(s,'@');
+  char *atPointer = Strchr(s, '@');
   if (slashPointer == NULL && atPointer == NULL)
     return 0;
-  else if(slashPointer == NULL)
+  else if (slashPointer == NULL)
     slashPointer = atPointer;
 
   slashPointer++; /* skip backslash or at sign */
 
-  for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
+  for (n = 0; n < sizeof(structuralTags) / sizeof(structuralTags[0]); n++) {
     const size_t len = strlen(structuralTags[n]);
     if (strncmp(slashPointer, structuralTags[n], len) == 0) {
       /* Take care to avoid false positives with prefixes of other tags. */
       if (slashPointer[len] == '\0' || isspace((int)slashPointer[len]))
-	return 1;
+        return 1;
     }
   }
 
@@ -130,7 +110,7 @@ void Swig_cparse_cplusplusout(int v) {
 
 static void scanner_init(void) {
   scan = NewScanner();
-  Scanner_idstart(scan,"%");
+  Scanner_idstart(scan, "%");
   scan_init = 1;
   scanner_ccode = NewStringEmpty();
 }
@@ -140,10 +120,11 @@ static void scanner_init(void) {
  *
  * Start reading from new file
  * ------------------------------------------------------------------------- */
-void scanner_file(DOHFile * f) {
-  if (!scan_init) scanner_init();
+void scanner_file(DOHFile *f) {
+  if (!scan_init)
+    scanner_init();
   Scanner_clear(scan);
-  Scanner_push(scan,f);
+  Scanner_push(scan, f);
 }
 
 /* ----------------------------------------------------------------------------
@@ -156,10 +137,10 @@ void scanner_file(DOHFile * f) {
 void scanner_start_inline(String *text, int line) {
   String *stext = Copy(text);
 
-  Seek(stext,0,SEEK_SET);
-  Setfile(stext,cparse_file);
-  Setline(stext,line);
-  Scanner_push(scan,stext);
+  Seek(stext, 0, SEEK_SET);
+  Setfile(stext, cparse_file);
+  Setline(stext, line);
+  Scanner_push(scan, stext);
   Delete(stext);
 }
 
@@ -176,7 +157,7 @@ int skip_balanced(int startchar, int endchar) {
   int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
-  if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
+  if (Scanner_skip_balanced(scan, startchar, endchar) < 0) {
     Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
     return -1;
   }
@@ -209,7 +190,6 @@ String *get_raw_text_balanced(int startchar, int endchar) {
  *
  * or
  *  friend ostream& operator<<(ostream&, const char *s) { }
- *
  * ------------------------------------------------------------------------- */
 
 void skip_decl(void) {
@@ -221,13 +201,13 @@ void skip_decl(void) {
     tok = Scanner_token(scan);
     if (tok == 0) {
       if (!Swig_error_count()) {
-	Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
+        Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
       }
       return;
     }
     if (tok == SWIG_TOKEN_LBRACE) {
-      if (Scanner_skip_balanced(scan,'{','}') < 0) {
-	Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
+      if (Scanner_skip_balanced(scan, '{', '}') < 0) {
+        Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
       }
       break;
     }
@@ -237,6 +217,244 @@ void skip_decl(void) {
   }
   cparse_file = Scanner_file(scan);
   cparse_line = Scanner_line(scan);
+}
+
+/* ----------------------------------------------------------------------------
+ * static Node *parse_one_requirement(String *text)
+ *
+ * Build a single "requirement" Node from one body substring (already split at
+ * the top level ';' by the caller).  text is mutated in place: leading and
+ * trailing whitespace are stripped, and the leading kind keyword (if any) is
+ * removed before the remainder is stored on the node.  Returns NULL if the
+ * substring is empty.
+ *
+ * The leading non whitespace word selects the requirement kind:
+ *
+ *   typename ...  -> kind="type",     type    = the rest of the text
+ *   requires ...  -> kind="nested",   value   = the rest of the text
+ *   { ...         -> kind="compound", value   = expression inside the braces,
+ *                                     noexcept flag if 'noexcept' follows,
+ *                                     firstChild = atomic concept-id constraint
+ *                                                  for the optional
+ *                                                  return-type-requirement (-> Concept)
+ *   anything else -> kind="simple",   value   = the rest of the text
+ *
+ * The body of compound and nested requirements is captured opaquely as text,
+ * mirroring how the scanner level requires_body skipper has always treated
+ * them.  A future enhancement could parse nested requirements into a real
+ * constraint subtree, but this would require retokenising the captured text
+ * since the parser is non-reentrant.
+ * ------------------------------------------------------------------------- */
+
+/* Like Strncmp(s, word, strlen(word)) == 0, but only accepts a match at a word
+ * boundary - the next character must not extend the identifier.  No DOH or
+ * codebase equivalent exists; the closest is match_identifier_end in DOH/string.c
+ * but that helper is internal to the Replace machinery. */
+static int starts_with_word(String *s, const char *word) {
+  int wlen = (int)strlen(word);
+  int slen = Len(s);
+  const char *c;
+  if (wlen > slen)
+    return 0;
+  if (Strncmp(s, word, wlen) != 0)
+    return 0;
+  if (wlen == slen)
+    return 1;
+  c = Char(s);
+  return !(isalnum((unsigned char)c[wlen]) || c[wlen] == '_');
+}
+
+static void strip_leading_whitespace(String *s) {
+  const char *c = Char(s);
+  int n = Len(s);
+  int i = 0;
+  while (i < n && isspace((unsigned char)c[i]))
+    i++;
+  if (i > 0)
+    Delslice(s, 0, i);
+}
+
+/* Consume a leading 'word' from s plus any whitespace that follows it.  Caller
+ * has already verified starts_with_word(s, word). */
+static void consume_keyword(String *s, const char *word) {
+  Delslice(s, 0, (int)strlen(word));
+  strip_leading_whitespace(s);
+}
+
+static Node *parse_one_requirement(String *text) {
+  Node *n;
+  const char *c;
+  int len;
+
+  if (!text)
+    return 0;
+  Chop(text);
+  strip_leading_whitespace(text);
+  if (Len(text) == 0)
+    return 0;
+
+  if (starts_with_word(text, "typename")) {
+    consume_keyword(text, "typename");
+    Chop(text);
+    n = Constraint_new_requirement("type");
+    if (Len(text) > 0)
+      Setattr(n, "type", text);
+    return n;
+  }
+
+  if (starts_with_word(text, "requires")) {
+    consume_keyword(text, "requires");
+    Chop(text);
+    n = Constraint_new_requirement("nested");
+    if (Len(text) > 0)
+      Setattr(n, "value", text);
+    return n;
+  }
+
+  c = Char(text);
+  len = Len(text);
+
+  if (c[0] == '{') {
+    /* Compound requirement: '{ expr } [noexcept] [-> Concept]'.  Walk the bytes
+     * to find the matching '}' (no DOH brace balancer is exposed); slice the
+     * body and the post brace tail into separate Strings for keyword/concept
+     * extraction. */
+    int depth = 1;
+    int j = 1;
+    int body_end = -1;
+    while (j < len && depth > 0) {
+      if (c[j] == '{')
+        depth++;
+      else if (c[j] == '}') {
+        depth--;
+        if (depth == 0) {
+          body_end = j;
+          break;
+        }
+      }
+      j++;
+    }
+    if (body_end < 0)
+      return 0;
+    n = Constraint_new_requirement("compound");
+    {
+      String *body = NewStringWithSize(c + 1, body_end - 1);
+      Chop(body);
+      strip_leading_whitespace(body);
+      if (Len(body) > 0)
+        Setattr(n, "value", body);
+      Delete(body);
+    }
+    if (j + 1 < len) {
+      String *tail = NewStringWithSize(c + j + 1, len - j - 1);
+      strip_leading_whitespace(tail);
+      if (starts_with_word(tail, "noexcept")) {
+        Setattr(n, "noexcept", "1");
+        consume_keyword(tail, "noexcept");
+      }
+      if (Len(tail) >= 2) {
+        const char *t = Char(tail);
+        if (t[0] == '-' && t[1] == '>') {
+          Delslice(tail, 0, 2);
+          strip_leading_whitespace(tail);
+          Chop(tail);
+          if (Len(tail) > 0) {
+            /* The return-type-requirement is a SwigType encoded concept-id - hold it on a "type" attribute. */
+            Node *ret_atom = Constraint_new_atom("concept-id");
+            Setattr(ret_atom, "type", tail);
+            appendChild(n, ret_atom);
+          }
+        }
+      }
+      Delete(tail);
+    }
+    return n;
+  }
+
+  /* Simple requirement: arbitrary expression text. */
+  n = Constraint_new_requirement("simple");
+  Setattr(n, "value", text);
+  return n;
+}
+
+/* ----------------------------------------------------------------------------
+ * Node *parse_requirement_seq(String *body_text)
+ *
+ * Walk the captured text of a requires-expression body (as recorded into
+ * scanner_ccode by skip_balanced('{', '}'), so including the outer braces)
+ * and return a chain of "requirement" Nodes joined via nextSibling.
+ *
+ * Requirements are separated by ';' at top level - while walking, the depth
+ * of '(', '[' and '{' is tracked so that a ';' inside a balanced subspan
+ * does not split the requirement.  An empty body produces a NULL chain.
+ * ------------------------------------------------------------------------- */
+
+Node *parse_requirement_seq(String *body_text) {
+  Node *head = 0;
+  Node *tail = 0;
+  const char *s;
+  int len;
+  int start;
+  int paren = 0;
+  int bracket = 0;
+  int brace = 0;
+  int i;
+
+  if (!body_text)
+    return 0;
+  s = Char(body_text);
+  len = Len(body_text);
+
+  /* Strip outer braces: scanner_ccode for skip_balanced('{', '}') always
+   * has '{' at index 0 and '}' at len-1. */
+  if (len >= 2 && s[0] == '{' && s[len - 1] == '}') {
+    s++;
+    len -= 2;
+  }
+
+  start = 0;
+  for (i = 0; i < len; i++) {
+    char c = s[i];
+    if (c == '(')
+      paren++;
+    else if (c == ')')
+      paren--;
+    else if (c == '[')
+      bracket++;
+    else if (c == ']')
+      bracket--;
+    else if (c == '{')
+      brace++;
+    else if (c == '}')
+      brace--;
+    else if (c == ';' && paren == 0 && bracket == 0 && brace == 0) {
+      String *fragment = NewStringWithSize(s + start, i - start);
+      Node *r = parse_one_requirement(fragment);
+      Delete(fragment);
+      if (r) {
+        if (!head)
+          head = r;
+        else
+          set_nextSibling(tail, r);
+        tail = r;
+      }
+      start = i + 1;
+    }
+  }
+  /* No trailing ';' is permitted in well-formed C++20, but tolerate text
+   * after the last ';' just in case. */
+  if (start < len) {
+    String *fragment = NewStringWithSize(s + start, len - start);
+    Node *r = parse_one_requirement(fragment);
+    Delete(fragment);
+    if (r) {
+      if (!head)
+        head = r;
+      else
+        set_nextSibling(tail, r);
+    }
+  }
+  return head;
 }
 
 /* ----------------------------------------------------------------------------
@@ -258,12 +476,12 @@ static int yylook(void) {
     cparse_line = Scanner_line(scan);
     cparse_file = Scanner_file(scan);
 
-    switch(tok) {
+    switch (tok) {
     case SWIG_TOKEN_ID:
       return ID;
-    case SWIG_TOKEN_LPAREN: 
+    case SWIG_TOKEN_LPAREN:
       return LPAREN;
-    case SWIG_TOKEN_RPAREN: 
+    case SWIG_TOKEN_RPAREN:
       return RPAREN;
     case SWIG_TOKEN_SEMI:
       return SEMI;
@@ -274,10 +492,10 @@ static int yylook(void) {
     case SWIG_TOKEN_RBRACE:
       num_brace--;
       if (num_brace < 0) {
-	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous closing brace ('}')\n");
-	num_brace = 0;
+        Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous closing brace ('}')\n");
+        num_brace = 0;
       } else {
-	return RBRACE;
+        return RBRACE;
       }
       break;
     case SWIG_TOKEN_LBRACE:
@@ -339,26 +557,26 @@ static int yylook(void) {
       return DSTAR;
     case SWIG_TOKEN_LTEQUALGT:
       return LESSEQUALGREATER;
-      
+
     case SWIG_TOKEN_DCOLON:
       {
-	int nexttok = Scanner_token(scan);
-	if (nexttok == SWIG_TOKEN_STAR) {
-	  return DSTAR;
-	} else if (nexttok == SWIG_TOKEN_NOT) {
-	  return DCNOT;
-	} else {
-	  Scanner_pushtoken(scan,nexttok,Scanner_text(scan));
-	  if (!last_id) {
-	    scanner_next_token(DCOLON);
-	    return NONID;
-	  } else {
-	    return DCOLON;
-	  }
-	}
+        int nexttok = Scanner_token(scan);
+        if (nexttok == SWIG_TOKEN_STAR) {
+          return DSTAR;
+        } else if (nexttok == SWIG_TOKEN_NOT) {
+          return DCNOT;
+        } else {
+          Scanner_pushtoken(scan, nexttok, Scanner_text(scan));
+          if (!last_id) {
+            scanner_next_token(DCOLON);
+            return NONID;
+          } else {
+            return DCOLON;
+          }
+        }
       }
       break;
-      
+
     case SWIG_TOKEN_ELLIPSIS:
       return ELLIPSIS;
 
@@ -377,7 +595,7 @@ static int yylook(void) {
       return RBRACKET;
 
       /* Look for multi-character sequences */
-      
+
     case SWIG_TOKEN_STRING:
       yylval.str = NewString(Scanner_text(scan));
       return STRING;
@@ -385,152 +603,170 @@ static int yylook(void) {
     case SWIG_TOKEN_WSTRING:
       yylval.str = NewString(Scanner_text(scan));
       return WSTRING;
-      
+
     case SWIG_TOKEN_CHAR:
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
-	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+        Swig_error(cparse_file, cparse_line, "Empty character constant\n");
       }
       return CHARCONST;
 
     case SWIG_TOKEN_WCHAR:
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
-	Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+        Swig_error(cparse_file, cparse_line, "Empty character constant\n");
       }
       return WCHARCONST;
 
       /* Numbers */
-      
+
     case SWIG_TOKEN_INT:
       return NUM_INT;
-      
+
     case SWIG_TOKEN_UINT:
       return NUM_UNSIGNED;
-      
+
     case SWIG_TOKEN_LONG:
       return NUM_LONG;
-      
+
     case SWIG_TOKEN_ULONG:
       return NUM_ULONG;
-      
+
     case SWIG_TOKEN_LONGLONG:
       return NUM_LONGLONG;
-      
+
     case SWIG_TOKEN_ULONGLONG:
       return NUM_ULONGLONG;
-      
+
     case SWIG_TOKEN_DOUBLE:
       return NUM_DOUBLE;
 
     case SWIG_TOKEN_FLOAT:
       return NUM_FLOAT;
-      
+
     case SWIG_TOKEN_LONGDOUBLE:
       return NUM_LONGDOUBLE;
 
     case SWIG_TOKEN_BOOL:
       return NUM_BOOL;
-      
+
     case SWIG_TOKEN_POUND:
       Scanner_skip_line(scan);
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return POUND;
-      
+
     case SWIG_TOKEN_CODEBLOCK:
       yylval.str = NewString(Scanner_text(scan));
       return HBLOCK;
-      
+
     case SWIG_TOKEN_COMMENT:
       {
-	typedef enum {
-	  DOX_COMMENT_PRE = -1,
-	  DOX_COMMENT_NONE,
-	  DOX_COMMENT_POST
-	} comment_kind_t;
-	comment_kind_t existing_comment = DOX_COMMENT_NONE;
+        typedef enum { DOX_COMMENT_PRE = -1, DOX_COMMENT_NONE, DOX_COMMENT_POST } comment_kind_t;
+        comment_kind_t existing_comment = DOX_COMMENT_NONE;
+        int in_structural_block = 0; /* True when a @file (or similar) block is being skipped */
 
-	/* Concatenate or skip all consecutive comments at once. */
-	do {
-	  String *cmt = Scanner_text(scan);
-	  String *cmt_modified = 0;
-	  char *loc = Char(cmt);
-	  if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt)-3] == '@')) {
-	    Scanner_locator(scan, cmt);
-	  }
-	  if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
+        /* Concatenate or skip all consecutive comments at once. */
+        do {
+          String *cmt = Scanner_text(scan);
+          String *cmt_modified = 0;
+          char *loc = Char(cmt);
+          if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt) - 3] == '@')) {
+            Scanner_locator(scan, cmt);
+          }
+          if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
 
-	    int slashStyle = 0; /* Flag for "///" style doxygen comments */
-	    if (strncmp(loc, "///", 3) == 0) {
-	      slashStyle = 1;
-	      if (Len(cmt) == 3) {
-		/* Modify to make length=4 to ensure that the empty comment does
-		   get processed to preserve the newlines in the original comments. */
-		cmt_modified = NewStringf("%s ", cmt);
-		cmt = cmt_modified;
-		loc = Char(cmt);
-	      }
-	    }
-	    
-	    /* Check for all possible Doxygen comment start markers while ignoring
-	       comments starting with a row of asterisks or slashes just as
-	       Doxygen itself does.  Also skip empty comment (slash-star-star-slash), 
-	       which causes a crash due to begin > end. */
-	    if (Len(cmt) > 3 && loc[0] == '/' &&
-		((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
-		 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*' && loc[3] != '/') || loc[2] == '!')))) {
-	      comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST : DOX_COMMENT_PRE;
-	      if (existing_comment != DOX_COMMENT_NONE && this_comment != existing_comment) {
-		/* We can't concatenate together Doxygen pre- and post-comments. */
-		break;
-	      }
+            int slashStyle = 0; /* Flag for "///" style doxygen comments */
+            if (strncmp(loc, "///", 3) == 0) {
+              slashStyle = 1;
+              if (Len(cmt) == 3) {
+                /* Modify to make length=4 to ensure that the empty comment does
+                   get processed to preserve the newlines in the original comments. */
+                cmt_modified = NewStringf("%s ", cmt);
+                cmt = cmt_modified;
+                loc = Char(cmt);
+              }
+            }
 
-	      if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
-		String *str;
+            /* Check for all possible Doxygen comment start markers while ignoring
+               comments starting with a row of asterisks or slashes just as
+               Doxygen itself does.  Also skip empty comment (slash-star-star-slash),
+               which causes a crash due to begin > end. */
+            if (Len(cmt) > 3 && loc[0] == '/' &&
+                ((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
+                 (loc[1] == '*' && ((loc[2] == '*' && loc[3] != '*' && loc[3] != '/') || loc[2] == '!')))) {
+              comment_kind_t this_comment = loc[3] == '<' ? DOX_COMMENT_POST : DOX_COMMENT_PRE;
+              if (existing_comment != DOX_COMMENT_NONE && this_comment != existing_comment) {
+                /* We can't concatenate together Doxygen pre- and post-comments. */
+                break;
+              }
 
-		int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
-		int end = Len(cmt);
-		if (loc[end - 1] == '/' && loc[end - 2] == '*') {
-		  end -= 2;
-		}
+              if (this_comment == DOX_COMMENT_PRE && existing_comment == DOX_COMMENT_NONE && isStructuralDoxygen(loc)) {
+                /* @file and similar page-level commands mark the whole block as file-scope
+                   documentation.  Set a flag; if a blank line follows, the accumulated
+                   content will be discarded so it does not bleed into the next declaration's
+                   docstring.  If no blank line follows (e.g. @name/@{), the content is
+                   returned as usual - only the structural line itself is not accumulated. */
+                in_structural_block = 1;
+              } else if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
+                String *str;
 
-		str = NewStringWithSize(loc + begin, end - begin);
+                int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
+                int end = Len(cmt);
+                if (loc[end - 1] == '/' && loc[end - 2] == '*') {
+                  end -= 2;
+                }
 
-		if (existing_comment == DOX_COMMENT_NONE) {
-		  yylval.str = str;
-		  Setline(yylval.str, Scanner_start_line(scan));
-		  Setfile(yylval.str, Scanner_file(scan));
-		} else {
-		  if (slashStyle) {
-		    /* Add a newline to the end of each doxygen "///" comment,
-		       since they are processed individually, unlike the
-		       slash-star style, which gets processed as a block with
-		       newlines included. */
-		    Append(yylval.str, "\n");
-		  }
-		  Append(yylval.str, str);
-		}
+                str = NewStringWithSize(loc + begin, end - begin);
 
-		existing_comment = this_comment;
-	      }
-	    }
-	  }
-	  do {
-	    tok = Scanner_token(scan);
-	  } while (tok == SWIG_TOKEN_ENDLINE);
-	  Delete(cmt_modified);
-	} while (tok == SWIG_TOKEN_COMMENT);
+                if (existing_comment == DOX_COMMENT_NONE) {
+                  yylval.str = str;
+                  Setline(yylval.str, Scanner_start_line(scan));
+                  Setfile(yylval.str, Scanner_file(scan));
+                } else {
+                  if (slashStyle) {
+                    /* Add a newline to the end of each doxygen "///" comment,
+                       since they are processed individually, unlike the
+                       slash-star style, which gets processed as a block with
+                       newlines included. */
+                    Append(yylval.str, "\n");
+                  }
+                  Append(yylval.str, str);
+                }
 
-	Scanner_pushtoken(scan, tok, Scanner_text(scan));
+                existing_comment = this_comment;
+              }
+            }
+          }
+          {
+            int endlines = 0;
+            do {
+              tok = Scanner_token(scan);
+              if (tok == SWIG_TOKEN_ENDLINE)
+                endlines++;
+            } while (tok == SWIG_TOKEN_ENDLINE);
+            Delete(cmt_modified);
+            /* A blank line (2+ newlines) after a structural block (@file, @page, ...) means
+               all accumulated content is file-scope and must be discarded, so that the next
+               declaration's own doc comment is not polluted. */
+            if (in_structural_block && endlines >= 2) {
+              Delete(yylval.str);
+              yylval.str = 0;
+              existing_comment = DOX_COMMENT_NONE;
+              break;
+            }
+          }
+        } while (tok == SWIG_TOKEN_COMMENT);
 
-	switch (existing_comment) {
-	  case DOX_COMMENT_PRE:
-	    return DOXYGENSTRING;
-	  case DOX_COMMENT_NONE:
-	    break;
-	  case DOX_COMMENT_POST:
-	    return DOXYGENPOSTSTRING;
-	}
+        Scanner_pushtoken(scan, tok, Scanner_text(scan));
+
+        switch (existing_comment) {
+        case DOX_COMMENT_PRE:
+          return DOXYGENSTRING;
+        case DOX_COMMENT_NONE:
+          break;
+        case DOX_COMMENT_POST:
+          return DOXYGENPOSTSTRING;
+        }
       }
       break;
     case SWIG_TOKEN_ENDLINE:
@@ -545,7 +781,7 @@ static int yylook(void) {
 }
 
 void scanner_set_location(String *file, int line) {
-  Scanner_set_location(scan,file,line-1);
+  Scanner_set_location(scan, file, line - 1);
 }
 
 void scanner_last_id(int x) {
@@ -651,40 +887,44 @@ int yylex(void) {
     yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONGLONG;
     goto num_common;
-num_common: {
-    yylval.dtype.val = NewString(Scanner_text(scan));
-    const char *c = Char(yylval.dtype.val);
-    if (c[0] == '0') {
-      // Convert to base 10 using strtoull().
-      unsigned long long value;
-      char *e;
-      errno = 0;
-      if (c[1] == 'b' || c[1] == 'B') {
-	/* strtoull() doesn't handle binary literal prefixes so skip the prefix
-	 * and specify base 2 explicitly. */
-	value = strtoull(c + 2, &e, 2);
+num_common:
+    {
+      yylval.dtype.val = NewString(Scanner_text(scan));
+      const char *c = Char(yylval.dtype.val);
+      if (c[0] == '0') {
+        // Convert to base 10 using strtoull().
+        unsigned long long value;
+        char *e;
+        errno = 0;
+        if (c[1] == 'b' || c[1] == 'B') {
+          /* strtoull() doesn't handle binary literal prefixes so skip the prefix
+           * and specify base 2 explicitly. */
+          value = strtoull(c + 2, &e, 2);
+        } else {
+          value = strtoull(c, &e, 0);
+        }
+        if (errno != ERANGE) {
+          while (*e && strchr("ULul", *e))
+            ++e;
+        }
+        if (errno != ERANGE && *e == '\0') {
+          yylval.dtype.numval = NewStringf("%llu", value);
+        } else {
+          // Our unsigned long long isn't wide enough or this isn't an integer.
+        }
       } else {
-	value = strtoull(c, &e, 0);
+        const char *e = c;
+        while (isdigit((unsigned char)*e))
+          ++e;
+        int len = (int)(e - c);
+        while (*e && strchr("ULul", *e))
+          ++e;
+        if (*e == '\0') {
+          yylval.dtype.numval = NewStringWithSize(c, len);
+        }
       }
-      if (errno != ERANGE) {
-	while (*e && strchr("ULul", *e)) ++e;
-      }
-      if (errno != ERANGE && *e == '\0') {
-	yylval.dtype.numval = NewStringf("%llu", value);
-      } else {
-	// Our unsigned long long isn't wide enough or this isn't an integer.
-      }
-    } else {
-      const char *e = c;
-      while (isdigit((unsigned char)*e)) ++e;
-      int len = (int)(e - c);
-      while (*e && strchr("ULul", *e)) ++e;
-      if (*e == '\0') {
-        yylval.dtype.numval = NewStringWithSize(c, len);
-      }
+      return (l);
     }
-    return (l);
-  }
   case NUM_BOOL:
     yylval.dtype = default_dtype;
     yylval.dtype.type = T_BOOL;
@@ -698,95 +938,95 @@ num_common: {
       /* Look for keywords now */
 
       if (strcmp(yytext, "int") == 0) {
-	yylval.type = NewSwigType(T_INT);
-	return (TYPE_INT);
+        yylval.type = NewSwigType(T_INT);
+        return (TYPE_INT);
       }
       if (strcmp(yytext, "double") == 0) {
-	yylval.type = NewSwigType(T_DOUBLE);
-	return (TYPE_DOUBLE);
+        yylval.type = NewSwigType(T_DOUBLE);
+        return (TYPE_DOUBLE);
       }
       if (strcmp(yytext, "void") == 0) {
-	yylval.type = NewSwigType(T_VOID);
-	return (TYPE_VOID);
+        yylval.type = NewSwigType(T_VOID);
+        return (TYPE_VOID);
       }
       if (strcmp(yytext, "char") == 0) {
-	yylval.type = NewSwigType(T_CHAR);
-	return (TYPE_CHAR);
+        yylval.type = NewSwigType(T_CHAR);
+        return (TYPE_CHAR);
       }
       if (strcmp(yytext, "wchar_t") == 0) {
-	yylval.type = NewSwigType(T_WCHAR);
-	return (TYPE_WCHAR);
+        yylval.type = NewSwigType(T_WCHAR);
+        return (TYPE_WCHAR);
       }
       if (strcmp(yytext, "short") == 0) {
-	yylval.type = NewSwigType(T_SHORT);
-	return (TYPE_SHORT);
+        yylval.type = NewSwigType(T_SHORT);
+        return (TYPE_SHORT);
       }
       if (strcmp(yytext, "long") == 0) {
-	yylval.type = NewSwigType(T_LONG);
-	return (TYPE_LONG);
+        yylval.type = NewSwigType(T_LONG);
+        return (TYPE_LONG);
       }
       if (strcmp(yytext, "float") == 0) {
-	yylval.type = NewSwigType(T_FLOAT);
-	return (TYPE_FLOAT);
+        yylval.type = NewSwigType(T_FLOAT);
+        return (TYPE_FLOAT);
       }
       if (strcmp(yytext, "signed") == 0) {
-	yylval.type = NewSwigType(T_INT);
-	return (TYPE_SIGNED);
+        yylval.type = NewSwigType(T_INT);
+        return (TYPE_SIGNED);
       }
       if (strcmp(yytext, "unsigned") == 0) {
-	yylval.type = NewSwigType(T_UINT);
-	return (TYPE_UNSIGNED);
+        yylval.type = NewSwigType(T_UINT);
+        return (TYPE_UNSIGNED);
       }
       if (strcmp(yytext, "bool") == 0) {
-	yylval.type = NewSwigType(T_BOOL);
-	return (TYPE_BOOL);
+        yylval.type = NewSwigType(T_BOOL);
+        return (TYPE_BOOL);
       }
 
       /* Non ISO (Windows) C extensions */
       if (strcmp(yytext, "__int8") == 0) {
-	yylval.type = NewString(yytext);
-	return (TYPE_NON_ISO_INT8);
+        yylval.type = NewString(yytext);
+        return (TYPE_NON_ISO_INT8);
       }
       if (strcmp(yytext, "__int16") == 0) {
-	yylval.type = NewString(yytext);
-	return (TYPE_NON_ISO_INT16);
+        yylval.type = NewString(yytext);
+        return (TYPE_NON_ISO_INT16);
       }
       if (strcmp(yytext, "__int32") == 0) {
-	yylval.type = NewString(yytext);
-	return (TYPE_NON_ISO_INT32);
+        yylval.type = NewString(yytext);
+        return (TYPE_NON_ISO_INT32);
       }
       if (strcmp(yytext, "__int64") == 0) {
-	yylval.type = NewString(yytext);
-	return (TYPE_NON_ISO_INT64);
+        yylval.type = NewString(yytext);
+        return (TYPE_NON_ISO_INT64);
       }
 
       /* C++ keywords */
       if (cparse_cplusplus) {
-	if (strcmp(yytext, "class") == 0)
-	  return (CLASS);
-	if (strcmp(yytext, "private") == 0)
-	  return (PRIVATE);
-	if (strcmp(yytext, "public") == 0)
-	  return (PUBLIC);
-	if (strcmp(yytext, "protected") == 0)
-	  return (PROTECTED);
-	if (strcmp(yytext, "friend") == 0)
-	  return (FRIEND);
-	if (strcmp(yytext, "constexpr") == 0)
-	  return (CONSTEXPR);
-	if (strcmp(yytext, "thread_local") == 0)
-	  return (THREAD_LOCAL);
-	if (strcmp(yytext, "decltype") == 0)
-	  return (DECLTYPE);
-	if (strcmp(yytext, "virtual") == 0)
-	  return (VIRTUAL);
-	if (strcmp(yytext, "static_assert") == 0)
-	  return (STATIC_ASSERT);
-	if (strcmp(yytext, "operator") == 0) {
-	  int nexttok;
-	  String *s = NewString("operator ");
+        if (strcmp(yytext, "class") == 0)
+          return (CLASS);
+        if (strcmp(yytext, "private") == 0)
+          return (PRIVATE);
+        if (strcmp(yytext, "public") == 0)
+          return (PUBLIC);
+        if (strcmp(yytext, "protected") == 0)
+          return (PROTECTED);
+        if (strcmp(yytext, "friend") == 0)
+          return (FRIEND);
+        if (strcmp(yytext, "constexpr") == 0)
+          return (CONSTEXPR);
+        if (strcmp(yytext, "thread_local") == 0)
+          return (THREAD_LOCAL);
+        if (strcmp(yytext, "decltype") == 0)
+          return (DECLTYPE);
+        if (strcmp(yytext, "virtual") == 0)
+          return (VIRTUAL);
+        if (strcmp(yytext, "static_assert") == 0)
+          return (STATIC_ASSERT);
+        if (strcmp(yytext, "operator") == 0) {
+          int nexttok;
+          String *s = NewString("operator ");
 
-	  /* If we have an operator, we have to collect the operator symbol and attach it to
+          /* If we have an operator, we have to collect the operator symbol and attach it to
              the operator identifier.   To do this, we need to scan ahead by several tokens.
              Cases include:
 
@@ -797,69 +1037,69 @@ num_common: {
 
              (2) If the next token is (, we look for ).  This is operator ().
              (3) If the next token is [, we look for ].  This is operator [].
-	     (4) If the next token is an identifier.  The operator is possibly a conversion operator.
+             (4) If the next token is an identifier.  The operator is possibly a conversion operator.
                       (a) Must check for special case new[] and delete[]
 
              Error handling is somewhat tricky here.  We'll try to back out gracefully if we can.
- 
-	  */
 
-	  do {
-	    nexttok = Scanner_token(scan);
-	  } while (nexttok == SWIG_TOKEN_ENDLINE || nexttok == SWIG_TOKEN_COMMENT);
+          */
 
-	  if (Scanner_isoperator(nexttok)) {
-	    /* One of the standard C/C++ symbolic operators */
-	    Append(s,Scanner_text(scan));
-	    yylval.str = s;
-	    return OPERATOR;
-	  } else if (nexttok == SWIG_TOKEN_LPAREN) {
-	    /* Function call operator.  The next token MUST be a RPAREN */
-	    nexttok = Scanner_token(scan);
-	    if (nexttok != SWIG_TOKEN_RPAREN) {
-	      Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");
-	    } else {
-	      Append(s,"()");
-	      yylval.str = s;
-	      return OPERATOR;
-	    }
-	  } else if (nexttok == SWIG_TOKEN_LBRACKET) {
-	    /* Array access operator.  The next token MUST be a RBRACKET */
-	    nexttok = Scanner_token(scan);
-	    if (nexttok != SWIG_TOKEN_RBRACKET) {
-	      Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");	      
-	    } else {
-	      Append(s,"[]");
-	      yylval.str = s;
-	      return OPERATOR;
-	    }
-	  } else if (nexttok == SWIG_TOKEN_STRING) {
-	    /* Operator "" or user-defined string literal ""_suffix */
-	    Append(s,"\"\"");
-	    yylval.str = s;
-	    return OPERATOR;
-	  } else if (nexttok == SWIG_TOKEN_ID) {
-	    /* We have an identifier.  It could be "new" or "delete",
-	     * potentially followed by "[]", or it could be a conversion
-	     * operator (it can't be "and_eq" or similar as those are returned
-	     * as SWIG_TOKEN_ANDEQUAL, etc by Scanner_token()).  To deal with
-	     * this we read tokens until we encounter a suitable terminating
-	     * token.  Some care is needed for formatting. */
-	    int needspace = 1;
-	    int termtoken = 0;
-	    const char *termvalue = 0;
+          do {
+            nexttok = Scanner_token(scan);
+          } while (nexttok == SWIG_TOKEN_ENDLINE || nexttok == SWIG_TOKEN_COMMENT);
 
-	    Append(s,Scanner_text(scan));
-	    while (1) {
+          if (Scanner_isoperator(nexttok)) {
+            /* One of the standard C/C++ symbolic operators */
+            Append(s, Scanner_text(scan));
+            yylval.str = s;
+            return OPERATOR;
+          } else if (nexttok == SWIG_TOKEN_LPAREN) {
+            /* Function call operator.  The next token MUST be a RPAREN */
+            nexttok = Scanner_token(scan);
+            if (nexttok != SWIG_TOKEN_RPAREN) {
+              Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
+            } else {
+              Append(s, "()");
+              yylval.str = s;
+              return OPERATOR;
+            }
+          } else if (nexttok == SWIG_TOKEN_LBRACKET) {
+            /* Array access operator.  The next token MUST be a RBRACKET */
+            nexttok = Scanner_token(scan);
+            if (nexttok != SWIG_TOKEN_RBRACKET) {
+              Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
+            } else {
+              Append(s, "[]");
+              yylval.str = s;
+              return OPERATOR;
+            }
+          } else if (nexttok == SWIG_TOKEN_STRING) {
+            /* Operator "" or user-defined string literal ""_suffix */
+            Append(s, "\"\"");
+            yylval.str = s;
+            return OPERATOR;
+          } else if (nexttok == SWIG_TOKEN_ID) {
+            /* We have an identifier.  It could be "new" or "delete",
+             * potentially followed by "[]", or it could be a conversion
+             * operator (it can't be "and_eq" or similar as those are returned
+             * as SWIG_TOKEN_ANDEQUAL, etc by Scanner_token()).  To deal with
+             * this we read tokens until we encounter a suitable terminating
+             * token.  Some care is needed for formatting. */
+            int needspace = 1;
+            int termtoken = 0;
+            const char *termvalue = 0;
 
-	      nexttok = Scanner_token(scan);
-	      if (nexttok <= 0) {
-		Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");	      
-	      }
-	      if (nexttok == SWIG_TOKEN_LPAREN) {
-		termtoken = SWIG_TOKEN_LPAREN;
-		termvalue = "(";
-		break;
+            Append(s, Scanner_text(scan));
+            while (1) {
+
+              nexttok = Scanner_token(scan);
+              if (nexttok <= 0) {
+                Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
+              }
+              if (nexttok == SWIG_TOKEN_LPAREN) {
+                termtoken = SWIG_TOKEN_LPAREN;
+                termvalue = "(";
+                break;
               } else if (nexttok == SWIG_TOKEN_CODEBLOCK) {
                 termtoken = SWIG_TOKEN_CODEBLOCK;
                 termvalue = Char(Scanner_text(scan));
@@ -869,207 +1109,213 @@ num_common: {
                 termvalue = "{";
                 break;
               } else if (nexttok == SWIG_TOKEN_SEMI) {
-		termtoken = SWIG_TOKEN_SEMI;
-		termvalue = ";";
-		break;
+                termtoken = SWIG_TOKEN_SEMI;
+                termvalue = ";";
+                break;
               } else if (nexttok == SWIG_TOKEN_STRING) {
-		termtoken = SWIG_TOKEN_STRING;
+                termtoken = SWIG_TOKEN_STRING;
                 termvalue = Swig_copy_string(Char(Scanner_text(scan)));
-		break;
-	      } else if (nexttok == SWIG_TOKEN_ID) {
-		if (needspace) {
-		  Append(s," ");
-		}
-		Append(s,Scanner_text(scan));
-	      } else if (nexttok == SWIG_TOKEN_ENDLINE) {
-	      } else if (nexttok == SWIG_TOKEN_COMMENT) {
-	      } else {
-		Append(s,Scanner_text(scan));
-		needspace = 0;
-	      }
-	    }
-	    yylval.str = s;
-	    if (!rename_active) {
-	      String *cs;
-	      char *t = Char(s) + 9;
-	      if (!((strcmp(t, "new") == 0)
-		    || (strcmp(t, "delete") == 0)
-		    || (strcmp(t, "new[]") == 0)
-		    || (strcmp(t, "delete[]") == 0)
-		    )) {
-		/*              retract(strlen(t)); */
+                break;
+              } else if (nexttok == SWIG_TOKEN_ID) {
+                if (needspace) {
+                  Append(s, " ");
+                }
+                Append(s, Scanner_text(scan));
+              } else if (nexttok == SWIG_TOKEN_ENDLINE) {
+              } else if (nexttok == SWIG_TOKEN_COMMENT) {
+              } else {
+                Append(s, Scanner_text(scan));
+                needspace = 0;
+              }
+            }
+            yylval.str = s;
+            if (!rename_active) {
+              String *cs;
+              char *t = Char(s) + 9;
+              if (!((strcmp(t, "new") == 0) || (strcmp(t, "delete") == 0) || (strcmp(t, "new[]") == 0) || (strcmp(t, "delete[]") == 0))) {
+                /*              retract(strlen(t)); */
 
-		/* The operator is a conversion operator.   In order to deal with this, we need to feed the
+                /* The operator is a conversion operator.   In order to deal with this, we need to feed the
                    type information back into the parser.  For now this is a hack.  Needs to be cleaned up later. */
-		cs = NewString(t);
-		if (termtoken) Append(cs,termvalue);
-		Seek(cs,0,SEEK_SET);
-		Setline(cs,cparse_line);
-		Setfile(cs,cparse_file);
-		Scanner_push(scan,cs);
-		Delete(cs);
-		return CONVERSIONOPERATOR;
-	      }
-	    }
-	    if (termtoken)
+                cs = NewString(t);
+                if (termtoken)
+                  Append(cs, termvalue);
+                Seek(cs, 0, SEEK_SET);
+                Setline(cs, cparse_line);
+                Setfile(cs, cparse_file);
+                Scanner_push(scan, cs);
+                Delete(cs);
+                return CONVERSIONOPERATOR;
+              }
+            }
+            if (termtoken)
               Scanner_pushtoken(scan, termtoken, termvalue);
-	    return (OPERATOR);
-	  }
-	}
-	if (strcmp(yytext, "throw") == 0)
-	  return (THROW);
-	if (strcmp(yytext, "noexcept") == 0)
-	  return (NOEXCEPT);
-	if (strcmp(yytext, "try") == 0)
-	  return (yylex());
-	if (strcmp(yytext, "catch") == 0)
-	  return (CATCH);
-	if (strcmp(yytext, "inline") == 0)
-	  return (yylex());
-	if (strcmp(yytext, "mutable") == 0)
-	  return (yylex());
-	if (strcmp(yytext, "explicit") == 0)
-	  return (EXPLICIT);
-	if (strcmp(yytext, "auto") == 0)
-	  return (AUTO);
-	if (strcmp(yytext, "export") == 0)
-	  return (yylex());
-	if (strcmp(yytext, "typename") == 0)
-	  return (TYPENAME);
-	if (strcmp(yytext, "template") == 0) {
-	  yylval.intvalue = cparse_line;
-	  return (TEMPLATE);
-	}
-	if (strcmp(yytext, "delete") == 0)
-	  return (DELETE_KW);
-	if (strcmp(yytext, "default") == 0)
-	  return (DEFAULT);
-	if (strcmp(yytext, "using") == 0)
-	  return (USING);
-	if (strcmp(yytext, "namespace") == 0)
-	  return (NAMESPACE);
-	if (strcmp(yytext, "alignof") == 0)
-	  return (ALIGNOF);
-	if (strcmp(yytext, "override") == 0) {
-	  last_id = 1;
-	  return (OVERRIDE);
-	}
-	if (strcmp(yytext, "final") == 0) {
-	  last_id = 1;
-	  return (FINAL);
-	}
+            return (OPERATOR);
+          }
+        }
+        if (strcmp(yytext, "throw") == 0)
+          return (THROW);
+        if (strcmp(yytext, "noexcept") == 0)
+          return (NOEXCEPT);
+        if (strcmp(yytext, "try") == 0)
+          return (yylex());
+        if (strcmp(yytext, "catch") == 0)
+          return (CATCH);
+        if (strcmp(yytext, "inline") == 0)
+          return (yylex());
+        if (strcmp(yytext, "mutable") == 0)
+          return (yylex());
+        if (strcmp(yytext, "explicit") == 0)
+          return (EXPLICIT);
+        if (strcmp(yytext, "auto") == 0)
+          return (AUTO);
+        if (strcmp(yytext, "export") == 0)
+          return (yylex());
+        if (strcmp(yytext, "typename") == 0)
+          return (TYPENAME);
+        if (strcmp(yytext, "template") == 0) {
+          yylval.intvalue = cparse_line;
+          return (TEMPLATE);
+        }
+        if (strcmp(yytext, "delete") == 0)
+          return (DELETE_KW);
+        if (strcmp(yytext, "default") == 0)
+          return (DEFAULT);
+        if (strcmp(yytext, "using") == 0)
+          return (USING);
+        if (strcmp(yytext, "namespace") == 0)
+          return (NAMESPACE);
+        if (strcmp(yytext, "alignof") == 0)
+          return (ALIGNOF);
+        if (strcmp(yytext, "override") == 0) {
+          last_id = 1;
+          return (OVERRIDE);
+        }
+        if (strcmp(yytext, "final") == 0) {
+          last_id = 1;
+          return (FINAL);
+        }
+        if (strcmp(yytext, "concept") == 0) {
+          last_id = 1;
+          return (CONCEPT);
+        }
+        if (strcmp(yytext, "requires") == 0) {
+          last_id = 1;
+          return (REQUIRES);
+        }
       } else {
-	if (strcmp(yytext, "class") == 0) {
-	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
-	}
-	if (strcmp(yytext, "_Bool") == 0) {
-	  /* C99 boolean type. */
-	  yylval.type = NewSwigType(T_BOOL);
-	  return (TYPE_BOOL);
-	}
-	if (strcmp(yytext, "_Complex") == 0) {
-	  yylval.type = NewSwigType(T_COMPLEX);
-	  return (TYPE_COMPLEX);
-	}
-	if (strcmp(yytext, "restrict") == 0)
-	  return (yylex());
+        if (strcmp(yytext, "class") == 0) {
+          Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
+        }
+        if (strcmp(yytext, "_Bool") == 0) {
+          /* C99 boolean type. */
+          yylval.type = NewSwigType(T_BOOL);
+          return (TYPE_BOOL);
+        }
+        if (strcmp(yytext, "_Complex") == 0) {
+          yylval.type = NewSwigType(T_COMPLEX);
+          return (TYPE_COMPLEX);
+        }
+        if (strcmp(yytext, "restrict") == 0)
+          return (yylex());
       }
 
       /* Misc keywords */
 
       if (strcmp(yytext, "extern") == 0)
-	return (EXTERN);
+        return (EXTERN);
       if (strcmp(yytext, "const") == 0)
-	return (CONST_QUAL);
+        return (CONST_QUAL);
       if (strcmp(yytext, "static") == 0)
-	return (STATIC);
+        return (STATIC);
       if (strcmp(yytext, "struct") == 0)
-	return (STRUCT);
+        return (STRUCT);
       if (strcmp(yytext, "union") == 0)
-	return (UNION);
+        return (UNION);
       if (strcmp(yytext, "enum") == 0)
-	return (ENUM);
+        return (ENUM);
       if (strcmp(yytext, "sizeof") == 0)
-	return (SIZEOF);
+        return (SIZEOF);
 
       if (strcmp(yytext, "typedef") == 0) {
-	return (TYPEDEF);
+        return (TYPEDEF);
       }
 
       /* Ignored keywords */
 
       if (strcmp(yytext, "volatile") == 0)
-	return (VOLATILE);
+        return (VOLATILE);
       if (strcmp(yytext, "register") == 0)
-	return (REGISTER);
+        return (REGISTER);
       if (strcmp(yytext, "inline") == 0)
-	return (yylex());
+        return (yylex());
 
     } else {
       /* SWIG directives */
       String *stext = 0;
       if (strcmp(yytext, "%module") == 0)
-	return (MODULE);
+        return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
-	return (INSERT);
+        return (INSERT);
       if (strcmp(yytext, "%rename") == 0) {
-	rename_active = 1;
-	return (RENAME);
+        rename_active = 1;
+        return (RENAME);
       }
       if (strcmp(yytext, "%namewarn") == 0) {
-	rename_active = 1;
-	return (NAMEWARN);
+        rename_active = 1;
+        return (NAMEWARN);
       }
       if (strcmp(yytext, "%includefile") == 0)
-	return (INCLUDE);
+        return (INCLUDE);
       if (strcmp(yytext, "%beginfile") == 0)
-	return (BEGINFILE);
+        return (BEGINFILE);
       if (strcmp(yytext, "%endoffile") == 0)
-	return (ENDOFFILE);
+        return (ENDOFFILE);
       if (strcmp(yytext, "%constant") == 0)
-	return (CONSTANT);
+        return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
-	return (TYPEDEF);
+        Swig_warning(WARN_DEPRECATED_TYPEDEF, cparse_file, cparse_line, "%%typedef directive is deprecated, use plain typedef instead\n");
+        return (TYPEDEF);
       }
       if (strcmp(yytext, "%native") == 0)
-	return (NATIVE);
+        return (NATIVE);
       if (strcmp(yytext, "%pragma") == 0)
-	return (PRAGMA);
+        return (PRAGMA);
       if (strcmp(yytext, "%extend") == 0)
-	return (EXTEND);
+        return (EXTEND);
       if (strcmp(yytext, "%fragment") == 0)
-	return (FRAGMENT);
+        return (FRAGMENT);
       if (strcmp(yytext, "%inline") == 0)
-	return (INLINE);
+        return (INLINE);
       if (strcmp(yytext, "%typemap") == 0)
-	return (TYPEMAP);
+        return (TYPEMAP);
       if (strcmp(yytext, "%feature") == 0) {
-        /* The rename_active indicates we don't need the information of the 
+        /* The rename_active indicates we don't need the information of the
          * following function's return type. This applied for %rename, so do
-         * %feature. 
+         * %feature.
          */
         rename_active = 1;
-	return (FEATURE);
+        return (FEATURE);
       }
       if (strcmp(yytext, "%importfile") == 0)
-	return (IMPORT);
+        return (IMPORT);
       if (strcmp(yytext, "%echo") == 0)
-	return (ECHO);
+        return (ECHO);
       if (strcmp(yytext, "%apply") == 0)
-	return (APPLY);
+        return (APPLY);
       if (strcmp(yytext, "%clear") == 0)
-	return (CLEAR);
+        return (CLEAR);
       if (strcmp(yytext, "%types") == 0)
-	return (TYPES);
+        return (TYPES);
       if (strcmp(yytext, "%parms") == 0)
-	return (PARMS);
+        return (PARMS);
       if (strcmp(yytext, "%varargs") == 0)
-	return (VARARGS);
+        return (VARARGS);
       if (strcmp(yytext, "%template") == 0) {
-	return (SWIGTEMPLATE);
+        return (SWIGTEMPLATE);
       }
       if (strcmp(yytext, "%warn") == 0)
-	return (WARN);
+        return (WARN);
 
       /* Note down the apparently unknown directive for error reporting - if
        * we end up reporting a generic syntax error we'll instead report an
@@ -1082,10 +1328,10 @@ num_common: {
        */
       cparse_unknown_directive = NewString(yytext);
       stext = NewString(yytext + 1);
-      Seek(stext,0,SEEK_SET);
-      Setfile(stext,cparse_file);
-      Setline(stext,cparse_line);
-      Scanner_push(scan,stext);
+      Seek(stext, 0, SEEK_SET);
+      Setfile(stext, cparse_file);
+      Setline(stext, cparse_line);
+      Scanner_push(scan, stext);
       Delete(stext);
       return (MODULO);
     }

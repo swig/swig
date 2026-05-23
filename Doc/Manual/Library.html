@@ -51,6 +51,7 @@
 <li><a href="#Library_std_unique_ptr_by_ref">unique_ptr passed by reference</a>
 </ul>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
+<li><a href="#Library_std_function">std::function</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -2437,6 +2438,108 @@ That is, it works the same way covered in the previous section for <tt>std::uniq
 
 <p>
 Input parameters also work the same way as <tt>std::unique_ptr</tt> covered in the previous section.
+</p>
+
+<H3><a name="Library_std_function">12.5.8 std::function</a></H3>
+
+
+<p>
+The <tt>std_function.i</tt> library file wraps the C++11 <tt>std::function</tt>
+polymorphic function-object template. It exposes the partial specialisation
+<tt>std::function&lt;RET(ARGS...)&gt;</tt> so that any C++ callable -
+a free function, a lambda, a bound member function, or a functor (a class with
+<tt>operator()</tt>) - can be returned from C++ to the target language
+and invoked there.
+</p>
+
+<p>
+Two conventions are baked into the library:
+</p>
+
+<ul>
+<li><tt>operator()</tt> is renamed to <tt>call</tt> so that target languages
+which cannot wrap <tt>operator()</tt> as an identifier still get a usable
+method name.</li>
+<li>The default constructor is suppressed (<tt>%ignore</tt>d), so
+<tt>std::function</tt> instances always originate on the C++ side -
+typically returned from a factory function. They are not default-constructible
+from the target language.</li>
+</ul>
+
+<p>
+A typical use is a factory function that captures state in a lambda and
+returns it as a <tt>std::function</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_string.i&gt;
+%include &lt;std_function.i&gt;
+
+std::function&lt;bool(int, const std::string &amp;)&gt; MakeLambda(int pass) {
+  return [pass](int passcode, const std::string &amp;name) -&gt; bool {
+    return passcode == pass &amp;&amp; name == "magic";
+  };
+}
+
+%template(MyLambda) std::function&lt;bool(int, const std::string &amp;)&gt;;
+</pre></div>
+
+<p>
+One <tt>%template</tt> is required for each distinct
+<tt>RET(ARGS...)</tt> signature being wrapped. From Java the wrapped
+C++ lambda is invoked via the renamed <tt>call</tt> method:
+</p>
+
+<div class="targetlang"><pre>
+MyLambda fn = MakeLambda(10);
+boolean ok = fn.call(10, "magic");   // true
+boolean no = fn.call(11, "magic");   // false
+</pre></div>
+
+<p>
+Similarly one can use the other functors defined in <tt>&lt;functional&gt;</tt>, such as <tt>std::plus</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_function.i&gt;
+
+std::function&lt;int(int, int)&gt; MakePlusFunctor() {
+  return std::plus&lt;int&gt;();
+}
+
+%template(Plus) std::function&lt;int(int, int)&gt;;
+</pre></div>
+
+<p>
+Usage from Java:
+</p>
+
+<div class="targetlang"><pre>
+Plus plus = MakePlusFunctor();
+int sum = plus.call(3, 4); // returns 7
+</pre></div>
+
+<p>
+Limitations and notes:
+</p>
+
+<ul>
+<li>Only the function-typed partial specialisation is wrapped. A
+<tt>%template</tt> instantiation with a non-function template argument falls
+through to the empty primary template and produces no useful interface.</li>
+<li>The wrapper does not let target-language code construct a
+<tt>std::function</tt> from a target-language callable. <tt>std::function</tt>
+moves a C++ callable <i>out</i> to the target language; to go the other way,
+see
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
+or
+<a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.</li>
+</ul>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to add
+<tt>std_function.i</tt> so that
+<tt>std::function</tt> can be usefully used.
 </p>
 
 <H2><a name="Library_nn16">12.6 Utility Libraries</a></H2>

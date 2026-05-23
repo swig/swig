@@ -124,7 +124,7 @@ class SWIGV8_Proxy {
 public:
   SWIGV8_Proxy(): swigCMemOwn(false), swigCObject(0), info(0) {
     SWIGV8_ADJUST_MEMORY(SWIGV8_AVG_OBJ_SIZE);
-  };
+  }
 
   ~SWIGV8_Proxy() {
     handle.ClearWeak();
@@ -343,11 +343,11 @@ public:
     this->data = malloc(size);
     if (this->data != nullptr)
       memcpy(this->data, data, size);
-  };
+  }
 
   ~SwigV8PackedData() {
     free(this->data);
-  };
+  }
 
   void *data;
   size_t size;

@@ -6,7 +6,7 @@ class Foo {
 private:
   double r;
 public:
-  Foo(double rin) : r(rin) {}; 
+  Foo(double rin) : r(rin) {}
 };
 %}
 

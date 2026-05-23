@@ -9,17 +9,17 @@
 class FooBarAbstract
 {
 public:
-	FooBarAbstract() {};
-	virtual ~FooBarAbstract() {};
+	FooBarAbstract() {}
+	virtual ~FooBarAbstract() {}
 
 	std::string FooBar() {
 		return this->Foo() + ", " + this->Bar();
-	};
+	}
 
 protected:
 	virtual std::string Foo() {
 		return "Foo";
-	};
+	}
 
 	virtual std::string Bar() = 0;
 };

@@ -5,7 +5,16 @@
 // Tests the 'equivalent' attribute in the 'typecheck' typemap.
 
 %include <std_string.i>
+
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
+
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
 %include <std_shared_ptr.i>
+%shared_ptr(MyType);
+#endif
+
 
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED,SWIGWARN_LANG_OVERLOAD_SHADOW) UseA(std::shared_ptr<MyType> mytype);
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED,SWIGWARN_LANG_OVERLOAD_SHADOW) UseB(int, std::shared_ptr<MyType> mytype);
@@ -23,67 +32,65 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED,SWIGWARN_LANG_OVERLOAD_SHADOW) Combo6;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED,SWIGWARN_LANG_OVERLOAD_SHADOW) Combo7;
 
-%shared_ptr(MyType);
-
 %inline %{
 #include <memory>
 #include <string>
 struct MyType {
-  std::string val;
-  MyType(std::string val = std::string()) : val(val) {}
+  std::string valu;
+  MyType(std::string valu = std::string()) : valu(valu) {}
 };
 
 // ref
-std::string UseA(MyType &mytype) { return mytype.val + " ref"; }
-std::string UseA(std::shared_ptr<MyType> mytype) { return mytype->val + " sharedptr"; }
+std::string UseA(MyType &mytype) { return mytype.valu + " ref"; }
+std::string UseA(std::shared_ptr<MyType> mytype) { return mytype->valu + " sharedptr"; }
 
-std::string UseB(int, MyType &mytype) { return mytype.val + " ref"; }
-std::string UseB(int, std::shared_ptr<MyType> mytype) { return mytype->val + " sharedptr"; }
+std::string UseB(int, MyType &mytype) { return mytype.valu + " ref"; }
+std::string UseB(int, std::shared_ptr<MyType> mytype) { return mytype->valu + " sharedptr"; }
 
-std::string UseC(int, MyType &mytype, std::shared_ptr<MyType>) { return mytype.val + " ref"; }
-std::string UseC(int, std::shared_ptr<MyType> mytype, std::shared_ptr<MyType>) { return mytype->val + " sharedptr"; }
+std::string UseC(int, MyType &mytype, std::shared_ptr<MyType>) { return mytype.valu + " ref"; }
+std::string UseC(int, std::shared_ptr<MyType> mytype, std::shared_ptr<MyType>) { return mytype->valu + " sharedptr"; }
 
 // sharedptr
-std::string UseX(std::shared_ptr<MyType> mytype) { return mytype->val + " sharedptr"; }
-std::string UseX(MyType &mytype) { return mytype.val + " ref"; }
+std::string UseX(std::shared_ptr<MyType> mytype) { return mytype->valu + " sharedptr"; }
+std::string UseX(MyType &mytype) { return mytype.valu + " ref"; }
 
-std::string UseY(int, std::shared_ptr<MyType> mytype) { return mytype->val + " sharedptr"; }
-std::string UseY(int, MyType &mytype) { return mytype.val + " ref"; }
+std::string UseY(int, std::shared_ptr<MyType> mytype) { return mytype->valu + " sharedptr"; }
+std::string UseY(int, MyType &mytype) { return mytype.valu + " ref"; }
 
-std::string UseZ(int, std::shared_ptr<MyType> mytype, std::shared_ptr<MyType>) { return mytype->val + " sharedptr"; }
-std::string UseZ(int, MyType &mytype, std::shared_ptr<MyType>) { return mytype.val + " ref"; }
+std::string UseZ(int, std::shared_ptr<MyType> mytype, std::shared_ptr<MyType>) { return mytype->valu + " sharedptr"; }
+std::string UseZ(int, MyType &mytype, std::shared_ptr<MyType>) { return mytype.valu + " ref"; }
 
 // Combo1-4
-std::string Combo1(MyType mytype) { return mytype.val + "Combo1"; }
+std::string Combo1(MyType mytype) { return mytype.valu + "Combo1"; }
 std::string Combo1(MyType *mytype) { return ""; }
 std::string Combo1(std::shared_ptr<MyType> mytype) { return ""; }
 std::string Combo1(std::shared_ptr<MyType>* mytype) { return ""; }
 
-std::string Combo2(MyType *mytype) { return mytype->val + "Combo2"; }
+std::string Combo2(MyType *mytype) { return mytype->valu + "Combo2"; }
 std::string Combo2(std::shared_ptr<MyType> mytype) { return ""; }
 std::string Combo2(std::shared_ptr<MyType>* mytype) { return ""; }
 std::string Combo2(MyType mytype) { return ""; }
 
-std::string Combo3(std::shared_ptr<MyType> mytype) { return mytype->val + "Combo3"; }
+std::string Combo3(std::shared_ptr<MyType> mytype) { return mytype->valu + "Combo3"; }
 std::string Combo3(std::shared_ptr<MyType>* mytype) { return ""; }
 std::string Combo3(MyType mytype) { return ""; }
 std::string Combo3(MyType *mytype) { return ""; }
 
-std::string Combo4(std::shared_ptr<MyType>* mytype) { return (*mytype)->val + "Combo4"; }
+std::string Combo4(std::shared_ptr<MyType>* mytype) { return (*mytype)->valu + "Combo4"; }
 std::string Combo4(MyType mytype) { return ""; }
 std::string Combo4(MyType *mytype) { return ""; }
 std::string Combo4(std::shared_ptr<MyType> mytype) { return ""; }
 
 // Combo5-7
-std::string Combo5(MyType &mytype) { return mytype.val + "Combo5"; }
+std::string Combo5(MyType &mytype) { return mytype.valu + "Combo5"; }
 std::string Combo5(MyType *mytype) { return ""; }
 std::string Combo5(std::shared_ptr<MyType> mytype) { return ""; }
 
-std::string Combo6(MyType *mytype) { return mytype->val + "Combo6"; }
+std::string Combo6(MyType *mytype) { return mytype->valu + "Combo6"; }
 std::string Combo6(std::shared_ptr<MyType> mytype) { return ""; }
 std::string Combo6(MyType &mytype) { return ""; }
 
-std::string Combo7(std::shared_ptr<MyType> mytype) { return mytype->val + "Combo7"; }
+std::string Combo7(std::shared_ptr<MyType> mytype) { return mytype->valu + "Combo7"; }
 std::string Combo7(MyType &mytype) { return ""; }
 std::string Combo7(MyType *mytype) { return ""; }
 %}

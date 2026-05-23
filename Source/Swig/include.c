@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -15,10 +15,10 @@
 
 #include "swig.h"
 
-static List   *directories = 0;	        /* List of include directories */
-static String *lastpath = 0;	        /* Last file that was included */
-static List   *pdirectories = 0;        /* List of pushed directories  */
-static int     dopush = 1;		/* Whether to push directories */
+static List *directories = 0;  /* List of include directories */
+static String *lastpath = 0;   /* Last file that was included */
+static List *pdirectories = 0; /* List of pushed directories  */
+static int dopush = 1;         /* Whether to push directories */
 static int file_debug = 0;
 
 /* This functions determine whether to push/pop dirs in the preprocessor */
@@ -43,7 +43,7 @@ List *Swig_add_directory(const_String_or_char_ptr dirname) {
   assert(directories);
   if (dirname) {
     adirname = NewString(dirname);
-    Append(directories,adirname);
+    Append(directories, adirname);
     Delete(adirname);
   }
   return directories;
@@ -65,7 +65,7 @@ void Swig_push_directory(const_String_or_char_ptr dirname) {
   assert(pdirectories);
   pdirname = NewString(dirname);
   assert(pdirname);
-  Insert(pdirectories,0,pdirname);
+  Insert(pdirectories, 0, pdirname);
   Delete(pdirname);
 }
 
@@ -86,8 +86,8 @@ void Swig_pop_directory(void) {
 
 /* -----------------------------------------------------------------------------
  * Swig_last_file()
- * 
- * Returns the full pathname of the last file opened. 
+ *
+ * Returns the full pathname of the last file opened.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_last_file(void) {
@@ -96,15 +96,15 @@ String *Swig_last_file(void) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_search_path_any() 
- * 
+ * Swig_search_path_any()
+ *
  * Returns a list of the current search paths.
  * ----------------------------------------------------------------------------- */
 
 static List *Swig_search_path_any(int syspath) {
   String *filename;
-  List   *slist;
-  int     i, ilen;
+  List *slist;
+  int i, ilen;
 
   slist = NewList();
   assert(slist);
@@ -113,28 +113,28 @@ static List *Swig_search_path_any(int syspath) {
   Printf(filename, ".%s", SWIG_FILE_DELIMITER);
   Append(slist, filename);
   Delete(filename);
-  
+
   /* If there are any pushed directories.  Add them first */
   if (pdirectories) {
     ilen = Len(pdirectories);
     for (i = 0; i < ilen; i++) {
-      filename = NewString(Getitem(pdirectories,i));
-      Append(filename,SWIG_FILE_DELIMITER);
-      Append(slist,filename);
+      filename = NewString(Getitem(pdirectories, i));
+      Append(filename, SWIG_FILE_DELIMITER);
+      Append(slist, filename);
       Delete(filename);
     }
   }
   /* Add system directories next */
   ilen = Len(directories);
   for (i = 0; i < ilen; i++) {
-    filename = NewString(Getitem(directories,i));
-    Append(filename,SWIG_FILE_DELIMITER);
+    filename = NewString(Getitem(directories, i));
+    Append(filename, SWIG_FILE_DELIMITER);
     if (syspath) {
       /* If doing a system include, put the system directories first */
-      Insert(slist,i,filename);
+      Insert(slist, i, filename);
     } else {
       /* Otherwise, just put the system directories after the pushed directories (if any) */
-      Append(slist,filename);
+      Append(slist, filename);
     }
     Delete(filename);
   }
@@ -145,12 +145,10 @@ List *Swig_search_path(void) {
   return Swig_search_path_any(0);
 }
 
-
-
 /* -----------------------------------------------------------------------------
  * Swig_open()
  *
- * open a file, optionally looking for it in the include path.  Returns an open  
+ * open a file, optionally looking for it in the include path.  Returns an open
  * FILE * on success.
  * ----------------------------------------------------------------------------- */
 
@@ -181,7 +179,7 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
       Printf(filename, "%s%s", Getitem(spath, i), cname);
       f = fopen(Char(filename), "r");
       if (f)
-	break;
+        break;
     }
     Delete(spath);
   }
@@ -210,11 +208,9 @@ FILE *Swig_open(const_String_or_char_ptr name) {
   return Swig_open_file(name, 0, 0);
 }
 
-
-
 /* -----------------------------------------------------------------------------
  * Swig_read_file()
- * 
+ *
  * Reads data from an open FILE * and returns it as a string.
  * ----------------------------------------------------------------------------- */
 
@@ -226,11 +222,13 @@ String *Swig_read_file(FILE *f) {
   assert(str);
   while (1) {
     size_t c = fread(buffer, 1, sizeof(buffer), f);
-    if (c > 0) Write(str, buffer, (int)c);
-    if (c < sizeof(buffer)) break;
+    if (c > 0)
+      Write(str, buffer, (int)c);
+    if (c < sizeof(buffer))
+      break;
   }
   len = Len(str);
-  /* Add a newline if not present on last line -- the preprocessor seems to 
+  /* Add a newline if not present on last line -- the preprocessor seems to
    * rely on \n and not EOF terminating lines */
   if (len) {
     char *cstr = Char(str);

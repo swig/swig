@@ -133,9 +133,9 @@ namespace swig {
     }
       
     static swig_type_info* descriptor() {
-      static swig_type_info* desc = SWIG_TypeQuery("swig::SwigPyIterator *");
+      static swig_type_info* desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(SwigPyIterator) " *");
       return desc;
-    }    
+    }
   };
 
 %#if defined(SWIGPYTHON_BUILTIN)

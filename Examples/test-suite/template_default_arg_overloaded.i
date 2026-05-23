@@ -13,9 +13,9 @@ namespace bass {
 
 class PropertyList {
 public:
-    PropertyList(void) {};
+    PropertyList(void) {}
 
-    virtual ~PropertyList(void) {};
+    virtual ~PropertyList(void) {}
 
     template <typename T> int set(std::string const& name1, T const& value1, bool inPlace1=true) { return 1; }
 
@@ -29,9 +29,9 @@ public:
 // As above but in global namespace
 class PropertyListGlobal {
 public:
-    PropertyListGlobal(void) {};
+    PropertyListGlobal(void) {}
 
-    virtual ~PropertyListGlobal(void) {};
+    virtual ~PropertyListGlobal(void) {}
 
     template <typename T> int set(std::string const& name1, T const& value1, bool inPlace1=true) { return 1; }
 
