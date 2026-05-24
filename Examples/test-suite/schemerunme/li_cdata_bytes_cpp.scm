@@ -2,7 +2,7 @@
 (define m (predefStr))
 ;; Convert it to binary string
 (define s (cdata m  512))
-;; Temporary varibale
+;; Temporary variable
 (define val 0)
 (define i2 0)
 (define c 'a)
@@ -32,7 +32,7 @@
 ;; Copy binary string into another C buffer
 (define m2 (malloc 512))
 (memmove m2 s)
-;; Verfy the other C buffer have the proper content
+;; Verify the other C buffer has the proper content
 (if (< (verifyBytes m2) 0)
     (error "failed verifyBytes"))
 ;; Release the other buffer

@@ -4,14 +4,14 @@
 
 %{
 #include <stdlib.h>
-static unsigned char _pre_bug[0x200];
+static unsigned char predef_buf[0x200];
 void *predefStr(void) {
   unsigned i;
   for (i = 0; i < 0x100; i++) {
-    _pre_bug[i] = (unsigned char)i;
-    _pre_bug[i + 0x100] = (unsigned char)i;
+    predef_buf[i] = (unsigned char)i;
+    predef_buf[i + 0x100] = (unsigned char)i;
   }
-  return _pre_bug;
+  return predef_buf;
 }
 int verifyBytes(void *ptr) {
   unsigned i;

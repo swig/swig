@@ -29,18 +29,12 @@ sub test
   $s = pack $p, @v;
   my $m2 = li_cdata_bytes_cpp::malloc(0x200);
   li_cdata_bytes_cpp::memmove($m2, $s);
-  my $a = li_cdata_bytes_cpp::verifyBytes($m2);
   is(li_cdata_bytes_cpp::verifyBytes($m2), 0, 'verifyBytes');
-  # Somehow the free() is too 'heavy' for macos
   li_cdata_bytes_cpp::free($m2);
 }
-# The test work on macos, but seemed a bit heavy.
-# The test breaks occasionally, simply skip it.
-if ($^O ne 'darwin') {
-  eval <<"END_TXT";
-  use Test::More tests => 4;
-  require_ok('li_cdata_bytes_cpp');
-  BEGIN { use_ok('li_cdata_bytes_cpp') }
-  test;
+eval <<"END_TXT";
+use Test::More tests => 4;
+require_ok('li_cdata_bytes_cpp');
+BEGIN { use_ok('li_cdata_bytes_cpp') }
+test;
 END_TXT
-}

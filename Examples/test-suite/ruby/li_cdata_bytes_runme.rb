@@ -27,6 +27,4 @@ def test
   free(m2)
 end
 
-# The test work on macos, but seemed a bit heavy.
-# The test breaks occasionally, simply skip it.
-test unless /darwin/ =~ RUBY_PLATFORM and RUBY_VERSION[0..2] == "3.2"
+test

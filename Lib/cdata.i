@@ -4,6 +4,8 @@
  * SWIG library file containing macros for manipulating raw C data.
  * ----------------------------------------------------------------------------- */
 
+/* 'alloc' is seeded with 'SWIG_BINARYSTR' so 'SWIG_AsCharPtrAndSize' treats the input as
+   raw bytes (no Unicode translation, exact length); it overwrites 'alloc' on return. */
 %typemap(in,noblock=0,fragment="SWIG_AsCharPtrAndSize") (const void *BYTES, size_t LENGTH) (int res, void *buf = 0, size_t len = 0, int alloc = SWIG_BINARYSTR) {
   res = SWIG_AsCharPtrAndSize($input, (char **)&buf, &len, &alloc);
   if (!SWIG_IsOK(res)) {
