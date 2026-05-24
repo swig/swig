@@ -145,14 +145,14 @@
 #define SWIG_NEWOBJMASK            (SWIG_CASTRANKLIMIT  << 1)
 /* The TmpMask is for in/out typemaps that use temporary objects */
 #define SWIG_TMPOBJMASK            (SWIG_NEWOBJMASK << 1)
-/* The Binary string mask denotes using string without unicode */
-#define SWIG_BINSTRMASK            (SWIG_TMPOBJMASK << 1)
+/* The binary string mask denotes using string without unicode */
+#define SWIG_BINARYSTRMASK         (SWIG_TMPOBJMASK << 1)
 /* Simple returning values */
 #define SWIG_BADOBJ                (SWIG_ERROR)
 #define SWIG_OLDOBJ                (SWIG_OK)
 #define SWIG_NEWOBJ                (SWIG_OK | SWIG_NEWOBJMASK)
 #define SWIG_TMPOBJ                (SWIG_OK | SWIG_TMPOBJMASK)
-#define SWIG_BINSTR                (SWIG_OK | SWIG_BINSTRMASK)
+#define SWIG_BINARYSTR             (SWIG_OK | SWIG_BINARYSTRMASK)
 /* Check, add and del object mask methods */
 #define SWIG_AddNewMask(r)         (SWIG_IsOK(r) ? (r | SWIG_NEWOBJMASK) : r)
 #define SWIG_DelNewMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_NEWOBJMASK) : r)
@@ -160,9 +160,9 @@
 #define SWIG_AddTmpMask(r)         (SWIG_IsOK(r) ? (r | SWIG_TMPOBJMASK) : r)
 #define SWIG_DelTmpMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_TMPOBJMASK) : r)
 #define SWIG_IsTmpObj(r)           (SWIG_IsOK(r) && (r & SWIG_TMPOBJMASK))
-#define SWIG_AddBinMask(r)         (SWIG_IsOK(r) ? (r | SWIG_BINSTRMASK) : r)
-#define SWIG_DelBinMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_BINSTRMASK) : r)
-#define SWIG_IsBinStr(r)           (SWIG_IsOK(r) && (r & SWIG_BINSTRMASK))
+#define SWIG_AddBinaryStrMask(r)   (SWIG_IsOK(r) ? (r | SWIG_BINARYSTRMASK) : r)
+#define SWIG_DelBinaryStrMask(r)   (SWIG_IsOK(r) ? (r & ~SWIG_BINARYSTRMASK) : r)
+#define SWIG_IsBinaryStr(r)        (SWIG_IsOK(r) && (r & SWIG_BINARYSTRMASK))
 
 /* Cast-Rank Mode */
 #if defined(SWIG_CASTRANK_MODE)

@@ -49,7 +49,7 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header") {
-#define SWIG_FromBinCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
+#define SWIG_FromBinaryCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERNINLINE SV *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {

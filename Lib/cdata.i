@@ -4,7 +4,7 @@
  * SWIG library file containing macros for manipulating raw C data.
  * ----------------------------------------------------------------------------- */
 
-%typemap(in,noblock=0,fragment="SWIG_AsCharPtrAndSize") (const void *BYTES, size_t LENGTH) (int res, void *buf = 0, size_t len = 0, int alloc = SWIG_BINSTR) {
+%typemap(in,noblock=0,fragment="SWIG_AsCharPtrAndSize") (const void *BYTES, size_t LENGTH) (int res, void *buf = 0, size_t len = 0, int alloc = SWIG_BINARYSTR) {
   res = SWIG_AsCharPtrAndSize($input, (char **)&buf, &len, &alloc);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
@@ -21,9 +21,9 @@
 
 %typemap(directorin,noblock=1,fragment="SWIG_FromCharPtrAndSize") (const void *BYTES, size_t LENGTH) {
   if ($1 && $2 > 0) {
-    $input = SWIG_FromBinCharPtrAndSize((const char*)$1, (size_t)$2, SWIG_BINSTR);
+    $input = SWIG_FromBinaryCharPtrAndSize((const char*)$1, (size_t)$2, SWIG_BINARYSTR);
   } else {
-    $input = SWIG_FromBinCharPtrAndSize("", 0, SWIG_BINSTR);
+    $input = SWIG_FromBinaryCharPtrAndSize("", 0, SWIG_BINARYSTR);
   }
 }
 
@@ -44,7 +44,7 @@
 %include <typemaps/cdata_begin.swg>
 
 %typemap(out,noblock=1,fragment="SWIG_FromCharPtrAndSize") SWIGCDATA {
-  %set_output(SWIG_FromBinCharPtrAndSize($1.data,(size_t)($1.len), SWIG_BINSTR));
+  %set_output(SWIG_FromBinaryCharPtrAndSize($1.data,(size_t)($1.len), SWIG_BINARYSTR));
 }
 
 %include <typemaps/cdata_end.swg>
