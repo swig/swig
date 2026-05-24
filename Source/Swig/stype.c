@@ -47,6 +47,11 @@
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
  *  'm(cls).'           = Pointer to member (cls::*)
+ *  'auto.'             = C++20 constrained placeholder marker, always paired
+ *                        with a 'c(<id>)' base, e.g. 'auto.c(Numeric)'
+ *                        represents 'Numeric auto'.
+ *  'c(<id>)'           = Base carrying the concept-id of a C++20
+ *                        constrained 'Concept auto' placeholder.
  *
  * The encoding follows the order that you might describe a type in words.
  * For example "p.a(200).int" is "A pointer to array of int's" and
@@ -623,6 +628,10 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
         Insert(result, 0, "(");
         Append(result, ")");
       }
+    } else if (strcmp(Char(element), "auto.") == 0) {
+      /* C++20 constrained placeholder marker, paired with a c(<id>) base. */
+      Insert(result, 0, " ");
+      Insert(result, 0, "auto");
     } else if (SwigType_isarray(element)) {
       DOH *size;
       Append(result, "[");
@@ -655,6 +664,14 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
     } else {
       if (strcmp(Char(element), "v(...)") == 0) {
         Insert(result, 0, "...");
+      } else if (SwigType_isconcept(element)) {
+        /* c(<id>) base - emit just the concept-id, expanding any inner template-id. */
+        String *cn = SwigType_parm(element);
+        String *cn_namestr = SwigType_namestr(cn);
+        Insert(result, 0, " ");
+        Insert(result, 0, cn_namestr);
+        Delete(cn_namestr);
+        Delete(cn);
       } else {
         String *bs = SwigType_namestr(element);
         Insert(result, 0, " ");

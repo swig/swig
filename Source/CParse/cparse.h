@@ -37,6 +37,7 @@ extern void scanner_next_token(int);
 extern int skip_balanced(int startchar, int endchar);
 extern String *get_raw_text_balanced(int startchar, int endchar);
 extern void skip_decl(void);
+extern Node *parse_requirement_seq(String *body_text);
 extern void scanner_last_id(int);
 extern void scanner_clear_rename(void);
 extern void scanner_set_location(String *file, int line);

@@ -8,21 +8,21 @@
   zend_array *ar;
   if (Z_TYPE($input) != IS_ARRAY) {
     SWIG_PHP_Error(E_ERROR, "Type error in '$symname'. Expected array");
-    goto fail;
   }
   ar = Z_ARR($input);
   len = zend_array_count(ar);
   $1 = ($1_ltype) len;
   $2 = (char **) malloc((len+1)*sizeof(char *));
+  if ($2 == NULL) {
+    SWIG_PHP_Error(E_ERROR, "Failed to allocate memory for 'int ARGC, char **ARGV' in '$symname'");
+  }
   i = 0;
   ZEND_HASH_FOREACH_VAL(ar, val) {
     if (Z_TYPE(*val) != IS_STRING) {
       SWIG_PHP_Error(E_ERROR, "Array must use strings only, in '$symname'.");
-      goto fail;
     }
     if (i == len) {
       SWIG_PHP_Error(E_ERROR, "Array is bigger than zend report in '$symname'.");
-      goto fail;
     }
     $2[i++] = Z_STRVAL(*val);
   } ZEND_HASH_FOREACH_END();

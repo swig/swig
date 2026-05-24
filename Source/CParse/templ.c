@@ -73,7 +73,8 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   ParmList *p = Getattr(n, attribute);
   if (unexpanded_variadic_parm) {
-    Parm *variadic = ParmList_variadic_parm(p);
+    int variadic_pos = 0;
+    Parm *variadic = ParmList_find_variadic_parm(p, &variadic_pos);
     if (variadic) {
       SwigType *type = Getattr(variadic, "type");
       String *name = Getattr(variadic, "name");
@@ -89,8 +90,11 @@ static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpand
         Setattr(ep, "name", name ? NewStringf("%s%d", name, ++i) : 0);
         ep = nextSibling(ep);
       }
-      expanded = ParmList_replace_last(p, expanded);
-      Setattr(n, attribute, expanded);
+      /* Splice the expanded list into p in place of the variadic parm.  Function parameter
+       * lists can hold parms after a pack when those trailing parms come from C++20 abbreviated
+       * 'auto' (the trailing parms must be deducible at call time), so the splice must preserve
+       * everything after the variadic. */
+      Setattr(n, attribute, ParmList_replace_at(p, variadic_pos, expanded));
     }
   }
 }
@@ -159,6 +163,14 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(typelist, d);
     Append(patchlist, v);
     Append(cpatchlist, code);
+    /* C++20 trailing requires-clause subtree (attribute "constraint" on the cdecl).  Recurse so the inner
+       concept-id types and opaque expression text get the same T => int substitution as the cdecl's
+       other patched fields. */
+    {
+      Node *cs = Getattr(n, "constraint");
+      if (cs)
+        cparse_template_expand(templnode, cs, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+    }
 
     if (Getattr(n, "conversion_operator")) {
       /* conversion operator "name" and "sym:name" attributes are unusual as they contain c++ types, so treat as code for patching */
@@ -216,6 +228,13 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
         }
       }
     }
+    /* C++20 prefix requires-clause subtree (attribute "constraint" on the class node, set by
+       cpp_template_decl when the prefix requires-clause is on a class template head). */
+    {
+      Node *cs = Getattr(n, "constraint");
+      if (cs)
+        cparse_template_expand(templnode, cs, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+    }
     /* Patch children */
     {
       Node *cn = firstChild(n);
@@ -255,6 +274,12 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(typelist, Getattr(n, "decl"));
     expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
     expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    /* C++20 trailing requires-clause on the constructor. */
+    {
+      Node *cs = Getattr(n, "constraint");
+      if (cs)
+        cparse_template_expand(templnode, cs, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+    }
   } else if (Equal(nodeType, "destructor")) {
     /* We only need to patch the dtor of the template itself, not the destructors of any nested classes, so check that the parent of this node is the root
      * template node, with the special exception for %extend which adds its methods under an intermediate node. */
@@ -307,6 +332,52 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 
     if (Getattr(n, "namespace")) {
       /* Namespace link.   This is nasty.  Is other namespace defined? */
+    }
+  } else if (Equal(nodeType, "constraint")) {
+    /* C++20 constraint subtree.  For atom nodes, queue the kind specific inner strings for substitution;
+     * for and/or nodes, just recurse into the operand chain. */
+    Node *cn;
+    String *op = Getattr(n, "op");
+    if (op && Equal(op, "atom")) {
+      String *kind = Getattr(n, "kind");
+      if (kind) {
+        if (Equal(kind, "concept-id")) {
+          /* The "type" attribute is a SwigType encoded concept-id that includes any '<args>' suffix, so
+           * a single typelist entry covers both the concept's qualified name and its argument list. */
+          Append(typelist, Getattr(n, "type"));
+        } else if (Equal(kind, "expression")) {
+          Append(cpatchlist, Getattr(n, "value"));
+        }
+        /* parens / requires-expression / fold: structure lives in firstChild, picked up by the recursion below. */
+      }
+    }
+    cn = firstChild(n);
+    while (cn) {
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+      cn = nextSibling(cn);
+    }
+  } else if (Equal(nodeType, "requires-expression")) {
+    Node *cn;
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    cn = firstChild(n);
+    while (cn) {
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+      cn = nextSibling(cn);
+    }
+  } else if (Equal(nodeType, "requirement")) {
+    Node *cn;
+    String *kind = Getattr(n, "kind");
+    if (kind && Equal(kind, "type")) {
+      Append(typelist, Getattr(n, "type"));
+    } else {
+      /* simple, compound, nested: opaque expression text needs T => int
+       * via plain text replacement. */
+      Append(cpatchlist, Getattr(n, "value"));
+    }
+    cn = firstChild(n);
+    while (cn) {
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+      cn = nextSibling(cn);
     }
   } else {
     /* Look for obvious parameters */
@@ -443,22 +514,13 @@ static void splice_partial_slot(int index, SwigType *bound_type, ParmList **temp
       }
       last_new_parm = new_parm;
     }
+    new_parms = ParmList_join(new_parms, nextSibling(parm));
     if (index == 0) {
-      if (new_parms) {
-        set_nextSibling(last_new_parm, nextSibling(parm));
-        *templateparms_p = new_parms;
-      } else {
-        *templateparms_p = nextSibling(parm);
-      }
+      *templateparms_p = new_parms;
     } else {
       Parm *prev = ParmList_nth_parm(templateparms, index - 1);
       assert(prev);
-      if (new_parms) {
-        set_nextSibling(last_new_parm, nextSibling(parm));
-        set_nextSibling(prev, new_parms);
-      } else {
-        set_nextSibling(prev, nextSibling(parm));
-      }
+      set_nextSibling(prev, new_parms);
     }
     Delete(types);
   } else {
@@ -590,7 +652,7 @@ static void resolve_partial_arglists(List *c_inner, List *pp_inner, ParmList **t
  * Walk partialtype against concrete, pairing each $N substitution with the
  * corresponding sub-component of concrete and binding it into *templateparms_p.
  *
- * partialtype: type from a partial specialization where template-parameter
+ * partialtype: type from a partial specialization where template parameter
  *   names have been replaced by $N variables, eg "Pack<($1,v.$2)>".
  * concrete:    matching instantiated type, eg "Pack<(int,double)>".
  * templateparmsraw: unmodified partial-spec parm list, used only to decide
@@ -672,7 +734,31 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   typelist = NewList();   /* List of SwigType * types */
 
   templateargs = NewStringEmpty();
-  SwigType_add_template(templateargs, tparms);
+  /* Drop invented type template parameters introduced by C++20 abbreviated 'auto'
+   * parms from the emitted C++ template-argument list.  The invented parm is
+   * always appended after the explicit parms ([dcl.fct]/19), so a trailing count
+   * suffices.  Wrapper signature has concrete types in place of 'auto', so the
+   * C++ compiler deduces the invented type from the call - emitting it
+   * explicitly would either be redundant (no pack) or invalid (with a pack the
+   * trailing invented parm is unreachable behind the greedy pack). */
+  {
+    int trailing_invented = 0;
+    Parm *p;
+    for (p = templateparms; p; p = nextSibling(p)) {
+      if (GetFlag(p, "abbreviated_auto"))
+        ++trailing_invented;
+      else
+        trailing_invented = 0;
+    }
+    if (trailing_invented > 0) {
+      int emit_count = ParmList_len(tparms) - trailing_invented;
+      ParmList *emit_parms = CopyParmListMax(tparms, emit_count);
+      SwigType_add_template(templateargs, emit_parms);
+      Delete(emit_parms);
+    } else {
+      SwigType_add_template(templateargs, tparms);
+    }
+  }
 
   tname = Copy(Getattr(n, "name"));
   tbase = Swig_scopename_last(tname);
@@ -707,11 +793,22 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     Setattr(n, "templateparms", templateparms);
   }
 
-  /* Handle variadic parms for partially specialized templates */
+  /* Handle variadic parms.  The variadic may sit anywhere in the templateparms list -
+   * C++20 [dcl.fct]/19 appends invented type template parameters (from abbreviated
+   * 'auto' parms) after the explicit list, which can leave the pack in the middle.
+   * Slice out exactly the user args the pack absorbs so downstream consumers
+   * (expand_variadic_parms, SwigType_variadic_replace) iterate to NULL without
+   * accidentally walking into trailing invented entries. */
   templateparmsraw = Getattr(n, "templateparmsraw");
-  unexpanded_variadic_parm = ParmList_variadic_parm(templateparmsraw);
-  if (unexpanded_variadic_parm)
-    expanded_variadic_parms = ParmList_nth_parm(templateparms, ParmList_len(templateparmsraw) - 1);
+  {
+    int variadic_pos = 0;
+    unexpanded_variadic_parm = ParmList_find_variadic_parm(templateparmsraw, &variadic_pos);
+    if (unexpanded_variadic_parm) {
+      int absorbed = ParmList_len(templateparms) - ParmList_len(templateparmsraw) + 1;
+      Parm *slice = ParmList_nth_parm(templateparms, variadic_pos);
+      expanded_variadic_parms = CopyParmListMax(slice, absorbed);
+    }
+  }
 
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
      Printf(stdout,"rname = '%s'\n", rname);
@@ -850,6 +947,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tbase);
   Delete(tname);
   Delete(templateargs);
+  Delete(expanded_variadic_parms);
 
   return 0;
 }
@@ -1533,7 +1631,11 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
     assert(Equal(nodeType, "template"));
     String *templatetype = Getattr(n, "templatetype");
 
-    if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
+    if (Equal(templatetype, "concept")) {
+      Swig_error(
+        cparse_file, cparse_line, "%%template not allowed on concept '%s' - concepts cannot be instantiated like class or function templates.\n", name);
+      return 0;
+    } else if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
       Node *primary = Getattr(n, "primarytemplate");
       Parm *tparmsfound = Getattr(primary ? primary : n, "templateparms");
       int specialized = !tparmsfound; /* fully specialized (an explicit specialization) */
@@ -1574,7 +1676,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       while (n) {
         if (Strcmp(nodeType(n), "template") == 0) {
           Parm *tparmsfound = Getattr(n, "templateparms");
-          if (!ParmList_variadic_parm(tparmsfound)) {
+          if (!ParmList_find_variadic_parm(tparmsfound, NULL)) {
             if (ParmList_len(instantiated_parms) == ParmList_len(tparmsfound)) {
               /* successful match */
               if (template_debug) {
@@ -1594,13 +1696,16 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
         n = Getattr(n, "sym:nextSibling");
       }
 
-      /* Only consider variadic templates if there are no non-variadic template matches */
+      /* Only consider variadic templates if there are no non-variadic template matches.
+       * The variadic parm may sit anywhere in the templateparms list - C++20 [dcl.fct]/19
+       * appends invented type template parameters (from abbreviated 'auto' parameters)
+       * after the explicit list, which can leave the pack in the middle. */
       if (!match) {
         n = firstn;
         while (n) {
           if (Strcmp(nodeType(n), "template") == 0) {
             Parm *tparmsfound = Getattr(n, "templateparms");
-            if (ParmList_variadic_parm(tparmsfound)) {
+            if (ParmList_find_variadic_parm(tparmsfound, NULL)) {
               if (ParmList_len(instantiated_parms) >= ParmList_len(tparmsfound) - 1) {
                 /* successful variadic match */
                 if (template_debug) {
@@ -1641,20 +1746,65 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
  * Non-type template parameters have no type information in expanded_templateparms.
  * Grab them from templateparms.
  *
+ * When templateparms contains a variadic pack that is not the last element
+ * (C++20 abbreviated function templates with an explicit pack and an 'auto' parm
+ * place the invented type template parameter after the pack per [dcl.fct]/19),
+ * the pairing absorbs the middle entries of expanded_templateparms with the pack
+ * and pairs the trailing entries with the templateparms after the pack.
+ *
  * Return 1 if there are variadic template parameters, 0 otherwise.
  * ----------------------------------------------------------------------------- */
 
 static int merge_parameters(ParmList *expanded_templateparms, ParmList *templateparms) {
+  int variadic_pos = 0;
+  Parm *variadic = ParmList_find_variadic_parm(templateparms, &variadic_pos);
   Parm *p = expanded_templateparms;
   Parm *tp = templateparms;
-  while (p && tp) {
-    Setattr(p, "name", Getattr(tp, "name"));
-    if (!Getattr(p, "type"))
-      Setattr(p, "type", Getattr(tp, "type"));
-    p = nextSibling(p);
-    tp = nextSibling(tp);
+  if (!variadic) {
+    while (p && tp) {
+      Setattr(p, "name", Getattr(tp, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(tp, "type"));
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+    }
+    return 0;
   }
-  return ParmList_variadic_parm(templateparms) ? 1 : 0;
+  {
+    int i = 0;
+    int tp_len = ParmList_len(templateparms);
+    int p_len = ParmList_len(expanded_templateparms);
+    int absorbed = p_len - tp_len + 1;          /* variadic absorbs this many user args */
+    int absorbed_end = variadic_pos + absorbed; /* exclusive */
+    /* Leading non-variadics pair one to one. */
+    while (p && i < variadic_pos) {
+      Setattr(p, "name", Getattr(tp, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(tp, "type"));
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+      ++i;
+    }
+    /* Pack absorbs entries [variadic_pos, variadic_pos + absorbed). */
+    while (p && i < absorbed_end) {
+      Setattr(p, "name", Getattr(variadic, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(variadic, "type"));
+      p = nextSibling(p);
+      ++i;
+    }
+    /* Trailing non-variadics (e.g. invented auto parms) pair one to one with
+     * the templateparms entries after the pack. */
+    tp = nextSibling(variadic);
+    while (p && tp) {
+      Setattr(p, "name", Getattr(tp, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(tp, "type"));
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+    }
+  }
+  return 1;
 }
 
 /* -----------------------------------------------------------------------------

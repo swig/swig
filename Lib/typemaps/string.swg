@@ -26,9 +26,24 @@ SWIG_strnlen(const char* s, size_t maxlen)
 }
 }
 
+%fragment("SWIG_NewCopyCharArray","header") {
+SWIGINTERNINLINE char *SWIG_NewCopyCharArray(const char *cptr, size_t size)
+{
+  char *ret = NULL;
+  if (size > 0 && cptr != NULL) {
+    ret = %new_array(size,char);
+    if (ret != NULL) {
+      memcpy(ret, cptr, size * sizeof(char));
+    }
+  }
+  return ret;
+}
+}
+
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(STRING), %checkcode(CHAR),
 		 SWIGWARN_TYPEMAP_CHARLEAK_MSG,
 		 char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize,
 		 strlen, SWIG_strnlen,
+		 SWIG_NewCopyCharArray,
 		"<limits.h>", CHAR_MIN, CHAR_MAX)

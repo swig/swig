@@ -1172,7 +1172,6 @@ Node *Swig_directormap(Node *module, String *type) {
 
 int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String *classname, String *none_comparison, String *director_ctor, int cplus,
                                int flags, String *directorname) {
-  Parm *p;
   ParmList *directorparms;
   SwigType *type;
   int use_director = Swig_directorclass(n);
@@ -1180,17 +1179,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
   /* Prepend the list of prefix_args (if any) */
   Parm *prefix_args = Getattr(n, "director:prefix_args");
   if (prefix_args != NIL) {
-    Parm *p2, *p3;
-
-    directorparms = CopyParmList(prefix_args);
-    for (p = directorparms; nextSibling(p); p = nextSibling(p))
-      ;
-    for (p2 = parms; p2; p2 = nextSibling(p2)) {
-      p3 = CopyParm(p2);
-      set_nextSibling(p, p3);
-      Delete(p3);
-      p = p3;
-    }
+    directorparms = ParmList_join(CopyParmList(prefix_args), CopyParmList(parms));
   } else
     directorparms = parms;
 

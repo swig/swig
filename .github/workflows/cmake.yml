@@ -3,9 +3,11 @@ name: cmake
 on:
   push:
     paths-ignore:
+      - '.agents/**'
       - '.github/workflows/linux.yml'
       - '.github/workflows/macos.yml'
       - '.github/workflows/windows.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
@@ -13,9 +15,11 @@ on:
   pull_request:
     branches: master
     paths-ignore:
+      - '.agents/**'
       - '.github/workflows/linux.yml'
       - '.github/workflows/macos.yml'
       - '.github/workflows/windows.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
@@ -111,7 +115,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-2025, windows-2025-vs2026]
+        os: [windows-11-arm, windows-2022, windows-2025-vs2026]
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -128,19 +132,34 @@ jobs:
     # The NuGet PCRE2 package is build with '/MT' to statically links the the UCRT library.
     # See explanation on linking option:
     # https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features
-    - name: Install NuGet Packages
+    # We use vcpkg with pcre2 on arm64 only. NuGet is much faster, but lack libraries for arm64.
+    - name: Install NuGet and VCPkg Packages
       shell: powershell
       run: |
-          nuget install PCRE2 -OutputDirectory C:\Tools
           nuget install Bison -OutputDirectory C:\Tools
+          switch ( $env:RUNNER_ARCH ) {
+          'X64' {
+             nuget install PCRE2 -OutputDirectory C:\Tools
+          }
+          'ARM64' {
+             $triplet = 'arm64-windows-static'
+             vcpkg install pcre2:$triplet --triplet $triplet
+          }
+          }
 
     # https://cygwin.com/cygwin-ug-net/cygpath.html
     - name: Prepare Environment
       shell: bash
       run: |
-          cat << EOF >> $GITHUB_ENV
-          PCRE2_PATH=$(cygpath -w "$(ls -d /C/Tools/PCRE2*)")
-          EOF
+          case "$RUNNER_ARCH" in
+          X64)
+            PCRE2_PATH="$(cygpath -w "$(ls -d /C/Tools/PCRE2*)")"
+            ;;
+          ARM64)
+            PCRE2_PATH="$VCPKG_INSTALLATION_ROOT\installed\arm64-windows-static"
+            ;;
+          esac
+          echo "PCRE2_PATH=$PCRE2_PATH" >> $GITHUB_ENV
           BISON_PATH=$(cygpath -w "$(ls -d /C/Tools/Bison*)/bin")
           echo "$BISON_PATH" >> $GITHUB_PATH
 
@@ -152,7 +171,7 @@ jobs:
       shell: powershell
       run: |
           cmake --version
-          cmake -S . -B . -A x64 `
+          cmake -S . -B . -A $env:RUNNER_ARCH `
           -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
           -DCMAKE_C_FLAGS="/W3 /EHsc" `
           -DCMAKE_CXX_FLAGS="/W3 /EHsc" `

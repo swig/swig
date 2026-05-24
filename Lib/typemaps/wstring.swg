@@ -27,10 +27,25 @@ SWIG_wcsnlen(const wchar_t* s, size_t maxlen)
 }
 }
 
+%fragment("SWIG_NewCopyWCharArray","header") {
+SWIGINTERNINLINE wchar_t *SWIG_NewCopyWCharArray(const wchar_t *cptr, size_t size)
+{
+  wchar_t *ret = NULL;
+  if (size > 0 && cptr != NULL) {
+    ret = %new_array(size,wchar_t);
+    if (ret != NULL) {
+      memcpy(ret, cptr, size * sizeof(wchar_t));
+    }
+  }
+  return ret;
+}
+}
+
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(UNISTRING), %checkcode(UNICHAR),
 		 SWIGWARN_TYPEMAP_WCHARLEAK_MSG,
 		 wchar_t, WChar, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize,
 		 wcslen, SWIG_wcsnlen,
+		 SWIG_NewCopyWCharArray,
 		"<wchar.h>", WCHAR_MIN, WCHAR_MAX)
 

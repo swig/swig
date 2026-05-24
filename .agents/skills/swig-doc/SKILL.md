@@ -1,6 +1,6 @@
 ---
 name: swig-doc
-description: 'Author and edit chapters of the SWIG Users Manual under Doc/Manual: chapter conventions, manual heading anchors, the four content `<div>` styles (code / targetlang / shell / diagram), the auto-generated section TOC, the `make` targets that renumber headings and validate HTML, and the rules for cross-document anchored links.'
+description: 'Author and edit chapters of the SWIG Users Manual under Doc/Manual: chapter conventions, manual heading anchors, the four content `<div>` styles (code / targetlang / shell / diagram), the auto generated section TOC, the `make` targets that renumber headings and validate HTML, and the rules for cross document anchored links.'
 argument-hint: 'Optionally specify the chapter file (e.g. CPlusPlus20.html) to edit'
 ---
 
@@ -11,12 +11,12 @@ argument-hint: 'Optionally specify the chapter file (e.g. CPlusPlus20.html) to e
 - Documenting a new feature, language target, or compiler flag
 - Fixing a heading, link, or example block in the existing manual
 
-The reference manual is hand-written HTML4 Transitional. There is no Markdown / Sphinx / Doxygen layer for the user manual — edit the `.html` files directly.
+The reference manual is hand written HTML4 Transitional. There is no Markdown / Sphinx / Doxygen layer for the user manual — edit the `.html` files directly.
 
 ## Source of truth
-- `Doc/Manual/chapters` — newline-separated list of chapter filenames included in the rendered single-page doc.
-- `Doc/Manual/index.html`, `Doc/Manual/Sections.html` — top-level navigation, hand-maintained.
-- `Doc/Manual/Contents.html` — **generated** by `maketoc.py`; never hand-edit, never commit unrelated diffs.
+- `Doc/Manual/chapters` — newline separated list of chapter filenames included in the rendered single page doc.
+- `Doc/Manual/index.html`, `Doc/Manual/Sections.html` — top level navigation, hand maintained.
+- `Doc/Manual/Contents.html` — **generated** by `maketoc.py`; never hand edit, never commit unrelated diffs.
 - `Doc/Manual/style.css` — sole authority on the colour/border styling described below.
 
 ## The default `make` target
@@ -30,7 +30,7 @@ make check      # tab detection (tabs fail the build) + HTML tidy on every chapt
 make clean-baks # delete all *.bak files left by maketoc
 ```
 
-For ordinary authoring, `make maketoc check` is what you run after every edit. `make generate` is only needed for the single-page HTML and PDF artefacts and pulls in `htmldoc` and a patched-qt build of `wkhtmltopdf` — usually skip it unless explicitly producing the release docs.
+For ordinary authoring, `make maketoc check` is what you run after every edit. `make generate` is only needed for the single page HTML and PDF artefacts and pulls in `htmldoc` and a patched-qt build of `wkhtmltopdf` — usually skip it unless explicitly producing the release docs.
 
 What `maketoc` does, per chapter (via `makechap.py`):
 1. Numbers `<H1>`–`<H5>` from the chapter's position in `chapters` (e.g. `10.2.1 ...`).
@@ -40,14 +40,14 @@ What `maketoc` does, per chapter (via `makechap.py`):
 
 Side effects to be aware of:
 - Tabs anywhere in a chapter break `make check` (and silently break PDF rendering). Use spaces only.
-- HTML tidy runs in error-only mode; tidy errors must be fixed before the build is clean. CCache.html is generated from yodl and is excluded.
-- `Contents.html` is rebuilt on every `maketoc` run; it should only ever appear in a commit when chapter-numbering or chapter-list changes are intended.
+- HTML tidy runs in error only mode; tidy errors must be fixed before the build is clean. CCache.html is generated from yodl and is excluded.
+- `Contents.html` is rebuilt on every `maketoc` run; it should only ever appear in a commit when chapter numbering or chapter list changes are intended.
 
 ## Heading anchors — always name them by hand
 
-The auto-generator falls back to anchors of the form `<filebase>_nn<index>` (e.g. `CPlusPlus20_nn7`). **Do not rely on these** — they shift whenever a heading is added or removed above them, silently breaking every existing link.
+The auto generator falls back to anchors of the form `<filebase>_nn<index>` (e.g. `CPlusPlus20_nn7`). **Do not rely on these** — they shift whenever a heading is added or removed above them, silently breaking every existing link.
 
-Always author headings with a meaningful, stable, lower-snake-case anchor derived from the heading title and prefixed with the chapter base name:
+Always author headings with a meaningful, stable, lower snake case anchor derived from the heading title and prefixed with the chapter base name:
 
 ```html
 <H1><a name="CPlusPlus20">10 SWIG and C++20</a></H1>
@@ -63,10 +63,11 @@ Rules:
 
 If you must rename an anchor, grep the entire `Doc/` tree for the old name and update every reference in the same commit — there is no automated rewriter.
 
-## Cross-references and links
+## Cross references and links
 
-- All inter-chapter links must be anchored: `href="CPlusPlus20.html#CPlusPlus20_spaceship_operator"`. A bare `href="CPlusPlus20.html"` works in the per-chapter HTML but breaks the merged PDF (`linkchecker3` flags this).
-- Same-chapter links use just the fragment: `href="#CPlusPlus20_introduction"`.
+- **When prose mentions another section, make it an explicit anchored link — never a vague reference.** Phrases like "see the manual section on lambda templates", "the C++14 chapter section 'Return type deduction'", or "as documented elsewhere" force the reader to grep for the target. Replace them with `<a href="...#anchor">visible text</a>` pointing at the actual heading. If the target doesn't have a stable anchor yet, add one (see "Heading anchors" above) and link to it in the same commit.
+- All inter chapter links must be anchored: `href="CPlusPlus20.html#CPlusPlus20_spaceship_operator"`. A bare `href="CPlusPlus20.html"` works in the per chapter HTML but breaks the merged PDF (`linkchecker3` flags this).
+- Same chapter links use just the fragment: `href="#CPlusPlus20_introduction"`.
 - External links use full `https://…` URLs.
 
 ## Content `<div>` classes
@@ -76,12 +77,12 @@ Pick the class by the language of the snippet, not by what it is *about*:
 | class | use for | visual |
 |---|---|---|
 | `code` | C / C++ source — including SWIG `.i` interface input | aqua background, monospace, framed |
-| `targetlang` | code in the wrapped-language target (Python, Java, Ruby, C#, …) | light-green background, monospace, framed |
+| `targetlang` | code in the wrapped language target (Python, Java, Ruby, C#, …) | light green background, monospace, framed |
 | `shell` | shell command lines, `swig` invocations, build output | grey background, monospace, framed |
-| `diagram` | ASCII diagrams, parse-tree dumps, file-layout sketches | peach background, monospace, framed |
+| `diagram` | ASCII diagrams, parse tree dumps, file layout sketches | peach background, monospace, framed |
 | `indent` | plain indented prose / list, no border or background | margin only |
 | `table` | bordered HTML tables | — |
-| `sectiontoc` | per-chapter TOC — **generated** by `maketoc`, never hand-written | dotted border |
+| `sectiontoc` | per chapter TOC — **generated** by `maketoc`, never hand written | dotted border |
 
 Compound forms in use across the manual: `code shell`, `code targetlang`, `code diagram`, `indent code`. These combine the framing of the first class with the styling of the second; use sparingly and only where the existing chapters already do.
 
@@ -127,7 +128,7 @@ For "first version to..." or "added in SWIG-X.Y.Z" wording:
 git tag --sort=-v:refname | head -5
 ```
 
-gives the actually-released versions. Cross-check `CHANGES` / `CHANGES.current` for the landing point of the feature. Match the wording style of nearby compatibility notes — the canonical patterns in `Doc/Manual/Library.html` are short factual statements like *"Support for X was first added in SWIG-A.B.C. Support for Y was added in SWIG-D.E.F."*. Don't editorialise about what older versions did unless verified.
+gives the actually released versions. Cross check `CHANGES` / `CHANGES.current` for the landing point of the feature. Match the wording style of nearby compatibility notes — the canonical patterns in `Doc/Manual/Library.html` are short factual statements like *"Support for X was first added in SWIG-A.B.C. Support for Y was added in SWIG-D.E.F."*. Don't editorialise about what older versions did unless verified.
 
 Standard format:
 
@@ -139,7 +140,7 @@ Standard format:
 
 ## Validating example code
 
-Doc-comment examples (in `Lib/*.i` files and the manual) should be runnable. Quick validation loop:
+Doc comment examples (in `Lib/*.i` files and the manual) should be runnable. Quick validation loop:
 
 ```bash
 mkdir -p /tmp/check && cd /tmp/check
@@ -153,7 +154,7 @@ Before claiming the example works, also check whether an existing test under `Ex
 
 ## Adding a new chapter
 
-1. Create `Doc/Manual/<NewChapter>.html` from an existing chapter as the template — at minimum: HTML4-Transitional doctype, `<H1><a name="NewChapter">New Chapter</a></H1>`, an empty `<!-- INDEX -->` / `<!-- INDEX -->` pair, and content.
+1. Create `Doc/Manual/<NewChapter>.html` from an existing chapter as the template — at minimum: HTML4 Transitional doctype, `<H1><a name="NewChapter">New Chapter</a></H1>`, an empty `<!-- INDEX -->` / `<!-- INDEX -->` pair, and content.
 2. Append the filename to `Doc/Manual/chapters` in the position where the new chapter should be numbered. Order in this file determines the chapter number.
 3. Add the chapter to `Doc/Manual/index.html` and `Doc/Manual/Sections.html` so it appears in the navigation.
 4. Run `make maketoc check` and inspect `Contents.html` and the new chapter's `*.bak` to confirm only the expected lines changed.
@@ -162,7 +163,7 @@ Before claiming the example works, also check whether an existing test under `Ex
 
 - [ ] Manual heading anchors used everywhere (no `_nnN` left in your diff).
 - [ ] Anchors prefixed with the chapter base name (`<filebase>_topic`).
-- [ ] Cross-document links include `#anchor`, not bare `Foo.html`.
+- [ ] Cross document links include `#anchor`, not bare `Foo.html`.
 - [ ] Snippets wrapped in the right `<div class="...">` — `code` for C/C++/SWIG input, `targetlang` for the wrapped language, `shell` for command lines, `diagram` for ASCII art.
 - [ ] Angle brackets and `&` in `<pre>` blocks escaped as `&lt;`, `&gt;`, `&amp;`.
 - [ ] ASCII characters preferred in prose (no `&mdash;` etc.).
@@ -170,13 +171,13 @@ Before claiming the example works, also check whether an existing test under `Ex
 - [ ] No tabs in the file (spaces only).
 - [ ] `make maketoc check` clean.
 - [ ] `*.bak` files removed (`make clean-baks`) before staging.
-- [ ] `Contents.html` only changed if you intended a numbering or chapter-list change.
+- [ ] `Contents.html` only changed if you intended a numbering or chapter list change.
 
 ## Authoritative references
 
-- `Doc/Manual/Makefile` — full target list, build prerequisites, link-checker variants
-- `Doc/Manual/makechap.py` — heading regex, `_nnN` auto-anchor logic
+- `Doc/Manual/Makefile` — full target list, build prerequisites, link checker variants
+- `Doc/Manual/makechap.py` — heading regex, `_nnN` auto anchor logic
 - `Doc/Manual/maketoc.py` — Contents.html regeneration
-- `Doc/Manual/fixstyle.py` — stylesheet swap during single-page generation
+- `Doc/Manual/fixstyle.py` — stylesheet swap during single page generation
 - `Doc/Manual/style.css` — ground truth for the `<div>` classes above
 - `Doc/Manual/chapters` — chapter ordering

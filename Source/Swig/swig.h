@@ -163,6 +163,10 @@ extern int SwigType_ismutable(const SwigType *t);
 extern int SwigType_isvarargs(const SwigType *t);
 extern int SwigType_istemplate(const SwigType *t);
 extern int SwigType_isenum(const SwigType *t);
+extern int SwigType_isauto(const SwigType *t);
+extern int SwigType_isconcept(const SwigType *t);
+extern String *SwigType_concept_name(const SwigType *t);
+extern SwigType *SwigType_replace_auto_base(const SwigType *t, const String *new_base);
 extern int SwigType_check_decl(const SwigType *t, const_String_or_char_ptr decl);
 extern SwigType *SwigType_strip_qualifiers(const SwigType *t);
 extern SwigType *SwigType_strip_single_qualifier(const SwigType *t);
@@ -438,6 +442,15 @@ extern Hash *Swig_extend_hash(void);
 extern void Swig_extend_merge(Node *cls, Node *am);
 extern void Swig_extend_append_previous(Node *cls, Node *am);
 extern void Swig_extend_unused_check(void);
+
+/* --- C++20 constraint expression support --- */
+
+extern Node *Constraint_new_atom(const_String_or_char_ptr kind);
+extern Node *Constraint_new_op(const_String_or_char_ptr op);
+extern Node *Constraint_new_requires_expression(void);
+extern Node *Constraint_new_requirement(const_String_or_char_ptr kind);
+extern Node *Constraint_combine(const_String_or_char_ptr op, Node *lhs, Node *rhs);
+extern String *Constraint_str(Node *n);
 
 /* hacks defined in C++ ! */
 extern int Swig_director_mode(void);

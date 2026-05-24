@@ -1,0 +1,1 @@
+cpp_template_concept.i:10: Error: %template not allowed on concept 'Numeric' - concepts cannot be instantiated like class or function templates.

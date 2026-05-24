@@ -7,6 +7,235 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-19: jmarrec
+            #3415 Fix segmentation fault when a class declares a public
+            'using Base::method;' that names a base-class member template with
+            no %template instantiations and also declares a protected concrete
+            override of the same name.
+
+2026-05-16: erezgeva
+            [Lua, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] #3409 Add memory allocation
+            failure protection to the argcargv typemaps and to the string duplication paths
+            in pystrings.swg, perlstrings.swg, rubystrings.swg and rfragments.swg.
+
+            *Potentially incompatible change*: the `%new_copy_array` macro
+            has been removed. User interface files calling `%new_copy_array(ptr, size, T)`
+            will be passed through to the C/C++ compiler unchanged and fail with
+            an error such as:
+
+                error: expected expression before '%' token
+
+            Replace such calls with an explicit allocate and copy that checks
+            for allocation failure, e.g.
+
+                T *p = %new_array(size, T);
+                if (p) memcpy(p, ptr, size * sizeof(T));
+
+            *Potentially incompatible change*: the `%typemaps_string` macro in
+            `Lib/typemaps/strings.swg` now takes an additional argument naming a
+            `SWIG_NewCopyCharArray` style fragment, and the related
+            `%typemaps_string_alloc` macro has been removed (its allocator
+            customisation is now expressed by passing the new argument to
+            `%typemaps_string` directly). Existing callers of
+            `%typemaps_string` with the old signature will fail with:
+
+                Error: Macro '%typemaps_string' expects 13 arguments
+
+            Existing callers of `%typemaps_string_alloc` will fail with:
+
+                Error: Unknown directive '%typemaps_string_alloc'.
+
+            Update such calls to pass the additional fragment, modelled on
+            `SWIG_NewCopyWCharArray` in `Lib/typemaps/wstring.swg`.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-15: blowekamp
+            [R] #3407 Fix compilation with R 4.6.0 which removed the non-API macro
+            SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.
+            Use Rf_asS4, SET_STRING_ELT and STRING_ELT instead. These replacement
+            APIs have been available since R 2.x so no version guards are required.
+
+2026-05-12: wsfulton
+            C++20: %template can now instantiate abbreviated function templates
+            that mix 'auto' parameters with a variadic explicit template pack,
+            e.g.
+
+              template<typename... Ts>
+              std::string f_mix(auto x, Ts... ys);
+              %template(f_mix_isd) f_mix<int, std::string, double>;
+
+            Per the C++20 standard ([dcl.fct]/19) the invented type template-
+            parameter for each 'auto' parm is appended after the explicit list,
+            so the %template argument list is bound positionally: leading
+            non-variadic parameters first, the variadic pack absorbs the middle
+            args, then one trailing arg per 'auto' in declaration order.  Above,
+            Ts={int, std::string} (absorbed by the pack) and the trailing
+            'double' binds to the invented parm for 'x', giving the effective
+            wrapper signature as:
+
+              f_mix(double x, int y1, std::string y2)
+
+2026-05-12: wsfulton
+            C++20: parse and support decorated 'auto' parameters in abbreviated
+            function templates:
+
+              int h(auto& x);                  // reference
+              int i(auto* x);                  // pointer
+              int j(auto&& x);                 // forwarding reference
+              int k(const auto x);             // const by value
+              int l(const auto& x);            // const reference
+              int m(Numeric auto& x);          // constrained reference
+              int n(const Numeric auto& x);    // const constrained reference
+
+2026-05-12: wsfulton
+            C++20: fix segmentation fault when mixing abbreviated function template
+            'auto' parameters with an explicit template parameter list, e.g.
+
+              template<typename T>
+              T mix(T x, auto y) { return T(x + y); }
+              %template(mix_id) mix<int, double>;
+
+            Each 'auto' parameter introduces an invented type template parameter
+            appended to the explicit template parameter list.  When using
+            %template, supply arguments for the explicit parameters first, then
+            one for each 'auto' parameter in declaration order.
+
+2026-05-11: wsfulton
+            C++20: warning 332 (unresolved type-constraint in a templated
+            parameter list) is no longer emitted. The remap to 'typename T' is
+            still applied silently, so wrappers continue to compile when the
+            concept definition is visible only to the C++ compiler.
+
+2026-05-10: wsfulton
+            C++20: template parameters with a type-constraint now accept a
+            template-id concept-id as the constraint, the form most often seen with
+            STL concepts like 'std::convertible_to', 'std::same_as', 'std::derived_from'
+            or 'std::predicate'. Examples:
+
+              template<std::convertible_to<int> T> int to_int(T x);
+              template<typename T, typename U> concept Pair = std::convertible_to<T, U>;
+              template<Pair<int> T>                int first_int(T x);
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates with a constrained auto return
+            type, including the trailing return form:
+
+              Numeric auto half(int x) -> int { return x / 2; }
+              Numeric auto cube_constrained(Sized auto x) -> int { return x*x*x; }
+              %template(cube_constrained_int) cube_constrained<int>;
+
+            When an explicit (non-auto) trailing return type is provided the function
+            wraps normally (the trailing return is the wrapped type); without one, the
+            function is ignored with a warning since SWIG cannot deduce the return type,
+            matching plain 'auto fn(...)' behaviour.  As a side fix, plain 'auto
+            fn(Concept auto x) -> Type' now correctly introduces an invented type template
+            parameter for the auto parameter so '%template' instantiates it.
+
+2026-05-09: wsfulton
+            C++20: parse and support type-constraints on template parameters.
+            'template<Numeric T>' is now accepted as the standard shorthand for
+            'template<typename T> requires Numeric<T>', as per the C++20 standard. This includes
+            ::-qualified concept-ids, variadic packs, default arguments and class templates.
+
+              template<typename T>
+              concept Numeric = std::integral<T> || std::floating_point<T>;
+
+              template<Numeric T> T cube(T x) { return x * x * x; }
+              %template(cube_int) cube<int>;
+
+            If the type-constraint identifier has not been parsed by SWIG, the parameter
+            is silently remapped to 'typename T'; the generated wrapper compiles when
+            the concept is visible to the C++ compiler.
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates with constrained auto parameters.
+            Each auto parameter with a type-constraint (e.g. 'Numeric auto') introduces
+            an invented type template parameter carrying the type-constraint as a
+            captured constraint.
+
+              int twice_numeric(Numeric auto x) { return x + x; }
+              %template(twice_numeric_int) twice_numeric<int>;
+
+2026-05-09: wsfulton
+            C++14: parse generic lambdas - lambdas with one or more 'auto' parameters.
+            Like non-templated lambdas, generic lambdas are not wrapped, but they no
+            longer cause a syntax error when SWIG parses a header that contains them.
+
+              auto twice = [](auto x) { return x + x; };
+              auto add = [](auto a, auto b) { return a + b; };
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates - ordinary functions with one or
+            more 'auto' parameters. C++20 treats the function as a function template with
+            invented type template parameters for each auto parameter. Abbreviated
+            function templates can now be wrapped with %template, just like a regular
+            templated function. Note that an explicit (non-auto) return type is required.
+            The return type is not included in the %template instantiation and SWIG
+            remains unable to deduce auto return types.
+
+              double scale(auto x, auto factor) { return x * factor; }
+              %template(scale_id) scale<int, double>;
+
+2026-05-09: wsfulton
+            #3413 C++20: accept prefix requires-clauses on templated lambdas, and trailing
+            requires-clauses placed after the lambda's return type.
+
+              auto prefix = []<typename T> requires Numeric<T> (T x) { return x + x; };
+
+2026-05-07: wsfulton
+            #3413 %template applied to a C++20 concept now reports an error instead of
+            silently producing a malformed wrapper.
+
+2026-05-05: wsfulton
+            #3413 C++20: parse a requires-expression as a primary in expression position,
+            not just inside a requires-clause.  This allows a namespace scope variable
+            template to be initialised from a requires-expression.
+
+              template<typename T>
+              constexpr bool Addable = requires (T t) { t + t; };
+
+              %template(addable_int) Addable<int>;
+
+2026-05-05: wsfulton
+            Document existing coverage for C++14 variable templates which requires a
+            %template instantiation of the variable template, resulting in a read only
+            variable wrapper.
+
+              template<typename T>
+              constexpr int bits_in = sizeof(T) * 8;
+
+              %template(bits_in_char) bits_in<char>;
+
+2026-05-04: wsfulton
+            #3413 Basic support for C++20 concept declarations and requires-clauses on
+            function templates, in both the trailing position and the prefix position
+            (between the template parameter list and the declarator).  Both constructs are silently
+            consumed: a concept declaration produces no parse tree node, and a constrained
+            template wraps as if it were unconstrained.
+
+              template<typename T>
+              concept Numeric = std::integral<T> || std::floating_point<T>;
+
+              template<typename T>
+              T cube(T x) requires Numeric<T> { return x * x * x; }
+
+              template<typename T>
+              requires Numeric<T>
+              T quad(T x) { return x * x * x * x; }
+
+              template<typename T>
+              concept Summable = requires (T t) { t + t; };
+              template<typename T>
+              T sum_pair(T a, T b) requires Summable<T> { return a + b; }
+
+            Compound constraints containing trailing return type constraints also work:
+
+              template<typename T>
+              concept AddableSame = requires(T a, T b) {
+                { a + b } -> std::same_as<T>;
+              };
+
 2026-05-03: wsfulton
             [R] Fix function pointer wrappers involving move-only types.
 
@@ -86,6 +315,12 @@ Version 4.5.0 (in progress)
 	    Will now generate funky_void() where previously there there was no wrapper, just
 	    a warning:
 		Warning 503: Can't wrap 'funky< int >_void' unless renamed to a valid identifier.
+
+2026-04-17: jwuttke
+            #3403 Fix -doxygen: @file block bleeding into the first class
+            docstring. Single-line //! (or ///) comments forming a file-level
+            header (starting with @file) are now correctly discarded instead of
+            being concatenated into the next declaration's docstring.
 
 2026-03-26: Nerixyz
             [Python] #3389 Add missing C annotations and PEP 484 annotations to constants.
