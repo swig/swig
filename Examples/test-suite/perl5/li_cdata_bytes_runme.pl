@@ -1,6 +1,10 @@
 use strict;
 use warnings;
 
+use Test::More tests => 4;
+require_ok('li_cdata_bytes');
+BEGIN { use_ok('li_cdata_bytes') }
+
 sub test
 {
   my $m = li_cdata_bytes::predefStr();
@@ -32,9 +36,4 @@ sub test
   is(li_cdata_bytes::verifyBytes($m2), 0, 'verifyBytes');
   li_cdata_bytes::free($m2);
 }
-eval <<"END_TXT";
-use Test::More tests => 4;
-require_ok('li_cdata_bytes');
-BEGIN { use_ok('li_cdata_bytes') }
 test;
-END_TXT
