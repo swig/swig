@@ -242,6 +242,10 @@ check-%-examples : check-%-prepare
 %.actionexample:
 	@$(MAKE) -C Examples Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
+	@echo "PWD=$$(pwd)"
+	@echo "Target dir: Examples/$(LANGUAGE)/$*"
+	@find Examples/$(LANGUAGE)/$* -maxdepth 1 -type f | sort
+	@git ls-files Examples/$(LANGUAGE)/$* | sort
 	@$(MAKE) -C Examples/$(LANGUAGE)/$* $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)
 
 # Checks testcases in the test-suite excluding those which are known to be broken
