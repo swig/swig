@@ -280,22 +280,23 @@ jobs:
           ./swig -version && ./swig -pcreversion
 
     - name: Test
-  working-directory: build/build
-  run: |
-      set -x
+        working-directory: build/build
+        run: |
+        set -x
 
-      if test -z "$SWIGLANG"; then
-        make $SWIGJOBS check-ccache
-        make $SWIGJOBS check-errors-test-suite
-      else
-        cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
-        cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
-        cxxflags+=" -I$BOOST_INC"
-        make check-$SWIGLANG-version
-        make check-$SWIGLANG-enabled
-        make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-        make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-      fi
+        if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-ccache
+            make $SWIGJOBS check-errors-test-suite
+        else
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
+            cxxflags+=" -I$BOOST_INC"
+            make check-$SWIGLANG-version
+            make check-$SWIGLANG-enabled
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+        fi
+      
     - name: Install
       working-directory: build/build
       run: |
