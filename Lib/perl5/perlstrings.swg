@@ -6,6 +6,7 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 {
+  int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
   if (SvMAGICAL(obj)) {
      SV *tmp = sv_newmortal();
      SvSetSV(tmp, obj);
@@ -13,8 +14,8 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
   }
   if (SvPOK(obj)) {
     STRLEN len = 0;
-    char *cstr = SvPV(obj, len); 
-    size_t size = len + 1;
+    char *cstr = SvPV(obj, len);
+    size_t size = is_binary ? len : len + 1;
     if (cptr) {
       if (alloc) {
 	if (*alloc == SWIG_NEWOBJ) {

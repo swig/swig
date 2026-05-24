@@ -3,7 +3,7 @@ local v=require("li_cdata_bytes_cpp")
 
 local m = v.predefStr()
 local s = v.cdata(m, 0x200)
-for i=0,0x99 do
+for i=0,0xff do
   if string.byte(s, i + 1) ~= i then
     error("value " ..  s:byte(i + 1) .. " should be " .. i .. " at index " .. i)
   end

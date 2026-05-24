@@ -17,8 +17,11 @@
       %argument_fail(SWIG_ERROR, "$type", $symname, $argnum);
     }
     for (i = 0; i < len; i++) {
-      int val;
+      Tcl_Size val;
       if (Tcl_GetSizeIntFromObj(interp, listobjv[i], &val) == TCL_ERROR) {
+        %argument_fail(SWIG_ERROR, "$type", $symname, $argnum);
+      }
+      if (val < 0 || val > 0xff) {
         %argument_fail(SWIG_ERROR, "$type", $symname, $argnum);
       }
       cbuf[i] = (unsigned char)val;
