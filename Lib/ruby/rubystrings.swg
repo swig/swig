@@ -12,7 +12,7 @@ SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
     size_t size = RSTRING_LEN(obj) + (is_binary ? 0 : 1);
     if (cptr)  {
       if (alloc) {
-	if (*alloc == SWIG_NEWOBJ) {
+	if (SWIG_IsNewObj(*alloc)) {
 	  char *p = %new_array(size, char);
 	  if (p == NULL) {
 	    return SWIG_MemoryError;
