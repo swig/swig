@@ -7,9 +7,11 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
 {
-  int use_binary = 0;
+  int use_binary = 0;       /* extract the value as raw bytes rather than as UTF-8 text */
+  int is_binary = 0;        /* SWIG_BINARYSTR was passed: report the exact byte count */
   if (alloc != NULL) {
-    use_binary = SWIG_IsBinaryStr(*alloc);
+    is_binary = SWIG_IsBinaryStr(*alloc);
+    use_binary = is_binary;
     *alloc = 0;
   }
 %#if PY_VERSION_HEX >= 0x03000000
@@ -54,7 +56,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
       }
     }
     if (cptr) *cptr = cstr;
-    if (psize) *psize = (size_t)(len + 1);
+    if (psize) *psize = is_binary ? (size_t)len : (size_t)(len + 1);
     SWIG_Py_XDECREF(bytes);
     return ret;
   } else {

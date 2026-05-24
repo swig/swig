@@ -7,6 +7,32 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-24: wsfulton
+            Fixed a one-byte buffer overflow in the cdata.i memmove typemap that
+            occurred when the data length exactly matched the destination buffer size.
+
+2026-05-20: erezgeva
+            [Guile, JavaScript, Python, Scilab, Tcl] #3383 The cdata.i library
+            functions (cdata, memmove and similar) now use a binary data type
+            instead of a string, so that all byte values 0-255 round-trip
+            correctly.
+
+            The target language type used by the cdata.i functions has changed:
+
+              - Python:     bytes object (was str)
+              - JavaScript: Uint8Array (was string)
+              - Tcl:        list of integers (was string)
+              - Scilab:     list of uint8 values (was string)
+
+            In Python, passing a str now fails with:
+
+                TypeError: in method 'memmove', argument 2 of type 'void const *'
+
+            so pass a bytes object instead. Guile cdata now also handles all
+            byte values correctly.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-05-19: jmarrec
             #3415 Fix segmentation fault when a class declares a public
             'using Base::method;' that names a base-class member template with
@@ -18,7 +44,7 @@ Version 4.5.0 (in progress)
             failure protection to the argcargv typemaps and to the string duplication paths
             in pystrings.swg, perlstrings.swg, rubystrings.swg and rfragments.swg.
 
-            *Potentially incompatible change*: the `%new_copy_array` macro
+            Potentially incompatible change: the `%new_copy_array` macro
             has been removed. User interface files calling `%new_copy_array(ptr, size, T)`
             will be passed through to the C/C++ compiler unchanged and fail with
             an error such as:
@@ -31,7 +57,7 @@ Version 4.5.0 (in progress)
                 T *p = %new_array(size, T);
                 if (p) memcpy(p, ptr, size * sizeof(T));
 
-            *Potentially incompatible change*: the `%typemaps_string` macro in
+            Potentially incompatible change: the `%typemaps_string` macro in
             `Lib/typemaps/strings.swg` now takes an additional argument naming a
             `SWIG_NewCopyCharArray` style fragment, and the related
             `%typemaps_string_alloc` macro has been removed (its allocator
