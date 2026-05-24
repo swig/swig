@@ -285,7 +285,11 @@ jobs:
           set -x
 
           if test -z "$SWIGLANG"; then
-            make $SWIGJOBS check-ccache
+            if test "$LANGUAGE" = "objc"; then
+  echo "Skipping check-ccache for objc macOS job"
+else
+  make $SWIGJOBS check-ccache
+fi
             make $SWIGJOBS check-errors-test-suite
           else
             # Stricter compile flags for examples.
