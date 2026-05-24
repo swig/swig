@@ -36,6 +36,12 @@ namespace Foo {
     %typemap(din) Str1 * = char *;
     %typemap(dout) Str1 * = char *;
 #endif
+#ifdef SWIGOBJECTIVEC
+    %typemap(imtype) Str1 * = char *;
+    %typemap(objctype) Str1 * = char *;
+    %typemap(objcin) Str1 * = char *;
+    %typemap(objcout) Str1 * = char *;
+#endif
     %typemap(in) Str1 * = char *;
 #if !(defined(SWIGCSHARP) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGOCAML) || defined(SWIGGO) || defined(SWIGD))
     %typemap(freearg) Str1 * = char *;
@@ -56,4 +62,3 @@ namespace Foo {
 %}
 
     
-

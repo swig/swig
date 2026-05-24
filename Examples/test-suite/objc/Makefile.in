@@ -9,9 +9,33 @@ OBJCXXFLAGS  = @OBJCCFLAGS@
 OBJCFLAGS    = @OBJCFLAGS@
 OBJCINCLUDES = @OBJCINC@
 OBJCLIBS     = @OBJCLIBS@
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+
+# Modern C++ functionality still under development in the experimental backend.
+FAILING_CPP_TESTS += \
+	cpp11_alternate_function_syntax \
+	cpp11_assign_rvalue_reference \
+	cpp11_brackets_expression \
+	cpp11_default_delete \
+	cpp11_directors \
+	cpp11_move_only \
+	cpp11_move_only_valuewrapper \
+	cpp11_move_typemaps \
+	cpp11_rvalue_reference \
+	cpp11_rvalue_reference2 \
+	cpp11_rvalue_reference3 \
+	cpp11_rvalue_reference_move \
+	cpp11_std_unique_ptr \
+	cpp11_strongly_typed_enumerations \
+	cpp11_template_pack \
+	cpp11_variadic_function_templates \
+	cpp11_variadic_templates \
 
 include $(srcdir)/../common.mk
 

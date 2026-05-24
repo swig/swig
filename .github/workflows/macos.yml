@@ -136,6 +136,8 @@ jobs:
           VER: '1.25'
         - SWIGLANG: perl5
         - SWIGLANG: tcl
+        - SWIGLANG: objc
+          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 

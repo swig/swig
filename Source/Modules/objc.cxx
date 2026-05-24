@@ -569,7 +569,8 @@ int OBJECTIVEC::top(Node *n) {
 
     Swig_banner(f_proxy_mm);
     Printf(f_proxy_mm, "#include \"%s_proxy.h\"\n", module);
-    Printf(f_proxy_mm, "#include \"%s_wrap.h\"\n\n", module);
+    Printf(f_proxy_mm, "#include \"%s_wrap.h\"\n", module);
+    Printf(f_proxy_mm, "#import <Foundation/NSException.h>\n\n");
   }
   // Create strings for holding the generated code. These will be dumped
   // to the generated files at the end of the top function.
@@ -1263,7 +1264,15 @@ int OBJECTIVEC::constantWrapper(Node *n) {
   // Dump to generated files
   if (proxy_flag) {  // write to the proxy files
     Printv(proxy_h_code, constants_h_code, NIL);
+    Printf(proxy_mm_code, "#if defined(__clang__)\n");
+    Printf(proxy_mm_code, "#pragma clang diagnostic push\n");
+    Printf(proxy_mm_code, "#pragma clang diagnostic ignored \"-Wconstant-logical-operand\"\n");
+    Printf(proxy_mm_code, "#pragma clang diagnostic ignored \"-Wunused-value\"\n");
+    Printf(proxy_mm_code, "#endif\n");
     Printv(proxy_mm_code, constants_mm_code, NIL);
+    Printf(proxy_mm_code, "#if defined(__clang__)\n");
+    Printf(proxy_mm_code, "#pragma clang diagnostic pop\n");
+    Printf(proxy_mm_code, "#endif\n");
   } else {  // write to the wrap files
     Printv(wrap_h_code, constants_h_code, NIL);
     Printv(wrap_mm_code, constants_mm_code, NIL);
