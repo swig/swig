@@ -86,6 +86,12 @@ SWIG_Python_TypeErrorOccurred(PyObject *obj)
   return error && PyErr_GivenExceptionMatches(error, PyExc_TypeError);
 }
 
+/* Overload dispatch support: incremented by each keyword argument enabled wrapper after its arguments are
+   successfully parsed and converted, just before executing the wrapped call. The dispatch wrapper reads it
+   before calling an overload to tell a signature mismatch (unchanged, try the next overload) from an error
+   raised while executing a matched overload (changed, propagate immediately). Only modified with the GIL held. */
+static SWIGUNUSED unsigned long SWIG_Python_parse_count = 0;
+
 SWIGRUNTIME void
 SWIG_Python_RaiseOrModifyTypeError(const char *message)
 {
