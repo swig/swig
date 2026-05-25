@@ -28,7 +28,7 @@ BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 CPP_TEST_CASES = \
 	go_inout \
 	go_director_inout \
-	typedef_const_char
+	go_const_char_input
 
 MULTI_CPP_TEST_CASES = \
 	go_subdir_import
