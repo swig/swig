@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-25: wsfulton, jschueller
+            #3448 Fix ccache-swig (and the bundled CCache test suite) failing
+            cache lookups when used with Apple clang 21 or upstream LLVM
+            clang 21.  These compilers now emit
+                clang: warning: argument unused during compilation: '-c' [-Wunused-command-line-argument]
+            when -c and -E are passed together.  ccache-swig invoked the
+            preprocessor as "cc -c -E foo.c" and hashed its stderr, so the
+            warning text was folded into the cache key and prevented a cache hit
+            between compiling foo.c and the equivalent preprocessed foo.i.
+            ccache-swig now omits -c when invoking the preprocessor.
+
 2026-05-19: jmarrec
             #3415 Fix segmentation fault when a class declares a public
             'using Base::method;' that names a base-class member template with
