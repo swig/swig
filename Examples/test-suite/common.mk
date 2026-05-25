@@ -380,6 +380,7 @@ CPP_TEST_CASES += \
 	overload_complicated \
 	overload_copy \
 	overload_extend \
+	overload_kwargs \
 	overload_method \
 	overload_numeric \
 	overload_null \

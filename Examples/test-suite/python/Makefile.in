@@ -151,6 +151,10 @@ SWIGOPT += -Werror
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 
+# overload_kwargs tests kwargs with overloaded functions, which is not supported in -builtin mode.
+overload_kwargs.cpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
+overload_kwargs.cpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT))
+
 # Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
 # PY_ABI_VER is unset for python_runtime_data_builtin because stable ABI is not supported by builtin
 python_runtime_data.multicpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
