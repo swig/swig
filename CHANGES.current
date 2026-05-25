@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-25: wsfulton
+            [Python] %nokwargs on an individual function now correctly opts that
+            function out of keyword argument handling using the -keyword option
+            or a module-wide %feature("kwargs") has enabled kwargs globally. The
+            change is visible under -builtin, where the affected function's
+            wrapper is now generated with METH_VARARGS instead of
+            METH_VARARGS|METH_KEYWORDS, so calling it by keyword raises
+            TypeError as expected. Previously, %nokwargs was silently ignored
+            once -keyword was passed.
+
 2026-05-25: wsfulton, jschueller
             #3448 Fix ccache-swig (and the bundled CCache test suite) failing
             cache lookups when used with Apple clang 21 or upstream LLVM

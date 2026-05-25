@@ -2603,7 +2603,12 @@ public:
    * ------------------------------------------------------------ */
 
   int check_kwargs(Node *n) const {
-    return (use_kw || GetFlag(n, "feature:kwargs")) && !GetFlag(n, "memberset") && !GetFlag(n, "memberget");
+    if (GetFlag(n, "memberset") || GetFlag(n, "memberget"))
+      return 0;
+    // Make sure an explicit kwargs feature overrides the -keyword command line option
+    if (Getattr(n, "feature:kwargs"))
+      return GetFlag(n, "feature:kwargs");
+    return use_kw;
   }
 
   /* ------------------------------------------------------------
