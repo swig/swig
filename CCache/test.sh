@@ -235,7 +235,7 @@ basetests() {
     fi
 
     testname="cpp call"
-    $CCACHE_COMPILE -c test1.c -E > test1.i
+    $CCACHE_COMPILE -E test1.c > test1.i
     checkstat 'cache hit' 8
     checkstat 'cache miss' 37
 
