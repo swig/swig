@@ -9,5 +9,6 @@ struct MagicProps {
   int iv;
   double dv;
   bool bv;
+  char cv;
 };
 %}

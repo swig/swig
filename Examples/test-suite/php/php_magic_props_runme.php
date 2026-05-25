@@ -28,4 +28,8 @@ check::equal($o->dv, 1.5, "chained access dv");
 $o->iv = 200;
 check::equal($o->iv, 200, "rewrite iv");
 
+// __set inline (char - should be a single-character string)
+$o->cv = 'Z';
+check::equal($o->cv, 'Z', "char __set/__get");
+
 check::done();

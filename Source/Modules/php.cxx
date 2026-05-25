@@ -1669,6 +1669,46 @@ public:
 
     Replaceall(f->code, "$symname", iname);
 
+    if (wrapperType == membervar && !overloaded) {
+      String *mcode = Copy(f->code);
+      if (is_setter_method(n)) {
+        Replaceall(mcode, "arg2", "swig_val");
+        /* Save local var declarations (skip arg1 and args) */
+        String *mlocals = NewStringEmpty();
+        {
+          Iterator ki = First(f->localh);
+          while (ki.key) {
+            const char *k = Char(ki.key);
+            if (strcmp(k, "arg1") != 0 && strcmp(k, "args") != 0) {
+              Replace(ki.item, "arg2", "swig_val", DOH_REPLACE_ANY);
+              Printf(mlocals, "%s;\n", ki.item);
+            }
+            ki = Next(ki);
+          }
+        }
+        Setattr(n, "php:membervar_set_code", mcode);
+        Setattr(n, "php:membervar_set_locals", mlocals);
+        Delete(mlocals);
+      } else {
+        /* Save local var declarations (skip arg1 and args) */
+        String *mlocals = NewStringEmpty();
+        {
+          Iterator ki = First(f->localh);
+          while (ki.key) {
+            const char *k = Char(ki.key);
+            if (strcmp(k, "arg1") != 0 && strcmp(k, "args") != 0) {
+              Printf(mlocals, "%s;\n", ki.item);
+            }
+            ki = Next(ki);
+          }
+        }
+        Setattr(n, "php:membervar_get_code", mcode);
+        Setattr(n, "php:membervar_get_locals", mlocals);
+        Delete(mlocals);
+      }
+      Delete(mcode);
+    }
+
     Wrapper_print(f, s_wrappers);
     DelWrapper(f);
     f = NULL;
@@ -2106,13 +2146,14 @@ public:
     wrapperType = standard;
 
     SwigType *ty = Getattr(n, "type");
-    int tc = SwigType_type(ty);
     int is_const = SwigType_isconst(ty);
     int is_array = SwigType_isarray(ty);
     int is_enum = SwigType_isenum(ty);
     String *access = Getattr(n, "access");
-    /* Only inline simple, accessible (public, non-const, non-enum) members */
-    int can_inline = !is_const && !is_array && !is_enum && access && Cmp(access, "public") == 0;
+    /* Only inline simple, accessible (public, non-const, non-enum) members.
+     * Smart pointer members use (*arg1)->member syntax which only works
+     * in the dedicated wrapper function, not inline in __get/__set. */
+    int can_inline = !is_const && !is_array && !is_enum && access && Cmp(access, "public") == 0 && !SmartPointer;
     String *cpp_classtype = Getattr(Swig_methodclass(n), "classtype");
     if (!cpp_classtype)
       cpp_classtype = class_name;
@@ -2121,7 +2162,7 @@ public:
 
     /* --- __set inline (issue #2809) --- */
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", vn);
-    if (is_const || is_array) {
+    if (is_const) {
       Printf(magic_set, "  zend_throw_exception(zend_ce_type_error, \"Cannot assign to read-only property %s::%s\", 0);\n", cl, vn);
     } else if (!can_inline) {
       Printf(magic_set, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", vn);
@@ -2129,32 +2170,60 @@ public:
       Printf(magic_set, "  zend_string_release(swig_funcname);\n");
       Printf(magic_set, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
     } else {
-      Printf(magic_set, "  %s *arg1 = (%s *)SWIG_Z_FETCH_OBJ_P(ZEND_THIS)->ptr;\n", cl, cl);
-      switch (tc) {
-      case T_INT:
-      case T_SHORT:
-      case T_LONG:
-      case T_UINT:
-      case T_ULONG:
-      case T_USHORT:
-        Printf(magic_set, "  if (arg1) arg1->%s = (%s)zval_get_long(&args[1]);\n", vn, SwigType_str(ty, 0));
-        break;
-      case T_FLOAT:
-      case T_DOUBLE:
-        Printf(magic_set, "  if (arg1) arg1->%s = (%s)zval_get_double(&args[1]);\n", vn, SwigType_str(ty, 0));
-        break;
-      case T_BOOL:
-        Printf(magic_set, "  if (arg1) arg1->%s = (bool)zval_is_true(&args[1]);\n", vn);
-        break;
-      case T_CHAR:
-        Printf(magic_set, "  if (arg1 && Z_TYPE(args[1]) == IS_LONG) arg1->%s = (char)zval_get_long(&args[1]);\n", vn);
-        break;
-      default:
-        Printf(magic_set, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", vn);
-        Printf(magic_set, "  zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
-        Printf(magic_set, "  zend_string_release(swig_funcname);\n");
-        Printf(magic_set, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
-        break;
+      String *mcode = Getattr(n, "php:membervar_set_code");
+      if (mcode) {
+        /* Extract the arg1 = ... line from the saved body (correctly formatted) */
+        char *start = Char(mcode);
+        char *nl = strchr(start, '\n');
+        String *arg1_line = NULL;
+        if (nl)
+          arg1_line = NewStringWithSize(start, (int)(nl - start));
+        /* Emit body without arg1 = ... first line and ZEND_NUM_ARGS check */
+        if (nl) {
+          String *body = NewString(nl + 1);
+          /* Strip argument checking block */
+          char *argcheck = strstr(Char(body), "WRONG_PARAM_COUNT;\n}\n\n");
+          if (argcheck) {
+            char *after_check = argcheck + strlen("WRONG_PARAM_COUNT;\n}\n\n");
+            String *stripped = NewString(after_check);
+            Delete(body);
+            body = stripped;
+          }
+          Replaceall(body, "args[0]", "args[1]");
+          /* Strip fail: / return / } boilerplate */
+          char *failpos = strstr(Char(body), "\nfail:");
+          String *truncated;
+          if (failpos) {
+            size_t len = (size_t)(failpos - Char(body));
+            truncated = NewStringWithSize(Char(body), (int)len);
+          } else {
+            truncated = Copy(body);
+          }
+          /* Only emit arg1 declaration if the body actually references arg1.
+             Transform "arg1 = (TYPE *)EXPR;" into "TYPE *arg1 = (TYPE *)EXPR;". */
+          if (arg1_line && (strstr(Char(truncated), "arg1") || strstr(Char(truncated), "*arg1"))) {
+            char *s = Char(arg1_line);
+            char *paren = strchr(s, '(');
+            char *ast = paren ? strrchr(paren, '*') : NULL;
+            char *eq = strchr(s, '=');
+            if (paren && ast && eq) {
+              String *type_str = NewStringWithSize(paren + 1, (int)(ast - paren - 2));
+              Printf(magic_set, "  %s *arg1 =%s\n", type_str, eq + 1);
+              Delete(type_str);
+            }
+          }
+          Delete(arg1_line);
+          /* Emit local declarations */
+          String *mlocals = Getattr(n, "php:membervar_set_locals");
+          if (mlocals) {
+            Printf(magic_set, "%s\n", mlocals);
+          }
+          Printf(magic_set, "%s\n", truncated);
+          Delete(truncated);
+          Delete(body);
+        } else {
+          Delete(arg1_line);
+        }
       }
     }
     Printf(magic_set, "}\n");
@@ -2167,32 +2236,59 @@ public:
       Printf(magic_get, "  zend_string_release(swig_funcname);\n");
       Printf(magic_get, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
     } else {
-      Printf(magic_get, "  %s *arg1 = (%s *)SWIG_Z_FETCH_OBJ_P(ZEND_THIS)->ptr;\n", cl, cl);
-      switch (tc) {
-      case T_INT:
-      case T_SHORT:
-      case T_LONG:
-      case T_UINT:
-      case T_ULONG:
-      case T_USHORT:
-        Printf(magic_get, "  RETVAL_LONG((long)(arg1->%s));\n", vn);
-        break;
-      case T_FLOAT:
-      case T_DOUBLE:
-        Printf(magic_get, "  RETVAL_DOUBLE((double)(arg1->%s));\n", vn);
-        break;
-      case T_BOOL:
-        Printf(magic_get, "  RETVAL_BOOL((bool)(arg1->%s));\n", vn);
-        break;
-      case T_CHAR:
-        Printf(magic_get, "  RETVAL_LONG((unsigned char)(arg1->%s));\n", vn);
-        break;
-      default:
-        Printf(magic_get, "  zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_get\", 0);\n", vn);
-        Printf(magic_get, "  zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
-        Printf(magic_get, "  zend_string_release(swig_funcname);\n");
-        Printf(magic_get, "  zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
-        break;
+      String *mcode = Getattr(n, "php:membervar_get_code");
+      if (mcode) {
+        /* Extract the arg1 = ... line from the saved body (correctly formatted) */
+        char *start = Char(mcode);
+        char *nl = strchr(start, '\n');
+        String *arg1_line = NULL;
+        if (nl)
+          arg1_line = NewStringWithSize(start, (int)(nl - start));
+        /* Emit body without arg1 = ... first line and ZEND_NUM_ARGS check */
+        if (nl) {
+          String *body = NewString(nl + 1);
+          /* Strip argument checking block */
+          char *argcheck = strstr(Char(body), "WRONG_PARAM_COUNT;\n}\n\n");
+          if (argcheck) {
+            char *after_check = argcheck + strlen("WRONG_PARAM_COUNT;\n}\n\n");
+            String *stripped = NewString(after_check);
+            Delete(body);
+            body = stripped;
+          }
+          /* Strip fail: / return / } boilerplate */
+          char *failpos = strstr(Char(body), "\nfail:");
+          String *truncated;
+          if (failpos) {
+            size_t len = (size_t)(failpos - Char(body));
+            truncated = NewStringWithSize(Char(body), (int)len);
+          } else {
+            truncated = Copy(body);
+          }
+          /* Only emit arg1 declaration if body references arg1.
+             Transform "arg1 = (TYPE *)EXPR;" into "TYPE *arg1 = (TYPE *)EXPR;". */
+          if (arg1_line && (strstr(Char(truncated), "arg1") || strstr(Char(truncated), "*arg1"))) {
+            char *s = Char(arg1_line);
+            char *paren = strchr(s, '(');
+            char *ast = paren ? strrchr(paren, '*') : NULL;
+            char *eq = strchr(s, '=');
+            if (paren && ast && eq) {
+              String *type_str = NewStringWithSize(paren + 1, (int)(ast - paren - 2));
+              Printf(magic_get, "  %s *arg1 =%s\n", type_str, eq + 1);
+              Delete(type_str);
+            }
+          }
+          Delete(arg1_line);
+          /* Emit local declarations */
+          String *mlocals = Getattr(n, "php:membervar_get_locals");
+          if (mlocals) {
+            Printf(magic_get, "%s\n", mlocals);
+          }
+          Printf(magic_get, "%s\n", truncated);
+          Delete(truncated);
+          Delete(body);
+        } else {
+          Delete(arg1_line);
+        }
       }
     }
     Printf(magic_get, "}\n");
