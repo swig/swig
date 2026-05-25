@@ -390,14 +390,10 @@ objc_cpp: $(SRCDIR_SRCS)
 # Compile and run Objective-C files
 # ----------------------------------------------------------------
 
-ifneq (,$(SRCDIR))
 SRCDIR_OBJCSRCS = $(addprefix $(SRCDIR),$(OBJCSRCS))
-else
-SRCDIR_OBJCSRCS =
-endif
 
 objc_run:
-	$(COMPILETOOL) $(OBJC) $(CPPFLAGS) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) $(OBJCSRCS) $(SRCDIR_OBJCSRCS) $(LDFLAGS) $(OBJCLIBS) -L. -l$(TARGET) -o $(RUNME)
+	$(COMPILETOOL) $(OBJC) $(CPPFLAGS) $(OBJCINCLUDES) $(OBJCFLAGS) $(OBJCXXFLAGS) $(SRCDIR_OBJCSRCS) $(LDFLAGS) $(OBJCLIBS) -L. -l$(TARGET) -o $(RUNME)
 	env LD_LIBRARY_PATH=$$PWD:$$LD_LIBRARY_PATH DYLD_LIBRARY_PATH=$$PWD:$$DYLD_LIBRARY_PATH $(RUNTOOL) $(OBJC_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
