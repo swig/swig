@@ -1500,7 +1500,7 @@ if test -n "$LUABIN"; then
   if test -n "$LUA_VERSION" ; then
     AC_MSG_RESULT([Lua $LUA_VERSION.x])
     AS_VERSION_COMPARE(["$LUA_VERSION"], ["$LUA_MINVER"],
-                   [AC_MSG_WARN([Bellow Lua $LUA_MINVER, SWIG does not support this version of Lua])
+                   [AC_MSG_WARN([Lua version is below $LUA_MINVER, SWIG does not support this version of Lua])
                     AS_UNSET([LUABIN])])
   else
     AC_MSG_RESULT([failed])
