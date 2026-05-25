@@ -1858,8 +1858,7 @@ SWIG_Lua_InstallConstants(lua_State *L, swig_lua_const_info constants[]) {
 #ifndef SWIG_DOSTRING_FAIL /* Allows redefining of error function */
 #define SWIG_DOSTRING_FAIL(S) fprintf(stderr,"%s\n",S)
 #endif
-/* Executes a C string in Lua which is a really simple way of calling lua from C
-*/
+/* Executes a C string in Lua which is a really simple way of calling lua from C */
 SWIGINTERN int
 SWIG_Lua_dostring(lua_State *L, const char *str) {
   int ok,top;
