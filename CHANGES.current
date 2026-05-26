@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-26: wsfulton
+            [Python] Class docstrings under -builtin now match the non-builtin
+            proxy module. When neither %feature("docstring") nor a doxygen
+            comment is supplied, inspect.getdoc(MyClass) previously returned
+            the qualified C++ name such as "::MyClass"; it now returns
+            "Proxy of C++ MyClass class." (or "Proxy of C MyStruct struct.")
+            when %feature("autodoc") is enabled, and the empty string
+            otherwise. Alternative documentation strings can of course still
+            be set via %feature("python:tp_doc", "...") on the class.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-05-25: wsfulton
             [Python] %nokwargs on an individual function now correctly opts that
             function out of keyword argument handling using the -keyword option

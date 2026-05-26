@@ -2000,22 +2000,13 @@ public:
             // Only do the autodoc if there isn't a docstring for the class
             String *str = Getattr(n, "feature:docstring");
             if (!str || Len(str) == 0) {
-              if (builtin) {
-                SwigType *name = Getattr(n, "name");
-                SwigType *sname = add_explicit_scope(name);
-                String *rname = SwigType_namestr(sname);
-                Printf(doc, "%s", rname);
-                Delete(sname);
-                Delete(rname);
+              String *classname_str = SwigType_namestr(real_classname);
+              if (CPlusPlus) {
+                Printf(doc, "Proxy of C++ %s class.", classname_str);
               } else {
-                String *classname_str = SwigType_namestr(real_classname);
-                if (CPlusPlus) {
-                  Printf(doc, "Proxy of C++ %s class.", classname_str);
-                } else {
-                  Printf(doc, "Proxy of C %s struct.", classname_str);
-                }
-                Delete(classname_str);
+                Printf(doc, "Proxy of C %s struct.", classname_str);
               }
+              Delete(classname_str);
             }
           }
           break;
@@ -4255,7 +4246,10 @@ public:
       else
         quoted_symname = NewStringf("\"%s\"", symname);
     }
-    String *quoted_tp_doc_str = NewStringf("\"%s\"", getSlot(n, "feature:python:tp_doc"));
+    String *user_tp_doc = Getattr(n, "feature:python:tp_doc");
+    // Empty string, not NULL: when tp_doc is NULL, inspect.getdoc() walks the MRO and picks up
+    // the SwigPyObject base's docstring instead of returning "" like the non-builtin proxy does.
+    String *quoted_tp_doc_str = user_tp_doc ? NewStringf("\"%s\"", user_tp_doc) : NewString("\"\"");
     String *tp_init = NewString(builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit");
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
     String *tp_flags_py3 = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
@@ -4835,20 +4829,7 @@ public:
         Printv(base_class, abcs, NIL);
       }
 
-      if (builtin) {
-        if (have_docstring(n)) {
-          String *ds = cdocstring(n, AUTODOC_CLASS);
-          Setattr(n, "feature:python:tp_doc", ds);
-          Delete(ds);
-        } else {
-          SwigType *name = Getattr(n, "name");
-          SwigType *sname = add_explicit_scope(name);
-          String *rname = SwigType_namestr(sname);
-          Setattr(n, "feature:python:tp_doc", rname);
-          Delete(sname);
-          Delete(rname);
-        }
-      } else {
+      if (!builtin) {
         if (GetFlag(n, "feature:python:nondynamic"))
           Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
         Printv(f_shadow, "class ", class_name, NIL);

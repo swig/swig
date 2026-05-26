@@ -157,4 +157,4 @@ comment_verifier.check(doxygen_misc_constructs.GroupedMembers.loggingMember2.__d
     r"""Doc for the second grouped member."""
 )
 comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.GroupedMembers),
-    "::GroupedMembers" if doxygen_misc_constructs.is_python_builtin() else "")
+    "")
