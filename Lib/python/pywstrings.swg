@@ -2,10 +2,6 @@
  *  utility methods for wchar_t strings 
  * ------------------------------------------------------------ */
 
-%{
-#define SWIGPY_UNICODE_ARG(obj) ((PyObject*) (obj))
-%}
-
 %fragment("SWIG_AsWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor") {
 SWIGINTERN int
 SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
@@ -16,12 +12,12 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 %# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03070000
     Py_ssize_t len = PyUnicode_GetLength(obj);
 %# else
-    Py_ssize_t len = PyUnicode_AsWideChar(SWIGPY_UNICODE_ARG(obj), NULL, 0) - 1;
+    Py_ssize_t len = PyUnicode_AsWideChar(obj, NULL, 0) - 1;
 %# endif
     if (cptr) {
       Py_ssize_t length;
       *cptr = %new_array((size_t)(len + 1), wchar_t);
-      length = PyUnicode_AsWideChar(SWIGPY_UNICODE_ARG(obj), *cptr, len);
+      length = PyUnicode_AsWideChar(obj, *cptr, len);
       if (length == -1) {
         PyErr_Clear();
         SWIG_Py_XDECREF(tmp);
