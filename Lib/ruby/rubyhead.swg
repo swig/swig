@@ -135,8 +135,8 @@
  *
  * VOIDFUNC(f) is used to typecast a C function that implements either
  * the "mark" or "free" stuff for a Ruby Data object, so that it can be
- * passed as an argument to Ruby C API functions like Data_Wrap_Struct()
- * and Data_Make_Struct().
+ * passed as an argument to Ruby C API functions like TypedData_Wrap_Struct()
+ * and TypedData_Make_Struct().
  *
  * SWIG_RUBY_VOID_ANYARGS_FUNC(f) is used for the function pointer
  * argument(s) of Ruby C API functions like rb_define_virtual_variable().
@@ -182,5 +182,46 @@
 #define rb_define_alloc_func(klass, func) rb_define_singleton_method((klass), "new", VALUEFUNC((func)), -1)
 #define rb_undef_alloc_func(klass) rb_undef_method(CLASS_OF((klass)), "new")
 #endif
+
+/* Wrapper struct for TypedData API.
+ * Stores the wrapped pointer alongside the mark and free functions
+ * so that ownership can be transferred dynamically (which the
+ * static rb_data_type_t does not allow). */
+typedef struct {
+  void *ptr;
+  RUBY_DATA_FUNC mark;
+  RUBY_DATA_FUNC free;
+} swig_ruby_data;
+
+/* Generic mark/free for TypedData wrappers -- delegates to per-object
+ * handlers stored in the swig_ruby_data wrapper. */
+static void swig_ruby_data_mark(void *ptr) {
+  swig_ruby_data *d = (swig_ruby_data *)ptr;
+  if (d->mark && d->mark != (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE)
+    d->mark(d->ptr);
+}
+
+static void swig_ruby_data_free(void *ptr) {
+  swig_ruby_data *d = (swig_ruby_data *)ptr;
+  if (d->free && d->free != (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE)
+    d->free(d->ptr);
+  free(d);
+}
+
+static size_t swig_ruby_data_size(const void *ptr) {
+  return sizeof(swig_ruby_data);
+}
+
+static const rb_data_type_t swig_ruby_data_type = {
+  "SWIG",
+  { swig_ruby_data_mark, swig_ruby_data_free, swig_ruby_data_size, 0 },
+  0, 0
+#ifdef RUBY_TYPED_FREE_IMMEDIATELY
+  , RUBY_TYPED_FREE_IMMEDIATELY
+#endif
+};
+
+#undef DATA_PTR
+#define DATA_PTR(obj)  (((swig_ruby_data *)RTYPEDDATA_DATA(obj))->ptr)
 
 static VALUE _mSWIG = Qnil;
