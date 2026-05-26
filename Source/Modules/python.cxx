@@ -2000,22 +2000,13 @@ public:
             // Only do the autodoc if there isn't a docstring for the class
             String *str = Getattr(n, "feature:docstring");
             if (!str || Len(str) == 0) {
-              if (builtin) {
-                SwigType *name = Getattr(n, "name");
-                SwigType *sname = add_explicit_scope(name);
-                String *rname = SwigType_namestr(sname);
-                Printf(doc, "%s", rname);
-                Delete(sname);
-                Delete(rname);
+              String *classname_str = SwigType_namestr(real_classname);
+              if (CPlusPlus) {
+                Printf(doc, "Proxy of C++ %s class.", classname_str);
               } else {
-                String *classname_str = SwigType_namestr(real_classname);
-                if (CPlusPlus) {
-                  Printf(doc, "Proxy of C++ %s class.", classname_str);
-                } else {
-                  Printf(doc, "Proxy of C %s struct.", classname_str);
-                }
-                Delete(classname_str);
+                Printf(doc, "Proxy of C %s struct.", classname_str);
               }
+              Delete(classname_str);
             }
           }
           break;
@@ -2603,7 +2594,12 @@ public:
    * ------------------------------------------------------------ */
 
   int check_kwargs(Node *n) const {
-    return (use_kw || GetFlag(n, "feature:kwargs")) && !GetFlag(n, "memberset") && !GetFlag(n, "memberget");
+    if (GetFlag(n, "memberset") || GetFlag(n, "memberget"))
+      return 0;
+    // Make sure an explicit kwargs feature overrides the -keyword command line option
+    if (Getattr(n, "feature:kwargs"))
+      return GetFlag(n, "feature:kwargs");
+    return use_kw;
   }
 
   /* ------------------------------------------------------------
@@ -4206,6 +4202,27 @@ public:
     Printf(f, "  return result;\n");
     Printf(f, "}\n\n");
 
+    /* For adding docstrings to constructor wrappers:
+       We can't just append {"__init__", ..., "doc"} to the tp_methods array as PyType_Ready
+       installs a wrapper_descriptor for tp_init in tp_dict["__init__"] with a fixed generic doc.
+       When the Python interpreter then adds the methods in the tp_methods, the "__init__" entry
+       is silently dropped as it already exists.
+
+       Instead, emit an adapter for tp_init and a standalone PyMethodDef and overwrite the slot
+       after PyType_Ready has been called. type.__call__ keeps using the tp_init slot directly, so
+       instantiation is unaffected. */
+    String *tp_init_doc = Getattr(n, "python:tp_init_doc");
+    if (tp_init_doc && builtin_tp_init) {
+      Printf(f, "SWIGINTERN PyObject *%s_pyinit_wrapper(PyObject *self, PyObject *args, PyObject *kwargs) {\n", templ);
+      Printf(f, "  if (%s(self, args, kwargs) < 0) return NULL;\n", builtin_tp_init);
+      Printf(f, "  Py_RETURN_NONE;\n");
+      Printf(f, "}\n");
+      Printf(f, "\n");
+      Printf(f, "SWIGINTERN PyMethodDef %s_pyinit_methoddef = {\n", templ);
+      Printf(f, "  \"__init__\", (PyCFunction)(void(*)(void))%s_pyinit_wrapper, METH_VARARGS|METH_KEYWORDS, \"%s\"\n", templ, tp_init_doc);
+      Printf(f, "};\n\n");
+    }
+
     // Methods
     Printf(f, "SWIGINTERN PyMethodDef %s_methods[] = {\n", templ);
     Dump(builtin_methods, f);
@@ -4229,7 +4246,10 @@ public:
       else
         quoted_symname = NewStringf("\"%s\"", symname);
     }
-    String *quoted_tp_doc_str = NewStringf("\"%s\"", getSlot(n, "feature:python:tp_doc"));
+    String *user_tp_doc = Getattr(n, "feature:python:tp_doc");
+    // Empty string, not NULL: when tp_doc is NULL, inspect.getdoc() walks the MRO and picks up
+    // the SwigPyObject base's docstring instead of returning "" like the non-builtin proxy does.
+    String *quoted_tp_doc_str = user_tp_doc ? NewStringf("\"%s\"", user_tp_doc) : NewString("\"\"");
     String *tp_init = NewString(builtin_tp_init ? Char(builtin_tp_init) : Swig_directorclass(n) ? "0" : "SwigPyBuiltin_BadInit");
     String *tp_flags = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|Py_TPFLAGS_CHECKTYPES");
     String *tp_flags_py3 = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
@@ -4696,6 +4716,20 @@ public:
     Printv(f_init, "      return -1;\n", NIL);
     Printf(f_init, "    }\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
+    if (Getattr(n, "python:tp_init_doc")) {
+      /* Replace the default tp_init slot wrapper for __init__ with a method descriptor that carries
+         the doxygen docstring. type.__call__ still uses the tp_init slot for instantiation. */
+      Printf(f_init, "    {\n");
+      Printf(f_init, "      PyObject *init_desc = PyDescr_NewMethod(builtin_pytype, &%s_pyinit_methoddef);\n", templ);
+      Printf(f_init, "      if (!init_desc) return -1;\n");
+      Printf(f_init, "      if (PyDict_SetItemString(builtin_pytype->tp_dict, \"__init__\", init_desc) != 0) {\n");
+      Printf(f_init, "        SWIG_Py_DECREF(init_desc);\n");
+      Printf(f_init, "        return -1;\n");
+      Printf(f_init, "      }\n");
+      Printf(f_init, "      SWIG_Py_DECREF(init_desc);\n");
+      Printf(f_init, "      PyType_Modified(builtin_pytype);\n");
+      Printf(f_init, "    }\n");
+    }
     Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
@@ -4795,20 +4829,7 @@ public:
         Printv(base_class, abcs, NIL);
       }
 
-      if (builtin) {
-        if (have_docstring(n)) {
-          String *ds = cdocstring(n, AUTODOC_CLASS);
-          Setattr(n, "feature:python:tp_doc", ds);
-          Delete(ds);
-        } else {
-          SwigType *name = Getattr(n, "name");
-          SwigType *sname = add_explicit_scope(name);
-          String *rname = SwigType_namestr(sname);
-          Setattr(n, "feature:python:tp_doc", rname);
-          Delete(sname);
-          Delete(rname);
-        }
-      } else {
+      if (!builtin) {
         if (GetFlag(n, "feature:python:nondynamic"))
           Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
         Printv(f_shadow, "class ", class_name, NIL);
@@ -5301,6 +5322,18 @@ public:
           }
         }
         Delete(subfunc);
+      }
+
+      if (builtin && in_class) {
+        if (Node *node_with_doc = find_overload_with_docstring(n)) {
+          Node *cls = getCurrentClass();
+          if (cls && !Getattr(cls, "python:tp_init_doc")) {
+            String *ds = cdocstring(node_with_doc, AUTODOC_CTOR);
+            if (ds && Len(ds) > 0)
+              Setattr(cls, "python:tp_init_doc", ds);
+            Delete(ds);
+          }
+        }
       }
     }
     return SWIG_OK;

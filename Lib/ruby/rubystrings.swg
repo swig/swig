@@ -6,12 +6,13 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
 {
+  int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
   if (TYPE(obj) == T_STRING) {
-    char *cstr = StringValuePtr(obj); 
-    size_t size = RSTRING_LEN(obj) + 1;
+    char *cstr = StringValuePtr(obj);
+    size_t size = RSTRING_LEN(obj) + (is_binary ? 0 : 1);
     if (cptr)  {
       if (alloc) {
-	if (*alloc == SWIG_NEWOBJ) {
+	if (SWIG_IsNewObj(*alloc)) {
 	  char *p = %new_array(size, char);
 	  if (p == NULL) {
 	    return SWIG_MemoryError;
@@ -43,6 +44,7 @@ SWIG_AsCharPtrAndSize(VALUE obj, char** cptr, size_t* psize, int *alloc)
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+#define SWIG_FromBinaryCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERNINLINE VALUE 
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {

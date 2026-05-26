@@ -120,6 +120,10 @@ Inside `<pre>` blocks, the C++ angle brackets and ampersands must be escaped (`&
 
 Default to plain ASCII characters in prose: ` - ` rather than `&mdash;` for inline dashes, straight quotes rather than smart quotes, etc. The existing chapters are overwhelmingly ASCII (e.g. ` - ` outnumbers `&mdash;` ~10:1); new prose should match.
 
+## Hyphenation
+
+Only hyphenate compounds the C++ standard hyphenates (`using-declaration`, `type-constraint`, `requires-clause`, etc.). Drop the hyphen on everything else. See **Hyphenation** in `AGENTS.md`.
+
 ## Compatibility notes
 
 For "first version to..." or "added in SWIG-X.Y.Z" wording:

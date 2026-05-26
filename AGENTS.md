@@ -69,6 +69,8 @@ Bug fixes and new features should ideally land with a regression test in the tes
 
 Test cases live in `Examples/test-suite/<language>/`. Each test consists of a `.i` interface file in `Examples/test-suite/` (shared across all languages) and an optional `<testname>_runme.<ext>` script in the language subdirectory. The `.i` file drives wrapper generation/compilation; the runme exercises the wrapped code at runtime — language-specific behavior belongs in the runme, not the shared `.i`.
 
+Test names that start with a `cpp{NN}_` prefix (e.g. `cpp11_`, `cpp17_`, `cpp20_`) track the C++ standard that **introduced the grammar / language feature being exercised**, not the standard the example code happens to target. A using-declaration pack expansion is C++17 grammar, so it goes under `cpp17_*` even if the canonical use site is a C++20 lambda; a constrained lambda's grammar is C++20, so it goes under `cpp20_*` even if its body is plain C++11. When in doubt, pick the prefix matching the oldest standard that accepts the feature in isolation. Each prefix is also a `CPP{NN}_TEST_CASES` bucket in `Examples/test-suite/common.mk` - register new tests in the bucket that matches the prefix.
+
 The shared test makefile is `Examples/test-suite/common.mk` (included by each per-language Makefile). New tests are typically added to `common.mk` in the appropriate `*_TESTCASES` variable.
 
 Python runmes must never use the `assert` statement - `python3 -O` strips asserts and the test would silently pass on a regression. Use the helpers in `Examples/test-suite/python/swig_test_utils.py` instead: `swig_check(lhs, rhs)` for equality checks (prints both values on failure), `swig_assert(condition, msg)` for arbitrary conditions, and `swig_assert_raises(exc_cls)` as a context manager for expected exceptions.
@@ -152,6 +154,8 @@ Any contribution produced with significant AI assistance to the SWIG source unde
 Assisted-by: Claude Code (Opus 4.7)
 ```
 
+Write the trailer as plain text - do not append an `<email>` after the tool name.
+
 Place the trailer in the standard Git trailer block at the bottom of the commit message, alongside any `Signed-off-by:` lines. "Significant" means AI was used to generate, design, or substantially edit the code in the commit; trivial completions (single-line autocompletes, name suggestions, formatting) do not need disclosure.
 
 Do **not** add a `Co-Authored-By:` trailer for an AI tool or model. AI agents are not authors and hold no copyright in their output, so coauthorship attribution is inappropriate. Use only the `Assisted-by:` trailer described above.
@@ -159,6 +163,14 @@ Do **not** add a `Co-Authored-By:` trailer for an AI tool or model. AI agents ar
 Disclosure is optional for other areas of the codebase such as the test suite (`Examples/test-suite/`) and the documentation (`Doc/`).
 
 AI-assisted commit messages should be clear, concise and to the point - describe the change accurately without padding or marketing language.
+
+## Hyphenation
+
+Only hyphenate compounds the C++ standard hyphenates (grammar productions like `using-declaration`, `type-constraint`, `requires-clause`, `simple-template-id`). Drop the hyphen everywhere else: `pack expansion`, `deduction guide`, `parameter pack`, `read only`, `compile time`, `runtime`, `before C++20`. When in doubt, drop it.
+
+## Commit message style
+
+Write commit subjects and bodies as plain text. Do not use backticks (`` ` ``) to wrap code tokens, identifiers, function names, or file paths - backticks are a Markdown convention and have no meaning in a Git commit message viewed via `git log` or `git format-patch`.
 
 ## Comment style
 
