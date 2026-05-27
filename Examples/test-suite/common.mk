@@ -687,6 +687,7 @@ CPP11_TEST_CASES += \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
+	cpp11_template_using_base \
 	cpp11_using_constructor \
 	cpp11_using_member_template \
 	cpp11_using_typedef_struct \

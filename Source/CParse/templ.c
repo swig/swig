@@ -293,7 +293,10 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
   } else if (Equal(nodeType, "using")) {
     String *name = Getattr(n, "name");
     String *uname = Getattr(n, "uname");
-    if (uname && strchr(Char(uname), '<')) {
+    if (uname) {
+      /* Always add uname to the patchlist so template parameters are substituted, whether the qualifier is a template-id
+       * (e.g. 'using BaseTemplate<T>::method;') or a bare type-template parameter used directly as the base
+       * (e.g. 'using I::call;' inside 'template <typename I> struct Derived : I'). */
       Append(patchlist, uname);
     }
     if (!(Getattr(n, "templatetype"))) {
