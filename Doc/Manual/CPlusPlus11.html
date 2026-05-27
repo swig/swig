@@ -1122,7 +1122,14 @@ However, in order to use an alias template, two <tt>%template</tt> directives mu
 <p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
 Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
 This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
+Once both <tt>%template</tt> directives have been processed the alias and the underlying instantiated template name are interchangeable in the target language; for example a function returning <tt>TypedefName&lt;bool&gt;</tt> is wrapped using the <tt>SomeTypeBool</tt> class.
 See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
+
+<p>
+For alias templates whose template parameters carry a C++20 concept constraint, see
+<a href="CPlusPlus20.html#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
+in the C++20 chapter.
+</p>
 
 <H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
 

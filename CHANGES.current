@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-27: wsfulton
+            C++20: parse and support constrained alias templates.  Both the
+            type-constraint shorthand and the requires-clause long form are
+            now accepted:
+
+              template<Numeric T>                       using NumBox = Box<T>;
+              template<typename T> requires Numeric<T>  using ReqBox = Box<T>;
+
+            The requires-clause form previously resulted in a syntax error.
+
+            Both forms wrap identically to an unconstrained alias template.
+            Note that the constraint does not affect the generated wrappers.
+            The C++ compiler enforces it when compiling the emitted
+            wrapper.  Wrapping continues to use the documented two-step
+            pattern: %template(Name) on the underlying template, followed by
+            an empty %template() for each alias.
+
 2026-05-26: wsfulton
             [Python] Class docstrings under -builtin now match the non-builtin
             proxy module. When neither %feature("docstring") nor a doxygen

@@ -622,6 +622,7 @@ CPP_TEST_CASES += \
 # C++11 test cases.
 CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
+	cpp11_alias_templates \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_assign_delete \
@@ -725,6 +726,7 @@ CPP20_TEST_CASES += \
 	cpp20_abbreviated_template \
 	cpp20_abbreviated_template_decorated \
 	cpp20_abbreviated_template_mixed \
+	cpp20_alias_template \
 	cpp20_concepts \
 	cpp20_concepts_class_methods \
 	cpp20_concepts_classes \

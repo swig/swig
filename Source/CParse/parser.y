@@ -3515,7 +3515,7 @@ c_declaration   : c_decl {
 		  SetFlag($$,"typealias");
 		  add_symbols($$);
 		}
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL type plain_declarator SEMI {
 		  /* Convert alias template to a "template" typedef statement */
 		  $$ = new_node("template");
 		  Setattr($$,"type",$type);
@@ -3525,6 +3525,8 @@ c_declaration   : c_decl {
 		  Setattr($$,"templateparms",$template_parms);
 		  Setattr($$,"templatetype","cdecl");
 		  SetFlag($$,"aliastemplate");
+		  if ($requires_clause_opt)
+		    Setattr($$, "constraint", $requires_clause_opt);
 		  add_symbols($$);
 		}
                 | cpp_static_assert
