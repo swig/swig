@@ -14,11 +14,21 @@
 %inline %{
 #include <string>
 
-struct IntCase    { std::string call(int v)    const { return "Int:" + std::to_string(v); } };
-struct DoubleCase { std::string call(double v) const { return "Double:" + std::to_string(v); } };
+struct IntCase {
+    int seed;
+    IntCase() : seed(0) {}
+    IntCase(int s) : seed(s) {}
+    std::string call(int v) const { return "Int:" + std::to_string(seed + v); }
+};
+struct DoubleCase {
+    std::string call(double v) const { return "Double:" + std::to_string(v); }
+};
 
+// Inheriting constructors (using I::I;) and an inherited member (using I::call;)
+// through a type-template parameter base.  See issue #2951.
 template <typename I>
 struct Derived : I {
+    using I::I;
     using I::call;
 };
 %}

@@ -8,18 +8,20 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-05-28: wsfulton
-            A using-declaration whose qualifier is a type-template parameter
-            used directly as the base class - the mixin idiom -
+            #2951 A using-declaration whose qualifier is a type-template
+            parameter used directly as the base class - the mixin idiom -
 
                 template <typename I>
                 struct Derived : I {
+                  using I::I;
                   using I::call;
                 };
 
             now has its template parameter substituted during instantiation,
-            so wrappers for the inherited members are emitted on the
-            instantiated derived class. Previously SWIG warned
-            "Nothing known about 'I::call'" and no wrapper was generated.
+            so wrappers for the inherited members - including inheriting
+            constructors via 'using I::I;' - are emitted on the instantiated
+            derived class. Previously SWIG warned "Nothing known about
+            'I::call'" and no wrapper was generated.
 
 2026-05-27: wsfulton
             C++20: parse and support constrained alias templates.  Both the
