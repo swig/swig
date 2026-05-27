@@ -716,6 +716,7 @@ CPP17_TEST_CASES += \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
+	li_std_optional \
 
 # Broken C++17 test cases.
 CPP17_TEST_BROKEN = \
