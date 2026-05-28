@@ -239,8 +239,11 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     {
       Node *cn = firstChild(n);
       while (cn) {
+        /* Capture the next sibling before recursion so iteration survives a child that detaches
+         * itself from the tree, such as an empty pack using-declaration. */
+        Node *next = nextSibling(cn);
         cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
-        cn = nextSibling(cn);
+        cn = next;
       }
     }
   } else if (Equal(nodeType, "classforward")) {
@@ -293,6 +296,52 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
   } else if (Equal(nodeType, "using")) {
     String *name = Getattr(n, "name");
     String *uname = Getattr(n, "uname");
+
+    /* A pack using-declaration ("using Ts::operator()...;") is stored as a single node with the 'pack' flag set.
+     * During %template instantiation each pack type must become a separate concrete using-declaration in the
+     * parse tree, resulting in one using-declaration per template parameter in the pack passed to %template. */
+    if (Getattr(n, "pack") && unexpanded_variadic_parm) {
+      if (!expanded_variadic_parms) {
+        /* Empty pack: the using-declaration introduces no names ([temp.variadic]), so detach the
+         * placeholder node from the instantiated class.  */
+        DohIncref(n); /* keep n alive for Delete */
+        removeNode(n);
+        Delete(n);
+        return;
+      } else {
+        String *pack_name = Getattr(unexpanded_variadic_parm, "name"); /* e.g. "Ts" */
+        String *orig_uname = Copy(uname);
+        String *member_name = Copy(name);
+        Parm *ep = expanded_variadic_parms;
+
+        /* Patch the existing node in place for the first concrete type. */
+        String *new_uname = Copy(orig_uname);
+        Replaceid(new_uname, pack_name, Getattr(ep, "type"));
+        Setattr(n, "uname", new_uname);
+        Setattr(n, "name", member_name);
+        Setattr(n, "sym:needs_symtab", "1"); /* for later call to add_symbols() to add to symbol table */
+        Delattr(n, "pack");
+        ep = nextSibling(ep);
+
+        /* Append one sibling for each remaining concrete type (second, third, ...) */
+        while (ep) {
+          Node *copy = copyNode(n);
+          String *uc = Copy(orig_uname);
+          Replaceid(uc, pack_name, Getattr(ep, "type"));
+          Setattr(copy, "uname", uc);
+          Setattr(copy, "name", Copy(member_name));
+          appendSibling(n, copy);
+          ep = nextSibling(ep);
+        }
+        Delete(orig_uname);
+        Delete(member_name);
+
+        /* Refresh local variables after the in place patch, then fall through to normal handling. */
+        name = Getattr(n, "name");
+        uname = Getattr(n, "uname");
+      }
+    }
+
     if (uname) {
       /* Always add uname to the patchlist so template parameters are substituted, whether the qualifier is a template-id
        * (e.g. 'using BaseTemplate<T>::method;') or a bare type-template parameter used directly as the base

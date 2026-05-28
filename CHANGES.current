@@ -156,6 +156,28 @@ Version 4.5.0 (in progress)
             Use Rf_asS4, SET_STRING_ELT and STRING_ELT instead. These replacement
             APIs have been available since R 2.x so no version guards are required.
 
+2026-05-28: wsfulton
+            C++17: parse and support pack expansion in a using-declaration
+            (P0195), e.g.
+
+              template <typename... Ts>
+              struct Overloaded : Ts... {
+                using Ts::operator()...;
+              };
+
+            The names introduced by the using-declaration depend on an
+            unexpanded template parameter pack, so SWIG accepts the syntax
+            but produces no wrappers until %template instantiates the
+            class.  %template now expands the pack using-declaration into
+            one concrete using-declaration per base type, so the
+            instantiated proxy class has a wrapper for each inherited
+            member - matching how an ordinary 'using Base::name;' inside
+            a class template behaves after instantiation.
+
+            Combined with %rename(call) *::operator(); the proxy of
+            Overloaded<IntCase, DoubleCase> has overloaded call(int) and
+            call(double) methods that dispatch to the matching base.
+
 2026-05-12: wsfulton
             C++20: %template can now instantiate abbreviated function templates
             that mix 'auto' parameters with a variadic explicit template pack,
