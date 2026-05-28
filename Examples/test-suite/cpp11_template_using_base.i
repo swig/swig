@@ -3,11 +3,20 @@
 // Exercises a using-declaration that names a member through a type-template
 // parameter used directly as the base class.
 
+// SWIGWARN_LANG_OVERLOAD_SHADOW: lua only has one numeric type, so the int/double overloads of
+// call shadow each other.  The other warnings suppress per target multiple inheritance notes.
 %warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
             SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
             SWIGWARN_D_MULTIPLE_INHERITANCE,
             SWIGWARN_PHP_MULTIPLE_INHERITANCE,
-            SWIGWARN_RUBY_MULTIPLE_INHERITANCE) Overloaded<IntCase, DoubleCase>;
+            SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
+            SWIGWARN_LANG_OVERLOAD_SHADOW) Overloaded<IntCase, DoubleCase>;
+
+#ifdef SWIGD
+// D supports single inheritance only.  Without this ignore the using-declaration brings call(double)
+// into the D proxy with an 'override' keyword that has no matching base method, a D compile error.
+%ignore DoubleCase::call;
+#endif
 
 %include <std_string.i>
 
