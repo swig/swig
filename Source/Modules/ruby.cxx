@@ -2434,6 +2434,8 @@ public:
     String *markfunc = Getattr(n, "feature:markfunc");
     if (markfunc) {
       Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+    } else if (Swig_directorclass(n)) {
+      Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) swig_mark_%s;\n", klass->name, klass->name);
     } else {
       Printf(klass->init, "SwigClass%s.mark = 0;\n", klass->name);
     }
@@ -2829,6 +2831,43 @@ public:
   }
 
   virtual int classDirectorEnd(Node *n) {
+    String *classname = Swig_class_name(n);
+    validate_const_name(Char(classname), "class");
+    String *classtype = SwigType_namestr(Getattr(n, "classtype"));
+
+    SwigType *smart = Getattr(n, "smart");
+    if (smart) {
+      String *smartnamestr = SwigType_namestr(smart);
+      Printf(f_directors_helpers,
+             "static void swig_mark_%s(void *ptr) {\n"
+             "  if (ptr) {\n"
+             "    %s *smartptr = reinterpret_cast<%s *>(ptr);\n"
+             "    %s *d = smartptr->get();\n"
+             "    if (d) {\n"
+             "      Swig::Director *dir = SWIG_DIRECTOR_CAST(d);\n"
+             "      if (dir) rb_gc_mark(dir->swig_get_self());\n"
+             "    }\n"
+             "  }\n"
+             "}\n\n",
+             classname,
+             smartnamestr,
+             smartnamestr,
+             classtype);
+      Delete(smartnamestr);
+    } else {
+      Printf(f_directors_helpers,
+             "static void swig_mark_%s(void *ptr) {\n"
+             "  %s *d = reinterpret_cast<%s *>(ptr);\n"
+             "  Swig::Director *dir = SWIG_DIRECTOR_CAST(d);\n"
+             "  if (dir) rb_gc_mark(dir->swig_get_self());\n"
+             "}\n\n",
+             classname,
+             classtype,
+             classtype);
+    }
+
+    Delete(classtype);
+    Delete(classname);
     Printf(f_directors_h, "};\n\n");
     return Language::classDirectorEnd(n);
   }

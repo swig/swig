@@ -6,11 +6,11 @@
   of the underlying Ruby object with the GC.
 
   It can be used if you want to create STL containers of VALUEs, such as:
-  
+
      std::vector< GC_VALUE >;
 
   or as a member variable:
-  
+
      struct A {
        GC_VALUE _obj;
        A(VALUE o) : _obj(o) {
@@ -34,62 +34,88 @@
    
 */
 
-%fragment("GC_VALUE_definition","header") {
+
+%fragment("GC_VALUE_definition","header") %{
+#include <map>
 namespace swig {
   class SwigGCReferences {
-    VALUE _hash;
+    VALUE _self;
 
-    SwigGCReferences() : _hash(Qnil) {
+    SwigGCReferences() : _self(Qnil) {
     }
     ~SwigGCReferences() {
-      if (_hash != Qnil)
-        rb_gc_unregister_address(&_hash);
+      if (_self != Qnil)
+        rb_gc_unregister_address(&_self);
     }
     static void EndProcHandler(VALUE) {
-      // Ruby interpreter ending - _hash can no longer be accessed.
+      // Ruby interpreter ending - _self can no longer be accessed.
       SwigGCReferences &s_references = instance();
-      s_references._hash = Qnil;
+      s_references._self = Qnil;
     }
+
+    typedef std::map<VALUE, unsigned> ref_map_t;
+
+    static void gcrefs_mark(void *ptr) {
+      ref_map_t *refs = static_cast<ref_map_t *>(ptr);
+      for (ref_map_t::iterator it = refs->begin(); it != refs->end(); ++it) {
+        rb_gc_mark(it->first);
+      }
+    }
+    static void gcrefs_free(void *ptr) {
+      delete static_cast<ref_map_t *>(ptr);
+    }
+    static size_t gcrefs_size(const void *ptr) {
+      return sizeof(ref_map_t);
+    }
+
   public:
     static SwigGCReferences& instance() {
-      // Hash of all GC_VALUE's currently in use
+      // Map of all GC_VALUE's currently in use
       static SwigGCReferences s_references;
 
       return s_references;
     }
     static void initialize() {
       SwigGCReferences &s_references = instance();
-      if (s_references._hash == Qnil) {
+      if (s_references._self == Qnil) {
         rb_set_end_proc(&EndProcHandler, Qnil);
-        s_references._hash = rb_hash_new();
-        rb_gc_register_address(&s_references._hash);
+        ref_map_t *refs = new ref_map_t();
+        static const rb_data_type_t swig_gcrefs_type = {
+          "SwigGCReferences",
+          { SwigGCReferences::gcrefs_mark, SwigGCReferences::gcrefs_free, SwigGCReferences::gcrefs_size, 0 },
+          0, 0
+#ifdef RUBY_TYPED_FREE_IMMEDIATELY
+          , RUBY_TYPED_FREE_IMMEDIATELY
+#endif
+        };
+        s_references._self = TypedData_Wrap_Struct(rb_cObject, &swig_gcrefs_type, refs);
+        rb_gc_register_address(&s_references._self);
       }
     }
     void GC_register(VALUE& obj) {
       if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
         return;
-      if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(_hash, obj);
-        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
-        ++n;
-        rb_hash_aset(_hash, obj, INT2NUM(n));
+      if (_self == Qnil) return;
+      ref_map_t *refs = static_cast<ref_map_t *>(RTYPEDDATA_DATA(_self));
+      ref_map_t::iterator it = refs->find(obj);
+      if (it != refs->end()) {
+        it->second++;
+      } else {
+        (*refs)[obj] = 1;
       }
     }
     void GC_unregister(const VALUE& obj) {
       if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
         return;
-      // this test should not be needed but I've noticed some very erratic
-      // behavior of none being unregistered in some very rare situations.
       if (BUILTIN_TYPE(obj) == T_NONE)
         return;
-      if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(_hash, obj);
-        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
-        --n;
-        if (n)
-          rb_hash_aset(_hash, obj, INT2NUM(n));
-        else
-          rb_hash_delete(_hash, obj);
+      if (_self == Qnil) return;
+      ref_map_t *refs = static_cast<ref_map_t *>(RTYPEDDATA_DATA(_self));
+      ref_map_t::iterator it = refs->find(obj);
+      if (it != refs->end()) {
+        if (--it->second == 0) {
+          refs->erase(it);
+        }
       }
     }
   };
@@ -308,7 +334,7 @@ namespace swig {
 
 } // namespace swig
 
-} // %fragment(GC_VALUE_definition)
+%} // %fragment(GC_VALUE_definition)
 
 
 
