@@ -108,6 +108,7 @@
 #define WARN_CPP11_DECLTYPE                          344
 #define WARN_CPP14_AUTO                              345
 #define WARN_CPP11_AUTO                              346
+#define WARN_CPP17_CLASS_TEMPLATE_ARGUMENT_DEDUCTION 347
 
 #define WARN_IGNORE_OPERATOR_NEW                     350 /* new */
 #define WARN_IGNORE_OPERATOR_DELETE                  351 /* delete */

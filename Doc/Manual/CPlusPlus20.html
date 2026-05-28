@@ -22,6 +22,7 @@
 <li><a href="#CPlusPlus20_type_constrained_template_parameters">Type constrained template parameters</a>
 <li><a href="#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
 <li><a href="#CPlusPlus20_variable_templates">Variable templates initialised from a requires-expression</a>
+<li><a href="#CPlusPlus20_class_template_argument_deduction">Class template argument deduction</a>
 </ul>
 <li><a href="#CPlusPlus20_preprocessor_changes">Preprocessor changes</a>
 <ul>
@@ -790,6 +791,30 @@ not idiomatic.
 <p>
 <b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse a
 <tt>requires</tt>-expression in expression position.
+</p>
+
+<H3><a name="CPlusPlus20_class_template_argument_deduction">10.2.9 Class template argument deduction</a></H3>
+
+
+<p>
+C++20 (P1816) extended
+<a href="CPlusPlus17.html#CPlusPlus17_class_template_argument_deduction">class template argument deduction (CTAD)</a>
+to aggregates - which have no constructors to deduce from - so an aggregate variable such as
+the <a href="CPlusPlus17.html#CPlusPlus17_using_pack_expansion">Overloaded</a> helper can be
+declared with a bare class template name and no explicit deduction guide:
+</p>
+
+<div class="code">
+<pre>
+Overloaded ov{ IntCase{}, DoubleCase{} };   // C++20 aggregate CTAD
+</pre>
+</div>
+
+<p>
+SWIG handles aggregate CTAD exactly as it handles any other CTAD variable: it performs no
+template argument deduction, so it issues Warning 347 and skips the variable.  See
+<a href="CPlusPlus17.html#CPlusPlus17_class_template_argument_deduction">Class template argument deduction</a>
+in the C++17 chapter for details.
 </p>
 
 <H2><a name="CPlusPlus20_preprocessor_changes">10.3 Preprocessor changes</a></H2>

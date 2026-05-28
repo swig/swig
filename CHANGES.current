@@ -178,6 +178,27 @@ Version 4.5.0 (in progress)
             Overloaded<IntCase, DoubleCase> has overloaded call(int) and
             call(double) methods that dispatch to the matching base.
 
+2026-05-14: wsfulton
+            C++17: detect class template argument deduction (CTAD) in a
+            variable declaration, where a variable is declared with a bare
+            class template name and the template arguments are deduced from
+            the initializer, e.g.
+
+              template <typename T>
+              struct Box {
+                T value;
+                Box(T v) : value(v) {}
+              };
+
+              Box bx{42};   // CTAD deduces Box<int> from the constructor
+
+            (and, with C++20 P1816, also for aggregates with no deduction
+            guide).  CTAD is only valid for variables, so this is the only
+            declaration kind affected.  SWIG performs no template argument
+            deduction, so it now issues Warning 347 and skips the variable
+            instead of generating uncompilable wrapper code that names the
+            template without arguments.
+
 2026-05-12: wsfulton
             C++20: %template can now instantiate abbreviated function templates
             that mix 'auto' parameters with a variadic explicit template pack,
