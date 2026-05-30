@@ -40,4 +40,21 @@ Box bx{42};
 
 // An ordinary function declared alongside the skipped CTAD variables still wraps.
 inline int unaffected(int x) { return x + 1; }
+
+// C++17 also allows user-defined deduction guides.  A deduction guide is not a function,
+// has no body and emits no symbol - it only steers argument deduction at compile time - so SWIG
+// parses and discards it.  The non-template form, the templated form written under a template
+// parameter list and the 'explicit' specifier are all accepted.
+template <typename T>
+struct Bag {
+    T value;
+    Bag(T v) : value(v) {}
+};
+
+Bag(int) -> Bag<int>;                                // non-template deduction guide
+template <typename T> Bag(T *) -> Bag<T>;            // templated guide under a template parameter list
+template <typename T> explicit Bag(T, T) -> Bag<T>;  // explicit deduction guide
+
+// A declaration following the deduction guides still wraps, proving parsing recovers.
+inline int after_guides(int x) { return x + 2; }
 %}

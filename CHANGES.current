@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-30: wsfulton
+            C++17: parse user-defined deduction guides used for class
+            template argument deduction, for example:
+
+                template <typename T> struct Box { Box(T); };
+
+                Box(int) -> Box<int>;                     // non-template deduction guide
+                template <typename T> Box(T) -> Box<T>;   // templated deduction guide
+
+            A guide is written at the same scope as the class template, either
+            as a non-template declaration or, when itself a template, under a
+            template parameter list.  A deduction guide is not a function and
+            emits no symbol - it only steers argument deduction at compile time -
+            so there is nothing to wrap and SWIG parses and ignores it.
+            Previously any deduction guide resulted in a syntax error.
+
 2026-05-28: wsfulton
             #2951 A using-declaration whose qualifier is a type-template
             parameter used directly as the base class - the mixin idiom -
