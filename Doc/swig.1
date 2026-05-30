@@ -1,0 +1,603 @@
+.Dd May 2026
+.Dt SWIG 1
+.Os
+.Sh NAME
+.Nm swig
+.Nd Simplified Wrapper and Interface Generator
+.Sh SYNOPSIS
+.Nm
+.Op Ar OPTIONS
+.Ar file
+.Sh DESCRIPTION
+SWIG is a software development tool that connects programs written in C and C++
+with a variety of high\-level programming languages.
+.Sh OPTIONS
+.Ss Supported Target Language Options
+.Bl -tag -width 6n
+.It Fl csharp
+Generate C# wrappers
+.It Fl d
+Generate D wrappers
+.It Fl go
+Generate Go wrappers
+.It Fl guile
+Generate Guile wrappers
+.It Fl java
+Generate Java wrappers
+.It Fl javascript
+Generate Javascript wrappers
+.It Fl lua
+Generate Lua wrappers
+.It Fl octave
+Generate Octave wrappers
+.It Fl perl5
+Generate Perl 5 wrappers
+.It Fl php7
+Generate PHP 8 or later wrappers
+.It Fl python
+Generate Python wrappers
+.It Fl r
+Generate R (aka GNU S) wrappers
+.It Fl ruby
+Generate Ruby wrappers
+.It Fl scilab
+Generate Scilab wrappers
+.It Fl tcl8
+Generate Tcl 8 wrappers
+.It Fl xml
+Generate XML wrappers
+.El
+.Ss General Options
+.Bl -tag -width 6n
+.It Fl addextern
+Add extra extern declarations
+.It Fl c++
+Enable C++ processing
+.It Fl co Ar file
+Check
+.Ar file
+out of the SWIG library
+.It Fl copyctor
+Automatically generate copy constructors wherever possible
+.It Fl cpperraswarn
+Treat the preprocessor #error statement as #warning (default)
+.It Fl cppext Ar ext
+Change file extension of generated C++ files to
+.Ar ext
+(default is cxx)
+.It Fl copyright
+Display copyright notices
+.It Fl debug\-classes
+Display information about the classes found in the interface
+.It Fl debug\-module Ar n
+Display module parse tree at stages 1\[en]4,
+.Ar n
+is a csv list of stages
+.It Fl debug\-symtabs
+Display symbol tables information
+.It Fl debug\-symbols
+Display target language symbols in the symbol tables
+.It Fl debug\-csymbols
+Display C symbols in the symbol tables
+.It Fl debug\-lsymbols
+Display target language layer symbols
+.It Fl debug\-quiet
+Display less parse tree node debug info when using other
+.Fl debug
+options
+.It Fl debug\-tags
+Display information about the tags found in the interface
+.It Fl debug\-template
+Display information for debugging templates
+.It Fl debug\-top Ar n
+Display entire parse tree at stages 1\[en]4,
+.Ar n
+is a csv list of stages
+.It Fl debug\-typedef
+Display information about the types and typedefs in the interface
+.It Fl debug\-typemap
+Display typemap debugging information
+.It Fl debug\-tmsearch
+Display typemap search debugging information
+.It Fl debug\-tmused
+Display typemaps used debugging information
+.It Fl directors
+Turn on director mode for all the classes, mainly for testing
+.It Fl dirprot
+Turn on wrapping of protected members for director classes (default)
+.It Fl D Ns Ar symbol Ns Op Cm = Ns Ar value
+Define symbol
+.Ar symbol
+(for conditional compilation)
+.It Fl E
+Preprocess only, does not generate wrapper code
+.It Fl external\-runtime Ar file
+Export the SWIG runtime stack
+.It Fl fakeversion Ar v
+Make SWIG fake the program version number to
+.Ar v
+.It Fl fcompact
+Compile in compact mode
+.It Fl features Ar list
+Set global features, where
+.Ar list
+is a comma separated list of features, eg
+.Fl features Cm directors,autodoc=1
+.br
+If no explicit value is given to the feature, a default of 1 is used
+.It Fl fastdispatch
+Enable fast dispatch mode to produce faster overload dispatcher code
+.It Fl Fmicrosoft
+Display error/warning messages in Microsoft format
+.It Fl Fstandard
+Display error/warning messages in commonly used format
+.It Fl fvirtual
+Compile in virtual elimination mode
+.It Fl help
+Display help
+.It Fl I\-
+Don\[cq]t search the current directory
+.It Fl I Ns Ar dir
+Look for SWIG files in directory
+.Ar dir
+.It Fl ignoremissing
+Ignore missing include files
+.It Fl importall
+Follow all #include statements as imports
+.It Fl includeall
+Follow all #include statements
+.It Fl l Ns Ar ifile
+Include SWIG library file
+.Ar ifile
+.It Fl macroerrors
+Report errors inside macros
+.It Fl M
+List all dependencies
+.It Fl MD
+Is equivalent to
+.Fl M MF Ar file ,
+except
+.Fl E
+is not implied
+.It Fl MF Ar file
+Generate dependencies into
+.Ar file
+and continue generating wrappers
+.It Fl MM
+List dependencies, but omit files in SWIG library
+.It Fl MMD
+Like
+.Fl MD ,
+but omit files in SWIG library
+.It Fl module Ar name
+Set module name to
+.Ar name
+.It Fl MP
+Generate phony targets for all dependencies
+.It Fl MT Ar target
+Set the target of the rule emitted by dependency generation
+.It Fl nocontract
+Turn off contract checking
+.It Fl nocpperraswarn
+Do not treat the preprocessor #error statement as #warning
+.It Fl nodefaultctor
+Do not generate implicit default constructors
+.It Fl nodefaultdtor
+Do not generate implicit default destructors
+.It Fl nodirprot
+Do not wrap director protected members
+.It Fl noexcept
+Do not wrap exception specifiers
+.It Fl nofastdispatch
+Disable fast dispatch mode (default)
+.It Fl nopreprocess
+Skip the preprocessor step
+.It Fl notemplatereduce
+Disable reduction of the typedefs in templates
+.It Fl O
+Enable the optimization options:
+.Fl fastdispatch fvirtual
+.It Fl o Ar outfile
+Set name of C/C++ output file to
+.Ar outfile
+.It Fl oh Ar headfile
+Set name of C++ output header file for directors to
+.Ar headfile
+.It Fl outcurrentdir
+Set default output dir to current dir instead of input file\[cq]s path
+.It Fl outdir Ar dir
+Set language specific files output directory to
+.Ar dir
+.It Fl pcreversion
+Display PCRE2 version information
+.It Fl small
+Compile in virtual elimination and compact mode
+.It Fl std= Ns Ar standard
+Set the C or C++ language
+.Ar standard
+for inputs
+.It Fl swiglib
+Report location of SWIG library and exit
+.It Fl templatereduce
+Reduce all the typedefs in templates
+.It Fl U Ns Ar symbol
+Undefine symbol
+.Ar symbol
+.It Fl v
+Run in verbose mode
+.It Fl version
+Display SWIG version number
+.It Fl Wall
+Remove all warning suppression, also implies
+.Fl Wextra
+.It Fl Wallkw
+Enable keyword warnings for all the supported languages
+.It Fl Werror
+Treat warnings as errors
+.It Fl Wextra
+Adds the following additional warnings: 309,403,405,512,321,322
+.It Fl w Ns Ar list
+Suppress/add warning messages, eg
+.Fl w401,+321
+\[em] see Warnings.html
+.It Fl xmlout Ar file
+Write XML version of the parse tree to
+.Ar file
+after normal processing
+.El
+.Ss C# Options (available with Fl csharp )
+.Bl -tag -width 6n
+.It Fl dllimport Ar dl
+Override DllImport attribute name to
+.Ar dl
+.It Fl namespace Ar nm
+Generate wrappers into C# namespace
+.Ar nm
+.It Fl noproxy
+Generate the low\-level functional interface instead of proxy classes
+.It Fl oldvarnames
+Old intermediary method names for variable wrappers
+.It Fl outfile Ar file
+Write all C# into a single
+.Ar file
+located in the output directory
+.El
+.Ss D Options (available with Fl d )
+.Bl -tag -width 6n
+.It Fl d2
+Generate code for D2/Phobos (The default, left for backward compatibility)
+.It Fl package Ar pkg
+Write generated D modules into package
+.Ar pkg
+.It Fl splitproxy
+Write each D type to a dedicated file instead of generating a single proxy D
+module.
+.It Fl wrapperlibrary Ar wl
+Set the name of the wrapper library to
+.Ar wl
+.El
+.Ss Go Options (available with Fl go )
+.Bl -tag -width 6n
+.It Fl gccgo
+Generate code for gccgo rather than gc
+.It Fl go\-pkgpath Ar p
+Like gccgo
+.Fl fgo\-pkgpath
+option
+.It Fl go\-prefix Ar p
+Like gccgo
+.Fl fgo\-prefix
+option
+.It Fl import\-prefix Ar p
+Prefix to add to %import directives
+.It Fl intgosize Ar s
+Set size of Go int type\[em]32 or 64 bits
+.It Fl no\-unique\-id
+Do not add unique IDs to generated names
+.It Fl package Ar name
+Set name of the Go package to
+.Ar name
+.It Fl unique\-id
+Add unique IDs to generated names (default)
+.It Fl use\-shlib
+Force use of a shared library
+.It Fl soname Ar name
+Set shared library holding C/C++ code to
+.Ar name
+.El
+.Ss Guile Options (available with Fl guile )
+.Bl -tag -width 6n
+.It Fl emitsetters
+Emit procedures\-with\-setters for variables and structure slots.
+.It Fl emitslotaccessors
+Emit accessor methods for all GOOPS slots
+.It Fl exportprimitive
+Add the (export .\|.\|.) code from scmstub into the GOOPS file.
+.It Fl goopsprefix Ar prefix
+Prepend
+.Ar prefix
+to all goops identifiers
+.It Fl Linkage Ar lstyle
+Use linkage protocol
+.Ar lstyle
+(default \fBsimple\fP).
+Use \fBmodule\fP for native Guile module linking (requires Guile \[>=] 1.5.0).
+Use \fBpassive\fP for passive linking (no C\-level module\-handling code), or
+\fBhobbit\fP for hobbit modules.
+.It Fl onlysetters
+Don\[cq]t emit traditional getter and setter procedures for structure slots,
+only emit procedures\-with\-setters.
+.It Fl package Ar name
+Set the path of the module to
+.Ar name
+(default NULL)
+.It Fl prefix Ar name
+Use
+.Ar name
+as prefix [default "gswig_"]
+.It Fl procdoc Ar file
+Output procedure documentation to
+.Ar file
+.It Fl procdocformat Ar format
+Output procedure documentation in
+.Ar format ;
+one of \fBguile\-1.4\fP,
+\fBplain\fP, \fBtexinfo\fP
+.It Fl proxy
+Export GOOPS class definitions
+.It Fl primsuffix Ar suffix
+Name appended to primitive module when exporting GOOPS classes.
+(default = "primitive")
+.It Fl scmstub
+Output Scheme file with module declaration and exports; only with \fBpassive\fP
+and \fBsimple\fP linkage
+.It Fl useclassprefix
+Prepend the class name to all goops identifiers
+.El
+.Ss Java Options (available with Fl java )
+.Bl -tag -width 6n
+.It Fl doxygen
+Convert C++ doxygen comments to JavaDoc comments in proxy classes
+.It Fl debug\-doxygen\-parser
+Display doxygen parser module debugging information
+.It Fl debug\-doxygen\-translator
+Display doxygen translator module debugging information
+.It Fl nopgcpp
+Suppress premature garbage collection prevention parameter
+.It Fl noproxy
+Generate the low\-level functional interface instead
+of proxy classes
+.It Fl oldvarnames
+Old intermediary method names for variable wrappers
+.It Fl package Ar name
+Set name of the Java package to
+.Ar name
+.El
+.Ss Javascript Options (available with Fl javascript )
+.Bl -tag -width 6n
+.It Fl jsc
+creates a JavascriptCore extension
+.It Fl v8
+creates a v8 extension
+.It Fl node
+creates a node.js extension
+.It Fl napi
+creates a NAPI extension
+.It Fl debug\-codetemplates
+generates information about the origin of code templates
+.El
+.Ss Lua Options (available with Fl lua )
+.Bl -tag -width 6n
+.It Fl elua
+Generates LTR compatible wrappers for smaller devices running elua
+.It Fl eluac
+LTR compatible wrappers in "crass compress" mode for elua
+.It Fl elua\-emulate
+Emulates behaviour of eLua.
+Useful only for testing.
+Incompatible with
+.Fl elua
+/
+.Fl eluac
+options.
+.It Fl nomoduleglobal
+Do not register the module name as a global variable but return the module table
+from calls to require.
+.El
+.Ss Octave Options (available with Fl octave )
+.Bl -tag -width 6n
+.It Fl globals Ar name
+Set
+.Ar name
+used to access C global variables [default: \fBcvar\fP].
+Use \[oq].\[cq] to load C global variables into module namespace
+.It Fl opprefix Ar str
+Prefix
+.Ar str
+for global operator functions [default: \fBop_\fP]
+.El
+.Ss Perl 5 Options (available with Fl perl5 )
+.Bl -tag -width 6n
+.It Fl compat
+Compatibility mode
+.It Fl const
+Wrap constants as constants and not variables (implies
+.Fl proxy )
+.It Fl nopm
+Do not generate the .pm file
+.It Fl noproxy
+Don\[cq]t create proxy classes
+.It Fl proxy
+Create proxy classes (enabled by default)
+.It Fl static
+Omit code related to dynamic loading
+.El
+.Ss PHP Options (available with Fl php7 )
+.Bl -tag -width 6n
+.It Fl prefix Ar prefix
+Prepend
+.Ar prefix
+to all class names in PHP wrappers
+.El
+.Ss Python Options (available with Fl python )
+.Bl -tag -width 6n
+.It Fl builtin
+Create Python built\-in types rather than proxy classes, for better performance
+.It Fl castmode
+Enable the casting mode, which allows implicit cast between types in Python
+.It Fl debug\-doxygen\-parser
+Display doxygen parser module debugging information
+.It Fl debug\-doxygen\-translator
+Display doxygen translator module debugging information
+.It Fl dirvtable
+Generate a pseudo virtual table for directors for faster dispatch
+.It Fl doxygen
+Convert C++ doxygen comments to pydoc comments in proxy classes
+.It Fl extranative
+Return extra native wrappers for C++ std containers wherever possible
+.It Fl fastproxy
+Use fast proxy mechanism for member methods
+.It Fl flatstaticmethod
+Generate additional flattened Python methods for C++ static methods
+.It Fl globals Ar name
+Set
+.Ar name
+used to access C global variable (default: \fBcvar\fP)
+.It Fl interface Ar mod
+level C/C++ module name to
+.Ar mod
+(default: module name prefixed by \fB_\fP)
+.It Fl keyword
+Use keyword arguments
+.It Fl nofastunpack
+Use traditional UnpackTuple method to parse the argument functions
+.It Fl nogil
+Enable free\-threading if supported by the Python interpreter
+.It Fl noh
+Don\[cq]t generate the output header file
+.It Fl noproxy
+Don\[cq]t generate proxy classes
+.It Fl nortti
+Disable the use of the native C++ RTTI with directors
+.It Fl nothreads
+Disable thread support for the entire interface
+.It Fl olddefs
+Keep the old method definitions when using
+.Fl fastproxy
+.It Fl relativeimport
+Use relative Python imports
+.It Fl threads
+Add thread support for all the interface
+.It Fl O
+Enable the following optimization options:
+.Fl fastdispatch fastproxy fvirtual
+.El
+.Ss R Options (available with Fl r )
+.Bl -tag -width 6n
+.It Fl copystruct
+Emit R code to copy C structs (on by default)
+.It Fl debug
+Output debug
+.It Fl dll Ar name
+Name of the DLL (without the .dll or .so suffix).
+Default is the module name.
+.It Fl gc
+Aggressive garbage collection
+.It Fl memoryprof
+Add memory profile
+.It Fl namespace
+Output NAMESPACE file
+.It Fl no\-init\-code
+Turn off the generation of the R_init_\fIpkgname\fP code (registration
+information still generated)
+.It Fl package Ar name
+Package name for the PACKAGE argument of the R .Call()
+invocations.
+Default is the module name.
+.El
+.Ss Ruby Options (available with Fl ruby )
+.Bl -tag -width 6n
+.It Fl autorename
+Enable renaming of classes and methods to follow Ruby coding standards
+.It Fl globalmodule
+Wrap everything into the global module
+.It Fl initname Ar name
+Set entry function to Init_\fIname\fP (used by \[oq]require\[cq])
+.It Fl minherit
+Attempt to support multiple inheritance
+.It Fl noautorename
+Disable renaming of classes and methods (default)
+.It Fl prefix Ar name
+Set a prefix
+.Ar name
+to be prepended to all names
+.El
+.Ss Scilab Options (available with Fl scilab )
+.Bl -tag -width 6n
+.It Fl builder
+Generate a Scilab builder script
+.It Fl buildercflags Ar cflags
+Add
+.Ar cflags
+to the builder compiler flags
+.It Fl builderflagscript Ar file
+Set the Scilab script
+.Ar file
+to use by builder to configure build flags
+.It Fl builderldflags Ar ldflags
+Add
+.Ar ldflags
+to the builder linker flags
+.It Fl buildersources Ar files
+Add the (comma separated) files
+.Ar files
+to the builder sources
+.It Fl builderverbositylevel Ar level
+Set the builder verbosity level to
+.Ar level
+(default 0: off, 2: high)
+.It Fl gatewayxml Ar gateway_id
+Generate gateway xml with the given
+.Ar gateway_id
+.It Fl gatewayxml6
+Generate gateway xml for Scilab 6
+.El
+.Ss Tcl 8 Options (available with Fl tcl8 )
+.Bl -tag -width 6n
+.It Fl itcl
+Enable ITcl support
+.It Fl nosafe
+Leave out SafeInit module function.
+.It Fl prefix Ar name
+Set a prefix
+.Ar name
+to be prepended to all names
+.It Fl namespace
+Build module into a Tcl 8 namespace
+.It Fl pkgversion
+Set package version
+.El
+.Ss XML Options (available with Fl xml )
+.Bl -tag -width 6n
+.It Fl xmllite
+More lightweight version of XML
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width 6n
+.It Ev SWIG_FEATURES
+Options can also be defined using the SWIG_FEATURES environment variable, for
+example:
+.Bd -literal -offset indent
+$ SWIG_FEATURES=\[dq]-Wall\[dq]
+$ export SWIG_FEATURES
+$ swig -python interface.i
+.Ed
+is equivalent to:
+.Bd -literal -offset indent
+$ swig -Wall -python interface.i
+.Ed
+.El
+.Sh SEE ALSO
+Please see
+.Lk https://www.swig.org
+for reporting bugs and further information
