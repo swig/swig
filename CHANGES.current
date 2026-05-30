@@ -7,6 +7,31 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-30: erezgeva
+            [Lua] #3394 Drop support for Lua 5.0 and Lua 5.1.
+            Minimum supported Lua version is now 5.2.
+            SWIG no longer compiles wrappers for Lua 5.0 or 5.1
+            (this includes LuaJIT consumers still using the 5.1 ABI).
+
+            Removed -squash-bases command-line option
+            (and the SWIG_LUA_SQUASH_BASES runtime path).
+            The implementation was broken;
+            classes now always use the standard base-lookup path.
+
+            Using this command-line option will generate error
+
+                swig error : Unrecognized option -squash-bases
+
+            Removed deprecated -no-old-metatable-bindings command-line option.
+            Old-style metatable bindings are always generated,
+            matching the long-standing default.
+
+            Using this command-line option will generate error
+
+                swig error : Unrecognized option -no-old-metatable-bindings
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-05-30: wsfulton
             C++17: parse user-defined deduction guides used for class
             template argument deduction, for example:
