@@ -1,4 +1,5 @@
 require("director_enum")
+catch_undef_globs() -- catch "undefined" global variables
 
 -- Test director with enum parameters
 

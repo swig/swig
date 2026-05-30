@@ -97,7 +97,11 @@ static int nomoduleglobal = 0;
 static int elua_ltr = 0;
 static int eluac_ltr = 0;
 static int elua_emulate = 0;
-static int old_compatible_names = 1;  // This flag can temporarily disable backward compatible names generation
+// Toggle for generating backward-compatible ClassName_member style names alongside the
+// scoped form. Always 1 at module scope: classHandler() and enumDeclaration() locally
+// save/restore around 0 when descending into an %nspace context, suppressing the
+// duplicate names for static members, constants and enum values nested in that scope.
+static int old_compatible_names = 1;
 
 /* NEW LANGUAGE NOTE:***********************************************
  To add a new language, you need to derive your class from

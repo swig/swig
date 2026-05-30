@@ -1,4 +1,4 @@
-cpp17_string_view=require_to_globs("cpp17_string_view")
+require_to_globs("cpp17_string_view")
 catch_undef_globs() -- catch "undefined" global variables
 
 -- Checking expected use of %typemap(in) std::string_view {}
