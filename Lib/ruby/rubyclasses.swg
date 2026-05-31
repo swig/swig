@@ -36,60 +36,77 @@
 
 %fragment("GC_VALUE_definition","header") {
 namespace swig {
+  // Registry of the Ruby objects that GC_VALUE holds as raw VALUEs in C++.
+  // Keeping a reference here keeps them alive; marking them with the pinning
+  // mark rb_gc_mark() (rather than rb_gc_mark_movable()) also stops Ruby's GC
+  // compaction from relocating them, which would otherwise leave the C++ copies
+  // dangling. The registry is a Ruby st_table keyed by the VALUE itself, so
+  // registering/unregistering never dispatches a method on the object (unlike a
+  // Ruby Hash) and is therefore safe even for an object pending collection.
   class SwigGCReferences {
-    VALUE _hash;
+    st_table *_table;
+    VALUE _marker;
 
-    SwigGCReferences() : _hash(Qnil) {
+    SwigGCReferences() : _table(0), _marker(Qnil) {
     }
     ~SwigGCReferences() {
-      if (_hash != Qnil)
-        rb_gc_unregister_address(&_hash);
     }
     static void EndProcHandler(VALUE) {
-      // Ruby interpreter ending - _hash can no longer be accessed.
+      // Ruby interpreter ending - the registry can no longer be accessed.
       SwigGCReferences &s_references = instance();
-      s_references._hash = Qnil;
+      s_references._table = 0;
+    }
+    static int MarkEntry(st_data_t key, st_data_t, st_data_t) {
+      rb_gc_mark((VALUE)key);
+      return ST_CONTINUE;
+    }
+    static void MarkReferences(void *) {
+      SwigGCReferences &s_references = instance();
+      if (s_references._table)
+        st_foreach(s_references._table, SWIG_RUBY_INT_ANYARGS_FUNC(MarkEntry), 0);
     }
   public:
     static SwigGCReferences& instance() {
-      // Hash of all GC_VALUE's currently in use
+      // Registry of all GC_VALUE's currently in use
       static SwigGCReferences s_references;
 
       return s_references;
     }
     static void initialize() {
       SwigGCReferences &s_references = instance();
-      if (s_references._hash == Qnil) {
+      if (!s_references._table) {
         rb_set_end_proc(&EndProcHandler, Qnil);
-        s_references._hash = rb_hash_new();
-        rb_gc_register_address(&s_references._hash);
+        s_references._table = st_init_numtable();
+        // A hidden object whose only purpose is to run MarkReferences during GC;
+        // registering its address keeps the object and mark hook alive. The data
+        // pointer must be non-NULL: Ruby's GC skips a Data object's mark function
+        // when its DATA_PTR is NULL.
+        s_references._marker = Data_Wrap_Struct(rb_cObject, VOIDFUNC(MarkReferences), 0, &s_references);
+        rb_gc_register_address(&s_references._marker);
       }
     }
     void GC_register(VALUE& obj) {
       if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
         return;
-      if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(_hash, obj);
-        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 0;
-        ++n;
-        rb_hash_aset(_hash, obj, INT2NUM(n));
+      if (_table) {
+        st_data_t count = 0;
+        st_lookup(_table, (st_data_t)obj, &count);
+        st_insert(_table, (st_data_t)obj, (st_data_t)(count + 1));
       }
     }
     void GC_unregister(const VALUE& obj) {
       if (FIXNUM_P(obj) || SPECIAL_CONST_P(obj) || SYMBOL_P(obj))
         return;
-      // this test should not be needed but I've noticed some very erratic
-      // behavior of none being unregistered in some very rare situations.
-      if (BUILTIN_TYPE(obj) == T_NONE)
-        return;
-      if (_hash != Qnil) {
-        VALUE val = rb_hash_aref(_hash, obj);
-        unsigned n = FIXNUM_P(val) ? NUM2UINT(val) : 1;
-        --n;
-        if (n)
-          rb_hash_aset(_hash, obj, INT2NUM(n));
-        else
-          rb_hash_delete(_hash, obj);
+      if (_table) {
+        st_data_t count = 0;
+        if (st_lookup(_table, (st_data_t)obj, &count)) {
+          if (count > 1) {
+            st_insert(_table, (st_data_t)obj, (st_data_t)(count - 1));
+          } else {
+            st_data_t key = (st_data_t)obj;
+            st_delete(_table, &key, 0);
+          }
+        }
       }
     }
   };

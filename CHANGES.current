@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-05-31: wsfulton
+            [Ruby] #3385 Fix segmentation fault when using STL containers of
+            swig::GC_VALUE - the type that wraps an arbitrary Ruby object - such
+            as std::vector<swig::GC_VALUE> or a std::map or std::set with a
+            swig::BinaryPredicate comparator proc, while the Ruby 3.x garbage
+            collector compacts the heap (GC.compact or GC.auto_compact).  The
+            Ruby objects stored in such containers are now retained correctly
+            across a compaction, instead of occasionally crashing the interpreter.
+
 2026-05-30: erezgeva
             [Lua] #3394 Drop support for Lua 5.0 and Lua 5.1.
             Minimum supported Lua version is now 5.2.
