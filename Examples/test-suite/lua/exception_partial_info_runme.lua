@@ -5,5 +5,5 @@ imp=exception_partial_info.Impl()
 
 -- trying to call throwing methods
 -- should fail
-assert(pcall(function() imp:f1() end)==false)
-assert(pcall(function() imp:f2() end)==false)
+assert(not pcall(function() imp:f1() end))
+assert(not pcall(function() imp:f2() end))

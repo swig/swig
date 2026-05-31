@@ -1,0 +1,35 @@
+local v=require("template_partial_specialization_more")
+
+-- (1)
+local vi = v.VectInt()
+local num = v.FooVectIntDouble():partially_specialized(222)
+v.FooShortPtrDouble():pointer_specialize(0)
+vi = v.FooVectVectInt():partially_specialized(vi)
+
+-- (2)
+v.HeyInts():special_hey()
+
+-- (3)
+v.XX1():special1()
+v.XX2():special2()
+v.XX3():special3()
+
+-- (4)
+v.PartiallerPrimary():primary(0, 0)
+v.PartiallerSpecial():special(v.PlainStruct(), 999, true)
+
+-- (5)
+v.LystDouble():primary(11.1, v.AllocatorDouble())
+v.LystShort():primary(0, v.AllocatorShort())
+v.LystPlainStructPtr():specialized1(v.PlainStruct(), v.AllocatorPlainStructPtr())
+v.LystDoublePtrPtr():specialized2(22.2, nil)
+v.LystConstIntRef():specialized3(100)
+v.LystConstStringRef():specialized3("hello")
+
+-- (6)
+local d = v.SpecDoubleInt()
+local i = v.SpecStringInt()
+d:spec_specialized(12.3)
+i:spec_specialized("hi")
+template_partial_specialization_more.UseSpec1(d, d)
+template_partial_specialization_more.UseSpec2(i, i)
