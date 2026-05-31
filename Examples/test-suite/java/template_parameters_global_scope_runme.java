@@ -63,13 +63,11 @@ public class template_parameters_global_scope_runme {
     alloc = template_parameters_global_scope.Table5();
     alloc = template_parameters_global_scope.Table6();
 
-    /*
     alloc = template_parameters_global_scope.rejig1();
     alloc = template_parameters_global_scope.rejig2();
     alloc = template_parameters_global_scope.rejig3();
     alloc = template_parameters_global_scope.rejig4();
     alloc = template_parameters_global_scope.rejig5();
     alloc = template_parameters_global_scope.rejig6();
-    */
   }
 }
