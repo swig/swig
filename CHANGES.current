@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-01: jschueller
+	    [Go] #3441 Fix director returning reference to local variable in int&
+            and int&& typemaps.
+
 2026-05-31: wsfulton
             [Ruby] #3385 Fix segmentation fault when using STL containers of
             swig::GC_VALUE - the type that wraps an arbitrary Ruby object - such
