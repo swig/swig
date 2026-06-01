@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-01: wsfulton
+            [Go] Fix crash (null pointer dereference) on the first call to a
+            director method returning a reference or pointer type, such as
+            int&, const int& or a class pointer.
+
 2026-06-01: jschueller
 	    [Go] #3441 Fix director returning reference to local variable in int&
             and int&& typemaps.
