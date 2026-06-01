@@ -33,7 +33,7 @@ checkCount(0)
 assert(s == "KlassInput", "Incorrect string: "..s)
 assert(li_std_auto_ptr.is_nullptr(kin), "is_nullptr failed")
 s, msg = pcall(function() li_std_auto_ptr.takeKlassAutoPtr(kin) end)
-assert(s == false and msg == "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' in takeKlassAutoPtr")
+assert(not s and msg == "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' in takeKlassAutoPtr")
 
 kin = nil -- Should not fail, even though already deleted
 checkCount(0)
@@ -41,7 +41,7 @@ checkCount(0)
 kin = li_std_auto_ptr.Klass("KlassInput")
 notowned = li_std_auto_ptr.get_not_owned_ptr(kin)
 s, msg = pcall(function() li_std_auto_ptr.takeKlassAutoPtr(notowned) end)
-assert(s == false and msg == "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' in takeKlassAutoPtr")
+assert(not s and msg == "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' in takeKlassAutoPtr")
 checkCount(1)
 kin = nil
 checkCount(0)

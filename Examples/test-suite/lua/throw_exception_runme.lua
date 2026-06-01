@@ -2,8 +2,7 @@ local v=require("throw_exception")
 
 function testException(func, except)
     local ret, msg = pcall(func)
-    assert(not ret)
-    assert(msg == except)
+    assert(not ret and msg == except)
 end
 
 local foo = v.Foo()

@@ -22,12 +22,12 @@ assert(li_typemaps.inout_ulonglong(20)==20)
 assert(li_typemaps.inoutr_ulonglong(20)==20)
 
 -- check bools
-assert(li_typemaps.in_bool(true)==true)
-assert(li_typemaps.inr_bool(false)==false)
-assert(li_typemaps.out_bool(true)==true)
-assert(li_typemaps.outr_bool(false)==false)
-assert(li_typemaps.inout_bool(true)==true)
-assert(li_typemaps.inoutr_bool(false)==false)
+assert(li_typemaps.in_bool(true))
+assert(not li_typemaps.inr_bool(false))
+assert(li_typemaps.out_bool(true))
+assert(not li_typemaps.outr_bool(false))
+assert(li_typemaps.inout_bool(true))
+assert(not li_typemaps.inoutr_bool(false))
 
 -- the others
 a,b=li_typemaps.inoutr_int2(1,2)

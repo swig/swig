@@ -12,7 +12,7 @@ end
 -- Test basic array creation
 local ai = ArrayInt6()
 assert(ai:size() == 6, "Array should have size 6")
-assert(ai:empty() == false, "Array should not be empty")
+assert(not ai:empty(), "Array should not be empty")
 
 -- Test default values (should be 0 for int)
 for i = 0, 5 do
@@ -140,8 +140,8 @@ local function test_out_of_bounds_set()
     arr[6] = 42  -- should throw
 end
 
-assert(pcall(test_out_of_bounds_get) == false, "Out of bounds get should throw")
-assert(pcall(test_out_of_bounds_set) == false, "Out of bounds set should throw")
+assert(not pcall(test_out_of_bounds_get), "Out of bounds get should throw")
+assert(not pcall(test_out_of_bounds_set), "Out of bounds set should throw")
 
 -- Test overloaded function
 local overloadArray = ArrayInt6()

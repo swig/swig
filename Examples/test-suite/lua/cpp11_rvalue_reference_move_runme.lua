@@ -41,7 +41,7 @@ cpp11_rvalue_reference_move.Counter.check_counts(2, 0, 0, 0, 1, 2)
 -- null check
 cpp11_rvalue_reference_move.Counter.reset_counts()
 s, msg = pcall(function() cpp11_rvalue_reference_move.MovableCopyable.movein(nil) end)
-assert(s == false and msg:find("Error in MovableCopyable::movein (arg 1), expected 'MovableCopyable &&' got 'nil'", 1, true))
+assert(not s and msg:find("Error in MovableCopyable::movein (arg 1), expected 'MovableCopyable &&' got 'nil'", 1, true))
 cpp11_rvalue_reference_move.Counter.check_counts(0, 0, 0, 0, 0, 0)
 
 -- output
@@ -51,5 +51,5 @@ cpp11_rvalue_reference_move.Counter.check_counts(2, 0, 0, 0, 1, 1)
 cpp11_rvalue_reference_move.MovableCopyable.check_numbers_match(mc, 1234)
 
 s, msg = pcall(function() cpp11_rvalue_reference_move.MovableCopyable.movein(mc) end)
-assert(s == false and msg:find("Cannot release ownership as memory is not owned", 1, true))
+assert(not s and msg:find("Cannot release ownership as memory is not owned", 1, true))
 cpp11_rvalue_reference_move.Counter.check_counts(2, 0, 0, 0, 1, 1)

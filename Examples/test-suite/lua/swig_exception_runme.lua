@@ -6,8 +6,7 @@ assert(v.Shape.nshapes == 2, "Shape.nshapes should be 2 not " .. v.Shape.nshapes
 
 ----- Throw exception -----
 local err, msg = pcall(function() c:throwException() end)
-assert(not err)
-assert(msg == "SWIG_SystemError:OK")
+assert(not err and msg == "SWIG_SystemError:OK")
 
 ----- Delete everything -----
 c = nil

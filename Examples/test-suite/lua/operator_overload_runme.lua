@@ -38,7 +38,7 @@ assert(f/g==Op(1))
 --assert(f%g==Op(0))	-- lua does not support %
 
 -- test unary operators
---assert((not a)==true) -- lua does not allow overloading for not operator
+--assert(not a) -- lua does not allow overloading for not operator
 --assert((not b)==false) -- lua does not allow overloading for not operator
 
 --lua 5.0.2 defines that unary - is __unm(self,nil)
