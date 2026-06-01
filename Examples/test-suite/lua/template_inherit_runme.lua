@@ -13,5 +13,4 @@ assert(ti.invoke_blah_int(fi) == "Foo")
 assert(ti.invoke_blah_int(bi) == "Bar")
 
 bd = ti.BarDouble()
-success = pcall(ti.invoke_blah_int, bd)
-assert(not success)
+assert(not pcall(ti.invoke_blah_int, bd))

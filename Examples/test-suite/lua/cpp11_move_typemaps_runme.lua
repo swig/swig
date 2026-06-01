@@ -20,7 +20,7 @@ cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2)
 mo = cpp11_move_typemaps.MoveOnly(222)
 cpp11_move_typemaps.MoveOnly.take(mo)
 s, msg = pcall(function() cpp11_move_typemaps.MoveOnly.take(mo) end)
-assert(s == false and msg:find("Cannot release ownership as memory is not owned", 1, true))
+assert(not s and msg:find("Cannot release ownership as memory is not owned", 1, true))
 
 cpp11_move_typemaps.Counter.reset_counts()
 imt = cpp11_move_typemaps.InstanceMethodsTester()

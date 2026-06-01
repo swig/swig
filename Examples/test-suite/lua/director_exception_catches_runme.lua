@@ -11,5 +11,4 @@ function run_catch()
     error("Should not happen")
 end
 local ret, msg = pcall(run_catch)
-assert(not ret)
-assert(msg == 'object exception:Swig::DirectorException')
+assert(not ret and msg == 'object exception:Swig::DirectorException')
