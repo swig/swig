@@ -3423,7 +3423,7 @@ int QuickJSEmitter::exitClass(Node *n) {
   /* prepare registration of base class(es) (multiple inheritance) */
   String *jsclass_inheritance = NewString("");
   List *baselist = Getattr(n, "bases");
-  int b_num = 0;
+  /* int b_num = 0; XXX trace for debug */
   if (baselist) {
     Iterator base = First(baselist);
     while (base.item) {
@@ -3434,7 +3434,7 @@ int QuickJSEmitter::exitClass(Node *n) {
       }
       if (base.item) {
         Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
-        b_num++;
+        /* b_num++;  XXX trace for debug */
         base = Next(base);
       }
     }
