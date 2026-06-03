@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-02: wsfulton
+            #2694 Improve resolution of qualified names whose scope qualifier is
+            reached through a typedef.  A using declaration such as
+            'using BaseAlias::Me::Integer;', where 'BaseAlias' and 'Me' are
+            typedefs naming a class, previously gave a 'Nothing known about ...'
+            warning (Warning 315).  It now resolves.
+
 2026-06-01: wsfulton
             [Go] Fix crash (null pointer dereference) on the first call to a
             director method returning a reference or pointer type, such as
