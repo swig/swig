@@ -1200,7 +1200,15 @@ static Symtab *symbol_scope_lookup(const String *qualifier, Symtab *symtab) {
     if (Checkattr(n, "nodeType", "cdecl") && Checkattr(n, "storage", "typedef")) {
       SwigType *type = Getattr(n, "type");
       if (type && SwigType_issimple(type)) {
-        Node *nn = Swig_symbol_clookup(type, Getattr(n, "sym:symtab"));
+        Symtab *ntab = Getattr(n, "sym:symtab");
+        Node *nn = Swig_symbol_clookup(type, ntab);
+        if (!nn && SwigType_istemplate(type)) {
+          /* The typedef target is a template instantiation whose template arguments are
+             themselves typedefs (eg 'TBase<(IntAlias)>'). Reduce the args to 'TBase<(int)>'. */
+          SwigType *reduced = Swig_symbol_typedef_reduce(type, ntab);
+          nn = Swig_symbol_clookup(reduced, ntab);
+          Delete(reduced);
+        }
         if (nn && nn != n) {
           n = nn;
           via_typedef = 1;

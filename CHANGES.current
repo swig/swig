@@ -9,7 +9,8 @@ Version 4.5.0 (in progress)
 
 2026-06-02: wsfulton
             #2694 Improve resolution of qualified names whose scope qualifier is
-            reached through a typedef.  A using declaration such as
+            reached through a typedef, including a typedef to a template
+            instantiation.  A using declaration such as
             'using BaseAlias::Me::Integer;', where 'BaseAlias' and 'Me' are
             typedefs naming a class, previously gave a 'Nothing known about ...'
             warning (Warning 315).  It now resolves.
