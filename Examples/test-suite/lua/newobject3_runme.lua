@@ -1,0 +1,11 @@
+local v=require("newobject3")
+
+local factory = v.factory()
+assert(swig_type(factory:create(7)) == "Product *")
+assert(swig_type(factory:create(7, 6)) == "Product *")
+assert(swig_type(factory:create("test")) == "Product *")
+assert(swig_type(factory:create("test", 2)) == "Product *")
+assert(factory:create(0) == nil, "create(0) should be NULL")
+assert(factory:create(7, -1) == nil, "create(7, -1) should be NULL")
+assert(factory:create(0, -1) == nil, "create(0, -1) should be NULL")
+assert(factory:create("bad", -1) == nil, "create(\"bad\", -1) should be NULL")

@@ -1,25 +1,18 @@
 -- Test for std::array wrapper in Lua
-require("import")	-- the import fn
-import("cpp11_std_array")	-- import code
-
-for k,v in pairs(cpp11_std_array) do _G[k]=v end -- move to global
+require_to_globs("cpp11_std_array")
 
 -- Helper function to compare arrays
 local function compareArrays(arr, expected)
-    if arr:size() ~= #expected then
-        error("Array sizes differ: " .. arr:size() .. " vs " .. #expected)
-    end
+    assert(arr:size() == #expected, "Array sizes differ: " .. arr:size() .. " vs " .. #expected)
     for i = 0, arr:size() - 1 do
-        if arr[i] ~= expected[i + 1] then
-            error("Array element " .. i .. " differs: " .. arr[i] .. " vs " .. expected[i + 1])
-        end
+        assert(arr[i] == expected[i + 1], "Array element " .. i .. " differs: " .. arr[i] .. " vs " .. expected[i + 1])
     end
 end
 
 -- Test basic array creation
 local ai = ArrayInt6()
 assert(ai:size() == 6, "Array should have size 6")
-assert(ai:empty() == false, "Array should not be empty")
+assert(not ai:empty(), "Array should not be empty")
 
 -- Test default values (should be 0 for int)
 for i = 0, 5 do
@@ -147,8 +140,8 @@ local function test_out_of_bounds_set()
     arr[6] = 42  -- should throw
 end
 
-assert(pcall(test_out_of_bounds_get) == false, "Out of bounds get should throw")
-assert(pcall(test_out_of_bounds_set) == false, "Out of bounds set should throw")
+assert(not pcall(test_out_of_bounds_get), "Out of bounds get should throw")
+assert(not pcall(test_out_of_bounds_set), "Out of bounds set should throw")
 
 -- Test overloaded function
 local overloadArray = ArrayInt6()

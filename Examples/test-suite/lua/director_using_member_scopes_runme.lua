@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_using_member_scopes") -- import lib
+require("director_using_member_scopes")
 
 local nwt = director_using_member_scopes.NativeWindowType()
 

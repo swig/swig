@@ -622,6 +622,7 @@ CPP_TEST_CASES += \
 # C++11 test cases.
 CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
+	cpp11_alias_templates \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_assign_delete \
@@ -686,7 +687,9 @@ CPP11_TEST_CASES += \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
+	cpp11_template_using_base \
 	cpp11_using_constructor \
+	cpp11_using_functor \
 	cpp11_using_member_template \
 	cpp11_using_typedef_struct \
 	cpp11_variadic_function_templates \
@@ -708,6 +711,7 @@ CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_class_template_argument_deduction \
 	cpp17_director_string_view \
 	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
@@ -716,6 +720,7 @@ CPP17_TEST_CASES += \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
+	cpp17_using_pack_expansion \
 
 # Broken C++17 test cases.
 CPP17_TEST_BROKEN = \
@@ -725,6 +730,7 @@ CPP20_TEST_CASES += \
 	cpp20_abbreviated_template \
 	cpp20_abbreviated_template_decorated \
 	cpp20_abbreviated_template_mixed \
+	cpp20_alias_template \
 	cpp20_concepts \
 	cpp20_concepts_class_methods \
 	cpp20_concepts_classes \

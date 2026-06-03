@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_exception_catches") -- import lib
+require("director_exception_catches")
 
 local b = director_exception_catches.BaseClass()
 function description(self)
@@ -12,5 +11,4 @@ function run_catch()
     error("Should not happen")
 end
 local ret, msg = pcall(run_catch)
-assert(not ret)
-assert(msg == 'object exception:Swig::DirectorException')
+assert(not ret and msg == 'object exception:Swig::DirectorException')

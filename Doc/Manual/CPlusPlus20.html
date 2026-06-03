@@ -20,7 +20,9 @@
 <li><a href="#CPlusPlus20_abbreviated_templates">Abbreviated function templates</a>
 <li><a href="#CPlusPlus20_concepts">Concepts and requires-clauses</a>
 <li><a href="#CPlusPlus20_type_constrained_template_parameters">Type constrained template parameters</a>
+<li><a href="#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
 <li><a href="#CPlusPlus20_variable_templates">Variable templates initialised from a requires-expression</a>
+<li><a href="#CPlusPlus20_class_template_argument_deduction">Class template argument deduction</a>
 </ul>
 <li><a href="#CPlusPlus20_preprocessor_changes">Preprocessor changes</a>
 <ul>
@@ -685,7 +687,67 @@ int first_int(T x) { return (int)x; }
 carrying a type-constraint, including the template-id form above.
 </p>
 
-<H3><a name="CPlusPlus20_variable_templates">10.2.7 Variable templates initialised from a requires-expression</a></H3>
+<H3><a name="CPlusPlus20_constrained_alias_templates">10.2.7 Constrained alias templates</a></H3>
+
+
+<p>
+A C++11 alias template
+(see <a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Type alias and alias templates</a>
+in the C++11 chapter) may carry a C++20 concept constraint on its template
+parameters, in either the type-constraint shorthand form or the
+<tt>requires</tt>-clause long form:
+</p>
+
+<div class="code">
+<pre>
+template&lt;typename T&gt;
+concept Numeric = std::integral&lt;T&gt; || std::floating_point&lt;T&gt;;
+
+template&lt;typename T&gt;
+class Box { T v; public: Box(T x):v(x){} T get() const { return v; } };
+
+// shorthand
+template&lt;Numeric T&gt;
+using NumBox = Box&lt;T&gt;;
+
+// fully spelt out (equivalent)
+template&lt;typename T&gt; requires Numeric&lt;T&gt;
+using ReqBox = Box&lt;T&gt;;
+</pre>
+</div>
+
+<p>
+SWIG accepts both forms.  Both aliases resolve to the same underlying
+<tt>Box&lt;T&gt;</tt>, and the generated wrappers are identical to those for
+an unconstrained alias.  Wrapping uses the same two-step pattern as any
+other alias template as described in
+<a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Type alias and alias templates</a>
+- instantiate the underlying template once with
+<tt>%template(Name)</tt>, then register each alias with an empty
+<tt>%template()</tt>:
+</p>
+
+<div class="code">
+<pre>
+%template(BoxInt) Box&lt;int&gt;;
+%template() NumBox&lt;int&gt;;
+%template() ReqBox&lt;int&gt;;
+</pre>
+</div>
+
+<p>
+SWIG does not enforce the constraint itself; the C++ compiler resolves it
+when compiling the generated wrapper.  An unparsed concept name in the
+parameter list is silently remapped to <tt>typename</tt>, following SWIG's
+best effort policy for partial type information.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse the
+<tt>requires</tt>-clause form on alias templates.
+</p>
+
+<H3><a name="CPlusPlus20_variable_templates">10.2.8 Variable templates initialised from a requires-expression</a></H3>
 
 
 <p>
@@ -729,6 +791,30 @@ not idiomatic.
 <p>
 <b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse a
 <tt>requires</tt>-expression in expression position.
+</p>
+
+<H3><a name="CPlusPlus20_class_template_argument_deduction">10.2.9 Class template argument deduction</a></H3>
+
+
+<p>
+C++20 (P1816) extended
+<a href="CPlusPlus17.html#CPlusPlus17_class_template_argument_deduction">class template argument deduction (CTAD)</a>
+to aggregates - which have no constructors to deduce from - so an aggregate variable such as
+the <a href="CPlusPlus17.html#CPlusPlus17_using_pack_expansion">Overloaded</a> helper can be
+declared with a bare class template name and no explicit deduction guide:
+</p>
+
+<div class="code">
+<pre>
+Overloaded ov{ IntCase{}, DoubleCase{} };   // C++20 aggregate CTAD
+</pre>
+</div>
+
+<p>
+SWIG handles aggregate CTAD exactly as it handles any other CTAD variable: it performs no
+template argument deduction, so it issues Warning 347 and skips the variable.  See
+<a href="CPlusPlus17.html#CPlusPlus17_class_template_argument_deduction">Class template argument deduction</a>
+in the C++17 chapter for details.
 </p>
 
 <H2><a name="CPlusPlus20_preprocessor_changes">10.3 Preprocessor changes</a></H2>

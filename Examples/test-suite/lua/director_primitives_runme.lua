@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_primitives") -- import lib
+require("director_primitives")
 
 function makeCalls(myCaller, myBase)
   myCaller:set(myBase)

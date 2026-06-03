@@ -111,7 +111,6 @@ Alloc::Rebind< TDGlobalTable >::Integer Table5() { return 5; }
 Alloc::Rebind< ::TDGlobalTable >::Integer Table6() { return 6; }
 %}
 
-#if 0
 %inline %{
 namespace Alloc {
   template<typename T=::Spade/*, typename T2=TDSpade, typename T3=::TDSpade, typename T4=TDGlobalSpade, typename T5=::TDGlobalSpade*/> struct Rejig {
@@ -130,4 +129,3 @@ Alloc::Rejig< ::TDSpade >::Integer rejig4() { return 4; }
 Alloc::Rejig< TDGlobalSpade >::Integer rejig5() { return 5; }
 Alloc::Rejig< ::TDGlobalSpade >::Integer rejig6() { return 6; }
 %}
-#endif

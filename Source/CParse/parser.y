@@ -1986,7 +1986,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl;
+%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl deduction_guide;
 %type <type>     c_enum_inherit;
 %type <node>     enumlist enumlist_item edecl_with_dox edecl;
 %type <id>       c_enum_key;
@@ -3463,6 +3463,7 @@ c_declaration   : c_decl {
                 }
                 | c_enum_decl
                 | c_enum_forward_decl
+                | deduction_guide
 
 /* An extern C type declaration, disable cparse_cplusplus if needed. */
 
@@ -3515,7 +3516,7 @@ c_declaration   : c_decl {
 		  SetFlag($$,"typealias");
 		  add_symbols($$);
 		}
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN USING idcolon EQUAL type plain_declarator SEMI {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL type plain_declarator SEMI {
 		  /* Convert alias template to a "template" typedef statement */
 		  $$ = new_node("template");
 		  Setattr($$,"type",$type);
@@ -3525,6 +3526,8 @@ c_declaration   : c_decl {
 		  Setattr($$,"templateparms",$template_parms);
 		  Setattr($$,"templatetype","cdecl");
 		  SetFlag($$,"aliastemplate");
+		  if ($requires_clause_opt)
+		    Setattr($$, "constraint", $requires_clause_opt);
 		  add_symbols($$);
 		}
                 | cpp_static_assert
@@ -4378,6 +4381,18 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                 }
                 ;
 
+/* C++17 deduction-guide ([temp.deduct.guide]).  A user-defined deduction guide for class template
+ * argument deduction, e.g. 'Box(T) -> Box<T>;' or, when itself generic, written under a template
+ * head: 'template<typename T> Box(T) -> Box<T>;'.  A deduction guide is not a function, has no
+ * body and emits no symbol - it only steers argument deduction at compile time - so there is
+ * nothing for SWIG to wrap.  Parse it and discard it.  The optional 'explicit' specifier is
+ * absorbed by storage_class and the C++20 trailing requires-clause by requires_clause_opt. */
+deduction_guide : storage_class type LPAREN parms RPAREN ARROW type requires_clause_opt SEMI {
+                    $$ = 0;
+                    Delete($storage_class);
+                }
+                ;
+
 /* ======================================================================
  *                       C++ Support
  * ====================================================================== */
@@ -5096,6 +5111,7 @@ cpp_template_possible:  c_decl
                 | cpp_forward_class_decl
                 | cpp_conversion_operator
                 | cpp_concept_decl
+                | deduction_guide
                 ;
 
 /* ------------------------------------------------------------
@@ -5238,6 +5254,18 @@ cpp_using_decl : USING idcolon SEMI {
 		  Delete(uname);
 		  Delete(name);
 		  add_symbols($$);
+             }
+             | USING idcolon ELLIPSIS SEMI {
+                  /* C++17 pack expansion in a using-declaration, e.g. "using Ts::operator()...;" */
+                  String *uname = Swig_symbol_type_qualify($idcolon, 0);
+                  String *name  = Swig_scopename_last($idcolon);
+                  $$ = new_node("using");
+                  Setattr($$, "uname", uname);
+                  Setattr($$, "name", name);
+                  SetFlag($$, "pack");
+                  Delete(uname);
+                  Delete(name);
+                  add_symbols($$);
              }
 	     | USING TYPENAME idcolon SEMI {
 		  String *uname = Swig_symbol_type_qualify($idcolon,0);

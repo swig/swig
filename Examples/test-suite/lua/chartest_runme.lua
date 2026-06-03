@@ -1,5 +1,4 @@
-require("import")   -- the import fn
-import("chartest")   -- import code
+require("chartest")
 
 function char_assert(char, code)
   assert(type(char) == 'string')

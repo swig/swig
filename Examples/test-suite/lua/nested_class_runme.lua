@@ -1,5 +1,4 @@
-require("import")            -- the import fn
-import("nested_class", true) -- import lib into global
+require("nested_class")
 
 -- Test basic nested classes
 local outer = nested_class.Outer()

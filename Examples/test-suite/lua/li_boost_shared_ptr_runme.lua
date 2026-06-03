@@ -1,19 +1,11 @@
-require("import")             -- the import fn
-import("li_boost_shared_ptr") -- import lib into global
-lbsp = li_boost_shared_ptr    --alias
-
--- catching undefined variables
-local env = _ENV                    -- Lua 5.2
-if not env then env = getfenv() end -- Lua 5.1
-setmetatable(env, { __index = function(t, i) error("undefined global variable `" .. i .. "'", 2) end })
+lbsp=require("li_boost_shared_ptr")
+catch_undef_globs() -- catch "undefined" global variables
 
 debug_shared = false
 
 -- Helper functions
 function verifyValue(expected, got)
-	if expected ~= got then
-		error("Expected: " .. expected .. " Got: " .. got)
-	end
+	assert(expected == got, "Expected: " .. expected .. " Got: " .. got)
 end
 
 function verifyCount(expected, k)
@@ -110,30 +102,20 @@ do
 	local kret_null
 
 	kret_null = lbsp.smartpointertest(nil)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 
 	kret_null = lbsp.smartpointerpointertest(nil)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 
 	kret_null = lbsp.smartpointerreftest(nil)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 
 	kret_null = lbsp.smartpointerpointerreftest(nil)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 
 	-- pointertest with null should return nil
 	kret_null = lbsp.pointertest(nil)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 end
 
 -- test null pointers emitted from C++
@@ -142,21 +124,15 @@ do
 
 	k_null = lbsp.sp_pointer_null()
 	kret_null = lbsp.smartpointertest(k_null)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 
 	k_null = lbsp.null_sp_pointer()
 	kret_null = lbsp.smartpointertest(k_null)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 
 	k_null = lbsp.sp_value_null()
 	kret_null = lbsp.smartpointertest(k_null)
-	if kret_null ~= nil then
-		error("return was not nil")
-	end
+	assert(kret_null == nil, "return was not nil")
 end
 
 -- $owner

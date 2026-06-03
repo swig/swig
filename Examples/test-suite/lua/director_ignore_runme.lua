@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_ignore") -- import lib
+require("director_ignore")
 
 local a = director_ignore.DIgnores()
 function PublicMethod1(self)

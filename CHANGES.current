@@ -7,6 +7,98 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-01: wsfulton
+            [Go] Fix crash (null pointer dereference) on the first call to a
+            director method returning a reference or pointer type, such as
+            int&, const int& or a class pointer.
+
+2026-06-01: jschueller
+	    [Go] #3441 Fix director returning reference to local variable in int&
+            and int&& typemaps.
+
+2026-05-31: wsfulton
+            [Ruby] #3385 Fix segmentation fault when using STL containers of
+            swig::GC_VALUE - the type that wraps an arbitrary Ruby object - such
+            as std::vector<swig::GC_VALUE> or a std::map or std::set with a
+            swig::BinaryPredicate comparator proc, while the Ruby 3.x garbage
+            collector compacts the heap (GC.compact or GC.auto_compact).  The
+            Ruby objects stored in such containers are now retained correctly
+            across a compaction, instead of occasionally crashing the interpreter.
+
+2026-05-30: erezgeva
+            [Lua] #3394 Drop support for Lua 5.0 and Lua 5.1.
+            Minimum supported Lua version is now 5.2.
+            SWIG no longer compiles wrappers for Lua 5.0 or 5.1
+            (this includes LuaJIT consumers still using the 5.1 ABI).
+
+            Removed -squash-bases command-line option
+            (and the SWIG_LUA_SQUASH_BASES runtime path).
+            The implementation was broken;
+            classes now always use the standard base-lookup path.
+
+            Using this command-line option will generate error
+
+                swig error : Unrecognized option -squash-bases
+
+            Removed deprecated -no-old-metatable-bindings command-line option.
+            Old-style metatable bindings are always generated,
+            matching the long-standing default.
+
+            Using this command-line option will generate error
+
+                swig error : Unrecognized option -no-old-metatable-bindings
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-30: wsfulton
+            C++17: parse user-defined deduction guides used for class
+            template argument deduction, for example:
+
+                template <typename T> struct Box { Box(T); };
+
+                Box(int) -> Box<int>;                     // non-template deduction guide
+                template <typename T> Box(T) -> Box<T>;   // templated deduction guide
+
+            A guide is written at the same scope as the class template, either
+            as a non-template declaration or, when itself a template, under a
+            template parameter list.  A deduction guide is not a function and
+            emits no symbol - it only steers argument deduction at compile time -
+            so there is nothing to wrap and SWIG parses and ignores it.
+            Previously any deduction guide resulted in a syntax error.
+
+2026-05-28: wsfulton
+            #2951 A using-declaration whose qualifier is a type-template
+            parameter used directly as the base class - the mixin idiom -
+
+                template <typename I>
+                struct Derived : I {
+                  using I::I;
+                  using I::call;
+                };
+
+            now has its template parameter substituted during instantiation,
+            so wrappers for the inherited members - including inheriting
+            constructors via 'using I::I;' - are emitted on the instantiated
+            derived class. Previously SWIG warned "Nothing known about
+            'I::call'" and no wrapper was generated.
+
+2026-05-27: wsfulton
+            C++20: parse and support constrained alias templates.  Both the
+            type-constraint shorthand and the requires-clause long form are
+            now accepted:
+
+              template<Numeric T>                       using NumBox = Box<T>;
+              template<typename T> requires Numeric<T>  using ReqBox = Box<T>;
+
+            The requires-clause form previously resulted in a syntax error.
+
+            Both forms wrap identically to an unconstrained alias template.
+            Note that the constraint does not affect the generated wrappers.
+            The C++ compiler enforces it when compiling the emitted
+            wrapper.  Wrapping continues to use the documented two-step
+            pattern: %template(Name) on the underlying template, followed by
+            an empty %template() for each alias.
+
 2026-05-26: wsfulton
             [Python] Class docstrings under -builtin now match the non-builtin
             proxy module. When neither %feature("docstring") nor a doxygen
@@ -122,6 +214,49 @@ Version 4.5.0 (in progress)
             SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.
             Use Rf_asS4, SET_STRING_ELT and STRING_ELT instead. These replacement
             APIs have been available since R 2.x so no version guards are required.
+
+2026-05-28: wsfulton
+            C++17: parse and support pack expansion in a using-declaration
+            (P0195), e.g.
+
+              template <typename... Ts>
+              struct Overloaded : Ts... {
+                using Ts::operator()...;
+              };
+
+            The names introduced by the using-declaration depend on an
+            unexpanded template parameter pack, so SWIG accepts the syntax
+            but produces no wrappers until %template instantiates the
+            class.  %template now expands the pack using-declaration into
+            one concrete using-declaration per base type, so the
+            instantiated proxy class has a wrapper for each inherited
+            member - matching how an ordinary 'using Base::name;' inside
+            a class template behaves after instantiation.
+
+            Combined with %rename(call) *::operator(); the proxy of
+            Overloaded<IntCase, DoubleCase> has overloaded call(int) and
+            call(double) methods that dispatch to the matching base.
+
+2026-05-14: wsfulton
+            C++17: detect class template argument deduction (CTAD) in a
+            variable declaration, where a variable is declared with a bare
+            class template name and the template arguments are deduced from
+            the initializer, e.g.
+
+              template <typename T>
+              struct Box {
+                T value;
+                Box(T v) : value(v) {}
+              };
+
+              Box bx{42};   // CTAD deduces Box<int> from the constructor
+
+            (and, with C++20 P1816, also for aggregates with no deduction
+            guide).  CTAD is only valid for variables, so this is the only
+            declaration kind affected.  SWIG performs no template argument
+            deduction, so it now issues Warning 347 and skips the variable
+            instead of generating uncompilable wrapper code that names the
+            template without arguments.
 
 2026-05-12: wsfulton
             C++20: %template can now instantiate abbreviated function templates

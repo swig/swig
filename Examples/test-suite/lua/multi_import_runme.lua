@@ -1,8 +1,7 @@
-require("import")	-- the import fn
 -- note: need to import the base class module before the derived class
 -- this is because if the derived class is imported first it doesn't get the base class methods
-import("multi_import_b")	-- import code
-import("multi_import_a")	-- import code
+require("multi_import_b")
+require("multi_import_a")
 
 x = multi_import_b.XXX()
 assert(x:testx() == 0)

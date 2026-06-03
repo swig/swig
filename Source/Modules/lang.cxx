@@ -947,6 +947,29 @@ int Language::cDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
+  /* Class template argument deduction (CTAD): a variable whose declared type is a bare class
+     template name, e.g. the C++17 'std::vector v{1, 2, 3};' (deduced from a constructor) or the
+     C++20 aggregate form 'Overloaded ov{...};'.  SWIG performs no template argument deduction, so
+     the instantiated type is unknown - warn and skip rather than emit a wrapper that names the
+     template without arguments and fails to compile. */
+  if (Len(decl) == 0) {
+    SwigType *base = SwigType_strip_qualifiers(type);
+    if (!SwigType_istemplate(base)) {
+      Node *tn = Swig_symbol_clookup(base, Getattr(n, "sym:symtab"));
+      if (tn && Equal(nodeType(tn), "template") && Equal(Getattr(tn, "templatetype"), "class")) {
+        Swig_warning(WARN_CPP17_CLASS_TEMPLATE_ARGUMENT_DEDUCTION,
+                     input_file,
+                     line_number,
+                     "Unable to deduce class template arguments for variable '%s' of type '%s' (ignored).\n",
+                     SwigType_namestr(symname),
+                     SwigType_namestr(base));
+        Delete(base);
+        return SWIG_NOWRAP;
+      }
+    }
+    Delete(base);
+  }
+
   ty = NewString(type);
   SwigType_push(ty, decl);
   fullty = SwigType_typedef_resolve_all(ty);

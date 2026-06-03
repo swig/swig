@@ -1,5 +1,4 @@
-require("import")	-- the import fn
-import("director_stl")	-- import lib
+require("director_stl")
 
 local a = director_stl.Foo()
 swig_derive(a, {

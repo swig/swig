@@ -1,5 +1,4 @@
-require("import")                 -- the import fn
-import("cpp11_shared_ptr_upcast") -- import lib
+require("cpp11_shared_ptr_upcast")
 
 local s = cpp11_shared_ptr_upcast
 
