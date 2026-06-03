@@ -51,6 +51,10 @@ public class using_member_typedef_template_runme {
     check(h.hh(81), 81);
     check(h.hhh(82), 82);
 
+    UsingDerivedI i = new UsingDerivedI();
+    check(i.ii(91), 91);
+    check(i.iii(92), 92);
+
     check(using_member_typedef_template.a_tester(1), 1);
     check(using_member_typedef_template.b_tester(2), 2);
     check(using_member_typedef_template.c_tester(3), 3);
@@ -59,5 +63,6 @@ public class using_member_typedef_template_runme {
     check(using_member_typedef_template.f_tester(6), 6);
     check(using_member_typedef_template.g_tester(7), 7);
     check(using_member_typedef_template.h_tester(8), 8);
+    check(using_member_typedef_template.i_tester(9), 9);
   }
 }

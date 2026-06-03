@@ -1203,10 +1203,14 @@ static Symtab *symbol_scope_lookup(const String *qualifier, Symtab *symtab) {
         Symtab *ntab = Getattr(n, "sym:symtab");
         Node *nn = Swig_symbol_clookup(type, ntab);
         if (!nn && SwigType_istemplate(type)) {
-          /* The typedef target is a template instantiation whose template arguments are
-             themselves typedefs (eg 'TBase<(IntAlias)>'). Reduce the args to 'TBase<(int)>'. */
+          /* Reduce and fully qualify the template instantiation (eg 'TBase<(IntAlias)>' to
+             'TBase<(int)>', or qualify a template name imported by a using declaration). The
+             %template instantiation scope is registered under its fully qualified name, so this
+             lets the lookup below find it. */
           SwigType *reduced = Swig_symbol_typedef_reduce(type, ntab);
-          nn = Swig_symbol_clookup(reduced, ntab);
+          SwigType *qualified = Swig_symbol_type_qualify(reduced, ntab);
+          nn = Swig_symbol_clookup(qualified, ntab);
+          Delete(qualified);
           Delete(reduced);
         }
         if (nn && nn != n) {

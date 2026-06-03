@@ -13,7 +13,9 @@ Version 4.5.0 (in progress)
             instantiation.  A using declaration such as
             'using BaseAlias::Me::Integer;', where 'BaseAlias' and 'Me' are
             typedefs naming a class, previously gave a 'Nothing known about ...'
-            warning (Warning 315).  It now resolves.
+            warning (Warning 315).  This includes a typedef to a template
+            instantiation whose template name is itself introduced by a using
+            declaration.  It now resolves.
 
 2026-06-01: wsfulton
             [Go] Fix crash (null pointer dereference) on the first call to a

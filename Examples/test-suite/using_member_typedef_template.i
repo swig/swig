@@ -12,11 +12,20 @@ template <typename T> struct UsingBase {
     virtual ~UsingBase() {}
 };
 }
+namespace Other {
+template <typename T> struct OtherBase {
+    virtual void m() {}
+    typedef int Integer;
+    typedef OtherBase<T> Me;
+    virtual ~OtherBase() {}
+};
+}
 typedef int IntAlias;
 typedef IntAlias IntTD;
 %}
 
 %template(UsingBaseInt) Space::UsingBase<int>;
+%template(OtherBaseInt) Other::OtherBase<int>;
 
 %inline %{
 namespace Space {
@@ -71,6 +80,19 @@ struct UsingDerivedH : UsingBase<int> {
 };
 }
 
+// The typedef qualifier's template name is imported by a using declaration (not a using
+// directive) and so is not directly visible - resolving the instantiated template scope has to
+// qualify the template name 'OtherBase' to 'Other::OtherBase'.  A different namespace to Space is
+// used here on purpose: the 'using namespace Space' below must not make the template name visible,
+// otherwise the using declaration resolution would not be exercised.
+using Other::OtherBase;
+struct UsingDerivedI : OtherBase<int> {
+    typedef OtherBase<int> UsingBaseClass;
+    using UsingBaseClass::Me::Integer;
+    int ii(UsingBaseClass::Me::Integer i) { return i; }
+    int iii(Integer i) { return i; }
+};
+
 using namespace Space;
 int a_tester(UsingDerivedA::Integer i) { return i; }
 int b_tester(UsingDerivedB::Integer i) { return i; }
@@ -80,5 +102,6 @@ int e_tester(UsingDerivedE::Integer i) { return i; }
 int f_tester(UsingDerivedF::Integer i) { return i; }
 int g_tester(UsingDerivedG::Integer i) { return i; }
 int h_tester(UsingDerivedH::Integer i) { return i; }
+int i_tester(UsingDerivedI::Integer i) { return i; }
 %}
 
