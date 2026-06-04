@@ -92,7 +92,9 @@ struct iFoo
 #endif
 
 #ifdef SWIGJAVA
+#ifdef SWIGJAVA_SOURCE
 %javaconst(1) WideCharW;
+#endif
 %javaconst(1) WideCharE;
 %javaconst(1) WideCharSmile;
 #endif

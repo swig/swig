@@ -11,17 +11,28 @@
 %}
 
 // change the access to the intermediary class for testing purposes
+#ifdef SWIGJAVA_SOURCE
 %pragma(java) jniclassclassmodifiers="public class";
+#elif SWIGKOTLIN_SOURCE
+%pragma(java) jniclassclassmodifiers="public object";
+#endif
 %pragma(csharp) imclassclassmodifiers="public class";
 
 %feature("director") Base;
 %feature("director") Derived;
 
 // Test the throws attribute in these typemaps
+#ifdef SWIGJAVA_SOURCE
 %typemap(javadirectorout, throws="InstantiationException/*javadirectorout Base&*/") Base& 
   "$javaclassname.getCPtr($javacall)/* XYZ& typemap directorout*/"
 %typemap(javadirectorin, throws="ClassNotFoundException/*javadirectorin Base&*/") Base&
   "new $javaclassname($jniinput, false)/*javadirectorin*/"
+#elif SWIGKOTLIN_SOURCE
+%typemap(javadirectorout, throws="InstantiationException/*javadirectorout Base&*/") Base&
+  "$javaclassname.getCPtr($javacall)/* XYZ& typemap directorout*/"
+%typemap(javadirectorin, throws="ClassNotFoundException/*javadirectorin Base&*/") Base&
+  "$javaclassname($jniinput, false)/*javadirectorin*/"
+#endif
 %typemap(out, throws="IllegalAccessException/*out Base&*/") Base& {
   // XYZ& typemap out
   $result = 0; // remove unused variable warning

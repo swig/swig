@@ -4,6 +4,9 @@
 // Test that the override is removed in the smart pointer for custom method modifiers
 %csmethodmodifiers hi::Derived::value3 "/*csmethodmodifiers*/ public override";
 #endif
+#ifdef SWIGKOTLIN_SOURCE
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
 
 %inline %{
 

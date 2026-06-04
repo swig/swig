@@ -208,6 +208,7 @@
                   SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
                   SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
                   SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap (jtype)  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >,
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                   SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
@@ -223,29 +224,70 @@
                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "$typemap(jstype, TYPE).getCPtr($javainput)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap (jtype)  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "Long"
+%typemap (jstype) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
+                  SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "$typemap(jstype, TYPE)?"
+%typemap(javain) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >,
+                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                 SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > &,
+                 SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *,
+                 SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& "$typemap(jstype, TYPE).getCPtr($javainput)"
+#endif /* SWIGJAVA_TARGET */
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > & {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+%typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+%typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > & {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+%typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > * {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+%typemap(javaout) SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE > *& {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+#endif /* SWIGJAVA_TARGET */
 
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) CONST TYPE {
     return new $typemap(jstype, TYPE)($jnicall, true);
   }
@@ -254,12 +296,28 @@
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) CONST TYPE {
+    return $typemap(jstype, TYPE)($jnicall, true)
+  }
+%typemap(javaout) CONST TYPE & {
+    return $typemap(jstype, TYPE)($jnicall, true)
+  }
+%typemap(javaout) CONST TYPE * {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+%typemap(javaout) TYPE *CONST& {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+#endif /* SWIGJAVA_TARGET */
 
 // Base proxy classes
 %typemap(javabody) TYPE %{
@@ -272,7 +330,7 @@
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 %}
 
@@ -288,7 +346,7 @@
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 %}
 
@@ -297,7 +355,7 @@
       swigCMemOwnBase = false;
       $jnicall;
     }
-    swigCPtr = 0;
+    swigCPtr = 0L;
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
@@ -305,14 +363,18 @@
       swigCMemOwnDerived = false;
       $jnicall;
     }
-    swigCPtr = 0;
+    swigCPtr = 0L;
     super.delete();
   }
 
 // CONST version needed ???? also for C#
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "long"
 %typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "long"
-
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "Long"
+%typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "Long"
+#endif
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 %template() SWIG_INTRUSIVE_PTR_QNAMESPACE::intrusive_ptr< CONST TYPE >;
@@ -388,14 +450,24 @@
 
 
 %typemap (jni)    SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "jlong"
+%typemap (javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE).getCPtr($javainput)"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap (jtype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "long"
 %typemap (jstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE)"
-%typemap (javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE).getCPtr($javainput)"
 %typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap (jtype)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "Long"
+%typemap (jstype) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > "$typemap(jstype, TYPE)?"
+%typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > {
+    val cPtr = $jnicall;
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true);
+  }
+#endif
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) CONST TYPE {
     return new $typemap(jstype, TYPE)($jnicall, true);
   }
@@ -404,12 +476,28 @@
   }
 %typemap(javaout) CONST TYPE * {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 %typemap(javaout) TYPE *CONST& {
     long cPtr = $jnicall;
-    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+    return (cPtr == 0L) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) CONST TYPE {
+    return $typemap(jstype, TYPE)($jnicall, true)
+  }
+%typemap(javaout) CONST TYPE & {
+    return $typemap(jstype, TYPE)($jnicall, true)
+  }
+%typemap(javaout) CONST TYPE * {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true)
+  }
+%typemap(javaout) TYPE *CONST& {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true)
+  }
+#endif /* SWIGJAVA_TARGET */
 
 // Base proxy classes
 %typemap(javabody) TYPE %{
@@ -422,7 +510,7 @@
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 %}
 
@@ -438,34 +526,39 @@
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 %}
 
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if (swigCPtr != 0) {
+    if (swigCPtr != 0L) {
       if (swigCMemOwnBase) {
         swigCMemOwnBase = false;
         $jnicall;
       }
-      swigCPtr = 0;
+      swigCPtr = 0L;
     }
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
-    if (swigCPtr != 0) {
+    if (swigCPtr != 0L) {
       if (swigCMemOwnDerived) {
         swigCMemOwnDerived = false;
         $jnicall;
       }
-      swigCPtr = 0;
+      swigCPtr = 0L;
     }
     super.delete();
   }
 
 // CONST version needed ???? also for C#
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "long"
 %typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "long"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > swigSharedPtrUpcast "Long"
+%typemap(jtype, nopgcpp="1") SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > swigSharedPtrUpcast "Long"
+#endif
 
 // Typecheck typemaps
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *")

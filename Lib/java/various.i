@@ -20,8 +20,13 @@
  *   String[] ret = modulename.foo( numbers };
  */
 %typemap(jni) char **STRING_ARRAY "jobjectArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) char **STRING_ARRAY "String[]"
 %typemap(jstype) char **STRING_ARRAY "String[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) char **STRING_ARRAY "Array<String>"
+%typemap(jstype) char **STRING_ARRAY "Array<String>"
+#endif
 %typemap(in) char **STRING_ARRAY (jint size) {
   int i = 0;
   if ($input) {
@@ -101,8 +106,13 @@
  *   System.out.println( stringOutArray[0] );
  */
 %typemap(jni) char **STRING_OUT "jobjectArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) char **STRING_OUT "String[]"
 %typemap(jstype) char **STRING_OUT "String[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) char **STRING_OUT "Array<String>"
+%typemap(jstype) char **STRING_OUT "Array<String>"
+#endif
 %typemap(javain) char **STRING_OUT "$javainput"
 
 %typemap(in) char **STRING_OUT($*1_ltype temp) {
@@ -140,8 +150,13 @@
  *   modulename.foo(b);
  */
 %typemap(jni) char *BYTE "jbyteArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) char *BYTE "byte[]"
 %typemap(jstype) char *BYTE "byte[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) char *BYTE "ByteArray"
+%typemap(jstype) char *BYTE "ByteArray"
+#endif
 %typemap(in) char *BYTE {
   $1 = (char *) JCALL2(GetByteArrayElements, jenv, $input, 0); 
 }
@@ -172,11 +187,19 @@
 %typemap(jni) unsigned char *NIOBUFFER "jobject"  
 %typemap(jtype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
 %typemap(jstype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javain,
   pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") unsigned char *NIOBUFFER "$javainput"
 %typemap(javaout) unsigned char *NIOBUFFER {  
   return $jnicall;  
 }  
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javain,
+  pre="  require($javainput.isDirect()) { \"Buffer must be allocated direct.\" }") unsigned char *NIOBUFFER "$javainput"
+%typemap(javaout) unsigned char *NIOBUFFER {
+  return $jnicall;
+}
+#endif /* SWIGJAVA_TARGET */
 %typemap(in) unsigned char *NIOBUFFER {  
   $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input); 
   if ($1 == NULL) {  

@@ -3,8 +3,13 @@
  * ------------------------------------------------------------- */
 
 %typemap(jni) (int ARGC, char **ARGV) "jobjectArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) (int ARGC, char **ARGV) "String[]"
 %typemap(jstype) (int ARGC, char **ARGV) "String[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) (int ARGC, char **ARGV) "Array<String>"
+%typemap(jstype) (int ARGC, char **ARGV) "Array<String>"
+#endif
 
 %typemap(in) (int ARGC, char **ARGV) {
   $1_ltype i, len;

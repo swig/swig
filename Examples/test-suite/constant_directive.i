@@ -8,7 +8,7 @@
 %warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) TYPE1CFPTR1DEF_CONSTANT1;
 #endif
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 

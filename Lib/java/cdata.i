@@ -10,8 +10,13 @@
 
 /* String & length */
 %typemap(jni)     (const void *BYTES, size_t LENGTH) "jbyteArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype)   (const void *BYTES, size_t LENGTH) "byte[]"
 %typemap(jstype)  (const void *BYTES, size_t LENGTH) "byte[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype)   (const void *BYTES, size_t LENGTH) "ByteArray"
+%typemap(jstype)  (const void *BYTES, size_t LENGTH) "ByteArray"
+#endif
 %typemap(javain)  (const void *BYTES, size_t LENGTH) "$javainput"
 %typemap(freearg) (const void *BYTES, size_t LENGTH) ""
 %typemap(in)      (const void *BYTES, size_t LENGTH) {
@@ -47,8 +52,13 @@
 %include <typemaps/cdata_begin.swg>
 
 %typemap(jni) SWIGCDATA "jbyteArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGCDATA "byte[]"
 %typemap(jstype) SWIGCDATA "byte[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGCDATA "ByteArray"
+%typemap(jstype) SWIGCDATA "ByteArray"
+#endif
 %fragment("SWIG_JavaArrayOutCDATA", "header") {
 static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
   jbyteArray jresult;
