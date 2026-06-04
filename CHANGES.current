@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-04: Nerixyz
+            [Python] #3414 Fix PEP 484 type annotations for multi-argument
+            pytyping typemaps.  A typemap matching more than one argument, such
+            as %typemap(pytyping) (int argc, char **argv), is now applied to the
+            whole argument group, so the generated annotation uses the type from
+            the typemap instead of only annotating the first argument with its
+            plain C++ type.
+
 2026-06-02: wsfulton
             #2694 Improve resolution of qualified names whose scope qualifier is
             reached through a typedef, including a typedef to a template

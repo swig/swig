@@ -1873,6 +1873,7 @@ public:
           String *docty = lookupPytyping(p);
           if (docty)
             Printf(doc, ": \"%s\"", docty);
+          Delete(docty);
         }
         break;
       }
@@ -2448,14 +2449,15 @@ public:
 
     String *ret = 0;
     Parm *p = Getattr(n, "parms");
-    String *tm;
+    SwigType *match_type;
     /* Try to guess the returning type by argout typemap,
      * however the result may not accurate. */
     while (p) {
-      if ((tm = Getattr(p, "tmap:argout:match_type"))) {
+      if ((match_type = Getattr(p, "tmap:argout:match_type"))) {
+        String *tm = 0;
         switch (anno) {
         case TYPE_ANNOTATION_C:
-          tm = SwigType_str(tm, 0);
+          tm = SwigType_str(match_type, 0);
           break;
         case TYPE_ANNOTATION_TYPING:
           tm = lookupPytyping(p, true);
@@ -2464,16 +2466,18 @@ public:
                          input_file,
                          line_number,
                          "Missing required entry in pytyping typemap for %s\n",
-                         SwigType_str(Getattr(p, "tmap:argout:match_type"), 0));
+                         SwigType_str(match_type, 0));
           break;
         case TYPE_ANNOTATION_NONE:
           break;  // unreachable
         }
 
-        if (ret)
+        if (ret) {
           Printv(ret, ", ", tm, NULL);
-        else
+          Delete(tm);
+        } else {
           ret = tm;
+        }
         p = Getattr(p, "tmap:argout:next");
       } else {
         p = nextSibling(p);
@@ -2495,7 +2499,9 @@ public:
         break;  // unreachable
       }
     }
-    return ret ? NewStringf(" -> \"%s\"", ret) : NewStringEmpty();
+    String *result = ret ? NewStringf(" -> \"%s\"", ret) : NewStringEmpty();
+    Delete(ret);
+    return result;
   }
 
   /* ------------------------------------------------------------
@@ -2537,12 +2543,16 @@ public:
 
   String *lookupPytyping(Node *n, bool out = false) {
     String *tm = Getattr(n, "tmap:pytyping");
-    if (!tm)
+    if (tm)
+      tm = Copy(tm);
+    else
       tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
     if (tm && out) {
       String *outty = Getattr(n, "tmap:pytyping:out");
-      if (outty)
-        tm = outty;
+      if (outty) {
+        Delete(tm);
+        tm = Copy(outty);
+      }
     }
     return tm;
   }
