@@ -1,6 +1,6 @@
 %module nested_template_base
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 
@@ -14,7 +14,7 @@
 // The %template goes after OuterT and before OuterC as OuterC::InnerC's base is handled inside OuterC
 %template(OuterTInnerS) OuterT<OuterC::InnerS>;
 
-#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+#if !defined(SWIGCSHARP) && !defined(SWIGJAVA_SOURCE)
 %feature("flatnested") OuterC::InnerS;
 %feature("flatnested") OuterC::InnerC;
 #endif
