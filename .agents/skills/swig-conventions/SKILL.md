@@ -52,6 +52,12 @@ The header is `/* ` plus a row of dashes, then ` * FunctionName()`, a blank ` *`
 
 A future cleanup pass will run `clang-format` over `parser.y` to normalise the file as a whole; until then, contributors should keep new additions consistent with the wider Source/ style.
 
+## Parse tree node type checks
+
+To test a parse tree node's type, use `Equal(nodeType(n), "cdecl")` rather than
+`Checkattr(n, "nodeType", "cdecl")`. `nodeType(n)` is the canonical accessor for the node type
+and this idiom dominates the existing `Source/` code. Reserve `Checkattr` for other attributes.
+
 ## Commit message style
 
 Write commit subjects and bodies as plain text. Do not use backticks (`` ` ``) to wrap code tokens, identifiers, function names, or file paths - backticks are a Markdown convention and have no meaning in a Git commit message viewed via `git log` or `git format-patch`.
