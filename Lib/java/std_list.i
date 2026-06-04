@@ -22,6 +22,10 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 }
 }
 
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::list::empty "override";
+%javamethodmodifiers std::list::clear "override";
+#endif
 %javamethodmodifiers std::list::push_back "private";
 %javamethodmodifiers std::list::begin "private";
 %javamethodmodifiers std::list::insert "private";
@@ -39,6 +43,7 @@ namespace std {
   template <typename T> class list {
 
 %typemap(javabase) std::list<T> "java.util.AbstractSequentialList<$typemap(jboxtype, T)>"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %proxycode %{
   @SuppressWarnings("this-escape")
   public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> c) {
@@ -129,6 +134,92 @@ namespace std {
     }.init(index);
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%proxycode %{
+  constructor(c: kotlin.collections.List<$typemap(jboxtype, T)>) : this() {
+    val it = listIterator(0)
+    // Special case the "copy constructor" here to avoid lots of cross-language calls
+    for (o in c) {
+      it.add(o)
+    }
+  }
+
+  override val size: Int
+    get() = doSize()
+
+  override fun add(element: $typemap(jboxtype, T)): Boolean {
+    push_back(element)
+    return true;
+  }
+
+  override fun listIterator(index: Int): MutableListIterator<$typemap(jboxtype, T)> {
+    return object : MutableListIterator<$typemap(jboxtype, T)> {
+      private var pos: Iterator
+      private var last: Iterator? = null
+
+      init {
+        if (index < 0 || index > this@$javaclassname.size)
+          throw IndexOutOfBoundsException("Index: " + index)
+        pos = this@$javaclassname.begin()
+        pos = pos.advance_unchecked(index)
+      }
+
+      override fun add(element: $typemap(jboxtype, T)) {
+        // Technically we can invalidate last here, but this makes more sense
+        last = this@$javaclassname.insert(pos, element)
+      }
+
+      override fun set(element: $typemap(jboxtype, T)) {
+        val l = last ?: throw IllegalStateException()
+        l.set_unchecked(element)
+      }
+
+      override fun remove() {
+        val l = last ?: throw IllegalStateException()
+        this@$javaclassname.remove(l)
+        last = null;
+      }
+
+      override fun previousIndex(): Int {
+        return this@$javaclassname.doPreviousIndex(pos)
+      }
+
+      override fun nextIndex(): Int {
+        return this@$javaclassname.doNextIndex(pos)
+      }
+
+      override fun previous(): $typemap(jboxtype, T) {
+        if (previousIndex() < 0) {
+          throw NoSuchElementException()
+        }
+        val l = pos
+        last = l
+        pos = pos.previous_unchecked();
+        return l.deref_unchecked()
+      }
+
+      override fun next(): $typemap(jboxtype, T) {
+        if (!hasNext()) {
+          throw NoSuchElementException()
+        }
+        val l = pos
+        last = l
+        pos = pos.next_unchecked();
+        return l.deref_unchecked()
+      }
+
+      override fun hasPrevious(): Boolean {
+        // This call to previousIndex() will be much slower than the hasNext() implementation, but it's simpler like this with C++ forward iterators
+        return previousIndex() != -1;
+      }
+
+      override fun hasNext(): Boolean {
+        return this@$javaclassname.doHasNext(pos)
+      }
+    }
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
   public:
     typedef size_t size_type;

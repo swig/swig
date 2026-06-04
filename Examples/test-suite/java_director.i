@@ -6,6 +6,7 @@
 
 %module(directors="1") java_director
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javafinalize) SWIGTYPE %{
   @SuppressWarnings({"deprecation", "removal"})
   protected void finalize() {
@@ -13,6 +14,7 @@
     delete();
   }
 %}
+#endif /* SWIGJAVA_TARGET */
 
 
 %{
@@ -93,10 +95,17 @@ public:
 
 %feature("director");
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javacode) hi::Quux1 %{
   public boolean disconnectMethodCalled = false;
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javacode) hi::Quux1 %{
+  @JvmField var disconnectMethodCalled: Boolean = false
+%}
+#endif /* SWIGJAVA_TARGET */
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(directordisconnect, methodname="disconnect_director") hi::Quux1 %{
   public void $methodname() {
     swigCMemOwn = false;
@@ -105,6 +114,16 @@ public:
     disconnectMethodCalled = true;
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(directordisconnect, methodname="disconnect_director") hi::Quux1 %{
+  fun $methodname() {
+    swigCMemOwn = false;
+    $jnicall;
+    // add in a flag to check this method is really called
+    disconnectMethodCalled = true;
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
 %inline %{
 
@@ -124,10 +143,19 @@ struct JObjectTest {
 %}
 
 %javaexception("Exception") etest "$action" 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %inline %{
 struct JavaExceptionTest {
   virtual ~JavaExceptionTest() {}
   virtual void etest() {}
 };
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%inline %{
+struct KotlinExceptionTest {
+  virtual ~KotlinExceptionTest() {}
+  virtual void etest() {}
+};
+%}
+#endif /* SWIGJAVA_TARGET */
 

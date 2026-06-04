@@ -8,7 +8,9 @@
 %apply char **STRING_ARRAY { char **languages };
 %apply char *BYTE { char *chars };
 %apply char **STRING_OUT { char **string_ptr };
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %apply unsigned char *NIOBUFFER { unsigned char *buf };
+#endif /* SWIGJAVA_TARGET */
 %typemap(freearg) char **languages "" // don't delete memory when setting global variable
 
 %{

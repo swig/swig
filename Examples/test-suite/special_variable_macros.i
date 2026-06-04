@@ -201,6 +201,7 @@ namespace Space {
   }
 %}
 #elif defined(SWIGJAVA)
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javacode) Space::RenameMe %{
   public static NewName factory(String s) {
   //below should expand to:
@@ -208,6 +209,13 @@ namespace Space {
     return new $typemap(jstype, Space::RenameMe)( new $typemap(jstype, Name)(s) ); 
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javacode) Space::RenameMe %{
+  fun factory(s: String): NewName {
+    return $typemap(jstype, Space::RenameMe)( $typemap(jstype, Name)(s) )
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 #elif defined(SWIGD)
 %typemap(dcode) Space::RenameMe %{
   public static NewName factory(string s) {

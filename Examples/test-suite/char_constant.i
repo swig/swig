@@ -23,7 +23,7 @@
 #define SPECIALCHARAE3 '\xC6' // AE (latin1 encoded)
 #define SPECIALCHARPAREN (';')
 
-#if defined(SWIGJAVA)
+#ifdef SWIGJAVA_SOURCE
 %javaconst(1);
 #elif SWIGCSHARP
 %csconst(1);

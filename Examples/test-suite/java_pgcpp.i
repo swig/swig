@@ -2,6 +2,7 @@
 
 %module java_pgcpp
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %pragma(java) jniclassclassmodifiers="public class"
 
 %typemap(javacode) Space::Classic %{
@@ -9,10 +10,23 @@
     return this.swigCPtr;
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%pragma(java) jniclassclassmodifiers="public object"
+
+%typemap(javacode) Space::Classic %{
+  fun getCPtrValue(): Long {
+    return this.swigCPtr
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
 // Default pointer to pointer typemaps do not use proxy class, so make sure that the pgcpp is generated for these typemaps
 %typemap(jni) Space::Classic ** "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) Space::Classic ** "long"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) Space::Classic ** "Long"
+#endif /* SWIGJAVA_TARGET */
 %typemap(jstype) Space::Classic ** " Classic "
 %typemap(javain) Space::Classic ** "Classic.getCPtr($javainput)"
 
@@ -35,6 +49,7 @@ namespace Space {
 %}
 
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype)  Klassic *k1 "/*a*/ long   /*b*/ /*c*/"
 %typemap(jstype) Klassic *k1 "/*a*/ Classic/*b*/ /*c*/"
 
@@ -43,6 +58,16 @@ namespace Space {
 
 %typemap(jtype)  Klassic *k3 "long/*e*/ "
 %typemap(jstype) Klassic *k3 "Classic/*e*/ "
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype)  Klassic *k1 "/*a*/ Long   /*b*/ /*c*/"
+%typemap(jstype) Klassic *k1 "/*a*/ Classic/*b*/ /*c*/"
+
+%typemap(jtype)  Klassic *k2 "/*d*/ Long"
+%typemap(jstype) Klassic *k2 "/*d*/ Classic"
+
+%typemap(jtype)  Klassic *k3 "Long/*e*/ "
+%typemap(jstype) Klassic *k3 "Classic/*e*/ "
+#endif /* SWIGJAVA_TARGET */
 
 %typemap(javain) Klassic * "Classic.getCPtr($javainput)"
 

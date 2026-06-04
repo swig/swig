@@ -44,8 +44,13 @@ public:
 %feature("director") Foo;
 
 %typemap(jni) bar::Ptr< bar::Baz > "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) bar::Ptr< bar::Baz > "long"
 %typemap(jstype) bar::Ptr< bar::Baz > "Baz"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) bar::Ptr< bar::Baz > "Long"
+%typemap(jstype) bar::Ptr< bar::Baz > "Baz?"
+#endif /* SWIGJAVA_TARGET */
 %typemap(in) bar::Ptr< bar::Baz > {
   $1 = bar::Ptr< bar::Baz >(*( bar::Baz**)&$input);
 }
@@ -58,18 +63,31 @@ public:
   }
 }
 %typemap(javain) bar::Ptr< bar::Baz > "$typemap(jstype, bar::Baz).getCPtr($javainput)"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) bar::Ptr< bar::Baz > {
   long cPtr = $jnicall;
   return (cPtr == 0) ? null : new $typemap(jstype, bar::Baz)(cPtr, false);
 }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) bar::Ptr< bar::Baz > {
+  val cPtr = $jnicall
+  return if (cPtr == 0L) null else $typemap(jstype, bar::Baz)(cPtr, false)
+}
+#endif /* SWIGJAVA_TARGET */
 %typemap(directorin, descriptor="L$packagepath/$typemap(jstype, bar::Baz);") bar::Ptr< bar::Baz >
 %{ *((bar::Baz**)&$input) = ((bar::Ptr< bar::Baz >&)$1).Get(); %}
 %typemap(directorout) bar::Ptr< bar::Baz > {
   $result = bar::Ptr< bar::Baz >(*( bar::Baz**)&$input);
 }
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadirectorin) bar::Ptr< bar::Baz > %{
   ($jniinput == 0) ? null : new $typemap(jstype, bar::Baz)($jniinput, false)
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadirectorin) bar::Ptr< bar::Baz > %{
+  if ($jniinput == 0L) null else $typemap(jstype, bar::Baz)($jniinput, false)
+%}
+#endif /* SWIGJAVA_TARGET */
 %typemap(javadirectorout) bar::Ptr< bar::Baz > "$typemap(jstype, bar::Baz).getCPtr($javacall)"
 
 namespace bar {

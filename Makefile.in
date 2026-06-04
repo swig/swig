@@ -76,6 +76,7 @@ skip-go		= test -n "@SKIP_GO@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-java	= test -n "@SKIP_JAVA@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
+skip-kotlin	= test -n "@SKIP_KOTLIN@"
 skip-lua    	= test -n "@SKIP_LUA@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
@@ -117,6 +118,7 @@ check-aliveness:
 	@$(skip-guile)    || ./$(TARGET) -guile      -help
 	@$(skip-java)     || ./$(TARGET) -java       -help
 	@$(skip-javascript) || ./$(TARGET) -javascript -help
+	@$(skip-kotlin)   || ./$(TARGET) -kotlin     -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
@@ -140,6 +142,7 @@ check-versions:					\
 	check-guile-version			\
 	check-java-version			\
 	check-javascript-version		\
+	check-kotlin-version			\
 	check-lua-version			\
 	check-ocaml-version			\
 	check-octave-version			\
@@ -174,6 +177,7 @@ check-examples:					\
 	check-guile-examples			\
 	check-java-examples			\
 	check-javascript-examples		\
+	check-kotlin-examples			\
 	check-lua-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
@@ -193,6 +197,7 @@ go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
 javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
+kotlin_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/kotlin/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
@@ -249,6 +254,7 @@ check-test-suite:				\
 	check-guile-test-suite			\
 	check-java-test-suite			\
 	check-javascript-test-suite		\
+	check-kotlin-test-suite			\
 	check-lua-test-suite			\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
@@ -296,6 +302,7 @@ all-test-suite:					\
 	all-guile-test-suite			\
 	all-java-test-suite			\
 	all-javascript-test-suite		\
+	all-kotlin-test-suite			\
 	all-lua-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
@@ -319,6 +326,7 @@ broken-test-suite:				\
 	broken-guile-test-suite			\
 	broken-java-test-suite			\
 	broken-javascript-test-suite		\
+	broken-kotlin-test-suite		\
 	broken-lua-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
