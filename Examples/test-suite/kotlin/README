@@ -1,0 +1,17 @@
+See ../README for common README about the test-suite.
+
+The Kotlin test-suite uses one directory per test case as each test case
+uses its own Kotlin/Java package named after the test case. All the
+generated Kotlin files for a test case are compiled with a single kotlinc
+invocation as the Kotlin compiler startup overhead is significant.
+
+A test case is run if a file named after the test case with a _runme.kt
+suffix exists. The runme file must select its JVM class name with a
+@file:JvmName("testcase_runme") annotation as the default Kotlin file
+facade class name capitalizes the first letter of the file name. The
+compiled runme is executed with the kotlin launcher that ships with the
+Kotlin compiler so that the Kotlin runtime is on the classpath.
+
+The Kotlin module is experimental and large parts of the test-suite are
+expected to fail. Failing tests should be added to the FAILING_CPP_TESTS
+and FAILING_C_TESTS lists in Makefile.in as they are found.
