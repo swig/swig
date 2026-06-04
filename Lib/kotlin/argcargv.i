@@ -3,8 +3,8 @@
  * ------------------------------------------------------------- */
 
 %typemap(jni) (int ARGC, char **ARGV) "jobjectArray"
-%typemap(ktype) (int ARGC, char **ARGV) "String[]"
-%typemap(kstype) (int ARGC, char **ARGV) "String[]"
+%typemap(ktype) (int ARGC, char **ARGV) "Array<String>"
+%typemap(kstype) (int ARGC, char **ARGV) "Array<String>"
 
 %typemap(in) (int ARGC, char **ARGV) {
   $1_ltype i, len;

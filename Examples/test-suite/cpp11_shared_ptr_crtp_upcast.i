@@ -3,7 +3,7 @@
 // Cutdown testcase for assert reported in https://github.com/swig/swig/issues/2768
 // Note that this test has CRTP and %template instantiations for DiscretisedDensity template parameters not fully resolved
 
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE, SWIGWARN_KOTLIN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE,

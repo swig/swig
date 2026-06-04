@@ -7,6 +7,7 @@
   +defined(SWIGGUILE)\
   +defined(SWIGJAVA)\
   +defined(SWIGJAVASCRIPT)\
+  +defined(SWIGKOTLIN)\
   +defined(SWIGLUA)\
   +defined(SWIGOCAML)\
   +defined(SWIGOCTAVE)\

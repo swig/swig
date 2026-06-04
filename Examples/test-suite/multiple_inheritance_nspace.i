@@ -5,11 +5,11 @@
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
 %nspace;
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %include <swiginterface.i>
 %interface(Space::ABase1)
 %interface(Space::CBase1)

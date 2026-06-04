@@ -15,3 +15,6 @@ Kotlin compiler so that the Kotlin runtime is on the classpath.
 The Kotlin module is experimental and large parts of the test-suite are
 expected to fail. Failing tests should be added to the FAILING_CPP_TESTS
 and FAILING_C_TESTS lists in Makefile.in as they are found.
+
+The li_boost_shared_ptr* and other boost based tests additionally require the
+boost headers to be installed.

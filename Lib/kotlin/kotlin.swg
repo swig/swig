@@ -1371,21 +1371,21 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
-  protected fun $methodname() {
+  $methodmodifiers fun $methodname() {
     swigCMemOwn = false
     $jnicall
   }
 %}
 
 %typemap(directorowner_release, methodname="swigReleaseOwnership") SWIGTYPE %{
-  fun $methodname() {
+  $methodmodifiers fun $methodname() {
     swigCMemOwn = false
     $jnicall
   }
 %}
 
 %typemap(directorowner_take, methodname="swigTakeOwnership") SWIGTYPE %{
-  fun $methodname() {
+  $methodmodifiers fun $methodname() {
     swigCMemOwn = true
     $jnicall
   }

@@ -1,7 +1,7 @@
 /* File : example.i */
 %module dynamic_cast
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)  && !defined(SWIGC)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)  && !defined(SWIGC) && !defined(SWIGKOTLIN)
 %apply SWIGTYPE *DYNAMIC { Foo * };
 #endif
 
@@ -17,7 +17,7 @@ public:
 };
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGO) || defined(SWIGD)  || defined(SWIGC)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGO) || defined(SWIGD)  || defined(SWIGC) || defined(SWIGKOTLIN)
 %typemap(out) Foo *blah {
     Bar *downcast = dynamic_cast<Bar *>($1);
     *(Bar **)&$result = downcast;
@@ -27,6 +27,12 @@ public:
 #if defined(SWIGJAVA)
 %typemap(javaout) Foo * {
     return new Bar($jnicall, $owner);
+  }
+#endif
+
+#if defined(SWIGKOTLIN)
+%typemap(kout) Foo * {
+    return Bar($jnicall, $owner)
   }
 #endif
 
@@ -69,7 +75,7 @@ char *do_test(Bar *b) {
 }
 %}
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)  && !defined(SWIGC)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)  && !defined(SWIGC) && !defined(SWIGKOTLIN)
 // A general purpose function for dynamic casting of a Foo *
 %{
 static swig_type_info *

@@ -303,21 +303,21 @@
   }
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") TYPE %{
-  protected fun $methodname() {
+  $methodmodifiers fun $methodname() {
     swigSetCMemOwn(false)
     $jnicall
   }
 %}
 
 %typemap(directorowner_release, methodname="swigReleaseOwnership") TYPE %{
-  fun $methodname() {
+  $methodmodifiers fun $methodname() {
     swigSetCMemOwn(false)
     $jnicall
   }
 %}
 
 %typemap(directorowner_take, methodname="swigTakeOwnership") TYPE %{
-  fun $methodname() {
+  $methodmodifiers fun $methodname() {
     swigSetCMemOwn(true)
     $jnicall
   }

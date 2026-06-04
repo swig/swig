@@ -75,8 +75,8 @@
  * written to possibly optimise this lookup by taking advantage of characteristics peculiar to the targeted enum.
  * The special variable, $enumvalues, is replaced with a comma separated list of all the enum values.
  */
-%typemap(kbody) enum SWIGTYPE %{
-    private val swigValues = arrayOf($enumvalues)
+%typemap(kbody, companion="1") enum SWIGTYPE %{
+    private val swigValues = arrayOf<$kotlinclassname>($enumvalues)
 
     fun swigToEnum(swigValue: Int): $kotlinclassname {
       if (swigValue < swigValues.size && swigValue >= 0 && swigValues[swigValue].swigValue == swigValue)

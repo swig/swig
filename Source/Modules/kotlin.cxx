@@ -65,6 +65,7 @@ class KOTLIN : public Language {
   String *variable_name;          // Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *proxy_class_companion_code;  // static members go into the proxy class companion object
+  String *director_bridge_code;        // upcall bridges for protected director methods, collected before the proxy class buffers exist
   String *prop_getter_code;            // getter accessor for the variable currently being wrapped as a Kotlin property
   String *prop_setter_code;            // setter accessor for the variable currently being wrapped as a Kotlin property
   String *prop_type;                   // Kotlin type of the variable currently being wrapped as a Kotlin property
@@ -146,6 +147,7 @@ public:
     variable_name(NULL),
     proxy_class_constants_code(NULL),
     proxy_class_companion_code(NULL),
+    director_bridge_code(NULL),
     prop_getter_code(NULL),
     prop_setter_code(NULL),
     prop_type(NULL),
@@ -1351,12 +1353,13 @@ public:
           Replaceall(enum_code, "$enumvalues", "");
 
         if (proxy_flag && is_wrapping_class()) {
-          // Enums defined within the C++ class are defined within the proxy class
+          // Enums defined within the C++ class are emitted as nested classes directly in the
+          // proxy class body (not in the companion object) so they are referenced as Outer.Enum
 
           // Add extra indentation
           Replaceall(enum_code, "\n", "\n  ");
           Replaceall(enum_code, "  \n", "\n");
-          Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
+          Printv(proxy_class_code, "  ", enum_code, "\n\n", NIL);
         } else {
           // Global enums are defined in their own file
           String *output_directory = outputDirectory(nspace);
@@ -1982,6 +1985,7 @@ public:
     Delete(attributes);
 
     // C++ inheritance
+    Node *basenode = NULL;
     if (!purebase_replace) {
       List *baselist = Getattr(n, "bases");
       if (baselist) {
@@ -1995,6 +1999,7 @@ public:
                 c_baseclassname = baseclassname;
                 baseclass = name;
                 bsmart = Getattr(base.item, "smart");
+                basenode = base.item;
               }
             } else {
               /* Warn about multiple inheritance for additional base class(es) */
@@ -2144,9 +2149,14 @@ public:
       release_jnicall = NewStringf("%s.%s(this, swigCPtr, false)", full_imclass_name, changeown_method_name);
       take_jnicall = NewStringf("%s.%s(this, swigCPtr, true)", full_imclass_name, changeown_method_name);
 
-      emitCodeTypemap(n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall);
-      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall);
-      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall);
+      // When the base class is also a director class it already declares these methods,
+      // so the methods in the derived class are overrides
+      bool base_director = basenode && Swig_directorclass(basenode);
+
+      emitCodeTypemap(
+        n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall, base_director ? "protected override" : "protected open");
+      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall, base_director ? "override" : "open");
+      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall, base_director ? "override" : "open");
 
       Delete(destruct_jnicall);
       Delete(changeown_method_name);
@@ -2183,7 +2193,7 @@ public:
         Printv(f_interface, package, nspace ? "." : "", NIL);
       if (nspace)
         Printv(f_interface, nspace, NIL);
-      Printf(f_interface, ";\n");
+      Printf(f_interface, "\n");
     }
 
     Printv(f_interface, typemapLookup(n, "kimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
@@ -2213,7 +2223,7 @@ public:
       }
     }
     if (bases) {
-      Printv(f_interface, " extends ", bases, NIL);
+      Printv(f_interface, " : ", bases, NIL);
       Delete(bases);
     }
     Printf(f_interface, " {\n");
@@ -2369,6 +2379,13 @@ public:
     Language::classHandler(n);
 
     if (proxy_flag) {
+      // Emit the upcall bridges for protected director methods collected in classDirectorMethod()
+      if (director_bridge_code) {
+        Printv(proxy_class_code, director_bridge_code, NIL);
+        Delete(director_bridge_code);
+        director_bridge_code = NULL;
+      }
+
       emitProxyClassDefAndCPPCasts(n);
 
       String *kotlinclazzname = Swig_name_member(getNSpace(), getClassPrefix(), "");  // mangled full proxy class name
@@ -2510,6 +2527,140 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * isOverrideInKotlinHierarchy()
+   *
+   * The override and hides attributes hold the hidden/overridden base class method, but
+   * Kotlin only retains the first base class of a C++ class with multiple inheritance.
+   * Returns true when the given base method is declared in a class that is part of the
+   * retained single inheritance proxy class chain, in which case the derived method must
+   * carry the override modifier. Methods marked against a dropped base class must not.
+   * ----------------------------------------------------------------------------- */
+
+  bool isOverrideInKotlinHierarchy(Node *n, Node *base_method) {
+    if (!base_method)
+      return false;
+    // A %rename can give the two methods different target language names
+    if (Cmp(Getattr(n, "sym:name"), Getattr(base_method, "sym:name")) != 0)
+      return false;
+    // Methods added with %extend sit below an extend node inside the class
+    Node *base_class = parentNode(base_method);
+    while (base_class && Cmp(nodeType(base_class), "class") != 0)
+      base_class = parentNode(base_class);
+    if (!base_class)
+      return false;
+    Node *cls = getCurrentClass();
+    while (cls) {
+      Node *first = 0;
+      List *baselist = Getattr(cls, "bases");
+      if (baselist) {
+        for (Iterator base = First(baselist); base.item; base = Next(base)) {
+          if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
+            if (getProxyName(Getattr(base.item, "name"))) {
+              first = base.item;
+              break;
+            }
+          }
+        }
+      }
+      if (!first)
+        return false;
+      if (first == base_class)
+        return true;
+      cls = first;
+    }
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * findClassMember()
+   *
+   * Look for a member with the given symbol name in the given class, descending one
+   * level into extend nodes. If decl is non-null it must match the member's decl too.
+   * ----------------------------------------------------------------------------- */
+
+  Node *findClassMember(Node *cls, String *symname, String *decl) {
+    for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
+      if (Cmp(nodeType(child), "extend") == 0) {
+        Node *member = findClassMember(child, symname, decl);
+        if (member)
+          return member;
+      }
+      if (GetFlag(child, "feature:ignore"))
+        continue;
+      if (Cmp(Getattr(child, "sym:name"), symname) != 0)
+        continue;
+      if (decl && Cmp(Getattr(child, "decl"), decl) != 0)
+        continue;
+      return child;
+    }
+    return 0;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * variableHidesBaseMember()
+   *
+   * Returns true if a wrapped member variable has the same name as a variable in one
+   * of the base classes in the retained single inheritance proxy class chain, in which
+   * case the generated Kotlin property is a property override. Note that the allocate
+   * pass does not provide the hides attribute for variables brought in with a using
+   * declaration, so the base class members are searched here instead.
+   * ----------------------------------------------------------------------------- */
+
+  bool variableHidesBaseMember(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    if (!symname)
+      return false;
+    Node *cls = getCurrentClass();
+    while (cls) {
+      Node *first = 0;
+      List *baselist = Getattr(cls, "bases");
+      if (baselist) {
+        for (Iterator base = First(baselist); base.item; base = Next(base)) {
+          if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
+            if (getProxyName(Getattr(base.item, "name"))) {
+              first = base.item;
+              break;
+            }
+          }
+        }
+      }
+      if (!first)
+        return false;
+      Node *member = findClassMember(first, symname, 0);
+      if (member && Cmp(Getattr(member, "kind"), "variable") == 0 && is_public(member))
+        return true;
+      cls = first;
+    }
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * implementsInterfaceMethod()
+   *
+   * Returns true if the method implements a method of one of the Kotlin interfaces
+   * generated for the base classes marked with the interface feature. Such methods
+   * need the override modifier. Note that the allocate pass deliberately does not mark
+   * interface implementations with the override or hides attributes.
+   * ----------------------------------------------------------------------------- */
+
+  bool implementsInterfaceMethod(Node *n) {
+    Node *cls = getCurrentClass();
+    List *interface_bases = cls ? Getattr(cls, "interface:bases") : 0;
+    if (!interface_bases)
+      return false;
+    String *symname = Getattr(n, "sym:name");
+    String *decl = Getattr(n, "decl");
+    if (!symname)
+      return false;
+    for (Iterator base = First(interface_bases); base.item; base = Next(base)) {
+      Node *member = findClassMember(base.item, symname, decl);
+      if (member && is_public(member))
+        return true;
+    }
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
    * proxyClassFunctionHandler()
    *
    * Function called for creating a Kotlin wrapper function around a c++ function in the
@@ -2595,18 +2746,31 @@ public:
     /* Start generating the proxy function */
     const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
     if (methodmods) {
-      Printf(function_code, "  %s ", methodmods);
+      if (is_smart_pointer()) {
+        // Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no open/override required.
+        String *mmods = Copy(methodmods);
+        Replaceall(mmods, "override", "");
+        Replaceall(mmods, "open", "");
+        Chop(mmods);  // remove trailing whitespace
+        Printf(function_code, "  %s ", mmods);
+        Delete(mmods);
+      } else {
+        Printf(function_code, "  %s ", methodmods);
+      }
     } else {
       methodmods = (is_public(n) ? public_string : protected_string);
       Printf(function_code, "  %s ", methodmods);
-      if (!static_flag) {
+      if (!static_flag && !is_smart_pointer()) {
         // Kotlin functions are final by default so the inheritance related modifiers are explicit.
-        // A method overriding a base class method or implementing an interface method needs 'override',
-        // anything else that is virtual or hides a base class method is emitted 'open' so that a
-        // derived proxy class (or user director subclass) can override it.
-        if (Getattr(n, "override") || is_interface)
+        // A method overriding a base class method, hiding a base class method (which is also an
+        // override in Kotlin as all proxy methods are open) or implementing an interface method
+        // needs 'override'. Everything else is emitted 'open' so that a derived proxy class
+        // (or user director subclass) can override it, matching the Java module where all proxy
+        // methods can be overridden.
+        if (isOverrideInKotlinHierarchy(n, Getattr(n, "override")) || isOverrideInKotlinHierarchy(n, Getattr(n, "hides")) || is_interface ||
+            implementsInterfaceMethod(n))
           Printf(function_code, "override ");
-        else if (checkAttribute(n, "storage", "virtual") || Getattr(n, "hides") || Swig_directorclass(getCurrentClass()))
+        else
           Printf(function_code, "open ");
       }
     }
@@ -2823,9 +2987,9 @@ public:
    * target code buffer. A variable without a setter becomes a read only 'val'.
    * ----------------------------------------------------------------------------- */
 
-  void assembleProxyProperty(String *target) {
+  void assembleProxyProperty(String *target, const char *modifiers = "") {
     if (prop_getter_code) {
-      Printf(target, "  %s %s: %s\n", prop_setter_code ? "var" : "val", variable_name, prop_type);
+      Printf(target, "  %s%s %s: %s\n", modifiers, prop_setter_code ? "var" : "val", variable_name, prop_type);
       Printf(target, "    %s\n", prop_getter_code);
       if (prop_setter_code)
         Printf(target, "    %s\n", prop_setter_code);
@@ -3095,7 +3259,14 @@ public:
     wrapping_member_flag = true;
     variable_wrapper_flag = true;
     Language::membervariableHandler(n);
-    assembleProxyProperty(proxy_class_code);
+    // Member variable properties are open for the same reason as proxy methods, with a
+    // variable hiding one in a base class becoming a Kotlin property override.
+    // The %kotlinmethodmodifiers feature overrides the default modifiers.
+    const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+    bool property_override = isOverrideInKotlinHierarchy(n, Getattr(n, "hides")) || variableHidesBaseMember(n);
+    String *modifiers = NewStringf("%s ", methodmods ? Char(methodmods) : (property_override ? "override" : "open"));
+    assembleProxyProperty(proxy_class_code, Char(modifiers));
+    Delete(modifiers);
     wrapping_member_flag = false;
     variable_wrapper_flag = false;
     return SWIG_OK;
@@ -3596,7 +3767,7 @@ public:
       } else {
         bool anonymous_enum = (Cmp(classnametype, "enum ") == 0);
         if (anonymous_enum) {
-          replacementname = NewString("int");
+          replacementname = NewString("Int");
         } else {
           // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
           replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
@@ -3672,9 +3843,17 @@ public:
     const String *pure_baseclass = typemapLookup(n, "kbase", type, WARN_NONE);
     const String *pure_interfaces = typemapLookup(n, "kinterfaces", type, WARN_NONE);
 
+    // Type wrapper classes for unknown enums can pick up an enum SWIGTYPE kbody typemap which
+    // closes the companion object that the enum declaration normally opens. Such typemaps carry
+    // a "companion" attribute so that the companion object can be opened here.
+    Node *kbody_attributes = NewHash();
+    const String *kbody_tm = typemapLookup(n, "kbody", type, WARN_KOTLIN_TYPEMAP_KBODY_UNDEF, kbody_attributes);
+    bool open_companion = Getattr(kbody_attributes, "tmap:kbody:companion") != 0;
+
     // Emit the class. Kotlin uses a single ':' clause for both the base class and interfaces.
-    // The static members from the kcompanion typemap go into the companion object.
-    const String *companion_tm = typemapLookup(n, "kcompanion", type, WARN_NONE);
+    // The static members from the kcompanion typemap go into the companion object, unless the
+    // kbody typemap brings its own companion object.
+    const String *companion_tm = open_companion ? 0 : typemapLookup(n, "kcompanion", type, WARN_NONE);
     String *companion_code = NewString("");
     if (companion_tm && *Char(companion_tm))
       Printv(companion_code, "\n  companion object {\n", companion_tm, "  }\n", NIL);
@@ -3689,12 +3868,14 @@ public:
            (*Char(pure_baseclass) && *Char(pure_interfaces)) ? ", " : "",
            pure_interfaces,
            " {",
-           typemapLookup(n, "kbody", type, WARN_KOTLIN_TYPEMAP_KBODY_UNDEF),  // main body of class
-           typemapLookup(n, "kcode", type, WARN_NONE),                        // extra Kotlin code
+           open_companion ? "\n  companion object {" : "",
+           kbody_tm,                                    // main body of class
+           typemapLookup(n, "kcode", type, WARN_NONE),  // extra Kotlin code
            companion_code,
            "}\n",
            "\n",
            NIL);
+    Delete(kbody_attributes);
     Delete(companion_code);
 
     Replaceall(swigtype, "$kotlinclassname", classname);
@@ -4089,7 +4270,8 @@ public:
    * typemaps.
    *--------------------------------------------------------------------*/
 
-  void emitCodeTypemap(Node *n, bool derived, SwigType *lookup_type, const String *typemap, const String *methodname, const String *jnicall) {
+  void emitCodeTypemap(Node *n, bool derived, SwigType *lookup_type, const String *typemap, const String *methodname, const String *jnicall,
+                       const char *methodmods = 0) {
     const String *tm = NULL;
     Node *tmattrs = NewHash();
     String *lookup_tmname = NewString(typemap);
@@ -4109,6 +4291,8 @@ public:
         String *codebody = Copy(tm);
         Replaceall(codebody, "$methodname", method_attr);
         Replaceall(codebody, "$jnicall", jnicall);
+        if (methodmods)
+          Replaceall(codebody, "$methodmodifiers", methodmods);
         Append(proxy_class_def, codebody);
         Delete(codebody);
       } else {
@@ -4212,6 +4396,8 @@ public:
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
+    String *bridge_params = NewString("");
+    String *bridge_args = NewString("");
     int classmeth_off = curr_class_dmethod - first_class_dmethod;
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
     String *qualified_classname = getProxyName(getClassName());
@@ -4367,6 +4553,7 @@ public:
     Swig_typemap_attach_parms("out", l, 0);
     Swig_typemap_attach_parms("jni", l, 0);
     Swig_typemap_attach_parms("ktype", l, 0);
+    Swig_typemap_attach_parms("kstype", l, 0);
     Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("kdirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
@@ -4508,6 +4695,19 @@ public:
                 Printv(imcall_args, din, NIL);
               } else
                 Printv(imcall_args, ln, NIL);
+
+              // Collect the parameters for the protected method upcall bridge
+              if ((tm = Getattr(p, "tmap:kstype"))) {
+                String *bridge_type = Copy(tm);
+                substituteClassname(pt, bridge_type);
+                if (Len(bridge_params) > 0) {
+                  Printf(bridge_params, ", ");
+                  Printf(bridge_args, ", ");
+                }
+                Printf(bridge_params, "%s: %s", ln, bridge_type);
+                Printf(bridge_args, "%s", ln);
+                Delete(bridge_type);
+              }
 
               jni_canon = canonicalizeJNIDescriptor(cdesc, p);
               Append(classdesc, jni_canon);
@@ -4661,7 +4861,26 @@ public:
 
     /* Emit the intermediate class's upcall to the actual class */
 
-    String *upcall = NewStringf("jself.%s(%s)", symname, imcall_args);
+    String *upcall = 0;
+    String *bridge_code = 0;
+    if (!is_public(n) && !ignored_method) {
+      // Kotlin protected members are not accessible from the intermediary object (Java relies
+      // on package access here), so the upcall goes through an internal bridge method emitted
+      // into the proxy class which forwards to the protected method.
+      String *bridge_return = 0;
+      if ((tm = Swig_typemap_lookup("kstype", n, "", 0))) {
+        bridge_return = Copy(tm);
+        substituteClassname(returntype, bridge_return);
+      } else {
+        bridge_return = NewString("Unit");
+      }
+      bridge_code = NewStringf(
+        "  internal fun %s(%s): %s {\n    %s%s(%s)\n  }\n\n", imclass_dmethod, bridge_params, bridge_return, is_void ? "" : "return ", symname, bridge_args);
+      upcall = NewStringf("jself.%s(%s)", imclass_dmethod, imcall_args);
+      Delete(bridge_return);
+    } else {
+      upcall = NewStringf("jself.%s(%s)", symname, imcall_args);
+    }
 
     // Handle exception classes specified in the "except" feature's "throws" attribute
     addThrows(n, "feature:except", n);
@@ -4785,8 +5004,16 @@ public:
         Replaceall(w->code, "$null", "");
       }
       Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
-      if (!GetFlag(n, "feature:ignore"))
+      if (!GetFlag(n, "feature:ignore")) {
         Printv(imclass_directors, callback_def, callback_code, NIL);
+        if (bridge_code) {
+          // The director methods are processed before the proxy class buffers exist, so the
+          // bridges are collected here and emitted into the proxy class in classHandler()
+          if (!director_bridge_code)
+            director_bridge_code = NewString("");
+          Printv(director_bridge_code, bridge_code, NIL);
+        }
+      }
       if (!Getattr(n, "defaultargs")) {
         Replaceall(w->code, "$symname", symname);
         Wrapper_print(w, f_directors);
@@ -4803,6 +5030,9 @@ public:
     Delete(declaration);
     Delete(callback_def);
     Delete(callback_code);
+    Delete(bridge_code);
+    Delete(bridge_params);
+    Delete(bridge_args);
     DelWrapper(w);
 
     return status;

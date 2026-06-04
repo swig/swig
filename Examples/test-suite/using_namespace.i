@@ -3,7 +3,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) hi::hi0;	/* Ruby, wrong class name */
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) hi::hi1;	/* Ruby, wrong class name */
 
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE, SWIGWARN_KOTLIN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) Hi<hello::Hello, hi::hi0>; // C#, D, Java, PHP multiple inheritance

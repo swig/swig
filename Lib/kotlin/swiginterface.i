@@ -10,17 +10,18 @@
 %define INTERFACE_TYPEMAPS(CTYPE...)
 %typemap(ktype) CTYPE, CTYPE *, CTYPE *const&, CTYPE [], CTYPE & "Long"
 %typemap(kstype) CTYPE "$&kotlininterfacename"
-%typemap(kstype) CTYPE *, CTYPE [], CTYPE & "$kotlininterfacename"
-%typemap(kstype) CTYPE *const& "$*kotlininterfacename"
+%typemap(kstype) CTYPE *, CTYPE [] "$kotlininterfacename?"
+%typemap(kstype) CTYPE & "$kotlininterfacename"
+%typemap(kstype) CTYPE *const& "$*kotlininterfacename?"
 %typemap(kin) CTYPE "$kotlininput.$&interfacename_GetInterfaceCPtr()"
 %typemap(kin) CTYPE & "$kotlininput.$interfacename_GetInterfaceCPtr()"
-%typemap(kin) CTYPE *, CTYPE [] "($kotlininput == null) ? 0 : $kotlininput.$interfacename_GetInterfaceCPtr()"
-%typemap(kin) CTYPE *const& "($kotlininput == null) ? 0 : $kotlininput.$*interfacename_GetInterfaceCPtr()"
+%typemap(kin) CTYPE *, CTYPE [] "if ($kotlininput == null) 0L else $kotlininput.$interfacename_GetInterfaceCPtr()"
+%typemap(kin) CTYPE *const& "if ($kotlininput == null) 0L else $kotlininput.$*interfacename_GetInterfaceCPtr()"
 %typemap(kout) CTYPE {
-    return ($&kotlininterfacename)new $&kotlinclassname($jnicall, true);
+    return $&kotlinclassname($jnicall, true);
   }
 %typemap(kout) CTYPE & {
-    return ($kotlininterfacename)new $kotlinclassname($jnicall, $owner);
+    return $kotlinclassname($jnicall, $owner);
   }
 %typemap(kout) CTYPE *, CTYPE [] {
     val cPtr = $jnicall
@@ -31,10 +32,10 @@
     return if (cPtr == 0L) null else $*kotlinclassname(cPtr, $owner)
   }
 
-%typemap(kdirectorin) CTYPE "($&kotlininterfacename)new $&kotlinclassname($jniinput, true)"
-%typemap(kdirectorin) CTYPE & "($kotlininterfacename)new $kotlinclassname($jniinput, false)"
-%typemap(kdirectorin) CTYPE *, CTYPE [] "($jniinput == 0) ? null : ($kotlininterfacename)new $kotlinclassname($jniinput, false)"
-%typemap(kdirectorin) CTYPE *const& "($jniinput == 0) ? null : ($*kotlininterfacename)new $*kotlinclassname($jniinput, false)"
+%typemap(kdirectorin) CTYPE "$&kotlinclassname($jniinput, true)"
+%typemap(kdirectorin) CTYPE & "$kotlinclassname($jniinput, false)"
+%typemap(kdirectorin) CTYPE *, CTYPE [] "if ($jniinput == 0L) null else $kotlinclassname($jniinput, false)"
+%typemap(kdirectorin) CTYPE *const& "if ($jniinput == 0L) null else $*kotlinclassname($jniinput, false)"
 %typemap(kdirectorout) CTYPE "$kotlincall.$&interfacename_GetInterfaceCPtr()"
 %typemap(kdirectorout) CTYPE *, CTYPE [], CTYPE & "$kotlincall.$interfacename_GetInterfaceCPtr()"
 %typemap(kdirectorout) CTYPE *const& "$kotlincall.$*interfacename_GetInterfaceCPtr()"
@@ -48,9 +49,9 @@
 %typemap(directorin,descriptor="L$packagepath/$*kotlininterfacename;") CTYPE *const&
 %{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
-%typemap(kinterfacecode, declaration="  long $interfacename_GetInterfaceCPtr();\n", cptrmethod="$interfacename_GetInterfaceCPtr") CTYPE %{
-  public long $interfacename_GetInterfaceCPtr() {
-    return $imclassname.$kotlinclazzname$interfacename_GetInterfaceCPtr(swigCPtr);
+%typemap(kinterfacecode, declaration="  fun $interfacename_GetInterfaceCPtr(): Long\n", cptrmethod="$interfacename_GetInterfaceCPtr") CTYPE %{
+  override fun $interfacename_GetInterfaceCPtr(): Long {
+    return $imclassname.$kotlinclazzname$interfacename_GetInterfaceCPtr(swigCPtr)
   }
 %}
 %enddef

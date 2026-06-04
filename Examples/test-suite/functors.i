@@ -1,7 +1,7 @@
 %module functors
 
 // Rename operator() only if the language does not already do this by default
-#if defined(SWIGC) || defined(SWIGCSHARP) || defined(SWIGGO) || defined(SWIGGUILE) || defined(SWIGJAVA) || defined(SWIGJAVASCRIPT) || defined(SWIGPHP) || defined(SWIGSCILAB) || defined(SWIGTCL)
+#if defined(SWIGC) || defined(SWIGCSHARP) || defined(SWIGGO) || defined(SWIGGUILE) || defined(SWIGJAVA) || defined(SWIGJAVASCRIPT) || defined(SWIGKOTLIN) || defined(SWIGPHP) || defined(SWIGSCILAB) || defined(SWIGTCL)
 %rename(Funktor) operator();
 #endif
 

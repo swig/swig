@@ -1,7 +1,7 @@
 %module java_nspacewithoutpackage
 
-%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE) TopLevel::Foo;
-%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE) TopLevel::Bar;
+%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE, SWIGWARN_KOTLIN_NSPACE_WITHOUT_PACKAGE) TopLevel::Foo;
+%warnfilter(SWIGWARN_JAVA_NSPACE_WITHOUT_PACKAGE, SWIGWARN_KOTLIN_NSPACE_WITHOUT_PACKAGE) TopLevel::Bar;
 
 %pragma(java) jniclasspackage="PragmaDefinedPackage"
 

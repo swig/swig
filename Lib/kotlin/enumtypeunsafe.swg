@@ -67,7 +67,7 @@
 %typemap(kcode)           enum SWIGTYPE ""
 %typemap(kimports)        enum SWIGTYPE ""
 %typemap(kinterfaces)     enum SWIGTYPE ""
-%typemap(kbody)           enum SWIGTYPE "  }\n"
+%typemap(kbody, companion="1") enum SWIGTYPE "  }\n"
 
 %kotlinenum(typeunsafe);
 

@@ -73,19 +73,19 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
 %typemap(typecheck) TYPE &INPUT = TYPE;
 %enddef
 
-INPUT_TYPEMAP(bool, jboolean, boolean, "Z");
-INPUT_TYPEMAP(signed char, jbyte, byte, "B");
-INPUT_TYPEMAP(unsigned char, jshort, short, "S");
-INPUT_TYPEMAP(short, jshort, short, "S");
-INPUT_TYPEMAP(unsigned short, jint, int, "I");
-INPUT_TYPEMAP(int, jint, int, "I");
-INPUT_TYPEMAP(unsigned int, jlong, long, "J");
-INPUT_TYPEMAP(long, jint, int, "I");
-INPUT_TYPEMAP(unsigned long, jlong, long, "J");
-INPUT_TYPEMAP(long long, jlong, long, "J");
+INPUT_TYPEMAP(bool, jboolean, Boolean, "Z");
+INPUT_TYPEMAP(signed char, jbyte, Byte, "B");
+INPUT_TYPEMAP(unsigned char, jshort, Short, "S");
+INPUT_TYPEMAP(short, jshort, Short, "S");
+INPUT_TYPEMAP(unsigned short, jint, Int, "I");
+INPUT_TYPEMAP(int, jint, Int, "I");
+INPUT_TYPEMAP(unsigned int, jlong, Long, "J");
+INPUT_TYPEMAP(long, jint, Int, "I");
+INPUT_TYPEMAP(unsigned long, jlong, Long, "J");
+INPUT_TYPEMAP(long long, jlong, Long, "J");
 INPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, "Ljava/math/BigInteger;");
-INPUT_TYPEMAP(float, jfloat, float, "F");
-INPUT_TYPEMAP(double, jdouble, double, "D");
+INPUT_TYPEMAP(float, jfloat, Float, "F");
+INPUT_TYPEMAP(double, jdouble, Double, "D");
 
 #undef INPUT_TYPEMAP
 
@@ -184,8 +184,8 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 
 %define OUTPUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
 %typemap(jni) TYPE *OUTPUT, TYPE &OUTPUT %{JNITYPE##Array%}
-%typemap(ktype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
-%typemap(kstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
+%typemap(ktype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE"
+%typemap(kstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE"
 %typemap(kin) TYPE *OUTPUT, TYPE &OUTPUT "$kotlininput"
 %typemap(kdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$jniinput"
 %typemap(kdirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$kotlincall"
@@ -244,19 +244,19 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 %typemap(typecheck) TYPE &OUTPUT = TYPECHECKTYPE;
 %enddef
 
-OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Z", jbooleanArray);
-OUTPUT_TYPEMAP(signed char, jbyte, byte, Byte, "[B", jbyteArray);
-OUTPUT_TYPEMAP(unsigned char, jshort, short, Short, "[S", jshortArray);
-OUTPUT_TYPEMAP(short, jshort, short, Short, "[S", jshortArray);
-OUTPUT_TYPEMAP(unsigned short, jint, int, Int, "[I", jintArray);
-OUTPUT_TYPEMAP(int, jint, int, Int, "[I", jintArray);
-OUTPUT_TYPEMAP(unsigned int, jlong, long, Long, "[J", jlongArray);
-OUTPUT_TYPEMAP(long, jint, int, Int, "[I", jintArray);
-OUTPUT_TYPEMAP(unsigned long, jlong, long, Long, "[J", jlongArray);
-OUTPUT_TYPEMAP(long long, jlong, long, Long, "[J", jlongArray);
-OUTPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, Object, "[Ljava/math/BigInteger;", jobjectArray);
-OUTPUT_TYPEMAP(float, jfloat, float, Float, "[F", jfloatArray);
-OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
+OUTPUT_TYPEMAP(bool, jboolean, BooleanArray, Boolean, "[Z", jbooleanArray);
+OUTPUT_TYPEMAP(signed char, jbyte, ByteArray, Byte, "[B", jbyteArray);
+OUTPUT_TYPEMAP(unsigned char, jshort, ShortArray, Short, "[S", jshortArray);
+OUTPUT_TYPEMAP(short, jshort, ShortArray, Short, "[S", jshortArray);
+OUTPUT_TYPEMAP(unsigned short, jint, IntArray, Int, "[I", jintArray);
+OUTPUT_TYPEMAP(int, jint, IntArray, Int, "[I", jintArray);
+OUTPUT_TYPEMAP(unsigned int, jlong, LongArray, Long, "[J", jlongArray);
+OUTPUT_TYPEMAP(long, jint, IntArray, Int, "[I", jintArray);
+OUTPUT_TYPEMAP(unsigned long, jlong, LongArray, Long, "[J", jlongArray);
+OUTPUT_TYPEMAP(long long, jlong, LongArray, Long, "[J", jlongArray);
+OUTPUT_TYPEMAP(unsigned long long, jobject, Array<java.math.BigInteger>, Object, "[Ljava/math/BigInteger;", jobjectArray);
+OUTPUT_TYPEMAP(float, jfloat, FloatArray, Float, "[F", jfloatArray);
+OUTPUT_TYPEMAP(double, jdouble, DoubleArray, Double, "[D", jdoubleArray);
 
 #undef OUTPUT_TYPEMAP
 
@@ -375,8 +375,8 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %define INOUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
 %typemap(jni) TYPE *INOUT, TYPE &INOUT %{JNITYPE##Array%}
-%typemap(ktype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
-%typemap(kstype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
+%typemap(ktype) TYPE *INOUT, TYPE &INOUT "JTYPE"
+%typemap(kstype) TYPE *INOUT, TYPE &INOUT "JTYPE"
 %typemap(kin) TYPE *INOUT, TYPE &INOUT "$kotlininput"
 %typemap(kdirectorin) TYPE *INOUT, TYPE &INOUT "$jniinput"
 %typemap(kdirectorout) TYPE *INOUT, TYPE &INOUT "$kotlincall"
@@ -433,19 +433,19 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
 %enddef
 
-INOUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Z", jbooleanArray);
-INOUT_TYPEMAP(signed char, jbyte, byte, Byte, "[B", jbyteArray);
-INOUT_TYPEMAP(unsigned char, jshort, short, Short, "[S", jshortArray);
-INOUT_TYPEMAP(short, jshort, short, Short, "[S", jshortArray);
-INOUT_TYPEMAP(unsigned short, jint, int, Int, "[I", jintArray);
-INOUT_TYPEMAP(int, jint, int, Int, "[I", jintArray);
-INOUT_TYPEMAP(unsigned int, jlong, long, Long, "[J", jlongArray);
-INOUT_TYPEMAP(long, jint, int, Int, "[I", jintArray);
-INOUT_TYPEMAP(unsigned long, jlong, long, Long, "[J", jlongArray);
-INOUT_TYPEMAP(long long, jlong, long, Long, "[J", jlongArray);
-INOUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, Object, "[java/math/BigInteger;", jobjectArray);
-INOUT_TYPEMAP(float, jfloat, float, Float, "[F", jfloatArray);
-INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
+INOUT_TYPEMAP(bool, jboolean, BooleanArray, Boolean, "[Z", jbooleanArray);
+INOUT_TYPEMAP(signed char, jbyte, ByteArray, Byte, "[B", jbyteArray);
+INOUT_TYPEMAP(unsigned char, jshort, ShortArray, Short, "[S", jshortArray);
+INOUT_TYPEMAP(short, jshort, ShortArray, Short, "[S", jshortArray);
+INOUT_TYPEMAP(unsigned short, jint, IntArray, Int, "[I", jintArray);
+INOUT_TYPEMAP(int, jint, IntArray, Int, "[I", jintArray);
+INOUT_TYPEMAP(unsigned int, jlong, LongArray, Long, "[J", jlongArray);
+INOUT_TYPEMAP(long, jint, IntArray, Int, "[I", jintArray);
+INOUT_TYPEMAP(unsigned long, jlong, LongArray, Long, "[J", jlongArray);
+INOUT_TYPEMAP(long long, jlong, LongArray, Long, "[J", jlongArray);
+INOUT_TYPEMAP(unsigned long long, jobject, Array<java.math.BigInteger>, Object, "[java/math/BigInteger;", jobjectArray);
+INOUT_TYPEMAP(float, jfloat, FloatArray, Float, "[F", jfloatArray);
+INOUT_TYPEMAP(double, jdouble, DoubleArray, Double, "[D", jdoubleArray);
 
 #undef INOUT_TYPEMAP
 
