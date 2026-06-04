@@ -1,4 +1,4 @@
-%module(directors="1") java_director_typemaps
+%module(directors="1") java_director_typemaps_ptr
 // Test director pointer typemaps in typemaps.i - similar to java_director_typemaps.i testcase
 
 %feature("director", assumeoverride=1) Quux;
