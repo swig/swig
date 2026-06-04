@@ -64,7 +64,7 @@
 }
 
 /* Java, C#, Go and D modules don't use SWIG's runtime type system */
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD) && !defined(SWIGKOTLIN)
 %inline %{
   void foo(const struct xyzzy **TEST) {}
 %}

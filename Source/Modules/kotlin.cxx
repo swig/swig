@@ -65,7 +65,7 @@ class KOTLIN : public Language {
   String *variable_name;          // Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *proxy_class_companion_code;  // static members go into the proxy class companion object
-  String *director_bridge_code;        // upcall bridges for protected director methods, collected before the proxy class buffers exist
+  Hash *director_bridge_hash;          // upcall bridges for protected director methods per class, collected before the proxy class buffers exist
   String *prop_getter_code;            // getter accessor for the variable currently being wrapped as a Kotlin property
   String *prop_setter_code;            // setter accessor for the variable currently being wrapped as a Kotlin property
   String *prop_type;                   // Kotlin type of the variable currently being wrapped as a Kotlin property
@@ -147,7 +147,7 @@ public:
     variable_name(NULL),
     proxy_class_constants_code(NULL),
     proxy_class_companion_code(NULL),
-    director_bridge_code(NULL),
+    director_bridge_hash(NULL),
     prop_getter_code(NULL),
     prop_setter_code(NULL),
     prop_type(NULL),
@@ -1538,17 +1538,17 @@ public:
           // Wrap (non-anonymous) enum using the typesafe enum pattern
           if (Getattr(n, "enumvalue")) {
             String *value = enumValue(n);
-            Printf(enum_code, "    %s val %s = %s(\"%s\", %s)\n", methodmods, symname, return_type, symname, value);
+            Printf(enum_code, "    @JvmField %s val %s = %s(\"%s\", %s)\n", methodmods, symname, return_type, symname, value);
             Delete(value);
           } else {
-            Printf(enum_code, "    %s val %s = %s(\"%s\")\n", methodmods, symname, return_type, symname);
+            Printf(enum_code, "    @JvmField %s val %s = %s(\"%s\")\n", methodmods, symname, return_type, symname);
           }
         } else {
           // Simple integer constants
           // Note these are always generated for anonymous enums, no matter what enum_feature is specified
           // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
           String *value = enumValue(n);
-          Printf(enum_code, "  %s val %s: %s = %s\n", methodmods, symname, return_type, value);
+          Printf(enum_code, "  @JvmField %s val %s: %s = %s\n", methodmods, symname, return_type, value);
           Delete(value);
         }
         Delete(return_type);
@@ -1642,7 +1642,7 @@ public:
     const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-    Printf(constants_code, "  %s val %s: %s = ", methodmods, itemname, return_type);
+    Printf(constants_code, "  @JvmField %s val %s: %s = ", methodmods, itemname, return_type);
 
     // Check for the %kotlinconstvalue feature
     String *value = Getattr(n, "feature:kotlin:constvalue");
@@ -2380,10 +2380,12 @@ public:
 
     if (proxy_flag) {
       // Emit the upcall bridges for protected director methods collected in classDirectorMethod()
-      if (director_bridge_code) {
-        Printv(proxy_class_code, director_bridge_code, NIL);
-        Delete(director_bridge_code);
-        director_bridge_code = NULL;
+      if (director_bridge_hash) {
+        String *bridges = Getattr(director_bridge_hash, Getattr(n, "name"));
+        if (bridges) {
+          Printv(proxy_class_code, bridges, NIL);
+          Delattr(director_bridge_hash, Getattr(n, "name"));
+        }
       }
 
       emitProxyClassDefAndCPPCasts(n);
@@ -2744,6 +2746,10 @@ public:
     }
 
     /* Start generating the proxy function */
+    // Static functions get the JvmStatic annotation, mainly because Kotlin does not (yet)
+    // support calling protected companion object members from a subclass without it
+    if (static_flag)
+      Printf(function_code, "  @JvmStatic\n");
     const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
     if (methodmods) {
       if (is_smart_pointer()) {
@@ -3281,7 +3287,7 @@ public:
     wrapping_member_flag = true;
     static_flag = true;
     Language::staticmembervariableHandler(n);
-    assembleProxyProperty(proxy_class_companion_code);
+    assembleProxyProperty(proxy_class_companion_code, "@JvmStatic ");
     wrapping_member_flag = false;
     static_flag = false;
     return SWIG_OK;
@@ -4888,7 +4894,10 @@ public:
     if (!is_void) {
       if ((tm = Swig_typemap_lookup("kdirectorout", n, "", 0))) {
         addThrows(n, "tmap:kdirectorout", n);
-        substituteClassname(returntype, tm);
+        // The proxy method returns the base type of a covariant return type and, unlike
+        // Java where static methods are inherited, the companion getCPtr of the derived
+        // class does not accept the base type, so the base type's class is substituted
+        substituteClassname(covariant ? covariant : returntype, tm);
         Replaceall(tm, "$kotlincall", upcall);
 
         Printf(callback_code, "    return %s;\n", tm);
@@ -5008,10 +5017,15 @@ public:
         Printv(imclass_directors, callback_def, callback_code, NIL);
         if (bridge_code) {
           // The director methods are processed before the proxy class buffers exist, so the
-          // bridges are collected here and emitted into the proxy class in classHandler()
-          if (!director_bridge_code)
-            director_bridge_code = NewString("");
-          Printv(director_bridge_code, bridge_code, NIL);
+          // bridges are collected per class here and emitted into the proxy class in classHandler()
+          if (!director_bridge_hash)
+            director_bridge_hash = NewHash();
+          String *bridges = Getattr(director_bridge_hash, Getattr(parent, "name"));
+          if (!bridges) {
+            bridges = NewString("");
+            Setattr(director_bridge_hash, Getattr(parent, "name"), bridges);
+          }
+          Printv(bridges, bridge_code, NIL);
         }
       }
       if (!Getattr(n, "defaultargs")) {

@@ -243,7 +243,7 @@ JAVA_ARRAYS_TYPEMAPS(double, DoubleArray, jdouble, Double, "[D")     /* double[A
 
 %typemap(jni) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "jlongArray"
 %typemap(ktype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "LongArray"
-%typemap(kstype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$kotlinclassname[]"
+%typemap(kstype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "Array<$kotlinclassname>"
 
 %typemap(kin) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$kotlinclassname.cArrayUnwrap($kotlininput)"
 %typemap(kout) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] {
@@ -341,25 +341,37 @@ JAVA_ARRAYS_TYPEMAPS(double, DoubleArray, jdouble, Double, "[D")     /* double[A
 %{ free($1); %}
 #endif
 
-/* Add some code to the proxy class of the array type for converting between type used in 
- * JNI class (long[]) and type used in proxy class ( ARRAYSOFCLASSES[] ) */
-%extend ARRAYSOFCLASSES {
-%proxycode %{
-  protected static long[] cArrayUnwrap($kotlinclassname[] arrayWrapper) {
-      long[] cArray = new long[arrayWrapper.length];
-      for (int i=0; i<arrayWrapper.length; i++)
-        cArray[i] = $kotlinclassname.getCPtr(arrayWrapper[i]);
-      return cArray;
-  }
+/* Add some code to the companion object of the array type for converting between the type
+ * used in the JNI object (LongArray) and the type used in the proxy class (Array<CLASS>).
+ * This replaces the default kcompanion typemap so the getCPtr helpers are repeated here. */
+%typemap(kcompanion) ARRAYSOFCLASSES %{
+    internal fun getCPtr(obj: $kotlinclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
 
-  protected static $kotlinclassname[] cArrayWrap(long[] cArray, boolean cMemoryOwn) {
-    $kotlinclassname[] arrayWrapper = new $kotlinclassname[cArray.length];
-    for (int i=0; i<cArray.length; i++)
-      arrayWrapper[i] = new $kotlinclassname(cArray[i], cMemoryOwn);
-    return arrayWrapper;
-  }
+    internal fun swigRelease(obj: $kotlinclassname?): Long {
+      var ptr = 0L
+      if (obj != null) {
+        if (!obj.swigCMemOwn)
+          throw RuntimeException("Cannot release ownership as memory is not owned")
+        ptr = obj.swigCPtr
+        obj.swigCMemOwn = false
+        obj.delete()
+      }
+      return ptr
+    }
+
+    internal fun cArrayUnwrap(arrayWrapper: Array<$kotlinclassname>): LongArray {
+      val cArray = LongArray(arrayWrapper.size)
+      for (i in arrayWrapper.indices)
+        cArray[i] = getCPtr(arrayWrapper[i])
+      return cArray
+    }
+
+    internal fun cArrayWrap(cArray: LongArray, cMemoryOwn: Boolean): Array<$kotlinclassname> {
+      return Array(cArray.size) { i -> $kotlinclassname(cArray[i], cMemoryOwn) }
+    }
 %}
-}
 
 %enddef /* JAVA_ARRAYSOFCLASSES */
 

@@ -56,6 +56,19 @@ namespace Swig {
 
 #endif
 
+#ifdef SWIGKOTLIN
+
+// Same as Java above
+
+%feature("director:except") {
+  jthrowable $error = jenv->ExceptionOccurred();
+  if ($error) {
+    return $null;
+  }
+}
+
+#endif
+
 #ifdef SWIGRUBY
 
 %feature("director:except") {

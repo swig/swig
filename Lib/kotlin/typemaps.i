@@ -184,8 +184,8 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 
 %define OUTPUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
 %typemap(jni) TYPE *OUTPUT, TYPE &OUTPUT %{JNITYPE##Array%}
-%typemap(ktype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE"
-%typemap(kstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE"
+%typemap(ktype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE?"
+%typemap(kstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE?"
 %typemap(kin) TYPE *OUTPUT, TYPE &OUTPUT "$kotlininput"
 %typemap(kdirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$jniinput"
 %typemap(kdirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$kotlincall"
@@ -375,8 +375,8 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %define INOUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
 %typemap(jni) TYPE *INOUT, TYPE &INOUT %{JNITYPE##Array%}
-%typemap(ktype) TYPE *INOUT, TYPE &INOUT "JTYPE"
-%typemap(kstype) TYPE *INOUT, TYPE &INOUT "JTYPE"
+%typemap(ktype) TYPE *INOUT, TYPE &INOUT "JTYPE?"
+%typemap(kstype) TYPE *INOUT, TYPE &INOUT "JTYPE?"
 %typemap(kin) TYPE *INOUT, TYPE &INOUT "$kotlininput"
 %typemap(kdirectorin) TYPE *INOUT, TYPE &INOUT "$jniinput"
 %typemap(kdirectorout) TYPE *INOUT, TYPE &INOUT "$kotlincall"

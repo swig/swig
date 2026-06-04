@@ -5,6 +5,11 @@ SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
 #endif
 
+#ifdef SWIGKOTLIN
+SWIG_KOTLINBODY_PROXY(public, public, SWIGTYPE)
+SWIG_KOTLINBODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+#endif
+
 %{
 #include <string>
 
@@ -34,7 +39,7 @@ namespace TopLevel
 %include <std_string.i>
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT) || defined(SWIGKOTLIN)
 %nspace TopLevel::A::Foo;
 %nspace TopLevel::B::Foo;
 #else

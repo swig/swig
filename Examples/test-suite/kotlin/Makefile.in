@@ -19,38 +19,36 @@ srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
+C_TEST_CASES = \
+	kotlin_lib_arrays \
+
 CPP_TEST_CASES = \
+	exception_partial_info \
+	kotlin_constants \
+	kotlin_director \
+	kotlin_director_assumeoverride \
+	kotlin_director_exception_feature \
+	kotlin_director_exception_feature_nspace \
+	kotlin_director_ptrclass \
+	kotlin_director_typemaps \
+	kotlin_director_typemaps_ptr \
+	kotlin_enums \
+	kotlin_intermediary_classname \
+	kotlin_jnitypes \
+	kotlin_lib_various \
+	kotlin_nspacewithoutpackage \
+	kotlin_pgcpp \
+	kotlin_pragmas \
+	kotlin_prepost \
+	kotlin_typemaps_proxy \
+	kotlin_typemaps_typewrapper \
 	li_std_list \
 	li_std_set \
+	nested_scope \
 
 CPP11_TEST_CASES = \
 	cpp11_std_unordered_map \
 	cpp11_std_unordered_set \
-
-# Known failures for the experimental Kotlin module, see the comments per test
-FAILING_CPP_TESTS = \
-	cpp_enum \
-	director_detect \
-	director_exception \
-	import_nomodule \
-	li_typemaps_apply \
-	nested_directors \
-	special_variable_macros \
-
-# cpp_enum: a constant named Hi and a variable named hi generate clashing JVM getHi() signatures
-# director_detect: type mismatch in generated director method override detection code
-# director_exception: the test needs Kotlin specific exception sections like the Java ones
-# import_nomodule: generated code for %import without a module is not visible across files
-# li_typemaps_apply: bool *OUTPUT used as a return type generates mismatched types
-# nested_directors: protected director method upcall bridge does not handle nested classes
-# special_variable_macros: the test needs Kotlin specific typemap sections like the Java ones
-
-FAILING_C_TESTS = \
-	preproc \
-	typemap_subst \
-
-# preproc: constants with names differing only in case generate clashing JVM getter signatures
-# typemap_subst: the runtime type descriptor table is not emitted for $descriptor in C mode
 
 include $(srcdir)/../common.mk
 
@@ -67,6 +65,8 @@ SWIGOPT += -w314 # Suppress SWIGWARN_PARSE_KEYWORD warning - 'val' and other Kot
 
 # Custom tests - tests with additional commandline options
 cpp17_nspace_nested_namespaces.%: KOTLIN_PACKAGE = $*Package
+kotlin_director_exception_feature_nspace.%: KOTLIN_PACKAGE = $*Package
+kotlin_nspacewithoutpackage.%: KOTLIN_PACKAGEOPT =
 director_nspace.%: KOTLIN_PACKAGE = $*Package
 director_nspace_director_name_collision.%: KOTLIN_PACKAGE = $*Package
 multiple_inheritance_nspace.%: KOTLIN_PACKAGE = $*Package

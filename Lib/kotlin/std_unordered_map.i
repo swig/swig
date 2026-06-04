@@ -53,17 +53,6 @@ template<class K, class T> class unordered_map {
 %typemap(kbase) std::unordered_map<K, T>
     "java.util.AbstractMap<$typemap(kboxtype, K), $typemap(kboxtype, T)>"
 
-// The kbody typemap is overridden as the base class needs an explicit super() call
-// from the secondary constructor.
-%typemap(kbody) std::unordered_map<K, T> %{
-  private var swigCPtr: Long
-  protected var swigCMemOwn: Boolean
-
-  internal constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
-    swigCMemOwn = cMemoryOwn
-    swigCPtr = cPtr
-  }
-%}
 
 %proxycode %{
   override val size: Int

@@ -42,17 +42,6 @@ namespace std {
 
 %typemap(kbase) std::list<T> "java.util.AbstractSequentialList<$typemap(kboxtype, T)>"
 
-// The kbody typemap is overridden as the base class needs an explicit super() call
-// from the secondary constructor.
-%typemap(kbody) std::list<T> %{
-  private var swigCPtr: Long
-  protected var swigCMemOwn: Boolean
-
-  internal constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
-    swigCMemOwn = cMemoryOwn
-    swigCPtr = cPtr
-  }
-%}
 
 %proxycode %{
   constructor(c: java.util.Collection<$typemap(kboxtype, T)>) : this() {

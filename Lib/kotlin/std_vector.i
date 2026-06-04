@@ -26,17 +26,6 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CONST_REFERENCE)
 %typemap(kbase) std::vector< CTYPE > "java.util.AbstractList<$typemap(kboxtype, CTYPE)>"
 %typemap(kinterfaces) std::vector< CTYPE > "java.util.RandomAccess"
-// The kbody typemap is overridden as the base class needs an explicit super() call
-// from the secondary constructor.
-%typemap(kbody) std::vector< CTYPE > %{
-  private var swigCPtr: Long
-  protected var swigCMemOwn: Boolean
-
-  internal constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
-    swigCMemOwn = cMemoryOwn
-    swigCPtr = cPtr
-  }
-%}
 %proxycode %{
   constructor(initialElements: Array<$typemap(kboxtype, CTYPE)>) : this() {
     doReserve(initialElements.size)

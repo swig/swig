@@ -51,17 +51,6 @@ class unordered_set {
 
 %typemap(kbase) std::unordered_set<Key> "java.util.AbstractSet<$typemap(kboxtype, Key)>"
 
-// The kbody typemap is overridden as the base class needs an explicit super() call
-// from the secondary constructor.
-%typemap(kbody) std::unordered_set<Key> %{
-  private var swigCPtr: Long
-  protected var swigCMemOwn: Boolean
-
-  internal constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
-    swigCMemOwn = cMemoryOwn
-    swigCPtr = cPtr
-  }
-%}
 
 %proxycode %{
   constructor(collection: java.util.Collection<$typemap(kboxtype, Key)>) : this() {

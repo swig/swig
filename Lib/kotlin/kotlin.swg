@@ -1211,7 +1211,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   private var swigCPtr: Long
   protected var swigCMemOwn: Boolean
 
-  PTRCTOR_VISIBILITY constructor(cPtr: Long, cMemoryOwn: Boolean) {
+  PTRCTOR_VISIBILITY constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
     swigCMemOwn = cMemoryOwn
     swigCPtr = cPtr
   }

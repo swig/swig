@@ -53,17 +53,6 @@ template<class K, class T, class C = std::less< K> > class map {
 %typemap(kbase) std::map< K, T, C >
     "java.util.AbstractMap<$typemap(kboxtype, K), $typemap(kboxtype, T)>"
 
-// The kbody typemap is overridden as the base class needs an explicit super() call
-// from the secondary constructor.
-%typemap(kbody) std::map< K, T, C > %{
-  private var swigCPtr: Long
-  protected var swigCMemOwn: Boolean
-
-  internal constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
-    swigCMemOwn = cMemoryOwn
-    swigCPtr = cPtr
-  }
-%}
 
 
 %proxycode %{

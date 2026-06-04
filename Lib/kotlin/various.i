@@ -173,7 +173,7 @@
 %typemap(ktype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
 %typemap(kstype) unsigned char *NIOBUFFER "java.nio.ByteBuffer"  
 %typemap(kin,
-  pre="  assert $kotlininput.isDirect() : \"Buffer must be allocated direct.\";") unsigned char *NIOBUFFER "$kotlininput"
+  pre="  require($kotlininput.isDirect()) { \"Buffer must be allocated direct.\" }") unsigned char *NIOBUFFER "$kotlininput"
 %typemap(kout) unsigned char *NIOBUFFER {  
   return $jnicall;  
 }  

@@ -18,3 +18,8 @@ and FAILING_C_TESTS lists in Makefile.in as they are found.
 
 The li_boost_shared_ptr* and other boost based tests additionally require the
 boost headers to be installed.
+
+The java_throws test has no Kotlin equivalent as Kotlin has no checked
+exceptions and so no throws clause generation. Exceptions specified via
+%kotlinexception and the throws typemap attribute still propagate at
+runtime, which kotlin_director_exception_feature exercises.
