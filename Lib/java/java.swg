@@ -79,6 +79,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jni) double,             const double &             "jdouble"
 %typemap(jni) void                                           "void"
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) bool,               const bool &               "boolean"
 %typemap(jtype) char,               const char &               "char"
 %typemap(jtype) signed char,        const signed char &        "byte"
@@ -94,7 +95,25 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jtype) float,              const float &              "float"
 %typemap(jtype) double,             const double &             "double"
 %typemap(jtype) void                                           "void"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) bool,               const bool &               "Boolean"
+%typemap(jtype) char,               const char &               "Char"
+%typemap(jtype) signed char,        const signed char &        "Byte"
+%typemap(jtype) unsigned char,      const unsigned char &      "Short"
+%typemap(jtype) short,              const short &              "Short"
+%typemap(jtype) unsigned short,     const unsigned short &     "Int"
+%typemap(jtype) int,                const int &                "Int"
+%typemap(jtype) unsigned int,       const unsigned int &       "Long"
+%typemap(jtype) long,               const long &               "Int"
+%typemap(jtype) unsigned long,      const unsigned long &      "Long"
+%typemap(jtype) long long,          const long long &          "Long"
+%typemap(jtype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+%typemap(jtype) float,              const float &              "Float"
+%typemap(jtype) double,             const double &             "Double"
+%typemap(jtype) void                                           "Unit"
+#endif /* SWIGJAVA_TARGET */
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jstype) bool,               const bool &               "boolean"
 %typemap(jstype) char,               const char &               "char"
 %typemap(jstype) signed char,        const signed char &        "byte"
@@ -110,16 +129,46 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) float,              const float &              "float"
 %typemap(jstype) double,             const double &             "double"
 %typemap(jstype) void                                           "void"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jstype) bool,               const bool &               "Boolean"
+%typemap(jstype) char,               const char &               "Char"
+%typemap(jstype) signed char,        const signed char &        "Byte"
+%typemap(jstype) unsigned char,      const unsigned char &      "Short"
+%typemap(jstype) short,              const short &              "Short"
+%typemap(jstype) unsigned short,     const unsigned short &     "Int"
+%typemap(jstype) int,                const int &                "Int"
+%typemap(jstype) unsigned int,       const unsigned int &       "Long"
+%typemap(jstype) long,               const long &               "Int"
+%typemap(jstype) unsigned long,      const unsigned long &      "Long"
+%typemap(jstype) long long,          const long long &          "Long"
+%typemap(jstype) unsigned long long, const unsigned long long & "java.math.BigInteger"
+%typemap(jstype) float,              const float &              "Float"
+%typemap(jstype) double,             const double &             "Double"
+%typemap(jstype) void                                           "Unit"
+#endif /* SWIGJAVA_TARGET */
 
 %typemap(jboxtype) bool,               const bool &               "Boolean"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jboxtype) char,               const char &               "Character"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jboxtype) char,               const char &               "Char"
+#endif
 %typemap(jboxtype) signed char,        const signed char &        "Byte"
 %typemap(jboxtype) unsigned char,      const unsigned char &      "Short"
 %typemap(jboxtype) short,              const short &              "Short"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jboxtype) unsigned short,     const unsigned short &     "Integer"
 %typemap(jboxtype) int,                const int &                "Integer"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jboxtype) unsigned short,     const unsigned short &     "Int"
+%typemap(jboxtype) int,                const int &                "Int"
+#endif
 %typemap(jboxtype) unsigned int,       const unsigned int &       "Long"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jboxtype) long,               const long &               "Integer"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jboxtype) long,               const long &               "Int"
+#endif
 %typemap(jboxtype) unsigned long,      const unsigned long &      "Long"
 %typemap(jboxtype) long long,          const long long &          "Long"
 %typemap(jboxtype) unsigned long long, const unsigned long long & "java.math.BigInteger"
@@ -127,8 +176,13 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jboxtype) double,             const double &             "Double"
 
 %typemap(jni) char *, char *&, char[ANY], char[]               "jstring"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) char *, char *&, char[ANY], char[]               "String"
 %typemap(jstype) char *, char *&, char[ANY], char[]               "String"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) char *, char *&, char[ANY], char[]               "String?"
+%typemap(jstype) char *, char *&, char[ANY], char[]               "String?"
+#endif
 
 /* JNI types */
 %typemap(jni) jboolean      "jboolean"
@@ -151,6 +205,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jni) jdoubleArray  "jdoubleArray"
 %typemap(jni) jobjectArray  "jobjectArray"
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) jboolean      "boolean"
 %typemap(jtype) jchar         "char"
 %typemap(jtype) jbyte         "byte"
@@ -170,7 +225,29 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jtype) jfloatArray   "float[]"
 %typemap(jtype) jdoubleArray  "double[]"
 %typemap(jtype) jobjectArray  "java.lang.Object[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) jboolean      "Boolean"
+%typemap(jtype) jchar         "Char"
+%typemap(jtype) jbyte         "Byte"
+%typemap(jtype) jshort        "Short"
+%typemap(jtype) jint          "Int"
+%typemap(jtype) jlong         "Long"
+%typemap(jtype) jfloat        "Float"
+%typemap(jtype) jdouble       "Double"
+%typemap(jtype) jstring       "String?"
+%typemap(jtype) jobject       "Any?"
+%typemap(jtype) jbooleanArray "BooleanArray"
+%typemap(jtype) jcharArray    "CharArray"
+%typemap(jtype) jbyteArray    "ByteArray?"
+%typemap(jtype) jshortArray   "ShortArray"
+%typemap(jtype) jintArray     "IntArray"
+%typemap(jtype) jlongArray    "LongArray"
+%typemap(jtype) jfloatArray   "FloatArray"
+%typemap(jtype) jdoubleArray  "DoubleArray"
+%typemap(jtype) jobjectArray  "Array<Any?>"
+#endif /* SWIGJAVA_TARGET */
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jstype) jboolean      "boolean"
 %typemap(jstype) jchar         "char"
 %typemap(jstype) jbyte         "byte"
@@ -190,33 +267,81 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 %typemap(jstype) jfloatArray   "float[]"
 %typemap(jstype) jdoubleArray  "double[]"
 %typemap(jstype) jobjectArray  "java.lang.Object[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jstype) jboolean      "Boolean"
+%typemap(jstype) jchar         "Char"
+%typemap(jstype) jbyte         "Byte"
+%typemap(jstype) jshort        "Short"
+%typemap(jstype) jint          "Int"
+%typemap(jstype) jlong         "Long"
+%typemap(jstype) jfloat        "Float"
+%typemap(jstype) jdouble       "Double"
+%typemap(jstype) jstring       "String?"
+%typemap(jstype) jobject       "Any?"
+%typemap(jstype) jbooleanArray "BooleanArray"
+%typemap(jstype) jcharArray    "CharArray"
+%typemap(jstype) jbyteArray    "ByteArray?"
+%typemap(jstype) jshortArray   "ShortArray"
+%typemap(jstype) jintArray     "IntArray"
+%typemap(jstype) jlongArray    "LongArray"
+%typemap(jstype) jfloatArray   "FloatArray"
+%typemap(jstype) jdoubleArray  "DoubleArray"
+%typemap(jstype) jobjectArray  "Array<Any?>"
+#endif /* SWIGJAVA_TARGET */
 
 /* Non primitive types */
 %typemap(jni) SWIGTYPE "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE "long"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE "Long"
+#endif
 %typemap(jstype) SWIGTYPE "$&javaclassname"
 %typemap(jboxtype) SWIGTYPE "$typemap(jstype, $1_type)"
 
 %typemap(jni) SWIGTYPE [] "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE [] "long"
 %typemap(jstype) SWIGTYPE [] "$javaclassname"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE [] "Long"
+%typemap(jstype) SWIGTYPE [] "$javaclassname?"
+#endif
 
 %typemap(jni) SWIGTYPE * "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE * "long"
 %typemap(jstype) SWIGTYPE * "$javaclassname"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE * "Long"
+%typemap(jstype) SWIGTYPE * "$javaclassname?"
+#endif
 
 %typemap(jni) SWIGTYPE & "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE & "long"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE & "Long"
+#endif
 %typemap(jstype) SWIGTYPE & "$javaclassname"
 
 %typemap(jni) SWIGTYPE && "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE && "long"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE && "Long"
+#endif
 %typemap(jstype) SWIGTYPE && "$javaclassname"
 
 /* pointer to a class member */
 %typemap(jni) SWIGTYPE (CLASS::*) "jstring"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE (CLASS::*) "String"
 %typemap(jstype) SWIGTYPE (CLASS::*) "$javaclassname"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE (CLASS::*) "String?"
+%typemap(jstype) SWIGTYPE (CLASS::*) "$javaclassname?"
+#endif
 
 /* The following are the in, out, freearg, argout typemaps. These are the JNI code generating typemaps for converting from Java to C and visa versa. */
 
@@ -677,7 +802,11 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
 %{ $input = 0;
    *(($&1_ltype*)&$input) = new $1_ltype(SWIG_STD_MOVE($1)); %}
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, true)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadirectorin) SWIGTYPE "$&javaclassname($jniinput, true)"
+#endif
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
 /* Generic pointers and references */
@@ -741,9 +870,15 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE &&
 %{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($jniinput == 0) ? null : new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) SWIGTYPE & "new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) SWIGTYPE && "new $javaclassname($jniinput, false)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "if ($jniinput == 0L) null else $javaclassname($jniinput, false)"
+%typemap(javadirectorin) SWIGTYPE & "$javaclassname($jniinput, false)"
+%typemap(javadirectorin) SWIGTYPE && "$javaclassname($jniinput, false)"
+#endif
 %typemap(javadirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$javaclassname.getCPtr($javacall)"
 
 /* Default array handling */
@@ -1151,6 +1286,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(javaout) void {
     $jnicall;
   }
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) SWIGTYPE {
     return new $&javaclassname($jnicall, true);
   }
@@ -1168,16 +1304,44 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     String cMemberPtr = $jnicall;
     return (cMemberPtr == null) ? null : new $javaclassname(cMemberPtr, $owner);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) SWIGTYPE {
+    return $&javaclassname($jnicall, true)
+  }
+%typemap(javaout) SWIGTYPE & {
+    return $javaclassname($jnicall, $owner)
+  }
+%typemap(javaout) SWIGTYPE && {
+    return $javaclassname($jnicall, $owner)
+  }
+%typemap(javaout) SWIGTYPE *, SWIGTYPE [] {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $javaclassname(cPtr, $owner)
+  }
+%typemap(javaout) SWIGTYPE (CLASS::*) {
+    val cMemberPtr = $jnicall
+    return if (cMemberPtr == null) null else $javaclassname(cMemberPtr, $owner)
+  }
+#endif /* SWIGJAVA_TARGET */
 
 /* Pointer reference typemaps */
 %typemap(jni) SWIGTYPE *const& "jlong"
+%typemap(javain) SWIGTYPE *const& "$*javaclassname.getCPtr($javainput)"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) SWIGTYPE *const& "long"
 %typemap(jstype) SWIGTYPE *const& "$*javaclassname"
-%typemap(javain) SWIGTYPE *const& "$*javaclassname.getCPtr($javainput)"
 %typemap(javaout) SWIGTYPE *const& {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $*javaclassname(cPtr, $owner);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) SWIGTYPE *const& "Long"
+%typemap(jstype) SWIGTYPE *const& "$*javaclassname?"
+%typemap(javaout) SWIGTYPE *const& {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $*javaclassname(cPtr, $owner)
+  }
+#endif /* SWIGJAVA_TARGET */
 %typemap(in) SWIGTYPE *const& ($*1_ltype temp = 0)
 %{ temp = *($1_ltype)&$input;
    $1 = ($1_ltype)&temp; %}
@@ -1189,23 +1353,35 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ static $*1_ltype swig_temp;
    swig_temp = *($1_ltype)&$input;
    $result = &swig_temp; %}
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadirectorin) SWIGTYPE *const& "($jniinput == 0) ? null : new $*javaclassname($jniinput, false)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadirectorin) SWIGTYPE *const& "if ($jniinput == 0L) null else $*javaclassname($jniinput, false)"
+#endif
 %typemap(javadirectorout) SWIGTYPE *const& "$*javaclassname.getCPtr($javacall)"
 
 /* Typemaps used for the generation of proxy and type wrapper class code */
 %typemap(javabase)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
-%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(javacode)             SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javaimports)          SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
 %typemap(javainterfaces)       SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) ""
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
+%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public class"
 %typemap(javainterfacemodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "public interface"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaclassmodifiers)   SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "open class"
+%typemap(javainterfacemodifiers) SWIGTYPE, SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [], SWIGTYPE (CLASS::*) "interface"
+#endif
 
 /* javabody typemaps */
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %define SWIG_JAVABODY_METHODS(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...) SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE) %enddef // legacy name
+#endif
 
 %define SWIG_JAVABODY_PROXY(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Base proxy classes
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javabody) TYPE %{
   private transient long swigCPtr;
   protected transient boolean swigCMemOwn;
@@ -1216,7 +1392,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 
   CPTR_VISIBILITY static long swigRelease($javaclassname obj) {
@@ -1242,7 +1418,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 
   CPTR_VISIBILITY static long swigRelease($javaclassname obj) {
@@ -1257,10 +1433,67 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     return ptr;
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javabody) TYPE %{
+  private var swigCPtr: Long
+  protected var swigCMemOwn: Boolean
+
+  PTRCTOR_VISIBILITY constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+%}
+
+%typemap(javacompanion) TYPE %{
+    CPTR_VISIBILITY fun getCPtr(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+
+    CPTR_VISIBILITY fun swigRelease(obj: $javaclassname?): Long {
+      var ptr = 0L
+      if (obj != null) {
+        if (!obj.swigCMemOwn)
+          throw IllegalStateException("Cannot release ownership as memory is not owned")
+        ptr = obj.swigCPtr
+        obj.swigCMemOwn = false
+        obj.delete()
+      }
+      return ptr
+    }
+%}
+
+// Derived proxy classes
+%typemap(javabody_derived) TYPE %{
+  private var swigCPtr: Long
+
+  PTRCTOR_VISIBILITY constructor(cPtr: Long, cMemoryOwn: Boolean) : super($imclassname.$javaclazznameSWIGUpcast(cPtr), cMemoryOwn) {
+    swigCPtr = cPtr
+  }
+%}
+
+%typemap(javacompanion_derived) TYPE %{
+    CPTR_VISIBILITY fun getCPtr(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+
+    CPTR_VISIBILITY fun swigRelease(obj: $javaclassname?): Long {
+      var ptr = 0L
+      if (obj != null) {
+        if (!obj.swigCMemOwn)
+          throw IllegalStateException("Cannot release ownership as memory is not owned")
+        ptr = obj.swigCPtr
+        obj.swigCMemOwn = false
+        obj.delete()
+      }
+      return ptr
+    }
+%}
+#endif /* SWIGJAVA_TARGET */
 %enddef
 
 %define SWIG_JAVABODY_TYPEWRAPPER(PTRCTOR_VISIBILITY, DEFAULTCTOR_VISIBILITY, CPTR_VISIBILITY, TYPE...)
 // Typewrapper classes
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javabody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
   private transient long swigCPtr;
 
@@ -1269,15 +1502,15 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 
   DEFAULTCTOR_VISIBILITY $javaclassname() {
-    swigCPtr = 0;
+    swigCPtr = 0L;
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 
   CPTR_VISIBILITY static long swigRelease($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
+    return (obj == null) ? 0L : obj.swigCPtr;
   }
 %}
 
@@ -1296,10 +1529,52 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     return obj.swigCMemberPtr;
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javabody) TYPE *, TYPE &, TYPE &&, TYPE [] %{
+  private var swigCPtr: Long
+
+  PTRCTOR_VISIBILITY constructor(cPtr: Long, @Suppress("UNUSED_PARAMETER") futureUse: Boolean) {
+    swigCPtr = cPtr
+  }
+
+  DEFAULTCTOR_VISIBILITY constructor() {
+    swigCPtr = 0L;
+  }
+%}
+
+%typemap(javacompanion) TYPE *, TYPE &, TYPE &&, TYPE [] %{
+    CPTR_VISIBILITY fun getCPtr(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+
+    CPTR_VISIBILITY fun swigRelease(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+%}
+
+%typemap(javabody) TYPE (CLASS::*) %{
+  private var swigCMemberPtr: String?
+
+  PTRCTOR_VISIBILITY constructor(cMemberPtr: String?, @Suppress("UNUSED_PARAMETER") futureUse: Boolean) {
+    swigCMemberPtr = cMemberPtr
+  }
+
+  DEFAULTCTOR_VISIBILITY constructor() {
+    swigCMemberPtr = null
+  }
+%}
+
+%typemap(javacompanion) TYPE (CLASS::*) %{
+    CPTR_VISIBILITY fun getCMemberPtr(obj: $javaclassname?): String? {
+      return obj?.swigCMemberPtr
+    }
+%}
+#endif /* SWIGJAVA_TARGET */
 %enddef
 
 /* Set the default javabody typemaps to use protected visibility.
    Use the macros to change to public if using multiple modules. */
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
@@ -1309,6 +1584,12 @@ SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
     delete();
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+SWIG_JAVABODY_PROXY(internal, internal, SWIGTYPE)
+SWIG_JAVABODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
+
+%typemap(javafinalize) SWIGTYPE ""
+#endif /* SWIGJAVA_TARGET */
 
 /*
  * Java constructor typemaps:
@@ -1332,9 +1613,13 @@ SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
  */
 
 %define SWIG_PROXY_CONSTRUCTOR(OWNERSHIP, WEAKREF, TYPENAME...)
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, OWNERSHIP, WEAKREF);") TYPENAME {
     this($imcall, OWNERSHIP);$directorconnect
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaconstruct,directorconnect="\n    $imclassname.$javaclazznamedirector_connect(this, swigCPtr, OWNERSHIP, WEAKREF)") TYPENAME ": this($imcall, OWNERSHIP) {$directorconnect\n  }"
+#endif
 %enddef
 
 %define SWIG_DIRECTOR_OWNED(TYPENAME...)
@@ -1344,23 +1629,24 @@ SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 // Set the default for SWIGTYPE: Java owns the C/C++ object.
 SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
-    if (swigCPtr != 0) {
+    if (swigCPtr != 0L) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
         $jnicall;
       }
-      swigCPtr = 0;
+      swigCPtr = 0L;
     }
   }
 
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
-    if (swigCPtr != 0) {
+    if (swigCPtr != 0L) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
         $jnicall;
       }
-      swigCPtr = 0;
+      swigCPtr = 0L;
     }
     super.delete();
   }
@@ -1385,6 +1671,49 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
     $jnicall;
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadestruct, methodname="delete", methodmodifiers="@Synchronized open", parameters="") SWIGTYPE {
+    if (swigCPtr != 0L) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        $jnicall;
+      }
+      swigCPtr = 0L;
+    }
+  }
+
+%typemap(javadestruct_derived, methodname="delete", methodmodifiers="@Synchronized override", parameters="") SWIGTYPE {
+    if (swigCPtr != 0L) {
+      if (swigCMemOwn) {
+        swigCMemOwn = false;
+        $jnicall;
+      }
+      swigCPtr = 0L;
+    }
+    super.delete();
+  }
+
+%typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
+  $methodmodifiers fun $methodname() {
+    swigCMemOwn = false;
+    $jnicall;
+  }
+%}
+
+%typemap(directorowner_release, methodname="swigReleaseOwnership") SWIGTYPE %{
+  $methodmodifiers fun $methodname() {
+    swigCMemOwn = false;
+    $jnicall;
+  }
+%}
+
+%typemap(directorowner_take, methodname="swigTakeOwnership") SWIGTYPE %{
+  $methodmodifiers fun $methodname() {
+    swigCMemOwn = true;
+    $jnicall;
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
 /* Java specific directives */
 #define %javaconst(flag)            %feature("java:const","flag")
@@ -1396,9 +1725,15 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 #define %clearjavaexception         %feature("except","",throws="")
 #define %proxycode                  %insert("proxycode")
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
 %pragma(java) constantsmodifiers="public interface"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%pragma(java) jniclassclassmodifiers="object"
+%pragma(java) moduleclassmodifiers="object"
+%pragma(java) constantsmodifiers="object"
+#endif
 
 /* 64-bit architecture specific typemaps */
 #if defined(SWIGWORDSIZE64)
@@ -1423,9 +1758,15 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 /* String & length */
 %typemap(jni)     (const char *STRING, size_t LENGTH) "jbyteArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype)   (const char *STRING, size_t LENGTH) "byte[]"
 %typemap(jstype)  (const char *STRING, size_t LENGTH) "String"
 %typemap(javain)  (const char *STRING, size_t LENGTH) %{($javainput == null) ? null : $javainput.getBytes()%}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype)   (const char *STRING, size_t LENGTH) "ByteArray?"
+%typemap(jstype)  (const char *STRING, size_t LENGTH) "String?"
+%typemap(javain)  (const char *STRING, size_t LENGTH) %{$javainput?.toByteArray()%}
+#endif
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
 %typemap(in)      (const char *STRING, size_t LENGTH) {
   if ($input) {
@@ -1449,7 +1790,11 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "($jniinput == null) ? null : new String($jniinput)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "if ($jniinput == null) null else String($jniinput)"
+#endif
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 /* Enable write-back for non-const version */
 %typemap(argout)  (char *STRING, size_t LENGTH) {
@@ -1463,9 +1808,15 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 /* Length & string reverse order typemap */
 
 %typemap(jni)     (size_t LENGTH, const char *STRING) "jbyteArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype)   (size_t LENGTH, const char *STRING) "byte[]"
 %typemap(jstype)  (size_t LENGTH, const char *STRING) "String"
 %typemap(javain)  (size_t LENGTH, const char *STRING) %{($javainput == null) ? null : $javainput.getBytes()%}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype)   (size_t LENGTH, const char *STRING) "ByteArray?"
+%typemap(jstype)  (size_t LENGTH, const char *STRING) "String?"
+%typemap(javain)  (size_t LENGTH, const char *STRING) %{$javainput?.toByteArray()%}
+#endif
 %typemap(freearg) (size_t LENGTH, const char *STRING) ""
 %typemap(in)      (size_t LENGTH, const char *STRING) {
   if ($input) {
@@ -1489,7 +1840,11 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $2_refguard(jenv, $input);
 }
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javadirectorin, descriptor="[B") (size_t LENGTH, const char *STRING) "($jniinput == null) ? null : new String($jniinput)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javadirectorin, descriptor="[B") (size_t LENGTH, const char *STRING) "if ($jniinput == null) null else String($jniinput)"
+#endif
 %apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
 /* Enable write-back for non-const version */
 %typemap(argout)  (size_t LENGTH, char *STRING) {

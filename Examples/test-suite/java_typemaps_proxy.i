@@ -4,11 +4,20 @@
 
 
 %typemap(javaimports) SWIGTYPE "import java.math.*;"
+#ifdef SWIGJAVA_SOURCE
 %typemap(javacode) NS::Farewell %{
   public void saybye(BigDecimal num_times) {
     // BigDecimal requires the java.math library
   }
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javacode) NS::Farewell %{
+  @Suppress("UNUSED_PARAMETER")
+  fun saybye(num_times: java.math.BigDecimal) {
+    // BigDecimal requires the java.math library
+  }
+%}
+#endif
 %typemap(javaclassmodifiers) NS::Farewell "public final class"
 
 %typemap(javaimports) NS::Greeting %{
@@ -18,6 +27,7 @@ import java.lang.*; // for Exception
 
 %typemap(javabase) NS::Greeting "Exception"
 %typemap(javainterfaces) NS::Greeting "EventListener"
+#ifdef SWIGJAVA_SOURCE
 %typemap(javacode) NS::Greeting %{
   public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
   // Pure Java code generated using %typemap(javacode) 
@@ -28,8 +38,39 @@ import java.lang.*; // for Exception
   public static void cheerio(EventListener e) {
   }
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javacode) NS::Greeting %{
+  // Pure Java code generated using %typemap(javacode) 
+  fun sayhello() {
+    hello()
+  }
+%}
+// Static member generated using %typemap(javacompanion) - goes into the companion object
+%typemap(javacompanion) NS::Greeting %{
+    @Suppress("UNUSED_PARAMETER")
+    fun cheerio(e: EventListener) {
+    }
+
+    internal fun getCPtr(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+
+    internal fun swigRelease(obj: $javaclassname?): Long {
+      var ptr = 0L
+      if (obj != null) {
+        if (!obj.swigCMemOwn)
+          throw RuntimeException("Cannot release ownership as memory is not owned")
+        ptr = obj.swigCPtr
+        obj.swigCMemOwn = false
+        obj.delete()
+      }
+      return ptr
+    }
+%}
+#endif
 
 // Create a new getCPtr() function which takes Java null and is public
+#ifdef SWIGJAVA_SOURCE
 %typemap(javabody) NS::Greeting %{
   private transient long swigCPtr;
   protected transient boolean swigCMemOwn;
@@ -43,8 +84,20 @@ import java.lang.*; // for Exception
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javabody) NS::Greeting %{
+  internal var swigCPtr: Long
+  protected var swigCMemOwn: Boolean
+
+  internal constructor(cPtr: Long, cMemoryOwn: Boolean) : super() {
+    swigCMemOwn = cMemoryOwn
+    swigCPtr = cPtr
+  }
+%}
+#endif
 
 // Make the pointer constructor public
+#ifdef SWIGJAVA_SOURCE
 %typemap(javabody) NS::Farewell %{
   private transient long swigCPtr;
   protected transient boolean swigCMemOwn;
@@ -58,15 +111,50 @@ import java.lang.*; // for Exception
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javabody) NS::Farewell %{
+  internal var swigCPtr: Long
+  protected var swigCMemOwn: Boolean
+
+  constructor(cPtr: Long, cMemoryOwn: Boolean) {
+    swigCMemOwn = cMemoryOwn
+    swigCPtr = cPtr
+  }
+%}
+%typemap(javacompanion) NS::Farewell %{
+    internal fun getCPtr(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+
+    internal fun swigRelease(obj: $javaclassname?): Long {
+      var ptr = 0L
+      if (obj != null) {
+        if (!obj.swigCMemOwn)
+          throw RuntimeException("Cannot release ownership as memory is not owned")
+        ptr = obj.swigCPtr
+        obj.swigCMemOwn = false
+        obj.delete()
+      }
+      return ptr
+    }
+%}
+#endif
 
 // get rid of the finalize method for NS::Farewell
 %typemap(javafinalize) NS::Farewell ""
 
 // Test typemaps are being found for templated classes
+#ifdef SWIGJAVA_SOURCE
 %typemap(javacode) NS::Adieu<int**> %{
   public static void adieu() {
   }
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javacompanion) NS::Adieu<int**> %{
+    fun adieu() {
+    }
+%}
+#endif
 
 // Check the %javamethodmodifiers feature
 %javamethodmodifiers NS::Farewell::methodmodifiertest() "private";
@@ -89,8 +177,13 @@ namespace NS {
 %template(AdieuIntPtrPtr) NS::Adieu<int**>;
 
 // Check the premature garbage collection prevention parameter can be turned off
+#ifdef SWIGJAVA_SOURCE
 %typemap(jtype, nopgcpp="1") Without * "long"
 %pragma(java) jniclassclassmodifiers="public class"
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(jtype, nopgcpp="1") Without * "Long"
+%pragma(java) jniclassclassmodifiers="public object"
+#endif
 
 %inline %{
 struct Without {
@@ -109,7 +202,11 @@ struct With {
 void global_method_with(With *p) {}
 %}
 
+#ifdef SWIGJAVA_SOURCE
 %typemap(jtype, nopgcpp="1") const ConstWithout * "long"
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(jtype, nopgcpp="1") const ConstWithout * "Long"
+#endif
 %inline %{
 class ConstWithout {
 public:

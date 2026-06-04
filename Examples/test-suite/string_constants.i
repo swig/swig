@@ -10,6 +10,19 @@
 #endif
 #if defined(SWIGJAVA)
 %javaconst(1);
+#ifdef SWIGKOTLIN_SOURCE
+// Kotlin lack full support of C/C++ escape sequences
+%javaconstvalue("\"\\u00C6\\u00CEOU\\n\"") SS1;
+%javaconstvalue("\"\\u00C6\\u00CEOU\\n\"") SS2;
+%javaconstvalue("\"TUV\"") EE1;
+%javaconstvalue("\"TUV\"") EE2;
+%javaconstvalue("\"WXY\"") XX1;
+%javaconstvalue("\"WXY\"") XX2;
+%javaconstvalue("\"\\u0000\"") ZS1;
+%javaconstvalue("\"\\u0000\"") ZS2;
+%javaconstvalue("\"\\b00! \\u00018b00!\"") QQ1;
+%javaconstvalue("\"\\b00! \\u00018b00!\"") QQ2;
+#endif
 #endif
 %inline %{
 #define SS1 "ÆÎOU\n"

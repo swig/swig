@@ -6,8 +6,11 @@
 #ifdef SWIGD
 %dmanifestconst CONST_STRING4;
 #endif
-#ifdef SWIGJAVA
+#ifdef SWIGJAVA_SOURCE
 %javaconst(1) CONST_STRING4;
+#elif defined SWIGKOTLIN_SOURCE
+// Kotlin lack full support of C/C++ escape sequences
+%javaconstvalue("\"zer\\u0000zer\\u0000\"") CONST_STRING4;
 #endif
 
 %{

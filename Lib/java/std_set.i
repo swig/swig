@@ -28,6 +28,10 @@
   }
 }
 
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::set::empty "override";
+%javamethodmodifiers std::set::clear "override";
+#endif
 %javamethodmodifiers std::set::sizeImpl "private";
 %javamethodmodifiers std::set::containsImpl "private";
 %javamethodmodifiers std::set::removeImpl "private";
@@ -37,9 +41,15 @@
 
 %rename(Iterator) std::set::iterator;
 %nodefaultctor std::set::iterator;
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %javamethodmodifiers std::set::iterator::incrementUnchecked "private";
 %javamethodmodifiers std::set::iterator::derefUnchecked "private";
 %javamethodmodifiers std::set::iterator::isNot "private";
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::set::iterator::incrementUnchecked "internal";
+%javamethodmodifiers std::set::iterator::derefUnchecked "internal";
+%javamethodmodifiers std::set::iterator::isNot "internal";
+#endif /* SWIGJAVA_TARGET */
 
 namespace std {
 
@@ -47,6 +57,7 @@ template <class T>
 class set {
 
 %typemap(javabase) std::set<T> "java.util.AbstractSet<$typemap(jboxtype, T)>"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %proxycode %{
   @SuppressWarnings("this-escape")
   public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
@@ -139,11 +150,66 @@ class set {
     return removeImpl(($typemap(jboxtype, T))object);
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%proxycode %{
+  constructor(collection: kotlin.collections.Set<$typemap(jboxtype, T)>) : this() {
+    for (element in collection) {
+      add(element)
+    }
+  }
+
+  override val size: Int
+    get() = sizeImpl()
+
+  override fun add(element: $typemap(jboxtype, T)): Boolean {
+    return addImpl(element)
+  }
+
+  override fun iterator(): MutableIterator<$typemap(jboxtype, T)> {
+    return object : MutableIterator<$typemap(jboxtype, T)> {
+      private var curr = this@$javaclassname.begin()
+      private val end = this@$javaclassname.end()
+
+      override fun next(): $typemap(jboxtype, T) {
+        if (!hasNext()) {
+          throw NoSuchElementException()
+        }
+
+        // Save the current position, increment it,
+        // then return the value at the position before the increment.
+        val currValue = curr.derefUnchecked()
+        curr.incrementUnchecked();
+        return currValue;
+      }
+
+      override fun hasNext(): Boolean {
+        return curr.isNot(end);
+      }
+
+      override fun remove() {
+        throw UnsupportedOperationException()
+      }
+    }
+  }
+
+  override fun contains(element: $typemap(jboxtype, T)): Boolean {
+    return containsImpl(element)
+  }
+
+  override fun remove(element: $typemap(jboxtype, T)): Boolean {
+    return removeImpl(element)
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
   public:
 
     struct iterator {
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
       %typemap(javaclassmodifiers) iterator "public class"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+      %typemap(javaclassmodifiers) iterator "class"
+#endif
       %extend {
         void incrementUnchecked() {
           ++(*$self);
