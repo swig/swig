@@ -2462,11 +2462,8 @@ public:
         case TYPE_ANNOTATION_TYPING:
           tm = lookupPytyping(p, true);
           if (!tm)
-            Swig_warning(WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF,
-                         input_file,
-                         line_number,
-                         "Missing required entry in pytyping typemap for %s\n",
-                         SwigType_str(match_type, 0));
+            Swig_warning(
+              WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF, input_file, line_number, "Missing required entry in pytyping typemap for %s\n", SwigType_str(match_type, 0));
           break;
         case TYPE_ANNOTATION_NONE:
           break;  // unreachable
