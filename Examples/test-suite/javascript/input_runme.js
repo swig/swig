@@ -1,6 +1,6 @@
 var input = require("input");
 
-var f = new input.Foo();
+f = new input.Foo();
 if (f.foo(2) != 4) {
     throw new Error;
 }

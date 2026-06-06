@@ -1,8 +1,8 @@
 var cpp11_alternate_function_syntax = require("cpp11_alternate_function_syntax");
 
-var a = new cpp11_alternate_function_syntax.SomeStruct();
+a = new cpp11_alternate_function_syntax.SomeStruct();
 
-var res = a.addNormal(4, 5);
+res = a.addNormal(4, 5);
 if (res != 9) {
     throw new Error("SomeStruct::addNormal(4,5) returns ", res, " should be 9.");
 }

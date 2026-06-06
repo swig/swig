@@ -1,6 +1,6 @@
 var overload_extend = require("overload_extend")
 
-var f = new overload_extend.Foo()
+f = new overload_extend.Foo()
 if (f.test() != 0) {
     throw new Error
 }

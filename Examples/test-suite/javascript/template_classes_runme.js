@@ -2,15 +2,15 @@ var template_classes = require("template_classes");
 
 // This test is just testing incorrect number of arguments/parameters checking
 
-var point = new template_classes.PointInt();
+point = new template_classes.PointInt();
 
-var rectangle = new template_classes.RectangleInt();
+rectangle = new template_classes.RectangleInt();
 rectangle.setPoint(point);
 rectangle.getPoint();
 template_classes.RectangleInt.static_noargs();
 template_classes.RectangleInt.static_onearg(1);
 
-var fail = true;
+fail = true;
 try {
     rectangle.setPoint();
 } catch {

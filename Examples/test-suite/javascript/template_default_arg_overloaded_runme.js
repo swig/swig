@@ -7,7 +7,7 @@ function check(expected, got) {
 }
 
 
-var pl = new template_default_arg_overloaded.PropertyList();
+pl = new template_default_arg_overloaded.PropertyList();
 check(1, pl.setInt("int", 10));
 check(1, pl.setInt("int", 10, false));
 

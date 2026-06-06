@@ -7,7 +7,7 @@ function enumCheck(actual, expected) {
   return expected + 1;
 }
 
-var val = 0;
+val = 0;
 val = enumCheck(cpp11_strongly_typed_enumerations.Enum1_Val1, val);
 val = enumCheck(cpp11_strongly_typed_enumerations.Enum1_Val2, val);
 val = enumCheck(cpp11_strongly_typed_enumerations.Enum1_Val3, 13);

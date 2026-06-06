@@ -1,6 +1,6 @@
 var cpp11_rvalue_reference = require("cpp11_rvalue_reference");
 
-var a = new cpp11_rvalue_reference.A();
+a = new cpp11_rvalue_reference.A();
 
 a.setAcopy(5);
 if (a.getAcopy() != 5) {
@@ -8,7 +8,7 @@ if (a.getAcopy() != 5) {
         a.getAcopy() + " should be 5");
 }
 
-var ptr = a.getAptr();
+ptr = a.getAptr();
 
 a.setAptr(ptr);
 if (a.getAcopy() != 5) {
@@ -22,7 +22,7 @@ if (a.getAcopy() != 5) {
     ) + " should be 5");
 }
 
-var rvalueref = a.getAmove();
+rvalueref = a.getAmove();
 
 a.setAref(rvalueref);
 if (a.getAcopy() != 5) {

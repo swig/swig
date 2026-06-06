@@ -1,7 +1,7 @@
 var final_c = require("final_c");
 
 final_c.init();
-var f = final_c.final;
+f = final_c.final;
 if ((f.yval != 123)) {
   throw new Error("f.yval fail");
 }

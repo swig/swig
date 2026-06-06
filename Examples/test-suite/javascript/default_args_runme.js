@@ -1,10 +1,10 @@
 var default_args = require('default_args');
-var ec = new default_args.EnumClass();
+ec = new default_args.EnumClass();
 if (!ec.blah()) {
     throw new Error("EnumClass::blah() default arguments don't work");
 }
 
-var de = new default_args.DerivedEnumClass();
+de = new default_args.DerivedEnumClass();
 de.accelerate();
 de.accelerate(default_args.EnumClass.SLOW);
 
@@ -24,7 +24,7 @@ if (default_args.cfunc3(1) != 4) {
     throw new Error;
 }
 
-var f = new default_args.Foo();
+f = new default_args.Foo();
 
 f.newname();
 f.newname(1);
@@ -55,7 +55,6 @@ if (f.double_if_dbl_ptr_is_null(7) != 14) {
     throw new Error;
 }
 
-var error;
 try {
     f = default_args.Foo(1);
     error = 1;
@@ -116,7 +115,7 @@ if (error) {
     throw new Error("Foo::meth ignore is not working");
 }
 
-var Klass_inc = default_args.Klass.inc;
+Klass_inc = default_args.Klass.inc;
 
 if (Klass_inc(100, new default_args.Klass(22)).val != 122) {
     throw new Error("Klass::inc failed");
@@ -130,7 +129,7 @@ if (Klass_inc().val != 0) {
     throw new Error("Klass::inc failed");
 }
 
-var tricky = new default_args.TrickyInPython();
+tricky = new default_args.TrickyInPython();
 if (tricky.value_m1(10) != -1) {
     throw new Error("trickyvalue_m1 failed");
 }
@@ -200,7 +199,7 @@ if (default_args.chartest2() != "\0" && default_args.chartest2() != '') {
     throw new Error;
 }
 
-if (default_args.chartest3() != "\u0001") {
+if (default_args.chartest3() != "\1") {
     throw new Error;
 }
 

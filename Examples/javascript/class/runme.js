@@ -3,9 +3,9 @@ var example = require("example");
 // ----- Object creation -----
 
 console.log("Creating some objects:");
-var c = new example.Circle(10);
+c = new example.Circle(10);
 console.log("Created circle " + c);
-var s = new example.Square(10);
+s = new example.Square(10);
 console.log("Created square " + s);
 try {
   new example.Shape();
@@ -53,8 +53,8 @@ console.log("perimeter = " + s.perimeter() + "");
 // ----- Delete everything -----
 console.log("\nGuess I'll clean up now");
 // Note: this invokes the virtual destructor
-c = null;
-s = null;
+delete c;
+delete s;
 
 console.log(example.Shape.nshapes + " shapes remain");
 
