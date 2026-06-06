@@ -4,6 +4,7 @@
 %inline %{
 class ObjC {
  public:
+  virtual ~ObjC() {}
   virtual int getInt() const {
     return 18;
   }

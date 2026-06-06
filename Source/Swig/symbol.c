@@ -1176,6 +1176,91 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
 }
 
 /* -----------------------------------------------------------------------------
+ * symbol_scope_lookup()
+ *
+ * Resolve a scope qualifier that may contain typedefs naming a class/struct
+ * scope and return the resolved scope's symbol table. For example, given the
+ * qualifier 'UBC::Me' where both UBC and Me are typedefs for a class, this
+ * returns that class's symbol table. Returns 0 if the qualifier cannot be
+ * resolved to a scope.
+ * ----------------------------------------------------------------------------- */
+
+static Symtab *symbol_scope_lookup(const String *qualifier, Symtab *symtab) {
+  Node *n = Swig_symbol_clookup(qualifier, symtab);
+  int via_typedef = 0;
+  while (n) {
+    Symtab *st = Getattr(n, "symtab");
+    if (st)
+      /* Only resolve a qualifier that is reached through a typedef. A qualifier that resolves
+         directly to a class or namespace scope (for example a namespace made visible by a using
+         namespace directive) is left to the normal lookup - resolving it here would produce a
+         non-canonical scope name that does not match the type's registered name at runtime. */
+      return via_typedef ? st : 0;
+    /* Not a scope itself - if it is a typedef to a class/struct, follow the typedef target */
+    if (Checkattr(n, "nodeType", "cdecl") && Checkattr(n, "storage", "typedef")) {
+      SwigType *type = Getattr(n, "type");
+      if (type && SwigType_issimple(type)) {
+        Symtab *ntab = Getattr(n, "sym:symtab");
+        Node *nn = Swig_symbol_clookup(type, ntab);
+        if (!nn && SwigType_istemplate(type)) {
+          /* Reduce and fully qualify the template instantiation (eg 'TBase<(IntAlias)>' to
+             'TBase<(int)>', or qualify a template name imported by a using declaration). The
+             %template instantiation scope is registered under its fully qualified name, so this
+             lets the lookup below find it. */
+          SwigType *reduced = Swig_symbol_typedef_reduce(type, ntab);
+          SwigType *qualified = Swig_symbol_type_qualify(reduced, ntab);
+          nn = Swig_symbol_clookup(qualified, ntab);
+          Delete(qualified);
+          Delete(reduced);
+        }
+        if (nn && nn != n) {
+          n = nn;
+          via_typedef = 1;
+          continue;
+        }
+      }
+    }
+    break;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * symbol_clookup_typedef_scope()
+ *
+ * Fallback lookup for a qualified name whose scope qualifier contains typedefs,
+ * such as the member 'Integer' in 'UBC::Me::Integer' where UBC and Me are
+ * typedefs for a class. symbol_lookup_qualified() only matches scope qualifiers
+ * against registered scope names, so it does not resolve typedefs that appear as
+ * a scope qualifier. Here the qualifier is resolved to its real scope first and
+ * the base name is then looked up in that scope.
+ * ----------------------------------------------------------------------------- */
+
+static Node *symbol_clookup_typedef_scope(const String *name, Symtab *symtab, Node *(*checkfunc)(Node *n)) {
+  Node *n = 0;
+  String *prefix = Swig_scopename_prefix(name);
+  if (prefix && !SwigType_istemplate(prefix)) {
+    String *base = Swig_scopename_last(name);
+    String *prefixbase = Swig_scopename_last(prefix);
+    /* Only resolve a typedef or namespace scope qualifier here. Skip:
+       - a template instantiation qualifier (eg 'Base<T>::member'), handled elsewhere;
+       - an inheriting-constructor using declaration (eg 'using Base::Base'), where the member
+         name matches the qualifier.  Resolving the qualifier scope of such a declaration would
+         follow the constructor using declaration back to itself; it is handled by the
+         constructor logic, not as a member. */
+    if (!Equal(base, prefixbase)) {
+      Symtab *scope = symbol_scope_lookup(prefix, symtab);
+      if (scope)
+        n = symbol_lookup(base, scope, checkfunc);
+    }
+    Delete(prefixbase);
+    Delete(base);
+  }
+  Delete(prefix);
+  return n;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_clookup()
  *
  * Look up a symbol in the symbol table.   This uses the C name, not scripting
@@ -1214,6 +1299,8 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
       String *prefix = Swig_scopename_prefix(name);
       if (prefix) {
         s = symbol_lookup_qualified(name, hsym, 0, 0, 0);
+        if (!s)
+          s = symbol_clookup_typedef_scope(name, hsym, 0);
         Delete(prefix);
         if (!s) {
           return 0;
@@ -1292,6 +1379,8 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *
       String *prefix = Swig_scopename_prefix(name);
       if (prefix) {
         s = symbol_lookup_qualified(name, hsym, 0, 0, checkfunc);
+        if (!s)
+          s = symbol_clookup_typedef_scope(name, hsym, checkfunc);
         Delete(prefix);
         if (!s) {
           return 0;

@@ -1792,6 +1792,7 @@ public:
     addMissingParameterNames(n, plist, arg_num);  // for $1_name substitutions done in Swig_typemap_attach_parms
     Swig_typemap_attach_parms("in", plist, 0);
     Swig_typemap_attach_parms("doc", plist, 0);
+    Swig_typemap_attach_parms("pytyping", plist, 0);
 
     if (Strcmp(ParmList_protostr(plist), "void") == 0) {
       // No parameters actually
@@ -1872,6 +1873,7 @@ public:
           String *docty = lookupPytyping(p);
           if (docty)
             Printf(doc, ": \"%s\"", docty);
+          Delete(docty);
         }
         break;
       }
@@ -2447,32 +2449,32 @@ public:
 
     String *ret = 0;
     Parm *p = Getattr(n, "parms");
-    String *tm;
+    SwigType *match_type;
     /* Try to guess the returning type by argout typemap,
      * however the result may not accurate. */
     while (p) {
-      if ((tm = Getattr(p, "tmap:argout:match_type"))) {
+      if ((match_type = Getattr(p, "tmap:argout:match_type"))) {
+        String *tm = 0;
         switch (anno) {
         case TYPE_ANNOTATION_C:
-          tm = SwigType_str(tm, 0);
+          tm = SwigType_str(match_type, 0);
           break;
         case TYPE_ANNOTATION_TYPING:
           tm = lookupPytyping(p, true);
           if (!tm)
-            Swig_warning(WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF,
-                         input_file,
-                         line_number,
-                         "Missing required entry in pytyping typemap for %s\n",
-                         SwigType_str(Getattr(p, "tmap:argout:match_type"), 0));
+            Swig_warning(
+              WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF, input_file, line_number, "Missing required entry in pytyping typemap for %s\n", SwigType_str(match_type, 0));
           break;
         case TYPE_ANNOTATION_NONE:
           break;  // unreachable
         }
 
-        if (ret)
+        if (ret) {
           Printv(ret, ", ", tm, NULL);
-        else
+          Delete(tm);
+        } else {
           ret = tm;
+        }
         p = Getattr(p, "tmap:argout:next");
       } else {
         p = nextSibling(p);
@@ -2494,7 +2496,9 @@ public:
         break;  // unreachable
       }
     }
-    return ret ? NewStringf(" -> \"%s\"", ret) : NewStringEmpty();
+    String *result = ret ? NewStringf(" -> \"%s\"", ret) : NewStringEmpty();
+    Delete(ret);
+    return result;
   }
 
   /* ------------------------------------------------------------
@@ -2535,11 +2539,17 @@ public:
    * ------------------------------------------------------------ */
 
   String *lookupPytyping(Node *n, bool out = false) {
-    String *tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
+    String *tm = Getattr(n, "tmap:pytyping");
+    if (tm)
+      tm = Copy(tm);
+    else
+      tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
     if (tm && out) {
       String *outty = Getattr(n, "tmap:pytyping:out");
-      if (outty)
-        tm = outty;
+      if (outty) {
+        Delete(tm);
+        tm = Copy(outty);
+      }
     }
     return tm;
   }
