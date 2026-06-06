@@ -7,13 +7,13 @@ function check(a, b) {
     }
 }
 
-var ev = new li_std_vector_enum.EnumVector();
+ev = new li_std_vector_enum.EnumVector();
 
 check(ev.nums.get(0), 10);
 check(ev.nums.get(1), 20);
 check(ev.nums.get(2), 30);
 
-var expected = 10;
+expected = 10;
 for (let i = 0; i < ev.nums.size(); i++) {
     let val = ev.nums.get(i);
     check(val, expected);

@@ -4,7 +4,7 @@ if (preproc_defined.call_checking() != 1) {
     throw new Error;
 }
 
-var d = new preproc_defined.Defined();
+d = new preproc_defined.Defined();
 d.defined = 10;
 
 preproc_defined.thing(10);

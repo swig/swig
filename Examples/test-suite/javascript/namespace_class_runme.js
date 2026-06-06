@@ -1,6 +1,5 @@
 var namespace_class = require("namespace_class");
 
-var p, error;
 try {
     p = namespace_class.Private1();
     error = 1;
@@ -25,11 +24,11 @@ if ((error)) {
 
 namespace_class.EulerT3D.toFrame(1, 1, 1);
 
-var b = new namespace_class.BooT_i();
+b = new namespace_class.BooT_i();
 b = new namespace_class.BooT_H();
 
 
-var f = new namespace_class.FooT_i();
+f = new namespace_class.FooT_i();
 f.quack(1);
 
 f = new namespace_class.FooT_d();

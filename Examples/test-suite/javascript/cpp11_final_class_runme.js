@@ -1,54 +1,54 @@
 var cpp11_final_class = require("cpp11_final_class");
 
-var fc1 = new cpp11_final_class.FinalClass1();
+fc1 = new cpp11_final_class.FinalClass1();
 fc1.method1();
 
-var fc2 = new cpp11_final_class.FinalClass2();
+fc2 = new cpp11_final_class.FinalClass2();
 fc2.method2();
 
-var fc3 = new cpp11_final_class.FinalClass3();
+fc3 = new cpp11_final_class.FinalClass3();
 fc3.method3();
 
-var fc4 = new cpp11_final_class.FinalClass4();
+fc4 = new cpp11_final_class.FinalClass4();
 fc4.method4();
-var fc4final = cpp11_final_class.final;
+fc4final = cpp11_final_class.final;
 cpp11_final_class.final.method4();
 
-var fc5 = new cpp11_final_class.FinalClass5();
+fc5 = new cpp11_final_class.FinalClass5();
 fc5.method5();
 fc5.final_member_var.finalmethod();
-var fc5final = fc5.get_final_member();
+fc5final = fc5.get_final_member();
 fc5final.finalmethod();
 fc5final = fc5.get_final_member2();
 fc5final.finalmethod();
 
-var fc6 = new cpp11_final_class.FinalClass6();
+fc6 = new cpp11_final_class.FinalClass6();
 fc6.method6();
 fc6.final();
 
-var o = new cpp11_final_class.override();
+o = new cpp11_final_class.override();
 o.omethod();
 
-var y = new cpp11_final_class.Y();
-var fv4 = new cpp11_final_class.FinalVar4();
-var yy = fv4.final;
+y = new cpp11_final_class.Y();
+fv4 = new cpp11_final_class.FinalVar4();
+yy = fv4.final;
 
-var fv5 = new cpp11_final_class.FinalVar5();
+fv5 = new cpp11_final_class.FinalVar5();
 yy = fv5.final;
 
-var fv6 = new cpp11_final_class.FinalVar6();
+fv6 = new cpp11_final_class.FinalVar6();
 yy = fv6.final;
 
-var fv7 = new cpp11_final_class.FinalVar7();
+fv7 = new cpp11_final_class.FinalVar7();
 yy = fv7.final;
 
-var fv8 = new cpp11_final_class.FinalVar8();
+fv8 = new cpp11_final_class.FinalVar8();
 yy = fv8.final;
 
-var fv9 = new cpp11_final_class.FinalVar9();
+fv9 = new cpp11_final_class.FinalVar9();
 yy = fv9.final;
 
-var fv10 = new cpp11_final_class.FinalVar10();
+fv10 = new cpp11_final_class.FinalVar10();
 fv10.b10(y);
 
 // Removed due to Visual C++ compiler limitations
@@ -60,5 +60,5 @@ fe1.enum_in(FinalEnum1.final)
 fe2 = FinalEnum2()
 fe2f = fe2.final*/
 
-var s3f = new cpp11_final_class.Space3_final();
+s3f = new cpp11_final_class.Space3_final();
 s3f.fmethod();

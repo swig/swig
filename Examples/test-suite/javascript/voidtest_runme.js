@@ -10,17 +10,17 @@ if (f.memberfunc() !== (function(){}())) {
   throw new Error("f.memberfunc() didn't return same result as pure Javascript equivalent");
 }
 
-var v1 = voidtest.vfunc1(f);
-var v2 = voidtest.vfunc2(f);
+v1 = voidtest.vfunc1(f);
+v2 = voidtest.vfunc2(f);
 if (!voidtest.test_pointers_equal(v1, v2)) {
   throw new Error("!voidtest.test_pointers_equal(v1, v2)");
 }
 
-var v3 = voidtest.vfunc3(v1);
+v3 = voidtest.vfunc3(v1);
 if (!voidtest.test_pointers_equal(v3.get_this(), f.get_this())) {
   throw new Error("!voidtest.test_pointers_equal(v3.get_this(), f.get_this())");
 }
-var v4 = voidtest.vfunc1(f);
+v4 = voidtest.vfunc1(f);
 if (!voidtest.test_pointers_equal(v4, v1)) {
   throw new Error("!voidtest.test_pointers_equal(v4, v1)");
 }

@@ -1,13 +1,13 @@
 var li_factory = require("li_factory");
 
-var circle = li_factory.Geometry.create(li_factory.Geometry.CIRCLE);
-var r = circle.radius();
+circle = li_factory.Geometry.create(li_factory.Geometry.CIRCLE);
+r = circle.radius();
 if ((r != 1.5)) {
     throw new Error;
 }
 
-var point = li_factory.Geometry.create(li_factory.Geometry.POINT);
-var w = point.width();
+point = li_factory.Geometry.create(li_factory.Geometry.POINT);
+w = point.width();
 if ((w != 1.0)) {
     throw new Error;
 }

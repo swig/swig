@@ -1,6 +1,6 @@
 var constover = require("constover");
 
-var p = constover.test("test");
+p = constover.test("test");
 if (p != "test") {
     throw "test failed!";
 }
@@ -10,7 +10,7 @@ if (p != "test_pconst") {
     throw "test_pconst failed!";
 }
 
-var f = new constover.Foo();
+f = new constover.Foo();
 
 p = f.test("test");
 if (p != "test") {
