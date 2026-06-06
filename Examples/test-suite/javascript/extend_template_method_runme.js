@@ -1,12 +1,12 @@
 var extend_template_method = require("extend_template_method");
 
-var em = new extend_template_method.ExtendMe();
+em = new extend_template_method.ExtendMe();
 
-var ret_double = em.do_stuff_double(1, 1.1);
+ret_double = em.do_stuff_double(1, 1.1);
 if (ret_double != 1.1) {
     throw new Error("double failed " + ret_double);
 }
-var ret_string = em.do_stuff_string(1, "hello there");
+ret_string = em.do_stuff_string(1, "hello there");
 if (ret_string != "hello there") {
     throw new Error("string failed " + ret_string);
 }
@@ -24,7 +24,7 @@ if (extend_template_method.ExtendMe.static_method(123) != 123) {
     throw new Error("static_method failed");
 }
 
-var em2 = new extend_template_method.ExtendMe(123);
+em2 = new extend_template_method.ExtendMe(123);
 
 em = new extend_template_method.TemplateExtend();
 

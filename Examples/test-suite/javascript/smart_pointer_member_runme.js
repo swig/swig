@@ -1,14 +1,14 @@
 var smart_pointer_member = require("smart_pointer_member");
 
 
-var f = new smart_pointer_member.Foo();
+f = new smart_pointer_member.Foo();
 f.y = 1;
 
 if (f.y != 1) {
     throw new Error;
 }
 
-var b = new smart_pointer_member.Bar(f);
+b = new smart_pointer_member.Bar(f);
 b.y = 2;
 
 if (f.y != 2) {

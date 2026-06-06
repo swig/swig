@@ -1,6 +1,6 @@
 var typemap_qualifier_strip = require("typemap_qualifier_strip");
 
-var val = typemap_qualifier_strip.create_int(111);
+val = typemap_qualifier_strip.create_int(111);
 if (typemap_qualifier_strip.testA1(val) != 1234) {
     throw new Error;
 }

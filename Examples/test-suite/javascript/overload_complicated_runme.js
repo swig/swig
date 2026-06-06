@@ -1,9 +1,9 @@
 var overload_complicated = require("overload_complicated");
 
-var pInt = null;
+pInt = null;
 
 // Check the correct constructors are available
-var p = new overload_complicated.Pop(pInt);
+p = new overload_complicated.Pop(pInt);
 
 p = new overload_complicated.Pop(pInt, false);
 

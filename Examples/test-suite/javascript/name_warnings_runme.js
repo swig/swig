@@ -6,5 +6,5 @@ function check(flag) {
     }
 }
 
-var four = name_warnings.double_an_int(2);
+four = name_warnings.double_an_int(2);
 check(four == 4);

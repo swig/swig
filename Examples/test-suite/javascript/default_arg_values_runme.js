@@ -10,7 +10,7 @@ if (d.draw1(12) != 12) {
     throw new Error;
 }
 
-var p = default_arg_values.createPtr(123);
+p = default_arg_values.createPtr(123);
 if (d.draw2() != 0) {
     throw new Error;
 }

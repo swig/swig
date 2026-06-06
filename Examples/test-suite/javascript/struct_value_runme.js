@@ -1,6 +1,6 @@
 var struct_value = require("struct_value");
 
-var b = new struct_value.Bar();
+b = new struct_value.Bar();
 
 b.a.x = 3;
 if (b.a.x != 3)

@@ -1,7 +1,7 @@
 var naturalvar = require("naturalvar");
 
-var f = new naturalvar.Foo();
-var b = new naturalvar.Bar();
+f = new naturalvar.Foo();
+b = new naturalvar.Bar();
 
 b.f = f;
 
