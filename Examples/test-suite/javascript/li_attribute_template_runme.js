@@ -2,7 +2,7 @@
 
 var li_attribute_template = require("li_attribute_template");
 
-var chell = new li_attribute_template.Cintint(1, 2, 3);
+chell = new li_attribute_template.Cintint(1, 2, 3);
 
 
 function rassert(what, master) {
@@ -49,7 +49,7 @@ rassert(chell.e.value, 4);
 rassert(chell.f.first, 1);
 rassert(chell.f.second, 2);
 
-var pair = new li_attribute_template.pair_intint(3, 4);
+pair = new li_attribute_template.pair_intint(3, 4);
 chell.f = pair;
 rassert(chell.f.first, 3);
 rassert(chell.f.second, 4);

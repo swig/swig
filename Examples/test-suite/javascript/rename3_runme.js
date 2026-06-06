@@ -2,7 +2,7 @@ var rename = require("rename3");
 
 function part1() {
   var xyz = new rename.XYZInt();
-  var notxyz = new rename.NotXYZInt();
+  notxyz = new rename.NotXYZInt();
   xyz.opIntPtrA();
   xyz.opIntPtrB();
   xyz.opAnother2();
