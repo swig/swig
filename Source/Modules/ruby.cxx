@@ -1803,7 +1803,7 @@ public:
             Wrapper_add_local(f, result_name, result_var);
             Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
           }
-          Printf(action, "\nDATA_PTR(self) = %s;", result_name);
+          Printf(action, "\n((struct ruby_wrapped_object *)RTYPEDDATA_GET_DATA(self))->data = %s;", result_name);
           if (GetFlag(pn, "feature:trackobjects")) {
             Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
           }
@@ -2428,14 +2428,23 @@ public:
   }
 
   /**
+   * Set class name for better debug messages and statistics by Ruby.
+   */
+  void handleClassName(Node *) {
+    Printf(klass->init, "SwigClass%s.cext_type.wrap_struct_name = \"C++ class %s\";\n", klass->name, klass->cname);
+  }
+
+  /**
    * Check to see if a %markfunc was specified.
    */
   void handleMarkFuncDirective(Node *n) {
     String *markfunc = Getattr(n, "feature:markfunc");
     if (markfunc) {
       Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+      Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
     } else {
       Printf(klass->init, "SwigClass%s.mark = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
     }
   }
 
@@ -2446,9 +2455,11 @@ public:
     String *freefunc = Getattr(n, "feature:freefunc");
     if (freefunc) {
       Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+      Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
     } else {
       if (klass->destructor_defined) {
         Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+        Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
       }
     }
   }
@@ -2523,6 +2534,7 @@ public:
     Language::classHandler(n);
 
     handleBaseClasses(n);
+    handleClassName(n);
     handleMarkFuncDirective(n);
     handleFreeFuncDirective(n);
     handleTrackDirective(n);

@@ -112,7 +112,15 @@
 #ifndef RTYPEDDATA_P
 # define RTYPEDDATA_P(x) (TYPE(x) != T_DATA)
 #endif
+#ifndef TYPED_DATA_EMBEDDED
+# define RTYPEDDATA_GET_DATA(x) RTYPEDDATA_DATA(x)
+#endif
 
+struct ruby_wrapped_object {
+  void *data;
+  void (*dmark)(void *);
+  void (*dfree)(void *);
+};
 
 
 /*
