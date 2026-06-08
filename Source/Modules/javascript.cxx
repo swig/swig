@@ -14,7 +14,7 @@
 #include "swigmod.h"
 #include "cparse.h"
 
-/**
+/*
  * Enables extra debugging information in typemaps.
  */
 static bool js_template_enable_debug = false;
@@ -57,7 +57,7 @@ static bool js_template_enable_debug = false;
 #define STATIC_FUNCTIONS               "static_functions"
 #define STATIC_VARIABLES               "static_variables"
 
-/**
+/*
  * A convenience class to manage state variables for emitters.
  * The implementation delegates to SWIG Hash DOHs and provides
  * named sub-hashes for class, variable, and function states.
@@ -82,7 +82,7 @@ private:
   Hash *globalHash;
 };
 
-/**
+/*
  * A convenience class that wraps a code snippet used as template
  * for code generation.
  */
@@ -105,7 +105,7 @@ private:
   String *templateName;
 };
 
-/**
+/*
  * JSEmitter represents an abstraction of javascript code generators
  * for different javascript engines.
  **/
@@ -123,22 +123,22 @@ public:
 
   virtual ~JSEmitter();
 
-  /**
+  /*
    * Opens output files and temporary output DOHs.
    */
   virtual int initialize(Node *n);
 
-  /**
+  /*
    * Writes all collected code into the output file(s).
    */
   virtual int dump(Node *n) = 0;
 
-  /**
+  /*
    * Cleans up all open output DOHs.
    */
   virtual int close() = 0;
 
-  /**
+  /*
    * Switches the context for code generation.
    *
    * Classes, global variables and global functions may need to
@@ -147,58 +147,58 @@ public:
    */
   virtual int switchNamespace(Node *);
 
-  /**
+  /*
    * Invoked at the beginning of the classHandler.
    */
   virtual int enterClass(Node *);
 
-  /**
+  /*
    * Invoked at the end of the classHandler.
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
   }
 
-  /**
+  /*
    * Invoked at the beginning of the variableHandler.
    */
   virtual int enterVariable(Node *);
 
-  /**
+  /*
    * Invoked at the end of the variableHandler.
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
   }
 
-  /**
+  /*
    * Invoked at the beginning of the functionHandler.
    */
   virtual int enterFunction(Node *);
 
-  /**
+  /*
    * Invoked at the end of the functionHandler.
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
   }
 
-  /**
+  /*
    * Invoked by functionWrapper callback after call to Language::functionWrapper.
    */
   virtual int emitWrapperFunction(Node *n);
 
-  /**
+  /*
    * Invoked by nativeWrapper callback
    */
   virtual int emitNativeFunction(Node *n);
 
-  /**
+  /*
    * Invoked from constantWrapper after call to Language::constantWrapper.
    **/
   virtual int emitConstant(Node *n);
 
-  /**
+  /*
    * Registers a given code snippet for a given key name.
    *
    * This method is called by the fragmentDirective handler
@@ -206,7 +206,7 @@ public:
    **/
   int registerTemplate(const String *name, const String *code);
 
-  /**
+  /*
    * Retrieve the code template registered for a given name.
    */
   Template getTemplate(const String *name);
@@ -214,36 +214,36 @@ public:
   State &getState();
 
 protected:
-  /**
+  /*
    * Helper function for detecting if the constructor Node does not use a name that matches
    * the expected name for a constructor. Occurs when %rename is used for just a constructor
    * or %template instantiates a templated constructor with a different name to the class.
    */
   bool isRenamedConstructor(Node *n);
 
-  /**
+  /*
    * Generates code for a constructor function.
    */
   virtual int emitCtor(Node *n);
 
-  /**
+  /*
    * Generates code for a destructor function.
    */
   virtual int emitDtor(Node *n);
 
-  /**
+  /*
    * Generates code for a function.
    */
   virtual int emitFunction(Node *n, bool is_member, bool is_static);
 
   virtual int emitFunctionDispatcher(Node *n, bool /*is_member */);
 
-  /**
+  /*
    * Generates code for a getter function.
    */
   virtual int emitGetter(Node *n, bool is_member, bool is_static);
 
-  /**
+  /*
    * Generates code for a setter function.
    */
   virtual int emitSetter(Node *n, bool is_member, bool is_static);
@@ -258,7 +258,7 @@ protected:
 
   virtual void emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params);
 
-  /**
+  /*
    * Helper function to retrieve the first parent class node.
    */
   Node *getBaseClass(Node *n);
@@ -325,7 +325,7 @@ public:
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
 
-  /**
+  /*
    *  Registers all %fragments assigned to section "templates".
    **/
   virtual int fragmentDirective(Node *n);

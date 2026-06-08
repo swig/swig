@@ -50,7 +50,7 @@ private:
     COMMAND
   };
 
-  /** This class contains parts of Doxygen comment as a token. */
+  /* This class contains parts of Doxygen comment as a token. */
   class Token {
   public:
     DoxyCommandEnum m_tokenType;
@@ -137,18 +137,18 @@ private:
    */
   void printTree(const std::list<DoxygenEntity> &rootList);
 
-  /**
+  /*
    * Returns true if the next token is end of line token. This is important
    * when single word commands like \c are at the end of line.
    */
   bool isEndOfLine();
 
-  /**
+  /*
    * Skips spaces, tabs, and end of line tokens.
    */
   void skipWhitespaceTokens();
 
-  /**
+  /*
    * Removes all spaces and tabs from beginning end end of string.
    */
   std::string trim(const std::string &text);
@@ -220,7 +220,7 @@ private:
   TokenListCIt getTilAnyCommand(const std::string &theCommand, const TokenList &tokList);
    */
 
-  /**
+  /*
    * This methods skips end of line token, if it is the next token to be
    * processed. It is called with comment commands which have args till the
    * end of line, such as 'addtogroup' or 'addindex'.
@@ -341,7 +341,7 @@ private:
    */
   void fillTables();
 
-  /** Processes comment when \htmlonly and \verbatim commands are encountered. */
+  /* Processes comment when \htmlonly and \verbatim commands are encountered. */
   size_t processVerbatimText(size_t pos, const std::string &line);
 
   bool processEscapedChars(size_t &pos, const std::string &line);
@@ -349,7 +349,7 @@ private:
   void processHtmlTags(size_t &pos, const std::string &line);
   void processHtmlEntities(size_t &pos, const std::string &line);
 
-  /** Processes comment outside \htmlonly and \verbatim commands. */
+  /* Processes comment outside \htmlonly and \verbatim commands. */
   size_t processNormalComment(size_t pos, const std::string &line);
 
   void tokenizeDoxygenComment(const std::string &doxygenComment, const std::string &fileName, int fileLine);

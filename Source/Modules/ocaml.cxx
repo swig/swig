@@ -1007,7 +1007,7 @@ public:
     return ret;
   }
 
-  /**
+  /*
    * A simple, somewhat general purpose function for writing to multiple
    * streams from a source template.  This allows the user to define the
    * class definition in ways different from the one I have here if they

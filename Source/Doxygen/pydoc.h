@@ -98,7 +98,7 @@ protected:
    */
   void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
-  /**
+  /*
    * Copies verbatim args of the tag to output, used for commands like \f$, ...
    */
   void handleTagVerbatim(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
@@ -143,12 +143,12 @@ protected:
 
   void handleDoxyHtmlTag(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
-  /** Does not output params of HTML tag, for example in <table border='1'>
+  /* Does not output params of HTML tag, for example in <table border='1'>
    * 'border=1' is not written to output.
    */
   void handleDoxyHtmlTagNoParam(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
-  /** Translates tag <a href = "url">text</a> to: text ("url"). */
+  /* Translates tag <a href = "url">text</a> to: text ("url"). */
   void handleDoxyHtmlTag_A(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*

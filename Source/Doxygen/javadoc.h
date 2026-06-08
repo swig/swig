@@ -58,12 +58,12 @@ protected:
    */
   typedef void (JavaDocConverter::*tagHandler)(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
-  /**
+  /*
    * Copies verbatim args of the tag to output, used for commands like \f$, ...
    */
   void handleTagVerbatim(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
-  /** Creates anchor link. */
+  /* Creates anchor link. */
   void handleTagAnchor(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /*
