@@ -117,7 +117,7 @@
    together with the per-object mark and free functions. The static rb_data_type_t
    shared by a class can not carry per-object ownership, which changes as ownership
    is transferred at runtime, so that information is kept here instead. */
-struct ruby_wrapped_object {
+struct swig_ruby_wrapped_object {
   void *data;
   void (*dmark)(void *);
   void (*dfree)(void *);

@@ -1803,7 +1803,7 @@ public:
             Wrapper_add_local(f, result_name, result_var);
             Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
           }
-          Printf(action, "\n((struct ruby_wrapped_object *)RTYPEDDATA_DATA(self))->data = %s;", result_name);
+          Printf(action, "\n((struct swig_ruby_wrapped_object *)RTYPEDDATA_DATA(self))->data = %s;", result_name);
           if (GetFlag(pn, "feature:trackobjects")) {
             Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
           }
@@ -2427,12 +2427,9 @@ public:
     }
   }
 
-  /**
-   * Set up the per-class TypedData descriptor.  Every class shares the generic
-   * mark and free trampolines (which dispatch to the per-object functions held
-   * in the wrapper); the struct name carries the C++ class name so it shows up
-   * in Ruby heap dumps and ObjectSpace statistics.
-   */
+  /* Set up the per-class TypedData descriptor: named after the C++ class (so it is
+     recognisable in Ruby heap dumps and ObjectSpace statistics) with the shared mark
+     and free callbacks. */
   void handleClassName(Node *) {
     Printf(klass->init, "SwigClass%s.cext_type.wrap_struct_name = \"C++ class %s\";\n", klass->name, klass->cname);
     Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
