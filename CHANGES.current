@@ -7,6 +7,29 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-07: larskanis, jschueller
+            [Ruby] #3170 #3326 #3456 Generated wrappers now use Ruby's TypedData API
+            instead of the deprecated untyped Data API (Data_Wrap_Struct, Data_Get_Struct,
+            DATA_PTR).  Ruby 3.4 warns about the untyped Data API by default
+            (an error under -Werror) and Ruby 4.0 removes it entirely.
+
+            This is not fully backwards compatible: hand written code (typically
+            in a typemap or %extend block) that reached the wrapped C/C++ pointer
+            through the removed Ruby DATA_PTR macro or Data_Get_Struct must be changed to
+            use the SWIG conversion functions, which work with both old and new SWIG.
+            Read the pointer with
+
+              void *ptr = 0;
+              SWIG_ConvertPtr(self, &ptr, NULL, 0);
+
+            and detach (clear) it with
+
+              SWIG_ConvertPtr(self, NULL, NULL, SWIG_POINTER_CLEAR);
+
+            See Examples/test-suite/ruby_manual_proxy.i for a worked example.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-06-08: wsfulton
             Names referring to a C++ class nested inside another class now
             resolve even when the nested class itself is not wrapped (the usual
