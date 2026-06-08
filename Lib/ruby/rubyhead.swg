@@ -112,10 +112,11 @@
 #ifndef RTYPEDDATA_P
 # define RTYPEDDATA_P(x) (TYPE(x) != T_DATA)
 #endif
-#ifndef TYPED_DATA_EMBEDDED
-# define RTYPEDDATA_GET_DATA(x) RTYPEDDATA_DATA(x)
-#endif
 
+/* Wrapper attached to every SWIG TypedData object. It holds the wrapped pointer
+   together with the per-object mark and free functions. The static rb_data_type_t
+   shared by a class can not carry per-object ownership, which changes as ownership
+   is transferred at runtime, so that information is kept here instead. */
 struct ruby_wrapped_object {
   void *data;
   void (*dmark)(void *);
@@ -143,8 +144,8 @@ struct ruby_wrapped_object {
  *
  * VOIDFUNC(f) is used to typecast a C function that implements either
  * the "mark" or "free" stuff for a Ruby Data object, so that it can be
- * passed as an argument to Ruby C API functions like Data_Wrap_Struct()
- * and Data_Make_Struct().
+ * passed as an argument to Ruby C API functions like TypedData_Wrap_Struct()
+ * and TypedData_Make_Struct().
  *
  * SWIG_RUBY_VOID_ANYARGS_FUNC(f) is used for the function pointer
  * argument(s) of Ruby C API functions like rb_define_virtual_variable().
