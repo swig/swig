@@ -940,10 +940,8 @@ public:
       if (Len(f_shadow_stubs) > 0)
         Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
 
-      // Create an incomplete class for unknown types
-      for (Iterator swig_type = First(unknown_types_hash); swig_type.key; swig_type = Next(swig_type)) {
-        emitIncompleteClass(swig_type.key, swig_type.item);
-      }
+      // Emit type wrapper classes for the opaque types referenced by annotations
+      emitTypeWrapperClasses();
 
       Delete(f_shadow_py);
     }
@@ -2629,11 +2627,13 @@ public:
     String *replacementname;
 
     if (SwigType_isenum(classnametype)) {
-      replacementname = NewString("int");  // FIXME: is this always correct?
+      // The default enum SWIGTYPE typemap does not use the $pytypename special variable.
+      // However, custom typemaps might and so we substitute with "int".
+      replacementname = NewString("int");
     } else {
       String *classname = getProxyClassLocalName(classnametype);
       if (classname) {
-        replacementname = Copy(classname);
+        replacementname = classname;
       } else {
         // SWIG does not know anything about this type, but we still want to
         // distinguish different unknown types.
@@ -2673,21 +2673,43 @@ public:
   }
 
   /* ---------------------------------------------------------------
-   * emitIncompleteClass()
+   * emitTypeWrapperClasses()
+   *
+   * Emit a placeholder type wrapper class for every opaque type
+   * referenced by a 'pytyping' annotation. The classes are declared
+   * inside an 'if typing.TYPE_CHECKING' block so that they are visible
+   * to static type checkers but are not present at runtime. The version
+   * guard short circuits before 'typing.TYPE_CHECKING' is evaluated on
+   * Python versions where 'typing' has not been imported.
    * --------------------------------------------------------------- */
 
-  void emitIncompleteClass(String *classname, SwigType *type) {
-    if (!f_shadow_py)
+  void emitTypeWrapperClasses() {
+    if (!f_shadow_py || Len(unknown_types_hash) == 0)
       return;
 
-    String *tstr = SwigType_str(type, 0);
-    Printf(f_shadow_py, "class %s(object):\n", classname);
-    Printf(f_shadow_py, "    \"\"\"Opaque ``%s``.\n", tstr);
-    Printf(f_shadow_py,
-           "    This type is only used for type annotations and does not exist "
-           "at runtime.\"\"\"\n",
-           tstr);
-    Printf(f_shadow_py, "    ...\n\n");
+    Printv(f_shadow_py,
+           "\n",
+           "# Type wrapper classes for C/C++ types that have no Python proxy class\n",
+           "# (opaque pointers, arrays, member pointers, and unparsed or ignored types).\n",
+           "# They give PEP 484 annotations a named type to refer to. They are declared\n",
+           "# only for static type checkers and are not present at runtime.\n",
+           "if _swig_python_version_info >= (3, 5) and typing.TYPE_CHECKING:\n",
+           NIL);
+
+    for (Iterator swig_type = First(unknown_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+      emitTypeWrapperClass(swig_type.key, swig_type.item);
+    }
+  }
+
+  /* ---------------------------------------------------------------
+   * emitTypeWrapperClass()
+   * --------------------------------------------------------------- */
+
+  void emitTypeWrapperClass(String *classname, SwigType *type) {
+    String *tstr = SwigType_lstr(type, 0);
+    Printf(f_shadow_py, "    class %s(object):\n", classname);
+    Printf(f_shadow_py, "        \"\"\"Opaque '%s'.\"\"\"\n", tstr);
+    Printf(f_shadow_py, "        ...\n\n");
 
     Delete(tstr);
   }

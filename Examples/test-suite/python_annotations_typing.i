@@ -22,6 +22,9 @@
 %typemap(pytyping) MyEnum "bool";
 %rename(MyNamespaced2) MyNamespace::Inner::MyNamespaced1;
 
+// Test a typemap using $pytypename for an enum - it should expand to "int" as Python wraps enums as ints.
+%typemap(pytyping) PytypenameEnum "typing.Optional[$pytypename]";
+
 %inline %{
 namespace Space {
 template<class T>
@@ -132,6 +135,11 @@ enum MyOtherEnum {
 typedef MyOtherEnum MyOtherEnumTypedef;
 
 void use_enums(MyEnum me, MyEnumTypedef met, MyOtherEnum moe, MyOtherEnumTypedef moet) {}
+
+enum PytypenameEnum {
+  PytypenameEnumMember1,
+};
+void use_pytypename_enum(PytypenameEnum e) {}
 
 namespace MyNamespace {
   struct MyNamespaced1 {

@@ -141,6 +141,11 @@ if sys.version_info[0:2] >= (3, 2):
         }:
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
+        # A pytyping typemap using $pytypename should expand to int.
+        anno = get_annotations(use_pytypename_enum)
+        if anno != {"return": "None", "e": "typing.Optional[int]"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
         anno = get_annotations(use_namespaced)
         if anno != {
             "return": "None",
@@ -172,3 +177,13 @@ if sys.version_info[0:2] >= (3, 2):
         anno = get_annotations(make_struct_cref)
         if anno != {"return": "MyStruct"}:
             raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        # The type wrapper classes referenced by the annotations above (the
+        # SWIGTYPE_* opaque types) are declared only for static type checkers
+        # under 'if typing.TYPE_CHECKING' and must not exist at runtime.
+        import python_annotations_typing
+        for name in [
+            "SWIGTYPE_p_void", "SWIGTYPE_p_int", "SWIGTYPE_p_short",
+            "SWIGTYPE_p_float", "SWIGTYPE_p_f_char_bool__int",
+        ]:
+            swig_assert(not hasattr(python_annotations_typing, name))
