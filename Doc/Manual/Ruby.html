@@ -3984,22 +3984,22 @@ typemaps for other STL structures: </p>
   VALUE arr = rb_ary_new2($1-&gt;size());
   vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));
+    rb_ary_push(arr, SWIG_NewPointerObj(*i, $descriptor(classname *), 0));
   $result = arr;
 }
 %typemap(out) vectorclassname, const vectorclassname {
   VALUE arr = rb_ary_new2($1.size());
   vectorclassname::iterator i = $1.begin(), iend = $1.end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));
+    rb_ary_push(arr, SWIG_NewPointerObj(*i, $descriptor(classname *), 0));
   $result = arr;
 }
 %enddef</pre>
 </div>
 
-<p> Note, that the "<tt>c ## classname.klass"</tt> is
-used in the preprocessor step to determine the actual object from the
-class name. </p>
+<p> Note that "<tt>$descriptor(classname *)</tt>" expands to the SWIG type
+descriptor (a <tt>swig_type_info</tt>) for a pointer to the named class, as
+required by <tt>SWIG_NewPointerObj</tt> and <tt>SWIG_ConvertPtr</tt>. </p>
 
 <p>To use the macro with a class Foo, the following is used: </p>
 
@@ -4020,7 +4020,7 @@ class name. </p>
     //The following _should_ work but doesn't on HPUX
     // Check_Type(inst, T_DATA);
     classname *element = NULL;
-    Data_Get_Struct(inst, classname, element);
+    SWIG_ConvertPtr(inst, (void **)&amp;element, $descriptor(classname *), 0);
     vec-&gt;push_back(element);
   }
   $1 = vec;
@@ -4041,14 +4041,14 @@ static data types: </p>
   VALUE arr = rb_ary_new2($1-&gt;size()); 
   vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));
+    rb_ary_push(arr, SWIG_NewPointerObj(&amp;(*i), $descriptor(classname *), 0));
   $result = arr;
 }
 %typemap(out) vectorclassname, const vectorclassname {
   VALUE arr = rb_ary_new2($1.size()); 
   vectorclassname::iterator i = $1.begin(), iend = $1.end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));
+    rb_ary_push(arr, SWIG_NewPointerObj(&amp;(*i), $descriptor(classname *), 0));
   $result = arr;
 }
 %enddef</pre>
