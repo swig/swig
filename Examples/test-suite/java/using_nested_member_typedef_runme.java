@@ -19,5 +19,8 @@ public class using_nested_member_typedef_runme {
   {
     UsingDerived d = new UsingDerived();
     check(d.hh(81), 81);
+
+    UsingDerivedDeep deep = new UsingDerivedDeep();
+    check(deep.jj(81), 81);
   }
 }
