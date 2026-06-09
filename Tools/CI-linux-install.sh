@@ -113,10 +113,17 @@ case "$SWIGLANG" in
 				;;
 			"quickjs")
 				cd $HOME
-				$RETRY  wget -q https://bellard.org/quickjs/quickjs-2025-09-13-2.tar.xz
-				tar -Jxf quickjs-2025-09-13-2.tar.xz
-				cd quickjs-2025-09-13
-				make libquickjs.a
+				if [ ${VER} = "2025-09-13" ]; then
+					$RETRY  wget -q https://bellard.org/quickjs/quickjs-2025-09-13-2.tar.xz
+					tar -Jxf quickjs-2025-09-13-2.tar.xz
+					cd quickjs-2025-09-13
+				else
+					# "2026-06-04"
+					$RETRY  wget -q https://bellard.org/quickjs/quickjs-${VER}.tar.xz
+					tar -Jxf quickjs-${VER}.tar.xz
+					cd quickjs-${VER}
+				fi
+				make libquickjs.a qjs
 				;;
 		esac
 		;;
