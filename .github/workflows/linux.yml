@@ -490,6 +490,15 @@ jobs:
         show-progress: false
         persist-credentials: false
 
+    - name: Checkout CCache
+      uses: actions/checkout@v6
+      with:
+        repository: erezgeva/swig-ccache
+        ref: swig_latest
+        path: CCache
+        show-progress: false
+        persist-credentials: false
+
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1.2.23
       with:

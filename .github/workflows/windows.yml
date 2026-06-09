@@ -190,6 +190,15 @@ jobs:
         show-progress: false
         persist-credentials: false
 
+    - name: Checkout CCache
+      uses: actions/checkout@v6
+      with:
+        repository: erezgeva/swig-ccache
+        ref: swig_latest
+        path: CCache
+        show-progress: false
+        persist-credentials: false
+
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1.2.23
       with:
@@ -340,9 +349,9 @@ jobs:
     - name: Install MSYS2 Packages
       shell: cmd
       run: |
-          # We must run in `cmd`.
-          # As the update will terminate all running bash terminals!
-          # Including the terminal that may be used to execute the 'pacman' itself.
+          rem 'We must run in `cmd`.'
+          rem 'As the update will terminate all running bash terminals!'
+          rem 'Including the terminal that may be used to execute the pacman itself.'
           rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
           if %ErrorLevel% NEQ 0 (exit 1)
