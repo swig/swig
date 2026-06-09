@@ -78,18 +78,18 @@
   val swigValue: Int
 
   @Suppress("unused")
-  private constructor() {
+  constructor() {
     swigValue = SwigNext.next++
   }
 
   @Suppress("unused")
-  private constructor(swigValue: Int) {
+  constructor(swigValue: Int) {
     this.swigValue = swigValue
     SwigNext.next = swigValue + 1
   }
 
   @Suppress("unused")
-  private constructor(swigEnum: $kotlinclassname) {
+  constructor(swigEnum: $kotlinclassname) {
     swigValue = swigEnum.swigValue
     SwigNext.next = swigValue + 1
   }
