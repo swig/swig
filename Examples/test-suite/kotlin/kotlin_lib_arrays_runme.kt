@@ -1,12 +1,11 @@
 @file:JvmName("kotlin_lib_arrays_runme")
 
 // This is the kotlin_lib_arrays runtime testcase. It ensures that a getter and a setter has
-// been produced for primitive array members and that they function as expected. It is a
-// test for the Kotlin primitive array library typemaps (ByteArray/ShortArray/IntArray/
-// LongArray/FloatArray/DoubleArray and the ARRAYSOFENUMS IntArray typemaps).
-//
-// The array-of-classes feature (JAVA_ARRAYSOFCLASSES) is not exercised here - see the comment
-// in kotlin_lib_arrays.i for the reason.
+// been produced for array members and that they function as expected. It tests the Kotlin
+// primitive array library typemaps (ByteArray/ShortArray/IntArray/LongArray/FloatArray/
+// DoubleArray and the ARRAYSOFENUMS IntArray typemaps) as well as the JAVA_ARRAYSOFCLASSES
+// feature, which maps C arrays of wrapped structs to Array<ProxyClass>. Mirrors
+// java_lib_arrays_runme.
 
 import kotlin_lib_arrays.*
 
@@ -46,12 +45,43 @@ fun checkDoubleArray(original: DoubleArray, checking: DoubleArray) {
     }
 }
 
+fun checkStructArray(original: Array<SimpleStruct>, checking: Array<SimpleStruct>) {
+    for (i in original.indices) {
+        if (checking[i].double_field != original[i].double_field)
+            throw RuntimeException("Runtime test failed. checking[$i].double_field=${checking[i].double_field}")
+    }
+}
+
 fun main() {
     try {
         System.loadLibrary("kotlin_lib_arrays")
     } catch (e: UnsatisfiedLinkError) {
         System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e)
         kotlin.system.exitProcess(1)
+    }
+
+    // Arrays of wrapped classes (JAVA_ARRAYSOFCLASSES) -> Array<ProxyClass>
+    val array_struct = arrayOf(SimpleStruct(), SimpleStruct())
+    array_struct[0].double_field = 222.333
+    array_struct[1].double_field = 444.555
+
+    val array_another_struct = arrayOf(AnotherStruct(), AnotherStruct())
+    array_another_struct[0].simple = array_struct[0]
+    array_another_struct[1].simple = array_struct[1]
+    if (array_another_struct[0].simple!!.double_field != 222.333) throw RuntimeException("AnotherStruct[0] failed")
+    if (array_another_struct[1].simple!!.double_field != 444.555) throw RuntimeException("AnotherStruct[1] failed")
+
+    val array_yet_another_struct = arrayOf(YetAnotherStruct(), YetAnotherStruct())
+    array_yet_another_struct[0].simple = array_struct[0]
+    array_yet_another_struct[1].simple = array_struct[1]
+
+    if (kotlin_lib_arrays.extract_ptr(array_yet_another_struct, 0) != 222.333) throw RuntimeException("extract_ptr 0 failed")
+    if (kotlin_lib_arrays.extract_ptr(array_yet_another_struct, 1) != 444.555) throw RuntimeException("extract_ptr 1 failed")
+
+    kotlin_lib_arrays.modifyYAS(array_yet_another_struct, array_yet_another_struct.size)
+    for (i in 0 until 2) {
+        if (array_yet_another_struct[i].simple!!.double_field != array_struct[i].double_field * 10.0)
+            throw RuntimeException("modifyYAS failed")
     }
 
     // Check array member variables
@@ -115,6 +145,9 @@ fun main() {
 
     arrayStruct.array_enum = array_finger
     checkIntArray(array_finger, arrayStruct.array_enum)
+
+    arrayStruct.array_struct = array_struct
+    checkStructArray(array_struct, arrayStruct.array_struct)
 
     // Extended element (for char[])
     val ase = ArrayStructExtra()
