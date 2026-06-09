@@ -357,6 +357,7 @@ CPP_TEST_CASES += \
 	nested_ignore \
 	nested_inheritance_interface \
 	nested_in_template \
+	nested_scope \
 	nested_scope_flat \
 	nested_template_base \
 	nested_workaround \
@@ -604,6 +605,7 @@ CPP_TEST_CASES += \
 	using_method_typedefs \
 	using_namespace \
 	using_namespace_loop \
+	using_nested_member_typedef \
 	using_pointers \
 	using_private \
 	using_protected \

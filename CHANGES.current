@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-08: wsfulton
+            Names referring to a C++ class nested inside another class now
+            resolve even when the nested class itself is not wrapped (the usual
+            case for all target languages except Java and C#).
+
+            A using declaration whose scope qualifier reaches the nested class through
+            a typedef, such as 'using Outer::Nested::Me::method;' where 'Me' is a
+            typedef naming the nested class, now resolves instead of giving a
+            spurious 'Nothing known about ...' warning (Warning 315) and silently
+            dropping the member.
+
+            An out of line nested class definition written inside the enclosing class,
+            such as:
+
+              struct Outer::Nested { ... };
+
+            is likewise now resolved instead of reporting an 'Outer is not defined
+            as a valid scope' error.
+
 2026-06-04: Nerixyz
             [Python] #3414 Fix PEP 484 type annotations for multi-argument
             pytyping typemaps.  A typemap matching more than one argument, such

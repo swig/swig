@@ -1390,8 +1390,30 @@ static void update_nested_classes(Node *n)
 }
 
 /* -----------------------------------------------------------------------------
+ * mark_nested_ignore()
+ *
+ * Mark the type definitions nested inside an ignored nested class (such as a nested
+ * enum or class) to be ignored too, so that the target languages treat references to
+ * them the same as when the nested class was a forward declaration. Function and
+ * variable declarations (cdecl) are left alone, so that, for example, a method brought
+ * into a derived class by a using declaration is still wrapped.
+ * ----------------------------------------------------------------------------- */
+
+static void mark_nested_ignore(Node *n, int set_nested_ignore) {
+  Node *c;
+  for (c = firstChild(n); c; c = nextSibling(c)) {
+    if (!Equal(nodeType(c), "cdecl")) {
+      SetFlag(c, "feature:ignore");
+      if (set_nested_ignore)
+        SetFlag(c, "nested:ignore");
+    }
+    mark_nested_ignore(c, set_nested_ignore);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * nested_forward_declaration()
- * 
+ *
  * Nested struct handling for C++ code if the nested classes are disabled.
  * Create the nested class/struct/union as a forward declaration.
  * ----------------------------------------------------------------------------- */
@@ -3330,6 +3352,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			    else
 			      Swig_warning(WARN_PARSE_TEMPLATE_FORWARD, cparse_file, cparse_line, "Template forward class '%s' cannot be used to instantiate a full template class with name '%s'.\n", Swig_name_decl(templnode), Getattr(templnode, "sym:name"));
 			    SWIG_WARN_NODE_END(templnode);
+			  } else if (GetFlag(templnode, "nested:ignore") && !GetFlag(templnode, "hidden")) {
+			    /* A nested template class kept only as an ignored class (the target language does not
+			       support nested classes) cannot be instantiated as a wrappable proxy class. */
+			    SWIG_WARN_NODE_BEGIN(templnode);
+			    Swig_warning(WARN_PARSE_TEMPLATE_NESTED, cparse_file, cparse_line, "Unsupported template nested class '%s' cannot be used to instantiate a full template class with name '%s'.\n", Swig_name_decl(templnode), symname);
+			    SWIG_WARN_NODE_END(templnode);
 			  }
 
                           if (Strcmp(nodeType(templnode),"class") == 0) {
@@ -4596,7 +4624,32 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
 		   } else if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
-		     $$ = nested_forward_declaration($storage_class, $cpptype, Getattr($node, "name"), Copy(Getattr($node, "name")), $cpp_opt_declarators);
+		     /* Nested classes are not supported by this target language. Keep the fully parsed
+		        class node but mark it to be ignored, rather than discarding it and substituting a
+		        forward class declaration. This leaves the real class (with its symbol table and
+		        members) available for name resolution while suppressing its wrapping. */
+		     yyrename = Copy(Getattr($$, "class_rename"));
+		     add_symbols($$);
+		     add_symbols($cpp_opt_declarators);
+		     Delattr($$, "class_rename");
+		     /* add_symbols() above applies any %ignore the user requested. */
+		     {
+		       int user_ignored = GetFlag($$, "feature:ignore");
+		       /* Warn only if not already being ignored and this is the outermost unsupported nesting level. */
+		       if (!user_ignored && (!currentOuterClass || !GetFlag(currentOuterClass, "nested"))) {
+		         SWIG_WARN_NODE_BEGIN($$);
+		         Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored)\n", $cpptype, SwigType_namestr(Getattr($node, "name")));
+		         SWIG_WARN_NODE_END($$);
+		       }
+		       SetFlag($$, "feature:ignore");
+		       /* Mark as auto-ignored (not via the user's %ignore) so that a %template attempt on a
+		          nested template class can still be reported as unusable (Warning 331). */
+		       if (!user_ignored)
+		         SetFlag($$, "nested:ignore");
+		       /* Apply the same flags to all members so a member (eg a nested enum) used in a wrapped
+		          signature is ignored consistently, as it was when this class was a forward declaration. */
+		       mark_nested_ignore($$, !user_ignored);
+		     }
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
