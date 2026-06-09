@@ -175,8 +175,8 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %enddef
 
 // isEmpty() and clear() are members of the Kotlin collection interfaces so need the override modifier
-%kotlinmethodmodifiers std::vector::empty         "public override";
-%kotlinmethodmodifiers std::vector::clear         "public override";
+%kotlinmethodmodifiers std::vector::empty         "override";
+%kotlinmethodmodifiers std::vector::clear         "override";
 %kotlinmethodmodifiers std::vector::doCapacity    "private";
 %kotlinmethodmodifiers std::vector::doReserve     "private";
 %kotlinmethodmodifiers std::vector::doSize        "private";

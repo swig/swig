@@ -28,8 +28,8 @@
   }
 }
 
-%kotlinmethodmodifiers std::unordered_map::empty "public override";
-%kotlinmethodmodifiers std::unordered_map::clear "public override";
+%kotlinmethodmodifiers std::unordered_map::empty "override";
+%kotlinmethodmodifiers std::unordered_map::clear "override";
 %kotlinmethodmodifiers std::unordered_map::sizeImpl "private";
 %kotlinmethodmodifiers std::unordered_map::containsImpl "private";
 %kotlinmethodmodifiers std::unordered_map::putUnchecked "private";

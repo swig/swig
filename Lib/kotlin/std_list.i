@@ -22,8 +22,8 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 }
 }
 
-%kotlinmethodmodifiers std::list::empty "public override";
-%kotlinmethodmodifiers std::list::clear "public override";
+%kotlinmethodmodifiers std::list::empty "override";
+%kotlinmethodmodifiers std::list::clear "override";
 %kotlinmethodmodifiers std::list::push_back "private";
 %kotlinmethodmodifiers std::list::begin "private";
 %kotlinmethodmodifiers std::list::insert "private";

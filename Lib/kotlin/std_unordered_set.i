@@ -28,9 +28,9 @@
   }
 }
 
-%kotlinmethodmodifiers std::unordered_set::add "public override";
-%kotlinmethodmodifiers std::unordered_set::empty "public override";
-%kotlinmethodmodifiers std::unordered_set::clear "public override";
+%kotlinmethodmodifiers std::unordered_set::add "override";
+%kotlinmethodmodifiers std::unordered_set::empty "override";
+%kotlinmethodmodifiers std::unordered_set::clear "override";
 %kotlinmethodmodifiers std::unordered_set::sizeImpl "private";
 %kotlinmethodmodifiers std::unordered_set::containsImpl "private";
 %kotlinmethodmodifiers std::unordered_set::removeImpl "private";

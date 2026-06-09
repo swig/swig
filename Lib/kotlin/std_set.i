@@ -28,8 +28,8 @@
   }
 }
 
-%kotlinmethodmodifiers std::set::empty "public override";
-%kotlinmethodmodifiers std::set::clear "public override";
+%kotlinmethodmodifiers std::set::empty "override";
+%kotlinmethodmodifiers std::set::clear "override";
 %kotlinmethodmodifiers std::set::sizeImpl "private";
 %kotlinmethodmodifiers std::set::containsImpl "private";
 %kotlinmethodmodifiers std::set::removeImpl "private";

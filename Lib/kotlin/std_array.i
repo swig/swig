@@ -17,8 +17,8 @@
 
 %kotlinmethodmodifiers std::array::sizeImpl "private";
 // get and set are emitted as operator functions so that Kotlin index syntax works
-%kotlinmethodmodifiers std::array::get "public operator";
-%kotlinmethodmodifiers std::array::set "public operator";
+%kotlinmethodmodifiers std::array::get "operator";
+%kotlinmethodmodifiers std::array::set "operator";
 
 namespace std {
 

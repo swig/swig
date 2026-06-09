@@ -28,8 +28,8 @@
   }
 }
 
-%kotlinmethodmodifiers std::map::empty "public override";
-%kotlinmethodmodifiers std::map::clear "public override";
+%kotlinmethodmodifiers std::map::empty "override";
+%kotlinmethodmodifiers std::map::clear "override";
 %kotlinmethodmodifiers std::map::sizeImpl "private";
 %kotlinmethodmodifiers std::map::containsImpl "private";
 %kotlinmethodmodifiers std::map::putUnchecked "private";
