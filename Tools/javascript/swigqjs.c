@@ -49,7 +49,7 @@ static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
     return ret;
 }
 
-static int eval_file(JSContext *ctx, const char *filename, int module)
+static int eval_file(JSContext *ctx, const char *filename, int module, int strict)
 {
     uint8_t *buf;
     int ret, eval_flags;
@@ -65,10 +65,13 @@ static int eval_file(JSContext *ctx, const char *filename, int module)
         module = (has_suffix(filename, ".mjs") ||
                   JS_DetectModule((const char *)buf, buf_len));
     }
-    if (module)
+    if (module) {
         eval_flags = JS_EVAL_TYPE_MODULE;
-    else
+    } else {
         eval_flags = JS_EVAL_TYPE_GLOBAL;
+		if (strict)
+			eval_flags |= JS_EVAL_FLAG_STRICT;
+	}
     ret = eval_buf(ctx, buf, buf_len, filename, eval_flags);
     js_free(ctx, buf);
     return ret;
@@ -102,16 +105,16 @@ JSValue myjs_load_module(JSContext *ctx, const char *basename, const char *filen
   if(JS_IsException(prom)) {
 #ifdef MYQJS_DEBUG
     printf("load_module (load): cannot load module %s\n", filename);
-#endif    
+#endif
     return JS_EXCEPTION;
   }
-  
+
   /* await frees the prom object and returns the promise result or an exception */
   r = js_std_await(ctx, prom);
   if(JS_IsException(r)) {
 #ifdef MYQJS_DEBUG
     printf("load_module (await): cannot load module %s\n", filename);
-#endif    
+#endif
     /* promise rejection is handled */
     js_std_promise_rejection_tracker(ctx, prom, JS_UNDEFINED, true, NULL);
     return JS_EXCEPTION;
@@ -124,12 +127,12 @@ JSValue myjs_load_module(JSContext *ctx, const char *basename, const char *filen
     if(JS_IsObject(jsresult)) {
 #ifdef MYQJS_DEBUG
       printf("load_module: %s loaded from %s\n", basename, filename);
-#endif      
+#endif
     } else {
       JS_FreeAtom(ctx, atom);
 #ifdef MYQJS_DEBUG
       printf("load_module: warning, loaded module from %s does not define %s\n", filename, basename);
-#endif      
+#endif
       return JS_ThrowReferenceError(ctx, "%s not defined", basename);
     }
   } else {
@@ -141,7 +144,7 @@ JSValue myjs_load_module(JSContext *ctx, const char *basename, const char *filen
   }
   JS_FreeAtom(ctx, atom);
   JS_FreeValue(ctx, r);
-  
+
   return jsresult;
 }
 
@@ -164,7 +167,7 @@ JSValue myjs_require(JSContext *ctx, JSValueConst this_val, int argc, JSValueCon
   if(!basename || strlen(basename) == 0) {
     return JS_ThrowTypeError(ctx, "require: expect a  non-empty string as argument");
   }
-  
+
   /* try current directory (XXX: one day, use environment variable like 'QUICKJS_CPATH' */
   snprintf(filename, MAXPATH, "%s.so", basename);
   jsresult = myjs_load_module(ctx, basename, filename);
@@ -184,7 +187,7 @@ JSValue myjs_require(JSContext *ctx, JSValueConst this_val, int argc, JSValueCon
  * myjs_assert: implement an assert function
  * The check is OK if the expression evaluates to 'true' (in a very broad
  * sense: boolean: its value; number: != 0; string: not empty; object: alwas true
- * undefined: false, null: false.
+ * undefined: false, null: false).
  */
 JSValue myjs_assert(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)
 {
@@ -246,26 +249,16 @@ int myjs_add_functions(JSContext *ctx)
   return 0;
 }
 
-#define PROG_NAME "myqjs"
+#define PROG_NAME "quickjs"
 
 void help(void)
 {
-#ifdef QJS_VERSION_MAJOR
-      printf("QuickJS-ng version %d.%d pl%d\n"
-           "usage: " PROG_NAME " [options] [file [args]]\n"
-           "-h  --help         list options\n"
-           "-e  --eval EXPR    evaluate EXPR\n"
-           "-i  --interactive  go to interactive mode\n"
-           "-I  --include file include an additional file\n"
-           "    --std          make 'std' and 'os' available to the loaded script\n",
-           QJS_VERSION_MAJOR, QJS_VERSION_MINOR, QJS_VERSION_PATCH);
-#else
       printf("QuickJS version " CONFIG_VERSION "\n"
            "usage: " PROG_NAME " [options] [file [args]]\n"
            "-h  --help         list options\n"
            "-e  --eval EXPR    evaluate EXPR\n"
+           "    --(no-)strict       evaluate files in (no-)strict mode\n"
            "    --std          make 'std' and 'os' available to the loaded script\n");
-#endif           
     exit(1);
 }
 
@@ -277,6 +270,7 @@ int main(int argc, char **argv)
     char *expr_list[32];
     int expr_count = 0;
     int load_std = 0;
+    int strict = 0;
     int i;
 
     /* cannot use getopt because we want to pass the command line to
@@ -318,6 +312,14 @@ int main(int argc, char **argv)
             }
             if (!strcmp(longopt, "std")) {
                 load_std = 1;
+                continue;
+            }
+            if (!strcmp(longopt, "strict")) {
+                strict = 1;
+                continue;
+            }
+            if (!strcmp(longopt, "no-strict")) {
+                strict = 0;
                 continue;
             }
             if (opt == 'L') {
@@ -368,7 +370,7 @@ int main(int argc, char **argv)
     myjs_add_functions(ctx);
 
     for(i = 0; i < expr_count; i++) {
-        if (eval_buf(ctx, expr_list[i], strlen(expr_list[i]), "<cmdline>", 0)) {
+        if (eval_buf(ctx, expr_list[i], strlen(expr_list[i]), "<cmdline>", strict?JS_EVAL_FLAG_STRICT:0)) {
           printf("Error in expression '%s'\n", expr_list[i]);
           goto fail;
         }
@@ -379,7 +381,7 @@ int main(int argc, char **argv)
     } else {
         const char *filename;
         filename = argv[optind];
-        if (eval_file(ctx, filename, -1))
+        if (eval_file(ctx, filename, -1, strict))
             goto fail;
     }
 
