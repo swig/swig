@@ -31,7 +31,7 @@
     };
 
 
-    /** 
+    /* 
      * Set Iterator class for an iterator with no end() boundaries.
      *
      */
@@ -68,7 +68,7 @@
     };
 
 
-    /** 
+    /* 
      * Set Iterator class for a iterator where begin() and end() boundaries
        are known.
      *

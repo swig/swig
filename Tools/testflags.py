@@ -32,7 +32,7 @@ def get_cflags(language, std, compiler):
            "php":"-Werror " + c_common,
         "python":"-Werror " + c_common + sign_conversion_flags,
              "r":"-Werror " + c_common,
-          "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers -Wno-deprecated-declarations  -Wno-attribute-warning",
+          "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers -Wno-attribute-warning",
         "scilab":"-Werror " + c_common + " -Wno-unused-variable",
            "tcl":"-Werror " + c_common,
     }
@@ -72,7 +72,7 @@ def get_cxxflags(language, std, compiler):
            "php":"-Werror " + cxx_common,
         "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
-          "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers -Wno-deprecated-declarations  -Wno-attribute-warning",
+          "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers -Wno-attribute-warning",
         "scilab":"-Werror " + cxx_common + " -Wno-unused-variable",
            "tcl":"-Werror " + cxx_common,
     }

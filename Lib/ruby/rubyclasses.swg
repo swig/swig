@@ -79,9 +79,17 @@ namespace swig {
         s_references._table = st_init_numtable();
         // A hidden object whose only purpose is to run MarkReferences during GC;
         // registering its address keeps the object and mark hook alive. The data
-        // pointer must be non-NULL: Ruby's GC skips a Data object's mark function
-        // when its DATA_PTR is NULL.
-        s_references._marker = Data_Wrap_Struct(rb_cObject, VOIDFUNC(MarkReferences), 0, &s_references);
+        // pointer must be non-NULL: Ruby's GC skips a TypedData object's mark
+        // function when its data pointer is NULL.
+        static const rb_data_type_t swig_gcrefs_marker_type = {
+          "SwigGCReferences",
+          { MarkReferences, 0, 0, 0 },
+          0, 0
+#ifdef RUBY_TYPED_FREE_IMMEDIATELY
+          , RUBY_TYPED_FREE_IMMEDIATELY
+#endif
+        };
+        s_references._marker = TypedData_Wrap_Struct(rb_cObject, &swig_gcrefs_marker_type, &s_references);
         rb_gc_register_address(&s_references._marker);
       }
     }

@@ -416,7 +416,7 @@ std::string CSharpDocConverter::getParamValue(std::string param) {
   return value;
 }
 
-/**
+/*
  * Returns true, if the given parameter exists in the current node
  * (for example param is a name of function parameter). If feature
  * 'doxygen:nostripparams' is set, then this method always returns
