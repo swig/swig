@@ -18,10 +18,10 @@
 %typemap(kin) CTYPE *, CTYPE [] "if ($kotlininput == null) 0L else $kotlininput.$interfacename_GetInterfaceCPtr()"
 %typemap(kin) CTYPE *const& "if ($kotlininput == null) 0L else $kotlininput.$*interfacename_GetInterfaceCPtr()"
 %typemap(kout) CTYPE {
-    return $&kotlinclassname($jnicall, true);
+    return $&kotlinclassname($jnicall, true)
   }
 %typemap(kout) CTYPE & {
-    return $kotlinclassname($jnicall, $owner);
+    return $kotlinclassname($jnicall, $owner)
   }
 %typemap(kout) CTYPE *, CTYPE [] {
     val cPtr = $jnicall

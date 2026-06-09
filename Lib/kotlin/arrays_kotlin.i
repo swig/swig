@@ -169,7 +169,7 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 
 %typemap(kin) CTYPE[ANY], CTYPE[] "$kotlininput"
 %typemap(kout) CTYPE[ANY], CTYPE[] {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(memberin) CTYPE[ANY], CTYPE[];
@@ -247,7 +247,7 @@ JAVA_ARRAYS_TYPEMAPS(double, DoubleArray, jdouble, Double, "[D")     /* double[A
 
 %typemap(kin) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$kotlinclassname.cArrayUnwrap($kotlininput)"
 %typemap(kout) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] {
-    return $kotlinclassname.cArrayWrap($jnicall, $owner);
+    return $kotlinclassname.cArrayWrap($jnicall, $owner)
   }
 
 %typemap(in) ARRAYSOFCLASSES[] (jlong *jarr, jsize sz)
@@ -353,7 +353,7 @@ JAVA_ARRAYS_TYPEMAPS(double, DoubleArray, jdouble, Double, "[D")     /* double[A
       var ptr = 0L
       if (obj != null) {
         if (!obj.swigCMemOwn)
-          throw RuntimeException("Cannot release ownership as memory is not owned")
+          throw IllegalStateException("Cannot release ownership as memory is not owned")
         ptr = obj.swigCPtr
         obj.swigCMemOwn = false
         obj.delete()
@@ -385,7 +385,7 @@ JAVA_ARRAYS_TYPEMAPS(double, DoubleArray, jdouble, Double, "[D")     /* double[A
 
 %typemap(kin) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "$kotlininput"
 %typemap(kout) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(in) ARRAYSOFENUMS[] (jint *jarr)

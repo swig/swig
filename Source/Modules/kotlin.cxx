@@ -109,7 +109,7 @@ public:
 
   KOTLIN() :
     empty_string(NewString("")),
-    public_string(NewString("public")),
+    public_string(NewString("")),
     protected_string(NewString("protected")),
     swig_types_hash(NULL),
     f_begin(NULL),
@@ -1131,7 +1131,10 @@ public:
     }
 
     /* Finish C function and intermediary class function definitions */
-    Printf(imclass_class_code, "): %s\n", im_return_type);
+    if (Cmp(im_return_type, "Unit") == 0)
+      Printf(imclass_class_code, ")\n");
+    else
+      Printf(imclass_class_code, "): %s\n", im_return_type);
 
     Printf(f->def, ") {");
 
@@ -1533,24 +1536,27 @@ public:
         substituteClassname(typemap_lookup_type, return_type);
         const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
         methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+        // public is implicit in Kotlin, so emit the modifier (with separating space) only when non-empty
+        String *mmods = Len(methodmods) ? NewStringf("%s ", methodmods) : NewString("");
 
         if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
           // Wrap (non-anonymous) enum using the typesafe enum pattern
           if (Getattr(n, "enumvalue")) {
             String *value = enumValue(n);
-            Printf(enum_code, "    @JvmField %s val %s = %s(\"%s\", %s)\n", methodmods, symname, return_type, symname, value);
+            Printf(enum_code, "    @JvmField %sval %s = %s(\"%s\", %s)\n", mmods, symname, return_type, symname, value);
             Delete(value);
           } else {
-            Printf(enum_code, "    @JvmField %s val %s = %s(\"%s\")\n", methodmods, symname, return_type, symname);
+            Printf(enum_code, "    @JvmField %sval %s = %s(\"%s\")\n", mmods, symname, return_type, symname);
           }
         } else {
           // Simple integer constants
           // Note these are always generated for anonymous enums, no matter what enum_feature is specified
           // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
           String *value = enumValue(n);
-          Printf(enum_code, "  @JvmField %s val %s: %s = %s\n", methodmods, symname, return_type, value);
+          Printf(enum_code, "  @JvmField %sval %s: %s = %s\n", mmods, symname, return_type, value);
           Delete(value);
         }
+        Delete(mmods);
         Delete(return_type);
       }
 
@@ -1641,25 +1647,25 @@ public:
 
     const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+    // public is implicit in Kotlin, so emit the modifier (with separating space) only when non-empty
+    String *mmods = Len(methodmods) ? NewStringf("%s ", methodmods) : NewString("");
 
-    Printf(constants_code, "  @JvmField %s val %s: %s = ", methodmods, itemname, return_type);
+    Printf(constants_code, "  @JvmField %sval %s: %s = ", mmods, itemname, return_type);
+    Delete(mmods);
 
     // Check for the %kotlinconstvalue feature
     String *value = Getattr(n, "feature:kotlin:constvalue");
 
     if (value) {
-      Printf(constants_code, "%s;\n", value);
+      Printf(constants_code, "%s\n", value);
     } else if (!const_feature_flag) {
       // Default enum and constant handling will work with any type of C constant and initialises the Kotlin variable from C through a JNI call.
 
       if (classname_substituted_flag) {
         if (SwigType_isenum(t)) {
           // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-          Printf(constants_code,
-                 "%s.swigToEnum(%s.%s());\n",
-                 return_type,
-                 full_imclass_name ? full_imclass_name : imclass_name,
-                 Swig_name_get(getNSpace(), symname));
+          Printf(
+            constants_code, "%s.swigToEnum(%s.%s())\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
         } else {
           // This handles function pointers using the %constant directive
           // The constructor needs the plain class name, so strip any nullable '?' suffix from the kstype
@@ -1667,11 +1673,11 @@ public:
           if (Len(construct_type) > 0 && *(Char(construct_type) + Len(construct_type) - 1) == '?')
             Delslice(construct_type, Len(construct_type) - 1, Len(construct_type));
           Printf(
-            constants_code, "%s(%s.%s(), false);\n", construct_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+            constants_code, "%s(%s.%s(), false)\n", construct_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
           Delete(construct_type);
         }
       } else {
-        Printf(constants_code, "%s.%s();\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+        Printf(constants_code, "%s.%s()\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
       }
 
       // Each constant and enum value is wrapped with a separate JNI function call
@@ -1682,9 +1688,9 @@ public:
     } else {
       // Alternative constant handling will use the C syntax to make a true Kotlin constant and hope that it compiles as Kotlin code
       if (Getattr(n, "wrappedasconstant")) {
-        Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+        Printf(constants_code, "%s\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+        Printf(constants_code, "%s\n", Getattr(n, "value"));
       }
     }
 
@@ -2765,7 +2771,10 @@ public:
       }
     } else {
       methodmods = (is_public(n) ? public_string : protected_string);
-      Printf(function_code, "  %s ", methodmods);
+      if (Len(methodmods))
+        Printf(function_code, "  %s ", methodmods);
+      else
+        Printf(function_code, "  ");  // public is implicit in Kotlin
       if (!static_flag && !is_smart_pointer()) {
         // Kotlin functions are final by default so the inheritance related modifiers are explicit.
         // A method overriding a base class method, hiding a base class method (which is also an
@@ -2900,7 +2909,11 @@ public:
     }
 
     Printf(imcall, ")");
-    Printf(function_code, "): %s", return_type);
+    // Kotlin infers Unit as the default return type, so omit ": Unit" to avoid a redundant-modifier warning
+    if (Cmp(return_type, "Unit") == 0)
+      Printf(function_code, ")");
+    else
+      Printf(function_code, "): %s", return_type);
 
     // Transform return type used in JNI function (in intermediary class) to type used in Kotlin wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("kout", n, "", 0))) {
@@ -2957,7 +2970,10 @@ public:
     }
 
     if (is_interface) {
-      Printf(interface_class_code, "): %s\n", return_type);
+      if (Cmp(return_type, "Unit") == 0)
+        Printf(interface_class_code, ")\n");
+      else
+        Printf(interface_class_code, "): %s\n", return_type);
     }
 
     if (wrapping_member_flag && !enum_constant_flag) {
@@ -2965,15 +2981,24 @@ public:
       // See assembleProxyProperty() which is called after both the getter and setter have been processed.
       if (setter_flag) {
         Delete(prop_setter_code);
-        prop_setter_code = NewStringf("set(value) %s", tm ? tm : empty_string);
+        prop_setter_code = formatPropertyAccessor("set(value)", tm);
       } else {
         Delete(prop_getter_code);
-        prop_getter_code = NewStringf("get() %s", tm ? tm : empty_string);
+        prop_getter_code = formatPropertyAccessor("get()", tm);
         Delete(prop_type);
         prop_type = Copy(return_type);
       }
     } else {
-      Printf(function_code, " %s\n\n", tm ? tm : empty_string);
+      {
+        // A "{ return EXPR }" body collapses to an idiomatic Kotlin expression body
+        String *expr = singleReturnExpr(tm);
+        if (expr) {
+          Printf(function_code, " = %s\n\n", expr);
+          Delete(expr);
+        } else {
+          Printf(function_code, " %s\n\n", tm ? tm : empty_string);
+        }
+      }
       // Static functions go into the companion object of the proxy class
       Printv(static_flag ? proxy_class_companion_code : proxy_class_code, function_code, NIL);
     }
@@ -2983,6 +3008,65 @@ public:
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * singleReturnExpr()
+   *
+   * If 'block' is a single-statement body of the exact form "{\n <ws>return EXPR\n
+   * <ws>}" return EXPR as a new string; otherwise return NULL. Used to collapse such
+   * blocks into Kotlin expression bodies. Multi-statement blocks (e.g. a SWIGTYPE*
+   * accessor with a local 'val', or a try/finally from pre/post code) return NULL.
+   * ----------------------------------------------------------------------------- */
+
+  String *singleReturnExpr(String *block) {
+    if (!block || Len(block) == 0)
+      return 0;
+    String *expr = 0;
+    List *lines = Split(block, '\n', -1);
+    if (Len(lines) == 3) {
+      const char *first = Char(Getitem(lines, 0));
+      const char *middle = Char(Getitem(lines, 1));
+      const char *last = Char(Getitem(lines, 2));
+      while (*first == ' ' || *first == '\t')
+        first++;
+      while (*middle == ' ' || *middle == '\t')
+        middle++;
+      while (*last == ' ' || *last == '\t')
+        last++;
+      if (strcmp(first, "{") == 0 && strcmp(last, "}") == 0 && strncmp(middle, "return ", 7) == 0)
+        expr = NewString(middle + 7);
+    }
+    Delete(lines);
+    return expr;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * formatPropertyAccessor()
+   *
+   * Build an idiomatic Kotlin property accessor from the kout/kin block that was
+   * generated for the wrapped variable. A block whose only statement is a single
+   * "return EXPR" collapses to an expression body ("get() = EXPR"); any other
+   * (multi-statement) block is kept verbatim but re-indented two spaces so its
+   * body and closing brace align under the accessor keyword.
+   * ----------------------------------------------------------------------------- */
+
+  String *formatPropertyAccessor(const char *accessor, String *block) {
+    if (!block || Len(block) == 0)
+      return NewString(accessor);
+
+    String *expr = singleReturnExpr(block);
+    if (expr) {
+      String *result = NewStringf("%s = %s", accessor, expr);
+      Delete(expr);
+      return result;
+    }
+    // Keep the multi-statement block but re-indent it to sit under the accessor.
+    String *reindented = Copy(block);
+    Replaceall(reindented, "\n", "\n  ");
+    String *result = NewStringf("%s %s", accessor, reindented);
+    Delete(reindented);
+    return result;
   }
 
   /* -----------------------------------------------------------------------------
@@ -3069,7 +3153,10 @@ public:
         Delete(doxygen_comments);
       }
 
-      Printf(function_code, "  %s constructor(", methodmods);
+      if (Len(methodmods))
+        Printf(function_code, "  %s constructor(", methodmods);
+      else
+        Printf(function_code, "  constructor(");  // public is implicit in Kotlin
       Printf(helper_code, "  private fun SwigConstruct%s(", proxy_class_name);
 
       Printv(imcall, full_imclass_name, ".", mangled_overname, "(", NIL);
@@ -3209,10 +3296,10 @@ public:
         }
         if (is_post_code) {
           Printf(helper_code, "    try {\n");
-          Printv(helper_code, "      return ", imcall, ";\n", NIL);
+          Printv(helper_code, "      return ", imcall, "\n", NIL);
           Printv(helper_code, "    } finally {\n", post_code, "\n    }", NIL);
         } else {
-          Printv(helper_code, "    return ", imcall, ";", NIL);
+          Printv(helper_code, "    return ", imcall, NIL);
         }
         Printf(helper_code, "\n  }\n");
         String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
@@ -3389,7 +3476,10 @@ public:
     /* Start generating the function */
     const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
-    Printf(function_code, "  %s fun %s(", methodmods, func_name);
+    if (Len(methodmods))
+      Printf(function_code, "  %s fun %s(", methodmods, func_name);
+    else
+      Printf(function_code, "  fun %s(", func_name);  // public is implicit in Kotlin
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
     /* Get number of required and total arguments */
@@ -3472,7 +3562,11 @@ public:
     }
 
     Printf(imcall, ")");
-    Printf(function_code, "): %s", return_type);
+    // Kotlin infers Unit as the default return type, so omit ": Unit" to avoid a redundant-modifier warning
+    if (Cmp(return_type, "Unit") == 0)
+      Printf(function_code, ")");
+    else
+      Printf(function_code, "): %s", return_type);
 
     // Transform return type used in JNI function (in intermediary class) to type used in Kotlin wrapper function (in module class)
     if ((tm = Swig_typemap_lookup("kout", n, "", 0))) {
@@ -3510,15 +3604,24 @@ public:
       // see assembleProxyProperty() called from globalvariableHandler()
       if (setter_flag) {
         Delete(prop_setter_code);
-        prop_setter_code = NewStringf("set(value) %s", tm ? tm : empty_string);
+        prop_setter_code = formatPropertyAccessor("set(value)", tm);
       } else {
         Delete(prop_getter_code);
-        prop_getter_code = NewStringf("get() %s", tm ? tm : empty_string);
+        prop_getter_code = formatPropertyAccessor("get()", tm);
         Delete(prop_type);
         prop_type = Copy(return_type);
       }
     } else {
-      Printf(function_code, " %s\n\n", tm ? tm : empty_string);
+      {
+        // A "{ return EXPR }" body collapses to an idiomatic Kotlin expression body
+        String *expr = singleReturnExpr(tm);
+        if (expr) {
+          Printf(function_code, " = %s\n\n", expr);
+          Delete(expr);
+        } else {
+          Printf(function_code, " %s\n\n", tm ? tm : empty_string);
+        }
+      }
       Printv(module_class_code, function_code, NIL);
     }
 
@@ -4880,8 +4983,10 @@ public:
       } else {
         bridge_return = NewString("Unit");
       }
+      String *bridge_ret_clause = (Cmp(bridge_return, "Unit") == 0) ? NewString("") : NewStringf(": %s", bridge_return);
       bridge_code = NewStringf(
-        "  internal fun %s(%s): %s {\n    %s%s(%s)\n  }\n\n", imclass_dmethod, bridge_params, bridge_return, is_void ? "" : "return ", symname, bridge_args);
+        "  internal fun %s(%s)%s {\n    %s%s(%s)\n  }\n\n", imclass_dmethod, bridge_params, bridge_ret_clause, is_void ? "" : "return ", symname, bridge_args);
+      Delete(bridge_ret_clause);
       upcall = NewStringf("jself.%s(%s)", imclass_dmethod, imcall_args);
       Delete(bridge_return);
     } else {
@@ -4900,7 +5005,7 @@ public:
         substituteClassname(covariant ? covariant : returntype, tm);
         Replaceall(tm, "$kotlincall", upcall);
 
-        Printf(callback_code, "    return %s;\n", tm);
+        Printf(callback_code, "    return %s\n", tm);
       }
 
       if ((tm = Swig_typemap_lookup("out", n, "", 0)))
@@ -4908,13 +5013,16 @@ public:
 
       Delete(tm);
     } else
-      Printf(callback_code, "    %s;\n", upcall);
+      Printf(callback_code, "    %s\n", upcall);
 
     Printf(callback_code, "  }\n");
     Delete(upcall);
 
     /* Finish off the inherited upcall's definition */
-    Printf(callback_def, "): %s {\n", callback_return_type);
+    if (Cmp(callback_return_type, "Unit") == 0)
+      Printf(callback_def, ") {\n");
+    else
+      Printf(callback_def, "): %s {\n", callback_return_type);
     Delete(callback_return_type);
 
     if (!ignored_method) {

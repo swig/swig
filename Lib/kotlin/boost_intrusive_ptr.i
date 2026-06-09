@@ -247,10 +247,10 @@
 
 
 %typemap(kout) CONST TYPE {
-    return new $typemap(kstype, TYPE)($jnicall, true);
+    return $typemap(kstype, TYPE)($jnicall, true)
   }
 %typemap(kout) CONST TYPE & {
-    return new $typemap(kstype, TYPE)($jnicall, true);
+    return $typemap(kstype, TYPE)($jnicall, true)
   }
 %typemap(kout) CONST TYPE * {
     val cPtr = $jnicall
@@ -295,7 +295,7 @@
 %typemap(kdestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if(swigCPtr != 0 && swigCMemOwnBase) {
       swigCMemOwnBase = false;
-      $jnicall;
+      $jnicall
     }
     swigCPtr = 0;
   }
@@ -303,7 +303,7 @@
 %typemap(kdestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if(swigCPtr != 0 && swigCMemOwnDerived) {
       swigCMemOwnDerived = false;
-      $jnicall;
+      $jnicall
     }
     swigCPtr = 0;
     super.delete();
@@ -397,10 +397,10 @@
   }
 
 %typemap(kout) CONST TYPE {
-    return new $typemap(kstype, TYPE)($jnicall, true);
+    return $typemap(kstype, TYPE)($jnicall, true)
   }
 %typemap(kout) CONST TYPE & {
-    return new $typemap(kstype, TYPE)($jnicall, true);
+    return $typemap(kstype, TYPE)($jnicall, true)
   }
 %typemap(kout) CONST TYPE * {
     val cPtr = $jnicall
@@ -446,7 +446,7 @@
     if (swigCPtr != 0) {
       if (swigCMemOwnBase) {
         swigCMemOwnBase = false;
-        $jnicall;
+        $jnicall
       }
       swigCPtr = 0;
     }
@@ -456,7 +456,7 @@
     if (swigCPtr != 0) {
       if (swigCMemOwnDerived) {
         swigCMemOwnDerived = false;
-        $jnicall;
+        $jnicall
       }
       swigCPtr = 0;
     }

@@ -70,7 +70,7 @@ class string_view;
 %typemap(kin) string_view "$kotlininput"
 
 %typemap(kout) string_view {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(typecheck) string_view = char *;
@@ -126,7 +126,7 @@ class string_view;
 %typemap(kin) const string_view & "$kotlininput"
 
 %typemap(kout) const string_view & {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(typecheck) const string_view & = char *;

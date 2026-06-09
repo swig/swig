@@ -83,7 +83,7 @@
 
 %typemap(kin) char **STRING_ARRAY "$kotlininput"
 %typemap(kout) char **STRING_ARRAY {
-    return $jnicall;
+    return $jnicall
   }
 
 /* 
@@ -175,7 +175,7 @@
 %typemap(kin,
   pre="  require($kotlininput.isDirect()) { \"Buffer must be allocated direct.\" }") unsigned char *NIOBUFFER "$kotlininput"
 %typemap(kout) unsigned char *NIOBUFFER {  
-  return $jnicall;  
+  return $jnicall
 }  
 %typemap(in) unsigned char *NIOBUFFER {  
   $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input); 

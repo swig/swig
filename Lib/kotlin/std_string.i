@@ -58,7 +58,7 @@ class string;
 %typemap(kin) string "$kotlininput"
 
 %typemap(kout) string {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(typecheck) string = char *;
@@ -108,7 +108,7 @@ class string;
 %typemap(kin) const string & "$kotlininput"
 
 %typemap(kout) const string & {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(typecheck) const string & = char *;

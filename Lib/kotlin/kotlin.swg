@@ -1122,10 +1122,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                   unsigned long long, const unsigned long long &,
                   float,              const float &,
                   double,             const double & {
-    return $jnicall;
+    return $jnicall
   }
 %typemap(kout) char *, char *&, char[ANY], char[] {
-    return $jnicall;
+    return $jnicall
   }
 %typemap(kout) jboolean,
                   jchar,
@@ -1146,19 +1146,19 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                   jfloatArray,
                   jdoubleArray,
                   jobjectArray {
-    return $jnicall;
+    return $jnicall
   }
 %typemap(kout) void {
-    $jnicall;
+    $jnicall
   }
 %typemap(kout) SWIGTYPE {
-    return $&kotlinclassname($jnicall, true);
+    return $&kotlinclassname($jnicall, true)
   }
 %typemap(kout) SWIGTYPE & {
-    return $kotlinclassname($jnicall, $owner);
+    return $kotlinclassname($jnicall, $owner)
   }
 %typemap(kout) SWIGTYPE && {
-    return $kotlinclassname($jnicall, $owner);
+    return $kotlinclassname($jnicall, $owner)
   }
 %typemap(kout) SWIGTYPE *, SWIGTYPE [] {
     val cPtr = $jnicall
@@ -1226,7 +1226,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
       var ptr = 0L
       if (obj != null) {
         if (!obj.swigCMemOwn)
-          throw RuntimeException("Cannot release ownership as memory is not owned")
+          throw IllegalStateException("Cannot release ownership as memory is not owned")
         ptr = obj.swigCPtr
         obj.swigCMemOwn = false
         obj.delete()
@@ -1253,7 +1253,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
       var ptr = 0L
       if (obj != null) {
         if (!obj.swigCMemOwn)
-          throw RuntimeException("Cannot release ownership as memory is not owned")
+          throw IllegalStateException("Cannot release ownership as memory is not owned")
         ptr = obj.swigCPtr
         obj.swigCMemOwn = false
         obj.delete()

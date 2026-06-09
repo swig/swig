@@ -82,7 +82,7 @@ class wstring;
 %typemap(kin) wstring "$kotlininput"
 
 %typemap(kout) wstring {
-    return $jnicall;
+    return $jnicall
   }
 
 //%typemap(typecheck) wstring = wchar_t *;
@@ -163,7 +163,7 @@ class wstring;
 %typemap(kin) const wstring & "$kotlininput"
 
 %typemap(kout) const wstring & {
-    return $jnicall;
+    return $jnicall
   }
 
 //%typemap(typecheck) const wstring & = wchar_t *;

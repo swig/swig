@@ -32,7 +32,7 @@
 
 %typemap(kin) const enum SWIGTYPE & "$kotlininput.swigValue"
 %typemap(kout) const enum SWIGTYPE & {
-    return $*kotlinclassname.swigToEnum($jnicall);
+    return $*kotlinclassname.swigToEnum($jnicall)
   }
 
 
@@ -57,7 +57,7 @@
 
 %typemap(kin) enum SWIGTYPE "$kotlininput.swigValue"
 %typemap(kout) enum SWIGTYPE {
-    return $kotlinclassname.swigToEnum($jnicall);
+    return $kotlinclassname.swigToEnum($jnicall)
   }
 
 %typemap(kclassmodifiers) enum SWIGTYPE "enum class"

@@ -32,7 +32,7 @@
 
 %typemap(kin) const enum SWIGTYPE & "$kotlininput"
 %typemap(kout) const enum SWIGTYPE & {
-    return $jnicall;
+    return $jnicall
   }
 
 
@@ -57,7 +57,7 @@
 
 %typemap(kin) enum SWIGTYPE "$kotlininput"
 %typemap(kout) enum SWIGTYPE {
-    return $jnicall;
+    return $jnicall
   }
 
 %typemap(kclassmodifiers) enum SWIGTYPE ""
