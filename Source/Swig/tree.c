@@ -104,6 +104,12 @@ void Swig_print_node(Node *obj) {
       print_indent(2);
       /* Differentiate parameter lists by displaying within single quotes */
       Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(value));
+    } else if (Equal(k, "constraint")) {
+      /* C++20 constraint subtree: render as the C++ source text it represents, like a parameter list. */
+      String *cs = Constraint_str(value);
+      print_indent(2);
+      Printf(stdout, "%-12s - \'%s\'\n", k, cs);
+      Delete(cs);
     } else {
       DOH *o;
       const char *trunc = "";

@@ -1,24 +1,10 @@
 # Test various properties of classes defined in separate modules
 
 print("Testing the %import directive")
-
-if string.sub(_VERSION,1,7)=='Lua 5.0' then
-	-- lua5.0 doesn't have a nice way to do this
-	function loadit(a)
-		lib=loadlib(a..'.dll','luaopen_'..a) or loadlib(a..'.so','luaopen_'..a)
-		assert(lib)()
-	end
-	loadit('base')
-	loadit('foo')
-	loadit('bar')
-	loadit('spam')
-else
-	-- lua 5.1 does
-	require 'base'
-	require 'foo'
-	require 'bar'
-	require 'spam'
-end
+require 'base'
+require 'foo'
+require 'bar'
+require 'spam'
 
 -- Create some objects
 
@@ -85,7 +71,7 @@ if y then
 else
       print "bad swig"
 end
-      
+
 print " Spam -> Base -> Spam : "
 y = spam.Spam_fromBase(x)
 if y then

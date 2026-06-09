@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("smart_pointer_extend")	-- import lib into global
-spe=smart_pointer_extend --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+spe=require("smart_pointer_extend")
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(spe.CBase.hello() == 1)
 assert(spe.CBase.z == 1)

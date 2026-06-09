@@ -51,6 +51,7 @@
 <li><a href="#Library_std_unique_ptr_by_ref">unique_ptr passed by reference</a>
 </ul>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
+<li><a href="#Library_std_function">std::function</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -727,14 +728,35 @@ Now, in a script:
 
 
 <p>
-The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language type.
-The target language type is either:
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language.
 </p>
 
-<ul>
-  <li> A string for the scripting languages. The scripting language must support strings with embedded binary data in order for this to work.</li>
-  <li> A byte array for the statically typed languages; namely, <tt>byte[]</tt> for C# and Java, <tt>ubyte[]</tt> for D, <tt>[]byte</tt> for Go.</li>
-</ul>
+<p>
+The following table describes the specific type per language:
+</p>
+
+<table BORDER summary="cdata types">
+<tr VALIGN=TOP>
+<td><b>Language</b></td>
+<td><b>cdata type</b></td>
+<td><b>mutability</b></td>
+</tr>
+<tr> <td>Ruby</td>       <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>PHP</td>        <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>Guile</td>      <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>Lua</td>        <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Perl5</td>      <td>string</td>                 <td>none</td> </tr>
+<tr> <td>OCaml</td>      <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Octave</td>     <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Python</td>     <td>binary string</td>          <td>none</td> </tr>
+<tr> <td>C#</td>         <td><tt>byte[]</tt></td>        <td>yes</td> </tr>
+<tr> <td>Java</td>       <td><tt>byte[]</tt></td>        <td>yes</td> </tr>
+<tr> <td>D</td>          <td><tt>ubyte[]</tt></td>       <td>yes</td> </tr>
+<tr> <td>Go</td>         <td><tt>[]byte</tt></td>        <td>yes</td> </tr>
+<tr> <td>Javascript</td> <td><tt>Uint8Array</tt></td>    <td>yes</td> </tr>
+<tr> <td>Scilab</td>     <td>list of <tt>uint8</tt></td> <td>yes</td> </tr>
+<tr> <td>Tcl</td>        <td>list of integers</td>       <td>yes</td> </tr>
+</table>
 
 <p>
 The primary applications of this module would be packing/unpacking of
@@ -795,7 +817,7 @@ Python example:
 ...    a[i] = i
 &gt;&gt;&gt; b = cdata(a, 40)
 &gt;&gt;&gt; b
-'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
+b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
 \x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
 &gt;&gt;&gt; c = intArray(10)
 &gt;&gt;&gt; memmove(c, b)
@@ -2437,6 +2459,108 @@ That is, it works the same way covered in the previous section for <tt>std::uniq
 
 <p>
 Input parameters also work the same way as <tt>std::unique_ptr</tt> covered in the previous section.
+</p>
+
+<H3><a name="Library_std_function">12.5.8 std::function</a></H3>
+
+
+<p>
+The <tt>std_function.i</tt> library file wraps the C++11 <tt>std::function</tt>
+polymorphic function-object template. It exposes the partial specialisation
+<tt>std::function&lt;RET(ARGS...)&gt;</tt> so that any C++ callable -
+a free function, a lambda, a bound member function, or a functor (a class with
+<tt>operator()</tt>) - can be returned from C++ to the target language
+and invoked there.
+</p>
+
+<p>
+Two conventions are baked into the library:
+</p>
+
+<ul>
+<li><tt>operator()</tt> is renamed to <tt>call</tt> so that target languages
+which cannot wrap <tt>operator()</tt> as an identifier still get a usable
+method name.</li>
+<li>The default constructor is suppressed (<tt>%ignore</tt>d), so
+<tt>std::function</tt> instances always originate on the C++ side -
+typically returned from a factory function. They are not default-constructible
+from the target language.</li>
+</ul>
+
+<p>
+A typical use is a factory function that captures state in a lambda and
+returns it as a <tt>std::function</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_string.i&gt;
+%include &lt;std_function.i&gt;
+
+std::function&lt;bool(int, const std::string &amp;)&gt; MakeLambda(int pass) {
+  return [pass](int passcode, const std::string &amp;name) -&gt; bool {
+    return passcode == pass &amp;&amp; name == "magic";
+  };
+}
+
+%template(MyLambda) std::function&lt;bool(int, const std::string &amp;)&gt;;
+</pre></div>
+
+<p>
+One <tt>%template</tt> is required for each distinct
+<tt>RET(ARGS...)</tt> signature being wrapped. From Java the wrapped
+C++ lambda is invoked via the renamed <tt>call</tt> method:
+</p>
+
+<div class="targetlang"><pre>
+MyLambda fn = MakeLambda(10);
+boolean ok = fn.call(10, "magic");   // true
+boolean no = fn.call(11, "magic");   // false
+</pre></div>
+
+<p>
+Similarly one can use the other functors defined in <tt>&lt;functional&gt;</tt>, such as <tt>std::plus</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_function.i&gt;
+
+std::function&lt;int(int, int)&gt; MakePlusFunctor() {
+  return std::plus&lt;int&gt;();
+}
+
+%template(Plus) std::function&lt;int(int, int)&gt;;
+</pre></div>
+
+<p>
+Usage from Java:
+</p>
+
+<div class="targetlang"><pre>
+Plus plus = MakePlusFunctor();
+int sum = plus.call(3, 4); // returns 7
+</pre></div>
+
+<p>
+Limitations and notes:
+</p>
+
+<ul>
+<li>Only the function-typed partial specialisation is wrapped. A
+<tt>%template</tt> instantiation with a non-function template argument falls
+through to the empty primary template and produces no useful interface.</li>
+<li>The wrapper does not let target-language code construct a
+<tt>std::function</tt> from a target-language callable. <tt>std::function</tt>
+moves a C++ callable <i>out</i> to the target language; to go the other way,
+see
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
+or
+<a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.</li>
+</ul>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to add
+<tt>std_function.i</tt> so that
+<tt>std::function</tt> can be usefully used.
 </p>
 
 <H2><a name="Library_nn16">12.6 Utility Libraries</a></H2>

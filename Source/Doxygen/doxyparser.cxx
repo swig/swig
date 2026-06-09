@@ -986,7 +986,7 @@ void DoxygenParser::addCommand(const std::string &commandString, const TokenList
   }
 }
 
-/**
+/*
  * This method converts TokenList to DoxygenEntryList.
  */
 DoxygenEntityList DoxygenParser::parse(TokenListCIt endParsingIndex, const TokenList &tokList, bool root) {

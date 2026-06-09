@@ -1,5 +1,4 @@
-require("import")	-- the import fn
-import("dynamic_cast")	-- import code
+require("dynamic_cast")
 
 f = dynamic_cast.Foo()
 b = dynamic_cast.Bar()

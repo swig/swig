@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_profile") -- import lib
+require("director_profile")
 
 local myb = director_profile.B()
 function vfi(self, a)

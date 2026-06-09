@@ -1,0 +1,22 @@
+require("numeric_bounds_checking")
+
+local limits = numeric_bounds_checking.Limits()
+local checker = numeric_bounds_checking.Checker()
+assert(checker:pass_schar(limits:schar_min()) == limits:schar_min())
+assert(checker:pass_schar(limits:schar_max()) == limits:schar_max())
+assert(checker:pass_uchar(limits:uchar_min()) == limits:uchar_min())
+assert(checker:pass_uchar(limits:uchar_max()) == limits:uchar_max())
+assert(checker:pass_shrt(limits:shrt_min()) == limits:shrt_min())
+assert(checker:pass_shrt(limits:shrt_max()) == limits:shrt_max())
+assert(checker:pass_ushrt(limits:ushrt_min()) == limits:ushrt_min())
+assert(checker:pass_ushrt(limits:ushrt_max()) == limits:ushrt_max())
+assert(checker:pass_int(limits:int_min()) == limits:int_min())
+assert(checker:pass_int(limits:int_max()) == limits:int_max())
+assert(checker:pass_uint(limits:uint_min()) == limits:uint_min())
+assert(checker:pass_uint(limits:uint_max()) == limits:uint_max())
+assert(checker:pass_long(limits:long_min()) == limits:long_min())
+assert(checker:pass_ulong(limits:ulong_min()) == limits:ulong_min())
+--[[ Lua use of number have limits
+assert(checker:pass_long(limits:long_max()) == limits:long_max())
+assert(checker:pass_ulong(limits:ulong_max() - 100) == (limits:ulong_max() - 100))
+]]

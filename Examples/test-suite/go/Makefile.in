@@ -44,12 +44,12 @@ SWIGOPT += -Werror
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
-	+$(swig_and_compile_cpp)
+	+$(swig_and_compile_cpp) GOMOD="$*"
 	$(run_testcase_cpp)
 
 %.ctest:
 	$(setup)
-	+$(swig_and_compile_c)
+	+$(swig_and_compile_c) GOMOD="$*"
 	$(run_testcase)
 
 %.multicpptest:
@@ -83,7 +83,7 @@ go_subdir_import.multicpptest:
 # Runs the testcase.
 run_testcase = \
 	if test -f "$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)"; then \
-	  GOPATH="`pwd`/gopath/"; \
+	  GOPATH="`pwd`/gopath/$*"; \
 	  includes="$(INCLUDES) -I `pwd` "; \
 	  if test -n '$(SRCDIR)'; then \
 	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
@@ -103,17 +103,17 @@ run_testcase = \
 	  CGO_CFLAGS="$(CFLAGS) $$includes"; \
 	  CGO_LDFLAGS="$(LDFLAGS)"; \
 	  export GOPATH CGO_CPPFLAGS CGO_CFLAGS CGO_LDFLAGS; \
-	  mkdir -p "gopath/src/swigtests/$*"; \
-	  cp gopath/src/$*/* gopath/src/swigtests/$*/; \
-	  mkdir -p "gopath/src/$*/runme"; \
-	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/src/$*/runme/runme.go; \
-	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme runme.go); \
+	  mkdir -p "gopath/$*/src/swigtests/$*"; \
+	  cp gopath/$*/src/$*/* gopath/$*/src/swigtests/$*/; \
+	  mkdir -p "gopath/$*/src/$*/runme"; \
+	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/$*/src/$*/runme/runme.go; \
+	  (cd gopath/$*/src/$*/runme && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../../$*_runme runme.go); \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 
 run_testcase_cpp = \
 	if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
-	  GOPATH="`pwd`/gopath/"; \
+	  GOPATH="`pwd`/gopath/$*"; \
 	  includes="$(INCLUDES) -I `pwd` "; \
 	  if test -n '$(SRCDIR)'; then \
 	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
@@ -134,11 +134,11 @@ run_testcase_cpp = \
 	  CGO_CXXFLAGS="$(CXXFLAGS) $$includes"; \
 	  CGO_LDFLAGS="$(LDFLAGS)"; \
 	  export GOPATH CGO_CPPFLAGS CGO_CXXFLAGS CGO_LDFLAGS; \
-	  mkdir -p "gopath/src/swigtests/$*"; \
-	  cp gopath/src/$*/* gopath/src/swigtests/$*/; \
-	  mkdir -p "gopath/src/$*/runme"; \
-	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/src/$*/runme/runme.go; \
-	  (cd gopath/src/$*/runme && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme runme.go); \
+	  mkdir -p "gopath/$*/src/swigtests/$*"; \
+	  cp gopath/$*/src/$*/* gopath/$*/src/swigtests/$*/; \
+	  mkdir -p "gopath/$*/src/$*/runme"; \
+	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) gopath/$*/src/$*/runme/runme.go; \
+	  (cd gopath/$*/src/$*/runme && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../../$*_runme runme.go); \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) ./$*_runme; \
 	fi
 

@@ -1,7 +1,6 @@
-require("import")	-- the import fn
 -- need to load two modules
-import("imports_a")	-- import code
-import("imports_b")	-- import code
+require("imports_a")
+require("imports_b")
 
 b=imports_b.B()
 b:hello() -- call member function in A which is in a different SWIG generated library.

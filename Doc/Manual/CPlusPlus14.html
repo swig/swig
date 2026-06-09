@@ -16,6 +16,8 @@
 <ul>
 <li><a href="#CPlusPlus14_binary_literals">Binary integer literals</a>
 <li><a href="#CPlusPlus14_return_type_deduction">Return type deduction</a>
+<li><a href="#CPlusPlus14_generic_lambdas">Generic lambdas</a>
+<li><a href="#CPlusPlus14_variable_templates">Variable templates</a>
 </ul>
 <li><a href="#CPlusPlus14_standard_library_changes">Standard library changes</a>
 </ul>
@@ -115,6 +117,90 @@ struct X {
 SWIG 4.4.0 added support for forward declarations of such functions.
 </p>
 
+
+<H3><a name="CPlusPlus14_generic_lambdas">8.2.3 Generic lambdas</a></H3>
+
+
+<p>
+C++14 lifted the restriction that lambda parameters be explicit types and
+allowed <tt>auto</tt> as a parameter type, making the lambda a templated
+function object whose <tt>operator()</tt> deduces each <tt>auto</tt>
+parameter at the call site.  SWIG parses generic lambdas, but - like non-templated
+<a href="CPlusPlus11.html#CPlusPlus11_lambda_functions_and_expressions">Lambda
+functions and expressions</a> - they are not currently automatically wrapped.  Users
+should write additional code to call the lambda from an ordinary wrapped
+function as a workaround, for example:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+auto twice = [](auto x) { return x + x; };
+auto add = [](auto a, auto b) { return a + b; };
+
+int run_twice(int x)      { return twice(x); }
+int run_add(int a, int b) { return add(a, b); }
+%}
+</pre>
+</div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse generic lambdas with <tt>auto</tt> parameters.
+</p>
+
+
+<H3><a name="CPlusPlus14_variable_templates">8.2.4 Variable templates</a></H3>
+
+
+<p>
+C++14 added variable templates - templated <tt>constexpr</tt> (or
+<tt>const</tt>) variables whose value depends on the template arguments.
+The pattern mirrors the <tt>_v</tt> aliases the standard library uses for
+type traits: a typed compile time constant derived from a template
+parameter, written once and instantiated wherever the parameter changes.
+SWIG parses variable templates, and a <tt>%template</tt> instantiation of
+one is wrapped as a read only variable holding the value:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+template&lt;typename T&gt;
+constexpr int bits_in = sizeof(T) * 8;
+%}
+
+%template(bits_in_char) bits_in&lt;char&gt;;   // wraps as read only int = 8
+</pre>
+</div>
+
+<p>
+Non-type template parameters are also accepted, so a variable template can
+hold the result of a compile time computation indexed by an integer.
+Precomputing the result at instantiation avoids the work being repeated
+on each call at runtime:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+constexpr int compute_factorial(int n) {
+  return n &lt;= 1 ? 1 : n * compute_factorial(n - 1);
+}
+
+template&lt;int N&gt;
+constexpr int factorial = compute_factorial(N);
+%}
+
+%template(factorial_5)  factorial&lt;5&gt;;    // 120
+%template(factorial_10) factorial&lt;10&gt;;   // 3628800
+</pre>
+</div>
+
+<p>
+<b>Compatibility note:</b> SWIG-3.0.0 is the first version to parse C++14
+variable templates and wrap a <tt>%template</tt> instantiation of one as a
+read only variable.
+</p>
 
 <H2><a name="CPlusPlus14_standard_library_changes">8.3 Standard library changes</a></H2>
 

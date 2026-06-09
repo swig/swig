@@ -49,7 +49,20 @@ if sys.version_info[0:2] >= (3, 2):
         anno = get_annotations(no_annotations)
         if anno != {}:
             raise RuntimeError("annotations mismatch: {}".format(anno))
-        
+
+        anno = get_annotations(take_argv)
+        if anno != {"argc": "typing.List[str]", "return": "None"}:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        anno = get_annotations(take_argv_surround)
+        if anno != {
+            "before": "float",
+            "argc": "typing.List[str]",
+            "after": "int",
+            "return": "None",
+        }:
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
         def make_argcheck(exp, args):
             d = {arg: exp for arg in args}
             d["return"] = "None"

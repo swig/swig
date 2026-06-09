@@ -465,9 +465,13 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
   }
 }
 
-/* ----------------------------------------
+/* -----------------------------------------------------------------------
  * Returns the name of the new routine.
- * ------------------------------------------ */
+ *
+ * TODO: Investigate generating function pointer code inline rather than in
+ * a helper function. The generated code should then avoid some unnecessary
+ * copying.
+ * ------------------------------------------------------------------------ */
 
 String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   String *funName = SwigType_manglestr(t);
@@ -543,17 +547,21 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     SwigType *name = Getattr(p, "name");
     SwigType *swig_parm_name = NewStringf("swigarg_%s", name);
     String *tm = Getattr(p, "tmap:out");
-    bool isVoidParm = Strcmp(tt, "void") == 0;
+    SwigType *rpt = SwigType_typedef_resolve_all(tt);
+    bool isVoidParm = Strcmp(rpt, "void") == 0;
     if (isVoidParm)
       Printf(f->def, "%s", SwigType_str(tt, 0));
     else
       Printf(f->def, "%s %s", SwigType_str(tt, 0), swig_parm_name);
     if (tm) {
       String *lstr = SwigType_lstr(tt, 0);
-      if (SwigType_isreference(tt) || SwigType_isrvalue_reference(tt)) {
+      if (SwigType_isreference(rpt) || SwigType_isrvalue_reference(rpt)) {
         Printf(f->code, "%s = (%s) &%s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
       } else if (!isVoidParm) {
-        Printf(f->code, "%s = (%s) %s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
+        if (cparse_cplusplus && SwigType_type(rpt) == T_USER)
+          Printf(f->code, "%s = SWIG_STD_MOVE(*(&%s));\n", Getattr(p, "lname"), swig_parm_name);
+        else
+          Printf(f->code, "%s = (%s) %s;\n", Getattr(p, "lname"), lstr, swig_parm_name);
       }
       Replaceall(tm, "$1", name);
       Replaceall(tm, "$result", "r_tmp");
@@ -577,6 +585,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       Printf(f->def, ", ");
       Printf(s_paramTypes, ", ");
     }
+    Delete(rpt);
   }
 
   Printf(f->def, ") {\n");

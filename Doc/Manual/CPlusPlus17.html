@@ -18,6 +18,9 @@
 <li><a href="#CPlusPlus17_u8_char_literals">UTF-8 character literals</a>
 <li><a href="#CPlusPlus17_hexadecimal_floating_literals">Hexadecimal floating literals</a>
 <li><a href="#CPlusPlus17_fold_expressions">Fold expressions</a>
+<li><a href="#CPlusPlus17_using_pack_expansion">Pack expansion in using-declaration</a>
+<li><a href="#CPlusPlus17_class_template_argument_deduction">Class template argument deduction</a>
+<li><a href="#CPlusPlus17_deduction_guides">User-defined deduction guides</a>
 </ul>
 <li><a href="#CPlusPlus17_standard_library_changes">Standard library changes</a>
 </ul>
@@ -111,6 +114,183 @@ C++17 added template fold expressions.  SWIG 4.3.0 and later support
 parsing these with a few restrictions.  Unary left fold expressions are
 not supported currently.  Also the same restrictions that apply to other
 expressions apply here too.
+</p>
+
+<H3><a name="CPlusPlus17_using_pack_expansion">9.2.5 Pack expansion in using-declaration</a></H3>
+
+
+<p>
+C++17 extended the using-declaration so a single statement can bring all the names
+of a template parameter pack into scope.  This generalises the C++11
+<a href="CPlusPlus11.html#CPlusPlus11_using_declaration_template_base">mixin form</a>,
+which inherits a member through one type-template parameter base, to an arbitrary
+number of bases.  The common use is the <em>Overloaded</em> helper that merges the
+<tt>operator()</tt> of several functor types into one overload set:
+</p>
+
+<div class="code">
+<pre>
+template &lt;typename... Ts&gt;
+struct Overloaded : Ts... {
+    using Ts::operator()...;   // C++17: pull in every base's operator()
+};
+</pre>
+</div>
+
+<p>
+For two concrete types this is the same as writing out each base and using-declaration
+by hand:
+</p>
+
+<div class="code">
+<pre>
+template &lt;typename I, typename D&gt;
+struct Overloaded : I, D {
+    using I::operator();
+    using D::operator();
+};
+</pre>
+</div>
+
+<p>
+SWIG expands the pack during <tt>%template</tt> instantiation into one concrete
+using-declaration per base type, exactly as if the explicit form above had been
+written.  Pair that with a <tt>%rename</tt> to turn <tt>operator()</tt> into an
+ordinary identifier and the instantiated proxy gains a single overloaded method that
+dispatches by argument type to the matching base:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_string.i&gt;
+
+%rename(call) *::operator();
+
+%inline %{
+#include &lt;string&gt;
+
+struct IntCase    { std::string operator()(int v)    const { return "Int:" + std::to_string(v); } };
+struct DoubleCase { std::string operator()(double v) const { return "Double:" + std::to_string(v); } };
+
+template &lt;typename... Ts&gt;
+struct Overloaded : Ts... {
+    using Ts::operator()...;
+};
+%}
+
+%template(OverloadedIntDouble) Overloaded&lt;IntCase, DoubleCase&gt;;
+</pre>
+</div>
+
+<p>
+From the target language the merged overload set is reached through the renamed
+method, with the usual SWIG overload dispatch selecting the right base:
+</p>
+
+<div class="targetlang">
+<pre>
+ov = OverloadedIntDouble()
+print(ov.call(7))     # "Int:7"
+print(ov.call(2.5))   # "Double:2.500000"
+</pre>
+</div>
+
+<p>
+In C++ this helper is typically passed to <tt>std::visit</tt> over a
+<tt>std::variant</tt>, but that is a purely C++ side detail - the wrapped proxy simply
+exposes the overloaded method.  An empty pack (for example
+<tt>%template(OverloadedEmpty) Overloaded&lt;&gt;</tt>) introduces no names, so the
+proxy has no such method.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse pack expansion in a
+using-declaration and to expand it during <tt>%template</tt> instantiation.
+</p>
+
+<H3><a name="CPlusPlus17_class_template_argument_deduction">9.2.6 Class template argument deduction</a></H3>
+
+
+<p>
+Class template argument deduction (CTAD) lets a variable be declared with a bare class
+template name, the template arguments being deduced from the initializer.  The deduction
+uses guides synthesised from the class's constructors, so a class template with a
+constructor can be used like:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+template &lt;typename T&gt;
+struct Box {
+    T value;
+    Box(T v) : value(v) {}
+};
+
+Box bx{42};   // C++17 CTAD - deduces Box&lt;int&gt; from the constructor
+%}
+</pre>
+</div>
+
+<p>
+CTAD is only valid when declaring a variable, so this is the only kind of declaration
+affected.  SWIG performs no template argument deduction, so it cannot work out the deduced
+type.  It issues Warning 347 and skips the variable; other declarations are unaffected:
+</p>
+
+<div class="shell">
+<pre>
+example.i:8: Warning 347: Unable to deduce class template arguments for variable 'bx' of type 'Box' (ignored).
+</pre>
+</div>
+
+<p>
+C++20 extended CTAD to aggregates; see
+<a href="CPlusPlus20.html#CPlusPlus20_class_template_argument_deduction">Class template argument deduction</a>
+in the C++20 chapter.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to skip a CTAD variable
+declaration cleanly; earlier versions generated uncompilable wrapper code that named the
+template without arguments.
+</p>
+
+<H3><a name="CPlusPlus17_deduction_guides">9.2.7 User-defined deduction guides</a></H3>
+
+
+<p>
+As well as the deduction guides the compiler synthesises from a class's constructors, a program can
+declare its own user-defined deduction guides to steer class template argument deduction.  A guide
+is written at the same scope as the class template, either as a non-template declaration or, when
+itself a template, under a template parameter list:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+template &lt;typename T&gt;
+struct Box {
+    T value;
+    Box(T v) : value(v) {}
+};
+
+Box(int) -&gt; Box&lt;int&gt;;                      // non-template deduction guide
+template &lt;typename T&gt; Box(T *) -&gt; Box&lt;T&gt;;  // templated deduction guide
+explicit Box(int, int) -&gt; Box&lt;int&gt;;        // explicit deduction guide
+%}
+</pre>
+</div>
+
+<p>
+A deduction guide is not a function: it has no body and emits no symbol, and only steers argument
+deduction at compile time.  There is therefore nothing for SWIG to wrap, so it parses the guide and
+discards it.  A guide may carry the optional <tt>explicit</tt> specifier, which is also accepted.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse user-defined deduction guides;
+earlier versions reported a syntax error.
 </p>
 
 <H2><a name="CPlusPlus17_standard_library_changes">9.3 Standard library changes</a></H2>

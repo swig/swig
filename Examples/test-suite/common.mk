@@ -309,6 +309,7 @@ CPP_TEST_CASES += \
 	li_boost_shared_ptr_template \
 	li_carrays_cpp \
 	li_cdata_cpp \
+	li_cdata_bytes_cpp \
 	li_cpointer_cpp \
 	li_std_auto_ptr \
 	li_stdint \
@@ -356,6 +357,7 @@ CPP_TEST_CASES += \
 	nested_ignore \
 	nested_inheritance_interface \
 	nested_in_template \
+	nested_scope \
 	nested_scope_flat \
 	nested_template_base \
 	nested_workaround \
@@ -598,8 +600,12 @@ CPP_TEST_CASES += \
 	using_member \
 	using_member_multiple_inherit \
 	using_member_scopes \
+	using_member_typedef \
+	using_member_typedef_template \
+	using_method_typedefs \
 	using_namespace \
 	using_namespace_loop \
+	using_nested_member_typedef \
 	using_pointers \
 	using_private \
 	using_protected \
@@ -621,6 +627,7 @@ CPP_TEST_CASES += \
 # C++11 test cases.
 CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
+	cpp11_alias_templates \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_assign_delete \
@@ -669,11 +676,14 @@ CPP11_TEST_CASES += \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
+	cpp11_std_function \
 	cpp11_std_unique_ptr \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_pack \
+	cpp11_template_pack_specialization \
 	cpp11_template_parameters_decltype \
 	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
@@ -682,7 +692,10 @@ CPP11_TEST_CASES += \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
+	cpp11_template_using_base \
 	cpp11_using_constructor \
+	cpp11_using_functor \
+	cpp11_using_member_template \
 	cpp11_using_typedef_struct \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
@@ -695,12 +708,15 @@ CPP11_TEST_BROKEN = \
 CPP14_TEST_CASES += \
 	cpp14_auto_return_type \
 	cpp14_binary_integer_literals \
+	cpp14_generic_lambda \
+	cpp14_variable_templates \
 
 # Broken C++14 test cases.
 CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_class_template_argument_deduction \
 	cpp17_director_string_view \
 	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
@@ -709,15 +725,28 @@ CPP17_TEST_CASES += \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
+	cpp17_using_pack_expansion \
 
 # Broken C++17 test cases.
 CPP17_TEST_BROKEN = \
 
 # C++20 test cases.
 CPP20_TEST_CASES += \
+	cpp20_abbreviated_template \
+	cpp20_abbreviated_template_decorated \
+	cpp20_abbreviated_template_mixed \
+	cpp20_alias_template \
+	cpp20_concepts \
+	cpp20_concepts_class_methods \
+	cpp20_concepts_classes \
+	cpp20_concepts_constrained_param \
+	cpp20_concepts_extra \
+	cpp20_concepts_lambda \
+	cpp20_concepts_overloads \
 	cpp20_constexpr_destructor \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
+	cpp20_variable_templates \
 
 # Broken C++20 test cases.
 CPP20_TEST_BROKEN = \
@@ -742,6 +771,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_translate_style2 \
 	doxygen_basic_translate_style3 \
 	doxygen_code_blocks \
+	doxygen_constructors \
 	doxygen_ignore \
 	doxygen_interface \
 	doxygen_misc_constructs \
@@ -836,6 +866,7 @@ C_TEST_CASES += \
 	lextype \
 	li_carrays \
 	li_cdata \
+	li_cdata_bytes \
 	li_cmalloc \
 	li_constraints \
 	li_cpointer \

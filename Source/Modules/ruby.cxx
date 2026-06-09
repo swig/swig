@@ -28,14 +28,14 @@ public:
   String *cname; /* original C class/struct name */
   String *mname; /* Mangled name */
 
-  /**
+  /*
    * The C variable name used in the SWIG-generated wrapper code to refer to
    * this class; usually it is of the form "SwigClassXXX.klass", where SwigClassXXX
    * is a swig_class struct instance and klass is a member of that struct.
    */
   String *vname;
 
-  /**
+  /*
    * The C variable name used in the SWIG-generated wrapper code to refer to
    * the module that implements this class's methods (when we're trying to
    * support C++ multiple inheritance). Usually it is of the form
@@ -890,7 +890,7 @@ public:
     allow_overloading();
   }
 
-  /**
+  /*
    * Generate initialization code to define the Ruby module(s),
    * accounting for nested modules as necessary.
    */
@@ -973,7 +973,7 @@ public:
 
     String *mod_docstring = NULL;
 
-    /**
+    /*
      * See if any Ruby module options have been specified as options
      * to the %module directive.
      */
@@ -1266,7 +1266,7 @@ public:
     return SWIG_NOWRAP;
   }
 
-  /**
+  /*
    * Process the comma-separated list of aliases (if any).
    */
   void defineAliases(Node *n, const_String_or_char_ptr iname) {
@@ -1454,7 +1454,7 @@ public:
 
     bool ctor_director = (current == CONSTRUCTOR_INITIALIZE && Swig_directorclass(n));
 
-    /**
+    /*
      * The 'start' value indicates which of the C/C++ function arguments
      * produced here corresponds to the first value in Ruby's argv[] array.
      * The value of start is either zero or one. If start is zero, then
@@ -1803,7 +1803,7 @@ public:
             Wrapper_add_local(f, result_name, result_var);
             Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
           }
-          Printf(action, "\nDATA_PTR(self) = %s;", result_name);
+          Printf(action, "\n((struct swig_ruby_wrapped_object *)RTYPEDDATA_DATA(self))->data = %s;", result_name);
           if (GetFlag(pn, "feature:trackobjects")) {
             Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
           }
@@ -2345,7 +2345,7 @@ public:
     return Language::classDeclaration(n);
   }
 
-  /**
+  /*
    * Process the comma-separated list of mixed-in module names (if any).
    */
   void includeRubyModules(Node *n) {
@@ -2427,7 +2427,16 @@ public:
     }
   }
 
-  /**
+  /* Set up the per-class TypedData descriptor: named after the C++ class (so it is
+     recognisable in Ruby heap dumps and ObjectSpace statistics) with the shared mark
+     and free callbacks. */
+  void handleClassName(Node *) {
+    Printf(klass->init, "SwigClass%s.cext_type.wrap_struct_name = \"C++ class %s\";\n", klass->name, klass->cname);
+    Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
+    Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
+  }
+
+  /*
    * Check to see if a %markfunc was specified.
    */
   void handleMarkFuncDirective(Node *n) {
@@ -2439,7 +2448,7 @@ public:
     }
   }
 
-  /**
+  /*
    * Check to see if a %freefunc was specified.
    */
   void handleFreeFuncDirective(Node *n) {
@@ -2453,7 +2462,7 @@ public:
     }
   }
 
-  /**
+  /*
    * Check to see if tracking is enabled for this class.
    */
   void handleTrackDirective(Node *n) {
@@ -2523,6 +2532,7 @@ public:
     Language::classHandler(n);
 
     handleBaseClasses(n);
+    handleClassName(n);
     handleMarkFuncDirective(n);
     handleFreeFuncDirective(n);
     handleTrackDirective(n);
@@ -3165,7 +3175,7 @@ public:
           p = Getattr(p, "tmap:directorin:next");
           continue;
         } else if (Cmp(parameterType, "void")) {
-          /**
+          /*
            * Special handling for pointers to other C++ director classes.
            * Ideally this would be left to a typemap, but there is currently no
            * way to selectively apply the dynamic_cast<> to classes that have

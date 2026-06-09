@@ -3944,6 +3944,29 @@ as above. </div>
 type <i>c-type</i> from the data object <i>obj</i>
 and assigns that pointer to <i>ptr</i>. </div>
 
+<p>Starting with SWIG 4.5.0 the generated wrappers use Ruby's TypedData API
+(<tt>TypedData_Wrap_Struct</tt>) rather than the untyped Data API shown above,
+which Ruby 3.4 and later deprecate. SWIG stores the wrapped C/C++ pointer in an
+internal wrapper struct, so <tt>DATA_PTR(obj)</tt> and <tt>Data_Get_Struct</tt>
+no longer return that pointer directly. Hand written code (for example in a
+typemap or <tt>%extend</tt> block) that needs the wrapped pointer should use the
+SWIG conversion functions instead, which work with every SWIG version. Read the
+pointer with: </p>
+
+<div class="indent code">
+<pre>void *ptr = 0;
+SWIG_ConvertPtr(self, &amp;ptr, NULL, 0);</pre>
+</div>
+
+<p>and detach (clear) it, leaving the Ruby object referring to no C/C++ object,
+with: </p>
+
+<div class="indent code">
+<pre>SWIG_ConvertPtr(self, NULL, NULL, SWIG_POINTER_CLEAR);</pre>
+</div>
+
+<p>See <tt>Examples/test-suite/ruby_manual_proxy.i</tt> for a complete example. </p>
+
 <H3><a name="Ruby_nn52">35.7.13 Example: STL Vector to Ruby Array</a></H3>
 
 
@@ -3961,22 +3984,22 @@ typemaps for other STL structures: </p>
   VALUE arr = rb_ary_new2($1-&gt;size());
   vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));
+    rb_ary_push(arr, SWIG_NewPointerObj(*i, $descriptor(classname *), 0));
   $result = arr;
 }
 %typemap(out) vectorclassname, const vectorclassname {
   VALUE arr = rb_ary_new2($1.size());
   vectorclassname::iterator i = $1.begin(), iend = $1.end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, *i));
+    rb_ary_push(arr, SWIG_NewPointerObj(*i, $descriptor(classname *), 0));
   $result = arr;
 }
 %enddef</pre>
 </div>
 
-<p> Note, that the "<tt>c ## classname.klass"</tt> is
-used in the preprocessor step to determine the actual object from the
-class name. </p>
+<p> Note that "<tt>$descriptor(classname *)</tt>" expands to the SWIG type
+descriptor (a <tt>swig_type_info</tt>) for a pointer to the named class, as
+required by <tt>SWIG_NewPointerObj</tt> and <tt>SWIG_ConvertPtr</tt>. </p>
 
 <p>To use the macro with a class Foo, the following is used: </p>
 
@@ -3997,7 +4020,7 @@ class name. </p>
     //The following _should_ work but doesn't on HPUX
     // Check_Type(inst, T_DATA);
     classname *element = NULL;
-    Data_Get_Struct(inst, classname, element);
+    SWIG_ConvertPtr(inst, (void **)&amp;element, $descriptor(classname *), 0);
     vec-&gt;push_back(element);
   }
   $1 = vec;
@@ -4018,14 +4041,14 @@ static data types: </p>
   VALUE arr = rb_ary_new2($1-&gt;size()); 
   vectorclassname::iterator i = $1-&gt;begin(), iend = $1-&gt;end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));
+    rb_ary_push(arr, SWIG_NewPointerObj(&amp;(*i), $descriptor(classname *), 0));
   $result = arr;
 }
 %typemap(out) vectorclassname, const vectorclassname {
   VALUE arr = rb_ary_new2($1.size()); 
   vectorclassname::iterator i = $1.begin(), iend = $1.end();
   for ( ; i!=iend; i++ )
-    rb_ary_push(arr, Data_Wrap_Struct(c ## classname.klass, 0, 0, &amp;(*i)));
+    rb_ary_push(arr, SWIG_NewPointerObj(&amp;(*i), $descriptor(classname *), 0));
   $result = arr;
 }
 %enddef</pre>

@@ -20,11 +20,13 @@
 %{
 class ObjC {
  public:
+  virtual ~ObjC() {}
   virtual int getInt() const;
 };
 
 class ObjB {
  public:
+  virtual ~ObjB() {}
   virtual int getInt() const;
 };
 %}

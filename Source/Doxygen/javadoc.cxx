@@ -232,7 +232,7 @@ JavaDocConverter::JavaDocConverter(int flags) : DoxygenTranslator(flags) {
   fillStaticTables();
 }
 
-/**
+/*
  * Formats comment lines by inserting '\n *' at to long lines and tabs for
  * indent. Currently it is disabled, which means original comment format is
  * preserved. Experience shows, that this is usually better than breaking
@@ -280,7 +280,7 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
   return formattedLines;
 }
 
-/**
+/*
  * Returns true, if the given parameter exists in the current node
  * (for example param is a name of function parameter). If feature
  * 'doxygen:nostripparams' is set, then this method always returns
@@ -328,7 +328,7 @@ std::string JavaDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
   return translatedComment;
 }
 
-/**
+/*
  * Checks if a handler for the given tag exists, and calls it.
  */
 void JavaDocConverter::translateEntity(DoxygenEntity &tag, std::string &translatedComment) {
@@ -705,7 +705,7 @@ int JavaDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level) {
   return removedCount;
 }
 
-/**
+/*
  * This makes sure that all comment lines contain '*'. It is not mandatory in doxygen,
  * but highly recommended for Javadoc. '*' in empty lines are indented according
  * to indentation of the first line. Indentation of non-empty lines is not

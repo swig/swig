@@ -1159,10 +1159,12 @@ public:
                 Delattr(n, "sym:nextSibling");
                 Delattr(n, "sym:overloaded");
                 Delattr(n, "sym:overname");
-                clean_overloaded(firstoverloaded);
+                if (firstoverloaded) {
+                  clean_overloaded(firstoverloaded);
 #ifdef DEBUG_OVERLOADED
-                show_overloaded(firstoverloaded);
+                  show_overloaded(firstoverloaded);
 #endif
+                }
               }
             }
           }

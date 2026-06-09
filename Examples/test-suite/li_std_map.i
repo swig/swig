@@ -59,14 +59,9 @@ struct Struct {
 
 %}
 
-//#if !defined(SWIGR)
-
 // Test out some maps with pointer types
 %template(IntIntPtrMap) std::map<int, int *>;
 %template(IntConstIntPtrMap) std::map<int, const int *>;
-
-//#endif
-
 
 // Test out some maps with non-basic types and non-basic pointer types
 %template(IntStructMap) std::map<int, Struct>;

@@ -2,11 +2,12 @@
 *.o
 *.class
 
-# Editor files and various other junk
+# Editor/IDE files and various other junk
 .*.sw?
 *.bak
 *.log
 .DS_Store
+.vscode/
 
 # Local PCRE
 pcre
@@ -113,6 +114,9 @@ Examples/scratch
 
 # Out of source tree build directories
 *build*/
+
+# CCache testing
+CCache/test.*/
 
 # errors test-suite
 Examples/test-suite/errors/*.newerr

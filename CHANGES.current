@@ -15,6 +15,560 @@ Version 4.5.0 (in progress)
             in 'pytyping' typemaps and expands to the proxy class name, or to an
             opaque SWIGTYPE_* name for types that have no wrapper class.
 
+2026-06-07: larskanis, jschueller
+            [Ruby] #3170 #3326 #3456 Generated wrappers now use Ruby's TypedData API
+            instead of the deprecated untyped Data API (Data_Wrap_Struct, Data_Get_Struct,
+            DATA_PTR).  Ruby 3.4 warns about the untyped Data API by default
+            (an error under -Werror) and Ruby 4.0 removes it entirely.
+
+            This is not fully backwards compatible: hand written code (typically
+            in a typemap or %extend block) that reached the wrapped C/C++ pointer
+            through the removed Ruby DATA_PTR macro or Data_Get_Struct must be changed to
+            use the SWIG conversion functions, which work with both old and new SWIG.
+            Read the pointer with
+
+              void *ptr = 0;
+              SWIG_ConvertPtr(self, &ptr, NULL, 0);
+
+            and detach (clear) it with
+
+              SWIG_ConvertPtr(self, NULL, NULL, SWIG_POINTER_CLEAR);
+
+            See Examples/test-suite/ruby_manual_proxy.i for a worked example.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-06-08: wsfulton
+            Names referring to a C++ class nested inside another class now
+            resolve even when the nested class itself is not wrapped (the usual
+            case for all target languages except Java and C#).
+
+            A using declaration whose scope qualifier reaches the nested class through
+            a typedef, such as 'using Outer::Nested::Me::method;' where 'Me' is a
+            typedef naming the nested class, now resolves instead of giving a
+            spurious 'Nothing known about ...' warning (Warning 315) and silently
+            dropping the member.
+
+            An out of line nested class definition written inside the enclosing class,
+            such as:
+
+              struct Outer::Nested { ... };
+
+            is likewise now resolved instead of reporting an 'Outer is not defined
+            as a valid scope' error.
+
+2026-06-04: Nerixyz
+            [Python] #3414 Fix PEP 484 type annotations for multi-argument
+            pytyping typemaps.  A typemap matching more than one argument, such
+            as %typemap(pytyping) (int argc, char **argv), is now applied to the
+            whole argument group, so the generated annotation uses the type from
+            the typemap instead of only annotating the first argument with its
+            plain C++ type.
+
+2026-06-02: wsfulton
+            #2694 Improve resolution of qualified names whose scope qualifier is
+            reached through a typedef, including a typedef to a template
+            instantiation.  A using declaration such as
+            'using BaseAlias::Me::Integer;', where 'BaseAlias' and 'Me' are
+            typedefs naming a class, previously gave a 'Nothing known about ...'
+            warning (Warning 315).  This includes a typedef to a template
+            instantiation whose template name is itself introduced by a using
+            declaration.  It now resolves.
+
+2026-06-01: wsfulton
+            [Go] Fix crash (null pointer dereference) on the first call to a
+            director method returning a reference or pointer type, such as
+            int&, const int& or a class pointer.
+
+2026-06-01: jschueller
+	    [Go] #3441 Fix director returning reference to local variable in int&
+            and int&& typemaps.
+
+2026-05-31: wsfulton
+            [Ruby] #3385 Fix segmentation fault when using STL containers of
+            swig::GC_VALUE - the type that wraps an arbitrary Ruby object - such
+            as std::vector<swig::GC_VALUE> or a std::map or std::set with a
+            swig::BinaryPredicate comparator proc, while the Ruby 3.x garbage
+            collector compacts the heap (GC.compact or GC.auto_compact).  The
+            Ruby objects stored in such containers are now retained correctly
+            across a compaction, instead of occasionally crashing the interpreter.
+
+2026-05-30: erezgeva
+            [Lua] #3394 Drop support for Lua 5.0 and Lua 5.1.
+            Minimum supported Lua version is now 5.2.
+            SWIG no longer compiles wrappers for Lua 5.0 or 5.1
+            (this includes LuaJIT consumers still using the 5.1 ABI).
+
+            Removed -squash-bases command-line option
+            (and the SWIG_LUA_SQUASH_BASES runtime path).
+            The implementation was broken;
+            classes now always use the standard base-lookup path.
+
+            Using this command-line option will generate error
+
+                swig error : Unrecognized option -squash-bases
+
+            Removed deprecated -no-old-metatable-bindings command-line option.
+            Old-style metatable bindings are always generated,
+            matching the long-standing default.
+
+            Using this command-line option will generate error
+
+                swig error : Unrecognized option -no-old-metatable-bindings
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-30: wsfulton
+            C++17: parse user-defined deduction guides used for class
+            template argument deduction, for example:
+
+                template <typename T> struct Box { Box(T); };
+
+                Box(int) -> Box<int>;                     // non-template deduction guide
+                template <typename T> Box(T) -> Box<T>;   // templated deduction guide
+
+            A guide is written at the same scope as the class template, either
+            as a non-template declaration or, when itself a template, under a
+            template parameter list.  A deduction guide is not a function and
+            emits no symbol - it only steers argument deduction at compile time -
+            so there is nothing to wrap and SWIG parses and ignores it.
+            Previously any deduction guide resulted in a syntax error.
+
+2026-05-28: wsfulton
+            #2951 A using-declaration whose qualifier is a type-template
+            parameter used directly as the base class - the mixin idiom -
+
+                template <typename I>
+                struct Derived : I {
+                  using I::I;
+                  using I::call;
+                };
+
+            now has its template parameter substituted during instantiation,
+            so wrappers for the inherited members - including inheriting
+            constructors via 'using I::I;' - are emitted on the instantiated
+            derived class. Previously SWIG warned "Nothing known about
+            'I::call'" and no wrapper was generated.
+
+2026-05-27: wsfulton
+            C++20: parse and support constrained alias templates.  Both the
+            type-constraint shorthand and the requires-clause long form are
+            now accepted:
+
+              template<Numeric T>                       using NumBox = Box<T>;
+              template<typename T> requires Numeric<T>  using ReqBox = Box<T>;
+
+            The requires-clause form previously resulted in a syntax error.
+
+            Both forms wrap identically to an unconstrained alias template.
+            Note that the constraint does not affect the generated wrappers.
+            The C++ compiler enforces it when compiling the emitted
+            wrapper.  Wrapping continues to use the documented two-step
+            pattern: %template(Name) on the underlying template, followed by
+            an empty %template() for each alias.
+
+2026-05-26: wsfulton
+            [Python] Class docstrings under -builtin now match the non-builtin
+            proxy module. When neither %feature("docstring") nor a doxygen
+            comment is supplied, inspect.getdoc(MyClass) previously returned
+            the qualified C++ name such as "::MyClass"; it now returns
+            "Proxy of C++ MyClass class." (or "Proxy of C MyStruct struct.")
+            when %feature("autodoc") is enabled, and the empty string
+            otherwise. Alternative documentation strings can of course still
+            be set via %feature("python:tp_doc", "...") on the class.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-25: wsfulton
+            [Python] %nokwargs on an individual function now correctly opts that
+            function out of keyword argument handling using the -keyword option
+            or a module-wide %feature("kwargs") has enabled kwargs globally. The
+            change is visible under -builtin, where the affected function's
+            wrapper is now generated with METH_VARARGS instead of
+            METH_VARARGS|METH_KEYWORDS, so calling it by keyword raises
+            TypeError as expected. Previously, %nokwargs was silently ignored
+            once -keyword was passed.
+
+2026-05-25: wsfulton, jschueller
+            #3448 Fix ccache-swig (and the bundled CCache test suite) failing
+            cache lookups when used with Apple clang 21 or upstream LLVM
+            clang 21.  These compilers now emit
+                clang: warning: argument unused during compilation: '-c' [-Wunused-command-line-argument]
+            when -c and -E are passed together.  ccache-swig invoked the
+            preprocessor as "cc -c -E foo.c" and hashed its stderr, so the
+            warning text was folded into the cache key and prevented a cache hit
+            between compiling foo.c and the equivalent preprocessed foo.i.
+            ccache-swig now omits -c when invoking the preprocessor.
+
+2026-05-24: wsfulton
+            Fixed a one-byte buffer overflow in the cdata.i memmove typemap that
+            occurred when the data length exactly matched the destination buffer size.
+
+2026-05-20: erezgeva
+            [Guile, JavaScript, Python, Scilab, Tcl] #3383 The cdata.i library
+            functions (cdata, memmove and similar) now use a binary data type
+            instead of a string, so that all byte values 0-255 round-trip
+            correctly.
+
+            The target language type used by the cdata.i functions has changed:
+
+              - Python:     bytes object (was str)
+              - JavaScript: Uint8Array (was string)
+              - Tcl:        list of integers (was string)
+              - Scilab:     list of uint8 values (was string)
+
+            In Python, passing a str now fails with:
+
+                TypeError: in method 'memmove', argument 2 of type 'void const *'
+
+            so pass a bytes object instead. Guile cdata now also handles all
+            byte values correctly.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-19: jmarrec
+            #3415 Fix segmentation fault when a class declares a public
+            'using Base::method;' that names a base-class member template with
+            no %template instantiations and also declares a protected concrete
+            override of the same name.
+
+2026-05-16: erezgeva
+            [Lua, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] #3409 Add memory allocation
+            failure protection to the argcargv typemaps and to the string duplication paths
+            in pystrings.swg, perlstrings.swg, rubystrings.swg and rfragments.swg.
+
+            Potentially incompatible change: the `%new_copy_array` macro
+            has been removed. User interface files calling `%new_copy_array(ptr, size, T)`
+            will be passed through to the C/C++ compiler unchanged and fail with
+            an error such as:
+
+                error: expected expression before '%' token
+
+            Replace such calls with an explicit allocate and copy that checks
+            for allocation failure, e.g.
+
+                T *p = %new_array(size, T);
+                if (p) memcpy(p, ptr, size * sizeof(T));
+
+            Potentially incompatible change: the `%typemaps_string` macro in
+            `Lib/typemaps/strings.swg` now takes an additional argument naming a
+            `SWIG_NewCopyCharArray` style fragment, and the related
+            `%typemaps_string_alloc` macro has been removed (its allocator
+            customisation is now expressed by passing the new argument to
+            `%typemaps_string` directly). Existing callers of
+            `%typemaps_string` with the old signature will fail with:
+
+                Error: Macro '%typemaps_string' expects 13 arguments
+
+            Existing callers of `%typemaps_string_alloc` will fail with:
+
+                Error: Unknown directive '%typemaps_string_alloc'.
+
+            Update such calls to pass the additional fragment, modelled on
+            `SWIG_NewCopyWCharArray` in `Lib/typemaps/wstring.swg`.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-05-18: wsfulton
+            [Python] Doxygen comments on constructors are now emitted on
+            __init__ when wrapping with -builtin, matching the default
+            (non-builtin) behaviour.  Previously inspect.getdoc(Cls.__init__)
+            returned the generic "Initialize self.  See help(type(self)) for
+            accurate signature." regardless of the Doxygen documentation on
+            the C++ constructor.
+
+2026-05-15: blowekamp
+            [R] #3407 Fix compilation with R 4.6.0 which removed the non-API macro
+            SET_S4_OBJECT and made CHARACTER_POINTER return a const pointer.
+            Use Rf_asS4, SET_STRING_ELT and STRING_ELT instead. These replacement
+            APIs have been available since R 2.x so no version guards are required.
+
+2026-05-28: wsfulton
+            C++17: parse and support pack expansion in a using-declaration
+            (P0195), e.g.
+
+              template <typename... Ts>
+              struct Overloaded : Ts... {
+                using Ts::operator()...;
+              };
+
+            The names introduced by the using-declaration depend on an
+            unexpanded template parameter pack, so SWIG accepts the syntax
+            but produces no wrappers until %template instantiates the
+            class.  %template now expands the pack using-declaration into
+            one concrete using-declaration per base type, so the
+            instantiated proxy class has a wrapper for each inherited
+            member - matching how an ordinary 'using Base::name;' inside
+            a class template behaves after instantiation.
+
+            Combined with %rename(call) *::operator(); the proxy of
+            Overloaded<IntCase, DoubleCase> has overloaded call(int) and
+            call(double) methods that dispatch to the matching base.
+
+2026-05-14: wsfulton
+            C++17: detect class template argument deduction (CTAD) in a
+            variable declaration, where a variable is declared with a bare
+            class template name and the template arguments are deduced from
+            the initializer, e.g.
+
+              template <typename T>
+              struct Box {
+                T value;
+                Box(T v) : value(v) {}
+              };
+
+              Box bx{42};   // CTAD deduces Box<int> from the constructor
+
+            (and, with C++20 P1816, also for aggregates with no deduction
+            guide).  CTAD is only valid for variables, so this is the only
+            declaration kind affected.  SWIG performs no template argument
+            deduction, so it now issues Warning 347 and skips the variable
+            instead of generating uncompilable wrapper code that names the
+            template without arguments.
+
+2026-05-12: wsfulton
+            C++20: %template can now instantiate abbreviated function templates
+            that mix 'auto' parameters with a variadic explicit template pack,
+            e.g.
+
+              template<typename... Ts>
+              std::string f_mix(auto x, Ts... ys);
+              %template(f_mix_isd) f_mix<int, std::string, double>;
+
+            Per the C++20 standard ([dcl.fct]/19) the invented type template-
+            parameter for each 'auto' parm is appended after the explicit list,
+            so the %template argument list is bound positionally: leading
+            non-variadic parameters first, the variadic pack absorbs the middle
+            args, then one trailing arg per 'auto' in declaration order.  Above,
+            Ts={int, std::string} (absorbed by the pack) and the trailing
+            'double' binds to the invented parm for 'x', giving the effective
+            wrapper signature as:
+
+              f_mix(double x, int y1, std::string y2)
+
+2026-05-12: wsfulton
+            C++20: parse and support decorated 'auto' parameters in abbreviated
+            function templates:
+
+              int h(auto& x);                  // reference
+              int i(auto* x);                  // pointer
+              int j(auto&& x);                 // forwarding reference
+              int k(const auto x);             // const by value
+              int l(const auto& x);            // const reference
+              int m(Numeric auto& x);          // constrained reference
+              int n(const Numeric auto& x);    // const constrained reference
+
+2026-05-12: wsfulton
+            C++20: fix segmentation fault when mixing abbreviated function template
+            'auto' parameters with an explicit template parameter list, e.g.
+
+              template<typename T>
+              T mix(T x, auto y) { return T(x + y); }
+              %template(mix_id) mix<int, double>;
+
+            Each 'auto' parameter introduces an invented type template parameter
+            appended to the explicit template parameter list.  When using
+            %template, supply arguments for the explicit parameters first, then
+            one for each 'auto' parameter in declaration order.
+
+2026-05-11: wsfulton
+            C++20: warning 332 (unresolved type-constraint in a templated
+            parameter list) is no longer emitted. The remap to 'typename T' is
+            still applied silently, so wrappers continue to compile when the
+            concept definition is visible only to the C++ compiler.
+
+2026-05-10: wsfulton
+            C++20: template parameters with a type-constraint now accept a
+            template-id concept-id as the constraint, the form most often seen with
+            STL concepts like 'std::convertible_to', 'std::same_as', 'std::derived_from'
+            or 'std::predicate'. Examples:
+
+              template<std::convertible_to<int> T> int to_int(T x);
+              template<typename T, typename U> concept Pair = std::convertible_to<T, U>;
+              template<Pair<int> T>                int first_int(T x);
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates with a constrained auto return
+            type, including the trailing return form:
+
+              Numeric auto half(int x) -> int { return x / 2; }
+              Numeric auto cube_constrained(Sized auto x) -> int { return x*x*x; }
+              %template(cube_constrained_int) cube_constrained<int>;
+
+            When an explicit (non-auto) trailing return type is provided the function
+            wraps normally (the trailing return is the wrapped type); without one, the
+            function is ignored with a warning since SWIG cannot deduce the return type,
+            matching plain 'auto fn(...)' behaviour.  As a side fix, plain 'auto
+            fn(Concept auto x) -> Type' now correctly introduces an invented type template
+            parameter for the auto parameter so '%template' instantiates it.
+
+2026-05-09: wsfulton
+            C++20: parse and support type-constraints on template parameters.
+            'template<Numeric T>' is now accepted as the standard shorthand for
+            'template<typename T> requires Numeric<T>', as per the C++20 standard. This includes
+            ::-qualified concept-ids, variadic packs, default arguments and class templates.
+
+              template<typename T>
+              concept Numeric = std::integral<T> || std::floating_point<T>;
+
+              template<Numeric T> T cube(T x) { return x * x * x; }
+              %template(cube_int) cube<int>;
+
+            If the type-constraint identifier has not been parsed by SWIG, the parameter
+            is silently remapped to 'typename T'; the generated wrapper compiles when
+            the concept is visible to the C++ compiler.
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates with constrained auto parameters.
+            Each auto parameter with a type-constraint (e.g. 'Numeric auto') introduces
+            an invented type template parameter carrying the type-constraint as a
+            captured constraint.
+
+              int twice_numeric(Numeric auto x) { return x + x; }
+              %template(twice_numeric_int) twice_numeric<int>;
+
+2026-05-09: wsfulton
+            C++14: parse generic lambdas - lambdas with one or more 'auto' parameters.
+            Like non-templated lambdas, generic lambdas are not wrapped, but they no
+            longer cause a syntax error when SWIG parses a header that contains them.
+
+              auto twice = [](auto x) { return x + x; };
+              auto add = [](auto a, auto b) { return a + b; };
+
+2026-05-09: wsfulton
+            C++20: parse abbreviated function templates - ordinary functions with one or
+            more 'auto' parameters. C++20 treats the function as a function template with
+            invented type template parameters for each auto parameter. Abbreviated
+            function templates can now be wrapped with %template, just like a regular
+            templated function. Note that an explicit (non-auto) return type is required.
+            The return type is not included in the %template instantiation and SWIG
+            remains unable to deduce auto return types.
+
+              double scale(auto x, auto factor) { return x * factor; }
+              %template(scale_id) scale<int, double>;
+
+2026-05-09: wsfulton
+            #3413 C++20: accept prefix requires-clauses on templated lambdas, and trailing
+            requires-clauses placed after the lambda's return type.
+
+              auto prefix = []<typename T> requires Numeric<T> (T x) { return x + x; };
+
+2026-05-07: wsfulton
+            #3413 %template applied to a C++20 concept now reports an error instead of
+            silently producing a malformed wrapper.
+
+2026-05-05: wsfulton
+            #3413 C++20: parse a requires-expression as a primary in expression position,
+            not just inside a requires-clause.  This allows a namespace scope variable
+            template to be initialised from a requires-expression.
+
+              template<typename T>
+              constexpr bool Addable = requires (T t) { t + t; };
+
+              %template(addable_int) Addable<int>;
+
+2026-05-05: wsfulton
+            Document existing coverage for C++14 variable templates which requires a
+            %template instantiation of the variable template, resulting in a read only
+            variable wrapper.
+
+              template<typename T>
+              constexpr int bits_in = sizeof(T) * 8;
+
+              %template(bits_in_char) bits_in<char>;
+
+2026-05-04: wsfulton
+            #3413 Basic support for C++20 concept declarations and requires-clauses on
+            function templates, in both the trailing position and the prefix position
+            (between the template parameter list and the declarator).  Both constructs are silently
+            consumed: a concept declaration produces no parse tree node, and a constrained
+            template wraps as if it were unconstrained.
+
+              template<typename T>
+              concept Numeric = std::integral<T> || std::floating_point<T>;
+
+              template<typename T>
+              T cube(T x) requires Numeric<T> { return x * x * x; }
+
+              template<typename T>
+              requires Numeric<T>
+              T quad(T x) { return x * x * x * x; }
+
+              template<typename T>
+              concept Summable = requires (T t) { t + t; };
+              template<typename T>
+              T sum_pair(T a, T b) requires Summable<T> { return a + b; }
+
+            Compound constraints containing trailing return type constraints also work:
+
+              template<typename T>
+              concept AddableSame = requires(T a, T b) {
+                { a + b } -> std::same_as<T>;
+              };
+
+2026-05-03: wsfulton
+            [R] Fix function pointer wrappers involving move-only types.
+
+2026-05-02: mmomtchev, wsfulton
+            #341 #3297 #3298 Add support for wrapping std::function via the SWIG library file
+            std_function.i.  The partial specialization
+            std::function<RET(ARGS...)> is wrapped so that a C++ callable
+            (free function, lambda, bound member function or functor) can be
+            returned from C++ to the target language and invoked there.
+
+              %include <std_function.i>
+
+              %inline %{
+              std::function<bool(int, const std::string &)> MakeFunctor(int pass) {
+                return [pass](int passcode, const std::string &name) -> bool {
+                  return passcode == pass && name == "magic";
+                };
+              }
+              %}
+
+              %template(MyFunctor) std::function<bool(int, const std::string &)>;
+
+            One %template instantiation is required per RET(ARGS...) signature.
+            std_function.i renames operator() to call so that target languages
+            which cannot wrap operator() as an identifier still get a usable
+            method name, and ignores the default constructor so std::function
+            instances always originate on the C++ side.  See the new section
+            "std::function" in the SWIG library chapter of the documentation
+            for the full pattern, limitations and target-language notes.
+
+2026-05-01: wsfulton
+            Fix partial template specialization where the specialized argument
+            is a function type, including function types carrying a parameter
+            pack. This makes std::function and similar wrappers work correctly,
+            eg:
+
+              template <typename> class function;
+              template <typename RET, typename... ARGS>
+                class function<RET(ARGS...)> { ... };
+              %template(FuncIntInt)    function<int(int, int)>;
+              %template(FuncVoid)      function<int()>;
+              %template(FuncMixed)     function<int(int, double, int)>;
+
+            Previously the primary template was incorrectly chosen for these
+            instantiations.  The partial specialization is now matched, with
+            the function return type and parameter list (including trailing
+            parameter packs) bound correctly.  Lib/std/std_function.i has been
+            updated to use the standard forward declaration of std::function.
+
+2026-04-26: wsfulton
+            Fix partial template specialization where the specialized argument
+            is a templated type carrying a parameter pack, eg:
+
+              template <typename...> struct Pack {};
+              template <typename T> struct Foo {};
+              template <typename... ARGS> struct Foo<Pack<ARGS...>> {};
+              %template(FooEmpty) Foo<Pack<>>;
+              %template(FooStr)   Foo<Pack<std::string>>;
+              %template(FooMix)   Foo<Pack<int, double>>;
+
+            Such partial specializations are now matched and instantiated
+            correctly for any pack length, including the empty pack.
+
 2026-04-25: wsfulton
             Advanced %rename fixes for templates. It is now possible to use %rename
 	    on instantiated templates for various corner cases, see "Template renaming"
@@ -31,6 +585,12 @@ Version 4.5.0 (in progress)
 	    Will now generate funky_void() where previously there there was no wrapper, just
 	    a warning:
 		Warning 503: Can't wrap 'funky< int >_void' unless renamed to a valid identifier.
+
+2026-04-17: jwuttke
+            #3403 Fix -doxygen: @file block bleeding into the first class
+            docstring. Single-line //! (or ///) comments forming a file-level
+            header (starting with @file) are now correctly discarded instead of
+            being concatenated into the next declaration's docstring.
 
 2026-03-26: Nerixyz
             [Python] #3389 Add missing C annotations and PEP 484 annotations to constants.

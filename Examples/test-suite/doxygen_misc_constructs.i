@@ -190,5 +190,36 @@
 
     #include "doxygen_misc_constructs.h"
 
+    // @file block (single-line //! style) must not bleed into the next class doc (GitHub issue #3403).
+    //! @file      doxygen_misc_constructs.i
+    //! @brief     File-level brief description.
+    //! @authors   Someone
+
+    //! This is the real class description.
+    struct FileHeaderTestClass {};
+
+    // Same @file bleed test as above but with the /// style (GitHub issue #3403).
+    /// @file      doxygen_misc_constructs.i
+    /// @brief     File-level brief description.
+    /// @authors   Someone
+
+    /// Real class description (slash style).
+    struct SlashFileHeaderTestClass {};
+
+    // @name/@{ member grouping: @{ must not be discarded as part of the structural block,
+    // and the member's own doc comment must still attach (regression guard for GitHub #3403 fix).
+    struct GroupedMembers {
+      //! @name Logging
+      //! @{
+
+      //! Doc for the first grouped member.
+      int loggingMember1;
+
+      //! Doc for the second grouped member.
+      int loggingMember2;
+      //! @}
+    };
+
 %}
+
     %include "doxygen_misc_constructs.h"

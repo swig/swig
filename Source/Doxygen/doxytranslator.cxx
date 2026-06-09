@@ -28,7 +28,7 @@ String *DoxygenTranslator::getDoxygenComment(Node *node) {
   return Getattr(node, "doxygen");
 }
 
-/**
+/*
  * Indent all lines in the comment by given indentation string
  */
 void DoxygenTranslator::extraIndentation(String *comment, const_String_or_char_ptr indentationString) {

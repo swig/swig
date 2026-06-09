@@ -129,13 +129,19 @@ SWIG_AsVal_dec(double)(SEXP obj, double *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
+  int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
   if (cptr && Rf_isString(obj)) {
     char *cstr = %const_cast(CHAR(STRING_ELT(obj, 0)), char *);
     int len = strlen(cstr);
 
     if (alloc) {
       if (*alloc == SWIG_NEWOBJ) {
-        *cptr = %new_copy_array(cstr, len + 1, char);
+        char *p = %new_array(len + 1, char);
+        if (p == NULL) {
+          return SWIG_MemoryError;
+        }
+        memcpy(p, cstr, len + 1);
+        *cptr = p;
         *alloc = SWIG_NEWOBJ;
       } else {
         *cptr = cstr;
@@ -144,7 +150,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
       *cptr = %reinterpret_cast(malloc(len + 1), char *);
       *cptr = strcpy(*cptr, cstr);
     }
-    if (psize) *psize = (size_t)(len + 1);
+    if (psize) *psize = is_binary ? (size_t)len : (size_t)(len + 1);
     return SWIG_OK;
   }
   return SWIG_TypeError;
@@ -165,6 +171,7 @@ SWIG_strdup(const char *str)
 
 %fragment("SWIG_FromCharPtrAndSize","header") 
 {
+#define SWIG_FromBinaryCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERN SEXP
 SWIG_FromCharPtrAndSize(const char* carray, size_t size) 
 {

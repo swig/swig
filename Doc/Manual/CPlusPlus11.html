@@ -29,6 +29,7 @@
 <li><a href="#CPlusPlus11_lambda_functions_and_expressions">Lambda functions and expressions</a>
 <li><a href="#CPlusPlus11_alternate_function_syntax">Alternate function syntax</a>
 <li><a href="#CPlusPlus11_object_construction_improvement">Object construction improvement</a>
+<li><a href="#CPlusPlus11_using_declaration_template_base">Inheriting members through a template parameter base</a>
 <li><a href="#CPlusPlus11_explicit_overrides_final">Explicit overrides and final</a>
 <li><a href="#CPlusPlus11_null_pointer_constant">Null pointer constant</a>
 <li><a href="#CPlusPlus11_strongly_typed_enumerations">Strongly typed enumerations</a>
@@ -802,6 +803,12 @@ auto six = [](int x, int y) { return x+y; }(4, 2);
 Better support should be available in a later release.
 </p>
 
+<p>
+Lambdas are most useful at the SWIG boundary when returned to the target language as a
+<tt>std::function</tt> object - see
+<a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphic wrappers for function objects</a>.
+</p>
+
 <H3><a name="CPlusPlus11_alternate_function_syntax">7.2.9 Alternate function syntax</a></H3>
 
 
@@ -901,7 +908,39 @@ public:
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_explicit_overrides_final">7.2.11 Explicit overrides and final</a></H3>
+<H3><a name="CPlusPlus11_using_declaration_template_base">7.2.11 Inheriting members through a template parameter base</a></H3>
+
+
+<p>
+A class template that takes a type-template parameter as its base class - a form of the <i>mixin</i> idiom -
+can pull inherited members into the derived scope with a using-declaration whose qualifier is the template parameter itself:
+</p>
+
+<div class="code"><pre>
+struct IntCase {
+  std::string call(int v) const;
+};
+
+template &lt;typename I&gt;
+struct Derived : I {
+  using I::call;
+};
+
+%template(DerivedInt) Derived&lt;IntCase&gt;;
+</pre></div>
+
+<p>
+SWIG substitutes the template parameter during instantiation, so the using-declaration
+in <tt>DerivedInt</tt> resolves to <tt>IntCase::call</tt> and a <tt>call</tt> wrapper is emitted on the
+derived proxy just as if the using-declaration had named <tt>IntCase::call</tt> directly.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to substitute template parameters in a using-declaration
+where the qualifier is a bare type-template parameter.
+</p>
+
+<H3><a name="CPlusPlus11_explicit_overrides_final">7.2.12 Explicit overrides and final</a></H3>
 
 
 <p>
@@ -938,12 +977,12 @@ struct FinalDerivedStruct final : BaseStruct {
 <b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
 </p>
 
-<H3><a name="CPlusPlus11_null_pointer_constant">7.2.12 Null pointer constant</a></H3>
+<H3><a name="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</a></H3>
 
 
 <p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. In the few places it has an effect, it is treated like <tt>NULL</tt>.</p>
 
-<H3><a name="CPlusPlus11_strongly_typed_enumerations">7.2.13 Strongly typed enumerations</a></H3>
+<H3><a name="CPlusPlus11_strongly_typed_enumerations">7.2.14 Strongly typed enumerations</a></H3>
 
 
 <p>SWIG supports strongly typed enumerations and parses the new <tt>enum class</tt> syntax and forward declarator for the enums, such as:</p>
@@ -1015,7 +1054,7 @@ The C++11 enum base type, such as <tt>unsigned int</tt>, in the example above, i
   }
 </pre></div>
 
-<H3><a name="CPlusPlus11_double_angle_brackets">7.2.14 Double angle brackets</a></H3>
+<H3><a name="CPlusPlus11_double_angle_brackets">7.2.15 Double angle brackets</a></H3>
 
 
 <p>SWIG correctly parses the symbols &gt;&gt; as closing the
@@ -1026,7 +1065,7 @@ shift operator &gt;&gt; otherwise.</p>
 std::vector&lt;std::vector&lt;int&gt;&gt; myIntTable;
 </pre></div>
 
-<H3><a name="CPlusPlus11_explicit_conversion_operators">7.2.15 Explicit conversion operators</a></H3>
+<H3><a name="CPlusPlus11_explicit_conversion_operators">7.2.16 Explicit conversion operators</a></H3>
 
 
 <p>SWIG correctly parses the keyword <tt>explicit</tt> for operators in addition to constructors now.
@@ -1069,7 +1108,7 @@ Conversion operators either with or without <tt>explicit</tt> need renaming to a
 them available as a normal proxy method.
 </p>
 
-<H3><a name="CPlusPlus11_alias_templates">7.2.16 Type alias and alias templates</a></H3>
+<H3><a name="CPlusPlus11_alias_templates">7.2.17 Type alias and alias templates</a></H3>
 
 
 <p>
@@ -1116,9 +1155,16 @@ However, in order to use an alias template, two <tt>%template</tt> directives mu
 <p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
 Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
 This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
+Once both <tt>%template</tt> directives have been processed the alias and the underlying instantiated template name are interchangeable in the target language; for example a function returning <tt>TypedefName&lt;bool&gt;</tt> is wrapped using the <tt>SomeTypeBool</tt> class.
 See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
 
-<H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
+<p>
+For alias templates whose template parameters carry a C++20 concept constraint, see
+<a href="CPlusPlus20.html#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
+in the C++20 chapter.
+</p>
+
+<H3><a name="CPlusPlus11_unrestricted_unions">7.2.18 Unrestricted unions</a></H3>
 
 
 <p>SWIG fully supports any type inside a union even if it does not
@@ -1144,7 +1190,7 @@ union P {
 } p1;
 </pre></div>
 
-<H3><a name="CPlusPlus11_variadic_templates">7.2.18 Variadic templates</a></H3>
+<H3><a name="CPlusPlus11_variadic_templates">7.2.19 Variadic templates</a></H3>
 
 
 <p>SWIG supports the variadic templates including the &lt;&gt;
@@ -1212,7 +1258,7 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
-<H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>
+<H3><a name="CPlusPlus11_new_char_literals">7.2.20 New character literals</a></H3>
 
 
 <p>
@@ -1229,7 +1275,7 @@ char32_t b = U'b';
 <b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
 </p>
 
-<H3><a name="CPlusPlus11_new_string_literals">7.2.20 New string literals</a></H3>
+<H3><a name="CPlusPlus11_new_string_literals">7.2.21 New string literals</a></H3>
 
 
 <p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
@@ -1259,7 +1305,7 @@ Note: There is a bug currently where SWIG's preprocessor incorrectly parses an o
 inside raw string literals.
 </p>
 
-<H3><a name="CPlusPlus11_user_defined_literals">7.2.21 User-defined literals</a></H3>
+<H3><a name="CPlusPlus11_user_defined_literals">7.2.22 User-defined literals</a></H3>
 
 
 <p>
@@ -1326,7 +1372,7 @@ OutputType var2 = 1234_suffix;
 OutputType var3 = 3.1416_suffix;
 </pre></div>
 
-<H3><a name="CPlusPlus11_thread_local_storage">7.2.22 Thread-local storage</a></H3>
+<H3><a name="CPlusPlus11_thread_local_storage">7.2.23 Thread-local storage</a></H3>
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
@@ -1346,7 +1392,7 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_defaulted_deleted">7.2.23 Explicitly defaulted functions and deleted functions</a></H3>
+<H3><a name="CPlusPlus11_defaulted_deleted">7.2.24 Explicitly defaulted functions and deleted functions</a></H3>
 
 
 <p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
@@ -1384,12 +1430,12 @@ This is a C++ compile time check and SWIG does not make any attempt to detect if
 so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
 </p>
 
-<H3><a name="CPlusPlus11_type_long_long_int">7.2.24 Type long long int</a></H3>
+<H3><a name="CPlusPlus11_type_long_long_int">7.2.25 Type long long int</a></H3>
 
 
 <p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
 
-<H3><a name="CPlusPlus11_static_assertions">7.2.25 Static assertions</a></H3>
+<H3><a name="CPlusPlus11_static_assertions">7.2.26 Static assertions</a></H3>
 
 
 <p>
@@ -1405,7 +1451,7 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_sizeof">7.2.26 Allow sizeof to work on members of classes without an explicit object</a></H3>
+<H3><a name="CPlusPlus11_sizeof">7.2.27 Allow sizeof to work on members of classes without an explicit object</a></H3>
 
 
 <p>
@@ -1426,7 +1472,7 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
-<H3><a name="CPlusPlus11_noexcept">7.2.27 Exception specifications and noexcept</a></H3>
+<H3><a name="CPlusPlus11_noexcept">7.2.28 Exception specifications and noexcept</a></H3>
 
 
 <p>
@@ -1442,7 +1488,7 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
-<H3><a name="CPlusPlus11_alignment">7.2.28 Control and query object alignment</a></H3>
+<H3><a name="CPlusPlus11_alignment">7.2.29 Control and query object alignment</a></H3>
 
 
 <p>
@@ -1474,7 +1520,7 @@ Use the preprocessor to work around this for now:
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_attributes">7.2.29 Attributes</a></H3>
+<H3><a name="CPlusPlus11_attributes">7.2.30 Attributes</a></H3>
 
 
 <p>
@@ -1490,7 +1536,7 @@ int [[attr1]] i [[attr2, attr3]];
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_ref_qualifiers">7.2.30 Methods with ref-qualifiers</a></H3>
+<H3><a name="CPlusPlus11_ref_qualifiers">7.2.31 Methods with ref-qualifiers</a></H3>
 
 
 <p>
@@ -1654,8 +1700,9 @@ Users would need to write their own typemaps if wrapper references are being use
 
 <p>
 SWIG supports functor classes in a few languages in a very natural way.
-However nothing is provided yet for the new <tt>std::function</tt> template.
-SWIG will parse usage of the template like any other template.
+A plain functor - a class with <tt>operator()</tt> - can be wrapped
+directly; from Python the rename to <tt>__call__</tt> makes the wrapped
+instance directly invocable as a function:
 </p>
 
 <div class="code"><pre>
@@ -1664,21 +1711,33 @@ SWIG will parse usage of the template like any other template.
 struct Test {
   bool operator()(int x, int y); // function object
 };
-
-#include &lt;functional&gt;
-std::function&lt;void (int, int)&gt; pF = Test;   // function template wrapper
-
 </pre></div>
-
-<p>
-Example of supported usage of the plain functor from Python is shown below.
-It does not involve <tt>std::function</tt>.
-</p>
 
 <div class="targetlang"><pre>
 t = Test()
 b = t(1, 2) # invoke C++ function object
 </pre></div>
+
+<p>
+For the polymorphic <tt>std::function</tt> wrapper, SWIG provides
+<tt>std_function.i</tt> in the SWIG library. It wraps the partial specialisation
+<tt>std::function&lt;RET(ARGS...)&gt;</tt> so that any C++ callable - a
+free function, a lambda, a bound member function, or a functor - can be
+returned from C++ to the target language and invoked there. See
+<a href="Library.html#Library_std_function">std::function</a>
+in the SWIG library chapter for the worked example, the supported pattern,
+and the list of caveats.
+</p>
+
+<p>
+<tt>std::function</tt> moves a callable from C++ <i>out</i> to the target
+language. To go the other way - have C++ accept a callable defined in
+the target language - see
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
+for the C-side <tt>%callback</tt> mechanism, and
+<a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>
+for the C++ director-based mechanism.
+</p>
 
 <H3><a name="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</a></H3>
 

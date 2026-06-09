@@ -190,7 +190,6 @@ String *get_raw_text_balanced(int startchar, int endchar) {
  *
  * or
  *  friend ostream& operator<<(ostream&, const char *s) { }
- *
  * ------------------------------------------------------------------------- */
 
 void skip_decl(void) {
@@ -218,6 +217,244 @@ void skip_decl(void) {
   }
   cparse_file = Scanner_file(scan);
   cparse_line = Scanner_line(scan);
+}
+
+/* ----------------------------------------------------------------------------
+ * static Node *parse_one_requirement(String *text)
+ *
+ * Build a single "requirement" Node from one body substring (already split at
+ * the top level ';' by the caller).  text is mutated in place: leading and
+ * trailing whitespace are stripped, and the leading kind keyword (if any) is
+ * removed before the remainder is stored on the node.  Returns NULL if the
+ * substring is empty.
+ *
+ * The leading non whitespace word selects the requirement kind:
+ *
+ *   typename ...  -> kind="type",     type    = the rest of the text
+ *   requires ...  -> kind="nested",   value   = the rest of the text
+ *   { ...         -> kind="compound", value   = expression inside the braces,
+ *                                     noexcept flag if 'noexcept' follows,
+ *                                     firstChild = atomic concept-id constraint
+ *                                                  for the optional
+ *                                                  return-type-requirement (-> Concept)
+ *   anything else -> kind="simple",   value   = the rest of the text
+ *
+ * The body of compound and nested requirements is captured opaquely as text,
+ * mirroring how the scanner level requires_body skipper has always treated
+ * them.  A future enhancement could parse nested requirements into a real
+ * constraint subtree, but this would require retokenising the captured text
+ * since the parser is non-reentrant.
+ * ------------------------------------------------------------------------- */
+
+/* Like Strncmp(s, word, strlen(word)) == 0, but only accepts a match at a word
+ * boundary - the next character must not extend the identifier.  No DOH or
+ * codebase equivalent exists; the closest is match_identifier_end in DOH/string.c
+ * but that helper is internal to the Replace machinery. */
+static int starts_with_word(String *s, const char *word) {
+  int wlen = (int)strlen(word);
+  int slen = Len(s);
+  const char *c;
+  if (wlen > slen)
+    return 0;
+  if (Strncmp(s, word, wlen) != 0)
+    return 0;
+  if (wlen == slen)
+    return 1;
+  c = Char(s);
+  return !(isalnum((unsigned char)c[wlen]) || c[wlen] == '_');
+}
+
+static void strip_leading_whitespace(String *s) {
+  const char *c = Char(s);
+  int n = Len(s);
+  int i = 0;
+  while (i < n && isspace((unsigned char)c[i]))
+    i++;
+  if (i > 0)
+    Delslice(s, 0, i);
+}
+
+/* Consume a leading 'word' from s plus any whitespace that follows it.  Caller
+ * has already verified starts_with_word(s, word). */
+static void consume_keyword(String *s, const char *word) {
+  Delslice(s, 0, (int)strlen(word));
+  strip_leading_whitespace(s);
+}
+
+static Node *parse_one_requirement(String *text) {
+  Node *n;
+  const char *c;
+  int len;
+
+  if (!text)
+    return 0;
+  Chop(text);
+  strip_leading_whitespace(text);
+  if (Len(text) == 0)
+    return 0;
+
+  if (starts_with_word(text, "typename")) {
+    consume_keyword(text, "typename");
+    Chop(text);
+    n = Constraint_new_requirement("type");
+    if (Len(text) > 0)
+      Setattr(n, "type", text);
+    return n;
+  }
+
+  if (starts_with_word(text, "requires")) {
+    consume_keyword(text, "requires");
+    Chop(text);
+    n = Constraint_new_requirement("nested");
+    if (Len(text) > 0)
+      Setattr(n, "value", text);
+    return n;
+  }
+
+  c = Char(text);
+  len = Len(text);
+
+  if (c[0] == '{') {
+    /* Compound requirement: '{ expr } [noexcept] [-> Concept]'.  Walk the bytes
+     * to find the matching '}' (no DOH brace balancer is exposed); slice the
+     * body and the post brace tail into separate Strings for keyword/concept
+     * extraction. */
+    int depth = 1;
+    int j = 1;
+    int body_end = -1;
+    while (j < len && depth > 0) {
+      if (c[j] == '{')
+        depth++;
+      else if (c[j] == '}') {
+        depth--;
+        if (depth == 0) {
+          body_end = j;
+          break;
+        }
+      }
+      j++;
+    }
+    if (body_end < 0)
+      return 0;
+    n = Constraint_new_requirement("compound");
+    {
+      String *body = NewStringWithSize(c + 1, body_end - 1);
+      Chop(body);
+      strip_leading_whitespace(body);
+      if (Len(body) > 0)
+        Setattr(n, "value", body);
+      Delete(body);
+    }
+    if (j + 1 < len) {
+      String *tail = NewStringWithSize(c + j + 1, len - j - 1);
+      strip_leading_whitespace(tail);
+      if (starts_with_word(tail, "noexcept")) {
+        Setattr(n, "noexcept", "1");
+        consume_keyword(tail, "noexcept");
+      }
+      if (Len(tail) >= 2) {
+        const char *t = Char(tail);
+        if (t[0] == '-' && t[1] == '>') {
+          Delslice(tail, 0, 2);
+          strip_leading_whitespace(tail);
+          Chop(tail);
+          if (Len(tail) > 0) {
+            /* The return-type-requirement is a SwigType encoded concept-id - hold it on a "type" attribute. */
+            Node *ret_atom = Constraint_new_atom("concept-id");
+            Setattr(ret_atom, "type", tail);
+            appendChild(n, ret_atom);
+          }
+        }
+      }
+      Delete(tail);
+    }
+    return n;
+  }
+
+  /* Simple requirement: arbitrary expression text. */
+  n = Constraint_new_requirement("simple");
+  Setattr(n, "value", text);
+  return n;
+}
+
+/* ----------------------------------------------------------------------------
+ * Node *parse_requirement_seq(String *body_text)
+ *
+ * Walk the captured text of a requires-expression body (as recorded into
+ * scanner_ccode by skip_balanced('{', '}'), so including the outer braces)
+ * and return a chain of "requirement" Nodes joined via nextSibling.
+ *
+ * Requirements are separated by ';' at top level - while walking, the depth
+ * of '(', '[' and '{' is tracked so that a ';' inside a balanced subspan
+ * does not split the requirement.  An empty body produces a NULL chain.
+ * ------------------------------------------------------------------------- */
+
+Node *parse_requirement_seq(String *body_text) {
+  Node *head = 0;
+  Node *tail = 0;
+  const char *s;
+  int len;
+  int start;
+  int paren = 0;
+  int bracket = 0;
+  int brace = 0;
+  int i;
+
+  if (!body_text)
+    return 0;
+  s = Char(body_text);
+  len = Len(body_text);
+
+  /* Strip outer braces: scanner_ccode for skip_balanced('{', '}') always
+   * has '{' at index 0 and '}' at len-1. */
+  if (len >= 2 && s[0] == '{' && s[len - 1] == '}') {
+    s++;
+    len -= 2;
+  }
+
+  start = 0;
+  for (i = 0; i < len; i++) {
+    char c = s[i];
+    if (c == '(')
+      paren++;
+    else if (c == ')')
+      paren--;
+    else if (c == '[')
+      bracket++;
+    else if (c == ']')
+      bracket--;
+    else if (c == '{')
+      brace++;
+    else if (c == '}')
+      brace--;
+    else if (c == ';' && paren == 0 && bracket == 0 && brace == 0) {
+      String *fragment = NewStringWithSize(s + start, i - start);
+      Node *r = parse_one_requirement(fragment);
+      Delete(fragment);
+      if (r) {
+        if (!head)
+          head = r;
+        else
+          set_nextSibling(tail, r);
+        tail = r;
+      }
+      start = i + 1;
+    }
+  }
+  /* No trailing ';' is permitted in well-formed C++20, but tolerate text
+   * after the last ';' just in case. */
+  if (start < len) {
+    String *fragment = NewStringWithSize(s + start, len - start);
+    Node *r = parse_one_requirement(fragment);
+    Delete(fragment);
+    if (r) {
+      if (!head)
+        head = r;
+      else
+        set_nextSibling(tail, r);
+    }
+  }
+  return head;
 }
 
 /* ----------------------------------------------------------------------------
@@ -426,6 +663,7 @@ static int yylook(void) {
       {
         typedef enum { DOX_COMMENT_PRE = -1, DOX_COMMENT_NONE, DOX_COMMENT_POST } comment_kind_t;
         comment_kind_t existing_comment = DOX_COMMENT_NONE;
+        int in_structural_block = 0; /* True when a @file (or similar) block is being skipped */
 
         /* Concatenate or skip all consecutive comments at once. */
         do {
@@ -462,7 +700,14 @@ static int yylook(void) {
                 break;
               }
 
-              if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
+              if (this_comment == DOX_COMMENT_PRE && existing_comment == DOX_COMMENT_NONE && isStructuralDoxygen(loc)) {
+                /* @file and similar page-level commands mark the whole block as file-scope
+                   documentation.  Set a flag; if a blank line follows, the accumulated
+                   content will be discarded so it does not bleed into the next declaration's
+                   docstring.  If no blank line follows (e.g. @name/@{), the content is
+                   returned as usual - only the structural line itself is not accumulated. */
+                in_structural_block = 1;
+              } else if (this_comment == DOX_COMMENT_POST || !isStructuralDoxygen(loc)) {
                 String *str;
 
                 int begin = this_comment == DOX_COMMENT_POST ? 4 : 3;
@@ -492,10 +737,24 @@ static int yylook(void) {
               }
             }
           }
-          do {
-            tok = Scanner_token(scan);
-          } while (tok == SWIG_TOKEN_ENDLINE);
-          Delete(cmt_modified);
+          {
+            int endlines = 0;
+            do {
+              tok = Scanner_token(scan);
+              if (tok == SWIG_TOKEN_ENDLINE)
+                endlines++;
+            } while (tok == SWIG_TOKEN_ENDLINE);
+            Delete(cmt_modified);
+            /* A blank line (2+ newlines) after a structural block (@file, @page, ...) means
+               all accumulated content is file-scope and must be discarded, so that the next
+               declaration's own doc comment is not polluted. */
+            if (in_structural_block && endlines >= 2) {
+              Delete(yylval.str);
+              yylval.str = 0;
+              existing_comment = DOX_COMMENT_NONE;
+              break;
+            }
+          }
         } while (tok == SWIG_TOKEN_COMMENT);
 
         Scanner_pushtoken(scan, tok, Scanner_text(scan));
@@ -935,6 +1194,14 @@ num_common:
         if (strcmp(yytext, "final") == 0) {
           last_id = 1;
           return (FINAL);
+        }
+        if (strcmp(yytext, "concept") == 0) {
+          last_id = 1;
+          return (CONCEPT);
+        }
+        if (strcmp(yytext, "requires") == 0) {
+          last_id = 1;
+          return (REQUIRES);
         }
       } else {
         if (strcmp(yytext, "class") == 0) {

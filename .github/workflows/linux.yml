@@ -3,17 +3,21 @@ name: linux
 on:
   push:
     paths-ignore:
+      - '.agents/**'
       - '.github/workflows/macos.yml'
       - '.github/workflows/windows.yml'
       - '.github/workflows/cmake.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
   pull_request:
     branches: master
     paths-ignore:
+      - '.agents/**'
       - '.github/workflows/macos.yml'
       - '.github/workflows/windows.yml'
       - '.github/workflows/cmake.yml'
+      - 'AGENTS.md'
       - 'CHANGES*'
       - 'Doc/**'
 
@@ -115,6 +119,7 @@ jobs:
           VER: '12'
           CPPSTD: c++11
         - SWIGLANG: lua
+          VER: '5.2'
         - SWIGLANG: lua
           VER: '5.3'
         - SWIGLANG: octave
@@ -219,15 +224,8 @@ jobs:
           VER: '2.2'
         - SWIGLANG: ruby
           VER: '2.3'
-# Ruby 2.4 and 2.6 both fail with ubuntu-22.04 with error:
-#   Error running '__rvm_make -j4',
-#   please read /usr/share/rvm/log/1740710476_ruby-3.0.0/make.log
-#        - SWIGLANG: ruby
-#          VER: '2.4'
         - SWIGLANG: ruby
           VER: '2.5'
-#        - SWIGLANG: ruby
-#          VER: '2.6'
         - SWIGLANG: ruby
           VER: '2.7'
         - SWIGLANG: ruby
@@ -273,6 +271,7 @@ jobs:
           VER: '14'
           CPPSTD: c++11
         - SWIGLANG: lua
+          VER: '5.2'
           CPPSTD: c++11
         - SWIGLANG: perl5
           CPPSTD: c++11
@@ -314,6 +313,7 @@ jobs:
           VER: '16'
           CPPSTD: c++14
         - SWIGLANG: lua
+          VER: '5.2'
           CPPSTD: c++14
         - SWIGLANG: octave
           CPPSTD: c++14
@@ -374,6 +374,7 @@ jobs:
           GCC: 13
           os: ubuntu-24.04
         - SWIGLANG: lua
+          VER: '5.4'
           CPPSTD: c++17
           GCC: 13
           os: ubuntu-24.04
@@ -475,6 +476,7 @@ jobs:
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
       PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
+      SKIP_CACHED_TOOLS: ${{ matrix.SKIP_CACHED_TOOLS }}
 
     steps:
     - name: Machine Info

@@ -1942,6 +1942,8 @@ r.                    C++ reference
 m(class).             Member pointer to class
 f(args).              Function.
 q(qlist).             Qualifiers
+auto.                 C++20 constrained placeholder marker (paired with c(...))
+c(id)                 Base carrying the concept-id of a C++20 'Concept auto'
 </pre>
 </div>
 
@@ -4010,6 +4012,7 @@ and D is a declarator.
 "parms"         - Function parameters (if a function)
 "code"          - Function body code (if supplied)
 "value"         - Default value (if supplied)
+"constraint"    - C++20 trailing requires-clause subtree (if any)
 </pre>
 
 </div>
@@ -4029,6 +4032,7 @@ C++ constructor declaration.
 "decl"          - Declarator (function with parameters)
 "code"          - Function body code (if any)
 "feature:new"   - Set to indicate return of new object.
+"constraint"    - C++20 trailing requires-clause subtree (if any)
 </pre>
 </div>
 
@@ -4102,6 +4106,7 @@ C++ class definition or C structure definition.
 "baselist"      - List of base class names.
 "storage"       - Storage class (if any)
 "unnamed"       - Set if class is unnamed.
+"constraint"    - C++20 prefix requires-clause subtree (class templates)
 </pre>
 </div>
 
@@ -4189,6 +4194,68 @@ A forward C++ class declaration.
 <pre>
 "name"          - Name of the class.
 "kind"          - Class kind ("union", "struct", "class")
+</pre>
+</div>
+
+
+<p>
+<b>constraint</b>
+</p>
+
+<p>
+C++20 constraint-expression node, held on the host's "constraint" attribute (cdecl, class,
+template, concept, constructor).  A single nodeType covers the constraint-logical-or grammar;
+the operator structure is in the "op" attribute, not in the type tag.
+</p>
+
+<div class="diagram">
+<pre>
+"op"            - "or" / "and" / "atom"
+"kind"          - For atom only: "concept-id" / "parens" / "requires-expression" / "fold" / "expression"
+"type"          - For atom kind="concept-id": SwigType encoded concept-id (e.g. Numeric&lt;(T)&gt;)
+"value"         - For atom kind="expression": opaque source text
+"valuetype"     - For atom kind="expression": typically T_BOOL
+"fold_op"       - For atom kind="fold": "&amp;&amp;" or "||"
+"fold_kind"     - For atom kind="fold": "unary-left" / "unary-right" / "binary"
+"firstChild"    - For op "and"/"or": chain of operand constraints (n-ary, flattened);
+                  for atom kind="parens" / "requires-expression" / "fold": the inner subtree
+</pre>
+</div>
+
+
+<p>
+<b>requires-expression</b>
+</p>
+
+<p>
+C++20 'requires (parms) { requirements }' primary, appearing as the firstChild of an atomic
+constraint with kind="requires-expression".
+</p>
+
+<div class="diagram">
+<pre>
+"parms"         - Requirement-parameter-list as a ParmList (NULL if absent)
+"firstChild"    - Chain of requirement nodes
+</pre>
+</div>
+
+
+<p>
+<b>requirement</b>
+</p>
+
+<p>
+A single requirement inside a requires-expression body.
+</p>
+
+<div class="diagram">
+<pre>
+"kind"          - "simple" / "type" / "compound" / "nested"
+"type"          - For kind="type": the named type (SwigType)
+"value"         - For kind="simple"/"compound"/"nested": opaque expression text
+"noexcept"      - For kind="compound": "1" if 'noexcept' was present
+"firstChild"    - For kind="compound": atomic concept-id constraint for the optional
+                  return-type-requirement (-&gt; Concept)
 </pre>
 </div>
 

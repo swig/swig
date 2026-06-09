@@ -73,7 +73,8 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   ParmList *p = Getattr(n, attribute);
   if (unexpanded_variadic_parm) {
-    Parm *variadic = ParmList_variadic_parm(p);
+    int variadic_pos = 0;
+    Parm *variadic = ParmList_find_variadic_parm(p, &variadic_pos);
     if (variadic) {
       SwigType *type = Getattr(variadic, "type");
       String *name = Getattr(variadic, "name");
@@ -89,8 +90,11 @@ static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpand
         Setattr(ep, "name", name ? NewStringf("%s%d", name, ++i) : 0);
         ep = nextSibling(ep);
       }
-      expanded = ParmList_replace_last(p, expanded);
-      Setattr(n, attribute, expanded);
+      /* Splice the expanded list into p in place of the variadic parm.  Function parameter
+       * lists can hold parms after a pack when those trailing parms come from C++20 abbreviated
+       * 'auto' (the trailing parms must be deducible at call time), so the splice must preserve
+       * everything after the variadic. */
+      Setattr(n, attribute, ParmList_replace_at(p, variadic_pos, expanded));
     }
   }
 }
@@ -159,6 +163,14 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(typelist, d);
     Append(patchlist, v);
     Append(cpatchlist, code);
+    /* C++20 trailing requires-clause subtree (attribute "constraint" on the cdecl).  Recurse so the inner
+       concept-id types and opaque expression text get the same T => int substitution as the cdecl's
+       other patched fields. */
+    {
+      Node *cs = Getattr(n, "constraint");
+      if (cs)
+        cparse_template_expand(templnode, cs, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+    }
 
     if (Getattr(n, "conversion_operator")) {
       /* conversion operator "name" and "sym:name" attributes are unusual as they contain c++ types, so treat as code for patching */
@@ -216,12 +228,22 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
         }
       }
     }
+    /* C++20 prefix requires-clause subtree (attribute "constraint" on the class node, set by
+       cpp_template_decl when the prefix requires-clause is on a class template head). */
+    {
+      Node *cs = Getattr(n, "constraint");
+      if (cs)
+        cparse_template_expand(templnode, cs, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+    }
     /* Patch children */
     {
       Node *cn = firstChild(n);
       while (cn) {
+        /* Capture the next sibling before recursion so iteration survives a child that detaches
+         * itself from the tree, such as an empty pack using-declaration. */
+        Node *next = nextSibling(cn);
         cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
-        cn = nextSibling(cn);
+        cn = next;
       }
     }
   } else if (Equal(nodeType, "classforward")) {
@@ -255,6 +277,12 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(typelist, Getattr(n, "decl"));
     expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
     expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    /* C++20 trailing requires-clause on the constructor. */
+    {
+      Node *cs = Getattr(n, "constraint");
+      if (cs)
+        cparse_template_expand(templnode, cs, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+    }
   } else if (Equal(nodeType, "destructor")) {
     /* We only need to patch the dtor of the template itself, not the destructors of any nested classes, so check that the parent of this node is the root
      * template node, with the special exception for %extend which adds its methods under an intermediate node. */
@@ -268,7 +296,56 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
   } else if (Equal(nodeType, "using")) {
     String *name = Getattr(n, "name");
     String *uname = Getattr(n, "uname");
-    if (uname && strchr(Char(uname), '<')) {
+
+    /* A pack using-declaration ("using Ts::operator()...;") is stored as a single node with the 'pack' flag set.
+     * During %template instantiation each pack type must become a separate concrete using-declaration in the
+     * parse tree, resulting in one using-declaration per template parameter in the pack passed to %template. */
+    if (Getattr(n, "pack") && unexpanded_variadic_parm) {
+      if (!expanded_variadic_parms) {
+        /* Empty pack: the using-declaration introduces no names ([temp.variadic]), so detach the
+         * placeholder node from the instantiated class.  */
+        DohIncref(n); /* keep n alive for Delete */
+        removeNode(n);
+        Delete(n);
+        return;
+      } else {
+        String *pack_name = Getattr(unexpanded_variadic_parm, "name"); /* e.g. "Ts" */
+        String *orig_uname = Copy(uname);
+        String *member_name = Copy(name);
+        Parm *ep = expanded_variadic_parms;
+
+        /* Patch the existing node in place for the first concrete type. */
+        String *new_uname = Copy(orig_uname);
+        Replaceid(new_uname, pack_name, Getattr(ep, "type"));
+        Setattr(n, "uname", new_uname);
+        Setattr(n, "name", member_name);
+        Setattr(n, "sym:needs_symtab", "1"); /* for later call to add_symbols() to add to symbol table */
+        Delattr(n, "pack");
+        ep = nextSibling(ep);
+
+        /* Append one sibling for each remaining concrete type (second, third, ...) */
+        while (ep) {
+          Node *copy = copyNode(n);
+          String *uc = Copy(orig_uname);
+          Replaceid(uc, pack_name, Getattr(ep, "type"));
+          Setattr(copy, "uname", uc);
+          Setattr(copy, "name", Copy(member_name));
+          appendSibling(n, copy);
+          ep = nextSibling(ep);
+        }
+        Delete(orig_uname);
+        Delete(member_name);
+
+        /* Refresh local variables after the in place patch, then fall through to normal handling. */
+        name = Getattr(n, "name");
+        uname = Getattr(n, "uname");
+      }
+    }
+
+    if (uname) {
+      /* Always add uname to the patchlist so template parameters are substituted, whether the qualifier is a template-id
+       * (e.g. 'using BaseTemplate<T>::method;') or a bare type-template parameter used directly as the base
+       * (e.g. 'using I::call;' inside 'template <typename I> struct Derived : I'). */
       Append(patchlist, uname);
     }
     if (!(Getattr(n, "templatetype"))) {
@@ -307,6 +384,52 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 
     if (Getattr(n, "namespace")) {
       /* Namespace link.   This is nasty.  Is other namespace defined? */
+    }
+  } else if (Equal(nodeType, "constraint")) {
+    /* C++20 constraint subtree.  For atom nodes, queue the kind specific inner strings for substitution;
+     * for and/or nodes, just recurse into the operand chain. */
+    Node *cn;
+    String *op = Getattr(n, "op");
+    if (op && Equal(op, "atom")) {
+      String *kind = Getattr(n, "kind");
+      if (kind) {
+        if (Equal(kind, "concept-id")) {
+          /* The "type" attribute is a SwigType encoded concept-id that includes any '<args>' suffix, so
+           * a single typelist entry covers both the concept's qualified name and its argument list. */
+          Append(typelist, Getattr(n, "type"));
+        } else if (Equal(kind, "expression")) {
+          Append(cpatchlist, Getattr(n, "value"));
+        }
+        /* parens / requires-expression / fold: structure lives in firstChild, picked up by the recursion below. */
+      }
+    }
+    cn = firstChild(n);
+    while (cn) {
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+      cn = nextSibling(cn);
+    }
+  } else if (Equal(nodeType, "requires-expression")) {
+    Node *cn;
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    cn = firstChild(n);
+    while (cn) {
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+      cn = nextSibling(cn);
+    }
+  } else if (Equal(nodeType, "requirement")) {
+    Node *cn;
+    String *kind = Getattr(n, "kind");
+    if (kind && Equal(kind, "type")) {
+      Append(typelist, Getattr(n, "type"));
+    } else {
+      /* simple, compound, nested: opaque expression text needs T => int
+       * via plain text replacement. */
+      Append(cpatchlist, Getattr(n, "value"));
+    }
+    cn = firstChild(n);
+    while (cn) {
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+      cn = nextSibling(cn);
     }
   } else {
     /* Look for obvious parameters */
@@ -411,44 +534,237 @@ static void cparse_postprocess_expanded_template(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * partial_arg()
+ * splice_partial_slot()
  *
- * Return a parameter with type that matches the specialized template argument.
- * If the input has no partial type, the name is not set in the returned parameter.
- *
- * type: an instantiated template parameter type, for example: Vect<(int)>
- * partialtype: type from specialized template where parameter name has been
- * replaced by a $ variable, for example: Vect<($1)>
- *
- * Returns a parameter of type 'int' and name $1 for the two example parameters above.
+ * Bind a single $N substitution: at the given 0-based index in *templateparms_p,
+ * replace the slot's type with bound_type for a non-variadic primary parm, or
+ * splice bound_type (a parenthesised parmlist like "(int,double)" or "()") as
+ * zero or more parms in place of the slot for a variadic primary parm. The
+ * variadic-ness is read from templateparmsraw, which is the unmodified
+ * partial-spec parm list captured before any binding took place.
  * ----------------------------------------------------------------------------- */
 
-static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
-  SwigType *parmtype;
-  String *parmname = 0;
+static void splice_partial_slot(int index, SwigType *bound_type, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  ParmList *templateparms = *templateparms_p;
+  Parm *parm = ParmList_nth_parm(templateparms, index);
+  if (!parm)
+    return;
+  Parm *raw_parm = ParmList_nth_parm(templateparmsraw, index);
+  int parm_is_variadic = raw_parm && SwigType_isvariadic(Getattr(raw_parm, "type"));
+  if (parm_is_variadic) {
+    List *types = SwigType_parmlist(bound_type);
+    ParmList *new_parms = 0;
+    Parm *last_new_parm = 0;
+    int i, nargs = Len(types);
+    for (i = 0; i < nargs; i++) {
+      SwigType *argtype = Copy((SwigType *)Getitem(types, i));
+      Parm *new_parm = NewParmWithoutFileLineInfo(argtype, 0);
+      if (!new_parms) {
+        new_parms = new_parm;
+      } else {
+        set_nextSibling(last_new_parm, new_parm);
+      }
+      last_new_parm = new_parm;
+    }
+    new_parms = ParmList_join(new_parms, nextSibling(parm));
+    if (index == 0) {
+      *templateparms_p = new_parms;
+    } else {
+      Parm *prev = ParmList_nth_parm(templateparms, index - 1);
+      assert(prev);
+      set_nextSibling(prev, new_parms);
+    }
+    Delete(types);
+  } else {
+    Setattr(parm, "type", bound_type);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * bind_partial_leaf()
+ *
+ * Bind a leaf substitution: partialtype contains exactly one $N, optionally
+ * decorated with prefix elements (eg "p.$1", "r.q(const).$1") and/or a leading
+ * "v." marker for a variadic capture. The bound concrete type is extracted
+ * from `concrete` by matching the prefix and suffix around $N; for a variadic
+ * capture, the extracted text is wrapped as a parenthesised parmlist before
+ * being installed via splice_partial_slot. templateparmsraw is the unmodified
+ * partial-spec parm list, used to identify which $N slots are variadic.
+ *
+ * Example (decorated leaf):
+ *   template <typename T> struct Foo<T *const&> {};   // partial = r.q(const).p.$1
+ *   %template(FooIPCR) Foo<int *const&>;              // concrete = r.q(const).p.int
+ * partialtype       = r.q(const).p.$1
+ * concrete          = r.q(const).p.int
+ * templateparmsraw  = (typename T)                    /-- $1 is non-variadic --/
+ *   prefix "r.q(const).p." and empty suffix strip to leave "int"
+ *   $1 matches to int
+ *
+ * Example (variadic capture):
+ *   template <typename...> struct Pack {};
+ *   template <typename... R> struct Foo<Pack<R...>> {};   // inner partial = Pack<(v.$1)>
+ *   %template(FooPackID) Foo<Pack<int, double>>;          // inner concrete = Pack<(int,double)>
+ * partialtype       = Pack<(v.$1)>
+ * concrete          = Pack<(int,double)>
+ * templateparmsraw  = (typename... R)                     /-- $1 is variadic --/
+ *   prefix "Pack<(" (with the trailing "v." stripped) and suffix ")>" enclose "int,double"
+ *   v.$1 captures the pack and matches to (int,double)
+ * ----------------------------------------------------------------------------- */
+
+static void bind_partial_leaf(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw) {
   const char *cp = Char(partialtype);
   const char *c = strchr(cp, '$');
+  assert(c);
 
-  if (c) {
-    int suffix_length;
-    int prefix_length = (int)(c - cp);
-    int type_length = Len(type);
-    const char *suffix = c;
-    String *prefix = NewStringWithSize(cp, prefix_length);
-    while (++suffix) {
-      if (!isdigit((int)*suffix))
-        break;
+  int prefix_length = (int)(c - cp);
+  int type_length = Len(concrete);
+  const char *suffix = c + 1;
+  while (isdigit((int)*suffix))
+    suffix++;
+  int suffix_length = (int)strlen(suffix);
+  int index = atoi(c + 1) - 1;
+  assert(index >= 0);
+
+  /* Skip a trailing 2-character variadic marker "v." in the prefix - it is not present in the concrete type. */
+  int is_variadic_capture = (prefix_length >= 2 && Strncmp(cp + prefix_length - 2, "v.", 2) == 0);
+  int real_prefix_length = is_variadic_capture ? prefix_length - 2 : prefix_length;
+  String *real_prefix = NewStringWithSize(cp, real_prefix_length);
+  SwigType *bound;
+  if (Strstr(concrete, real_prefix) == Char(concrete) && strcmp(Char(concrete) + type_length - suffix_length, suffix) == 0) {
+    bound = NewStringWithSize(Char(concrete) + real_prefix_length, type_length - suffix_length - real_prefix_length);
+    if (is_variadic_capture) {
+      /* Wrap the captured pack as a proper parmlist for splice_partial_slot. */
+      SwigType *parmlist = NewStringf("(%s)", bound);
+      Delete(bound);
+      bound = parmlist;
     }
-    parmname = NewStringWithSize(c, (int)(suffix - c)); /* $1, $2 etc */
-    suffix_length = (int)strlen(suffix);
-    assert(Strstr(type, prefix) == Char(type));                            /* check that the start of both types match */
-    assert(strcmp(Char(type) + type_length - suffix_length, suffix) == 0); /* check that the end of both types match */
-    parmtype = NewStringWithSize(Char(type) + prefix_length, type_length - suffix_length - prefix_length);
-    Delete(prefix);
   } else {
-    parmtype = Copy(type);
+    /* Pattern doesn't match - fallback to using the full type. */
+    bound = Copy(concrete);
   }
-  return NewParmWithoutFileLineInfo(parmtype, parmname);
+  Delete(real_prefix);
+
+  splice_partial_slot(index, bound, templateparms_p, templateparmsraw);
+  Delete(bound);
+}
+
+/* Forward declaration for recursion. */
+static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw);
+
+/* -----------------------------------------------------------------------------
+ * resolve_partial_arglists()
+ *
+ * Pair pp_inner (partial-spec arg list, may contain $N) against c_inner
+ * (concrete arg list) elementwise and bind each $N. A trailing variadic v.$N
+ * in pp_inner absorbs all remaining concrete items as a parenthesised
+ * parmlist for splice_partial_slot. templateparmsraw is the unmodified
+ * partial-spec parm list, used to identify which $N slots are variadic.
+ *
+ * Example:
+ *   template <typename A, typename... ARGS> struct Foo<Pack<A, ARGS...>> {};
+ *   %template(FooID) Foo<Pack<int, double, float>>;
+ * pp_inner          = ($1,v.$2)
+ * c_inner           = (int,double,float)
+ * templateparmsraw  = (typename A, typename... ARGS)  /-- $2 is variadic --/
+ *   $1   matches to int
+ *   v.$2 matches to the remaining args as (double,float)
+ * ----------------------------------------------------------------------------- */
+
+static void resolve_partial_arglists(List *c_inner, List *pp_inner, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  int n_pp = Len(pp_inner);
+  int n_c = Len(c_inner);
+  int i;
+  for (i = 0; i < n_pp; i++) {
+    SwigType *pp = (SwigType *)Getitem(pp_inner, i);
+    if (i == n_pp - 1 && SwigType_isvariadic(pp)) {
+      /* Trailing variadic captures all remaining concrete items as a parmlist. */
+      String *parmlist = NewString("(");
+      int j;
+      for (j = i; j < n_c; j++) {
+        if (j > i)
+          Append(parmlist, ",");
+        Append(parmlist, (SwigType *)Getitem(c_inner, j));
+      }
+      Append(parmlist, ")");
+      const char *pps = Char(pp);
+      assert(strncmp(pps, "v.$", 3) == 0);
+      int index = atoi(pps + 3) - 1;
+      splice_partial_slot(index, parmlist, templateparms_p, templateparmsraw);
+      Delete(parmlist);
+    } else if (i < n_c) {
+      SwigType *c = (SwigType *)Getitem(c_inner, i);
+      resolve_partial_args(c, pp, templateparms_p, templateparmsraw);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * resolve_partial_args()
+ *
+ * Walk partialtype against concrete, pairing each $N substitution with the
+ * corresponding sub-component of concrete and binding it into *templateparms_p.
+ *
+ * partialtype: type from a partial specialization where template parameter
+ *   names have been replaced by $N variables, eg "Pack<($1,v.$2)>".
+ * concrete:    matching instantiated type, eg "Pack<(int,double)>".
+ * templateparmsraw: unmodified partial-spec parm list, used only to decide
+ *   whether each $N slot is variadic.
+ *
+ * If partialtype has at most one $ substitution, it is bound as a leaf via
+ * prefix/suffix extraction (handles decorated leaves like p.$1, r.q(const).$1).
+ *
+ * If partialtype has multiple $ substitutions, it is structurally decomposed:
+ *   - template wrapper Foo<(...)> via SwigType_templateargslist,
+ *   - function type f(args).result via SwigType_pop_function (return type
+ *     resolved separately, args resolved as a parmlist).
+ * The inner partial list is paired pairwise with the inner concrete list and
+ * resolved recursively. A trailing variadic v.$N in the inner partial list
+ * absorbs any remaining concrete inner items as a parenthesised parmlist.
+ * ----------------------------------------------------------------------------- */
+
+static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, ParmList **templateparms_p, ParmList *templateparmsraw) {
+  int dollars = 0;
+  const char *s;
+  for (s = Char(partialtype); *s; s++) {
+    if (*s == '$')
+      dollars++;
+  }
+  if (dollars == 0)
+    return;
+  if (dollars == 1) {
+    bind_partial_leaf(concrete, partialtype, templateparms_p, templateparmsraw);
+    return;
+  }
+
+  /* Multiple substitutions: function type f(args).result */
+  if (SwigType_isfunction(partialtype) && SwigType_isfunction(concrete)) {
+    SwigType *pp_copy = Copy(partialtype);
+    SwigType *c_copy = Copy(concrete);
+    SwigType *pp_fpart = SwigType_pop_function(pp_copy); /* leaves return type in pp_copy */
+    SwigType *c_fpart = SwigType_pop_function(c_copy);
+    /* Resolve return type (pp_copy may itself contain $N substitutions). */
+    resolve_partial_args(c_copy, pp_copy, templateparms_p, templateparmsraw);
+    /* Resolve function args. */
+    List *pp_args = SwigType_parmlist(pp_fpart);
+    List *c_args = SwigType_parmlist(c_fpart);
+    if (pp_args && c_args)
+      resolve_partial_arglists(c_args, pp_args, templateparms_p, templateparmsraw);
+    Delete(pp_args);
+    Delete(c_args);
+    Delete(pp_fpart);
+    Delete(c_fpart);
+    Delete(pp_copy);
+    Delete(c_copy);
+    return;
+  }
+
+  /* Multiple substitutions: structurally decompose the template wrapper. */
+  List *pp_inner = SwigType_templateargslist(partialtype);
+  List *c_inner = SwigType_templateargslist(concrete);
+  if (pp_inner && c_inner)
+    resolve_partial_arglists(c_inner, pp_inner, templateparms_p, templateparmsraw);
+  Delete(pp_inner);
+  Delete(c_inner);
 }
 
 /* -----------------------------------------------------------------------------
@@ -470,59 +786,81 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   typelist = NewList();   /* List of SwigType * types */
 
   templateargs = NewStringEmpty();
-  SwigType_add_template(templateargs, tparms);
+  /* Drop invented type template parameters introduced by C++20 abbreviated 'auto'
+   * parms from the emitted C++ template-argument list.  The invented parm is
+   * always appended after the explicit parms ([dcl.fct]/19), so a trailing count
+   * suffices.  Wrapper signature has concrete types in place of 'auto', so the
+   * C++ compiler deduces the invented type from the call - emitting it
+   * explicitly would either be redundant (no pack) or invalid (with a pack the
+   * trailing invented parm is unreachable behind the greedy pack). */
+  {
+    int trailing_invented = 0;
+    Parm *p;
+    for (p = templateparms; p; p = nextSibling(p)) {
+      if (GetFlag(p, "abbreviated_auto"))
+        ++trailing_invented;
+      else
+        trailing_invented = 0;
+    }
+    if (trailing_invented > 0) {
+      int emit_count = ParmList_len(tparms) - trailing_invented;
+      ParmList *emit_parms = CopyParmListMax(tparms, emit_count);
+      SwigType_add_template(templateargs, emit_parms);
+      Delete(emit_parms);
+    } else {
+      SwigType_add_template(templateargs, tparms);
+    }
+  }
 
   tname = Copy(Getattr(n, "name"));
   tbase = Swig_scopename_last(tname);
 
   if (Getattr(n, "partialargs")) {
     /* Partial specialization */
+    ParmList *templateparmsraw = CopyParmList(Getattr(n, "templateparms"));
+    Setattr(n, "templateparmsraw", templateparmsraw);
+    templateparms = CopyParmList(Getattr(n, "templateparms"));
     Parm *p, *tp;
     ParmList *ptargs = SwigType_function_parms(Getattr(n, "partialargs"), n);
     p = ptargs;
     tp = tparms;
     /* Adjust templateparms so that the type is expanded, eg typename => int */
-    while (p && tp) {
-      SwigType *ptype;
-      SwigType *tptype;
-      SwigType *partial_type;
-      ptype = Getattr(p, "type");
-      tptype = Getattr(tp, "type");
-      if (ptype && tptype) {
-        SwigType *ty = Swig_symbol_typedef_reduce(tptype, tscope);
-        Parm *partial_parm = partial_arg(ty, ptype);
-        String *partial_name = Getattr(partial_parm, "name");
-        partial_type = Copy(Getattr(partial_parm, "type"));
-        /*      Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
-        if (partial_name && strchr(Char(partial_name), '$') == Char(partial_name)) {
-          int index = atoi(Char(partial_name) + 1) - 1;
-          Parm *parm;
-          assert(index >= 0);
-          parm = ParmList_nth_parm(templateparms, index);
-          assert(parm);
-          if (parm) {
-            Setattr(parm, "type", partial_type);
-          }
-        }
-        Delete(partial_parm);
-        Delete(partial_type);
+    while (p) {
+      SwigType *ptype = Getattr(p, "type");
+      SwigType *tptype = tp ? Getattr(tp, "type") : 0;
+      if (ptype && (tptype || SwigType_isvariadic(ptype))) {
+        SwigType *ty = tptype ? Swig_symbol_typedef_reduce(tptype, tscope) : NewStringEmpty();
+        resolve_partial_args(ty, ptype, &templateparms, templateparmsraw);
         Delete(ty);
       }
       p = nextSibling(p);
-      tp = nextSibling(tp);
+      if (tp)
+        tp = nextSibling(tp);
     }
     Delete(ptargs);
+    Setattr(n, "templateparms", templateparms);
   } else {
     Setattr(n, "templateparmsraw", Getattr(n, "templateparms"));
     templateparms = CopyParmList(tparms);
     Setattr(n, "templateparms", templateparms);
   }
 
-  /* TODO: variadic parms for partially specialized templates */
+  /* Handle variadic parms.  The variadic may sit anywhere in the templateparms list -
+   * C++20 [dcl.fct]/19 appends invented type template parameters (from abbreviated
+   * 'auto' parms) after the explicit list, which can leave the pack in the middle.
+   * Slice out exactly the user args the pack absorbs so downstream consumers
+   * (expand_variadic_parms, SwigType_variadic_replace) iterate to NULL without
+   * accidentally walking into trailing invented entries. */
   templateparmsraw = Getattr(n, "templateparmsraw");
-  unexpanded_variadic_parm = ParmList_variadic_parm(templateparmsraw);
-  if (unexpanded_variadic_parm)
-    expanded_variadic_parms = ParmList_nth_parm(templateparms, ParmList_len(templateparmsraw) - 1);
+  {
+    int variadic_pos = 0;
+    unexpanded_variadic_parm = ParmList_find_variadic_parm(templateparmsraw, &variadic_pos);
+    if (unexpanded_variadic_parm) {
+      int absorbed = ParmList_len(templateparms) - ParmList_len(templateparmsraw) + 1;
+      Parm *slice = ParmList_nth_parm(templateparms, variadic_pos);
+      expanded_variadic_parms = CopyParmListMax(slice, absorbed);
+    }
+  }
 
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
      Printf(stdout,"rname = '%s'\n", rname);
@@ -661,11 +999,15 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tbase);
   Delete(tname);
   Delete(templateargs);
+  Delete(expanded_variadic_parms);
 
   return 0;
 }
 
 typedef enum { ExactNoMatch = -2, PartiallySpecializedNoMatch = -1, PartiallySpecializedMatch = 1, ExactMatch = 2 } EMatch;
+
+/* Forward declaration so the parmlist matcher and does_parm_match can call each other. */
+static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symtab *tscope, int *specialization_priority);
 
 /* -----------------------------------------------------------------------------
  * is_exact_partial_type()
@@ -689,6 +1031,99 @@ static int is_exact_partial_type(const SwigType *type) {
 }
 
 /* -----------------------------------------------------------------------------
+ * match_partial_parmlists()
+ *
+ * Pair `parms` (concrete arg list) against `pp_parms` (partial-spec arg list,
+ * may contain $N) elementwise. A trailing variadic v.$N in pp_parms absorbs
+ * any trailing concrete entries.
+ *
+ * Returns 1 on full match with the summed sub-priorities written to *priority,
+ * 0 on no match (priority left untouched).
+ *
+ * Example:
+ *   template <typename A, typename... ARGS> struct Foo<Pack<A, ARGS...>> {};
+ *   %template(FooID) Foo<Pack<int, double, float>>;
+ * pp_parms = ($1,v.$2)
+ * parms    = (int,double,float)
+ *   $1   matches int     (one sub_priority)
+ *   v.$2 matches double  (one sub_priority)
+ *   v.$2 matches float   (one sub_priority)
+ *   -> returns 1, *priority = sum of sub-priorities
+ * ----------------------------------------------------------------------------- */
+
+static int match_partial_parmlists(List *parms, List *pp_parms, Symtab *tscope, int *priority) {
+  int parms_len = Len(parms);
+  int pp_parms_len = Len(pp_parms);
+  int has_variadic = 0;
+  int sum = 0;
+  int i;
+
+  if (parms_len == 0 && pp_parms_len == 0) {
+    *priority = 0;
+    return 1;
+  }
+  if (pp_parms_len > 0) {
+    SwigType *last_pp = (SwigType *)Getitem(pp_parms, pp_parms_len - 1);
+    if (last_pp && SwigType_isvariadic(last_pp))
+      has_variadic = 1;
+  }
+
+  if (has_variadic) {
+    int required_parms = pp_parms_len - 1;
+    SwigType *variadic_type;
+    if (parms_len < required_parms)
+      return 0;
+    for (i = 0; i < required_parms; i++) {
+      SwigType *p = (SwigType *)Getitem(parms, i);
+      SwigType *pp = (SwigType *)Getitem(pp_parms, i);
+      int sub_priority;
+      EMatch m;
+      if (!p || !pp)
+        return 0;
+      m = does_parm_match(p, pp, tscope, &sub_priority);
+      if (m < (int)PartiallySpecializedMatch)
+        return 0;
+      sum += sub_priority;
+    }
+    variadic_type = (SwigType *)Getitem(pp_parms, required_parms);
+    if (template_debug && parms_len > required_parms)
+      Printf(stdout, "        variadic_type='%s'\n", variadic_type);
+    for (i = required_parms; i < parms_len; i++) {
+      SwigType *p = (SwigType *)Getitem(parms, i);
+      int sub_priority;
+      EMatch m;
+      if (!p)
+        return 0;
+      if (template_debug)
+        Printf(stdout, "        matching param[%d]='%s' against variadic='%s'\n", i, p, variadic_type);
+      m = does_parm_match(p, variadic_type, tscope, &sub_priority);
+      if (m < (int)PartiallySpecializedMatch)
+        return 0;
+      sum += sub_priority;
+    }
+    *priority = sum;
+    return 1;
+  }
+
+  if (parms_len != pp_parms_len)
+    return 0;
+  for (i = 0; i < parms_len; i++) {
+    SwigType *p = (SwigType *)Getitem(parms, i);
+    SwigType *pp = (SwigType *)Getitem(pp_parms, i);
+    int sub_priority;
+    EMatch m;
+    if (!p || !pp)
+      return 0;
+    m = does_parm_match(p, pp, tscope, &sub_priority);
+    if (m < (int)PartiallySpecializedMatch)
+      return 0;
+    sum += sub_priority;
+  }
+  *priority = sum;
+  return 1;
+}
+
+/* -----------------------------------------------------------------------------
  * does_parm_match()
  *
  * Template argument deduction - check if a template type matches a partially specialized
@@ -705,6 +1140,10 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
   static const int EXACT_MATCH_PRIORITY = 99999; /* a number bigger than the length of any conceivable type */
   static const int TEMPLATE_MATCH_PRIORITY =
     1000; /* a priority added for each nested template, assumes max length of any prefix, such as r.q(const). , is less than this number */
+  if (!type || !partial_parm_type) {
+    *specialization_priority = -1;
+    return PartiallySpecializedNoMatch;
+  }
   SwigType *ty = Swig_symbol_typedef_reduce(type, tscope);
   SwigType *pp_prefix = SwigType_prefix(partial_parm_type);
   int pp_len = Len(pp_prefix);
@@ -737,6 +1176,47 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
        */
       match = PartiallySpecializedMatch;
       *specialization_priority = pp_len;
+    } else if (SwigType_isvariadic(partial_parm_type)) {
+      /*
+         Variadic partial parameter matches any concrete parameter type,
+         e.g. matching int or double against v.$1.
+       */
+      if (template_debug) {
+        Printf(stdout, "      variadic partial parameter match for type='%s' partial='%s'\n", type, partial_parm_type);
+      }
+      match = PartiallySpecializedMatch;
+      *specialization_priority = pp_len;
+    } else if (SwigType_isfunction(partial_parm_type) && SwigType_isfunction(ty)) {
+      /*
+        Function type partial specialization, eg:
+          template <typename T> struct Func {};
+          template <typename R, typename... A> struct Func<R(A...)> {};
+          %template(FII) Func<int(int,int)>;
+        matches type="f(int,int).int" and partial_parm_type="f(v.$2).$1"
+      */
+      SwigType *pp_copy = Copy(partial_parm_type);
+      SwigType *t_copy = Copy(ty);
+      SwigType *pp_fpart = SwigType_pop_function(pp_copy); /* leaves return type in pp_copy */
+      SwigType *t_fpart = SwigType_pop_function(t_copy);
+      List *pp_args = SwigType_parmlist(pp_fpart);
+      List *t_args = SwigType_parmlist(t_fpart);
+      int args_priority = 0;
+      if (template_debug)
+        Printf(stdout, "        function args='%s' pp_args='%s'\n", t_fpart, pp_fpart);
+      if (match_partial_parmlists(t_args, pp_args, tscope, &args_priority)) {
+        int ret_priority;
+        EMatch ret_match = does_parm_match(t_copy, pp_copy, tscope, &ret_priority);
+        if (ret_match >= (int)PartiallySpecializedMatch) {
+          match = PartiallySpecializedMatch;
+          *specialization_priority = args_priority + ret_priority + TEMPLATE_MATCH_PRIORITY;
+        }
+      }
+      Delete(t_args);
+      Delete(pp_args);
+      Delete(t_fpart);
+      Delete(pp_fpart);
+      Delete(t_copy);
+      Delete(pp_copy);
     } else {
       /*
         Check for template types that are templates such as
@@ -764,23 +1244,23 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, Symta
           if (Equal(qprefix, pp_qprefix)) {
             String *templateargs = SwigType_templateargs(qt);
             List *parms = SwigType_parmlist(templateargs);
-            Iterator pi = First(parms);
-            Parm *p = pi.item;
 
             String *pp_templateargs = SwigType_templateargs(pp_qt);
             List *pp_parms = SwigType_parmlist(pp_templateargs);
-            Iterator pp_pi = First(pp_parms);
-            Parm *pp = pp_pi.item;
 
-            if (p && pp) {
-              /* Implementation is limited to matching single parameter templates only for now */
-              int priority;
-              match = does_parm_match(p, pp, tscope, &priority);
-              if (match <= PartiallySpecializedNoMatch) {
-                *specialization_priority = priority;
-              } else {
-                *specialization_priority = priority + TEMPLATE_MATCH_PRIORITY;
-              }
+            if (template_debug) {
+              Printf(stdout,
+                     "        templateargs='%s' pp_templateargs='%s' parms_len=%d pp_parms_len=%d\n",
+                     templateargs ? templateargs : "(null)",
+                     pp_templateargs ? pp_templateargs : "(null)",
+                     Len(parms),
+                     Len(pp_parms));
+            }
+
+            int sub_priority = 0;
+            if (match_partial_parmlists(parms, pp_parms, tscope, &sub_priority)) {
+              match = PartiallySpecializedMatch;
+              *specialization_priority = sub_priority + TEMPLATE_MATCH_PRIORITY;
             }
 
             Delete(pp_parms);
@@ -1203,7 +1683,11 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
     assert(Equal(nodeType, "template"));
     String *templatetype = Getattr(n, "templatetype");
 
-    if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
+    if (Equal(templatetype, "concept")) {
+      Swig_error(
+        cparse_file, cparse_line, "%%template not allowed on concept '%s' - concepts cannot be instantiated like class or function templates.\n", name);
+      return 0;
+    } else if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
       Node *primary = Getattr(n, "primarytemplate");
       Parm *tparmsfound = Getattr(primary ? primary : n, "templateparms");
       int specialized = !tparmsfound; /* fully specialized (an explicit specialization) */
@@ -1244,7 +1728,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       while (n) {
         if (Strcmp(nodeType(n), "template") == 0) {
           Parm *tparmsfound = Getattr(n, "templateparms");
-          if (!ParmList_variadic_parm(tparmsfound)) {
+          if (!ParmList_find_variadic_parm(tparmsfound, NULL)) {
             if (ParmList_len(instantiated_parms) == ParmList_len(tparmsfound)) {
               /* successful match */
               if (template_debug) {
@@ -1264,13 +1748,16 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
         n = Getattr(n, "sym:nextSibling");
       }
 
-      /* Only consider variadic templates if there are no non-variadic template matches */
+      /* Only consider variadic templates if there are no non-variadic template matches.
+       * The variadic parm may sit anywhere in the templateparms list - C++20 [dcl.fct]/19
+       * appends invented type template parameters (from abbreviated 'auto' parameters)
+       * after the explicit list, which can leave the pack in the middle. */
       if (!match) {
         n = firstn;
         while (n) {
           if (Strcmp(nodeType(n), "template") == 0) {
             Parm *tparmsfound = Getattr(n, "templateparms");
-            if (ParmList_variadic_parm(tparmsfound)) {
+            if (ParmList_find_variadic_parm(tparmsfound, NULL)) {
               if (ParmList_len(instantiated_parms) >= ParmList_len(tparmsfound) - 1) {
                 /* successful variadic match */
                 if (template_debug) {
@@ -1311,20 +1798,65 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
  * Non-type template parameters have no type information in expanded_templateparms.
  * Grab them from templateparms.
  *
+ * When templateparms contains a variadic pack that is not the last element
+ * (C++20 abbreviated function templates with an explicit pack and an 'auto' parm
+ * place the invented type template parameter after the pack per [dcl.fct]/19),
+ * the pairing absorbs the middle entries of expanded_templateparms with the pack
+ * and pairs the trailing entries with the templateparms after the pack.
+ *
  * Return 1 if there are variadic template parameters, 0 otherwise.
  * ----------------------------------------------------------------------------- */
 
 static int merge_parameters(ParmList *expanded_templateparms, ParmList *templateparms) {
+  int variadic_pos = 0;
+  Parm *variadic = ParmList_find_variadic_parm(templateparms, &variadic_pos);
   Parm *p = expanded_templateparms;
   Parm *tp = templateparms;
-  while (p && tp) {
-    Setattr(p, "name", Getattr(tp, "name"));
-    if (!Getattr(p, "type"))
-      Setattr(p, "type", Getattr(tp, "type"));
-    p = nextSibling(p);
-    tp = nextSibling(tp);
+  if (!variadic) {
+    while (p && tp) {
+      Setattr(p, "name", Getattr(tp, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(tp, "type"));
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+    }
+    return 0;
   }
-  return ParmList_variadic_parm(templateparms) ? 1 : 0;
+  {
+    int i = 0;
+    int tp_len = ParmList_len(templateparms);
+    int p_len = ParmList_len(expanded_templateparms);
+    int absorbed = p_len - tp_len + 1;          /* variadic absorbs this many user args */
+    int absorbed_end = variadic_pos + absorbed; /* exclusive */
+    /* Leading non-variadics pair one to one. */
+    while (p && i < variadic_pos) {
+      Setattr(p, "name", Getattr(tp, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(tp, "type"));
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+      ++i;
+    }
+    /* Pack absorbs entries [variadic_pos, variadic_pos + absorbed). */
+    while (p && i < absorbed_end) {
+      Setattr(p, "name", Getattr(variadic, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(variadic, "type"));
+      p = nextSibling(p);
+      ++i;
+    }
+    /* Trailing non-variadics (e.g. invented auto parms) pair one to one with
+     * the templateparms entries after the pack. */
+    tp = nextSibling(variadic);
+    while (p && tp) {
+      Setattr(p, "name", Getattr(tp, "name"));
+      if (!Getattr(p, "type"))
+        Setattr(p, "type", Getattr(tp, "type"));
+      p = nextSibling(p);
+      tp = nextSibling(tp);
+    }
+  }
+  return 1;
 }
 
 /* -----------------------------------------------------------------------------

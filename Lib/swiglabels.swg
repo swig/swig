@@ -33,7 +33,7 @@
 #   else
 #     define SWIGUNUSED
 #   endif
-# elif defined(__ICC)
+# elif defined(__ICC) || defined (__clang__)
 #   define SWIGUNUSED __attribute__ ((__unused__))
 # else
 #   define SWIGUNUSED

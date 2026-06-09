@@ -590,10 +590,10 @@ rvrdeleter.reset($1); %}
 
 %typemap(godirectorin) int & ""
 
-%typemap(directorout) int &
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) int &
 %{
-  $*1_ltype f = ($*1_ltype)*$input;
-  $result = ($1_ltype)&f;
+  $result = new $*1_ltype(($*1_ltype)*$input);
+  swig_acquire_pointer(&swig_mem, $result);
 %}
 
 %typemap(directorargout) int &
@@ -628,10 +628,10 @@ rvrdeleter.reset($1); %}
 
 %typemap(godirectorin) int && ""
 
-%typemap(directorout) int &&
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) int &&
 %{
-  $*1_ltype f = ($*1_ltype)*$input;
-  $result = ($1_ltype)&f;
+  $result = new $*1_ltype(($*1_ltype)*$input);
+  swig_acquire_pointer(&swig_mem, $result);
 %}
 
 %typemap(directorargout) int &&

@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_overload") -- import lib
+require("director_overload")
 
 local o = director_overload.OverloadedGetSet()
 

@@ -214,6 +214,7 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 {
+  int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
   if (ov.iscell() && ov.rows() == 1 && ov.columns() == 1)
     ov = ov.cell_value()(0);
 
@@ -227,7 +228,7 @@ SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
     } else if (cptr)
       *cptr = cstr;
     if (psize)
-      *psize = len + 1;
+      *psize = is_binary ? len : len + 1;
   } else if (!ov.is_defined() || (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
     if (cptr)
       *cptr = 0;
@@ -239,6 +240,7 @@ SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+#define SWIG_FromBinaryCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERNINLINE octave_value
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {

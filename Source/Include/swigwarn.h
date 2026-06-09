@@ -99,6 +99,7 @@
 #define WARN_PARSE_USING_CONSTRUCTOR                 329
 #define WARN_PARSE_TEMPLATE_FORWARD                  330
 #define WARN_PARSE_TEMPLATE_NESTED                   331
+#define WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF    332
 
 #define WARN_CPP11_LAMBDA                            340
 /* Unused since 3.0.11: #define WARN_CPP11_ALIAS_DECLARATION  341 */
@@ -107,6 +108,7 @@
 #define WARN_CPP11_DECLTYPE                          344
 #define WARN_CPP14_AUTO                              345
 #define WARN_CPP11_AUTO                              346
+#define WARN_CPP17_CLASS_TEMPLATE_ARGUMENT_DEDUCTION 347
 
 #define WARN_IGNORE_OPERATOR_NEW                     350 /* new */
 #define WARN_IGNORE_OPERATOR_DELETE                  351 /* delete */

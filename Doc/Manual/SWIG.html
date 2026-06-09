@@ -2599,6 +2599,19 @@ The 'director' feature can be used to make callbacks from C/C++ into the target 
 see <a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.
 </p>
 
+<p>
+<b>Modern C++ alternative.</b> For C++ code, <tt>std::function</tt> covers the
+opposite direction: a C++ function returns a callable (a free function, a
+lambda, a bound member function, or a functor) and the target language receives
+it as a wrapped object on which <tt>operator()</tt> can be invoked. Where
+<tt>%callback</tt> picks from a fixed list of C functions known at wrap time,
+<tt>std::function</tt> wraps any callable produced at runtime on the C++ side.
+See <a href="Library.html#Library_std_function">std::function</a> in the SWIG
+library chapter for the worked pattern. <tt>std::function</tt> does <i>not</i>
+let target-language code construct a callable that C++ can invoke - for
+that, use a director (see the cross-reference above).
+</p>
+
 <H2><a name="SWIG_nn31">5.5 Structures and unions</a></H2>
 
 

@@ -50,6 +50,10 @@
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
  *  'm(cls).'           = Pointer to member (cls::*)
+ *  'auto.'             = C++20 constrained placeholder marker, paired with a
+ *                        'c(<id>)' base, e.g. 'auto.c(Numeric)' for 'Numeric auto'.
+ *  'c(<id>)'           = Base carrying the concept-id of a C++20
+ *                        constrained 'Concept auto' placeholder.
  *
  *  The complete type representation for varargs is:
  *  'v(...)'
@@ -1185,6 +1189,57 @@ String *SwigType_templateargs(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_templateargslist()
+ *
+ * Returns the template arguments
+ * For example:
+ *
+ *     Foo<(p.int,p.int)>::bar
+ *
+ * returns a list ["p.int", "p.int"]
+ * ----------------------------------------------------------------------------- */
+
+List *SwigType_templateargslist(const SwigType *t) {
+  const char *c, *end, *next;
+  String *args;
+  List *l;
+  String *one_arg;
+
+  args = SwigType_templateargs(t);
+  if (!args)
+    return NULL;
+  l = NewList();
+  c = Char(args) + 2;
+  end = c + strlen(c) - 2;
+  while (c < end) {
+    next = c;
+    while (*next != ',' && next < end) {
+      if (*next == '(') {
+        next++;
+        int parens = 1;
+        while (parens > 0 && next < end) {
+          while (*next != ')' && *next != '(' && next < end)
+            next++;
+          if (next >= end)
+            break;
+          if (*next == ')')
+            parens--;
+          if (*next == '(')
+            parens++;
+          next++;
+        }
+      } else {
+        next++;
+      }
+    }
+    one_arg = NewStringWithSize(c, (int)(next - c));
+    Append(l, one_arg);
+    c = next + 1;
+  }
+  return l;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_istemplate()
  *
  * Tests a type to see if it includes template parameters
@@ -1196,6 +1251,108 @@ int SwigType_istemplate(const SwigType *t) {
   if (ct && (strstr(ct + 2, ")>")))
     return 1;
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_isauto()
+ *
+ * Tests whether t involves the C++ 'auto' placeholder.  Recognises both the
+ * unconstrained form (where 'auto' is the base, optionally decorated with
+ * 'r.', 'p.', 'q(const).' etc.) and the C++20 constrained form (where 'auto.'
+ * is an element prefix and 'c(<id>)' is the base, e.g. 'auto.c(Numeric)'
+ * or 'r.q(const).auto.c(Numeric)').
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isauto(const SwigType *t) {
+  List *elements;
+  int n, i, found = 0;
+  if (!t)
+    return 0;
+  elements = SwigType_split(t);
+  n = Len(elements);
+  for (i = 0; i < n; i++) {
+    const char *el = Char(Getitem(elements, i));
+    if (strcmp(el, "auto") == 0 || strcmp(el, "auto.") == 0) {
+      found = 1;
+      break;
+    }
+  }
+  Delete(elements);
+  return found;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_isconcept()
+ *
+ * Tests whether t starts with the 'c(<id>)' base element used to carry
+ * a C++20 type-constraint on a 'Concept auto' placeholder.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isconcept(const SwigType *t) {
+  const char *c;
+  if (!t)
+    return 0;
+  c = Char(t);
+  return strncmp(c, "c(", 2) == 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_concept_name()
+ *
+ * If any element of t is a 'c(NAME)' concept-id base, returns a newly allocated
+ * String holding just NAME (e.g. 'Numeric' for 'r.auto.c(Numeric)').  Returns
+ * NULL if t carries no concept-id.
+ * ----------------------------------------------------------------------------- */
+
+String *SwigType_concept_name(const SwigType *t) {
+  List *elements;
+  int n, i;
+  String *result = 0;
+  if (!t)
+    return 0;
+  elements = SwigType_split(t);
+  n = Len(elements);
+  for (i = 0; i < n; i++) {
+    String *el = Getitem(elements, i);
+    if (SwigType_isconcept(el)) {
+      result = SwigType_parm(el);
+      break;
+    }
+  }
+  Delete(elements);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_replace_auto_base()
+ *
+ * Returns a newly allocated SwigType in which the 'auto' placeholder of t
+ * (including the optional 'auto.c(<id>)' constrained form) is replaced
+ * with new_base.  Any outer decoration ('r.', 'p.', 'q(const).' etc.) is
+ * preserved verbatim, so for t = 'r.q(const).auto.c(Numeric)' and
+ * new_base = 'X' this returns 'r.q(const).X'.  Returns NULL if t is not an
+ * 'auto' form.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_replace_auto_base(const SwigType *t, const String *new_base) {
+  List *elements;
+  int n, i;
+  SwigType *result;
+  if (!t || !new_base || !SwigType_isauto(t))
+    return 0;
+  elements = SwigType_split(t);
+  n = Len(elements);
+  result = NewStringEmpty();
+  for (i = 0; i < n; i++) {
+    String *el = Getitem(elements, i);
+    const char *c = Char(el);
+    if (strcmp(c, "auto") == 0 || strcmp(c, "auto.") == 0)
+      break;
+    Append(result, el);
+  }
+  Append(result, new_base);
+  Delete(elements);
+  return result;
 }
 
 /* -----------------------------------------------------------------------------

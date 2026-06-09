@@ -1,4 +1,4 @@
-/**
+/*
  * @file   std_functors.i
  * @date   Sun May  6 00:44:33 2007
  * 

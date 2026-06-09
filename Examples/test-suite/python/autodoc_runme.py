@@ -4,20 +4,10 @@ import comment_verifier
 import inspect
 import sys
 
-def check(got, expected, expected_builtin=None, skip=False):
-    if is_python_builtin() and skip:
-        # Only skip for builtins
-        pass
-    else:
-        expect = expected
-        if is_python_builtin() and expected_builtin != None:
-            expect = expected_builtin
-        comment_verifier.check(got, expect)
+def check(got, expected):
+    comment_verifier.check(got, expected)
 
-# skip builtin check - the autodoc is missing, but it probably should not be
-skip = True
-
-check(inspect.getdoc(A), "Proxy of C++ A class.", "::A")
+check(inspect.getdoc(A), "Proxy of C++ A class.")
 check(inspect.getdoc(A.funk), "just a string.")
 check(inspect.getdoc(A.func0),
       "func0(self, arg2, hello) -> int")
@@ -209,13 +199,10 @@ if not is_python_builtin():
     check(inspect.getdoc(_autodoc.B_funk), "B_funk(B self, int c, int d) -> int")
     check(inspect.getdoc(_autodoc.TInteger_inout), "TInteger_inout(TInteger self, TInteger t) -> TInteger")
 
-check(inspect.getdoc(B),
-      "Proxy of C++ B class.",
-      "::B"
-      )
-check(inspect.getdoc(C.__init__), "__init__(self, a, b, h) -> C", None, skip)
+check(inspect.getdoc(B), "Proxy of C++ B class.")
+check(inspect.getdoc(C.__init__), "__init__(self, a, b, h) -> C")
 check(inspect.getdoc(D.__init__),
-      "__init__(D self, int a, int b, Hola h) -> D", None, skip)
+      "__init__(D self, int a, int b, Hola h) -> D")
 check(inspect.getdoc(E.__init__),
       "__init__(self, a, b, h) -> E\n"
       "\n"
@@ -223,7 +210,7 @@ check(inspect.getdoc(E.__init__),
       "----------\n"
       "a: special comment for parameter a\n"
       "b: another special comment for parameter b\n"
-      "h: enum Hola", None, skip
+      "h: enum Hola"
       )
 check(inspect.getdoc(F.__init__),
       "__init__(F self, int a, int b, Hola h) -> F\n"
@@ -232,7 +219,7 @@ check(inspect.getdoc(F.__init__),
       "----------\n"
       "a: special comment for parameter a\n"
       "b: another special comment for parameter b\n"
-      "h: enum Hola", None, skip
+      "h: enum Hola"
       )
 
 check(inspect.getdoc(B.funk),
@@ -247,8 +234,8 @@ check(inspect.getdoc(func_inout), "func_inout(int * INOUT) -> int")
 check(inspect.getdoc(func_cb), "func_cb(int c, int d) -> int")
 check(inspect.getdoc(banana), "banana(S a, S b, int c, Integer d)")
 
-check(inspect.getdoc(TInteger), "Proxy of C++ T< int > class.", "::T< int >")
-check(inspect.getdoc(TInteger.__init__), "__init__(TInteger self) -> TInteger", None, skip)
+check(inspect.getdoc(TInteger), "Proxy of C++ T< int > class.")
+check(inspect.getdoc(TInteger.__init__), "__init__(TInteger self) -> TInteger")
 check(inspect.getdoc(TInteger.inout), "inout(TInteger self, TInteger t) -> TInteger")
 
 check(inspect.getdoc(process), "process(int _from, int _in, int var) -> int")
@@ -258,4 +245,4 @@ check(inspect.getdoc(process4), "process4(int _from=0, int _in=1, int var=2) -> 
 
 check(inspect.getdoc(process_complex_defval), "process_complex_defval(val=PROCESS_DEFAULT_VALUE, factor=some_type(-1)) -> int")
 
-check(inspect.getdoc(a_structure.__init__), "__init__(a_structure self) -> a_structure", None, skip)
+check(inspect.getdoc(a_structure.__init__), "__init__(a_structure self) -> a_structure")

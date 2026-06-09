@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("director_minimal") -- import code
+require("director_minimal")
 
 function my_run(self)
   return true
