@@ -185,7 +185,7 @@ static void SWIG_Ruby_free_swig_type(void *data) {
   struct swig_ruby_wrapped_object *wrobj = (struct swig_ruby_wrapped_object *)data;
   if (wrobj->dfree)
     wrobj->dfree(wrobj->data);
-#ifndef RUBY_TYPED_EMBEDDABLE
+#ifndef TYPED_DATA_EMBEDDED
   ruby_xfree(wrobj);
 #endif
 }
@@ -199,8 +199,8 @@ static const rb_data_type_t swig_type_data_type = {
   0, 0
 #ifdef RUBY_TYPED_FREE_IMMEDIATELY
   , RUBY_TYPED_FREE_IMMEDIATELY
-#ifdef RUBY_TYPED_EMBEDDABLE
-  || RUBY_TYPED_EMBEDDABLE
+#ifdef TYPED_DATA_EMBEDDED
+  | RUBY_TYPED_EMBEDDABLE
 #endif
 #endif
 };
