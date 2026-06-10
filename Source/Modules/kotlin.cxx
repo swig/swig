@@ -2070,9 +2070,12 @@ public:
 
     // C++ nested classes correspond to Kotlin nested classes which are static-like by default
     // Kotlin uses a single ':' clause for both the base class and interfaces
+    const String *class_modifiers = typemapLookup(n, "kclassmodifiers", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_CLASSMOD_UNDEF);
+    // A Kotlin class is final unless its modifiers make it inheritable; 'open' on a member of a final class has no effect.
+    bool final_class = !Strstr(class_modifiers, "open") && !Strstr(class_modifiers, "abstract");
     Printv(proxy_class_def,
-           typemapLookup(n, "kclassmodifiers", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_CLASSMOD_UNDEF),  // Class modifiers
-           " $kotlinclassname",                                                                           // Class name and bases
+           class_modifiers,      // Class modifiers
+           " $kotlinclassname",  // Class name and bases
            (*Char(wanted_base) || *Char(interface_list)) ? " : " : "",
            wanted_base,
            (*Char(wanted_base) && *Char(interface_list)) ? ", " : "",
@@ -2135,11 +2138,17 @@ public:
       if (*Char(destruct)) {
         Printv(proxy_class_def, "\n  ", NIL);
         const String *methodmods = Getattr(n, "destructmethodmodifiers");
-        if (methodmods)
-          Printv(proxy_class_def, methodmods, NIL);
-        else
-          Printv(proxy_class_def, destruct_methodmodifiers, NIL);
+        if (!methodmods)
+          methodmods = destruct_methodmodifiers;
+        // Drop the redundant 'open' from delete() on a final class - it has no effect and Kotlin warns about it.
+        String *emitted_methodmods = NewString(methodmods);
+        if (final_class) {
+          Replaceall(emitted_methodmods, " open", "");
+          Replaceall(emitted_methodmods, "open ", "");
+        }
+        Printv(proxy_class_def, emitted_methodmods, NIL);
         Printv(proxy_class_def, " fun ", destruct_methodname, "(", destruct_parameters, ")", " ", destruct, "\n", NIL);
+        Delete(emitted_methodmods);
       }
     }
     if (*Char(interface_upcasts))
@@ -3344,6 +3353,37 @@ public:
   }
 
   /* ----------------------------------------------------------------------
+   * makeByValuePropertyNonNull()
+   *
+   * The getter for a by-value member variable returns the address of the member,
+   * which is never null, so the Kotlin property type should be non-null. Drop the
+   * trailing '?' from prop_type in that case. Pointer and array members can genuinely
+   * be null and keep their nullable type; reference members are already non-null.
+   * ---------------------------------------------------------------------- */
+
+  void makeByValuePropertyNonNull(Node *n) {
+    if (!prop_type || !prop_getter_code)
+      return;
+    // Only a class pointer getter (the SWIGTYPE * kout typemap) emits this null check, and that
+    // is what a by-value class member's getter uses even though it can never return null. Guarding
+    // on the pattern leaves string and primitive members (which have no such check) untouched.
+    const char *null_check = "if (cPtr == 0L) null else ";
+    if (!Strstr(prop_getter_code, null_check))
+      return;
+    SwigType *t = SwigType_typedef_resolve_all(Getattr(n, "type"));
+    bool by_value = t && !SwigType_ispointer(t) && !SwigType_isarray(t) && !SwigType_isreference(t) && !SwigType_ismemberpointer(t);
+    Delete(t);
+    if (!by_value)
+      return;
+    // The getter returns the address of the member, which is never null, so make the property
+    // type non-null and drop the matching dead null check from the getter body.
+    int len = Len(prop_type);
+    if (len > 0 && Char(prop_type)[len - 1] == '?')
+      Delslice(prop_type, len - 1, len);
+    Replaceall(prop_getter_code, null_check, "");
+  }
+
+  /* ----------------------------------------------------------------------
    * membervariableHandler()
    * ---------------------------------------------------------------------- */
 
@@ -3352,6 +3392,7 @@ public:
     wrapping_member_flag = true;
     variable_wrapper_flag = true;
     Language::membervariableHandler(n);
+    makeByValuePropertyNonNull(n);
     // Member variable properties are open for the same reason as proxy methods, with a
     // variable hiding one in a base class becoming a Kotlin property override.
     // The %kotlinmethodmodifiers feature overrides the default modifiers.
@@ -3374,6 +3415,7 @@ public:
     wrapping_member_flag = true;
     static_flag = true;
     Language::staticmembervariableHandler(n);
+    makeByValuePropertyNonNull(n);
     assembleProxyProperty(proxy_class_companion_code, "@JvmStatic ");
     wrapping_member_flag = false;
     static_flag = false;

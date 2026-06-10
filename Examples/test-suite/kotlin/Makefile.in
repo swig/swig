@@ -40,6 +40,7 @@ CPP_TEST_CASES = \
 	kotlin_pgcpp \
 	kotlin_pragmas \
 	kotlin_prepost \
+	kotlin_std_map \
 	kotlin_typemaps_proxy \
 	kotlin_typemaps_typewrapper \
 	li_std_list \

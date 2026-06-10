@@ -58,11 +58,17 @@ template<class K, class T> class unordered_map {
   override val size: Int
     get() = sizeImpl()
 
-  override fun containsKey(key: $typemap(kboxtype, K)): Boolean {
+  override fun containsKey(key: $typemap(kboxtype, K)?): Boolean {
+    if (key !is $typemap(kboxtype, K)) {
+      return false
+    }
     return containsImpl(key)
   }
 
-  override fun get(key: $typemap(kboxtype, K)): $typemap(kboxtype, T)? {
+  override fun get(key: $typemap(kboxtype, K)?): $typemap(kboxtype, T)? {
+    if (key !is $typemap(kboxtype, K)) {
+      return null
+    }
     val itr = find(key)
     if (itr.isNot(end())) {
       return itr.getValue()
@@ -81,7 +87,10 @@ template<class K, class T> class unordered_map {
     return null
   }
 
-  override fun remove(key: $typemap(kboxtype, K)): $typemap(kboxtype, T)? {
+  override fun remove(key: $typemap(kboxtype, K)?): $typemap(kboxtype, T)? {
+    if (key !is $typemap(kboxtype, K)) {
+      return null
+    }
     val itr = find(key)
     if (itr.isNot(end())) {
       val oldValue = itr.getValue()
