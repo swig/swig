@@ -63,6 +63,9 @@
 %typemap(kcode)           enum SWIGTYPE ""
 %typemap(kimports)        enum SWIGTYPE ""
 %typemap(kinterfaces)     enum SWIGTYPE ""
+// Extra companion object members can be added per enum with the kcompanion typemap; they are
+// injected at the $kcompanionmembers marker inside the companion object.
+%typemap(kcompanion)      enum SWIGTYPE ""
 
 /*
  * The enum values are emitted into a companion object which is opened by the enum declaration
@@ -85,7 +88,7 @@
         if (swigEnum.swigValue == swigValue)
           return swigEnum
       throw IllegalArgumentException("No enum $kotlinclassname with value " + swigValue)
-    }
+    }$kcompanionmembers
   }
 
   val swigValue: Int

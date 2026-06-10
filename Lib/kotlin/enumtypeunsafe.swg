@@ -67,7 +67,10 @@
 %typemap(kcode)           enum SWIGTYPE ""
 %typemap(kimports)        enum SWIGTYPE ""
 %typemap(kinterfaces)     enum SWIGTYPE ""
-%typemap(kbody, companion="1") enum SWIGTYPE "  }\n"
+// Extra companion object members can be added per enum with the kcompanion typemap; they are
+// injected at the $kcompanionmembers marker inside the companion object.
+%typemap(kcompanion)      enum SWIGTYPE ""
+%typemap(kbody, companion="1") enum SWIGTYPE "$kcompanionmembers  }\n"
 
 %kotlinenum(typeunsafe);
 

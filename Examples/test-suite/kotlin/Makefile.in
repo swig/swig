@@ -25,6 +25,7 @@ C_TEST_CASES = \
 CPP_TEST_CASES = \
 	exception_partial_info \
 	kotlin_constants \
+	kotlin_enum_companion \
 	kotlin_director \
 	kotlin_director_assumeoverride \
 	kotlin_director_exception_feature \

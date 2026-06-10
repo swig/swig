@@ -65,6 +65,9 @@
 %typemap(kcode)           enum SWIGTYPE ""
 %typemap(kimports)        enum SWIGTYPE ""
 %typemap(kinterfaces)     enum SWIGTYPE ""
+// Extra companion object members can be added per enum with the kcompanion typemap; they are
+// injected at the $kcompanionmembers marker inside the companion object of the kbody typemap.
+%typemap(kcompanion)      enum SWIGTYPE ""
 
 /*
  * The SwigNext nested object is used instead of a companion object property as the companion
@@ -107,7 +110,7 @@
         if (swigEnum.swigValue == swigValue)
           return swigEnum
       throw IllegalArgumentException("No enum $kotlinclassname with value " + swigValue)
-    }
+    }$kcompanionmembers
   }
 %}
 

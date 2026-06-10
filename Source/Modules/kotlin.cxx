@@ -1347,6 +1347,11 @@ public:
                "}",
                NIL);
 
+        // Inject any extra companion object members supplied via the kcompanion typemap at the
+        // $kcompanionmembers marker that the kbody typemap places inside the companion object.
+        const String *enum_companion = typemapLookup(n, "kcompanion", typemap_lookup_type, WARN_NONE);
+        Replaceall(enum_code, "$kcompanionmembers", enum_companion ? enum_companion : "");
+
         Replaceall(enum_code, "$kotlinclassname", symname);
 
         // Substitute $enumvalues - intended usage is for typesafe enums
@@ -4273,6 +4278,11 @@ public:
     // For unknown enums
     Replaceall(swigtype, "$static ", "");
     Replaceall(swigtype, "$enumvalues", "");
+
+    // An enum kbody brings its own companion object containing a $kcompanionmembers marker; inject
+    // any extra companion members from the kcompanion typemap there, as enumDeclaration() does.
+    const String *wrapper_companion = open_companion ? typemapLookup(n, "kcompanion", type, WARN_NONE) : 0;
+    Replaceall(swigtype, "$kcompanionmembers", wrapper_companion ? wrapper_companion : "");
 
     Printv(f_swigtype, swigtype, NIL);
 
