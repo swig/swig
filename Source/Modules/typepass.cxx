@@ -552,7 +552,7 @@ class TypePass : private Dispatcher {
 
     if (name) {
       if (SwigType_istemplate(name)) {
-        // We need to fully resolve the name and expand default template parameters to make templates work correctly */
+        // We need to fully resolve the name and expand default template parameters to make templates work correctly
         Node *cn;
         SwigType *resolved_name = SwigType_typedef_resolve_all(name);
         SwigType *deftype_name = Swig_symbol_template_deftype(resolved_name, 0);
