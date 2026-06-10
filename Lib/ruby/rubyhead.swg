@@ -112,6 +112,9 @@
 #ifndef RTYPEDDATA_P
 # define RTYPEDDATA_P(x) (TYPE(x) != T_DATA)
 #endif
+#ifndef TYPED_DATA_EMBEDDED
+# define RTYPEDDATA_GET_DATA(x) RTYPEDDATA_DATA(x)
+#endif
 
 /* Wrapper attached to every SWIG TypedData object. It holds the wrapped pointer
    together with the per-object mark and free functions. The static rb_data_type_t

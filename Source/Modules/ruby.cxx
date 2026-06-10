@@ -1803,7 +1803,7 @@ public:
             Wrapper_add_local(f, result_name, result_var);
             Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
           }
-          Printf(action, "\n((struct swig_ruby_wrapped_object *)RTYPEDDATA_DATA(self))->data = %s;", result_name);
+          Printf(action, "\n((struct swig_ruby_wrapped_object *)RTYPEDDATA_GET_DATA(self))->data = %s;", result_name);
           if (GetFlag(pn, "feature:trackobjects")) {
             Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
           }
