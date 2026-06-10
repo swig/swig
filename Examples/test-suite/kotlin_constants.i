@@ -24,6 +24,20 @@
 #define PORKY !7
 %}
 
+// Bitwise and shift operators have no operator form in Kotlin, so as compile-time
+// constants they must be translated to the inv()/shl/shr/and/xor/or infix functions.
+// The values are chosen to exercise each operator and operator precedence.
+%inline %{
+#define BIT_SHIFT  (1 << 0)
+#define BIT_OR     (0xF0 | 0x0F)
+#define BIT_COMBO  ((1 << 2) | (1 << 3))
+#define BIT_AND    (0xFF & 0x0F)
+#define BIT_XOR    (0xFF ^ 0x0F)
+#define BIT_INV    (~0)
+#define BIT_PREC   (1 << 2 + 1)
+#define BIT_LONG   (1LL << 40)
+%}
+
 %constant int BRISTOLS=800;
 
 %kotlinconstvalue(100L) APPLES;

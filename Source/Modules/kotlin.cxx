@@ -1686,12 +1686,12 @@ public:
       variableWrapper(n);
       enum_constant_flag = false;
     } else {
-      // Alternative constant handling will use the C syntax to make a true Kotlin constant and hope that it compiles as Kotlin code
-      if (Getattr(n, "wrappedasconstant")) {
-        Printf(constants_code, "%s\n", Getattr(n, "staticmembervariableHandler:value"));
-      } else {
-        Printf(constants_code, "%s\n", Getattr(n, "value"));
-      }
+      // Alternative constant handling uses the C syntax to make a true Kotlin constant,
+      // translating any C operators (e.g. the bitwise and shift operators) that differ in Kotlin
+      String *cvalue = Getattr(n, "wrappedasconstant") ? Getattr(n, "staticmembervariableHandler:value") : Getattr(n, "value");
+      String *kvalue = kotlinConstExpr(cvalue);
+      Printf(constants_code, "%s\n", kvalue ? kvalue : cvalue);
+      Delete(kvalue);
     }
 
     // Emit the generated code to appropriate place
@@ -3667,6 +3667,241 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+   * kotlinConstExpr() and helpers
+   *
+   * Translate a C/C++ integer constant expression into an equivalent Kotlin
+   * expression. Most C operators are spelt the same in Kotlin, but the bitwise
+   * and shift operators have no operator form and must use the infix functions
+   * inv()/shl/shr/and/xor/or. Kotlin's infix functions all share a single
+   * precedence level (below the arithmetic operators), so the translated output
+   * is fully parenthesised to preserve the original C operator precedence.
+   *
+   * The parser only handles integer literals, identifiers, parentheses and the
+   * arithmetic/bitwise/shift/logical/comparison operators. Anything it cannot
+   * translate (char or string literals, function calls, C integer suffixes other
+   * than long, the ternary operator, ...) makes it return NULL so the caller
+   * keeps the original C text - use %kotlinconst(0) or %kotlinconstvalue for
+   * those difficult cases.
+   * ------------------------------------------------------------------------ */
+
+  static void kotlinSkipSpace(const char **pp) {
+    while (isspace((unsigned char)**pp))
+      (*pp)++;
+  }
+
+  // Match a binary operator at *p, returning its Kotlin spelling (with prec and length) or NULL.
+  static const char *kotlinBinaryOp(const char *p, int *prec, int *oplen) {
+    *oplen = 2;
+    if (p[0] == '<' && p[1] == '<') {
+      *prec = 8;
+      return "shl";
+    }
+    if (p[0] == '>' && p[1] == '>') {
+      *prec = 8;
+      return "shr";
+    }
+    if (p[0] == '<' && p[1] == '=') {
+      *prec = 7;
+      return "<=";
+    }
+    if (p[0] == '>' && p[1] == '=') {
+      *prec = 7;
+      return ">=";
+    }
+    if (p[0] == '=' && p[1] == '=') {
+      *prec = 6;
+      return "==";
+    }
+    if (p[0] == '!' && p[1] == '=') {
+      *prec = 6;
+      return "!=";
+    }
+    if (p[0] == '&' && p[1] == '&') {
+      *prec = 2;
+      return "&&";
+    }
+    if (p[0] == '|' && p[1] == '|') {
+      *prec = 1;
+      return "||";
+    }
+    *oplen = 1;
+    switch (p[0]) {
+    case '*':
+      *prec = 10;
+      return "*";
+    case '/':
+      *prec = 10;
+      return "/";
+    case '%':
+      *prec = 10;
+      return "%";
+    case '+':
+      *prec = 9;
+      return "+";
+    case '-':
+      *prec = 9;
+      return "-";
+    case '<':
+      *prec = 7;
+      return "<";
+    case '>':
+      *prec = 7;
+      return ">";
+    case '&':
+      *prec = 5;
+      return "and";
+    case '^':
+      *prec = 4;
+      return "xor";
+    case '|':
+      *prec = 3;
+      return "or";
+    default:
+      return 0;
+    }
+  }
+
+  String *kotlinParsePrimary(const char **pp) {
+    kotlinSkipSpace(pp);
+    const char *p = *pp;
+    char c = *p;
+    if (c == '(') {
+      (*pp)++;
+      String *inner = kotlinParseExpr(pp, 0);
+      if (!inner)
+        return 0;
+      kotlinSkipSpace(pp);
+      if (**pp != ')') {
+        Delete(inner);
+        return 0;
+      }
+      (*pp)++;
+      // Each binary operation is already self parenthesised, so the grouping is
+      // preserved structurally and the original parentheses can be dropped.
+      return inner;
+    }
+    if (isdigit((unsigned char)c)) {
+      const char *start = p;
+      if (c == '0' && (p[1] == 'x' || p[1] == 'X')) {
+        p += 2;
+        while (isxdigit((unsigned char)*p))
+          p++;
+      } else {
+        while (isdigit((unsigned char)*p))
+          p++;
+      }
+      const char *digits_end = p;
+      // Consume any C integer suffix. Long suffixes map to Kotlin's 'L'; the
+      // unsigned suffix is dropped (matching the signed values used elsewhere).
+      bool is_long = false;
+      while (*p == 'u' || *p == 'U' || *p == 'l' || *p == 'L') {
+        if (*p == 'l' || *p == 'L')
+          is_long = true;
+        p++;
+      }
+      // A '.', exponent or further identifier character means this is a float or
+      // something unsupported - bail so the original expression is kept.
+      if (*p == '.' || *p == 'e' || *p == 'E' || isalnum((unsigned char)*p) || *p == '_')
+        return 0;
+      *pp = p;
+      String *num = NewStringWithSize(start, (int)(digits_end - start));
+      if (is_long)
+        Append(num, "L");
+      return num;
+    }
+    if (isalpha((unsigned char)c) || c == '_') {
+      const char *start = p;
+      while (isalnum((unsigned char)*p) || *p == '_')
+        p++;
+      // Reject member access, scope resolution and function calls - too complex to translate.
+      if (*p == '.' || *p == '(' || (*p == ':' && p[1] == ':'))
+        return 0;
+      *pp = p;
+      return NewStringWithSize(start, (int)(p - start));
+    }
+    return 0;
+  }
+
+  String *kotlinParseUnary(const char **pp) {
+    kotlinSkipSpace(pp);
+    char c = **pp;
+    if (c == '~') {
+      (*pp)++;
+      String *o = kotlinParseUnary(pp);
+      if (!o)
+        return 0;
+      String *r = NewStringf("(%s).inv()", o);
+      Delete(o);
+      return r;
+    }
+    if (c == '-') {
+      (*pp)++;
+      String *o = kotlinParseUnary(pp);
+      if (!o)
+        return 0;
+      String *r = NewStringf("-%s", o);
+      Delete(o);
+      return r;
+    }
+    if (c == '!') {
+      (*pp)++;
+      String *o = kotlinParseUnary(pp);
+      if (!o)
+        return 0;
+      String *r = NewStringf("!%s", o);
+      Delete(o);
+      return r;
+    }
+    if (c == '+') {
+      (*pp)++;
+      return kotlinParseUnary(pp);
+    }
+    return kotlinParsePrimary(pp);
+  }
+
+  // Precedence climbing parser - all binary operators here are left associative.
+  String *kotlinParseExpr(const char **pp, int min_prec) {
+    String *left = kotlinParseUnary(pp);
+    if (!left)
+      return 0;
+    for (;;) {
+      kotlinSkipSpace(pp);
+      int prec, oplen;
+      const char *opk = kotlinBinaryOp(*pp, &prec, &oplen);
+      if (!opk || prec < min_prec)
+        break;
+      *pp += oplen;
+      String *right = kotlinParseExpr(pp, prec + 1);
+      if (!right) {
+        Delete(left);
+        return 0;
+      }
+      String *combined = NewStringf("(%s %s %s)", left, opk, right);
+      Delete(left);
+      Delete(right);
+      left = combined;
+    }
+    return left;
+  }
+
+  // Returns a newly allocated Kotlin expression, or NULL to keep the original C text.
+  String *kotlinConstExpr(const String *cexpr) {
+    if (!cexpr)
+      return 0;
+    const char *p = Char(cexpr);
+    String *out = kotlinParseExpr(&p, 0);
+    if (!out)
+      return 0;
+    kotlinSkipSpace(&p);
+    if (*p != '\0') {
+      // Trailing unparsed text (e.g. a ternary operator) - keep the original.
+      Delete(out);
+      return 0;
+    }
+    return out;
+  }
+
+  /* -----------------------------------------------------------------------
    * enumValue()
    * This method will return a string with an enum value to use in Kotlin generated
    * code. If the %kotlinconst feature is not used, the string will contain the intermediary
@@ -3688,8 +3923,10 @@ public:
       int const_feature_flag = GetFlag(n, "feature:kotlin:const");
 
       if (const_feature_flag) {
-        // Use the C syntax to make a true Kotlin constant and hope that it compiles as Kotlin code
-        value = Getattr(n, "enumvalue") ? Copy(Getattr(n, "enumvalue")) : Copy(Getattr(n, "enumvalueex"));
+        // Use the C syntax to make a true Kotlin constant, translating any C operators that differ in Kotlin
+        String *cvalue = Getattr(n, "enumvalue") ? Getattr(n, "enumvalue") : Getattr(n, "enumvalueex");
+        String *kvalue = kotlinConstExpr(cvalue);
+        value = kvalue ? kvalue : Copy(cvalue);
       } else {
         String *newsymname = 0;
         if (!getCurrentClass() || !proxy_flag) {

@@ -47,4 +47,22 @@ fun main() {
         throw RuntimeException("Incorrect value for APPLES")
     if (kotlin_constants.ROSY != 900L)
         throw RuntimeException("Incorrect value for ROSY")
+
+    // Bitwise and shift constants - check the C operators were translated correctly
+    if (kotlin_constants.BIT_SHIFT != 1)
+        throw RuntimeException("Incorrect value for BIT_SHIFT")
+    if (kotlin_constants.BIT_OR != 255)
+        throw RuntimeException("Incorrect value for BIT_OR")
+    if (kotlin_constants.BIT_COMBO != 12)
+        throw RuntimeException("Incorrect value for BIT_COMBO")
+    if (kotlin_constants.BIT_AND != 15)
+        throw RuntimeException("Incorrect value for BIT_AND")
+    if (kotlin_constants.BIT_XOR != 240)
+        throw RuntimeException("Incorrect value for BIT_XOR")
+    if (kotlin_constants.BIT_INV != -1)
+        throw RuntimeException("Incorrect value for BIT_INV")
+    if (kotlin_constants.BIT_PREC != 8)
+        throw RuntimeException("Incorrect value for BIT_PREC")
+    if (kotlin_constants.BIT_LONG != 1099511627776L)
+        throw RuntimeException("Incorrect value for BIT_LONG")
 }
