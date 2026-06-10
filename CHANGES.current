@@ -11,7 +11,7 @@ Version 4.5.0 (in progress)
             [Ruby] #3170 #3326 #3456 Generated wrappers now use Ruby's TypedData API
             instead of the deprecated untyped Data API (Data_Wrap_Struct, Data_Get_Struct,
             DATA_PTR).  Ruby 3.4 warns about the untyped Data API by default
-            (an error under -Werror) and Ruby 4.0 removes it entirely.
+            (an error under -Werror) and Ruby 4.1 removes it entirely.
 
             This is not fully backwards compatible: hand written code (typically
             in a typemap or %extend block) that reached the wrapped C/C++ pointer
