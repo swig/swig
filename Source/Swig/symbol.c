@@ -520,6 +520,8 @@ void Swig_symbol_inherit(Symtab *s) {
   Append(inherit, s);
 }
 
+static Node *symbol_no_constructor(Node *n);
+
 /* -----------------------------------------------------------------------------
  * Swig_symbol_cadd()
  *
@@ -651,7 +653,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
       int using_not_typedef = Equal(nodeType(td), "using");
       type = Copy(Getattr(td, using_not_typedef ? "uname" : "type"));
       SwigType_push(type, Getattr(td, "decl"));
-      td1 = Swig_symbol_clookup(type, 0);
+      td1 = Swig_symbol_clookup_check(type, 0, symbol_no_constructor);
 
       /* Fix pathetic case #1214313:
 
@@ -680,7 +682,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
         if (st && sn && Equal(st, sn)) {
           Symtab *sc = Getattr(current_symtab, "parentNode");
           if (sc)
-            td1 = Swig_symbol_clookup(type, sc);
+            td1 = Swig_symbol_clookup_check(type, sc, symbol_no_constructor);
         }
       }
 
@@ -1407,7 +1409,7 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *
     } else {
       String *uname = Getattr(s, "uname");
       Symtab *un = Getattr(s, "sym:symtab");
-      Node *ss = Swig_symbol_clookup_check(uname, un, checkfunc);
+      Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup_check(uname, un, checkfunc) : 0; /* avoid infinity loop */
       if (!ss && !checkfunc) {
         SWIG_WARN_NODE_BEGIN(s);
         Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
@@ -1759,8 +1761,14 @@ static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
   return qprefix;
 }
 
+/* Symbol lookup check function that rejects constructor nodes, including the using
+ * declaration nodes that inherit base constructors (which carry the class name).
+ * A constructor shares its enclosing class' name, so when a class name is looked up
+ * as a type through a derived class' scope an inherited constructor can be found
+ * ahead of the class itself.  Skipping constructors lets the lookup resolve to the
+ * class node, which is what a type qualifier names. */
 static Node *symbol_no_constructor(Node *n) {
-  return Checkattr(n, "nodeType", "constructor") ? 0 : n;
+  return (Checkattr(n, "nodeType", "constructor") || (Checkattr(n, "nodeType", "using") && GetFlag(n, "usingctor"))) ? 0 : n;
 }
 
 static Node *symbol_is_template(Node *n) {

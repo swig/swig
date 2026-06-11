@@ -7,6 +7,10 @@
 // a typedef chain whose intermediate lives in a namespace.  This mirrors the inheriting-constructor
 // typedef coverage in cpp11_template_using_base but for an ordinary member.
 //
+// The final case additionally gives the base a constructor of its own.  A constructor shares its
+// class name, so it must not shadow the base class when the typedef qualifier is resolved to a
+// scope.
+//
 // The method is protected in the base so that it is wrapped only because the using declaration
 // brings it into the derived class's public interface.
 
@@ -77,6 +81,22 @@ struct UseQualified : ns::NsBase {
 struct UseNsChain : ns::NsBase {
   typedef ns::NsBase ns_alias;
   typedef ns_alias base_type;
+  using base_type::testmethod;
+};
+%}
+
+%inline %{
+// The base declares constructors of its own.  The constructor shares the base class name, which must
+// not be mistaken for the base class itself while resolving the typedef qualifier to a scope.
+struct CtorBase {
+  CtorBase() {}
+  CtorBase(int) {}
+protected:
+  std::string testmethod(std::string v) const { return "Ctor:" + v; }
+};
+
+struct UseCtorTypedef : CtorBase {
+  typedef CtorBase base_type;
   using base_type::testmethod;
 };
 %}

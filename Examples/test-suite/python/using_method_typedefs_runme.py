@@ -10,3 +10,6 @@ swig_check(m.UseTemplateTypedef().testmethod("5"), "TBase:5")
 swig_check(m.UseTemplateArgTypedef().testmethod("5"), "TBase:5")
 swig_check(m.UseQualified().testmethod("5"), "Ns:5")
 swig_check(m.UseNsChain().testmethod("5"), "Ns:5")
+
+# The base has a constructor of its own.  The typedef qualifier must still resolve to the base class.
+swig_check(m.UseCtorTypedef().testmethod("5"), "Ctor:5")
