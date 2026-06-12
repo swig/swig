@@ -440,6 +440,7 @@ void Swig_nested_name_unnamed_c_structs(Node *n);
 
 /* Interface feature */
 void Swig_interface_feature_enable();
+void Swig_interface_propagate_variables_enable();
 void Swig_interface_propagate_methods(Node *n);
 
 /* Miscellaneous */

@@ -3648,6 +3648,13 @@ They are of course still available in the Java proxy class.
 </p>
 
 <p>
+<b>C# note:</b> unlike Java, C# interfaces can declare properties, so for C# the non-static member variables
+of the wrapped C++ class are additionally exposed as properties in the generated interface and can be accessed
+through an interface reference. Static methods, static variables, enums and constants are still only available
+in the C# proxy class as for Java. This was first added in SWIG-4.5.0.
+</p>
+
+<p>
 Wherever a class marked as an interface is used, such as the <tt>UseBases</tt> method in the example,
 the interface name is used as the type in the Java layer:
 </p>
