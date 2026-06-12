@@ -13,3 +13,9 @@ swig_check(m.UseNsChain().testmethod("5"), "Ns:5")
 
 # The base has a constructor of its own.  The typedef qualifier must still resolve to the base class.
 swig_check(m.UseCtorTypedef().testmethod("5"), "Ctor:5")
+
+# The base lives in a namespace and the typedef names it without the namespace qualifier (the base
+# class name is visible from the derived class as the injected class name).
+swig_check(m.UseNsQualified().testmethod("5"), "Constructor:5")
+swig_check(m.UseNsCtorTypedef().testmethod("5"), "Constructor:5")
+swig_check(m.UseNsPlainTypedef().plainmethod("5"), "Plain:5")

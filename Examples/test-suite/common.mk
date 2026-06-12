@@ -293,6 +293,7 @@ CPP_TEST_CASES += \
 	inherit_same_name \
 	inherit_target_language \
 	inherit_void_arg \
+	injecting_base_class \
 	inline_initializer \
 	inout_typemaps \
 	insert_directive \

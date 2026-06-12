@@ -7,6 +7,35 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-15: wsfulton
+            #2659 A base class can now be named from within a derived class without
+            its namespace qualifier, as C++ allows (the base class name is a
+            member of the base, visible from the derived class).  For example
+
+              namespace Space {
+                struct Base { ... };
+              }
+              struct Derived : Space::Base {
+                typedef Base base_type;       // Base, not Space::Base
+                using base_type::method;      // no longer Warning 315
+
+                Base copy(Base b) { return b; }   // 'Base' is Space::Base
+              };
+
+              // The base named through the derived class is also Space::Base.
+              Derived::Base make(Derived::Base b) { return b; }
+
+            The method 'Derived::copy' and the global function 'make' are now
+            wrapped, taking and returning a Space::Base.  Previously a using
+            declaration naming the base through such a typedef gave a spurious
+            'Nothing known about ...' warning (Warning 315) and the member was
+            silently dropped, and a base class named as a type without its
+            namespace qualifier was not recognised (it was unresolved, or treated
+            as a different type from the base named in full).  Such a name -
+            unqualified ('Base') or through the derived class ('Derived::Base') -
+            now resolves to the base class' own type, so a Space::Base value can
+            be passed to both 'copy' and 'make' above.
+
 2026-06-14: wsfulton
             A using declaration that brings a base class member into a
             derived class through a typedef naming the base, such as

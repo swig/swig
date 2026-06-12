@@ -1103,17 +1103,29 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
           }
         } else {
           if (Swig_scopename_check(e)) {
-            String *qlast;
-            String *qname;
-            Swig_scopename_split(e, &qname, &qlast);
-            if (qname) {
-              String *tqname = SwigType_typedef_qualified(qname);
+            /* A scope qualified name might itself name a scope, for example a base
+               class named through a derived class (Derived::Base); use the scope's
+               canonical name so it resolves to the same type as the base named
+               directly. */
+            Typetab *found_scope = current_scope ? SwigType_find_scope(current_scope, e) : 0;
+            if (found_scope) {
+              String *qs = SwigType_scope_name(found_scope);
               Clear(e);
-              Printf(e, "%s::%s", tqname, qlast);
-              Delete(qname);
-              Delete(tqname);
+              Append(e, qs);
+              Delete(qs);
+            } else {
+              String *qlast;
+              String *qname;
+              Swig_scopename_split(e, &qname, &qlast);
+              if (qname) {
+                String *tqname = SwigType_typedef_qualified(qname);
+                Clear(e);
+                Printf(e, "%s::%s", tqname, qlast);
+                Delete(qname);
+                Delete(tqname);
+              }
+              Delete(qlast);
             }
-            Delete(qlast);
 
             /* Automatic template instantiation might go here??? */
           } else {

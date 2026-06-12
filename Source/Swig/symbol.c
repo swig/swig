@@ -166,6 +166,38 @@
  * exists, so for example, Struct is in the scope OuterNamespace::InnerNamespace
  * so sym:symtab points to this symbol table (0xa064cc0).
  *
+ * C symbol table, inheritance and lookup order:
+ *
+ * Each scope carries two parallel tables.  The "symtab" table is keyed by the
+ * target language name (and is affected by %rename), with overloads chained via
+ * "sym:nextSibling".  The "csymtab" table is keyed by the C/C++ name and is the
+ * table used for C++ type resolution; its overloads are chained via
+ * "csym:nextSibling".  All of the lookup functions below (Swig_symbol_clookup
+ * and friends) search the csymtab.
+ *
+ * A scope may also have an "inherit" list.  This holds the symbol tables of the
+ * scope's C++ base classes and of any 'using namespace' directives in effect (it
+ * is not used for 'using X::y' declarations).  A separate global hash, "symtabs",
+ * maps every fully qualified C scope name (for example "OuterNamespace::Class")
+ * to its symbol table; this is how a qualified name is resolved to a scope.
+ *
+ * A name is resolved (see _symbol_lookup() and Swig_symbol_clookup()) in this
+ * order: first the scope's own csymtab, then each inherited scope recursively,
+ * and only if neither matches does the caller climb to the enclosing scopes
+ * (via parentNode).  Note that the inherited scopes are therefore searched
+ * before the enclosing scopes, which matters for names that exist in both.
+ *
+ * Injected-class-name:
+ *
+ * The C++ injected-class-name ([class]/2) makes a class' own name a public
+ * member of that class, so a base class' name is a member of the base.  By
+ * ordinary inheritance and member name lookup ([class.member.lookup], and
+ * [class.qual] for the qualified form) that inherited member is visible from
+ * within a derived class, so the base can be named there either unqualified
+ * ('Base') or scope qualified through the derived class ('Derived::Base').
+ * SWIG models this visibility in Swig_symbol_inherit(): when a class inherits
+ * a base, the base class' name is added to the derived class' csymtab, pointing
+ * at the base class node.
  * ----------------------------------------------------------------------------- */
 
 static Hash *current = 0;        /* The current symbol table hash */
@@ -495,6 +527,13 @@ void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *s) {
  * Inherit symbols from another scope. Primarily for C++ inheritance and
  * for using directives, such as 'using namespace X;'
  * but not for using declarations, such as 'using X::A;'.
+ *
+ * For C++ inheritance the base class' own name is also added to the current
+ * (derived) scope's C symbol table, so the base named from within the derived class
+ * - unqualified ('Base') or scope qualified ('Derived::Base') - resolves to the
+ * base class (the C++ injected class name, visible as an inherited member). The
+ * node added is the base's entry in its enclosing scope, where every class is
+ * registered.
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_inherit(Symtab *s) {
@@ -518,6 +557,24 @@ void Swig_symbol_inherit(Symtab *s) {
       return; /* Already inherited */
   }
   Append(inherit, s);
+
+  /* Add the base class' own name to the derived (current) scope's C symbol table so
+     it resolves to the base class from within the derived class (the C++ injected
+     class name, visible as an inherited member). The base class node is the entry
+     for the base's name in the base's enclosing scope, where every class is
+     registered. A 'using namespace' target is a namespace, not a class, and is
+     skipped, as is a null scope (an unresolved 'using namespace'). */
+  {
+    String *bname = s ? Getattr(s, "name") : 0;
+    Symtab *parent = s ? Getattr(s, "parentNode") : 0;
+    Hash *parent_csymtab = parent ? Getattr(parent, "csymtab") : 0;
+    Node *baseclass = (bname && parent_csymtab) ? Getattr(parent_csymtab, bname) : 0;
+    if (baseclass && Getattr(baseclass, "symtab") == s && (Checkattr(baseclass, "nodeType", "class") || Checkattr(baseclass, "nodeType", "template"))) {
+      Hash *csymtab = Getattr(current_symtab, "csymtab");
+      if (csymtab && !Getattr(csymtab, bname))
+        Setattr(csymtab, bname, baseclass);
+    }
+  }
 }
 
 static Node *symbol_no_constructor(Node *n);
@@ -1012,15 +1069,18 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
 /* -----------------------------------------------------------------------------
  * symbol_lookup()
  *
- * Internal function to handle fully qualified symbol table lookups.  This
- * works from the symbol table supplied in symtab and unwinds its way out
- * towards the global scope.
+ * Internal function to look up a name in the symbol table supplied in symtab.
+ * It searches that scope's own csymtab and then, recursively, each inherited
+ * scope; it does not climb to the enclosing scopes.  Climbing to the enclosing
+ * scopes is the caller's responsibility (see the parentNode loop in
+ * Swig_symbol_clookup()), so inherited scopes are searched before enclosing ones.
  *
  * This function operates in the C namespace, not the target namespace.
  *
  * The checkfunc function is an optional callback that can be used to verify a particular
  * symbol match.   This is only used in some of the more exotic parts of SWIG. For instance,
- * verifying that a class hierarchy implements all pure virtual methods.
+ * verifying that a class hierarchy implements all pure virtual methods.  A checkfunc may
+ * return a node further down the csym:nextSibling chain than the one passed to it.
  * ----------------------------------------------------------------------------- */
 
 static Node *_symbol_lookup(const String *name, Symtab *symtab, Node *(*checkfunc)(Node *n)) {
@@ -1763,10 +1823,13 @@ static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
 
 /* Symbol lookup check function that rejects constructor nodes, including the using
  * declaration nodes that inherit base constructors (which carry the class name).
- * A constructor shares its enclosing class' name, so when a class name is looked up
- * as a type through a derived class' scope an inherited constructor can be found
- * ahead of the class itself.  Skipping constructors lets the lookup resolve to the
- * class node, which is what a type qualifier names. */
+ *
+ * A constructor shares its enclosing class' name and occupies that name's slot in
+ * the class' own csymtab.  A type lookup of the class name from within that scope
+ * therefore finds the constructor; rejecting it lets the lookup fall through to the
+ * class itself (found by climbing to the enclosing scope, or as a base class name
+ * added to a derived scope by Swig_symbol_inherit()), which is what a type qualifier
+ * names. */
 static Node *symbol_no_constructor(Node *n) {
   return (Checkattr(n, "nodeType", "constructor") || (Checkattr(n, "nodeType", "using") && GetFlag(n, "usingctor"))) ? 0 : n;
 }

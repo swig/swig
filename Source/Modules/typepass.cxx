@@ -348,6 +348,16 @@ class TypePass : private Dispatcher {
       }
       if (scopes) {
         SwigType_inherit_scope(scopes);
+        /* Make the base class' name resolve to the base's own scope from within the
+           derived class (the C++ injected class name).  This lets a type that names
+           the base unqualified ('Base') or through the derived class ('Derived::Base')
+           resolve to the base's own type, mirroring in the type system what
+           Swig_symbol_inherit() does in the symbol table. */
+        {
+          String *blast = Swig_scopename_last(bname);
+          SwigType_scope_alias(blast, scopes);
+          Delete(blast);
+        }
       }
       /* Set up inheritance in the symbol table */
       Symtab *st = Getattr(cls, "symtab");
