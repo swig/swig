@@ -492,10 +492,13 @@ SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
 SWIGRUNTIME void 
 SWIG_Ruby_SetModule(swig_module_info *pointer)
 {
-  /* register a new class */
+  /* register a new class - undefine its allocator before wrapping an instance,
+     otherwise wrapping marks the class as a T_DATA class and Ruby 3.x warns when
+     the allocator is undefined afterwards. The class still can not be instantiated
+     from Ruby. */
   VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
-  swig_runtime_data_type_pointer = TypedData_Wrap_Struct(cl, &swig_runtime_data_type, pointer);
   rb_undef_alloc_func(cl);
+  swig_runtime_data_type_pointer = TypedData_Wrap_Struct(cl, &swig_runtime_data_type, pointer);
   /* create and store the structure pointer to a global variable */
   rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
 }
