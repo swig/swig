@@ -327,6 +327,8 @@ public:
 
     allow_overloading();
     Swig_interface_feature_enable();
+    // Member variables are wrapped as accessor methods which can be declared in a Java interface too.
+    Swig_interface_propagate_variables_enable();
   }
 
   /* ---------------------------------------------------------------------
@@ -2532,8 +2534,9 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
-    bool is_interface =
-      GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable") && !static_flag && Getattr(n, "interface:owner") == 0;
+    // Member variables are wrapped as accessor methods, so they are declared in the interface like any other
+    // instance method (unlike C# where they are exposed as properties).
+    bool is_interface = GetFlag(parentNode(n), "feature:interface") && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
       return;

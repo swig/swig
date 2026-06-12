@@ -66,8 +66,9 @@ struct V3 : IV1, IV2 {};
 #endif
 
 %inline %{
-// Non-static member variables are exposed in the interface (as properties for C#), but static
-// members, enums and constants are not and remain available only via the proxy class.
+// Non-static member variables are exposed in the interface (as properties for C# and as accessor
+// methods for Java), but static members, enums and constants are not and remain available only via
+// the proxy class.
 class Undesirables
 {
 public:

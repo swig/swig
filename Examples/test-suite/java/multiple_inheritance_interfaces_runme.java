@@ -83,5 +83,12 @@ public class multiple_inheritance_interfaces_runme {
     d.ia("bye", false);
 
     UndesirablesSwigImpl.UndesiredStaticMethod(UndesirablesSwigImpl.UndesiredEnum.UndesiredEnum1);
+
+    // Member variable accessors are declared in the interface, so they are accessible through an
+    // interface reference to a derived class.
+    Undesirables undesirables = new UndesirablesDerived();
+    undesirables.setUndesiredVariable(42);
+    if (undesirables.getUndesiredVariable() != 42)
+      throw new RuntimeException("UndesiredVariable not accessible via the Undesirables interface");
   }
 }

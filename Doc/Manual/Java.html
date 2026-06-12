@@ -3642,16 +3642,16 @@ added to the proxy class implementing that interface.
 </p>
 
 <p>
-The Java interface only ever contains virtual and non-virtual instance methods from the wrapped C++ class.
-Any static methods, enums or variables in the wrapped C++ class are not supported and are not added to the interface.
-They are of course still available in the Java proxy class.
+The Java interface contains the virtual and non-virtual instance methods from the wrapped C++ class, plus the
+accessor methods generated for its non-static member variables, so that these variables can be accessed through
+an interface reference. Any static methods, static variables, enums or constants in the wrapped C++ class are not
+added to the interface; they are of course still available in the Java proxy class.
 </p>
 
 <p>
-<b>C# note:</b> unlike Java, C# interfaces can declare properties, so for C# the non-static member variables
-of the wrapped C++ class are additionally exposed as properties in the generated interface and can be accessed
-through an interface reference. Static methods, static variables, enums and constants are still only available
-in the C# proxy class as for Java. This was first added in SWIG-4.5.0.
+<b>C# note:</b> the C# interface works the same way, except that member variables are exposed as C# properties
+rather than as accessor methods. Member variables were first added to the interface in SWIG-4.5.0; earlier
+versions only added instance methods.
 </p>
 
 <p>
