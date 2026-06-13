@@ -128,7 +128,7 @@ jobs:
 #       - SWIGLANG: ruby
 #         COMPILER: gcc
 #         MSYS2_ENV: ucrt64
-#       - SWIGLANG: ruby
+        - SWIGLANG: ruby
           VER: '3.2'
           COMPILER: gcc
           CPPSTD: c++11
