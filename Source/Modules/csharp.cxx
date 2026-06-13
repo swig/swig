@@ -1919,9 +1919,9 @@ public:
              "(",
              classname,
              " *jarg1) {\n",
-             "    return (",
+             "    return static_cast<",
              baseclassname,
-             " *)jarg1;\n"
+             " *>(jarg1);\n"
              "}\n",
              "\n",
              NIL);
