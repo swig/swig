@@ -178,3 +178,24 @@ struct IAdditional2 { virtual ~IAdditional2() {} };
 struct IAdditional3 : IAdditional1, IAdditional2 {};
 struct AdditionalConcrete : IAdditional1, IAdditional2 {};
 %}
+
+// A class nested in a class wrapped as an interface is emitted into the interface itself for Java, so
+// that it can be used through any class implementing the interface, e.g. WithNestedDerived.Nested.
+#if defined(SWIGJAVA)
+%interface_impl(WithNested);
+
+%inline %{
+struct WithNested {
+  struct Nested {
+    int getValue() { return 42; }
+  };
+  virtual ~WithNested() {}
+  virtual void withNestedMethod() {}
+};
+
+struct WithNestedDerived : WithNested {
+  virtual void withNestedMethod() {}
+};
+%}
+
+#endif

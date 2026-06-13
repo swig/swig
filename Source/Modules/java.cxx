@@ -2403,13 +2403,20 @@ public:
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
       Replaceall(interface_class_code, "$imclassname", full_imclass_name);
 
+      // A class nested directly inside a class wrapped as an interface is emitted into the interface
+      // rather than the proxy class, so that it can be used as InterfaceName.Nested as well as via any
+      // class implementing the interface (a Java class inherits the member types of its interfaces).
+      String *outer_class_code = old_proxy_class_code;
+      if (has_outerclass && GetFlag(Getattr(n, "nested:outer"), "feature:interface"))
+        outer_class_code = old_interface_class_code;
+
       if (!has_outerclass)
         Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
       else {
         Swig_offset_string(proxy_class_def, nesting_depth);
-        Append(old_proxy_class_code, proxy_class_def);
+        Append(outer_class_code, proxy_class_def);
         Swig_offset_string(proxy_class_code, nesting_depth);
-        Append(old_proxy_class_code, proxy_class_code);
+        Append(outer_class_code, proxy_class_code);
       }
 
       // Write out all the constants
@@ -2418,7 +2425,7 @@ public:
           Printv(f_proxy, proxy_class_constants_code, NIL);
         else {
           Swig_offset_string(proxy_class_constants_code, nesting_depth);
-          Append(old_proxy_class_code, proxy_class_constants_code);
+          Append(outer_class_code, proxy_class_constants_code);
         }
       }
 
@@ -2428,8 +2435,8 @@ public:
         f_proxy = NULL;
       } else {
         for (int i = 0; i < nesting_depth; ++i)
-          Append(old_proxy_class_code, "  ");
-        Append(old_proxy_class_code, "}\n\n");
+          Append(outer_class_code, "  ");
+        Append(outer_class_code, "}\n\n");
         --nesting_depth;
       }
 

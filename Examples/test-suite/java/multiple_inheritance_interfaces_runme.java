@@ -90,5 +90,11 @@ public class multiple_inheritance_interfaces_runme {
     undesirables.setUndesiredVariable(42);
     if (undesirables.getUndesiredVariable() != 42)
       throw new RuntimeException("UndesiredVariable not accessible via the Undesirables interface");
+
+    // A class nested in an interface class is emitted in the interface, so it is accessible through
+    // any class implementing the interface, e.g. as WithNestedDerived.Nested.
+    WithNestedDerived.Nested nested = new WithNestedDerived.Nested();
+    if (nested.getValue() != 42)
+      throw new RuntimeException("WithNested.Nested not accessible via the WithNested interface");
   }
 }

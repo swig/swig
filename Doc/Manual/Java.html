@@ -3649,9 +3649,17 @@ added to the interface; they are of course still available in the Java proxy cla
 </p>
 
 <p>
-<b>C# note:</b> the C# interface works the same way, except that member variables are exposed as C# properties
-rather than as accessor methods. Member variables were first added to the interface in SWIG-4.5.0; earlier
-versions only added instance methods.
+Any class nested directly in a class marked as an interface is generated inside the Java interface rather than
+inside the proxy class. As a Java class inherits the member types of the interfaces it implements, such a nested
+class is then accessible both as <tt>InterfaceName.Nested</tt> and through any class implementing the interface,
+for example <tt>DerivedClass.Nested</tt>.
+</p>
+
+<p>
+<b>C# note:</b> the C# interface works the same way for member variables, except that they are exposed as C#
+properties rather than as accessor methods. Nested classes, however, are kept in the C# proxy class, as a C#
+interface cannot be used to access the nested types of an implementing class. Member variables were first added
+to the interface in SWIG-4.5.0; earlier versions only added instance methods.
 </p>
 
 <p>
