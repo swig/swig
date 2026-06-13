@@ -2435,7 +2435,9 @@ public:
     Printf(klass->init, "SwigClass%s.cext_type.wrap_struct_name = \"C++ class %s\";\n", klass->name, klass->cname);
     Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
     Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
+    Printf(klass->init, "#ifdef RUBY_TYPED_FREE_IMMEDIATELY\n");
     Printf(klass->init, "SwigClass%s.cext_type.flags = SWIG_RUBY_TYPED_DATA_FLAGS;\n", klass->name);
+    Printf(klass->init, "#endif\n");
   }
 
   /*
