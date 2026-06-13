@@ -739,11 +739,13 @@ static int yylook(void) {
           }
 
           int endlines = 0;
-          do {
+          for (;;) {
             tok = Scanner_token(scan);
-            if (tok == SWIG_TOKEN_ENDLINE)
-              endlines++;
-          } while (tok == SWIG_TOKEN_ENDLINE);
+            if (tok != SWIG_TOKEN_ENDLINE)
+              break;
+
+            endlines++;
+          }
 
           if (scan_doxygen_comments) {
             Delete(cmt_modified);
