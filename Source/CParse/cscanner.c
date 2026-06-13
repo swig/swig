@@ -737,13 +737,15 @@ static int yylook(void) {
               }
             }
           }
-          {
-            int endlines = 0;
-            do {
-              tok = Scanner_token(scan);
-              if (tok == SWIG_TOKEN_ENDLINE)
-                endlines++;
-            } while (tok == SWIG_TOKEN_ENDLINE);
+
+          int endlines = 0;
+          do {
+            tok = Scanner_token(scan);
+            if (tok == SWIG_TOKEN_ENDLINE)
+              endlines++;
+          } while (tok == SWIG_TOKEN_ENDLINE);
+
+          if (scan_doxygen_comments) {
             Delete(cmt_modified);
             /* A blank line (2+ newlines) after a structural block (@file, @page, ...) means
                all accumulated content is file-scope and must be discarded, so that the next
