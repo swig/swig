@@ -124,10 +124,11 @@ jobs:
         - SWIGLANG: python
           COMPILER: gcc
           MSYS2_ENV: ucrt64
-        - SWIGLANG: ruby
-          COMPILER: gcc
-          MSYS2_ENV: ucrt64
-        - SWIGLANG: ruby
+# To fix - swig fails to link, see job failure: https://github.com/swig/swig/actions/runs/27424393216/job/81058274348
+#       - SWIGLANG: ruby
+#         COMPILER: gcc
+#         MSYS2_ENV: ucrt64
+#       - SWIGLANG: ruby
           VER: '3.2'
           COMPILER: gcc
           CPPSTD: c++11
