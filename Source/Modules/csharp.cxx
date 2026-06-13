@@ -2264,6 +2264,7 @@ public:
 
     String *additional = Getattr(n, "feature:interface:additional");
     String *bases = additional ? NewStringf(" : %s", additional) : 0;
+    bool has_interface_bases = false;
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
         if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
@@ -2275,6 +2276,7 @@ public:
           Append(bases, ", ");
           Append(bases, base_iname);
         }
+        has_interface_bases = true;
       }
     }
     if (bases) {
@@ -2288,7 +2290,9 @@ public:
     if (interface_code) {
       String *interface_declaration = Copy(Getattr(attributes, "tmap:csinterfacecode:declaration"));
       if (interface_declaration) {
+        // $interfacenew is a hack which gets replaced with "new" if the interface has a base interface and nothing otherwise.
         Replaceall(interface_declaration, "$interfacename", interface_name);
+        Replaceall(interface_declaration, "$interfacenew", has_interface_bases ? "new " : "");
         Printv(f_interface, interface_declaration, NIL);
         Delete(interface_declaration);
       }
