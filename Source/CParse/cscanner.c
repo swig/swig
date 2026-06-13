@@ -753,9 +753,11 @@ static int yylook(void) {
                all accumulated content is file-scope and must be discarded, so that the next
                declaration's own doc comment is not polluted. */
             if (in_structural_block && endlines >= 2) {
-              Delete(yylval.str);
-              yylval.str = 0;
-              existing_comment = DOX_COMMENT_NONE;
+              if (existing_comment != DOX_COMMENT_NONE) {
+                Delete(yylval.str);
+                yylval.str = 0;
+                existing_comment = DOX_COMMENT_NONE;
+              }
               break;
             }
           }
