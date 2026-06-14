@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-08: Nerixyz
+            [Python] #3390 PEP 484 type annotations now use the wrapped proxy
+            class name instead of typing.Any. Pointers and C arrays are annotated
+            as typing.Optional[...] as they accept None for a null pointer. A new
+            $pytypename special variable, similar to $javaclassname, is available
+            in 'pytyping' typemaps and expands to the proxy class name, or to an
+            opaque SWIGTYPE_* name for types that have no wrapper class.
+
 2026-06-07: larskanis, jschueller
             [Ruby] #3170 #3326 #3456 Generated wrappers now use Ruby's TypedData API
             instead of the deprecated untyped Data API (Data_Wrap_Struct, Data_Get_Struct,

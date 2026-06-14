@@ -7195,6 +7195,24 @@ def do_something(t: "int|float") -&gt; "int":
 </pre></div>
 
 <p>
+The following special variables can be used:
+<dl>
+<dt><tt>$pytypename</tt></dt>
+<dd>
+Similar to Java's <a href="Java.html#Java_special_variables"><tt>$javaclassname</tt></a>. Expands to the wrapped Python proxy class or type wrapper class.
+<ul>
+<li><tt>$pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *</tt></li>
+<li><tt>$&amp;pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo</tt></li>
+<li><tt>$*pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *&amp;</tt></li>
+</ul>
+If there is no wrapped proxy class, the special variable expands to an opaque type wrapper class. For example, if there's no proxy class for <tt>Foo *</tt>, <tt>$pytypename</tt> will expand to <tt>SWIGTYPE_p_Foo</tt>.
+Pointers, such as <tt>int *</tt> result in <tt>$pytypename</tt> expanding to the type wrapper class <tt>SWIGTYPE_p_int</tt>.
+These type wrapper classes are declared only for static type checkers, inside an <tt>if typing.TYPE_CHECKING</tt> block, and are not present at runtime.
+</dd>
+</dl>
+</p>
+
+<p>
 <b>Compatibility Note:</b> SWIG-4.5.0 added support for PEP 484 annotation types.
 </p>
 

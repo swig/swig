@@ -18,6 +18,13 @@
   $result = $1.has_value ? PyLong_FromLong($1.value) : Py_None;
 }
 
+// Test that a changed type for MyEnum will be picked up correctly.
+%typemap(pytyping) MyEnum "bool";
+%rename(MyNamespaced2) MyNamespace::Inner::MyNamespaced1;
+
+// Test a typemap using $pytypename for an enum - it should expand to "int" as Python wraps enums as ints.
+%typemap(pytyping) PytypenameEnum "typing.Optional[$pytypename]";
+
 %inline %{
 namespace Space {
 template<class T>
@@ -133,5 +140,76 @@ OptionalInt optional_square(OptionalInt i) {
 
 struct MyType {};
 MyType docs_do_something_out_type(MyType t) { return MyType(); }
+
+struct MyStruct {
+  void do_something(MyStruct& ref, MyStruct* ptr, const MyStruct& cref) {}
+};
+
+typedef int MyTypedef;
+typedef MyStruct MyStructTypedef;
+void use_typedefs(int i, MyTypedef mt, const MyStructTypedef &cref_mst) {}
+
+void use_memberfn_ptr(void (MyStruct::* ptr)(MyStruct&, MyStruct*, const MyStruct&)) {}
+
+void use_member_ptr(int OptionalInt::*ptr) {}
+
+enum MyEnum {
+  MyEnumMember1,
+  MyEnumMember2,
+  MyEnumMember3,
+};
+typedef MyEnum MyEnumTypedef;
+
+enum MyOtherEnum {
+  MyOtherEnumMember1,
+  MyOtherEnumMember2,
+};
+typedef MyOtherEnum MyOtherEnumTypedef;
+
+void use_enums(MyEnum me, MyEnumTypedef met, MyOtherEnum moe, MyOtherEnumTypedef moet) {}
+
+enum PytypenameEnum {
+  PytypenameEnumMember1,
+};
+void use_pytypename_enum(PytypenameEnum e) {}
+
+namespace MyNamespace {
+  struct MyNamespaced1 {
+    int foo;
+  };
+  namespace Inner {
+    struct MyInner {
+      int bar;
+    };
+    struct MyNamespaced1 {
+      int baz;
+    };
+  }
+}
+
+void use_namespaced(MyNamespace::MyNamespaced1 ns1, const MyNamespace::Inner::MyInner &inner1, MyNamespace::Inner::MyNamespaced1 *inner_ns1) {}
+
+void *wrap_ptr(size_t val) { return (void *)val; }
+size_t unwrap_ptr(void *ptr) { return (size_t)ptr; }
+
+short &make_short_ref() {
+  static short v = 1;
+  return v;
+}
+
+const short &make_short_cref() {
+  static short v = 1;
+  return v;
+}
+
+MyStruct &make_struct_ref() {
+  static MyStruct v;
+  return v;
+}
+
+const MyStruct &make_struct_cref() {
+  static MyStruct v;
+  return v;
+}
 
 %}
