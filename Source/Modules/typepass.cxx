@@ -1160,22 +1160,40 @@ class TypePass : private Dispatcher {
       }
       return SWIG_OK;
     } else {
-      Node *ns;
+      Node *ns = 0;
       /* using id */
       Symtab *stab = Getattr(n, "sym:symtab");
       if (stab) {
         String *uname = Getattr(n, "uname");
-        ns = Swig_symbol_clookup(uname, stab);
-        if (!ns && SwigType_istemplate(uname)) {
-          String *tmp = Swig_symbol_template_deftype(uname, 0);
-          if (!Equal(tmp, uname)) {
-            ns = Swig_symbol_clookup(tmp, stab);
+        if (GetFlag(n, "usingctor")) {
+          // Inherited constructors: don't try and resolve the constructor as it may be implicit and hence absent at this stage.
+          // Normalize and resolve the class instead and if successful reconstruct the using declaration for the inherited constructor.
+          SwigType *prefix = Swig_scopename_prefix(uname);
+          normalize_type(prefix);
+          SwigType *prefix_resolved = SwigType_typedef_resolve_all(prefix);
+          SwigType *n2ndlast = Swig_scopename_last(prefix_resolved);
+          String *classname = SwigType_istemplate(n2ndlast) ? SwigType_templateprefix(n2ndlast) : Copy(n2ndlast);
+          SwigType *uname_normalized = NewStringf("%s::%s", prefix_resolved, classname);
+
+          Setattr(n, "uname", uname_normalized);
+
+          Delete(uname_normalized);
+          Delete(classname);
+          Delete(n2ndlast);
+          Delete(prefix_resolved);
+          Delete(prefix);
+        } else {
+          ns = Swig_symbol_clookup(uname, stab);
+          if (!ns && SwigType_istemplate(uname)) {
+            String *tmp = Swig_symbol_template_deftype(uname, 0);
+            if (!Equal(tmp, uname)) {
+              ns = Swig_symbol_clookup(tmp, stab);
+            }
+            Delete(tmp);
           }
-          Delete(tmp);
         }
-      } else {
-        ns = 0;
       }
+
       // Note that Allocate::usingDeclaration will warn when using member is not found (when ns is zero)
       if (ns) {
         /* Only a single symbol is being used.  There are only a few symbols that

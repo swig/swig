@@ -174,6 +174,20 @@ Version 4.5.0 (in progress)
             Previously any deduction guide resulted in a syntax error.
 
 2026-05-28: wsfulton
+            #2951 Inheriting constructors now work when the immediate base
+            class is named through a typedef, including when that base is a
+            template instantiation:
+
+                struct D : C<A> {
+                  typedef C<A> base_type;
+                  using base_type::base_type;
+                };
+
+            Previously SWIG warned "Nothing known about 'base_type::base_type'"
+            and wrapped only the default constructor, leaving the inherited
+            constructors unavailable from the target language.
+
+2026-05-28: wsfulton
             #2951 A using-declaration whose qualifier is a type-template
             parameter used directly as the base class - the mixin idiom -
 

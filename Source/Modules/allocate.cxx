@@ -1017,21 +1017,58 @@ public:
       return SWIG_OK;
 
     if (!Getattr(n, "namespace")) {
-      Node *ns;
+      Node *ns = 0;
       /* using id */
       Symtab *stab = Getattr(n, "sym:symtab");
       if (stab) {
         String *uname = Getattr(n, "uname");
-        ns = Swig_symbol_clookup(uname, stab);
-        if (!ns && SwigType_istemplate(uname)) {
-          String *tmp = Swig_symbol_template_deftype(uname, 0);
-          if (!Equal(tmp, uname)) {
-            ns = Swig_symbol_clookup(tmp, stab);
+        if (GetFlag(n, "usingctor")) {
+          // Inherited constructors: don't try and lookup the constructor as it may be implicit - instead lookup the class
+          SwigType *classname = Swig_scopename_prefix(uname);
+          Node *classnode = Swig_symbol_clookup(classname, 0);
+          Node *parent = parentNode(n);
+
+          // Check that the class specified in the inheriting constructor is actually a base class
+          for (Iterator bi = First(Getattr(parent, "allbases")); bi.item; bi = Next(bi)) {
+            if (bi.item == classnode) {
+              /* The base constructor may be implicit (and so absent) or itself inherited through a using declaration -
+               * locate a constructor to clone the inherited constructor from. */
+              for (Node *child = firstChild(bi.item); child && !ns; child = nextSibling(child)) {
+                String *ct = nodeType(child);
+                if (Equal(ct, "constructor"))
+                  ns = child;
+                else if (Equal(ct, "using") && GetFlag(child, "usingctor") && firstChild(child))
+                  ns = child;
+              }
+              break;
+            }
           }
-          Delete(tmp);
+          if (!ns && classnode) {
+            /* The using declaration names a real class that is not an immediate base of the enclosing class -
+             * an inheriting constructor must name an immediate base, so report it specifically. */
+            String *basename = SwigType_templateprefix(classname);
+            Swig_warning(WARN_PARSE_USING_CONSTRUCTOR,
+                         Getfile(n),
+                         Getline(n),
+                         "Using declaration '%s' for inheriting constructors uses base '%s' which is not an immediate base of '%s'.\n",
+                         SwigType_namestr(Getattr(n, "uname")),
+                         SwigType_namestr(basename),
+                         SwigType_namestr(Getattr(parent, "name")));
+            Delete(basename);
+            Delete(classname);
+            return SWIG_OK;
+          }
+          Delete(classname);
+        } else {
+          ns = Swig_symbol_clookup(uname, stab);
+          if (!ns && SwigType_istemplate(uname)) {
+            String *tmp = Swig_symbol_template_deftype(uname, 0);
+            if (!Equal(tmp, uname)) {
+              ns = Swig_symbol_clookup(tmp, stab);
+            }
+            Delete(tmp);
+          }
         }
-      } else {
-        ns = 0;
       }
       if (!ns) {
         if (is_public(n)) {

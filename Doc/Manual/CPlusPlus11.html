@@ -936,8 +936,37 @@ derived proxy just as if the using-declaration had named <tt>IntCase::call</tt> 
 </p>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.5.0 is the first version to substitute template parameters in a using-declaration
-where the qualifier is a bare type-template parameter.
+The same applies to inheriting constructors, even when the immediate base class is named through a typedef rather
+than by its class name. This is common when the base is a template instantiation:
+</p>
+
+<div class="code"><pre>
+struct A {
+  A();
+  A(int a);
+};
+
+template &lt;typename Parent&gt;
+struct C : Parent {
+  using Parent::Parent;
+};
+
+%template(CA) C&lt;A&gt;;
+
+struct D : C&lt;A&gt; {
+  typedef C&lt;A&gt; base_type;
+  using base_type::base_type;     // inherit C&lt;A&gt;'s constructors through the typedef
+};
+</pre></div>
+
+<p>
+SWIG resolves the typedef qualifier to the base class, so both <tt>CA</tt> and <tt>D</tt> wrap the inherited
+<tt>int</tt> constructor and can be constructed with an integer argument from the target language.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to resolve a using-declaration whose qualifier is a
+bare type-template parameter or a typedef for the base class, including the inheriting-constructor forms.
 </p>
 
 <H3><a name="CPlusPlus11_explicit_overrides_final">7.2.12 Explicit overrides and final</a></H3>

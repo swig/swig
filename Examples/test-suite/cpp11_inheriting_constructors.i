@@ -42,4 +42,26 @@ public:
   typedef DerivedClass base_type;
   using base_type::protectedValue;
 };
+
+// Template-mixin variant: the base is a template instantiation whose constructors are inherited
+// through the template parameter (TInheritCtor<T> : T { using T::T; }), and a protected base method
+// is brought into the public interface through a typedef naming that base.  The inheriting-constructor
+// using declaration is named after its class, so resolving the typedef to the class it names must
+// find the class itself and not the same-named constructor, otherwise 'base_type::protectedValue'
+// does not resolve.  See issue #2951.
+template <typename T> class TInheritCtor : public T {
+public:
+  using T::T;
+};
+%}
+
+%template(TInheritCtorBase) TInheritCtor<BaseClass>;
+
+%inline %{
+class UseTemplateInheritCtor : public TInheritCtor<BaseClass> {
+public:
+  UseTemplateInheritCtor(int v) : TInheritCtor<BaseClass>(v) {}
+  typedef TInheritCtor<BaseClass> base_type;
+  using base_type::protectedValue;
+};
 %}

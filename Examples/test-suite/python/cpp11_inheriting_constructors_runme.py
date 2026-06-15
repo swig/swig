@@ -9,6 +9,11 @@ if d.retrieveValue() != 10:
 if UseInheritCtorTypedef(42).protectedValue() != 42:
     raise RuntimeError("UseInheritCtorTypedef.protectedValue() failed");
 
+# A protected base method brought into the public interface through a typedef naming a template-mixin
+# base whose constructors are inherited through the template parameter (issue #2951)
+if UseTemplateInheritCtor(42).protectedValue() != 42:
+    raise RuntimeError("UseTemplateInheritCtor.protectedValue() failed");
+
 # Member initialization at the site of the declaration
 s = SomeClass()
 if s.value != 5:

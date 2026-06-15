@@ -7,6 +7,10 @@ assert(d:retrieveValue() == 10, "retrieveValue()")
 -- A protected member brought into the public interface through a typedef naming a base that has inheriting constructors
 assert(v.UseInheritCtorTypedef(42):protectedValue() == 42, "UseInheritCtorTypedef.protectedValue()")
 
+-- A protected base method brought into the public interface through a typedef naming a template-mixin
+-- base whose constructors are inherited through the template parameter (issue #2951)
+assert(v.UseTemplateInheritCtor(42):protectedValue() == 42, "UseTemplateInheritCtor.protectedValue()")
+
 -- Member initialization at the site of the declaration
 local s = v.SomeClass()
 assert(s.value == 5, "s.value")

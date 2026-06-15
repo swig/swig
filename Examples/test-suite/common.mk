@@ -651,6 +651,7 @@ CPP11_TEST_CASES += \
 	cpp11_final_override \
 	cpp11_function_objects \
 	cpp11_inheriting_constructors \
+	cpp11_inheriting_constructors_typedef \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \

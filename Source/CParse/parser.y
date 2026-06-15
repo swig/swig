@@ -611,21 +611,23 @@ static void add_symbols(Node *n) {
 	}
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
-	Node *cls = currentOuterClass;
 	String *nprefix = 0;
 	String *nlast = 0;
 	Swig_scopename_split(uname, &nprefix, &nlast);
-	if (Swig_item_in_list(Getattr(cls, "baselist"), nprefix) || Swig_item_in_list(Getattr(cls, "protectedbaselist"), nprefix) || Swig_item_in_list(Getattr(cls, "privatebaselist"), nprefix)) {
-	  String *plain_name = SwigType_istemplate(nprefix) ? SwigType_templateprefix(nprefix) : nprefix;
-	  if (Equal(nlast, plain_name)) {
-	    /* Using declaration looks like it is using a constructor in an immediate base class - change the constructor name for this class.
-	     * C++11 requires using declarations for inheriting base constructors to be in the immediate base class.
-	     * Note that we don't try and look up the constructor in the base class as the constructor may be an implicit/implied constructor and hence not exist. */
+	/* Recognise a using declaration that names a constructor of its qualifier, ie an inheriting constructor:
+	 *   using Base::Base;   using C<A>::C;   using base_type::base_type;
+	 * The unqualified-id matches the (template prefix of the) last component of the qualifier.  Whether the
+	 * qualifier really is an immediate base class cannot be decided here - base classes are not resolved into
+	 * nodes until the typepass stage. */
+	if (nprefix) {
+	  String *n2ndlast = Swig_scopename_last(nprefix);
+	  String *classname = SwigType_istemplate(n2ndlast) ? SwigType_templateprefix(n2ndlast) : n2ndlast;
+	  if (Equal(nlast, classname)) {
 	    Symtab *stab = Swig_symbol_current();
-	    String *nname = Getattr(stab, "name");
-	    Setattr(n, "name", nname);
+	    Setattr(n, "name", Getattr(stab, "name"));
 	    SetFlag(n, "usingctor");
 	  }
+	  Delete(n2ndlast);
 	}
       } else {
 	/* for member functions, we need to remove the redundant

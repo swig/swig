@@ -1,3 +1,4 @@
 cpp_using_constructor_bad.i:7: Warning 329: Using declaration 'Base::Base' for inheriting constructors uses base 'Base' which is not an immediate base of 'MoreDerived'.
 cpp_using_constructor_bad.i:8: Warning 329: Using declaration 'NotConnected::NotConnected' for inheriting constructors uses base 'NotConnected' which is not an immediate base of 'MoreDerived'.
 cpp_using_constructor_bad.i:17: Warning 329: Using declaration 'TemplateBase< int >::TemplateBase' for inheriting constructors uses base 'TemplateBase' which is not an immediate base of 'TemplateMoreDerived< int >'.
+cpp_using_constructor_bad.i:29: Warning 329: Using declaration 'ns::NsBase::NsBase' for inheriting constructors uses base 'ns::NsBase' which is not an immediate base of 'NsMoreDerived'.
