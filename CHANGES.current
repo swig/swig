@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-17: jschueller
+            #2933 Fixed a regression where repeating an identical using declaration for
+            a type, such as two 'using aa::Foo;' lines, caused that type to be referenced
+            by its unqualified name in the generated wrapper code. This typically led to
+            wrapper code that would not compile when the type was used in a template
+            instantiation.
+
 2026-06-16: wsfulton
             #1827 Fix a hang (infinite loop) when a class inherits from a base
             class named through a redundant self-referential typedef, such as:
