@@ -29,6 +29,10 @@ public class cpp11_template_using_base_runme {
     check(new TypedefMixin().call(7), "Int:7");
     check(new TypedefMixin(10).call(7), "Int:17");
 
+    // As above but the unqualified-id is the base template's own name through the typedef (issue #2951)
+    check(new TypedefNameMixin().call(7), "Int:7");
+    check(new TypedefNameMixin(10).call(7), "Int:17");
+
     // As above but through a typedef of a typedef (issue #2951)
     check(new TypedefChainMixin().call(7), "Int:7");
     check(new TypedefChainMixin(10).call(7), "Int:17");

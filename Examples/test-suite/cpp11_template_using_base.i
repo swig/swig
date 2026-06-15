@@ -66,6 +66,11 @@ struct TypedefMixin : Derived<IntCase> {
     typedef Derived<IntCase> base_type;
     using base_type::base_type;
 };
+// As TypedefMixin, but the unqualified-id is the base template's own name (using base_type::Derived).
+struct TypedefNameMixin : Derived<IntCase> {
+    typedef Derived<IntCase> base_type;
+    using base_type::Derived;
+};
 %}
 
 %inline %{

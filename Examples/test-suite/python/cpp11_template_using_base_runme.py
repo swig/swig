@@ -12,6 +12,10 @@ swig_check(d10.call(7), "Int:17")
 swig_check(m.TypedefMixin().call(7), "Int:7")
 swig_check(m.TypedefMixin(10).call(7), "Int:17")
 
+# As above but the unqualified-id is the base template's own name through the typedef (issue #2951)
+swig_check(m.TypedefNameMixin().call(7), "Int:7")
+swig_check(m.TypedefNameMixin(10).call(7), "Int:17")
+
 # As above but through a typedef of a typedef (issue #2951)
 swig_check(m.TypedefChainMixin().call(7), "Int:7")
 swig_check(m.TypedefChainMixin(10).call(7), "Int:17")

@@ -1166,22 +1166,56 @@ class TypePass : private Dispatcher {
       if (stab) {
         String *uname = Getattr(n, "uname");
         if (GetFlag(n, "usingctor")) {
+          /* The parser flags a using declaration as a candidate inheriting constructor when either:
+           *  (a) the terminal name of the nested-name-specifier is the same as the unqualified-id, or
+           *  (b) the unqualified-id is the terminal name of a base class of the enclosing class.
+           * Case (a) is verified in Allocate::usingDeclaration.
+           * Case (b) is verified here.  A case (b) candidate may be a false positive: an ordinary member
+           * using declaration whose unqualified-id happens to match a base class name.  Verify it by resolving the
+           * nested-name-specifier through typedefs to its base class - a genuine inheriting constructor names that
+           * base class's own constructor, so the unqualified-id must equal the resolved base class name. */
+          SwigType *nested_name_specifier = Swig_scopename_prefix(uname);
+          String *unqualified_id = Swig_scopename_last(uname);
+          String *terminal = Swig_scopename_last(nested_name_specifier);
+          String *terminal_name = SwigType_istemplate(terminal) ? SwigType_templateprefix(terminal) : Copy(terminal);
+          if (!Equal(unqualified_id, terminal_name)) {
+            /* Verify case (b) */
+            normalize_type(nested_name_specifier);
+            SwigType *nested_name_specifier_resolved = SwigType_typedef_resolve_all(nested_name_specifier);
+            SwigType *resolved_terminal = Swig_scopename_last(nested_name_specifier_resolved);
+            String *resolved_terminal_name = SwigType_istemplate(resolved_terminal) ? SwigType_templateprefix(resolved_terminal) : Copy(resolved_terminal);
+            if (!Equal(unqualified_id, resolved_terminal_name)) {
+              // Not an inheriting constructor - undo the parser's rename so it is treated as an ordinary member using declaration
+              UnsetFlag(n, "usingctor");
+              Setattr(n, "name", unqualified_id);
+              Setattr(n, "sym:name", unqualified_id); // sym:name reverts to the plain unqualified-id, so a %rename of this member might be missed (but would be an obscure corner case)
+            }
+            Delete(resolved_terminal_name);
+            Delete(resolved_terminal);
+            Delete(nested_name_specifier_resolved);
+          }
+          Delete(terminal_name);
+          Delete(terminal);
+          Delete(unqualified_id);
+          Delete(nested_name_specifier);
+        }
+        if (GetFlag(n, "usingctor")) {
           // Inherited constructors: don't try and resolve the constructor as it may be implicit and hence absent at this stage.
           // Normalize and resolve the class instead and if successful reconstruct the using declaration for the inherited constructor.
-          SwigType *prefix = Swig_scopename_prefix(uname);
-          normalize_type(prefix);
-          SwigType *prefix_resolved = SwigType_typedef_resolve_all(prefix);
-          SwigType *n2ndlast = Swig_scopename_last(prefix_resolved);
-          String *classname = SwigType_istemplate(n2ndlast) ? SwigType_templateprefix(n2ndlast) : Copy(n2ndlast);
-          SwigType *uname_normalized = NewStringf("%s::%s", prefix_resolved, classname);
+          SwigType *nested_name_specifier = Swig_scopename_prefix(uname);
+          normalize_type(nested_name_specifier);
+          SwigType *nested_name_specifier_resolved = SwigType_typedef_resolve_all(nested_name_specifier);
+          SwigType *resolved_terminal = Swig_scopename_last(nested_name_specifier_resolved);
+          String *resolved_terminal_name = SwigType_istemplate(resolved_terminal) ? SwigType_templateprefix(resolved_terminal) : Copy(resolved_terminal);
+          SwigType *uname_normalized = NewStringf("%s::%s", nested_name_specifier_resolved, resolved_terminal_name);
 
           Setattr(n, "uname", uname_normalized);
 
           Delete(uname_normalized);
-          Delete(classname);
-          Delete(n2ndlast);
-          Delete(prefix_resolved);
-          Delete(prefix);
+          Delete(resolved_terminal_name);
+          Delete(resolved_terminal);
+          Delete(nested_name_specifier_resolved);
+          Delete(nested_name_specifier);
         } else {
           ns = Swig_symbol_clookup(uname, stab);
           if (!ns && SwigType_istemplate(uname)) {

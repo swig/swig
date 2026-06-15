@@ -563,6 +563,42 @@ static int promote_abbreviated_template(Node *n) {
   return 1;
 }
 
+/* Return 1 if 'unqualified_id' is the terminal name of a base class of class 'cls', following
+ * typedefs to the base class' own name (as Swig_make_inherit_list does).  A using declaration whose
+ * unqualified-id names a base class this way could be an inheriting constructor, even when the
+ * nested-name-specifier names the base through a typedef, eg 'using Alias::Base;' where Alias is a
+ * typedef for the base Base. */
+static int inheriting_ctor_base_match(Node *cls, String *unqualified_id) {
+  static const char *baselists[3] = {"baselist", "protectedbaselist", "privatebaselist"};
+  int i;
+  for (i = 0; i < 3; i++) {
+    List *bases = Getattr(cls, baselists[i]);
+    int len = bases ? Len(bases) : 0;
+    int j;
+    for (j = 0; j < len; j++) {
+      Node *s = Swig_symbol_clookup(Getitem(bases, j), 0);
+      while (s && Strcmp(nodeType(s), "class") != 0 && Strcmp(nodeType(s), "template") != 0) {
+	String *storage = Getattr(s, "storage");
+	if (storage && Strcmp(storage, "typedef") == 0)
+	  s = Swig_symbol_clookup(Getattr(s, "type"), Getattr(s, "sym:symtab"));
+	else
+	  break;
+      }
+      if (s && (Strcmp(nodeType(s), "class") == 0 || Strcmp(nodeType(s), "template") == 0)) {
+	String *terminal = Swig_scopename_last(Getattr(s, "name"));
+	String *base_terminal = SwigType_istemplate(terminal) ? SwigType_templateprefix(terminal) : terminal;
+	int match = Equal(unqualified_id, base_terminal);
+	if (base_terminal != terminal)
+	  Delete(base_terminal);
+	Delete(terminal);
+	if (match)
+	  return 1;
+      }
+    }
+  }
+  return 0;
+}
+
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
 
@@ -611,23 +647,35 @@ static void add_symbols(Node *n) {
 	}
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
-	String *nprefix = 0;
-	String *nlast = 0;
-	Swig_scopename_split(uname, &nprefix, &nlast);
-	/* Recognise a using declaration that names a constructor of its qualifier, ie an inheriting constructor:
-	 *   using Base::Base;   using C<A>::C;   using base_type::base_type;
-	 * The unqualified-id matches the (template prefix of the) last component of the qualifier.  Whether the
-	 * qualifier really is an immediate base class cannot be decided here - base classes are not resolved into
-	 * nodes until the typepass stage. */
-	if (nprefix) {
-	  String *n2ndlast = Swig_scopename_last(nprefix);
-	  String *classname = SwigType_istemplate(n2ndlast) ? SwigType_templateprefix(n2ndlast) : n2ndlast;
-	  if (Equal(nlast, classname)) {
+	String *nested_name_specifier = 0;
+	String *unqualified_id = 0;
+	Swig_scopename_split(uname, &nested_name_specifier, &unqualified_id);
+        /* A note regarding C++ standards terminology when given a fully-qualified member W::X::Y::Z
+         *   W::X::Y is the nested-name-specifier
+         *   Y is the terminal name (c++23) or last component of the nested-name-specifier (pre c++23)
+         *   Z is the unqualified-id
+         *
+         * Recognise a using declaration that could be an inheriting constructor, ie one that names a
+	 * constructor of a base class. It is a candidate when either:
+	 *  (a) the terminal name of the nested-name-specifier is the same as the unqualified-id, eg
+	 *      using Base::Base;   using C<A>::C;   using base_type::base_type;
+	 *  (b) the unqualified-id is the terminal name of a base class of the enclosing class, eg
+	 *      using Alias::Base;   where Alias is a typedef for the base Base.
+	 * Both are only candidates - whether the nested-name-specifier really names an immediate base class
+	 * cannot be decided here as base classes are not resolved into nodes until Typepass::usingDeclaration,
+         * which verifies the candidate as an inheriting constructor. */
+	if (nested_name_specifier && currentOuterClass) {
+	  String *terminal = Swig_scopename_last(nested_name_specifier);
+	  String *terminal_name = SwigType_istemplate(terminal) ? SwigType_templateprefix(terminal) : Copy(terminal);
+	  if (Equal(terminal_name, unqualified_id) || inheriting_ctor_base_match(currentOuterClass, unqualified_id)) {
+	    /* Rename the node to the enclosing class so the symbol table registers it as a constructor of this
+	     * class (reverted in typepass stage if inheriting constructor verification fails). */
 	    Symtab *stab = Swig_symbol_current();
 	    Setattr(n, "name", Getattr(stab, "name"));
 	    SetFlag(n, "usingctor");
 	  }
-	  Delete(n2ndlast);
+	  Delete(terminal_name);
+	  Delete(terminal);
 	}
       } else {
 	/* for member functions, we need to remove the redundant
