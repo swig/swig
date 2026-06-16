@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-13: larskanis, wsfulton
+            [Ruby] #3465 #3467 Wrapped objects now use Ruby's embedded TypedData
+            storage on Ruby 3.3 and later, so each wrapped object uses one fewer
+            memory allocation.  Ruby 3.2 and earlier are unaffected.
+
 2026-06-07: larskanis, jschueller
             [Ruby] #3170 #3326 #3456 Generated wrappers now use Ruby's TypedData API
             instead of the deprecated untyped Data API (Data_Wrap_Struct, Data_Get_Struct,
