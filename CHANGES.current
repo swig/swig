@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-16: wsfulton
+            #1827 Fix a hang (infinite loop) when a class inherits from a base
+            class named through a redundant self-referential typedef, such as:
+
+              typedef struct foo foo;
+              struct foo { };
+              class bar : public foo { };
+
+            The base class is now resolved correctly so the derived class
+            inherits from it.
+
 2026-06-15: wsfulton
             #2659 A base class can now be named from within a derived class without
             its namespace qualifier, as C++ allows (the base class name is a

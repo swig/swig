@@ -1342,9 +1342,12 @@ static Node *symbol_clookup_typedef_scope(const String *name, Symtab *symtab, No
 Node *Swig_symbol_clookup_resolve_typedef(const_String_or_char_ptr name, Symtab *n) {
   Node *s = Swig_symbol_clookup(name, n);
   while (s && Equal(nodeType(s), "cdecl")) {
-    if (Checkattr(s, "storage", "typedef"))
-      s = Swig_symbol_clookup(Getattr(s, "type"), Getattr(s, "sym:symtab"));
-    else
+    if (Checkattr(s, "storage", "typedef")) {
+      Node *next = Swig_symbol_clookup(Getattr(s, "type"), Getattr(s, "sym:symtab"));
+      if (next == s)
+        break; /* A self-referential typedef such as 'typedef struct foo foo;'. */
+      s = next;
+    } else
       break;
   }
   return s;

@@ -28,6 +28,13 @@ struct normal_node {
 
 static normal_node *patch_list = 0;
 
+/* Find the class or template aliased by a name by walking the symbol table sibling chain. */
+static Node *symbol_resolve_to_class(Node *n) {
+  while (n && !(Equal(nodeType(n), "class") || Equal(nodeType(n), "template")))
+    n = Getattr(n, "csym:nextSibling");
+  return n;
+}
+
 /* Singleton class - all non-static methods in this class are private */
 class TypePass : private Dispatcher {
   Node *inclass;
@@ -177,9 +184,11 @@ class TypePass : private Dispatcher {
             tname = SwigType_typedef_resolve_all(bname);
             sname = tname;
           }
+          int resolve_class = 0;
           while (1) {
             String *qsname = SwigType_typedef_qualified(sname);
-            bcls = Swig_symbol_clookup(qsname, st);
+            /* When resolve_class is set, look up the aliased class instead of a self-referential typedef. */
+            bcls = resolve_class ? Swig_symbol_clookup_check(qsname, st, symbol_resolve_to_class) : Swig_symbol_clookup(qsname, st);
             Delete(qsname);
             if (bcls) {
               if (Strcmp(nodeType(bcls), "class") != 0) {
@@ -195,6 +204,12 @@ class TypePass : private Dispatcher {
                       tname = SwigType_typedef_resolve_all(sname);
                       sname = tname;
                     }
+                    /* A self-referential typedef such as 'typedef struct foo foo;' resolves by name back to
+                       itself; resolve the aliased class instead of looping forever. */
+                    String *nqsname = SwigType_typedef_qualified(sname);
+                    if (Swig_symbol_clookup(nqsname, st) == bcls)
+                      resolve_class = 1;
+                    Delete(nqsname);
                     continue;
                   }
                   // A case when both outer and nested classes inherit from the same parent. Constructor may be found instead of the class itself.
