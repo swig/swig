@@ -565,20 +565,24 @@ public:
       // Add the intermediary class methods
       Replaceall(imclass_class_code, "$module", module_class_name);
       Replaceall(imclass_class_code, "$imclassname", imclass_name);
+      kotlinReindent(imclass_class_code);
       Printv(f_im, imclass_class_code, NIL);
+      kotlinReindent(imclass_cppcasts_code);
       Printv(f_im, imclass_cppcasts_code, NIL);
-      if (Len(imclass_directors) > 0)
+      if (Len(imclass_directors) > 0) {
+        kotlinReindent(imclass_directors);
         Printv(f_im, "\n", imclass_directors, NIL);
+      }
 
       if (n_dmethods > 0) {
         // The JvmStatic annotation is required so that the JNI code receives a real jclass
         // for looking up the static director upcall methods
         Putc('\n', f_im);
-        Printf(f_im, "  @JvmStatic\n");
-        Printf(f_im, "  private external fun swig_module_init()\n");
-        Printf(f_im, "  init {\n");
-        Printf(f_im, "    swig_module_init()\n");
-        Printf(f_im, "  }\n");
+        Printf(f_im, "    @JvmStatic\n");
+        Printf(f_im, "    private external fun swig_module_init()\n");
+        Printf(f_im, "    init {\n");
+        Printf(f_im, "        swig_module_init()\n");
+        Printf(f_im, "    }\n");
       }
       // Finish off the class
       Printf(f_im, "}\n");
@@ -638,9 +642,11 @@ public:
       // Write out all the global constants. Unlike Java, which uses a separate constants
       // interface implemented by the module class, the constants live in the module object
       // itself as Kotlin objects cannot inherit from other objects.
+      kotlinReindent(module_class_constants_code);
       Printv(f_module, module_class_constants_code, NIL);
 
       // Add the wrapper methods
+      kotlinReindent(module_class_code);
       Printv(f_module, module_class_code, NIL);
 
       // Finish off the class
@@ -1393,6 +1399,7 @@ public:
             Printf(f_enum, "\n");
           }
 
+          kotlinReindent(enum_code);
           Printv(f_enum,
                  typemapLookup(n, "kimports", typemap_lookup_type, WARN_NONE),  // Import statements
                  "\n",
@@ -1558,7 +1565,10 @@ public:
           // Note these are always generated for anonymous enums, no matter what enum_feature is specified
           // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
           String *value = enumValue(n);
-          Printf(enum_code, "  @JvmField %sval %s: %s = %s\n", mmods, symname, return_type, value);
+          // Typeunsafe enum constants live inside the enum class companion object, so indent them
+          // one level deeper than constants emitted directly into a module or proxy class.
+          const char *indent = ((enum_feature == TypeunsafeEnum) && parent_name && !unnamedinstance) ? "    " : "  ";
+          Printf(enum_code, "%s@JvmField %sval %s: %s = %s\n", indent, mmods, symname, return_type, value);
           Delete(value);
         }
         Delete(mmods);
@@ -2254,6 +2264,7 @@ public:
       String *interface_declaration = Copy(Getattr(attributes, "tmap:kinterfacecode:declaration"));
       if (interface_declaration) {
         Replaceall(interface_declaration, "$interfacename", interface_name);
+        kotlinReindent(interface_declaration);
         Printv(f_interface, interface_declaration, NIL);
         Delete(interface_declaration);
       }
@@ -2442,14 +2453,21 @@ public:
         Printv(companion_code, "\n  companion object {\n", NIL);
         if (Len(proxy_class_companion_code) != 0)
           Printv(companion_code, proxy_class_companion_code, NIL);
-        if (Len(proxy_class_constants_code) != 0)
+        if (Len(proxy_class_constants_code) != 0) {
+          // Member constants are emitted at class member level but live in the companion object.
+          Swig_offset_string(proxy_class_constants_code, 1);
           Printv(companion_code, proxy_class_constants_code, NIL);
+        }
         Printv(companion_code, "  }\n", NIL);
       }
 
-      if (!has_outerclass)
+      if (!has_outerclass) {
+        // Reindent the whole class (including any appended nested classes) exactly once
+        kotlinReindent(proxy_class_def);
+        kotlinReindent(proxy_class_code);
+        kotlinReindent(companion_code);
         Printv(f_proxy, proxy_class_def, proxy_class_code, companion_code, NIL);
-      else {
+      } else {
         Swig_offset_string(proxy_class_def, nesting_depth);
         Append(old_proxy_class_code, proxy_class_def);
         Swig_offset_string(proxy_class_code, nesting_depth);
@@ -2471,6 +2489,7 @@ public:
       }
 
       if (f_interface) {
+        kotlinReindent(interface_class_code);
         Printv(f_interface, interface_class_code, "}\n", NIL);
         Delete(f_interface);
         f_interface = 0;
@@ -3013,8 +3032,14 @@ public:
           Printf(function_code, " %s\n\n", tm ? tm : empty_string);
         }
       }
-      // Static functions go into the companion object of the proxy class
-      Printv(static_flag ? proxy_class_companion_code : proxy_class_code, function_code, NIL);
+      // Static functions go into the companion object of the proxy class, one indentation level
+      // deeper than instance methods which sit directly in the class body.
+      if (static_flag) {
+        Swig_offset_string(function_code, 1);
+        Printv(proxy_class_companion_code, function_code, NIL);
+      } else {
+        Printv(proxy_class_code, function_code, NIL);
+      }
     }
 
     Delete(pre_code);
@@ -3091,13 +3116,19 @@ public:
    * target code buffer. A variable without a setter becomes a read only 'val'.
    * ----------------------------------------------------------------------------- */
 
-  void assembleProxyProperty(String *target, const char *modifiers = "") {
+  void assembleProxyProperty(String *target, const char *modifiers = "", bool companion = false) {
     if (prop_getter_code) {
-      Printf(target, "  %s%s %s: %s\n", modifiers, prop_setter_code ? "var" : "val", variable_name, prop_type);
-      Printf(target, "    %s\n", prop_getter_code);
+      String *prop = NewStringEmpty();
+      Printf(prop, "  %s%s %s: %s\n", modifiers, prop_setter_code ? "var" : "val", variable_name, prop_type);
+      Printf(prop, "    %s\n", prop_getter_code);
       if (prop_setter_code)
-        Printf(target, "    %s\n", prop_setter_code);
-      Printf(target, "\n");
+        Printf(prop, "    %s\n", prop_setter_code);
+      Printf(prop, "\n");
+      // Static properties go into the companion object, one indentation level deeper than class members.
+      if (companion)
+        Swig_offset_string(prop, 1);
+      Printv(target, prop, NIL);
+      Delete(prop);
     }
     Delete(prop_getter_code);
     prop_getter_code = NULL;
@@ -3317,6 +3348,8 @@ public:
         }
         Printf(helper_code, "\n  }\n");
         String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
+        // The construct helper lives in the companion object, one indentation level deeper.
+        Swig_offset_string(helper_code, 1);
         Printv(proxy_class_companion_code, helper_code, "\n", NIL);
         Replaceall(function_code, "$imcall", helper_name);
         Delete(helper_name);
@@ -3389,6 +3422,43 @@ public:
   }
 
   /* ----------------------------------------------------------------------
+   * kotlinReindent()
+   *
+   * Kotlin's coding conventions use 4 space indentation, but the module and its
+   * typemaps are written with 2 space indentation (matching Swig_offset_string,
+   * which is also used to indent nested classes). Double the run of leading spaces
+   * on every line to turn 2 space indentation into 4 space indentation. This is
+   * applied once to each generated Kotlin (.kt) buffer just before it is written,
+   * so it never affects the C/C++ wrapper file.
+   * ---------------------------------------------------------------------- */
+
+  static void kotlinReindent(String *s) {
+    if (!s || Len(s) == 0)
+      return;
+    String *out = NewStringEmpty();
+    const char *p = Char(s);
+    bool line_start = true;
+    while (*p) {
+      if (line_start) {
+        int spaces = 0;
+        while (p[spaces] == ' ')
+          ++spaces;
+        // Emit the extra run; the original leading spaces are copied by the loop below.
+        for (int i = 0; i < spaces; ++i)
+          Putc(' ', out);
+        line_start = false;
+      }
+      Putc((unsigned char)*p, out);
+      if (*p == '\n')
+        line_start = true;
+      ++p;
+    }
+    Clear(s);
+    Append(s, out);
+    Delete(out);
+  }
+
+  /* ----------------------------------------------------------------------
    * membervariableHandler()
    * ---------------------------------------------------------------------- */
 
@@ -3421,7 +3491,7 @@ public:
     static_flag = true;
     Language::staticmembervariableHandler(n);
     makeByValuePropertyNonNull(n);
-    assembleProxyProperty(proxy_class_companion_code, "@JvmStatic ");
+    assembleProxyProperty(proxy_class_companion_code, "@JvmStatic ", true);
     wrapping_member_flag = false;
     static_flag = false;
     return SWIG_OK;
@@ -4284,6 +4354,7 @@ public:
     const String *wrapper_companion = open_companion ? typemapLookup(n, "kcompanion", type, WARN_NONE) : 0;
     Replaceall(swigtype, "$kcompanionmembers", wrapper_companion ? wrapper_companion : "");
 
+    kotlinReindent(swigtype);
     Printv(f_swigtype, swigtype, NIL);
 
     Delete(f_swigtype);
