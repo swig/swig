@@ -1081,6 +1081,13 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
  * symbol match.   This is only used in some of the more exotic parts of SWIG. For instance,
  * verifying that a class hierarchy implements all pure virtual methods.  A checkfunc may
  * return a node further down the csym:nextSibling chain than the one passed to it.
+ *
+ * A checkfunc tests the target symbol named by 'name', so it must not be passed when 'name'
+ * is a scope qualifier rather than the target.  A namespace or class naming an enclosing or
+ * inherited scope is never the target, and a checkfunc such as symbol_is_template would
+ * reject it and the lookup would wrongly fail.  When resolving a qualified name, resolve the
+ * scope qualifier with a null checkfunc and only apply the checkfunc to the final target
+ * symbol - see symbol_lookup_qualified().
  * ----------------------------------------------------------------------------- */
 
 static Node *_symbol_lookup(const String *name, Symtab *symtab, Node *(*checkfunc)(Node *n)) {
@@ -1218,7 +1225,9 @@ static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symt
             int i, len;
             len = Len(inherit);
             for (i = 0; i < len; i++) {
-              Node *prefix_node = symbol_lookup(prefix, Getitem(inherit, i), checkfunc);
+              /* The prefix is a scope qualifier, so resolve it without checkfunc. checkfunc filters the
+                 target symbol name, but name is not part of the prefix. The checkfunc is applied to name below. */
+              Node *prefix_node = symbol_lookup(prefix, Getitem(inherit, i), 0);
               if (prefix_node) {
                 Node *prefix_symtab = Getattr(prefix_node, "symtab");
                 if (prefix_symtab) {
