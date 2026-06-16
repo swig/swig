@@ -1344,90 +1344,25 @@ Node *Swig_symbol_clookup_resolve_typedef(const_String_or_char_ptr name, Symtab 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_clookup()
  *
- * Look up a symbol in the symbol table.   This uses the C name, not scripting
- * names.   Note: If we come across a using declaration, we follow it to
- * to get the real node. Any using directives are also followed (but this is
- * implemented in symbol_lookup()).
+ * Convenience wrapper around Swig_symbol_clookup_check() with no checkfunc
+ * callback.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
-  Hash *hsym = 0;
-  Node *s = 0;
-
-  if (!n) {
-    hsym = current_symtab;
-  } else {
-    if (!Checkattr(n, "nodeType", "symboltable")) {
-      n = Getattr(n, "sym:symtab");
-    }
-    assert(n);
-    if (n) {
-      hsym = n;
-    }
-  }
-
-  if (Swig_scopename_check(name)) {
-    char *cname = Char(name);
-    if (strncmp(cname, "::", 2) == 0) {
-      String *nname = NewString(cname + 2);
-      if (Swig_scopename_check(nname)) {
-        s = symbol_lookup_qualified(nname, global_scope, 0, 0, 0);
-      } else {
-        s = symbol_lookup(nname, global_scope, 0);
-      }
-      Delete(nname);
-    } else {
-      String *prefix = Swig_scopename_prefix(name);
-      if (prefix) {
-        s = symbol_lookup_qualified(name, hsym, 0, 0, 0);
-        if (!s)
-          s = symbol_clookup_typedef_scope(name, hsym, 0);
-        Delete(prefix);
-        if (!s) {
-          return 0;
-        }
-      }
-    }
-  }
-  if (!s) {
-    while (hsym) {
-      s = symbol_lookup(name, hsym, 0);
-      if (s)
-        break;
-      hsym = Getattr(hsym, "parentNode");
-      if (!hsym)
-        break;
-    }
-  }
-
-  /* Check if s is a 'using' node */
-  while (s && Checkattr(s, "nodeType", "using")) {
-    if (Getattr(s, "csym:nextSibling")) {
-      /* overloaded using declarations and method declarations - don't chase the using declarations up the inheritance hierarchy  */
-      break;
-    } else {
-      String *uname = Getattr(s, "uname");
-      Symtab *un = Getattr(s, "sym:symtab");
-      Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0; /* avoid infinity loop */
-      if (!ss) {
-        SWIG_WARN_NODE_BEGIN(s);
-        Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
-        SWIG_WARN_NODE_END(s);
-      }
-      s = ss;
-    }
-  }
-  return s;
+  return Swig_symbol_clookup_check(name, n, 0);
 }
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_clookup_check()
  *
- * This function is identical to Swig_symbol_clookup() except that it
- * accepts a callback function that is invoked to determine a symbol match.
- * The purpose of this function is to support complicated algorithms that need
- * to examine multiple definitions of the same symbol that might appear in an
- * inheritance hierarchy.
+ * Look up a symbol in the symbol table. This uses the C name, not scripting
+ * names. Note: If we come across a using declaration, we follow it to get the
+ * real node. Any using directives are also followed (but this is implemented in
+ * symbol_lookup()).
+ *
+ * A checkfunc callback may be supplied to determine a symbol match. The purpose
+ * is to support complicated algorithms that need to examine multiple definitions
+ * of the same symbol that might appear in an inheritance hierarchy.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc)(Node *n)) {
@@ -1503,64 +1438,19 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *
 /* -----------------------------------------------------------------------------
  * Swig_symbol_clookup_local()
  *
- * Same as Swig_symbol_clookup but parent nodes are not searched, that is, just
- * this symbol table is searched.
+ * Convenience wrapper around Swig_symbol_clookup_local_check() with no checkfunc
+ * callback.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
-  Hash *hsym;
-  Node *s = 0;
-
-  if (!n) {
-    hsym = current_symtab;
-  } else {
-    if (!Checkattr(n, "nodeType", "symboltable")) {
-      n = Getattr(n, "sym:symtab");
-    }
-    assert(n);
-    hsym = n;
-  }
-
-  if (Swig_scopename_check(name)) {
-    char *cname = Char(name);
-    if (strncmp(cname, "::", 2) == 0) {
-      String *nname = NewString(cname + 2);
-      if (Swig_scopename_check(nname)) {
-        s = symbol_lookup_qualified(nname, global_scope, 0, 0, 0);
-      } else {
-        s = symbol_lookup(nname, global_scope, 0);
-      }
-      Delete(nname);
-    } else {
-      s = symbol_lookup_qualified(name, hsym, 0, 0, 0);
-    }
-  }
-  if (!s) {
-    s = symbol_lookup(name, hsym, 0);
-  }
-
-  /* Check if s is a 'using' node */
-  while (s && Checkattr(s, "nodeType", "using")) {
-    if (Getattr(s, "csym:nextSibling")) {
-      /* overloaded using declarations and method declarations - don't chase the using declarations up the inheritance hierarchy  */
-      break;
-    } else {
-      String *uname = Getattr(s, "uname");
-      Symtab *un = Getattr(s, "sym:symtab");
-      Node *ss = Swig_symbol_clookup_local(uname, un);
-      if (!ss) {
-        SWIG_WARN_NODE_BEGIN(s);
-        Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
-        SWIG_WARN_NODE_END(s);
-      }
-      s = ss;
-    }
-  }
-  return s;
+  return Swig_symbol_clookup_local_check(name, n, 0);
 }
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_clookup_local_check()
+ *
+ * Same as Swig_symbol_clookup_check but parent nodes are not searched, that is,
+ * just this symbol table is searched.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc)(Node *)) {
