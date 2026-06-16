@@ -1323,6 +1323,25 @@ static Node *symbol_clookup_typedef_scope(const String *name, Symtab *symtab, No
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_symbol_clookup_resolve_typedef()
+ *
+ * This function is identical to Swig_symbol_clookup() except that it
+ * additionally follows any chain of typedef declarations to the node the name
+ * ultimately refers to.
+ * ----------------------------------------------------------------------------- */
+
+Node *Swig_symbol_clookup_resolve_typedef(const_String_or_char_ptr name, Symtab *n) {
+  Node *s = Swig_symbol_clookup(name, n);
+  while (s && Equal(nodeType(s), "cdecl")) {
+    if (Checkattr(s, "storage", "typedef"))
+      s = Swig_symbol_clookup(Getattr(s, "type"), Getattr(s, "sym:symtab"));
+    else
+      break;
+  }
+  return s;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_clookup()
  *
  * Look up a symbol in the symbol table.   This uses the C name, not scripting

@@ -1766,30 +1766,16 @@ List *Swig_make_inherit_list(String *clsname, List *names, String *Namespacepref
   for (i = 0; i < ilen; i++) {
     String *base;
     String *n = Getitem(names, i);
-    /* Try to figure out where this symbol is */
-    Node *s = Swig_symbol_clookup(n, 0);
-    if (s) {
-      while (s && (Strcmp(nodeType(s), "class") != 0)) {
-        /* Not a class.  Could be a typedef though. */
-        String *storage = Getattr(s, "storage");
-        if (storage && (Strcmp(storage, "typedef") == 0)) {
-          String *nn = Getattr(s, "type");
-          s = Swig_symbol_clookup(nn, Getattr(s, "sym:symtab"));
-        } else {
-          break;
-        }
-      }
-      if (s && ((Strcmp(nodeType(s), "class") == 0) || (Strcmp(nodeType(s), "template") == 0))) {
-        String *q = Swig_symbol_qualified(s);
-        Append(bases, s);
-        if (q) {
-          base = NewStringf("%s::%s", q, Getattr(s, "name"));
-          Delete(q);
-        } else {
-          base = NewString(Getattr(s, "name"));
-        }
+    /* Try to figure out where this symbol is, resolving any typedefs to the base class/template */
+    Node *s = Swig_symbol_clookup_resolve_typedef(n, 0);
+    if (s && ((Strcmp(nodeType(s), "class") == 0) || (Strcmp(nodeType(s), "template") == 0))) {
+      String *q = Swig_symbol_qualified(s);
+      Append(bases, s);
+      if (q) {
+        base = NewStringf("%s::%s", q, Getattr(s, "name"));
+        Delete(q);
       } else {
-        base = NewString(n);
+        base = NewString(Getattr(s, "name"));
       }
     } else {
       base = NewString(n);

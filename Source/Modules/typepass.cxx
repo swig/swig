@@ -1188,7 +1188,8 @@ class TypePass : private Dispatcher {
               // Not an inheriting constructor - undo the parser's rename so it is treated as an ordinary member using declaration
               UnsetFlag(n, "usingctor");
               Setattr(n, "name", unqualified_id);
-              Setattr(n, "sym:name", unqualified_id); // sym:name reverts to the plain unqualified-id, so a %rename of this member might be missed (but would be an obscure corner case)
+              // sym:name reverts to the plain unqualified-id, however, a %rename of this would be missed though (an obscure corner case)
+              Setattr(n, "sym:name", unqualified_id);
             }
             Delete(resolved_terminal_name);
             Delete(resolved_terminal);

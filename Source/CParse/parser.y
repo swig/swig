@@ -576,14 +576,7 @@ static int inheriting_ctor_base_match(Node *cls, String *unqualified_id) {
     int len = bases ? Len(bases) : 0;
     int j;
     for (j = 0; j < len; j++) {
-      Node *s = Swig_symbol_clookup(Getitem(bases, j), 0);
-      while (s && Strcmp(nodeType(s), "class") != 0 && Strcmp(nodeType(s), "template") != 0) {
-	String *storage = Getattr(s, "storage");
-	if (storage && Strcmp(storage, "typedef") == 0)
-	  s = Swig_symbol_clookup(Getattr(s, "type"), Getattr(s, "sym:symtab"));
-	else
-	  break;
-      }
+      Node *s = Swig_symbol_clookup_resolve_typedef(Getitem(bases, j), 0);
       if (s && (Strcmp(nodeType(s), "class") == 0 || Strcmp(nodeType(s), "template") == 0)) {
 	String *terminal = Swig_scopename_last(Getattr(s, "name"));
 	String *base_terminal = SwigType_istemplate(terminal) ? SwigType_templateprefix(terminal) : terminal;
