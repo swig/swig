@@ -15,6 +15,34 @@ Version 4.5.0 (in progress)
             instantiation.
 
 2026-06-16: wsfulton
+            #1042, #1153 Fix the type of an inherited member brought into a derived
+            class with a using declaration when the base class is named through a
+            typedef or C++11 alias of a template instantiation.  For example:
+
+              template <typename T> struct Owners { T value; };
+
+              template <typename LinksT> class NodeI {
+              public:
+                using links_type = LinksT;
+                Owners<links_type> owners;
+              };
+              template <typename LinksT> class Cluster : public NodeI<LinksT> {
+              public:
+                using NodeIT = NodeI<LinksT>;
+                using NodeIT::owners;
+              };
+
+              %template(OwnersInt) Owners<int>;
+              %template(NodeIInt) NodeI<int>;
+              %template(ClusterInt) Cluster<int>;
+
+            The wrapped 'owners' member now uses the expanded member type, such as
+            Owners<NodeI<int>::links_type> for Cluster<int>.  Previously the template
+            parameter was left unexpanded as Owners<links_type>, which failed to
+            compile.  The same applies to a member function parameter or return type
+            written in terms of the base template parameter (#1153).
+
+2026-06-16: wsfulton
             #1827 Fix a hang (infinite loop) when a class inherits from a base
             class named through a redundant self-referential typedef, such as:
 

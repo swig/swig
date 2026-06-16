@@ -700,6 +700,7 @@ CPP11_TEST_CASES += \
 	cpp11_using_functor \
 	cpp11_using_member_template \
 	cpp11_using_typedef_struct \
+	cpp11_using_typedef_template_member \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
 

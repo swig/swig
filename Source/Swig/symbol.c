@@ -1786,8 +1786,42 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
   for (i = 0; i < len; i++) {
     String *e = Getitem(elements, i);
     if (SwigType_issimple(e)) {
+      Node *n = 0;
+      /* A scope qualifier that is a typedef resolving to a template instantiation must keep its
+         template arguments during qualification.  For the C++11 alias 'using NodeIT = NodeI<LinksT>;'
+         used as the qualifier in 'NodeIT::owners', rewrite it to the template-id 'NodeI<(LinksT)>::owners'
+         so the template handling below preserves the arguments; otherwise the qualifier is reduced to the
+         bare template name 'NodeI' and the arguments are lost, leaving template parameters unexpanded in
+         the wrapped member's type. */
+      String *eprefix = Swig_scopename_check(e) && !SwigType_istemplate(e) ? Swig_scopename_prefix(e) : 0;
+      if (eprefix) {
+        String *elast = Swig_scopename_last(e);
+        String *eprefixlast = Swig_scopename_last(eprefix);
+        /* Skip an inheriting-constructor using declaration (using Base::Base), where the unqualified-id
+           matches the qualifier's last component.  That is handled by the constructor logic, not here. */
+        if (!Equal(elast, eprefixlast)) {
+          Node *pn = Swig_symbol_clookup(eprefix, st);
+          if (pn && Checkattr(pn, "storage", "typedef")) {
+            SwigType *pt = Getattr(pn, "type");
+            if (pt && SwigType_istemplate(pt)) {
+              /* Reduce typedefs in the template arguments so the qualifier names the registered
+                 instantiation scope (eg 'TBase<(IntAlias)>' becomes 'TBase<(int)>').  The template-id
+                 itself is kept rather than fully qualified - qualifying a bare template-id collapses it
+                 back to the template name and loses the arguments again. */
+              Symtab *ptab = Getattr(pn, "sym:symtab");
+              SwigType *reduced = Swig_symbol_typedef_reduce(pt, ptab);
+              Clear(e);
+              Printf(e, "%s::%s", reduced, elast);
+              Delete(reduced);
+            }
+          }
+        }
+        Delete(eprefixlast);
+        Delete(elast);
+        Delete(eprefix);
+      }
       /* Note: the unary scope operator (::) is being removed from the template parameters here. */
-      Node *n = Swig_symbol_clookup_check(e, st, symbol_no_constructor);
+      n = Swig_symbol_clookup_check(e, st, symbol_no_constructor);
       if (n) {
         String *name = Getattr(n, "name");
         Clear(e);
