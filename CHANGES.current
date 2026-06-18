@@ -8,6 +8,12 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-06-17: wsfulton
+            #3480 Fix a syntax error when a using declaration imports an inherited
+            conversion operator, such as 'using Base::operator int;'. The conversion
+            operator is now brought into the derived class like any other inherited
+            member.
+
+2026-06-17: wsfulton
             #3479 Fix a syntax error when a using declaration combines the 'typename'
             disambiguator with a C++17 pack expansion to import a member type from each
             base in a base pack, for example:

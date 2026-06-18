@@ -561,6 +561,7 @@ CPP_TEST_CASES += \
 	typedef_classforward_same_name \
 	typedef_funcptr \
 	typedef_inherit \
+	typedef_inherit_using \
 	typedef_mptr \
 	typedef_reference \
 	typedef_scope \

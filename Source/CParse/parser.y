@@ -2104,6 +2104,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
+%type <str>      using_conversion using_scope;
 %type <str>      string stringnum wstring;
 %type <tparms>   template_parms;
 %type <pbuilder> template_parms_builder;
@@ -5351,6 +5352,17 @@ cpp_using_decl : USING idcolon SEMI {
 		  Delete(name);
 		  add_symbols($$);
              }
+             | USING using_conversion SEMI {
+                  /* Inherited conversion operator, e.g. "using Base::operator int;". */
+                  String *uname = Swig_symbol_type_qualify($using_conversion, 0);
+                  String *name = Swig_scopename_last($using_conversion);
+                  $$ = new_node("using");
+                  Setattr($$, "uname", uname);
+                  Setattr($$, "name", name);
+                  Delete(uname);
+                  Delete(name);
+                  add_symbols($$);
+             }
              | USING idcolon ELLIPSIS SEMI {
                   /* C++17 pack expansion in a using-declaration, e.g. "using Ts::operator()...;" */
                   String *uname = Swig_symbol_type_qualify($idcolon, 0);
@@ -5413,6 +5425,26 @@ cpp_using_decl : USING idcolon SEMI {
 		   $$ = 0;
 		 }
 	       }
+             }
+             ;
+
+/* An inherited conversion operator named in a using-declaration, e.g. "Base::operator int". The
+   scope qualifier is kept separate from the shared idcolon rule because the CONVERSIONOPERATOR
+   token (and the scanner re-feeding its conversion type) does not fit idcolon: idcolon would
+   greedily consume the trailing scope qualifier and never reach CONVERSIONOPERATOR. */
+using_conversion : using_scope CONVERSIONOPERATOR type {
+                  /* The conversion type was re-fed to the scanner and is reparsed here as 'type',
+                     but it is already part of the CONVERSIONOPERATOR name, so it is discarded. */
+                  $$ = NewStringf("%s%s", $using_scope, $CONVERSIONOPERATOR);
+                  Delete($using_scope);
+                  Delete($CONVERSIONOPERATOR);
+                  Delete($type);
+             }
+             ;
+
+using_scope  : idtemplate DCOLON {
+                  $$ = NewStringf("%s::", $idtemplate);
+                  Delete($idtemplate);
              }
              ;
 
