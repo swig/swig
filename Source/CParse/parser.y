@@ -5373,6 +5373,18 @@ cpp_using_decl : USING idcolon SEMI {
 		  Delete(name);
 		  add_symbols($$);
 	     }
+             | USING TYPENAME idcolon ELLIPSIS SEMI {
+                  /* C++17 member type pack expansion, e.g. "using typename Ts::type...;" */
+                  String *uname = Swig_symbol_type_qualify($idcolon, 0);
+                  String *name  = Swig_scopename_last($idcolon);
+                  $$ = new_node("using");
+                  Setattr($$, "uname", uname);
+                  Setattr($$, "name", name);
+                  SetFlag($$, "pack");
+                  Delete(uname);
+                  Delete(name);
+                  add_symbols($$);
+             }
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($idcolon,0);
 	       if (!n) {

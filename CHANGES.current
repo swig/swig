@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-17: wsfulton
+            #3479 Fix a syntax error when a using declaration combines the 'typename'
+            disambiguator with a C++17 pack expansion to import a member type from each
+            base in a base pack, for example:
+
+              template <typename... Bases> struct Collector : Bases... {
+                using typename Bases::value_type ...;
+              };
+
 2026-06-17: jschueller
             #2933 Fixed a regression where repeating an identical using declaration for
             a type, such as two 'using aa::Foo;' lines, caused that type to be referenced
