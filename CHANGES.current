@@ -8,6 +8,20 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-06-17: wsfulton
+            #3481 Fix the C++17 inheriting constructor pack 'using T::T ...;' over a
+            variadic base pack so that the constructor of every base is wrapped.  For
+            example:
+
+              struct XB { XB(int a); };
+              struct YB { YB(double a); };
+              template <typename... T> struct A : T... { using T::T ...; };
+              %template(AXY) A<XB, YB>;
+
+            Previously the last base's constructor (YB(double) here) was silently dropped
+            and a spurious Warning 526 was reported for it.  Every base's constructor is
+            now wrapped and no warning is given.
+
+2026-06-17: wsfulton
             #3480 Fix a syntax error when a using declaration imports an inherited
             conversion operator, such as 'using Base::operator int;'. The conversion
             operator is now brought into the derived class like any other inherited
