@@ -604,6 +604,7 @@ CPP_TEST_CASES += \
 	using_member_multiple_inherit \
 	using_member_scopes \
 	using_member_typedef \
+	using_member_typedef_overload \
 	using_member_typedef_template \
 	using_method_typedefs \
 	using_namespace \
@@ -630,6 +631,7 @@ CPP_TEST_CASES += \
 # C++11 test cases.
 CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
+	cpp11_alias_template_inheritance \
 	cpp11_alias_templates \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
@@ -731,6 +733,7 @@ CPP17_TEST_CASES += \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
+	cpp17_using_pack_alias_template \
 	cpp17_using_pack_expansion \
 	cpp17_using_typename_pack \
 

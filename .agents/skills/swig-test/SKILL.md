@@ -113,6 +113,66 @@ it the usual way (e.g. `%warnfilter`, or the test's expected-warnings
 mechanism) rather than leaving it in the output. The goal is a clean run -
 no failures and no stray warnings - across every configured language.
 
+### A failure in one target language is a defect to fix, not to exclude
+When a core change or a new/modified test makes a test fail in one of the target
+languages, the fix is in **that target language**, not in the test's coverage:
+either correct the language module (`Source/Modules/<lang>.cxx`) or add a
+target-language workaround (a language-specific typemap / `%feature` /
+`%dmethodmodifiers`-style override in the `.i`, a per-language runme, or library
+code) so the test passes there too. A change is not finished while it leaves any
+configured language broken.
+
+If the failure is a known language-module bug that is too fundamental to fix as
+part of the current change, the accepted workaround is to guard just the
+offending construct in the shared `.i` with `#if !defined(SWIG<LANG>)` (e.g.
+`#if !defined(SWIGD)`) and a `// TODO` comment naming the bug, so the test still
+builds and runs for that language with the unsupported part omitted - see
+`using_member_multiple_inherit.i`'s `MultBottomA`, guarded out of D with
+`// TODO: Fix bug adding incorrect override`. Prefer the real module fix; reach
+for the guard only when deferring it, and keep the omitted surface as small as
+possible (a single class/method, not the whole module).
+
+Do **not** reach for the `FAILING_<LANG>_TESTS` lists in
+`Examples/test-suite/<lang>/Makefile.in` to make the suite green. Those lists are
+only for long-standing, documented limitations of a language's *paradigm* (for
+example D's single-inheritance model excluding `using_composition`). They are not
+a place to silence a regression or a new failure your change introduced -
+excluding a test there hides the defect instead of fixing it. If you believe a
+failure is genuinely a fundamental language limitation rather than a fixable bug,
+stop and confirm with the maintainer before adding an exclusion.
+
+The one exception is an **experimental backend** (e.g. the experimental `c`
+target, which already has known failing tests - hence the frequent `-x c`). A
+production language must be fixed or worked around as above, but when only an
+experimental backend fails it is fine to simply exclude the test by adding it to
+that language's `FAILING_<LANG>_TESTS` list in
+`Examples/test-suite/<lang>/Makefile.in`, rather than fixing the experimental
+module.
+
+### Report what was run
+When you finish, report:
+- the test case name(s) and which target languages passed (and any that were
+  excluded, e.g. `-x c` or a `FAILING_<LANG>_TESTS` entry, so coverage is clear);
+- any target-language-specific handling the test case now carries - a
+  `%warnfilter`, a guarded `%ignore` / typemap / `%feature` /
+  `#if defined(SWIG<LANG>)` block, a per-language runme, etc. - and which
+  language each was added for and why.
+
+This makes it explicit what was actually verified and what the test now does
+differently per language.
+
+## Writing test interfaces
+- Do not collapse a class or struct definition onto a single line in a `.i` test case. Put the body members on their own lines, as you would in real source:
+
+  ```c++
+  struct A {
+    int g() { return 1; }
+  };
+  ```
+
+  rather than `struct A { int g() { return 1; } };`.
+- Keep comments in test cases brief (see AGENTS.md).
+
 ## Notes
 - Tests can take significant time; always specify the language clearly.
 - Check Doc/Manual/Extending.html for more details on the test suite.

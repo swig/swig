@@ -116,6 +116,18 @@ Always wrap the snippet in `<pre>` inside the `<div>`. Tabs inside the `<pre>` w
 
 Inside `<pre>` blocks, the C++ angle brackets and ampersands must be escaped (`&lt;`, `&gt;`, `&amp;`). HTML tidy in `make check` will catch most violations but not all.
 
+Do not collapse a class or struct definition onto a single line in a code example. Put the body members on their own lines as you would in real source, so the example reads as idiomatic C++:
+
+```html
+<div class="code">
+<pre>
+template&lt;typename T&gt; struct Adder {
+  T add(T a, T b) { return a + b; }
+};
+</pre>
+</div>
+```
+
 ## Prefer ASCII
 
 Default to plain ASCII characters in prose: ` - ` rather than `&mdash;` for inline dashes, straight quotes rather than smart quotes, etc. The existing chapters are overwhelmingly ASCII (e.g. ` - ` outnumbers `&mdash;` ~10:1); new prose should match.
