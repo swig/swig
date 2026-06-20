@@ -22,7 +22,7 @@
    you really have no choice but to do it, make sure you clearly document each
    new conflict in this file.
  */
-%expect 7
+%expect 10
 
 /* Make the internal token numbers the same as the external token numbers
  * which saves Bison generating a lookup table to map between them, giving
@@ -7268,7 +7268,28 @@ type_specifier : TYPE_INT {
 
 definetype     : expr
                | default_delete
-               ;
+               | type pointer {
+		 SwigType *t = Copy($type);
+		 SwigType_push(t, $pointer);
+		 $$ = default_dtype;
+		 $$.val = t;
+		 $$.type = T_UNKNOWN;
+               }
+               | type AND {
+		 SwigType *t = Copy($type);
+		 SwigType_add_reference(t);
+		 $$ = default_dtype;
+		 $$.val = t;
+		 $$.type = T_UNKNOWN;
+               }
+               | type LAND {
+		 SwigType *t = Copy($type);
+		 SwigType_add_rvalue_reference(t);
+		 $$ = default_dtype;
+		 $$.val = t;
+		 $$.type = T_UNKNOWN;
+               }
+	       ;
 
 default_delete : deleted_definition
                 | explicit_default
