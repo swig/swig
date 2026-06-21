@@ -35,16 +35,19 @@ jobs:
   clang-format:
     runs-on: ubuntu-latest
     name: clang-format 20
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v5.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+        persist-credentials: false
+
+    - name: Check with clang-format
+      uses: RafikFarhad/clang-format-github-action@v5.1
+      with:
+        sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+        style: file
 
   build:
 
@@ -146,6 +149,9 @@ jobs:
       GCC: ${{ matrix.GCC }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CSTD: ${{ matrix.CSTD }}
+      HOMEBREW_REQUIRE_TAP_TRUST: 1
+      HOMEBREW_NO_ENV_HINTS: 1
+      HOMEBREW_NO_ASK: 1
 
     steps:
     - name: Machine Info
@@ -160,12 +166,13 @@ jobs:
           sysctl hw.memsize
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         show-progress: false
+        persist-credentials: false
 
     - name: Install CCache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.23
       with:
         key: ${{ matrix.os || 'macos-26' }}-${{ matrix.COMPILER || 'clang' }}${{ matrix.GCC }}
 
@@ -173,6 +180,10 @@ jobs:
       run: |
           set -x
 
+          # Remove AWS tap
+          brew untap aws/tap
+          # Trust Microsoft Azure tap
+          brew trust azure/bicep
           # See Homebrew site: https://brew.sh/
           brew install boost bison automake
           # Ensure we use the newer version of bison
