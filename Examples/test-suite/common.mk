@@ -293,6 +293,7 @@ CPP_TEST_CASES += \
 	inherit_same_name \
 	inherit_target_language \
 	inherit_void_arg \
+	injecting_base_class \
 	inline_initializer \
 	inout_typemaps \
 	insert_directive \
@@ -560,6 +561,7 @@ CPP_TEST_CASES += \
 	typedef_classforward_same_name \
 	typedef_funcptr \
 	typedef_inherit \
+	typedef_inherit_using \
 	typedef_mptr \
 	typedef_reference \
 	typedef_scope \
@@ -594,6 +596,7 @@ CPP_TEST_CASES += \
 	using_composition \
 	using_directive_and_declaration \
 	using_directive_and_declaration_forward \
+	using_duplicates \
 	using_extend \
 	using_extend_flatten \
 	using_inherit \
@@ -601,6 +604,7 @@ CPP_TEST_CASES += \
 	using_member_multiple_inherit \
 	using_member_scopes \
 	using_member_typedef \
+	using_member_typedef_overload \
 	using_member_typedef_template \
 	using_method_typedefs \
 	using_namespace \
@@ -627,6 +631,7 @@ CPP_TEST_CASES += \
 # C++11 test cases.
 CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
+	cpp11_alias_template_inheritance \
 	cpp11_alias_templates \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
@@ -650,6 +655,7 @@ CPP11_TEST_CASES += \
 	cpp11_final_override \
 	cpp11_function_objects \
 	cpp11_inheriting_constructors \
+	cpp11_inheriting_constructors_typedef \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
@@ -697,6 +703,7 @@ CPP11_TEST_CASES += \
 	cpp11_using_functor \
 	cpp11_using_member_template \
 	cpp11_using_typedef_struct \
+	cpp11_using_typedef_template_member \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
 
@@ -720,12 +727,15 @@ CPP17_TEST_CASES += \
 	cpp17_director_string_view \
 	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
+	cpp17_inheriting_constructors_pack \
 	cpp17_map_no_default_ctor \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
+	cpp17_using_pack_alias_template \
 	cpp17_using_pack_expansion \
+	cpp17_using_typename_pack \
 
 # Broken C++17 test cases.
 CPP17_TEST_BROKEN = \

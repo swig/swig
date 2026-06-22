@@ -62,6 +62,8 @@ Bug fixes and new features should ideally land with a regression test in the tes
 
 Test cases live in `Examples/test-suite/<language>/`. Each test consists of a `.i` interface file in `Examples/test-suite/` (shared across all languages) and an optional `<testname>_runme.<ext>` script in the language subdirectory. The `.i` file drives wrapper generation/compilation; the runme exercises the wrapped code at runtime — language-specific behavior belongs in the runme, not the shared `.i`.
 
+Keep comments in test cases brief. Do not add long or obvious comments; prefer a single concise line over a multi-line explanation (for example, a compiler workaround note should be one line, not a paragraph).
+
 Test names that start with a `cpp{NN}_` prefix (e.g. `cpp11_`, `cpp17_`, `cpp20_`) track the C++ standard that **introduced the grammar / language feature being exercised**, not the standard the example code happens to target. A using-declaration pack expansion is C++17 grammar, so it goes under `cpp17_*` even if the canonical use site is a C++20 lambda; a constrained lambda's grammar is C++20, so it goes under `cpp20_*` even if its body is plain C++11. When in doubt, pick the prefix matching the oldest standard that accepts the feature in isolation. Each prefix is also a `CPP{NN}_TEST_CASES` bucket in `Examples/test-suite/common.mk` - register new tests in the bucket that matches the prefix.
 
 The shared test makefile is `Examples/test-suite/common.mk` (included by each per-language Makefile). New tests are typically added to `common.mk` in the appropriate `*_TESTCASES` variable.

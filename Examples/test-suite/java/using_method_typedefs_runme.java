@@ -27,5 +27,14 @@ public class using_method_typedefs_runme {
     check(new UseTemplateArgTypedef().testmethod("5"), "TBase:5");
     check(new UseQualified().testmethod("5"), "Ns:5");
     check(new UseNsChain().testmethod("5"), "Ns:5");
+
+    // The base has a constructor of its own.  The typedef qualifier must still resolve to the base class.
+    check(new UseCtorTypedef().testmethod("5"), "Ctor:5");
+
+    // The base lives in a namespace and the typedef names it without the namespace qualifier (the base
+    // class name is visible from the derived class as the injected class name).
+    check(new UseNsQualified().testmethod("5"), "Constructor:5");
+    check(new UseNsCtorTypedef().testmethod("5"), "Constructor:5");
+    check(new UseNsPlainTypedef().plainmethod("5"), "Plain:5");
   }
 }

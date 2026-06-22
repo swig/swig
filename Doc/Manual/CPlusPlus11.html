@@ -35,7 +35,8 @@
 <li><a href="#CPlusPlus11_strongly_typed_enumerations">Strongly typed enumerations</a>
 <li><a href="#CPlusPlus11_double_angle_brackets">Double angle brackets</a>
 <li><a href="#CPlusPlus11_explicit_conversion_operators">Explicit conversion operators</a>
-<li><a href="#CPlusPlus11_alias_templates">Type alias and alias templates</a>
+<li><a href="#CPlusPlus11_type_aliases">Type aliases</a>
+<li><a href="#CPlusPlus11_alias_templates">Alias templates</a>
 <li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
 <li><a href="#CPlusPlus11_new_char_literals">New character literals</a>
@@ -936,8 +937,37 @@ derived proxy just as if the using-declaration had named <tt>IntCase::call</tt> 
 </p>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.5.0 is the first version to substitute template parameters in a using-declaration
-where the qualifier is a bare type-template parameter.
+The same applies to inheriting constructors, even when the immediate base class is named through a typedef rather
+than by its class name. This is common when the base is a template instantiation:
+</p>
+
+<div class="code"><pre>
+struct A {
+  A();
+  A(int a);
+};
+
+template &lt;typename Parent&gt;
+struct C : Parent {
+  using Parent::Parent;
+};
+
+%template(CA) C&lt;A&gt;;
+
+struct D : C&lt;A&gt; {
+  typedef C&lt;A&gt; base_type;
+  using base_type::base_type;     // inherit C&lt;A&gt;'s constructors through the typedef
+};
+</pre></div>
+
+<p>
+SWIG resolves the typedef qualifier to the base class, so both <tt>CA</tt> and <tt>D</tt> wrap the inherited
+<tt>int</tt> constructor and can be constructed with an integer argument from the target language.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to resolve a using-declaration whose qualifier is a
+bare type-template parameter or a typedef for the base class, including the inheriting-constructor forms.
 </p>
 
 <H3><a name="CPlusPlus11_explicit_overrides_final">7.2.12 Explicit overrides and final</a></H3>
@@ -1108,55 +1138,102 @@ Conversion operators either with or without <tt>explicit</tt> need renaming to a
 them available as a normal proxy method.
 </p>
 
-<H3><a name="CPlusPlus11_alias_templates">7.2.17 Type alias and alias templates</a></H3>
+<H3><a name="CPlusPlus11_type_aliases">7.2.17 Type aliases</a></H3>
 
 
 <p>
-A type alias is a statement of the form:
+A type alias introduces a new name for an existing type using the C++11 <tt>using</tt> syntax:
 </p>
 
 <div class="code"><pre>
-using PFD = void (*)(double); // New introduced syntax
+using PFD = void (*)(double); // C++11 type alias
 </pre></div>
 
 <p>
-which is equivalent to the old style typedef:
+which is equivalent to the older <tt>typedef</tt>:
 </p>
 
 <div class="code"><pre>
-typedef void (*PFD)(double);  // The old style
+typedef void (*PFD)(double);  // Equivalent typedef
 </pre></div>
 
 <p>
-The following is an example of an alias template:
+SWIG handles a type alias exactly as it handles the equivalent <tt>typedef</tt>, so no special
+treatment is required.
+</p>
+
+<H3><a name="CPlusPlus11_alias_templates">7.2.18 Alias templates</a></H3>
+
+
+<p>
+An alias template is a template whose instantiation yields a type alias - in effect a family of type
+aliases parameterised like a class template.  It is written with the <tt>using</tt> syntax and may fix
+some of the underlying template's parameters while leaving others open:
+</p>
 
 <div class="code"><pre>
-template&lt; typename T1, typename T2, int N &gt;
+template&lt;typename T1, typename T2, int N&gt;
 class SomeType {
 public:
   T1 a;
   T2 b;
 };
 
-template&lt; typename T2 &gt;
+// Alias template: fixes T1 and N, leaves T2 open.
+template&lt;typename T2&gt;
 using TypedefName = SomeType&lt;char*, T2, 5&gt;;
 </pre></div>
 
 <p>
-SWIG supports both type aliasing and alias templates.
-However, in order to use an alias template, two <tt>%template</tt> directives must be used:
+SWIG does not automatically instantiate templates, so an alias template instantiation has to be
+registered before it can be wrapped.  This takes two <tt>%template</tt> directives - one for the
+underlying template and an empty one for the alias:
 </p>
 
 <div class="code"><pre>
-%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;;
-%template() TypedefName&lt;bool&gt;;
+%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;; // instantiate the underlying template
+%template()             TypedefName&lt;bool&gt;;        // register the alias instantiation
 </pre></div>
 
-<p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
-Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
-This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
-Once both <tt>%template</tt> directives have been processed the alias and the underlying instantiated template name are interchangeable in the target language; for example a function returning <tt>TypedefName&lt;bool&gt;</tt> is wrapped using the <tt>SomeTypeBool</tt> class.
-See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
+<p>
+The first directive instantiates the underlying template under a name the target language will use, as
+for any wrapped template.  The empty <tt>%template()</tt> adds the alias instantiation to the type
+system, telling SWIG that <tt>TypedefName&lt;bool&gt;</tt> denotes <tt>SomeType&lt;char*, bool, 5&gt;</tt>.
+Once both directives have been processed the alias and the underlying instantiation are
+interchangeable: a function returning <tt>TypedefName&lt;bool&gt;</tt>, for example, is wrapped using the
+<tt>SomeTypeBool</tt> class.  See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for
+more on wrapping templates.
+</p>
+
+<p>
+Once registered, the alias can be used wherever the underlying instantiation can: as a base class, and
+as the scope qualifier of a using-declaration that imports inherited members or constructors.  For
+example, given the following classes:
+</p>
+
+<div class="code"><pre>
+template&lt;typename T&gt; struct Adder {
+  T add(T a, T b) { return a + b; }
+};
+template&lt;typename T&gt; using AdderAlias = Adder&lt;T&gt;;
+
+struct Calc : AdderAlias&lt;int&gt; {   // alias template as a base class
+  using AdderAlias&lt;int&gt;::add;     // alias template as a using-declaration qualifier
+};
+</pre></div>
+
+<p>
+The underlying <tt>Adder</tt> template needs to be instantiated as usual and the alias instantiation
+<tt>AdderAlias&lt;int&gt;</tt> should be registered with an empty <tt>%template()</tt> so that it resolves to
+<tt>Adder&lt;int&gt;</tt> both as <tt>Calc</tt>'s base class and as the using-declaration qualifier.  If the
+empty <tt>%template()</tt> is omitted SWIG does not recognise the alias instantiation and issues a
+'Nothing known about' warning - Warning 401 for the base class, Warning 315 for the using-declaration:
+</p>
+
+<div class="code"><pre>
+%template(AdderInt) Adder&lt;int&gt;;
+%template()         AdderAlias&lt;int&gt;; // register the alias instantiation used as the base
+</pre></div>
 
 <p>
 For alias templates whose template parameters carry a C++20 concept constraint, see
@@ -1164,7 +1241,7 @@ For alias templates whose template parameters carry a C++20 concept constraint, 
 in the C++20 chapter.
 </p>
 
-<H3><a name="CPlusPlus11_unrestricted_unions">7.2.18 Unrestricted unions</a></H3>
+<H3><a name="CPlusPlus11_unrestricted_unions">7.2.19 Unrestricted unions</a></H3>
 
 
 <p>SWIG fully supports any type inside a union even if it does not
@@ -1190,7 +1267,7 @@ union P {
 } p1;
 </pre></div>
 
-<H3><a name="CPlusPlus11_variadic_templates">7.2.19 Variadic templates</a></H3>
+<H3><a name="CPlusPlus11_variadic_templates">7.2.20 Variadic templates</a></H3>
 
 
 <p>SWIG supports the variadic templates including the &lt;&gt;
@@ -1258,7 +1335,7 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
-<H3><a name="CPlusPlus11_new_char_literals">7.2.20 New character literals</a></H3>
+<H3><a name="CPlusPlus11_new_char_literals">7.2.21 New character literals</a></H3>
 
 
 <p>
@@ -1275,7 +1352,7 @@ char32_t b = U'b';
 <b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
 </p>
 
-<H3><a name="CPlusPlus11_new_string_literals">7.2.21 New string literals</a></H3>
+<H3><a name="CPlusPlus11_new_string_literals">7.2.22 New string literals</a></H3>
 
 
 <p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
@@ -1305,7 +1382,7 @@ Note: There is a bug currently where SWIG's preprocessor incorrectly parses an o
 inside raw string literals.
 </p>
 
-<H3><a name="CPlusPlus11_user_defined_literals">7.2.22 User-defined literals</a></H3>
+<H3><a name="CPlusPlus11_user_defined_literals">7.2.23 User-defined literals</a></H3>
 
 
 <p>
@@ -1372,7 +1449,7 @@ OutputType var2 = 1234_suffix;
 OutputType var3 = 3.1416_suffix;
 </pre></div>
 
-<H3><a name="CPlusPlus11_thread_local_storage">7.2.23 Thread-local storage</a></H3>
+<H3><a name="CPlusPlus11_thread_local_storage">7.2.24 Thread-local storage</a></H3>
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
@@ -1392,7 +1469,7 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_defaulted_deleted">7.2.24 Explicitly defaulted functions and deleted functions</a></H3>
+<H3><a name="CPlusPlus11_defaulted_deleted">7.2.25 Explicitly defaulted functions and deleted functions</a></H3>
 
 
 <p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
@@ -1430,12 +1507,12 @@ This is a C++ compile time check and SWIG does not make any attempt to detect if
 so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
 </p>
 
-<H3><a name="CPlusPlus11_type_long_long_int">7.2.25 Type long long int</a></H3>
+<H3><a name="CPlusPlus11_type_long_long_int">7.2.26 Type long long int</a></H3>
 
 
 <p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
 
-<H3><a name="CPlusPlus11_static_assertions">7.2.26 Static assertions</a></H3>
+<H3><a name="CPlusPlus11_static_assertions">7.2.27 Static assertions</a></H3>
 
 
 <p>
@@ -1451,7 +1528,7 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_sizeof">7.2.27 Allow sizeof to work on members of classes without an explicit object</a></H3>
+<H3><a name="CPlusPlus11_sizeof">7.2.28 Allow sizeof to work on members of classes without an explicit object</a></H3>
 
 
 <p>
@@ -1472,7 +1549,7 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
-<H3><a name="CPlusPlus11_noexcept">7.2.28 Exception specifications and noexcept</a></H3>
+<H3><a name="CPlusPlus11_noexcept">7.2.29 Exception specifications and noexcept</a></H3>
 
 
 <p>
@@ -1488,7 +1565,7 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
-<H3><a name="CPlusPlus11_alignment">7.2.29 Control and query object alignment</a></H3>
+<H3><a name="CPlusPlus11_alignment">7.2.30 Control and query object alignment</a></H3>
 
 
 <p>
@@ -1520,7 +1597,7 @@ Use the preprocessor to work around this for now:
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_attributes">7.2.30 Attributes</a></H3>
+<H3><a name="CPlusPlus11_attributes">7.2.31 Attributes</a></H3>
 
 
 <p>
@@ -1536,7 +1613,7 @@ int [[attr1]] i [[attr2, attr3]];
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_ref_qualifiers">7.2.31 Methods with ref-qualifiers</a></H3>
+<H3><a name="CPlusPlus11_ref_qualifiers">7.2.32 Methods with ref-qualifiers</a></H3>
 
 
 <p>

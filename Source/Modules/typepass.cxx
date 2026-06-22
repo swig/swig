@@ -28,6 +28,13 @@ struct normal_node {
 
 static normal_node *patch_list = 0;
 
+/* Find the class or template aliased by a name by walking the symbol table sibling chain. */
+static Node *symbol_resolve_to_class(Node *n) {
+  while (n && !(Equal(nodeType(n), "class") || Equal(nodeType(n), "template")))
+    n = Getattr(n, "csym:nextSibling");
+  return n;
+}
+
 /* Singleton class - all non-static methods in this class are private */
 class TypePass : private Dispatcher {
   Node *inclass;
@@ -177,9 +184,11 @@ class TypePass : private Dispatcher {
             tname = SwigType_typedef_resolve_all(bname);
             sname = tname;
           }
+          int resolve_class = 0;
           while (1) {
             String *qsname = SwigType_typedef_qualified(sname);
-            bcls = Swig_symbol_clookup(qsname, st);
+            /* When resolve_class is set, look up the aliased class instead of a self-referential typedef. */
+            bcls = resolve_class ? Swig_symbol_clookup_check(qsname, st, symbol_resolve_to_class) : Swig_symbol_clookup(qsname, st);
             Delete(qsname);
             if (bcls) {
               if (Strcmp(nodeType(bcls), "class") != 0) {
@@ -195,6 +204,12 @@ class TypePass : private Dispatcher {
                       tname = SwigType_typedef_resolve_all(sname);
                       sname = tname;
                     }
+                    /* A self-referential typedef such as 'typedef struct foo foo;' resolves by name back to
+                       itself; resolve the aliased class instead of looping forever. */
+                    String *nqsname = SwigType_typedef_qualified(sname);
+                    if (Swig_symbol_clookup(nqsname, st) == bcls)
+                      resolve_class = 1;
+                    Delete(nqsname);
                     continue;
                   }
                   // A case when both outer and nested classes inherit from the same parent. Constructor may be found instead of the class itself.
@@ -348,6 +363,16 @@ class TypePass : private Dispatcher {
       }
       if (scopes) {
         SwigType_inherit_scope(scopes);
+        /* Make the base class' name resolve to the base's own scope from within the
+           derived class (the C++ injected class name).  This lets a type that names
+           the base unqualified ('Base') or through the derived class ('Derived::Base')
+           resolve to the base's own type, mirroring in the type system what
+           Swig_symbol_inherit() does in the symbol table. */
+        {
+          String *blast = Swig_scopename_last(bname);
+          SwigType_scope_alias(blast, scopes);
+          Delete(blast);
+        }
       }
       /* Set up inheritance in the symbol table */
       Symtab *st = Getattr(cls, "symtab");
@@ -552,7 +577,7 @@ class TypePass : private Dispatcher {
 
     if (name) {
       if (SwigType_istemplate(name)) {
-        // We need to fully resolve the name and expand default template parameters to make templates work correctly */
+        // We need to fully resolve the name and expand default template parameters to make templates work correctly
         Node *cn;
         SwigType *resolved_name = SwigType_typedef_resolve_all(name);
         SwigType *deftype_name = Swig_symbol_template_deftype(resolved_name, 0);
@@ -1150,22 +1175,75 @@ class TypePass : private Dispatcher {
       }
       return SWIG_OK;
     } else {
-      Node *ns;
+      Node *ns = 0;
       /* using id */
       Symtab *stab = Getattr(n, "sym:symtab");
       if (stab) {
         String *uname = Getattr(n, "uname");
-        ns = Swig_symbol_clookup(uname, stab);
-        if (!ns && SwigType_istemplate(uname)) {
-          String *tmp = Swig_symbol_template_deftype(uname, 0);
-          if (!Equal(tmp, uname)) {
-            ns = Swig_symbol_clookup(tmp, stab);
+        if (GetFlag(n, "usingctor")) {
+          /* The parser flags a using declaration as a candidate inheriting constructor when either:
+           *  (a) the terminal name of the nested-name-specifier is the same as the unqualified-id, or
+           *  (b) the unqualified-id is the terminal name of a base class of the enclosing class.
+           * Case (a) is verified in Allocate::usingDeclaration.
+           * Case (b) is verified here.  A case (b) candidate may be a false positive: an ordinary member
+           * using declaration whose unqualified-id happens to match a base class name.  Verify it by resolving the
+           * nested-name-specifier through typedefs to its base class - a genuine inheriting constructor names that
+           * base class's own constructor, so the unqualified-id must equal the resolved base class name. */
+          SwigType *nested_name_specifier = Swig_scopename_prefix(uname);
+          String *unqualified_id = Swig_scopename_last(uname);
+          String *terminal = Swig_scopename_last(nested_name_specifier);
+          String *terminal_name = SwigType_istemplate(terminal) ? SwigType_templateprefix(terminal) : Copy(terminal);
+          if (!Equal(unqualified_id, terminal_name)) {
+            /* Verify case (b) */
+            normalize_type(nested_name_specifier);
+            SwigType *nested_name_specifier_resolved = SwigType_typedef_resolve_all(nested_name_specifier);
+            SwigType *resolved_terminal = Swig_scopename_last(nested_name_specifier_resolved);
+            String *resolved_terminal_name = SwigType_istemplate(resolved_terminal) ? SwigType_templateprefix(resolved_terminal) : Copy(resolved_terminal);
+            if (!Equal(unqualified_id, resolved_terminal_name)) {
+              // Not an inheriting constructor - undo the parser's rename so it is treated as an ordinary member using declaration
+              UnsetFlag(n, "usingctor");
+              Setattr(n, "name", unqualified_id);
+              // sym:name reverts to the plain unqualified-id, however, a %rename of this would be missed though (an obscure corner case)
+              Setattr(n, "sym:name", unqualified_id);
+            }
+            Delete(resolved_terminal_name);
+            Delete(resolved_terminal);
+            Delete(nested_name_specifier_resolved);
           }
-          Delete(tmp);
+          Delete(terminal_name);
+          Delete(terminal);
+          Delete(unqualified_id);
+          Delete(nested_name_specifier);
         }
-      } else {
-        ns = 0;
+        if (GetFlag(n, "usingctor")) {
+          // Inherited constructors: don't try and resolve the constructor as it may be implicit and hence absent at this stage.
+          // Normalize and resolve the class instead and if successful reconstruct the using declaration for the inherited constructor.
+          SwigType *nested_name_specifier = Swig_scopename_prefix(uname);
+          normalize_type(nested_name_specifier);
+          SwigType *nested_name_specifier_resolved = SwigType_typedef_resolve_all(nested_name_specifier);
+          SwigType *resolved_terminal = Swig_scopename_last(nested_name_specifier_resolved);
+          String *resolved_terminal_name = SwigType_istemplate(resolved_terminal) ? SwigType_templateprefix(resolved_terminal) : Copy(resolved_terminal);
+          SwigType *uname_normalized = NewStringf("%s::%s", nested_name_specifier_resolved, resolved_terminal_name);
+
+          Setattr(n, "uname", uname_normalized);
+
+          Delete(uname_normalized);
+          Delete(resolved_terminal_name);
+          Delete(resolved_terminal);
+          Delete(nested_name_specifier_resolved);
+          Delete(nested_name_specifier);
+        } else {
+          ns = Swig_symbol_clookup(uname, stab);
+          if (!ns && SwigType_istemplate(uname)) {
+            String *tmp = Swig_symbol_template_deftype(uname, 0);
+            if (!Equal(tmp, uname)) {
+              ns = Swig_symbol_clookup(tmp, stab);
+            }
+            Delete(tmp);
+          }
+        }
       }
+
       // Note that Allocate::usingDeclaration will warn when using member is not found (when ns is zero)
       if (ns) {
         /* Only a single symbol is being used.  There are only a few symbols that

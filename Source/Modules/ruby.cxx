@@ -1803,7 +1803,7 @@ public:
             Wrapper_add_local(f, result_name, result_var);
             Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
           }
-          Printf(action, "\n((struct swig_ruby_wrapped_object *)RTYPEDDATA_DATA(self))->data = %s;", result_name);
+          Printf(action, "\n((struct swig_ruby_wrapped_object *)RTYPEDDATA_GET_DATA(self))->data = %s;", result_name);
           if (GetFlag(pn, "feature:trackobjects")) {
             Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
           }
@@ -2429,11 +2429,15 @@ public:
 
   /* Set up the per-class TypedData descriptor: named after the C++ class (so it is
      recognisable in Ruby heap dumps and ObjectSpace statistics) with the shared mark
-     and free callbacks. */
+     and free callbacks. The flags enable embedding of the wrapper on Ruby 3.3+, the
+     same as the anonymous swig_type_data_type descriptor. */
   void handleClassName(Node *) {
     Printf(klass->init, "SwigClass%s.cext_type.wrap_struct_name = \"C++ class %s\";\n", klass->name, klass->cname);
     Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
     Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
+    Printf(klass->init, "#ifdef RUBY_TYPED_FREE_IMMEDIATELY\n");
+    Printf(klass->init, "SwigClass%s.cext_type.flags = SWIG_RUBY_TYPED_DATA_FLAGS;\n", klass->name);
+    Printf(klass->init, "#endif\n");
   }
 
   /*

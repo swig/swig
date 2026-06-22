@@ -361,24 +361,6 @@ struct HiddenDerived1 : HiddenBase1 {
 };
 %}
 
-#if 0 // not yet working
-// Typedefs and using declarations
-%inline %{
-struct TypedefBase1 {
-  TypedefBase1(int i, const char* s) {}
-  virtual void meth() {}
-};
-struct TypedefDerived1 : TypedefBase1 {
-  typedef TypedefBase1 Superclass;
-  using Superclass::TypedefBase1;
-};
-void tester() {
-    TypedefDerived1 td(0, "hi");
-    td.meth();
-}
-%}
-#endif
-
 %inline %{
 // Templates and public base constructors (derive from non-template)
 template<typename T>

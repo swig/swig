@@ -91,8 +91,8 @@ private:
   // - one arg    -> returns single arg
   // - many args  -> returns first + sum(rest...)
   RET sum() const { return RET(); }
-  template <typename A> RET sum(A a) const { return a; }
-  template <typename A, typename B, typename... Rest> RET sum(A a, B b, Rest... rest) const { return a + sum(b, rest...); }
+  template <typename A> RET sum(A a) const { return static_cast<RET>(a); }
+  template <typename A, typename B, typename... Rest> RET sum(A a, B b, Rest... rest) const { return static_cast<RET>(a + sum(b, rest...)); }
 };
 %}
 
