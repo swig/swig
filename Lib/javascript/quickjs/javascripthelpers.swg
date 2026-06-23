@@ -205,7 +205,7 @@ JSValueConst SWIG_QuickJS_registryGet(JSContext *ctx, int idx)
   if (JS_IsException(registry)) { return registry; }
 
   len = (uint32_t)SWIG_QuickJS_ArrayLength(ctx, registry);
-  if ((uint32_t)idx > len) {
+  if ((uint32_t)idx >= len) {
     return JS_ThrowRangeError(ctx, "Invalid index %d for registry", idx);
   }
   jsresult = JS_GetPropertyUint32(ctx, registry, (uint32_t)idx);
