@@ -1456,56 +1456,31 @@ else
   JSQUICKJSSRC=
   JSQUICKJSVERSION=
   JSQUICKJSENABLED=
-  JSQUICKJSNG=
 
   if test -d "$JSQUICKJSPATH" ; then
-	# quickjs and quickjs-ng ; clear JSQUICKJSPATH (abort if quickjs.h not found)
+    # clear JSQUICKJSPATH (abort if quickjs.h not found)
     if test -r "$JSQUICKJSPATH/quickjs.h" ; then
       JSQUICKJSINC="-I$JSQUICKJSPATH -D_GNU_SOURCE -fwrapv -DJS_SHARED_LIBRARY"
     else
       JSQUICKJSPATH=""
     fi
     if test -x "$JSQUICKJSPATH/qjs" ; then
-      JSQUICKJSNG=`$JSQUICKJSPATH/qjs -h|grep QuickJS-ng` 
-    fi
-    # standard quickjs
-    if test -z "$JSQUICKJSNG" ; then
-	  if test -x "$JSQUICKJSPATH/qjs" ; then
-        JSQUICKJSVERSION=`$JSQUICKJSPATH/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'` 
-      else
-        JSQUICKJSVERSION="UNKNOWN"
-     fi
-      if test -r "$JSQUICKJSPATH/libquickjs.a" ; then
-        JSQUICKJSLIB="-L$JSQUICKJSPATH -lquickjs -lm"
-      else
-        JSQUICKJSPATH=""  
-      fi
-      if test -r "$JSQUICKJSPATH/quickjs-libc.c" ; then
-        JSQUICKJSSRC="$JSQUICKJSPATH/quickjs-libc.c"      
-      else
-        JSQUICKJSPATH=""
-      fi    
+       JSQUICKJSVERSION=`$JSQUICKJSPATH/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'`
     else
-      # quickjs-ng
-      if test -x "$JSQUICKJSPATH/build/qjs" ; then
-        JSQUICKJSVERSION=`$JSQUICKJSPATH/build/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'` 
-      else
         JSQUICKJSVERSION="UNKNOWN"
-      fi    
-      # quickjs-ng (clear JSQUICKJSPATH, abort if library not found)
-      if test -r "$JSQUICKJSPATH/build/libqjs.a" ; then
-        JSQUICKJSLIB="-L$JSQUICKJSPATH/build -lqjs -lm"
-      else
-        JSQUICKJSPATH=""
-      fi
-      if test -r "$JSQUICKJSPATH/quickjs-libc.c" ; then
-        JSQUICKJSSRC="$JSQUICKJSPATH/quickjs-libc.c"      
-      else
-        JSQUICKJSPATH=""
-      fi    
+    fi
+    if test -r "$JSQUICKJSPATH/libquickjs.a" ; then
+      JSQUICKJSLIB="-L$JSQUICKJSPATH -lquickjs -lm"
+    else
+      JSQUICKJSPATH=""
+    fi
+    if test -r "$JSQUICKJSPATH/quickjs-libc.c" ; then
+      JSQUICKJSSRC="$JSQUICKJSPATH/quickjs-libc.c"
+    else
+      JSQUICKJSPATH=""
     fi
   fi
-  
+
   if test "$JSQUICKJSPATH" = "" ; then
     AC_MSG_RESULT(not found)
   else
