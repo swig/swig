@@ -169,3 +169,25 @@ TYPE2 NAME(TYPE1 x) {
 }
 %}
 %enddef
+
+/* -----------------------------------------------------------------------------
+ * %pointer_dynamic_cast(type1,type2,name)
+ *
+ * Generates a polymorphic conversion function.
+ * ----------------------------------------------------------------------------- */
+
+%define %pointer_dynamic_cast(TYPE1,TYPE2,NAME)
+#if defined(__cplusplus) && !defined(SWIG_NO_CPLUSPLUS_CAST)
+%inline %{
+TYPE2 NAME(TYPE1 x) {
+   return dynamic_cast<TYPE2>(x);
+}
+%}
+#else /* C case */
+%inline %{
+TYPE2 NAME(TYPE1 x) {
+   return (Type)(x);
+}
+%}
+#endif /* __cplusplus */
+%enddef
