@@ -161,7 +161,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #endif
     JS_FreeValue(ctx, v);
   } else {
-    assert(JS_NewClassID(&(d->class_id)));
+    if (JS_NewClassID(&(d->class_id)) == JS_INVALID_CLASS_ID) { return SWIG_ERROR; }
     JSClassDef class_def = { d->class_name, d->dtor, NULL, NULL, NULL };
     r = JS_NewClass(JS_GetRuntime(ctx), d->class_id, &class_def);
     if (r == -1) { return SWIG_ERROR; }
@@ -283,7 +283,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #endif
     JS_FreeValue(ctx, v);
   } else {
-    assert(JS_NewClassID(&SWIG_QuickJS_module_info_class_id));
+    if (JS_NewClassID(&SWIG_QuickJS_module_info_class_id) == JS_INVALID_CLASS_ID) { return SWIG_ERROR; }
     JSClassDef module_info_class_def = { "swig_module_info", NULL, NULL, NULL, NULL };
     r = JS_NewClass(JS_GetRuntime(ctx), SWIG_QuickJS_module_info_class_id, &module_info_class_def);
     if (r == -1) { return SWIG_ERROR; }
@@ -297,7 +297,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #if 0
   /* Create the JS Class to store/retreive namespace info  => XXX not useful ? Namespace
    * have no data, just variables and functions as properties, using a generic object is enough ? */
-  assert(JS_NewClassID(&SWIG_QuickJS_namespace_info_class_id));
+  if (!S_NewClassID(&SWIG_QuickJS_namespace_info_class_id) == JS_INVALID_CLASS_ID) { return SWIG_ERROR; }
   JSClassDef namespace_info_class_def = { "swig_namespace_info", NULL, NULL, NULL, NULL };
   JS_NewClass(JS_GetRuntime(ctx), SWIG_QuickJS_namespace_info_class_id, &namespace_info_class_def);
 #endif
