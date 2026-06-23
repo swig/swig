@@ -121,7 +121,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
 
   if (swig_object) {
     if (swig_object->own) {
-      js_free_rt(rt, ($jstype)swig_object->ptr);
+      $jsfree swig_object->ptr;
     }
     /* remove the object data to make sure that it isn't accessed elsewhere */
     JS_SetOpaque(this_val, NULL);
