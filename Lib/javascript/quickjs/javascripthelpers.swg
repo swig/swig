@@ -14,7 +14,7 @@ SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
   JSValue swig_object_registry, base_registry;
   JSValueConst globalObject;
   JSAtom atom;
-  int r;
+  int r = 0;
 
   globalObject = JS_GetGlobalObject(ctx);
   if (JS_IsException(globalObject)) {
@@ -22,78 +22,109 @@ SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
   }
 
   atom = JS_NewAtom(ctx, "QuickJS");
-  if (atom == JS_ATOM_NULL) { return -1; }
+  if (atom == JS_ATOM_NULL) {
+    JS_FreeValue(ctx, globalObject);
+    return -1;
+  }
 
   r = JS_HasProperty(ctx, globalObject, atom);
-  if (r == -1)  { return -1; }
+  if (r == -1)  {
+    JS_FreeAtom(ctx, atom);
+    JS_FreeValue(ctx, globalObject);
+    return -1;
+  }
   if (!r) {
     registry = JS_NewObject(ctx);
-    if (JS_IsException(registry)) { return -1; }
+    if (JS_IsException(registry)) {
+      JS_FreeAtom(ctx, atom);
+      JS_FreeValue(ctx, globalObject);
+      return -1;
+    }
+    (void)JS_DupValue(ctx, registry); /* increment registry ref count, as defineProperty will decrease it */
     r = JS_DefinePropertyValue(ctx, globalObject, atom, registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
-    if (r == -1) { return -1; }
-    JS_DupValue(ctx, registry);
+    if (r == -1) goto out1;
   } else {
     registry = JS_GetProperty(ctx, globalObject, atom);
-    if (JS_IsException(registry)) { return -1; }
-    if (!JS_IsObject(registry)) {
-      JS_ThrowTypeError(ctx, "QuickJS registry anomaly (not an object). Please report.\n");
+    if (JS_IsException(registry)) {
+      JS_FreeAtom(ctx, atom);
+      JS_FreeValue(ctx, globalObject);
       return -1;
+    }
+    if (!JS_IsObject(registry)) {
+      r = -1;
+      JS_ThrowTypeError(ctx, "QuickJS registry anomaly (not an object). Please report.\n");
+      goto out2;
     }
   }
   JS_FreeAtom(ctx, atom);
 
+  r = 0;
   atom = JS_NewAtom(ctx, "class_registry");
-  if (atom == JS_ATOM_NULL) { return -1; }
+  if (atom == JS_ATOM_NULL) goto out1;
   r = JS_HasProperty(ctx, registry, atom);
-  if (r == -1)  { return -1; }
+  if (r == -1)  goto out2;
   if (!r) {
     class_registry = JS_NewObject(ctx);
-    if (JS_IsException(class_registry)) { return -1; }
+    if (JS_IsException(class_registry)) {
+      r = -1;
+      goto out2;
+    }
     r = JS_DefinePropertyValue(ctx, registry, atom, class_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
-    if (r == -1) { return -1; }
+    if (r == -1) goto out2;
   }
   JS_FreeAtom(ctx, atom);
 
   atom = JS_NewAtom(ctx, "base_registry");
-  if (atom == JS_ATOM_NULL) { return -1; }
+  if (atom == JS_ATOM_NULL) goto out1;
   r = JS_HasProperty(ctx, registry, atom);
   if (r == -1)  { return -1; }
   if (!r) {
     base_registry = JS_NewObject(ctx);
-    if (JS_IsException(base_registry)) { return -1; }
+    if (JS_IsException(base_registry)) {
+      r = -1;
+      goto out2;
+    }
     r = JS_DefinePropertyValue(ctx, registry, atom, base_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
-    if (r == -1) { return -1; }
+    if (r == -1) goto out2;
   }
   JS_FreeAtom(ctx, atom);
 
   atom = JS_NewAtom(ctx, "registry");
-  if (atom == JS_ATOM_NULL) { return -1; }
+  if (atom == JS_ATOM_NULL) goto out1;
   r = JS_HasProperty(ctx, registry, atom);
   if (r == -1)  { return -1; }
   if (!r) {
     generic_registry = JS_NewArray(ctx);
-    if (JS_IsException(generic_registry)) { return -1; }
+    if (JS_IsException(generic_registry)) {
+      r = -1;
+      goto out2;
+    }
     r = JS_DefinePropertyValue(ctx, registry, atom, generic_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
-    if (r == -1) { return -1; }
+    if (r == -1) goto out2;
   }
   JS_FreeAtom(ctx, atom);
 
   atom = JS_NewAtom(ctx, "swig_object");
-  if (atom == JS_ATOM_NULL) { return -1; }
+  if (atom == JS_ATOM_NULL) goto out1;
   r = JS_HasProperty(ctx, registry, atom);
   if (r == -1)  { return -1; }
   if (!r) {
     swig_object_registry = JS_NewObject(ctx);
-    if (JS_IsException(swig_object_registry)) { return -1; }
+    if (JS_IsException(swig_object_registry)) {
+      r = -1;
+      goto out2;
+    }
     r = JS_DefinePropertyValue(ctx, registry, atom, swig_object_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
-    if (r == -1) { return -1; }
+    if (r == -1) goto out2;
   }
+out2:
   JS_FreeAtom(ctx, atom);
 
+out1:
   JS_FreeValue(ctx, registry);
   JS_FreeValue(ctx, globalObject);
 
-  return 0;
+  return r;
 }
 
 /*
