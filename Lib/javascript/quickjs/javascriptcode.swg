@@ -50,10 +50,10 @@ static JSValue $jswrapper(JSContext *ctx, JSValueConst ctorObject,
 {
     JSValueConst this_val = JS_EXCEPTION;
 
-    // switch all cases by means of series of if-returns.
+    /* switch all cases by means of series of if-returns. */
     $jsdispatchcases
 
-    // default:
+    /* default: */
     SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of $jsmangledname");
 
     fail:
