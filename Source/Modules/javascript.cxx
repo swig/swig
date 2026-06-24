@@ -3084,12 +3084,6 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
     arg_shift = 1;
   }
 
-  // const char *_modes[] = {"setter", "getter", "ctor", "function"};
-  // String *kind = Getattr(n, "kind");
-  // Printv(stdout, "marshalInputArgs: ", Getattr(n, "sym:name"), " ", kind, " ", Getattr(n,"storage"), NIL);
-  // Printf(stdout, " num_args=%d, arg_shift=%d (is_member=%d, is_static=%d, mode=%s, smartptr=%d)\n",
-  //   num_args, arg_shift, is_member, is_static, _modes[mode], GetFlag(n, "allocate:smartpointeraccess"));
-  // Swig_print_node(n);
   num_args -= arg_shift;
   assert(num_args >= 0);
   String *argcount = NewString("");
@@ -3355,7 +3349,6 @@ int QuickJSEmitter::exitFunction(Node *n) {
   }
 
   String *argcount_s;
-  // Printv(stdout, "ARGCOUNT=", Getattr(n, ARGCOUNT), "\n", NIL);
   if (Getattr(n, ARGCOUNT) == NULL) {
     argcount_s = NewStringf("%d", 0);
   } else {
@@ -3423,24 +3416,18 @@ int QuickJSEmitter::exitClass(Node *n) {
   /* prepare registration of base class(es) (multiple inheritance) */
   String *jsclass_inheritance = NewString("");
   List *baselist = Getattr(n, "bases");
-  /* int b_num = 0; XXX trace for debug */
   if (baselist) {
     Iterator base = First(baselist);
     while (base.item) {
       // pass base classes that have to be ignored
-      // XXX check or not if the base class is known (quickjs:mangledname) => see impact on trans-module inheritance?
       while (base.item && (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "quickjs:mangledname"))) {
         base = Next(base);
       }
       if (base.item) {
         Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
-        /* b_num++;  XXX trace for debug */
         base = Next(base);
       }
     }
-    // if (b_num > 0) { /* XXX trace for debug */
-    //   Printv(stdout, "Bases for ", state.clazz(NAME_MANGLED), ": ", jsclass_inheritance, "\n", NIL);
-    // }
   }
 
   /* for abstract classes add a vetoing ctor */

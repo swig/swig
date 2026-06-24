@@ -294,13 +294,6 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 
   JS_FreeValue(ctx, swigObjectRegistry);
 
-#if 0
-  /* Create the JS Class to store/retreive namespace info  => XXX not useful ? Namespace
-   * have no data, just variables and functions as properties, using a generic object is enough ? */
-  if (!S_NewClassID(&SWIG_QuickJS_namespace_info_class_id) == JS_INVALID_CLASS_ID) { return SWIG_ERROR; }
-  JSClassDef namespace_info_class_def = { "swig_namespace_info", NULL, NULL, NULL, NULL };
-  JS_NewClass(JS_GetRuntime(ctx), SWIG_QuickJS_namespace_info_class_id, &namespace_info_class_def);
-#endif
 
   /* Register helper functions at global level */
   globalObject = JS_GetGlobalObject(ctx);
