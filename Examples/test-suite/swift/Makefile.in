@@ -218,4 +218,4 @@ SWIGOPT += -w524 -Werror
 
 clean:
 	@rm -f *_wrap.* *~ *.@OBJEXT@ *@SO@
-	@find . -maxdepth 1 -name '*.swift' ! -name '*_runme.swift' -delete
+	@for f in *.swift; do case "$$f" in *_runme.swift) ;; *) rm -f "$$f" ;; esac; done
