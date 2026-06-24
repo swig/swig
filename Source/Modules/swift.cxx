@@ -33,11 +33,11 @@ static String *lowercaseFirst(const String *s) {
  * ------------------------------------------------------------------------- */
 static String *swiftEscapeIdentifier(String *name) {
   static const char *keywords[] = {
-    "class",    "deinit", "enum",        "extension", "func",  "import", "init",     "inout",  "let",      "operator", "precedencegroup",
-    "protocol", "struct", "subscript",   "typealias", "var",   "break",  "case",     "catch",  "continue", "default",  "defer",
-    "do",       "else",   "fallthrough", "for",       "guard", "if",     "in",       "repeat", "return",   "throw",    "switch",
-    "where",    "while",  "Any",         "false",     "is",    "nil",    "rethrows", "self",   "Self",     "super",    "throws",
-    "true",     "try",    NULL};
+    "associatedtype",  "class",    "deinit", "enum",        "extension", "func",  "import", "init",     "inout",  "let",      "operator",
+    "precedencegroup", "protocol", "struct", "subscript",   "typealias", "var",   "break",  "case",     "catch",  "continue", "default",
+    "defer",           "do",       "else",   "fallthrough", "for",       "guard", "if",     "in",       "repeat", "return",   "throw",
+    "switch",          "where",    "while",  "Any",         "false",     "is",    "nil",    "rethrows", "self",   "Self",     "super",
+    "throws",          "true",     "try",    NULL};
   if (!name || Len(name) == 0)
     return name;
   for (int i = 0; keywords[i]; i++) {
@@ -170,12 +170,8 @@ class SWIFT : public Language {
                                          RandomAccessCollection conformance (NULL otherwise) */
 
   /* ---- flags ---- */
-  bool native_function_flag;
   bool static_flag;
   bool variable_wrapper_flag;
-  bool wrapping_member_flag;
-  bool global_variable_flag;
-  bool enum_constant_flag;
   bool current_class_has_base; /* set by classHandler: does the current proxy class have a wrapped base */
   bool doxygen;                /* -doxygen: translate C++ Doxygen comments to Swift markup */
   bool autorename;             /* -autorename: lower-case the first letter of method names so
@@ -233,7 +229,8 @@ class SWIFT : public Language {
     if (Getattr(n, "sym:overloaded")) {
       String *ovstr = Getattr(n, "sym:overname");
       assert(ovstr);
-      Append(name, ovstr);
+      if (ovstr)
+        Append(name, ovstr);
     }
     return name;
   }
@@ -280,20 +277,6 @@ class SWIFT : public Language {
     }
   }
 
-  /* Retrieve the "swiftclassname" substitution for a SWIG type node.
-   * For a wrapped class Foo it returns "Foo"; for enums it returns the enum name. */
-  String *getSwiftClassName(Node *n) {
-    /* Check the smartptr feature first (for shared_ptr classes) */
-    String *smartptr = Getattr(n, "feature:smartptr");
-    if (smartptr) {
-      /* Return the mapped type name */
-      Node *sptype = Swig_symbol_clookup(smartptr, 0);
-      if (sptype)
-        return Copy(Getattr(sptype, "sym:name"));
-    }
-    return Copy(Getattr(n, "sym:name"));
-  }
-
   /* Emit the standard SWIG banner in the target language comment style */
   void emitBanner(File *f) {
     Printf(f, "/*\n");
@@ -301,16 +284,22 @@ class SWIFT : public Language {
     Printf(f, " */\n");
   }
 
-  /* Apply common substitutions to a Swift typemap string */
-  void applySwiftSubstitutions(String *code, Node *n, const String *classname) {
-    if (classname)
-      Replaceall(code, "$swiftclassname", classname);
-    else {
-      String *cn = Getattr(n, "sym:name");
-      if (cn)
-        Replaceall(code, "$swiftclassname", cn);
+  /* The SWIG module name, or "" before top() has set current_module.
+   * Used to expand the $module substitution in generated Swift code. */
+  const char *moduleName() {
+    String *name = current_module ? Getattr(current_module, "name") : NULL;
+    return name ? Char(name) : "";
+  }
+
+  /* A self-referential member (e.g. a method returning the enclosing class) resolves to the
+   * opaque bridge type "UnsafeMutableRawPointer?"; substitute the current proxy class name so
+   * the Swift signature names the class.  Consumes and replaces the passed string. */
+  String *selfClassNameIfOpaque(String *cn) {
+    if (Equal(cn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
+      Delete(cn);
+      return Copy(proxy_class_name);
     }
-    Replaceall(code, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+    return cn;
   }
 
   /* Current module node (set in top()) */
@@ -337,12 +326,8 @@ public:
     proxy_class_constants_code(NULL),
     destructor_call(NULL),
     enum_code(NULL),
-    native_function_flag(false),
     static_flag(false),
     variable_wrapper_flag(false),
-    wrapping_member_flag(false),
-    global_variable_flag(false),
-    enum_constant_flag(false),
     current_class_has_base(false),
     doxygen(false),
     autorename(false),
@@ -371,6 +356,8 @@ public:
 
   ~SWIFT() {
     delete doxygenTranslator;
+    Delete(class_generated_inits);
+    Delete(class_static_methods);
   }
 
   /* =========================================================================
@@ -414,6 +401,8 @@ public:
 
     if (doxygen)
       doxygenTranslator = new SwiftDocConverter(doxygen_translator_flags);
+    else if (doxygen_translator_flags)
+      Printf(stderr, "swig: warning: -debug-doxygen-translator/-debug-doxygen-parser have no effect without -doxygen.\n");
 
     /* Allow standard SWIG options */
     allow_overloading();
@@ -618,10 +607,10 @@ public:
         String *strvalue = NewString(value);
         Replaceall(strvalue, "\\\"", "\"");
         // $module -> the SWIG module name, so module-level Swift code (modulecode /
-        // moduleimports) can reference it the same way typemaps do via
-        // applySwiftSubstitutions. current_module is set in top() before this runs.
+        // moduleimports) can reference it the same way typemaps do.
+        // current_module is set in top() before this runs.
         if (current_module)
-          Replaceall(strvalue, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+          Replaceall(strvalue, "$module", moduleName());
 
         if (Strcmp(code, "moduleimports") == 0) {
           Printv(swift_module_imports, strvalue, "\n", NIL);
@@ -793,51 +782,49 @@ public:
     }
 
     /* Emit the C++ call via SWIG's emit_action */
-    if (!native_function_flag) {
-      String *actioncode = emit_action(n);
-      /* lang.cxx wraps director-enabled calls in "if (upcall) { ... } else { ... }"
-       * where the true-branch calls the method NON-virtually (ClassName::method())
-       * and the false-branch calls it virtually (method()).  Our directors do not
-       * inherit Swig::Director so dynamic_cast upcall detection always returns false.
-       *
-       * For director classes we ALWAYS want the non-virtual call: the Swift proxy
-       * method calls the C++ base implementation directly, while C++ virtual dispatch
-       * (triggered externally) goes through the director callbacks.  Using the virtual
-       * call would cause infinite recursion when the user calls proxy.method() from
-       * Swift (proxy → C wrapper → virtual → director → Swift dispatch → proxy → ...).
-       *
-       * For non-director classes the upcall branch is dead code — keep if(false) so
-       * the compiler elides it cleanly. */
-      Replaceall(actioncode, "if (upcall)", director_flag ? "if (true)" : "if (false)");
-      /* lang.cxx replaces arg1 with darg (a director-cast pointer) in the else
-       * branch for protected virtual methods — darg is the director subclass
-       * pointer, which has public access to the overriding method.  Prepend the
-       * declaration to the action code (not to locals) so it comes AFTER the
-       * "in" typemaps that initialise arg1.
-       * Note: director_classname is only valid inside classDirectorInit..End,
-       * which runs AFTER functionWrapper; use proxy_class_name instead. */
-      if (Strstr(actioncode, "(darg)->") && director_flag && proxy_class_name) {
-        String *darg_init = NewStringf("  SwigDirector_%s *darg = (SwigDirector_%s *)arg1;\n", proxy_class_name, proxy_class_name);
-        Insert(actioncode, 0, darg_init);
-        Delete(darg_init);
-      }
-
-      /* Handle return value */
-      if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
-        Replaceall(tm, "$result", "jresult");
-        if (GetFlag(n, "feature:new"))
-          Replaceall(tm, "$owner", "1");
-        else
-          Replaceall(tm, "$owner", "0");
-        Printf(f->code, "%s", tm);
-        if (Len(tm))
-          Printf(f->code, "\n");
-      } else {
-        Swig_warning(
-          WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
-      }
-      emit_return_variable(n, returntype, f);
+    String *actioncode = emit_action(n);
+    /* lang.cxx wraps director-enabled calls in "if (upcall) { ... } else { ... }"
+     * where the true-branch calls the method NON-virtually (ClassName::method())
+     * and the false-branch calls it virtually (method()).  Our directors do not
+     * inherit Swig::Director so dynamic_cast upcall detection always returns false.
+     *
+     * For director classes we ALWAYS want the non-virtual call: the Swift proxy
+     * method calls the C++ base implementation directly, while C++ virtual dispatch
+     * (triggered externally) goes through the director callbacks.  Using the virtual
+     * call would cause infinite recursion when the user calls proxy.method() from
+     * Swift (proxy → C wrapper → virtual → director → Swift dispatch → proxy → ...).
+     *
+     * For non-director classes the upcall branch is dead code — keep if(false) so
+     * the compiler elides it cleanly. */
+    Replaceall(actioncode, "if (upcall)", director_flag ? "if (true)" : "if (false)");
+    /* lang.cxx replaces arg1 with darg (a director-cast pointer) in the else
+     * branch for protected virtual methods — darg is the director subclass
+     * pointer, which has public access to the overriding method.  Prepend the
+     * declaration to the action code (not to locals) so it comes AFTER the
+     * "in" typemaps that initialise arg1.
+     * Note: director_classname is only valid inside classDirectorInit..End,
+     * which runs AFTER functionWrapper; use proxy_class_name instead. */
+    if (Strstr(actioncode, "(darg)->") && director_flag && proxy_class_name) {
+      String *darg_init = NewStringf("  SwigDirector_%s *darg = (SwigDirector_%s *)arg1;\n", proxy_class_name, proxy_class_name);
+      Insert(actioncode, 0, darg_init);
+      Delete(darg_init);
     }
+
+    /* Handle return value */
+    if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+      Replaceall(tm, "$result", "jresult");
+      if (GetFlag(n, "feature:new"))
+        Replaceall(tm, "$owner", "1");
+      else
+        Replaceall(tm, "$owner", "0");
+      Printf(f->code, "%s", tm);
+      if (Len(tm))
+        Printf(f->code, "\n");
+    } else {
+      Swig_warning(
+        WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
+    }
+    emit_return_variable(n, returntype, f);
 
     Printv(f->code, outarg, NIL);
     Printv(f->code, cleanup, NIL);
@@ -936,12 +923,9 @@ public:
 
     {
       String *ret_cn = resolveSwiftClassName(rettype);
-      if (Equal(ret_cn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
-        Delete(ret_cn);
-        ret_cn = Copy(proxy_class_name);
-      }
+      ret_cn = selfClassNameIfOpaque(ret_cn);
       Replaceall(swift_return_type, "$swiftclassname", ret_cn);
-      Replaceall(swift_return_type, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+      Replaceall(swift_return_type, "$module", moduleName());
       Delete(ret_cn);
     }
     bool is_void = (Len(swift_return_type) == 0 || Cmp(swift_return_type, "Void") == 0);
@@ -1011,12 +995,9 @@ public:
       if ((tm = Getattr(p, "tmap:swifttype"))) {
         Printv(swift_param_type, tm, NIL);
         String *pcn = paramSwiftClassName(p);
-        if (Equal(pcn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
-          Delete(pcn);
-          pcn = Copy(proxy_class_name);
-        }
+        pcn = selfClassNameIfOpaque(pcn);
         Replaceall(swift_param_type, "$swiftclassname", pcn);
-        Replaceall(swift_param_type, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+        Replaceall(swift_param_type, "$module", moduleName());
         Delete(pcn);
       } else {
         Swig_warning(WARN_SWIFT_TYPEMAP_SWIFTTYPE_UNDEF, input_file, line_number, "No swifttype for %s\n", SwigType_str(pt, 0));
@@ -1029,12 +1010,9 @@ public:
         Printv(swiftin_tm, tm, NIL);
         Replaceall(swiftin_tm, "$swiftinput", swift_arg_name);
         String *pcn = paramSwiftClassName(p);
-        if (Equal(pcn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
-          Delete(pcn);
-          pcn = Copy(proxy_class_name);
-        }
+        pcn = selfClassNameIfOpaque(pcn);
         Replaceall(swiftin_tm, "$swiftclassname", pcn);
-        Replaceall(swiftin_tm, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+        Replaceall(swiftin_tm, "$module", moduleName());
         Delete(pcn);
       } else {
         Swig_warning(WARN_SWIFT_TYPEMAP_SWIFTIN_UNDEF, input_file, line_number, "No swiftin for %s\n", SwigType_str(pt, 0));
@@ -1074,12 +1052,9 @@ public:
     Replaceall(body, "$owner", GetFlag(n, "feature:new") ? "true" : "false");
     {
       String *ret_cn = resolveSwiftClassName(rettype);
-      if (Equal(ret_cn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
-        Delete(ret_cn);
-        ret_cn = Copy(proxy_class_name);
-      }
+      ret_cn = selfClassNameIfOpaque(ret_cn);
       Replaceall(body, "$swiftclassname", ret_cn);
-      Replaceall(body, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+      Replaceall(body, "$module", moduleName());
       Delete(ret_cn);
     }
 
@@ -1559,11 +1534,6 @@ public:
 
     /* ---- 2. C++ director virtual override ---------------------------------- */
     String *cpp_ret_str = SwigType_str(rettype, 0);
-    /* Detect const method: in SWIG's declarator notation a const method ends
-     * with "f(...).q(const)." — the pattern ").q(const)" only appears AFTER
-     * the closing ')' of the f(...) parameter list, never inside a parameter
-     * qualifier like "const uint8_t*" (which looks like "p.q(const).uint8_t"
-     * — no preceding ')').  */
     /* Detect const method.  SWIG's declarator notation has two forms:
      *  - Original declaration: "f(params).q(const)." (const at end)
      *  - Vtable/director entries: "q(const).f(params)." (const at start)
@@ -2018,11 +1988,8 @@ public:
    * memberfunctionHandler()
    * ========================================================================= */
   virtual int memberfunctionHandler(Node *n) {
-    native_function_flag = false;
     static_flag = false;
     variable_wrapper_flag = false;
-    wrapping_member_flag = true;
-    global_variable_flag = false;
 
     Language::memberfunctionHandler(n);
 
@@ -2051,14 +2018,12 @@ public:
 
     /* Skip overloads that SWIG decided not to wrap (no C wrapper generated) */
     if (Getattr(n, "overload:ignore")) {
-      wrapping_member_flag = false;
       return SWIG_OK;
     }
 
     /* Generate the Swift proxy method */
     emitSwiftProxyMethod(n, proxy_class_code, false);
 
-    wrapping_member_flag = false;
     return SWIG_OK;
   }
 
@@ -2067,13 +2032,11 @@ public:
    * ========================================================================= */
   virtual int staticmemberfunctionHandler(Node *n) {
     static_flag = true;
-    wrapping_member_flag = true;
 
     Language::staticmemberfunctionHandler(n);
 
     if (Getattr(n, "overload:ignore")) {
       static_flag = false;
-      wrapping_member_flag = false;
       return SWIG_OK;
     }
 
@@ -2140,7 +2103,6 @@ public:
 
     Delattr(n, "swift:static_override");
     static_flag = false;
-    wrapping_member_flag = false;
     return SWIG_OK;
   }
 
@@ -2151,12 +2113,10 @@ public:
   virtual int globalvariableHandler(Node *n) {
     static_flag = false;
     variable_wrapper_flag = true;
-    global_variable_flag = true;
 
     Language::globalvariableHandler(n);
 
     variable_wrapper_flag = false;
-    global_variable_flag = false;
     return SWIG_OK;
   }
 
@@ -2165,11 +2125,9 @@ public:
    * ========================================================================= */
   virtual int membervariableHandler(Node *n) {
     variable_wrapper_flag = true;
-    wrapping_member_flag = true;
 
     Language::membervariableHandler(n);
 
-    wrapping_member_flag = false;
     variable_wrapper_flag = false;
     return SWIG_OK;
   }
@@ -2180,13 +2138,11 @@ public:
   virtual int staticmembervariableHandler(Node *n) {
     static_flag = true;
     variable_wrapper_flag = true;
-    wrapping_member_flag = true;
 
     Language::staticmembervariableHandler(n);
 
     static_flag = false;
     variable_wrapper_flag = false;
-    wrapping_member_flag = false;
     return SWIG_OK;
   }
 
@@ -2194,9 +2150,7 @@ public:
    * memberconstantHandler()
    * ========================================================================= */
   virtual int memberconstantHandler(Node *n) {
-    wrapping_member_flag = true;
     Language::memberconstantHandler(n);
-    wrapping_member_flag = false;
     return SWIG_OK;
   }
 
@@ -2394,12 +2348,9 @@ public:
       if ((tm = Getattr(p, "tmap:swifttype"))) {
         Printv(swift_param_type, tm, NIL);
         String *pcn = paramSwiftClassName(p);
-        if (Equal(pcn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
-          Delete(pcn);
-          pcn = Copy(proxy_class_name);
-        }
+        pcn = selfClassNameIfOpaque(pcn);
         Replaceall(swift_param_type, "$swiftclassname", pcn);
-        Replaceall(swift_param_type, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+        Replaceall(swift_param_type, "$module", moduleName());
         Delete(pcn);
       } else {
         Printv(swift_param_type, "/* UNKNOWN */", NIL);
@@ -2410,12 +2361,9 @@ public:
         Printv(swiftin_tm, tm, NIL);
         Replaceall(swiftin_tm, "$swiftinput", swift_arg_name);
         String *pcn = paramSwiftClassName(p);
-        if (Equal(pcn, "UnsafeMutableRawPointer?") && proxy_class_name && Len(proxy_class_name) > 0) {
-          Delete(pcn);
-          pcn = Copy(proxy_class_name);
-        }
+        pcn = selfClassNameIfOpaque(pcn);
         Replaceall(swiftin_tm, "$swiftclassname", pcn);
-        Replaceall(swiftin_tm, "$module", Getattr(current_module, "name") ? Getattr(current_module, "name") : "");
+        Replaceall(swiftin_tm, "$module", moduleName());
         Delete(pcn);
       } else {
         Printv(swiftin_tm, swift_arg_name, NIL);
@@ -2599,6 +2547,9 @@ public:
     String *value = Getattr(n, "rawval");
     if (!value)
       value = Getattr(n, "value");
+    /* No value to emit (would otherwise produce an uncompilable "= (null)"). */
+    if (!value)
+      return SWIG_OK;
 
     /* Skip C++ scoped enum constants (e.g. "inno::ImageType::UNKNOWN") — they
      * are already emitted as enum cases by enumvalueDeclaration. */
