@@ -485,7 +485,7 @@ SWIGRUNTIME SWIG_QuickJS_FunctionListEntry swig_packed_data_prototype_functions[
 
 SWIGRUNTIME JSValue SwigPackedData_new(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst argv[])
 {
-    SWIG_exception(SWIG_ERROR, "Class swig_packet_data can not be instantiated directly");
+    SWIG_exception(SWIG_ERROR, "Class swig_packed_data can not be instantiated directly");
 fail:
     return JS_EXCEPTION;
 }

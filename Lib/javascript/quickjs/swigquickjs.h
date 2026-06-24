@@ -23,7 +23,7 @@ extern "C" {
  * - registryAdd: add a JS value in the generic registry ; returns an index (int)
  *   that allows to get the value back
  * - registryRemove: remove the value, defined by its index, from the generic registry
- * - registryGet: retrive a value, defined by its index, from the generic registry
+ * - registryGet: retrieve a value, defined by its index, from the generic registry
  */
 extern int SWIG_QuickJS_registryAdd(JSContext *ctx, JSValueConst value);
 extern int SWIG_QuickJS_registryRemove(JSContext *ctx, int idx);
@@ -35,7 +35,7 @@ extern JSValueConst SWIG_QuickJS_registryGet(JSContext *ctx, int idx);
  *   swig wrapped object (struct A a => typename(ctx, a) returns 'A', not object
  * - NewVoidPointerObj: returns a SwigObject holding the provided pointer with
  *   no type (generic pointer).
- * - getptr: retrived the pointer stored inside a SwigObject
+ * - getptr: retrieve the pointer stored inside a SwigObject
  */
 extern const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val);
 extern const char *SWIG_QuickJS_typename(JSContext *ctx, JSValueConst this_val);
