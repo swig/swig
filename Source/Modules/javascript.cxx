@@ -3043,7 +3043,7 @@ private:
 };
 
 QuickJSEmitter::QuickJSEmitter() :
-  JSEmitter(JSEmitter::JavascriptCore),
+  JSEmitter(JSEmitter::QuickJS),
   NULL_STR(NewString("NULL")),
   VETO_SET(NewString("SWIG_QuickJS_veto_set_variable")),
   f_wrap_cpp(NULL),
