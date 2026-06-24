@@ -464,6 +464,10 @@ jobs:
           GCC: 13
           os: ubuntu-24.04
           continue-on-error: true
+        # Experimental Swift backend
+        - SWIGLANG: swift
+          CPPSTD: c++17
+          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 

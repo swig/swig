@@ -1,0 +1,221 @@
+#######################################################################
+# Makefile for Swift test-suite
+#######################################################################
+
+LANGUAGE     = swift
+SCRIPTSUFFIX = _runme.swift
+
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+
+# Swift-specific tests verifying features of the Swift backend.
+# director_minimal: exercises director (user-subclassable C++ virtual methods).
+# nested_class:     exercises nested class/struct support (Swift inner types).
+# swift_enums:      C/C++ enumerations mapped to Swift enums.
+# swift_overload:   overloaded free functions and members.
+# swift_throws:     C++ exceptions surfaced as Swift throwing functions.
+CPP_TEST_CASES = \
+	director_minimal \
+	nested_class \
+	swift_enums \
+	swift_overload \
+	swift_throws
+
+CPP11_TEST_CASES =
+
+# Tests from the shared list that are known to fail for the experimental
+# Swift backend.  Remove entries here as support is added and verified.
+FAILING_CPP_TESTS += \
+	abstract_virtual \
+	aggregate \
+	allprotected \
+	apply_signed_char \
+	apply_strings \
+	argcargvtest \
+	autodoc \
+	catches \
+	catches_strings \
+	char_binary \
+	char_binary_rev_len \
+	constructor_copy_non_const \
+	contract \
+	cplusplus_throw \
+	cpp11_alternate_function_syntax \
+	cpp11_director_enums \
+	cpp11_director_using_constructor \
+	cpp11_directors \
+	cpp11_final_override \
+	cpp11_inheriting_constructors_typedef \
+	cpp11_move_only \
+	cpp11_move_only_valuewrapper \
+	cpp11_move_typemaps \
+	cpp11_ref_qualifiers \
+	cpp11_rvalue_reference2 \
+	cpp11_rvalue_reference_move \
+	cpp11_shared_ptr_crtp_upcast \
+	cpp11_shared_ptr_upcast \
+	cpp11_std_unique_ptr \
+	cpp11_template_parameters_decltype \
+	cpp11_template_using_base \
+	cpp11_using_functor \
+	cpp11_variadic_templates \
+	cpp17_inheriting_constructors_pack \
+	cpp17_map_no_default_ctor \
+	cpp17_using_pack_alias_template \
+	cpp17_using_pack_expansion \
+	cpp20_abbreviated_template_mixed \
+	cpp_basic \
+	default_args \
+	default_constructor \
+	director_abstract \
+	director_basic \
+	director_binary_string \
+	director_binary_string_rev_len \
+	director_classes \
+	director_comparison_operators \
+	director_constructor \
+	director_conversion_operators \
+	director_default \
+	director_enum \
+	director_exception \
+	director_exception_catches \
+	director_exception_nothrow \
+	director_extend \
+	director_frob \
+	director_ignore \
+	director_nested \
+	director_pass_by_value \
+	director_primitives \
+	director_property \
+	director_protected \
+	director_ref \
+	director_shared_ptr \
+	director_string \
+	director_unwrap_result \
+	director_using \
+	director_using_member_scopes \
+	director_void \
+	director_wombat \
+	dynamic_cast \
+	evil_diamond \
+	evil_diamond_ns \
+	evil_diamond_prop \
+	exception_memory_leak \
+	exception_order \
+	extern_throws \
+	functors \
+	injecting_base_class \
+	inout_typemaps \
+	li_attribute \
+	li_attribute_template \
+	li_boost_shared_ptr \
+	li_boost_shared_ptr_bits \
+	li_boost_shared_ptr_director \
+	li_boost_shared_ptr_template \
+	li_cdata_bytes_cpp \
+	li_cdata_cpp \
+	li_std_auto_ptr \
+	li_std_combinations \
+	li_std_deque \
+	li_std_except \
+	li_std_except_as_class \
+	li_std_map \
+	li_std_pair \
+	li_std_pair_using \
+	li_std_string \
+	li_std_vector \
+	li_std_vector_ptr \
+	li_std_wstring \
+	li_typemaps \
+	li_typemaps_apply \
+	li_windows \
+	long_long_apply \
+	member_funcptr_galore \
+	member_pointer \
+	member_pointer_const \
+	minherit2 \
+	multiple_inheritance \
+	multiple_inheritance_abstract \
+	multiple_inheritance_interfaces \
+	multiple_inheritance_nspace \
+	multiple_inheritance_overload \
+	multiple_inheritance_shared_ptr \
+	namespace_spaces \
+	nested_directors \
+	pure_virtual \
+	rename_camel \
+	rename_pcre_encoder \
+	rename_pcre_enum \
+	sizet \
+	smart_pointer_template_defaults_overload \
+	special_variable_macros \
+	special_variables \
+	stl_no_default_constructor \
+	swig_exception \
+	template_advanced_rename \
+	template_inherit_abstract \
+	threads_exception \
+	throw_exception \
+	typemap_directorout \
+	typemap_namespace \
+	typemap_various \
+	using_composition \
+	using_extend \
+	using_member_multiple_inherit \
+	using_namespace \
+	using_pointers
+
+# C (.ctest) tests known to fail for the Swift backend.  The Swift backend
+# targets C++; these exercise C-only constructs it does not yet handle.
+FAILING_C_TESTS += \
+	contract_c \
+	keyword_rename_c \
+	li_carrays \
+	li_cdata \
+	li_cdata_bytes \
+	li_constraints \
+	preproc_predefined \
+	ret_by_value \
+	typemap_subst
+
+include $(srcdir)/../common.mk
+
+# Suppress the experimental-language warning (W524), then ensure the test suite
+# remains free of any other SWIG warnings.  These come after the common.mk
+# include because it assigns SWIGOPT and would otherwise clobber them.
+SWIGOPT += -w524 -Werror
+
+# -----------------------------------------------------------------
+# Rules for the different types of tests
+#
+# swift_cpp runs SWIG to generate the C++ wrapper and the Swift proxy
+# module, then compiles the C++ wrapper.  Swift compilation is a
+# separate step and is not required by this test suite.
+# -----------------------------------------------------------------
+
+%.cpptest:
+	$(setup)
+	+$(swig_and_compile_cpp)
+
+%.ctest:
+	$(setup)
+	+$(swig_and_compile_c)
+
+%.multicpptest:
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
+
+# Clean: remove the generated wrapper, Swift proxy and object files.
+# The generated proxy for testcase 'foo' is foo.swift; the checked-in runme
+# scripts are foo_runme.swift, so the bulk clean below excludes *_runme.swift.
+%.clean:
+	@rm -f $*_wrap.* $*.swift $*.@OBJEXT@
+
+clean:
+	@rm -f *_wrap.* *~ *.@OBJEXT@ *@SO@
+	@find . -maxdepth 1 -name '*.swift' ! -name '*_runme.swift' -delete

@@ -139,6 +139,10 @@ jobs:
           VER: '1.25'
         - SWIGLANG: perl5
         - SWIGLANG: tcl
+        # Experimental Swift backend (Swift is native to macOS)
+        - SWIGLANG: swift
+          CPPSTD: c++17
+          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
