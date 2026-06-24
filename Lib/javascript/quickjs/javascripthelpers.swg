@@ -508,7 +508,7 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, con
 
 
 /*
- * SWIG_QuickJS_registerProperties: funtion to register properties
+ * SWIG_QuickJS_registerProperties: function to register properties
  * in 'object': functions, variables and constants.
  * Used by registerClass and registerNamespace.
  * Returns -1 in case of exception, 0 otherwise.

@@ -342,7 +342,7 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
  * quickjs_class_tables:  template for a class declaration
  *   - $jsmangledname:            mangled class name
  *   - $jsctor:                   constructor
- *   - $jsdor:                    destructor
+ *   - $jsdtor:                    destructor
  *   - $jsstaticclassvariables:   list of static variable entries
  *   - $jsstaticclassfunctions:   list of static function entries
  *   - $jsclassconstants:         list of constant entries
