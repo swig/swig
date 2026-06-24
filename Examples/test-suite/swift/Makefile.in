@@ -26,6 +26,12 @@ CPP_TEST_CASES = \
 	swift_overload \
 	swift_throws
 
+# Multi-module tests.
+# swift_import_inherit: a class deriving from a base in an %import-ed module
+#   inherits its constructor with 'override' (cross-module override detection).
+MULTI_CPP_TEST_CASES = \
+	swift_import_inherit
+
 CPP11_TEST_CASES =
 
 # Tests from the shared list that are known to fail for the experimental

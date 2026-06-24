@@ -2229,9 +2229,101 @@ public:
         if (check_director && Cmp(key, "0:") == 0 && Swig_directorclass(b.item))
           return true;
       }
+      /* A base wrapped in another module (%import) never ran through constructorHandler, so it is
+       * absent from class_generated_inits. Match against its constructor declarations directly so a
+       * constructor inherited across the module boundary is still emitted with 'override'. */
+      if (classNodeHasCtorWithKey(b.item, key))
+        return true;
       /* Recurse without director check so only immediate director parents trigger it */
       if (ancestorHasGeneratedInitWith(b.item, key, false))
         return true;
+    }
+    return false;
+  }
+
+  /* Compute the init-dispatch key "{num}:{label1}:{label2}:..." for a constructor parameter list.
+   * Shared by constructorHandler (derived class, wrap:parms carrying typemaps) and
+   * classNodeHasCtorWithKey (base class AST, raw parms) so the two keys are directly comparable. */
+  String *ctorInitKey(ParmList *l) {
+    int num = emit_num_arguments(l);
+    String *key;
+    if (num == 0) {
+      key = NewStringf("0:");
+    } else {
+      key = NewStringf("%d", num);
+      Parm *fp = l;
+      while (fp) {
+        while (fp && checkAttribute(fp, "tmap:in:numinputs", "0"))
+          fp = Getattr(fp, "tmap:in:next");
+        if (!fp)
+          break;
+        String *fpname = Getattr(fp, "name");
+        String *flname = Getattr(fp, "lname");
+        if (fpname && Len(fpname) > 0)
+          Printf(key, ":%s", fpname);
+        else if (flname && Len(flname) > 0)
+          Printf(key, ":%s", flname);
+        else
+          Printf(key, ":arg");
+        fp = Getattr(fp, "tmap:in:next") ? Getattr(fp, "tmap:in:next") : nextSibling(fp);
+      }
+    }
+    return key;
+  }
+
+  /* True if class node 'cls' declares a constructor whose init key equals 'key'. Used to detect
+   * constructors inherited from an %import-ed base (which are not in class_generated_inits).
+   *
+   * A single C++ constructor with default arguments expands into one Swift init per arity (from the
+   * number of required parameters up to the total), so this matches 'key' against every such arity
+   * rather than only the full parameter list. (On the imported base the constructor is a single AST
+   * node with the defaulted params still present, whereas the derived class emits a separate init
+   * per overload - so without this the shorter overloads would never match.) */
+  bool classNodeHasCtorWithKey(Node *cls, const String *key) {
+    for (Node *c = firstChild(cls); c; c = nextSibling(c)) {
+      String *nt = Getattr(c, "nodeType");
+      if (!nt || !Equal(nt, "constructor"))
+        continue;
+      if (GetFlag(c, "feature:ignore"))
+        continue;
+
+      /* Collect the parameter labels and how many are required (i.e. precede the first defaulted
+       * parameter), mirroring ctorInitKey's label selection (name, else lname, else "arg"). */
+      List *labels = NewList();
+      int required = 0;
+      bool seen_default = false;
+      for (Parm *p = Getattr(c, "parms"); p; p = nextSibling(p)) {
+        if (checkAttribute(p, "tmap:in:numinputs", "0"))
+          continue;
+        String *pn = Getattr(p, "name");
+        String *ln = Getattr(p, "lname");
+        String *label = (pn && Len(pn) > 0) ? Copy(pn) : ((ln && Len(ln) > 0) ? Copy(ln) : NewString("arg"));
+        Append(labels, label);
+        Delete(label);
+        if (Getattr(p, "value"))
+          seen_default = true;
+        if (!seen_default)
+          required = Len(labels);
+      }
+
+      int total = Len(labels);
+      for (int arity = required; arity <= total; arity++) {
+        String *ck;
+        if (arity == 0) {
+          ck = NewStringf("0:");
+        } else {
+          ck = NewStringf("%d", arity);
+          for (int i = 0; i < arity; i++)
+            Printf(ck, ":%s", Getitem(labels, i));
+        }
+        bool match = Equal(ck, key);
+        Delete(ck);
+        if (match) {
+          Delete(labels);
+          return true;
+        }
+      }
+      Delete(labels);
     }
     return false;
   }
@@ -2356,37 +2448,17 @@ public:
     bool has_base = current_class_has_base;
     /* Use l (= wrap:parms, has typemaps) for override tracking.
      * Swig_restore() in Language::constructorHandler strips typemaps from "parms". */
-    int num_ctor_args = num_args;
     /* Build full init key: "{num}:{label1}:{label2}:..." from wrap:parms (has typemaps).
-     * Using all labels (not just the first) distinguishes e.g. init(d:fp:) from init(d:executor:). */
-    String *init_key;
-    if (num_ctor_args == 0) {
-      init_key = NewStringf("0:");
-    } else {
-      init_key = NewStringf("%d", num_ctor_args);
-      Parm *fp = l;
-      while (fp) {
-        while (fp && checkAttribute(fp, "tmap:in:numinputs", "0"))
-          fp = Getattr(fp, "tmap:in:next");
-        if (!fp)
-          break;
-        String *fpname = Getattr(fp, "name");
-        String *flname = Getattr(fp, "lname");
-        if (fpname && Len(fpname) > 0)
-          Printf(init_key, ":%s", fpname);
-        else if (flname && Len(flname) > 0)
-          Printf(init_key, ":%s", flname);
-        else
-          Printf(init_key, ":arg");
-        fp = Getattr(fp, "tmap:in:next") ? Getattr(fp, "tmap:in:next") : nextSibling(fp);
-      }
-    }
+     * Using all labels (not just the first) distinguishes e.g. init(d:fp:) from init(d:executor:).
+     * Computed via the shared ctorInitKey() so it matches the key derived from a base class' raw
+     * constructor AST in classNodeHasCtorWithKey() (cross-module override detection). */
+    String *init_key = ctorInitKey(l);
     Node *cls_node = parentNode(n);
     /* Skip override check for class-specific constructors (e.g. copy ctors) where
      * a parameter type is the class itself — the base's copy ctor takes a different
      * type so they're distinct Swift signatures even with the same label. */
     bool is_class_specific_ctor = false;
-    if (num_ctor_args > 0 && cls_node) {
+    if (num_args > 0 && cls_node) {
       String *class_ctype = Getattr(cls_node, "name");
       Parm *fp = l;
       while (fp && !is_class_specific_ctor) {

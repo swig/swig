@@ -292,6 +292,13 @@ inheritance hierarchy.  Multiple inheritance is not supported; only the first
 base class is used and a warning (864) is emitted for each additional base.
 </p>
 
+<p>
+Deriving from a base class that was wrapped in a separate module and pulled in
+with <tt>%import</tt> is also supported.  A constructor inherited across the
+module boundary is generated with Swift's <tt>override</tt> keyword so the
+derived proxy compiles against the imported base.
+</p>
+
 <H3><a name="Swift_wrapping_nested">40.3.5 Nested classes and structs</a></H3>
 
 
