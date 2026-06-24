@@ -139,9 +139,12 @@ jobs:
           VER: '1.25'
         - SWIGLANG: perl5
         - SWIGLANG: tcl
-        # Experimental Swift backend (Swift is native to macOS)
+        # Experimental Swift backend (Swift is native to macOS).
+        # Uses c++14 (the macOS default): the newer libc++ on the macOS runners
+        # has removed std::result_of, which the cpp11_result_of test only fakes
+        # for c++17 and later, so c++17 fails there for any language.
         - SWIGLANG: swift
-          CPPSTD: c++17
+          CPPSTD: c++14
           continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
