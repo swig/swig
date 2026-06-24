@@ -592,9 +592,7 @@ JSValue SWIG_QuickJS_NewPackedObj(JSContext *ctx, void *data, size_t size, swig_
  *
  * ---------------------------------------------------------------------------*/
 static JSClassID SWIG_QuickJS_module_info_class_id = 0;
-#if 0
-static JSClassID SWIG_QuickJS_namespace_info_class_id = 0;
-#endif
+
 
 /* ---------------------------------------------------------------------------
  * Runtime Helper functions: SWIG_getptr
