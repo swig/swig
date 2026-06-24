@@ -69,9 +69,9 @@ static int eval_file(JSContext *ctx, const char *filename, int module, int stric
         eval_flags = JS_EVAL_TYPE_MODULE;
     } else {
         eval_flags = JS_EVAL_TYPE_GLOBAL;
-		if (strict)
-			eval_flags |= JS_EVAL_FLAG_STRICT;
-	}
+        if (strict)
+            eval_flags |= JS_EVAL_FLAG_STRICT;
+    }
     ret = eval_buf(ctx, buf, buf_len, filename, eval_flags);
     js_free(ctx, buf);
     return ret;
@@ -168,16 +168,8 @@ JSValue myjs_require(JSContext *ctx, JSValueConst this_val, int argc, JSValueCon
     return JS_ThrowTypeError(ctx, "require: expect a  non-empty string as argument");
   }
 
-  /* try current directory (XXX: one day, use environment variable like 'QUICKJS_CPATH' */
   snprintf(filename, MAXPATH, "%s.so", basename);
   jsresult = myjs_load_module(ctx, basename, filename);
-  if(JS_IsException(jsresult)) {
-    /* clear the exception */
-    JS_FreeValue(ctx, JS_GetException(ctx));
-    /* try default directory */
-    snprintf(filename, MAXPATH, "/usr/lib/qjs/%s.so", basename);
-    jsresult = myjs_load_module(ctx, basename, filename);
-  }
 
   JS_FreeCString(ctx, basename);
   return jsresult;
