@@ -70,7 +70,7 @@ Javascript has gone beyond being a browser-based scripting language and can be u
 <li><strong>Node.js</strong> 12 or later.  SWIG can optionally generate Node-API code, which needs Node.js 12.17 or later.</li>
 <li><strong>JavascriptCore</strong> 4.0 or later.  JavascriptCore is used by Safari/Webkit</li>
 <li><a href="https://v8.dev/"><strong>v8</strong></a> 7.4 or later (we currently CI test with 7.8 and 10.2).  v8 is used by Chromium and Node.js.</li>
-<li><a href="https://bellard.org/quickjs//"><strong>QuickJS</strong></a> 2025-09-13, 2026-06-04 or later.</li>
+<li><a href="https://bellard.org/quickjs/"><strong>QuickJS</strong></a> 2025-09-13, 2026-06-04 or later.</li>
 </ul>
 <p><a href="https://webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.
 <a href="https://github.com/nwjs/nw.js">NW.jst</a> provides an app runtime which uses Google's Chromium as Web-Browser widget and node.js for javascript extensions.
@@ -157,7 +157,7 @@ $ sudo apt-get install libnode-dev</pre>
   <pre>
 $ sudo npm install -g node-addon-api</pre>
 </div>
-<p>Running with QuickJS requires the sources of QuickJS to be available and compiled.. This source path can be defined
+<p>Running with QuickJS requires the sources of QuickJS to be available and compiled. This source path can be defined
 in the <code>configure</code> step. Note that it is advised to download and build QuickJS, as supported versions are currently 2025-09-13
 and 2026-06-04 and default version in distribution may be out of date.</p>
 <p>For instance, in Ubuntu 24.04, these instructions install QuickJS 2021-03-27, which is too old for this module:</p>
@@ -165,7 +165,7 @@ and 2026-06-04 and default version in distribution may be out of date.</p>
   <pre>
 $ sudo apt-get install quickjs libquickjs</pre>
 </div>
-<p>Note: due to differences in API, the quickjs-ng fork is not supported yet.</p>
+<p>Note: due to differences in API, the quickjs-ng fork is not supported.</p>
 
 <p>Examples can be run using</p>
 <div class="shell">
@@ -475,13 +475,13 @@ open new windows, and many more things.
 
 
 <ul>
-  <li>QuickJS default executable <code>qjs</code> does not provide a <code>require</code> function but only <code>import</code>. For the test suite and examples, a specific QuickJS interpretor is build in <code>Tools/javascript</code>.</li>
+  <li>QuickJS default executable <code>qjs</code> does not provide a <code>require</code> function but only <code>import</code>. For the test suite and examples, a specific QuickJS interpreter is built in <code>Tools/javascript</code>.</li>
 </ul>
 
 <H4><a name="Javascript_quickjs_other">28.3.4.2 QuickJS runtime specificities</a></H4>
 
 
-<p>Generated modules include a global variable named <code>QuickJS</code> which is an object used as a registry (concept similar to the one in Lua).
+<p>Generated modules include a global variable named <code>QuickJS</code> which is an object used as a registry (concept similar to the one in Lua).</p>
 <p>The instruction <code>typeof QuickJS !== "undefined"</code> allows to detect if running in the QuickJS interpreter.</p>
 
 <p>This registry includes a class registry, storing the prototypes of generated classes and supporting:</p>
@@ -497,6 +497,7 @@ For multiple inheritance, a <em>combined prototype</em> is created, gathering th
 <p>The typemap giving access to the low level memory allocation function (<code>malloc</code>, etc...) is, by default, making use of the <code>QuickJS</code> implementation (<code>js_malloc</code>, etc...).</p>
 <p>This allows to benefit from the memory leak detection in <code>qjs</code>. For that, it is needed to compile <code>quickjs.c</code> with the option <code>DUMP_LEAKS</code>.
 To use the standard memory allocation functions, the symbol <code>QUICKJS_USE_LIBC_MALLOC</code> can be defined when compiling the module.
+</p>
 
 
 <H2><a name="Javascript_examples">28.4 Examples</a></H2>
