@@ -35,10 +35,10 @@
 #endif
 #ifdef SWIG_JAVASCRIPT_QUICKJS
     JS_DupValue(NULL, x); // DupValue has a context parameter, but it is unused
-#endif    
-    return x;    
+#endif
+    return x;
   }
 
 }
 
-  
+

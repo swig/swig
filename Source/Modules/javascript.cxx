@@ -3306,7 +3306,7 @@ int QuickJSEmitter::emitConstant(Node *n) {
   }
 
   if (qjs_type == NULL) {
-    // fallback to the "constant as read-only variable" mechanisem
+    // fallback to the "constant as read-only variable" mechanism
     return JSEmitter::emitConstant(n);
   }
 

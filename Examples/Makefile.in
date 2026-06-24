@@ -772,7 +772,7 @@ endif
 
 ifneq (, @JSQUICKJSENABLED@)
     EXTRA_CPPFLAGS=-I$(SWIG_LIB_DIR)/javascript/quickjs
-endif    
+endif
 
 # ----------------------------------------------------------------
 # Creating and building Javascript wrappers
