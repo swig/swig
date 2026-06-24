@@ -64,7 +64,7 @@ const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val)
     obj = JS_DupValue(ctx, this_val);
   } else if (JS_IsException(this_val)) {
     has_prop = true;
-    // this clears the exception: dup the error object and throw it again
+    /* this clears the exception: dup the error object and throw it again */
     obj = JS_GetException(ctx);
     JS_Throw(ctx, JS_DupValue(ctx,obj));
   }
