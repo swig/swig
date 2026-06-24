@@ -31,9 +31,9 @@ extern std::map<std::string, std::string> swiftRenamedSymbols;
 /*
  * A class to translate Doxygen comments into Swift documentation comments.
  *
- * The output is a /** ... *\/ block comment whose body is Swift Markup: a markdown
- * summary/description followed by field callouts such as `- Parameter x:`,
- * `- Returns:`, `- Throws:`, `- Note:`, etc.  Every Doxygen command is handled so
+ * The output is a Swift documentation comment block whose body is Swift Markup: a markdown
+ * summary/description followed by field callouts such as '- Parameter x:',
+ * '- Returns:', '- Throws:', '- Note:', etc.  Every Doxygen command is handled so
  * that no markup is lost or emitted verbatim in a way Swift would not understand.
  */
 class SwiftDocConverter : public DoxygenTranslator {

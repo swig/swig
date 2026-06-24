@@ -504,8 +504,8 @@ int SwiftDocConverter::shiftEndlinesUpTree(DoxygenEntity &root, int level) {
   return removedCount;
 }
 
-/* Wrap the translated body into a /** ... *\/ block, ensuring every line carries
- * the ' * ' margin. Reused from the javadoc approach; valid Swift Markup. */
+/* Wrap the translated body into a documentation comment block, ensuring every line
+ * carries the ' * ' margin. Reused from the javadoc approach; valid Swift Markup. */
 std::string SwiftDocConverter::indentAndInsertAsterisks(const string &doc) {
   size_t idx = doc.find('\n');
   size_t indent = 0;

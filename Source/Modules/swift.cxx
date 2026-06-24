@@ -349,7 +349,6 @@ public:
     doxygenTranslator(NULL),
     outfile_h(NULL),
     outfile_swift(NULL),
-    current_module(NULL),
     director_flag(false),
     director_classname(NULL),
     director_symname(NULL),
@@ -361,7 +360,8 @@ public:
     director_swift_init_cb(NULL),
     director_method_count(NULL),
     class_generated_inits(NewHash()),
-    class_static_methods(NewHash()) {
+    class_static_methods(NewHash()),
+    current_module(NULL) {
     directorLanguage();
     /* Swift directors use a separate factory function; the regular constructor
      * wrapper must always create the plain (non-director) class. */
@@ -1320,7 +1320,6 @@ public:
     SwigType *rettype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *par_symname = Getattr(parent, "sym:name");
-    String *par_cname = Getattr(parent, "name"); /* fully-qualified C++ name */
 
     bool is_void_ret = (SwigType_type(rettype) == T_VOID);
 
@@ -2288,7 +2287,6 @@ public:
       while (checkAttribute(p, "tmap:in:numinputs", "0"))
         p = Getattr(p, "tmap:in:next");
 
-      SwigType *pt = Getattr(p, "type");
       String *pname = Getattr(p, "name");
       String *lname = Getattr(p, "lname");
       String *swift_arg_name;
