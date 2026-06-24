@@ -3025,7 +3025,6 @@ protected:
   virtual int emitConstant(Node *n);
   virtual int enterVariable(Node *n);
   virtual int exitVariable(Node *n);
-  virtual int enterFunction(Node *n);
   virtual int exitFunction(Node *n);
   virtual int enterClass(Node *n);
   virtual int exitClass(Node *n);
@@ -3322,12 +3321,6 @@ int QuickJSEmitter::emitConstant(Node *n) {
   return SWIG_OK;
 }
 
-int QuickJSEmitter::enterFunction(Node *n) {
-
-  JSEmitter::enterFunction(n);
-
-  return SWIG_OK;
-}
 
 int QuickJSEmitter::exitFunction(Node *n) {
 
