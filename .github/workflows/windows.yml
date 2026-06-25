@@ -148,6 +148,13 @@ jobs:
           COMPILER: gcc
           CSTD: gnu11
           MSYS2_ENV: ucrt64
+        # Experimental Swift backend (MinGW gcc build of the C++ wrapper)
+        - SWIGLANG: swift
+          COMPILER: gcc
+          CPPSTD: c++17
+          CSTD: gnu11
+          MSYS2_ENV: ucrt64
+          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 

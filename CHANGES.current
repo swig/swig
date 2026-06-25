@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-24: sbellus
+            Add an experimental Swift target language, enabled with the new -swift
+            command line option. It generates a C++ wrapper plus a Swift proxy module
+            (module.swift) exposing proxy classes and free functions. Supported features
+            include classes, inheritance (including from a base in an %import-ed module),
+            enumerations, nested classes, overloading, directors and C++ exceptions
+            surfaced as Swift throwing functions. As an
+            experimental language it emits Warning 524 when used; suppress it with -w524.
+            See the new Swift chapter in the documentation for details.
+
 2026-06-17: wsfulton
             #3481 Fix the C++17 inheriting constructor pack 'using T::T ...;' over a
             variadic base pack so that the constructor of every base is wrapped.  For

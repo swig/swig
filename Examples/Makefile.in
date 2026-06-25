@@ -1596,6 +1596,52 @@ scilab_clean:
 	rm -f *.sce
 
 ##################################################################
+#####                       SWIFT                           ######
+##################################################################
+
+# The Swift backend is experimental.  SWIG generates a C++ wrapper plus a
+# Swift proxy module; the test-suite only checks that the wrapper compiles,
+# so these rules stop at the object file and never link a shared library or
+# invoke the Swift compiler (which need not be installed).
+
+SWIFT_RUNME = ./$(RUNME)
+
+# ----------------------------------------------------------------
+# Build the Swift wrapper (C)
+# ----------------------------------------------------------------
+
+swift:
+	$(SWIG) -swift $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+
+# ----------------------------------------------------------------
+# Build the Swift wrapper (C++)
+# ----------------------------------------------------------------
+
+swift_cpp:
+	$(SWIG) -c++ -swift $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+# The Swift backend generates a C++ wrapper, so report the C++ compiler used
+# to build it (a Swift toolchain is not required for the test suite).
+swift_version:
+	$(CXX) --version | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the Swift examples
+# -----------------------------------------------------------------
+
+swift_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.swift
+
+##################################################################
 #####                       TCL                             ######
 ##################################################################
 

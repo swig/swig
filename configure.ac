@@ -2780,6 +2780,12 @@ fi
 AC_SUBST(SKIP_SCILAB)
 
 
+dnl The Swift test-suite only generates wrappers and compiles the C++ side, so
+dnl like the C target it needs nothing beyond the CC and CXX required to build SWIG.
+SKIP_SWIFT=
+AC_SUBST(SKIP_SWIFT)
+
+
 SKIP_TCL=
 if test -z "$TCLINCLUDE" || test -z "$TCLLIB" ; then
     SKIP_TCL="1"
@@ -2875,6 +2881,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/r/Makefile
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
+    Examples/test-suite/swift/Makefile
     Examples/test-suite/tcl/Makefile
     Source/Makefile
     Tools/javascript/Makefile
@@ -2937,6 +2944,7 @@ test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
+test -n "$SKIP_SWIFT"		|| langs="${langs}swift "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 
 echo "

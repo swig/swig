@@ -1,0 +1,41 @@
+Swift test-suite
+================
+
+This directory contains the SWIG test suite for the Swift target language.
+
+The Swift backend is experimental.  Tests in this directory verify:
+
+  - director_minimal: director support (user-subclassable C++ virtual methods
+    via open Swift classes with @convention(c) dispatch functions and
+    thread-local exception propagation back to C++).
+
+  - nested_class: nested class and struct support.  Unlike the Python/Ruby
+    backends (which hoist nested types to module scope via flatnested), the
+    Swift backend generates true Swift inner types so that C++ nested classes
+    appear as Outer.Inner in Swift.
+
+  - swift_enums: C/C++ enumerations mapped to Swift enums (raw Int32 values).
+
+  - swift_overload: overloaded free functions and member methods.
+
+  - swift_throws: C++ exceptions surfaced as Swift throwing functions.
+
+Most of the shared SWIG test suite also runs; tests not yet handled by the
+experimental backend are listed in FAILING_CPP_TESTS / FAILING_C_TESTS in
+Makefile.in.
+
+Running the tests
+-----------------
+
+From the SWIG root directory (after running ./configure && make):
+
+  make check-swift-test-suite       # run non-broken tests
+  make all-swift-test-suite         # run all tests including known failures
+  make partialcheck-swift-test-suite  # SWIG generation only, no compilation
+
+The test suite exercises SWIG generation and C++ wrapper compilation only; it
+does not compile or run the generated Swift proxy, so a Swift toolchain
+(swiftc) is not required.  Because only the C and C++ compilers used to build
+SWIG are needed, the suite is always enabled (like the experimental C target),
+and the _runme.swift scripts serve as usage examples rather than executed
+tests.

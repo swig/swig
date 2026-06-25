@@ -1,0 +1,803 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SWIG and Swift</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+
+<body bgcolor="#ffffff">
+
+<H1><a name="Swift">40 SWIG and Swift</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Swift_preliminaries">Preliminaries</a>
+<li><a href="#Swift_running_swig">Running SWIG</a>
+<ul>
+<li><a href="#Swift_running_swig_options">Swift command line options</a>
+<li><a href="#Swift_running_swig_compiling">Compiling the wrapper</a>
+</ul>
+<li><a href="#Swift_wrapping">A basic tour of C/C++ wrapping</a>
+<ul>
+<li><a href="#Swift_wrapping_functions">Functions</a>
+<li><a href="#Swift_wrapping_classes">C++ classes</a>
+<li><a href="#Swift_wrapping_enums">Enumerations</a>
+<li><a href="#Swift_wrapping_inheritance">Inheritance</a>
+<li><a href="#Swift_wrapping_nested">Nested classes and structs</a>
+</ul>
+<li><a href="#Swift_exceptions">Exception handling</a>
+<li><a href="#Swift_directors">Directors - callbacks into Swift</a>
+<li><a href="#Swift_memory">Memory management</a>
+<li><a href="#Swift_customization">Customizing the generated code</a>
+<ul>
+<li><a href="#Swift_customization_nonnull">Non-optional pointer returns</a>
+<li><a href="#Swift_customization_modulecode">Injecting module level Swift code</a>
+</ul>
+<li><a href="#Swift_typemaps">Typemaps</a>
+<ul>
+<li><a href="#Swift_typemaps_example">A worked example</a>
+<li><a href="#Swift_typemaps_directors">Director typemaps</a>
+<li><a href="#Swift_typemaps_custom">Defining your own typemaps</a>
+</ul>
+<li><a href="#Swift_known_limitations">Known limitations</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<p>
+This chapter describes SWIG's support for Swift, Apple's compiled, statically
+typed language designed for safety and performance.  The Swift backend is
+<b>experimental</b> - basic functionality works but coverage is not yet on a
+par with the fully supported language modules.
+</p>
+
+<p>
+SWIG generates two files when targeting Swift: a C++ wrapper
+(<tt>module_wrap.cxx</tt>) that exposes C bridge functions, and a Swift source
+file (<tt>module.swift</tt>) containing the proxy classes and free functions
+that Swift code imports directly.  No shared-library loading step is required
+beyond the standard framework or dylib linking performed by the Swift build
+system.
+</p>
+
+<H2><a name="Swift_preliminaries">40.1 Preliminaries</a></H2>
+
+
+<p>
+You will need:
+</p>
+<ul>
+<li>SWIG 4.5.0 or later built with Swift support (the <tt>-swift</tt> flag is
+marked Experimental).</li>
+<li>A C++ compiler for the generated wrapper (any compiler supported by the
+target platform).</li>
+<li>Swift 5.7 or later (Xcode 14+ on Apple platforms, or the open-source
+Swift toolchain on Linux).</li>
+</ul>
+
+<p>
+Because the Swift backend is experimental, SWIG emits warning 524 whenever it
+is invoked.  Suppress it with <tt>-w524</tt> once you are aware of the status.
+</p>
+
+<H2><a name="Swift_running_swig">40.2 Running SWIG</a></H2>
+
+
+<p>
+Invoke SWIG with the <tt>-swift</tt> flag and C++ mode:
+</p>
+
+<div class="shell">
+<pre>
+swig -swift -c++ -w524 example.i
+</pre>
+</div>
+
+<p>
+The generated files are placed in the current directory by default.  Use
+<tt>-outdir &lt;dir&gt;</tt> to redirect the Swift proxy file:
+</p>
+
+<div class="shell">
+<pre>
+swig -swift -c++ -w524 -outdir swift/ -o swift/example_wrap.cxx example.i
+</pre>
+</div>
+
+<p>
+The module declaration in the interface file sets the Swift module name:
+</p>
+
+<div class="code">
+<pre>
+%module mylib
+</pre>
+</div>
+
+<p>
+This produces <tt>mylib_wrap.cxx</tt>, <tt>mylib_wrap.h</tt>, and
+<tt>mylib.swift</tt>.
+</p>
+
+<H3><a name="Swift_running_swig_options">40.2.1 Swift command line options</a></H3>
+
+
+<p>
+The following options are available with <tt>-swift</tt>:
+</p>
+
+<div class="diagram">
+<pre>
+-outfile &lt;file&gt;  Override the name of the generated .swift file
+-autorename      Rename wrapped methods to Swift's lowerCamelCase convention
+-doxygen         Convert C++ Doxygen comments to Swift documentation comments
+</pre>
+</div>
+
+<p>
+By default a wrapped method keeps its C++ name, so <tt>GetVersion()</tt> stays
+<tt>GetVersion()</tt> in Swift.  With <tt>-autorename</tt> the leading capital
+is lower cased to follow Swift naming conventions, so <tt>GetVersion()</tt>
+becomes <tt>getVersion()</tt>.  Types, enumerations and enumeration cases are
+never renamed.  When <tt>-autorename</tt> and <tt>-doxygen</tt> are combined,
+references to renamed functions inside the translated documentation comments are
+rewritten to match the generated Swift names.
+</p>
+
+<H3><a name="Swift_running_swig_compiling">40.2.2 Compiling the wrapper</a></H3>
+
+
+<p>
+Compile the C++ wrapper alongside your C++ library sources to produce a shared
+library or framework.  The Swift proxy file is compiled as part of the Swift
+module that imports the library:
+</p>
+
+<div class="shell">
+<pre>
+# Compile the C++ wrapper
+clang++ -fPIC -std=c++17 -c mylib_wrap.cxx -o mylib_wrap.o
+
+# Link with your library
+clang++ -shared mylib_wrap.o mylib.o -o libmylib.so
+</pre>
+</div>
+
+<p>
+On Apple platforms you would build a framework or dylib and use a module map or
+<tt>@_implementationOnly import</tt> to expose the C bridge header to Swift.
+</p>
+
+<H2><a name="Swift_wrapping">40.3 A basic tour of C/C++ wrapping</a></H2>
+
+
+<p>
+Two conventions apply throughout the generated Swift API and are worth keeping
+in mind while reading the examples below:
+</p>
+
+<ul>
+<li>Every wrapped function, method and initializer is declared <tt>throws</tt>,
+because any C++ call may raise an exception that is propagated to Swift (see
+<a href="#Swift_exceptions">Exception handling</a>).  Call sites therefore use
+<tt>try</tt>.</li>
+<li>Parameters carry argument labels taken from the C++ parameter names, so a
+C++ <tt>add(int x, int y)</tt> is called as <tt>add(x:&nbsp;3, y:&nbsp;4)</tt>
+from Swift.</li>
+</ul>
+
+<H3><a name="Swift_wrapping_functions">40.3.1 Functions</a></H3>
+
+
+<p>
+A C++ free function is wrapped as a Swift global function.  C <tt>int</tt> maps
+to Swift <tt>Int32</tt> and <tt>double</tt> to <tt>Double</tt>:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%{
+#include "example.h"
+%}
+
+int add(int x, int y);
+double square(double x);
+</pre>
+</div>
+
+<p>
+From Swift:
+</p>
+
+<div class="targetlang">
+<pre>
+import example
+
+let result = try add(x: 3, y: 4)   // 7
+let s = try square(x: 2.5)         // 6.25
+</pre>
+</div>
+
+<H3><a name="Swift_wrapping_classes">40.3.2 C++ classes</a></H3>
+
+
+<p>
+A C++ class becomes a Swift class.  The proxy class owns the underlying C++
+object via an opaque <tt>swigCPtr</tt> and manages its lifetime through
+<tt>swigCMemOwn</tt>.  The SWIG-generated <tt>delete()</tt> method releases
+the object immediately when called; otherwise the object is freed when Swift
+ARC collects the proxy.
+</p>
+
+<div class="code">
+<pre>
+%module example
+%{
+#include "Point.h"
+%}
+
+class Point {
+public:
+  Point(double x, double y);
+  double getX() const;
+  double getY() const;
+  void   setX(double x);
+  void   setY(double y);
+};
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+import example
+
+let p = try Point(x: 1.0, y: 2.0)
+print(try p.getX())   // 1.0
+try p.setY(y: 5.0)
+print(try p.getY())   // 5.0
+</pre>
+</div>
+
+<H3><a name="Swift_wrapping_enums">40.3.3 Enumerations</a></H3>
+
+
+<p>
+C++ enumerations are wrapped as Swift enumerations with <tt>Int32</tt> raw
+values:
+</p>
+
+<div class="code">
+<pre>
+enum Color { RED, GREEN, BLUE };
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+let c = Color.RED
+print(c.rawValue)   // 0
+</pre>
+</div>
+
+<H3><a name="Swift_wrapping_inheritance">40.3.4 Inheritance</a></H3>
+
+
+<p>
+Single inheritance is fully supported.  The Swift proxy class mirrors the C++
+inheritance hierarchy.  Multiple inheritance is not supported; only the first
+base class is used and a warning (864) is emitted for each additional base.
+</p>
+
+<p>
+Deriving from a base class that was wrapped in a separate module and pulled in
+with <tt>%import</tt> is also supported.  A constructor inherited across the
+module boundary is generated with Swift's <tt>override</tt> keyword so the
+derived proxy compiles against the imported base.
+</p>
+
+<H3><a name="Swift_wrapping_nested">40.3.5 Nested classes and structs</a></H3>
+
+
+<p>
+C++ nested classes and structs are wrapped as true Swift inner types rather
+than being hoisted to module scope.  A C++ nested class such as
+<tt>Outer::Config</tt> becomes <tt>Outer.Config</tt> in Swift:
+</p>
+
+<div class="code">
+<pre>
+class Outer {
+public:
+  struct Config {
+    int width;
+    int height;
+  };
+  void apply(const Config&amp; c);
+};
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+let cfg = try Outer.Config()
+let w = try cfg.GetWidth()    // accessor method, see note below
+let obj = try Outer()
+try obj.apply(c: cfg)
+</pre>
+</div>
+
+<p>
+Public member variables are currently exposed through generated accessor
+methods (<tt>GetWidth()</tt> here) rather than as assignable Swift properties -
+see <a href="#Swift_known_limitations">Known limitations</a>.
+</p>
+
+<p>
+This is different from the Python and Ruby backends, which use
+<tt>%feature("flatnested")</tt> to hoist nested types to module scope.  The
+Swift backend does not apply flatnested; nested types follow Swift's natural
+inner-type idiom.
+</p>
+
+<H2><a name="Swift_exceptions">40.4 Exception handling</a></H2>
+
+
+<p>
+C++ exceptions thrown inside wrapper functions are caught by SWIG and
+propagated to Swift as a thrown <tt>Error</tt>.  Every wrapped C++ function,
+method and initializer is therefore declared <tt>throws</tt>, and the
+<tt>swigCheckException()</tt> helper emitted at the top of the generated
+<tt>.swift</tt> file is called after each underlying C call to rethrow any
+pending exception:
+</p>
+
+<div class="targetlang">
+<pre>
+do {
+  try someWrappedFunction()
+} catch let error as NSError {
+  print("C++ threw: \(error.localizedDescription)")
+}
+</pre>
+</div>
+
+<p>
+Untyped exceptions (the C++ standard exceptions such as <tt>std::exception</tt>,
+director exceptions and unknown C++ exceptions) are surfaced as a Foundation
+<tt>NSError</tt>, using the SWIG module name as the error domain and the C++
+message as <tt>localizedDescription</tt>.  This matches how the Java and C#
+modules map these cases to standard language exceptions and keeps the generated
+public API free of SWIG specific error types.
+</p>
+
+<p>
+A function that returns a pointer or a <tt>std::shared_ptr</tt> maps to a Swift
+Optional and returns <tt>nil</tt> when the C++ side returns a null pointer.  If
+the C++ contract is "return a valid object or fail", you can make such a
+function return a non-optional value that throws on null instead - see
+<a href="#Swift_customization_nonnull"><tt>%feature("swift:nonnull")</tt></a>.
+</p>
+
+<H2><a name="Swift_directors">40.5 Directors - callbacks into Swift</a></H2>
+
+
+<p>
+Directors allow Swift code to subclass a C++ class and override its virtual
+methods.  Enable directors for a class with:
+</p>
+
+<div class="code">
+<pre>
+%module(directors="1") example
+
+%feature("director") Logger;
+
+%{
+#include "Logger.h"
+%}
+
+class Logger {
+public:
+  virtual ~Logger() {}
+  virtual void log(const std::string&amp; message) = 0;
+};
+</pre>
+</div>
+
+<p>
+When <tt>%feature("director")</tt> is applied, SWIG marks the Swift proxy
+class <tt>open</tt> so that Swift code can subclass it directly.  Internally
+SWIG generates a C++ class <tt>SwigDirector_Logger : public Logger</tt> whose
+virtual methods dispatch back into Swift via stored function-pointer callbacks,
+but this C++ detail is not visible to Swift callers.  The proxy class
+<tt>Logger</tt> is all you see and all you subclass:
+</p>
+
+<div class="targetlang">
+<pre>
+class MyLogger: Logger {
+  override func log(message: String) throws {
+    print("[LOG] \(message)")
+  }
+}
+
+let logger = try MyLogger()
+// pass logger to C++ as a Logger*
+</pre>
+</div>
+
+<p>
+Virtual methods keep their C++ names in Swift.  They are declared
+<tt>open func</tt> inside the proxy class so subclasses can override them
+with the normal Swift <tt>override</tt> keyword.  All of them are marked
+<tt>throws</tt> so Swift exceptions propagate back to C++ as a
+<tt>Swig::DirectorException</tt> via a thread-local pending-exception state.
+Swift ARC keeps the proxy object alive as long as C++ holds the back-pointer,
+so no extra retention wrapper is needed.
+</p>
+
+<H2><a name="Swift_memory">40.6 Memory management</a></H2>
+
+
+<p>
+Every SWIG proxy class stores the C++ object behind an opaque pointer
+(<tt>swigCPtr</tt>) and a Boolean ownership flag (<tt>swigCMemOwn</tt>).
+When <tt>swigCMemOwn</tt> is <tt>true</tt>, the proxy's deinitializer calls
+<tt>delete</tt> on the underlying C++ object.  When SWIG passes an object
+into C++ code that takes ownership (for example via a factory function that
+accepts a raw pointer), the proxy's ownership flag is cleared to prevent a
+double-free.
+</p>
+
+<p>
+Swift ARC (Automatic Reference Counting) manages the proxy lifetime.  As long
+as at least one Swift reference to the proxy is live, the underlying C++ object
+is not freed.  This is different from Java and Python, where the garbage
+collector may collect proxies that C++ still holds via a director back-pointer;
+Swift ARC's deterministic retain/release makes such extra retention unnecessary.
+</p>
+
+<H2><a name="Swift_customization">40.7 Customizing the generated code</a></H2>
+
+
+<p>
+Two directives let you adjust the generated Swift without writing typemaps.
+</p>
+
+<H3><a name="Swift_customization_nonnull">40.7.1 Non-optional pointer returns</a></H3>
+
+
+<p>
+By default a function that returns a pointer or a <tt>std::shared_ptr</tt> maps
+to a Swift Optional, because a C++ pointer may be null:
+</p>
+
+<div class="code">
+<pre>
+struct Widget {
+  /* ... */
+};
+Widget *makeWidget();
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+// Returns Widget? - nil when the C++ pointer is null
+public func makeWidget() throws -&gt; Widget? {
+    let jresult = _wrap_makeWidget()
+    try swigCheckException()
+    guard let ptr = jresult else { return nil }
+    return Widget(ptr, true)
+}
+</pre>
+</div>
+
+<p>
+When the C++ contract is "return a valid object or fail", forcing callers to
+unwrap an Optional that is never meant to be nil is noise.  Apply
+<tt>%feature("swift:nonnull")</tt> to the declaration to return a non-optional
+type that throws when the pointer is unexpectedly null instead:
+</p>
+
+<div class="code">
+<pre>
+%feature("swift:nonnull") makeWidget;
+Widget *makeWidget();
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+// Returns a non-optional Widget; throws instead of returning nil
+public func makeWidget() throws -&gt; Widget {
+    let jresult = _wrap_makeWidget()
+    try swigCheckException()
+    guard let ptr = jresult else {
+        throw NSError(domain: "example", code: 1,
+                      userInfo: [NSLocalizedDescriptionKey: "makeWidget unexpectedly returned a null pointer"])
+    }
+    return Widget(ptr, true)
+}
+</pre>
+</div>
+
+<p>
+The feature follows SWIG's usual <tt>%feature</tt> scoping, so it can be applied
+to a single declaration, a class, or globally.  It only affects functions
+returning a wrapped pointer or shared pointer; value, scalar and <tt>void</tt>
+returns are unchanged.
+</p>
+
+<H3><a name="Swift_customization_modulecode">40.7.2 Injecting module level Swift code</a></H3>
+
+
+<p>
+Use the <tt>%pragma(swift)</tt> directive to add imports or top level Swift code
+to the generated <tt>.swift</tt> file.  Within these blocks <tt>$module</tt>
+expands to the SWIG module name, which is useful for extending the module's
+own types.  Use <tt>moduleimports</tt> for import statements and
+<tt>modulecode</tt> for declarations:
+</p>
+
+<div class="code">
+<pre>
+%pragma(swift) moduleimports = "import Foundation"
+%pragma(swift) modulecode = %{
+extension $module {
+  // module level Swift helpers
+}
+%}
+</pre>
+</div>
+
+<H2><a name="Swift_typemaps">40.8 Typemaps</a></H2>
+
+
+<p>
+Typemaps let you change how a C/C++ type crosses into Swift.  Before writing
+one it helps to understand that every wrapped call passes through two layers:
+</p>
+
+<ul>
+<li>The <b>C bridge</b> in <tt>module_wrap.cxx</tt> (declared in
+<tt>module_wrap.h</tt>): for each wrapped entity SWIG emits an
+<tt>extern "C"</tt> function such as <tt>_wrap_square</tt> whose signature uses
+plain C ABI types.  This is the only surface Swift links against.</li>
+<li>The <b>Swift proxy</b> in <tt>module.swift</tt>: the public function or
+method your Swift code calls, which forwards to the C bridge function (imported
+through the generated bridging header).</li>
+</ul>
+
+<div class="diagram">
+<pre>
+  Swift call site
+        |   swifttype          (the public Swift type, e.g. Int32, Widget?)
+        v
+  Swift proxy func   module.swift        swiftin / swiftout
+        |   imtype             (Swift type of the imported C function)
+        v
+  C bridge func _wrap_*   module_wrap.cxx / .h    ctype, in / out
+        |   C++ types
+        v
+  your C++ function
+</pre>
+</div>
+
+<p>
+Each typemap slot fills one role in that pipeline:
+</p>
+
+<table border=1 summary="Swift typemap slots">
+<tr><th>Typemap</th><th>Layer</th><th>What it controls</th></tr>
+<tr><td><tt>ctype</tt></td><td>C bridge</td><td>The C ABI type used in the <tt>_wrap_*</tt> function signature (for example <tt>int</tt>, or <tt>void *</tt> for a wrapped object).</td></tr>
+<tr><td><tt>imtype</tt></td><td>C bridge / Swift</td><td>The Swift type the imported bridge function presents; must be ABI compatible with <tt>ctype</tt> (<tt>Int32</tt> for <tt>int</tt>, <tt>UnsafeMutableRawPointer?</tt> for <tt>void *</tt>).</td></tr>
+<tr><td><tt>swifttype</tt></td><td>Swift</td><td>The type shown in the proxy's public API - what your Swift code sees and passes.</td></tr>
+<tr><td><tt>in</tt></td><td>C bridge</td><td>Inside <tt>_wrap_*</tt>, convert the incoming C value (<tt>$input</tt>) to the C++ value (<tt>$1</tt>).</td></tr>
+<tr><td><tt>out</tt></td><td>C bridge</td><td>Inside <tt>_wrap_*</tt>, convert the C++ result (<tt>$1</tt>) to the C return value (<tt>$result</tt>).</td></tr>
+<tr><td><tt>swiftin</tt></td><td>Swift</td><td>The Swift expression that turns a proxy argument (<tt>$swiftinput</tt>) into the value passed to the bridge call.</td></tr>
+<tr><td><tt>swiftout</tt></td><td>Swift</td><td>The Swift body that calls the bridge (<tt>$imcall</tt>), checks for a pending exception, and converts the result to <tt>swifttype</tt>.</td></tr>
+<tr><td><tt>swiftclassmodifiers</tt></td><td>Swift</td><td>Access modifiers placed before <tt>class</tt> in a proxy declaration (<tt>public</tt>, or <tt>open</tt> for director classes).</td></tr>
+<tr><td><tt>swiftbody</tt> / <tt>swiftbody_derived</tt></td><td>Swift</td><td>The stored properties, initializer and <tt>swigGetCPtr</tt> emitted inside a proxy class (the derived variant is used for subclasses).</td></tr>
+<tr><td><tt>swiftdestruct</tt> / <tt>swiftdestruct_derived</tt></td><td>Swift</td><td>The <tt>deinit</tt> that releases the C++ object when the proxy owns it.</td></tr>
+<tr><td><tt>directorin</tt> / <tt>directorout</tt></td><td>C++</td><td>Director only: convert a callback parameter from C++ to C, and convert the Swift override's return value from C back to C++.</td></tr>
+<tr><td><tt>swiftdirectorin</tt> / <tt>swiftdirectorout</tt></td><td>Swift</td><td>Director only: the Swift side of the same conversions, inside the dispatch closure that calls your override.</td></tr>
+</table>
+
+<p>
+Standard typemaps for <tt>bool</tt>, the integer and floating point types and
+<tt>void</tt> ship in <tt>Lib/swift/swiftprimitives.swg</tt> and wrapped class
+types in <tt>Lib/swift/swiftswigtype.swg</tt>; both are included automatically.
+The following library files add further support and are included from your
+interface file as needed:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;swift/std_string.i&gt;        // std::string &lt;-&gt; Swift String
+%include &lt;swift/std_vector.i&gt;        // std::vector&lt;T&gt; as a Swift collection
+%include &lt;swift/std_shared_ptr.i&gt;    // std::shared_ptr&lt;T&gt;
+%include &lt;swift/boost_shared_ptr.i&gt;  // boost::shared_ptr&lt;T&gt;
+</pre>
+</div>
+
+<p>
+Each <tt>%template</tt> instantiation of <tt>std::vector&lt;T&gt;</tt> produces a
+Swift proxy class that conforms to <tt>RandomAccessCollection</tt>, so the
+wrapped vector can be iterated and indexed like a native Swift collection:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;swift/std_vector.i&gt;
+%template(IntVector) std::vector&lt;int&gt;;
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+let v = try IntVector()
+try v.push_back(x: 10)
+try v.push_back(x: 20)
+for value in v {        // RandomAccessCollection conformance
+  print(value)
+}
+print(v[0])             // 10
+</pre>
+</div>
+
+<H3><a name="Swift_typemaps_example">40.8.1 A worked example</a></H3>
+
+
+<p>
+Take a single C++ function:
+</p>
+
+<div class="code">
+<pre>
+int square(int x);
+</pre>
+</div>
+
+<p>
+SWIG emits this C bridge function into <tt>module_wrap.cxx</tt>.  The signature
+type <tt>int</tt> comes from <tt>ctype</tt>, <tt>arg1 = jarg1</tt> is the
+<tt>in</tt> typemap, and <tt>jresult = result</tt> is the <tt>out</tt> typemap:
+</p>
+
+<div class="code">
+<pre>
+SWIGEXPORT int _wrap_square(int jarg1) {
+  int jresult = 0;
+  int arg1;
+  int result;
+  arg1 = jarg1;                  // (in)  C value  -&gt; C++ value
+  result = (int)square(arg1);
+  jresult = result;              // (out) C++ value -&gt; C value
+  return jresult;
+}
+</pre>
+</div>
+
+<p>
+and this proxy function into <tt>module.swift</tt>.  The public types
+<tt>Int32</tt> come from <tt>swifttype</tt>, the imported <tt>_wrap_square</tt>
+takes/returns <tt>imtype</tt>, the argument <tt>x</tt> is the <tt>swiftin</tt>
+expression, and the whole body is the <tt>swiftout</tt> typemap:
+</p>
+
+<div class="targetlang">
+<pre>
+public func square(x: Int32) throws -&gt; Int32 {
+    let jresult = _wrap_square(x)   // swiftin supplies the argument 'x'
+    try swigCheckException()        // }
+    return jresult                  // } swiftout body
+}
+</pre>
+</div>
+
+<p>
+For a wrapped class type the same slots apply but the bridge type is an opaque
+handle: <tt>ctype</tt> is <tt>void *</tt>, <tt>imtype</tt> is
+<tt>UnsafeMutableRawPointer?</tt>, <tt>swifttype</tt> is the proxy class name,
+<tt>swiftin</tt> passes the object's <tt>swigCPtr</tt>, and <tt>swiftout</tt>
+wraps the returned handle back into a proxy object.
+</p>
+
+<H3><a name="Swift_typemaps_directors">40.8.2 Director typemaps</a></H3>
+
+
+<p>
+For a director class the data flows the opposite way - C++ calls into Swift - so
+two extra pairs of typemaps are used.  When a C++ virtual method fires,
+<tt>directorin</tt> converts each C++ argument to the C bridge type and
+<tt>swiftdirectorin</tt> converts it to the Swift value handed to your override;
+on return, <tt>swiftdirectorout</tt> converts the Swift result back to the C
+bridge type and <tt>directorout</tt> converts it back to the C++ type the
+virtual method must return.  The primitive director typemaps are pass-through;
+the wrapped-type ones marshal the <tt>void *</tt> handle to and from a proxy
+object.
+</p>
+
+<H3><a name="Swift_typemaps_custom">40.8.3 Defining your own typemaps</a></H3>
+
+
+<p>
+To wrap a type that has no built in mapping, supply the slots for the layers it
+crosses.  For example, to pass a small C++ value type as a plain Swift
+<tt>Double</tt> rather than a proxy object, map its bridge type to
+<tt>double</tt> and unpack it in the <tt>in</tt> / <tt>out</tt> typemaps:
+</p>
+
+<div class="code">
+<pre>
+struct Celsius {
+  double degrees;
+};
+
+%typemap(ctype)     Celsius "double"
+%typemap(imtype)    Celsius "Double"
+%typemap(swifttype) Celsius "Double"
+%typemap(in)        Celsius %{ $1 = Celsius{$input}; %}
+%typemap(out)       Celsius %{ $result = $1.degrees; %}
+%typemap(swiftin)   Celsius "$swiftinput"
+%typemap(swiftout)  Celsius %{
+    let jresult = $imcall
+    try swigCheckException()
+    return jresult
+%}
+</pre>
+</div>
+
+<p>
+A function declared <tt>Celsius freezing();</tt> then surfaces in Swift as
+<tt>public func freezing() throws -&gt; Double</tt>, and <tt>Celsius</tt>
+parameters likewise appear as <tt>Double</tt>, with no proxy class generated for
+the type.
+</p>
+
+<H2><a name="Swift_known_limitations">40.9 Known limitations</a></H2>
+
+
+<p>
+As an experimental backend the Swift module covers the common cases but not yet
+the full feature set of the mature language modules.  The main areas not yet
+supported are:
+</p>
+
+<ul>
+<li><b>Multiple inheritance</b> - Swift is single inheritance, so only the first
+base class is wrapped and warning 864 is issued for each additional base.</li>
+<li><b>C++ exception specifications</b> - functions with a <tt>throw(T)</tt>
+specification or <tt>%catches</tt> have no <tt>throws</tt> typemap (warning 468);
+exceptions are still propagated, but the typed specification is not honoured.</li>
+<li><b>Member (pointer to member) function pointers</b> are not wrapped.</li>
+<li><b>STL</b> beyond <tt>std::string</tt>, <tt>std::vector</tt> and the shared
+pointer wrappers - <tt>std::map</tt>, <tt>std::pair</tt>, <tt>std::deque</tt>,
+<tt>std::unique_ptr</tt>, <tt>cdata</tt> and the general <tt>typemaps.i</tt>
+library are not yet provided.</li>
+<li><b>Directors</b> have gaps: abstract bases with no default constructor,
+conversion operators, protected members and nested director classes are not
+handled.</li>
+<li><b>Public member variables</b> are exposed read only, through a generated
+<tt>GetName()</tt> accessor rather than an assignable property (no setter).</li>
+<li><b><tt>%apply</tt> based multi-argument typemaps</b> such as the
+<tt>(char *STRING, size_t LENGTH)</tt> binary string pattern and
+<tt>DYNAMIC</tt> casts are not defined (warning 453).</li>
+<li><b>Varargs</b> (<tt>...</tt>) are not supported.</li>
+<li><b>C wrapping</b> - the backend targets C++; run SWIG with <tt>-c++</tt>
+(the generated wrapper uses C++ even for a C interface).</li>
+</ul>
+
+<p>
+The Swift test suite records the individual unsupported test cases in the
+<tt>FAILING_CPP_TESTS</tt> and <tt>FAILING_C_TESTS</tt> lists of
+<tt>Examples/test-suite/swift/Makefile.in</tt>.
+</p>
+
+</body>
+</html>
