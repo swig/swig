@@ -1448,45 +1448,113 @@ else
   #----------------------------------------------------------------
 
   # check for include files
-  AC_MSG_CHECKING(for QuickJS Javascript source directory)
-  AC_ARG_WITH(jsquickjssrc, [  --with-jsquickjssrc=path     Set location of Javascript QuickJS sources directory], [JSQUICKJSPATH="$withval"], [JSQUICKJSPATH=])
+  AC_MSG_CHECKING(for QuickJS quickjs.h)
+  AC_ARG_WITH(jsquickjsinc, [  --with-jsquickjsinc=path     Set location of QuickJS include directory], [JSQUICKJSINCDIR="$withval"], [JSQUICKJSINCDIR=])
+
+  # if include dir is not specified we try to find it
+  if test -z "$JSQUICKJSINCDIR"; then
+    # Add in default directory for QuickJS headers for Linux
+    case $host in
+    *-*-linux*)
+      JSQUICKJSINCDIR="/usr/include /usr/local/include"
+      ;;
+    esac
+  fi
 
   JSQUICKJSINC=
+  for d in $JSQUICKJSINCDIR ; do
+    if test -r "$d/quickjs.h" ; then
+      JSQUICKJSINCDIR=$d
+      JSQUICKJSINC="-I$d -D_GNU_SOURCE -fwrapv"
+      break
+    fi
+  done
+
   JSQUICKJSLIB=
-  JSQUICKJSSRC=
   JSQUICKJSVERSION=
   JSQUICKJSENABLED=
 
-  if test -d "$JSQUICKJSPATH" ; then
-    # clear JSQUICKJSPATH (abort if quickjs.h not found)
-    if test -r "$JSQUICKJSPATH/quickjs.h" ; then
-      JSQUICKJSINC="-I$JSQUICKJSPATH -D_GNU_SOURCE -fwrapv -DJS_SHARED_LIBRARY"
-    else
-      JSQUICKJSPATH=""
+  if test "$JSQUICKJSINC" = "" ; then
+    AC_MSG_RESULT(not found)
+  else
+    AC_MSG_RESULT($JSQUICKJSINC)
+
+    AC_MSG_CHECKING(for QuickJS libquickjs.a)
+    AC_ARG_WITH(jsquickjslib, [  --with-jsquickjslib=path     Set location of QuickJS library directory], [JSQUICKJSLIBDIR="$withval"], [JSQUICKJSLIBDIR=])
+
+    # if library dir is not specified we try to find it
+    if test -z "$JSQUICKJSLIBDIR"; then
+      # Add in default directory for QuickJS library for Linux
+      case $host in
+      *-*-linux*)
+        JSQUICKJSLIBDIR="/usr/lib/quickjs /usr/local/lib/quickjs"
+        ;;
+      esac
     fi
-    if test -x "$JSQUICKJSPATH/qjs" ; then
-       JSQUICKJSVERSION=`$JSQUICKJSPATH/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'`
-    else
-        JSQUICKJSVERSION="UNKNOWN"
-    fi
-    if test -r "$JSQUICKJSPATH/libquickjs.a" ; then
-      JSQUICKJSLIB="-L$JSQUICKJSPATH -lquickjs -lm"
-    else
-      JSQUICKJSPATH=""
-    fi
-    if test -r "$JSQUICKJSPATH/quickjs-libc.c" ; then
-      JSQUICKJSSRC="$JSQUICKJSPATH/quickjs-libc.c"
-    else
-      JSQUICKJSPATH=""
+
+    for d in $JSQUICKJSLIBDIR ; do
+      if test -r "$d/libquickjs.a" ; then
+        JSQUICKJSLIBDIR=-L$d
+        break
+      fi
+    done
+
+    save_CPPFLAGS=$CPPFLAGS
+    save_LDFLAGS=$LDFLAGS
+    save_LIBS=$LIBS
+    CPPFLAGS=$JSQUICKJSINC
+    LDFLAGS=$JSQUICKJSLIBDIR
+    LIBS="-lquickjs -lm"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <quickjs.h>], [JS_NewRuntime();])], [
+	JSQUICKJSLIB=$JSQUICKJSLIBDIR${JSQUICKJSLIBDIR:+ }$LIBS
+	AC_MSG_RESULT([$JSQUICKJSLIB])
+      ], [
+	AC_MSG_RESULT(not found)
+      ])
+    CPPFLAGS=$save_CPPFLAGS
+    LDFLAGS=$save_LDFLAGS
+    LIBS=$save_LIBS
+
+    if test "$JSQUICKJSLIB" != "" ; then
+      AC_MSG_CHECKING(for QuickJS qjs executable)
+      AC_ARG_WITH(jsquickjsexe, [  --with-jsquickjsexe=path     Set location of QuickJS executable], [JSQUICKJSEXEDIR="$withval"], [JSQUICKJSEXEDIR=])
+
+      # if executable is not specified we try to find it
+      if test -z "$JSQUICKJSEXEDIR"; then
+        # Add in default directory for QuickJS binary for Linux
+        case $host in
+        *-*-linux*)
+          JSQUICKJSEXEDIR="/usr/bin /usr/local/bin"
+          ;;
+        esac
+      fi
+
+      JSQUICKJSEXE=
+      for d in $JSQUICKJSEXEDIR ; do
+        if test -x "$d/qjs" ; then
+          JSQUICKJSEXE=$d/qjs
+          break
+        fi
+      done
+
+      if test "$JSQUICKJSEXE" = "" ; then
+        AC_MSG_RESULT(not found)
+      else
+
+        JSQUICKJSVERSION=`$JSQUICKJSEXEDIR/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'`
+
+
+        if test "$JSQUICKJSVERSION" = "" ; then
+          AC_MSG_RESULT(not found)
+        else
+          JSQUICKJSENABLED=1
+          AC_MSG_RESULT($JSQUICKJSVERSION)
+        fi
+      fi
     fi
   fi
 
-  if test "$JSQUICKJSPATH" = "" ; then
-    AC_MSG_RESULT(not found)
-  else
-  JSQUICKJSENABLED=1
-    AC_MSG_RESULT($JSQUICKJSPATH)
-  fi
+
 fi
 
 AC_SUBST(JSINTERPRETERCXX)
@@ -1498,10 +1566,8 @@ AC_SUBST(JSCOREVERSION)
 AC_SUBST(JSV8INC)
 AC_SUBST(JSV8DYNAMICLINKING)
 
-AC_SUBST(JSQUICKJSPATH)
 AC_SUBST(JSQUICKJSINC)
 AC_SUBST(JSQUICKJSLIB)
-AC_SUBST(JSQUICKJSSRC)
 AC_SUBST(JSQUICKJSVERSION)
 
 AC_SUBST(JSCENABLED)
