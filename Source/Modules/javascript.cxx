@@ -3321,7 +3321,6 @@ int QuickJSEmitter::emitConstant(Node *n) {
   return SWIG_OK;
 }
 
-
 int QuickJSEmitter::exitFunction(Node *n) {
 
   Template t_function = getTemplate("quickjs_function_declaration");
