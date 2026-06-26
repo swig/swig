@@ -46,12 +46,18 @@ SWIG_From_dec(long)(long value)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long)(JSValueRef obj, long* val)
 {
+  double n;
   if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, LONG_MIN, LONG_MAX)) {
+    return SWIG_OverflowError;
   }
   if(val) *val = (long) JSValueToNumber(context, obj, NULL);
 
@@ -72,13 +78,19 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 {
   long longVal;
+  double n;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, 0, ULONG_MAX)) {
+    return SWIG_OverflowError;
   }
 
   longVal = (long) JSValueToNumber(context, obj, NULL);
@@ -116,8 +128,13 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 {
+  double n;
   if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, LLONG_MIN, LLONG_MAX)) {
+    return SWIG_OverflowError;
   }
   if(val) *val = (long long) JSValueToNumber(context, obj, NULL);
 
@@ -151,8 +168,13 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 {
   long long longVal;
+  double n;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, 0, ULLONG_MAX)) {
+    return SWIG_OverflowError;
   }
 
   longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
