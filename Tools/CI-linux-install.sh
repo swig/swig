@@ -123,7 +123,8 @@ case "$SWIGLANG" in
 					tar -Jxf quickjs-${VER}.tar.xz
 					cd quickjs-${VER}
 				fi
-				make libquickjs.a qjs
+				make
+				make install
 				;;
 		esac
 		;;
