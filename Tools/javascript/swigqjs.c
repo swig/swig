@@ -12,13 +12,21 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <quickjs.h>
-#include <cutils.h>
 #include <quickjs-libc.h>
 
 
 /* #define MYQJS_DEBUG 1 */
 #define MAXPATH 1000
 
+#ifndef countof
+#define countof(x) (sizeof(x) / sizeof((x)[0]))
+#endif
+#ifndef FALSE
+enum {
+    FALSE = 0,
+    TRUE = 1,
+};
+#endif
 
 static int eval_buf(JSContext *ctx, const void *buf, int buf_len,
                     const char *filename, int eval_flags)
@@ -62,8 +70,7 @@ static int eval_file(JSContext *ctx, const char *filename, int module, int stric
     }
 
     if (module < 0) {
-        module = (has_suffix(filename, ".mjs") ||
-                  JS_DetectModule((const char *)buf, buf_len));
+        module = JS_DetectModule((const char *)buf, buf_len);
     }
     if (module) {
         eval_flags = JS_EVAL_TYPE_MODULE;
