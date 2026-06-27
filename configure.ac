@@ -1483,7 +1483,7 @@ else
     # Add in default directory for QuickJS headers for Linux
     case $host in
     *-*-linux*)
-      JSQUICKJSINCDIR="/usr/include /usr/local/include"
+      JSQUICKJSINCDIR="/usr/include /usr/local/include /usr/include/quickjs /usr/local/include/quickjs"
       ;;
     esac
   fi
@@ -1514,7 +1514,7 @@ else
       # Add in default directory for QuickJS library for Linux
       case $host in
       *-*-linux*)
-        JSQUICKJSLIBDIR="/usr/lib/quickjs /usr/local/lib/quickjs"
+        JSQUICKJSLIBDIR="/usr/lib /usr/local/lib /usr/lib/quickjs /usr/local/lib/quickjs"
         ;;
       esac
     fi
@@ -1543,7 +1543,7 @@ else
     LIBS=$save_LIBS
 
     if test "$JSQUICKJSLIB" != "" ; then
-      AC_MSG_CHECKING(for QuickJS qjs executable)
+      AC_MSG_CHECKING(for QuickJS qjs executable version)
       AC_ARG_WITH(jsquickjsexe, [  --with-jsquickjsexe=path     Set location of QuickJS executable], [JSQUICKJSEXEDIR="$withval"], [JSQUICKJSEXEDIR=])
 
       # if executable is not specified we try to find it
@@ -1559,6 +1559,7 @@ else
       JSQUICKJSEXE=
       for d in $JSQUICKJSEXEDIR ; do
         if test -x "$d/qjs" ; then
+          JSQUICKJSEXEDIR=$d
           JSQUICKJSEXE=$d/qjs
           break
         fi
@@ -1567,12 +1568,11 @@ else
       if test "$JSQUICKJSEXE" = "" ; then
         AC_MSG_RESULT(not found)
       else
-
-        JSQUICKJSVERSION=`$JSQUICKJSEXEDIR/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'`
-
-
+        JSQUICKJSVERSION=`$JSQUICKJSEXE -h|grep version|awk '{print $3}'|sed -e 's/-//g'`
         if test "$JSQUICKJSVERSION" = "" ; then
           AC_MSG_RESULT(not found)
+        elif test "$JSQUICKJSVERSION" != "20250913" -a "$JSQUICKJSVERSION" != "20260604" ; then
+          AC_MSG_RESULT(unsupported version $JSQUICKJSVERSION use 20250913 or 20260604)
         else
           JSQUICKJSENABLED=1
           AC_MSG_RESULT($JSQUICKJSVERSION)

@@ -124,7 +124,7 @@ case "$SWIGLANG" in
 					cd quickjs-${VER}
 				fi
 				make
-				make install
+				sudo make install
 				;;
 		esac
 		;;
