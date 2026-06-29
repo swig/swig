@@ -7,6 +7,32 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-06-17: olly
+	    #3480 [Octave, Python, Ruby] Improve handling of NULL vs nullptr vs
+	    0 vs 0L.
+
+	    For these target languages, SWIG has previously treated nullptr or
+	    NULL as an integer 0 if used in a situation where the type wasn't
+	    known to be a pointer.
+
+	    For nullptr this is never helpful, because it has type nullptr_t
+	    which does not implicitly convert to 0, so we no longer do this.
+
+	    For NULL it's rather dubious - C and C++ allow NULL to be defined
+	    as integer 0, so `int i = NULL` may work and is occassionally seen
+	    in real code, but it is semantically wrong.  Also GCC and clang
+	    define NULL to a magic value and by default will warn about such
+	    misuse, so it's likely to be less common than before they did this.
+	    So now SWIG only converts NULL to 0 if used in a context where we
+	    know the underlying type is an arithmetic type.
+
+	    Using an integer zero (or equivalent value such as 0L) for a NULL
+	    pointer is valid, and SWIG will still treat it as a NULL pointer if
+	    used in a context where know the type is a pointer.  This is now
+	    done based on the value of the integer constant so also applies to
+	    0L (previously it was only done if the value was written in the
+	    code as literally `0`).
+
 2026-06-17: wsfulton
             #3481 Fix the C++17 inheriting constructor pack 'using T::T ...;' over a
             variadic base pack so that the constructor of every base is wrapped.  For
