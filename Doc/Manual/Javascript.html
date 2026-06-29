@@ -494,7 +494,7 @@ For multiple inheritance, a <em>combined prototype</em> is created, gathering th
 
 <p><code>cmalloc.i</code> typemap</p>
 <p>The typemap giving access to the low level memory allocation function (<code>malloc</code>, etc...) is, by default, making use of the <code>QuickJS</code> implementation (<code>js_malloc</code>, etc...).</p>
-<p>This allows to benefit from the memory leak detection in <code>qjs</code>. For that, it is needed to compile <code>quickjs.c</code> with the option <code>DUMP_LEAKS</code>.
+<p>This allows to benefit from the memory leak detection in QuickJS. For that, it is needed to install <code>quickjs</code> with the option <code>DUMP_LEAKS</code>.
 To use the standard memory allocation functions, the symbol <code>QUICKJS_USE_LIBC_MALLOC</code> can be defined when compiling the module.
 </p>
 
