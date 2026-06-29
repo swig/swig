@@ -304,6 +304,8 @@ public:
 
     allow_overloading();
     Swig_interface_feature_enable();
+    // C# interfaces can declare properties, so expose member variables in them too.
+    Swig_interface_propagate_variables_enable();
   }
 
   /* ---------------------------------------------------------------------
@@ -1917,9 +1919,9 @@ public:
              "(",
              classname,
              " *jarg1) {\n",
-             "    return (",
+             "    return static_cast<",
              baseclassname,
-             " *)jarg1;\n"
+             " *>(jarg1);\n"
              "}\n",
              "\n",
              NIL);
@@ -2262,6 +2264,7 @@ public:
 
     String *additional = Getattr(n, "feature:interface:additional");
     String *bases = additional ? NewStringf(" : %s", additional) : 0;
+    bool has_interface_bases = false;
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
         if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
@@ -2273,6 +2276,7 @@ public:
           Append(bases, ", ");
           Append(bases, base_iname);
         }
+        has_interface_bases = true;
       }
     }
     if (bases) {
@@ -2286,7 +2290,9 @@ public:
     if (interface_code) {
       String *interface_declaration = Copy(Getattr(attributes, "tmap:csinterfacecode:declaration"));
       if (interface_declaration) {
+        // $interfacenew is a hack which gets replaced with "new" if the interface has a base interface and nothing otherwise.
         Replaceall(interface_declaration, "$interfacename", interface_name);
+        Replaceall(interface_declaration, "$interfacenew", has_interface_bases ? "new " : "");
         Printv(f_interface, interface_declaration, NIL);
         Delete(interface_declaration);
       }
@@ -2565,6 +2571,9 @@ public:
     String *terminator_code = NewString("");
     bool is_interface =
       GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable") && !static_flag && Getattr(n, "interface:owner") == 0;
+    // Non-static member variables of an interface class are declared as properties in the generated interface.
+    bool is_interface_variable = interface_class_code && GetFlag(parentNode(n), "feature:interface") && checkAttribute(n, "kind", "variable") && !static_flag &&
+                                 Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
       return;
@@ -2863,6 +2872,8 @@ public:
 
         // Start property declaration
         Printf(proxy_class_code, "  %s %s%s %s {", methodmods, static_flag ? "static " : "", variable_type, variable_name);
+        if (is_interface_variable)
+          Printf(interface_class_code, "  %s %s {", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
 
@@ -2881,6 +2892,8 @@ public:
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarin typemap defined for %s\n", SwigType_str(cvariable_type, 0));
         }
+        if (is_interface_variable)
+          Printf(interface_class_code, " set;");
       } else {
         // Getter method
         if ((tm = Swig_typemap_lookup("csvarout", n, "", 0))) {
@@ -2896,6 +2909,8 @@ public:
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csvarout typemap defined for %s\n", SwigType_str(t, 0));
         }
+        if (is_interface_variable)
+          Printf(interface_class_code, " get;");
       }
     } else {
       // Normal function call
@@ -3182,6 +3197,8 @@ public:
 
     // End property declaration
     Printf(proxy_class_code, "\n  }\n\n");
+    if (interface_class_code && GetFlag(parentNode(n), "feature:interface") && Getattr(n, "interface:owner") == 0)
+      Printf(interface_class_code, " }\n");
 
     return SWIG_OK;
   }
