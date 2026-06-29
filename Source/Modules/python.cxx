@@ -63,6 +63,7 @@ static String *f_varlinks = 0;
 static String *methods;
 static String *methods_proxydocs;
 static String *class_name;
+static String *nspace_class_name;
 static String *shadow_indent = 0;
 static int in_class = 0;
 static int no_header_file = 0;
@@ -2934,7 +2935,7 @@ public:
     if (!have_constructor && (constructor || Getattr(n, "handled_as_constructor")) && ((shadow & PYSHADOW_MEMBER))) {
       String *nname = Getattr(n, "sym:name");
       String *sname = Getattr(getCurrentClass(), "sym:name");
-      String *cname = Swig_name_construct(NSPACE_TODO, sname);
+      String *cname = Swig_name_construct(getNSpace(), sname);
       handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
       Delete(cname);
     }
@@ -3674,8 +3675,8 @@ public:
     if (!builtin && shadow && !assignable && !in_class)
       Printf(f_shadow_stubs, "%s = %s.%s\n", iname, global_name, iname);
 
-    String *getname = Swig_name_get(NSPACE_TODO, iname);
-    String *setname = Swig_name_set(NSPACE_TODO, iname);
+    String *getname = Swig_name_get(0, iname);
+    String *setname = Swig_name_set(0, iname);
     String *vargetname = NewStringf("Swig_var_%s", getname);
     String *varsetname = NewStringf("Swig_var_%s", setname);
 
@@ -3794,8 +3795,22 @@ public:
     int have_tm = 0;
     int have_builtin_symname = 0;
 
-    if (!addSymbol(iname, n))
+    String *nspace = getNSpace();
+    bool nspace_active = nspace && Len(nspace) > 0;
+    if (nspace_active) {
+      Swig_save("constantWrapper_nspace", n, "sym:name", NIL);
+      String *ns = Copy(nspace);
+      Replaceall(ns, NSPACE_SEPARATOR, "_");
+      iname = NewStringf("%s_%s", ns, iname);
+      Delete(ns);
+      Setattr(n, "sym:name", iname);
+    }
+
+    if (!addSymbol(iname, n)) {
+      if (nspace_active)
+        Swig_restore(n);
       return SWIG_ERROR;
+    }
 
     /* Special hook for member pointer */
     if (SwigType_type(type) == T_MPOINTER) {
@@ -3878,6 +3893,8 @@ public:
           Printv(f_s, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
       }
     }
+    if (nspace_active)
+      Swig_restore(n);
     return SWIG_OK;
   }
 
@@ -4087,7 +4104,7 @@ public:
         Delete(rname);
       } else {
         String *symname = Getattr(n, "sym:name");
-        String *mrename = Swig_name_disown(NSPACE_TODO, symname);  // Getattr(n, "name"));
+        String *mrename = Swig_name_disown(getNSpace(), symname);  // Getattr(n, "name"));
         Printv(f_shadow, tab4, "def __disown__(self):\n", NIL);
         Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
         Printv(f_shadow, tab8, module, ".", mrename, "(self)\n", NIL);
@@ -4114,9 +4131,19 @@ public:
         Node *options = Getattr(mod, "options");
         String *pkg = options ? Getattr(options, "package") : 0;
         String *sym = Getattr(n, "sym:name");
+        String *nspace = Getattr(n, "sym:nspace");
+        if (nspace && Len(nspace) > 0) {
+          String *ns = Copy(nspace);
+          Replaceall(ns, NSPACE_SEPARATOR, "_");
+          String *nspace_sym = NewStringf("%s_%s", ns, sym);
+          sym = nspace_sym;
+          Delete(ns);
+        }
         String *importname = import_name_string(package, mainmodule, pkg, modname, sym);
         Setattr(n, "python:proxy", importname);
         Delete(importname);
+        if (nspace && Len(nspace) > 0)
+          Delete(sym);
       }
     }
     int result = Language::classDeclaration(n);
@@ -4214,7 +4241,7 @@ public:
       String *setter = Getattr(mgetset, "setter");
       const char *getter_closure = getter ? funpack ? "SwigPyBuiltin_FunpackGetterClosure" : "SwigPyBuiltin_GetterClosure" : "0";
       const char *setter_closure = setter ? funpack ? "SwigPyBuiltin_FunpackSetterClosure" : "SwigPyBuiltin_SetterClosure" : "0";
-      String *gspair = NewStringf("%s_%s_getset", symname, memname);
+      String *gspair = NewStringf("%s_%s_getset", nspace_class_name, memname);
       Printf(f, "static SwigPyGetSet %s = { %s, %s };\n", gspair, getter ? getter : "0", setter ? setter : "0");
       String *doc = Getattr(mgetset, "doc");
       if (!doc)
@@ -4304,14 +4331,14 @@ public:
     String *quoted_symname;
     if (package) {
       if (modname)
-        quoted_symname = NewStringf("\"%s.%s.%s\"", package, modname, symname);
+        quoted_symname = NewStringf("\"%s.%s.%s\"", package, modname, nspace_class_name);
       else
-        quoted_symname = NewStringf("\"%s.%s\"", package, symname);
+        quoted_symname = NewStringf("\"%s.%s\"", package, nspace_class_name);
     } else {
       if (modname)
-        quoted_symname = NewStringf("\"%s.%s\"", modname, symname);
+        quoted_symname = NewStringf("\"%s.%s\"", modname, nspace_class_name);
       else
-        quoted_symname = NewStringf("\"%s\"", symname);
+        quoted_symname = NewStringf("\"%s\"", nspace_class_name);
     }
     String *user_tp_doc = Getattr(n, "feature:python:tp_doc");
     // Empty string, not NULL: when tp_doc is NULL, inspect.getdoc() walks the MRO and picks up
@@ -4778,11 +4805,11 @@ public:
       Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject *)builtin_pytype;\n", mname);
     }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
-    Printf(f_init, "    if (PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype) != 0) {\n", symname);
+    Printf(f_init, "    if (PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype) != 0) {\n", nspace_class_name);
     Printf(f_init, "      SWIG_Py_DECREF((PyObject *)builtin_pytype);\n");
     Printv(f_init, "      return -1;\n", NIL);
-    Printf(f_init, "    }\n", symname);
-    Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
+    Printf(f_init, "    }\n", nspace_class_name);
+    Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", nspace_class_name);
     if (Getattr(n, "python:tp_init_doc")) {
       /* Replace the default tp_init slot wrapper for __init__ with a method descriptor that carries
          the doxygen docstring. type.__call__ still uses the tp_init slot for instantiation. */
@@ -4834,7 +4861,18 @@ public:
       class_name = Getattr(n, "sym:name");
       real_classname = Getattr(n, "name");
 
-      if (!addSymbol(class_name, n))
+      /* Build nspace-prefixed class name for shadow class definition */
+      String *nspace = getNSpace();
+      if (nspace && Len(nspace) > 0) {
+        String *ns = Copy(nspace);
+        Replaceall(ns, NSPACE_SEPARATOR, "_");
+        nspace_class_name = NewStringf("%s_%s", ns, class_name);
+        Delete(ns);
+      } else {
+        nspace_class_name = Copy(class_name);
+      }
+
+      if (!addSymbol(nspace_class_name, n))
         return SWIG_ERROR;
 
       if (builtin) {
@@ -4899,7 +4937,7 @@ public:
       if (!builtin) {
         if (GetFlag(n, "feature:python:nondynamic"))
           Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
-        Printv(f_shadow, "class ", class_name, NIL);
+        Printv(f_shadow, "class ", nspace_class_name, NIL);
 
         if (Len(base_class)) {
           Printf(f_shadow, "(%s)", base_class);
@@ -4978,13 +5016,13 @@ public:
         builtin_closures_code = NewString("");
         Clear(builtin_closures);
       } else {
-        Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
+        Printv(f_wrappers, "SWIGINTERN PyObject *", nspace_class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
         Printv(f_wrappers, "  PyObject *obj = NULL;\n", NIL);
         Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 
         Printv(
           f_wrappers, "  SWIG_TypeNewClientData(SWIGTYPE", SwigType_manglestr(ct), ", SWIG_NewClientData(obj));\n", "  return SWIG_Py_Void();\n", "}\n\n", NIL);
-        String *cname = NewStringf("%s_swigregister", class_name);
+        String *cname = NewStringf("%s_swigregister", nspace_class_name);
         add_method(cname, cname, 0, 0, 1, 1, 1);
         Delete(cname);
       }
@@ -5004,9 +5042,9 @@ public:
                  NIL);
       } else if (!builtin) {
 
-        Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
+        Printv(f_wrappers, "SWIGINTERN PyObject *", nspace_class_name, "_swiginit(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
         Printv(f_wrappers, "  return SWIG_Python_InitShadowInstance(args);\n", "}\n\n", NIL);
-        String *cname = NewStringf("%s_swiginit", class_name);
+        String *cname = NewStringf("%s_swiginit", nspace_class_name);
         add_method(cname, cname, 0);
         Delete(cname);
       }
@@ -5029,8 +5067,8 @@ public:
         /* Now emit methods */
         Printv(f_shadow_file, f_shadow, NIL);
         Printf(f_shadow_file, "\n");
-        Printf(f_shadow_file, "# Register %s in %s:\n", class_name, module);
-        Printf(f_shadow_file, "%s.%s_swigregister(%s)\n", module, class_name, class_name);
+        Printf(f_shadow_file, "# Register %s in %s:\n", nspace_class_name, module);
+        Printf(f_shadow_file, "%s.%s_swigregister(%s)\n", module, nspace_class_name, nspace_class_name);
       }
 
       shadow_indent = 0;
@@ -5038,6 +5076,9 @@ public:
         Printf(f_shadow_file, "%s\n", f_shadow_stubs);
       Clear(f_shadow_stubs);
     }
+
+    Delete(nspace_class_name);
+    nspace_class_name = 0;
 
     if (builtin) {
       Clear(class_members);
@@ -5094,7 +5135,7 @@ public:
       // Can't use checkAttribute(n, "access", "public") because
       // "access" attr isn't set on %extend methods
       if (!checkAttribute(n, "access", "private") && strncmp(Char(symname), "operator ", 9) && !Getattr(class_members, symname)) {
-        String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+        String *fullname = Swig_name_member(getNSpace(), class_name, symname);
         String *wname = Swig_name_wrapper(fullname);
         Setattr(class_members, symname, n);
         int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
@@ -5124,7 +5165,7 @@ public:
     if (!Getattr(n, "sym:nextSibling")) {
       if (shadow && !builtin) {
         int fproxy = fastproxy;
-        String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+        String *fullname = Swig_name_member(getNSpace(), class_name, symname);
         if (Strcmp(symname, "__repr__") == 0) {
           have_repr = 1;
         }
@@ -5167,7 +5208,7 @@ public:
         }
         if (fproxy) {
           Printf(f_shadow, tab4);
-          Printf(f_shadow, "%s = _swig_new_instance_method(%s.%s)\n", symname, module, Swig_name_member(NSPACE_TODO, class_name, symname));
+          Printf(f_shadow, "%s = _swig_new_instance_method(%s.%s)\n", symname, module, Swig_name_member(getNSpace(), class_name, symname));
         }
         Delete(fullname);
       }
@@ -5193,7 +5234,7 @@ public:
     int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
     if (builtin && in_class) {
       if ((GetFlagAttr(n, "feature:extend") || checkAttribute(n, "access", "public")) && !Getattr(class_members, symname)) {
-        String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
+        String *fullname = Swig_name_member(getNSpace(), class_name, symname);
         String *wname = Swig_name_wrapper(fullname);
         Setattr(class_members, symname, n);
         int funpack = fastunpack && !Getattr(n, "sym:overloaded");
@@ -5244,18 +5285,18 @@ public:
         if (have_pythonprepend(n))
           Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
         if (have_pythonappend(n)) {
-          Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n", NIL);
+          Printv(f_shadow, tab8, "val = ", funcCall(Swig_name_member(getNSpace(), class_name, symname), callParms), "\n", NIL);
           Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
           Printv(f_shadow, tab8, "return val\n", NIL);
         } else {
-          Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(NSPACE_TODO, class_name, symname), callParms), "\n", NIL);
+          Printv(f_shadow, tab8, "return ", funcCall(Swig_name_member(getNSpace(), class_name, symname), callParms), "\n", NIL);
         }
       }
 
       // Below may result in a 2nd definition of the method when -olddefs is used. The Python interpreter will use the second definition as it overwrites the
       // first.
       if (fast) {
-        Printv(f_shadow, tab4, symname, " = ", staticfunc_name, "(", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), ")\n", NIL);
+        Printv(f_shadow, tab4, symname, " = ", staticfunc_name, "(", module, ".", Swig_name_member(getNSpace(), class_name, symname), ")\n", NIL);
       }
       Delete(staticfunc_name);
     }
@@ -5308,12 +5349,12 @@ public:
         if (!have_constructor) {
           String *nname = Getattr(n, "sym:name");
           String *sname = Getattr(getCurrentClass(), "sym:name");
-          String *cname = Swig_name_construct(NSPACE_TODO, sname);
+          String *cname = Swig_name_construct(getNSpace(), sname);
           handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
           Delete(cname);
         }
 
-        String *subfunc = Swig_name_construct(NSPACE_TODO, symname);
+        String *subfunc = Swig_name_construct(getNSpace(), symname);
         if (!have_constructor && handled_as_init) {
           if (!builtin) {
             if (Getattr(n, "feature:shadow")) {
@@ -5348,7 +5389,7 @@ public:
               if (have_pythonprepend(n))
                 Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
               Printv(f_shadow, pass_self, NIL);
-              Printv(f_shadow, tab8, module, ".", class_name, "_swiginit(self, ", funcCall(subfunc, callParms), ")\n", NIL);
+              Printv(f_shadow, tab8, module, ".", nspace_class_name, "_swiginit(self, ", funcCall(subfunc, callParms), ")\n", NIL);
               if (have_pythonappend(n))
                 Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n\n", NIL);
               Delete(pass_self);
@@ -5432,13 +5473,13 @@ public:
     if (shadow) {
       if (Getattr(n, "feature:shadow")) {
         String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n), "%feature(\"shadow\")");
-        String *pyaction = NewStringf("%s.%s", module, Swig_name_destroy(NSPACE_TODO, symname));
+        String *pyaction = NewStringf("%s.%s", module, Swig_name_destroy(getNSpace(), symname));
         Replaceall(pycode, "$action", pyaction);
         Delete(pyaction);
         Printv(f_shadow, pycode, "\n", NIL);
         Delete(pycode);
       } else {
-        Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "\n", NIL);
+        Printv(f_shadow, tab4, "__swig_destroy__ = ", module, ".", Swig_name_destroy(getNSpace(), symname), "\n", NIL);
         if (!have_pythonprepend(n) && !have_pythonappend(n)) {
           return SWIG_OK;
         }
@@ -5470,9 +5511,9 @@ public:
     shadow = oldshadow;
 
     if (shadow && !builtin) {
-      String *mname = Swig_name_member(NSPACE_TODO, class_name, symname);
-      String *setname = Swig_name_set(NSPACE_TODO, mname);
-      String *getname = Swig_name_get(NSPACE_TODO, mname);
+      String *mname = Swig_name_member(getNSpace(), class_name, symname);
+      String *setname = Swig_name_set(0, mname);
+      String *getname = Swig_name_get(0, mname);
       int assignable = !is_immutable(n);
       String *variable_annotation = variableAnnotation(n);
       Printv(f_shadow, tab4, symname, variable_annotation, " = property(", module, ".", getname, NIL);
@@ -5499,25 +5540,45 @@ public:
 
   virtual int staticmembervariableHandler(Node *n) {
     Swig_save("builtin_staticmembervariableHandler", n, "builtin_symname", NIL);
-    Language::staticmembervariableHandler(n);
+    String *orig_symname = Copy(Getattr(n, "sym:name"));
+    String *orig_name = Copy(Getattr(n, "name"));
+    String *nspace = getNSpace();
+    bool nspace_active = nspace && Len(nspace) > 0;
+
+    if (nspace_active && !GetFlag(n, "hasconsttype")) {
+      /* For non-const static members with nspace, generate unique C wrapper
+         names ourselves. Language::staticmembervariableHandler uses ClassPrefix
+         without nspace, which causes "multiply defined" errors when the same
+         member name exists in different namespaces. */
+      String *mrename = Swig_name_member(getNSpace(), class_name, orig_symname);
+      Node *cls = getCurrentClass();
+      String *clsname = cls ? Getattr(cls, "name") : 0;
+      SwigType *qtname = SwigType_namestr(clsname);
+      String *cname = NewStringf("%s::%s", qtname ? qtname : clsname, orig_name);
+      Setattr(n, "sym:name", mrename);
+      Setattr(n, "name", cname);
+      variableWrapper(n);
+      Delete(cname);
+      Delete(qtname);
+    } else {
+      Language::staticmembervariableHandler(n);
+    }
     Swig_restore(n);
 
     if (GetFlag(n, "wrappedasconstant"))
       return SWIG_OK;
 
-    String *symname = Getattr(n, "sym:name");
+    /* Compute the nspace-aware C identifier for shadow code */
+    String *cidentifier = Swig_name_member(getNSpace(), class_name, orig_symname);
 
     if (shadow) {
       if (!builtin && GetFlag(n, "hasconsttype")) {
-        String *mname = Swig_name_member(NSPACE_TODO, class_name, symname);
-        Printf(f_shadow_stubs, "%s.%s = %s.%s.%s\n", class_name, symname, module, global_name, mname);
-        Delete(mname);
+        Printf(f_shadow_stubs, "%s.%s = %s.%s.%s\n", nspace_class_name, orig_symname, module, global_name, cidentifier);
       } else {
-        String *mname = Swig_name_member(NSPACE_TODO, class_name, symname);
-        String *getname = Swig_name_get(NSPACE_TODO, mname);
+        String *getname = Swig_name_get(0, cidentifier);
         String *wrapgetname = Swig_name_wrapper(getname);
         String *vargetname = NewStringf("Swig_var_%s", getname);
-        String *setname = Swig_name_set(NSPACE_TODO, mname);
+        String *setname = Swig_name_set(0, cidentifier);
         String *wrapsetname = Swig_name_wrapper(setname);
         String *varsetname = NewStringf("Swig_var_%s", setname);
 
@@ -5546,7 +5607,7 @@ public:
           DelWrapper(f);
         }
         if (!builtin) {
-          Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
+          Printv(f_shadow, tab4, orig_symname, " = property(", module, ".", getname, NIL);
           if (assignable)
             Printv(f_shadow, ", ", module, ".", setname, NIL);
           if (have_docstring(n)) {
@@ -5560,11 +5621,11 @@ public:
         String *setter = Getattr(n, "pybuiltin:setter");
         Hash *h = NULL;
         if (getter || setter) {
-          h = Getattr(builtin_getset, symname);
+          h = Getattr(builtin_getset, orig_symname);
           if (!h) {
             h = NewHash();
             Setattr(h, "static", "1");
-            Setattr(builtin_getset, symname, h);
+            Setattr(builtin_getset, orig_symname, h);
           }
         }
         if (getter)
@@ -5573,7 +5634,6 @@ public:
           Setattr(h, "setter", setter);
         if (h)
           Delete(h);
-        Delete(mname);
         Delete(getname);
         Delete(wrapgetname);
         Delete(vargetname);
@@ -5581,6 +5641,7 @@ public:
         Delete(wrapsetname);
         Delete(varsetname);
       }
+      Delete(cidentifier);
     }
     return SWIG_OK;
   }
@@ -5604,7 +5665,7 @@ public:
     if (builtin && in_class) {
       Swig_restore(n);
     } else if (shadow) {
-      Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(NSPACE_TODO, class_name, symname), "\n", NIL);
+      Printv(f_shadow, tab4, symname, " = ", module, ".", Swig_name_member(getNSpace(), class_name, symname), "\n", NIL);
       if (have_docstring(n))
         Printv(f_shadow, tab4, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
     }

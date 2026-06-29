@@ -1,6 +1,6 @@
 %module nspacemove_stl
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT) || defined(SWIGPYTHON) || defined(SWIGPHP)
 
 #if defined(SWIGJAVA)
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
