@@ -209,6 +209,13 @@
     // @name/@{ member grouping: @{ must not be discarded as part of the structural block,
     // and the member's own doc comment must still attach (regression guard for GitHub #3403 fix).
     struct GroupedMembers {
+      /// @name constants and types
+      //@{
+
+      enum WeekFlags { Sunday_First, Monday_First };
+
+      //@}
+
       //! @name Logging
       //! @{
 
