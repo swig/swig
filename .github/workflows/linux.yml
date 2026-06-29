@@ -578,7 +578,6 @@ jobs:
           fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
-          if test "$SWIGLANG" = "javascript" -a "$ENGINE" = "quickjs"; then CONFIGOPTS+=(--with-jsquickjssrc=$HOME/quickjs-$VER); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
