@@ -118,6 +118,16 @@ jobs:
           ENGINE: jsc
           VER: '4.0'
         - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: '2025-09-13'
+          GCC: 13
+          CSTD: c99
+        - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: '2026-06-04'
+          GCC: 13
+          CSTD: c99
+        - SWIGLANG: javascript
           ENGINE: node
           VER: '12'
           CPPSTD: c++11
@@ -376,6 +386,18 @@ jobs:
           CPPSTD: c++17
           GCC: 13
           os: ubuntu-24.04
+        - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: '2025-09-13'
+          CPPSTD: c++17
+          GCC: 13
+          os: ubuntu-24.04
+        - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: '2026-06-04'
+          CPPSTD: c++17
+          GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: lua
           VER: '5.4'
           CPPSTD: c++17
@@ -429,6 +451,18 @@ jobs:
           VER: '4.1'
           GCC: 13
           os: ubuntu-24.04
+        - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: '2025-09-13'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: '2026-06-04'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '22'
