@@ -11,7 +11,7 @@ if not hasattr(it, '__next__'):
     raise RuntimeError("module a: iterator missing __next__() method")
 if it.value() != 10:
     raise RuntimeError("module a: expected 10, got %d" % it.value())
-it.next()
+it.__next__()
 if it.value() != 20:
     raise RuntimeError("module a: expected 20, got %d" % it.value())
 
@@ -23,7 +23,7 @@ if not hasattr(it, 'value'):
     raise RuntimeError("module b: iterator missing value() method")
 if it.value() != 40:
     raise RuntimeError("module b: expected 40, got %d" % it.value())
-it.next()
+it.__next__()
 if it.value() != 50:
     raise RuntimeError("module b: expected 50, got %d" % it.value())
 

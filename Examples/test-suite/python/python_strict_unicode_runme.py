@@ -1,20 +1,11 @@
 import python_strict_unicode
-import sys
 
 test_bytes   = b"hello \x01world\x99"
 BYTES        = b"BYTES"
 
-if sys.version_info[0:2] < (3, 0):
-    # Python 3.0-3.2 results in a SyntaxError when using u"" string literals, so we use a
-    # convoluted unicode string construction using unicode() and unichr().
-    # Conventional Python 2 syntax shown in comments.
-    test_unicode = unicode("h" + unichr(0xdce9) + "llo w" + unichr(0x00f6) + "rld") # u"h\udce9llo w\u00f6rld"
-    UNICODE      = unicode("UNICODE")
-    type_unicode_string = type(UNICODE)
-else:
-    test_unicode = "h\udce9llo w\u00f6rld"
-    UNICODE      = "UNICODE"
-    type_unicode_string = type(UNICODE)
+test_unicode = "h\udce9llo w\u00f6rld"
+UNICODE      = "UNICODE"
+type_unicode_string = type(UNICODE)
 
 # Test that byte string inputs and outputs work as expected
 bdbl = python_strict_unicode.double_str(test_bytes)
