@@ -1,0 +1,132 @@
+#######################################################################
+# Makefile for kotlin test-suite
+#######################################################################
+
+LANGUAGE     = kotlin
+JAVA         = @JAVA@
+KOTLINC      = @KOTLINC@
+KOTLIN       = @KOTLINRUNNER@
+KOTLINFLAGS  = @KOTLINFLAGS@
+JAVAFLAGS    = @JAVAFLAGS@
+SHELL_PATH_SEP = @SHELL_PATH_SEP@
+SCRIPTSUFFIX = _runme.kt
+
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
+srcdir       = @srcdir@
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
+
+C_TEST_CASES = \
+	kotlin_lib_arrays \
+
+CPP_TEST_CASES = \
+	exception_partial_info \
+	kotlin_constants \
+	kotlin_enum_companion \
+	kotlin_director \
+	kotlin_director_assumeoverride \
+	kotlin_director_exception_feature \
+	kotlin_director_exception_feature_nspace \
+	kotlin_director_ptrclass \
+	kotlin_director_typemaps \
+	kotlin_director_typemaps_ptr \
+	kotlin_enums \
+	kotlin_intermediary_classname \
+	kotlin_jnitypes \
+	kotlin_lib_various \
+	kotlin_nspacewithoutpackage \
+	kotlin_pgcpp \
+	kotlin_pragmas \
+	kotlin_prepost \
+	kotlin_std_map \
+	kotlin_typemaps_proxy \
+	kotlin_typemaps_typewrapper \
+	li_std_list \
+	li_std_set \
+	nested_scope \
+
+CPP11_TEST_CASES = \
+	cpp11_std_unordered_map \
+	cpp11_std_unordered_set \
+
+include $(srcdir)/../common.mk
+
+# Overridden variables here
+SRCDIR       = ../$(srcdir)/
+KOTLIN_PACKAGE = $*
+KOTLIN_PACKAGEOPT = -package $(KOTLIN_PACKAGE)
+SWIGOPT += $(KOTLIN_PACKAGEOPT)
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
+SWIGOPT += -w314 # Suppress SWIGWARN_PARSE_KEYWORD warning - 'val' and other Kotlin keywords are common identifiers in the C/C++ test code
+
+# Custom tests - tests with additional commandline options
+cpp17_nspace_nested_namespaces.%: KOTLIN_PACKAGE = $*Package
+kotlin_director_exception_feature_nspace.%: KOTLIN_PACKAGE = $*Package
+kotlin_nspacewithoutpackage.%: KOTLIN_PACKAGEOPT =
+director_nspace.%: KOTLIN_PACKAGE = $*Package
+director_nspace_director_name_collision.%: KOTLIN_PACKAGE = $*Package
+multiple_inheritance_nspace.%: KOTLIN_PACKAGE = $*Package
+nspace.%: KOTLIN_PACKAGE = $*Package
+nspace_extend.%: KOTLIN_PACKAGE = $*Package
+nspace_interface.%: KOTLIN_PACKAGE = $*Package
+nspacemove.%: KOTLIN_PACKAGE = $*Package
+nspacemove_nested.%: KOTLIN_PACKAGE = $*Package
+nspacemove_stl.%: KOTLIN_PACKAGE = $*Package
+
+# Rules for the different types of tests
+%.cpptest:
+	$(setup)
+	+(cd $(KOTLIN_PACKAGE) && $(swig_and_compile_cpp))
+	$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+(cd $(KOTLIN_PACKAGE) && $(swig_and_compile_c))
+	$(run_testcase)
+
+%.multicpptest:
+	$(setup)
+	+(cd $(KOTLIN_PACKAGE) && $(swig_and_compile_multi_cpp))
+	$(run_testcase)
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	else								  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;	  \
+	fi;								  \
+	if [ ! -d $(KOTLIN_PACKAGE) ]; then				  \
+	  mkdir $(KOTLIN_PACKAGE);					  \
+	fi
+
+# Compiles all the kotlin files for a testcase in a single kotlinc invocation, together
+# with the runme file when one exists, and then runs the testcase. A testcase is only
+# run if a file is found which has _runme.kt appended after the testcase name. The
+# runme file must select its JVM class name with a @file:JvmName("testcase_runme")
+# annotation as the default Kotlin file facade name capitalizes the first letter.
+# Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
+run_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(COMPILETOOL) $(KOTLINC) $(KOTLINFLAGS) -d . `find $(KOTLIN_PACKAGE) -name "*.kt"` $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  env LD_LIBRARY_PATH="$(KOTLIN_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(KOTLIN_PACKAGE):$$PATH" SHLIB_PATH="$(KOTLIN_PACKAGE):$$SHLIB_PATH" $(RUNTOOL) $(KOTLIN) -Djava.library.path="$(KOTLIN_PACKAGE)" -classpath . $*_runme; \
+	else \
+	  $(COMPILETOOL) $(KOTLINC) $(KOTLINFLAGS) -d . `find $(KOTLIN_PACKAGE) -name "*.kt"`; \
+	fi
+
+# Clean: remove testcase directories
+%.clean:
+	@if [ -d $(KOTLIN_PACKAGE) ]; then \
+	  rm -rf $(KOTLIN_PACKAGE); \
+	fi
+	@rm -f $*_runme*.class
+
+clean:
+	@rm -f *.class hs_err*.log
+	@rm -rf META-INF

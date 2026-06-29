@@ -5,14 +5,28 @@
 // Java/C#/D interfaces.
 // In the future, all this trouble might be more automated.
 
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE, SWIGWARN_KOTLIN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) RemoteMpe;
 
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGKOTLIN)
+
+#if defined(SWIGKOTLIN)
+#define javaclassmodifiers   kclassmodifiers
+#define javabody             kbody
+#define javafinalize         kfinalize
+#define javadestruct         kdestruct
+#define javaout              kout
+#define javainterfaces       kinterfaces
+#define javabase             kbase
+
+// The companion object of an interface must not contain the getCPtr helpers
+%typemap(kcompanion) IRemoteSyncIO ""
+%typemap(kcompanion) IRemoteAsyncIO ""
+#endif
 
 #if defined(SWIGCSHARP)
 #define javaclassmodifiers   csclassmodifiers
@@ -68,6 +82,12 @@ $importtype(IRemoteAsyncIO)
 // Features are inherited by derived classes, so override this
 %csmethodmodifiers RemoteMpe::syncmethod "public"
 %csmethodmodifiers RemoteMpe::asyncmethod "public"
+#elif defined(SWIGKOTLIN)
+%kotlinmethodmodifiers IRemoteSyncIO::syncmethod "public";
+%kotlinmethodmodifiers IRemoteAsyncIO::asyncmethod "public";
+// Features are inherited by derived classes, so override this
+%kotlinmethodmodifiers RemoteMpe::syncmethod "public override"
+%kotlinmethodmodifiers RemoteMpe::asyncmethod "public override"
 #elif defined(SWIGD)
 %dmethodmodifiers IRemoteSyncIO::syncmethod "";
 %dmethodmodifiers IRemoteAsyncIO::asyncmethod "";

@@ -1,10 +1,10 @@
 %module nspace_interface
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
 
 // %interface only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 
 %nspace;
 

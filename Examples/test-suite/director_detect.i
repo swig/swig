@@ -1,7 +1,7 @@
 %module(directors="1") director_detect
 #pragma SWIG nowarn=SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR
 
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET,
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET,
 	    SWIGWARN_CSHARP_COVARIANT_RET) cloner; /* Java, C# covariant return types */
 
 %{

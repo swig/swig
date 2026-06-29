@@ -11,6 +11,20 @@
 #if defined(SWIGJAVA)
 %javaconst(1);
 #endif
+#if defined(SWIGKOTLIN)
+%kotlinconst(1);
+// Kotlin string literals have no octal, hex or null escapes, so spell these out
+%kotlinconstvalue("\"\\u00C6\\u00CEOU\\n\"") SS1;
+%kotlinconstvalue("\"\\u00C6\\u00CEOU\\n\"") SS2;
+%kotlinconstvalue("\"TUV\"") EE1;
+%kotlinconstvalue("\"TUV\"") EE2;
+%kotlinconstvalue("\"WXY\"") XX1;
+%kotlinconstvalue("\"WXY\"") XX2;
+%kotlinconstvalue("\"\\u0000\"") ZS1;
+%kotlinconstvalue("\"\\u0000\"") ZS2;
+%kotlinconstvalue("\"\\b00! \\u00018b00!\"") QQ1;
+%kotlinconstvalue("\"\\b00! \\u00018b00!\"") QQ2;
+#endif
 %inline %{
 #define SS1 "ÆÎOU\n"
 #define AA1 "A\rB\nC"

@@ -59,7 +59,7 @@
 %}
 #endif
 
-#ifdef SWIGJAVA
+#if defined(SWIGJAVA) || defined(SWIGKOTLIN)
 %{
 SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
   SWIG_JavaExceptionCodes exception_code = SWIG_JavaUnknownError;
@@ -100,7 +100,7 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 
 #define SWIG_exception(code, msg)\
 { SWIG_JavaException(jenv, code, msg); return $null; }
-#endif // SWIGJAVA
+#endif // SWIGJAVA or SWIGKOTLIN
 
 #ifdef SWIGOCAML
 %{

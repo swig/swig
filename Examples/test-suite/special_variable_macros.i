@@ -208,6 +208,14 @@ namespace Space {
     return new $typemap(jstype, Space::RenameMe)( new $typemap(jstype, Name)(s) ); 
   }
 %}
+#elif defined(SWIGKOTLIN)
+%typemap(kcode) Space::RenameMe %{
+  fun factory(s: String): NewName {
+  //below should expand to:
+  //return NewName( Name(s) )
+    return $typemap(kstype, Space::RenameMe)( $typemap(kstype, Name)(s) )
+  }
+%}
 #elif defined(SWIGD)
 %typemap(dcode) Space::RenameMe %{
   public static NewName factory(string s) {
@@ -260,6 +268,11 @@ namespace Space {
 %typemap(jtype) Space::Pair<std::string, int> = std::string;
 %typemap(jstype) Space::Pair<std::string, int> = std::string;
 %typemap(javaout) Space::Pair<std::string, int> = std::string;
+#elif defined(SWIGKOTLIN)
+%typemap(jni) Space::Pair<std::string, int> = std::string;
+%typemap(ktype) Space::Pair<std::string, int> = std::string;
+%typemap(kstype) Space::Pair<std::string, int> = std::string;
+%typemap(kout) Space::Pair<std::string, int> = std::string;
 #endif
 %template() Space::Pair<std::string, int>;
 %inline %{
@@ -300,6 +313,11 @@ Space::Pair<std::string, int> makeStringInt(const std::string& s, int i) {
 %typemap(jtype) Space::Pair<std::string, int> = int;
 %typemap(jstype) Space::Pair<std::string, int> = int;
 %typemap(javain) Space::Pair<std::string, int> = int;
+#elif defined(SWIGKOTLIN)
+%typemap(jni) Space::Pair<std::string, int> = int;
+%typemap(ktype) Space::Pair<std::string, int> = int;
+%typemap(kstype) Space::Pair<std::string, int> = int;
+%typemap(kin) Space::Pair<std::string, int> = int;
 #endif
 %inline %{
 std::string provideStringInt(Space::Pair<std::string, int> p) {

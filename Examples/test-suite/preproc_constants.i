@@ -9,6 +9,10 @@
 #ifdef SWIGJAVA
 %javaconst(1) CONST_STRING4;
 #endif
+#ifdef SWIGKOTLIN
+// Kotlin string literals have no null escape, so spell out the embedded nulls
+%kotlinconstvalue("\"zer\\u0000zer\\u0000\"") CONST_STRING4;
+#endif
 
 %{
 #if defined(__clang__)

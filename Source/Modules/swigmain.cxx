@@ -33,6 +33,7 @@ Language *swig_go(void);
 Language *swig_guile(void);
 Language *swig_java(void);
 Language *swig_javascript(void);
+Language *swig_kotlin(void);
 Language *swig_lua(void);
 Language *swig_ocaml(void);
 Language *swig_octave(void);
@@ -61,6 +62,7 @@ static TargetLanguageModule modules[] = {
   {"-guile",      swig_guile,      "Guile",              Supported   },
   {"-java",       swig_java,       "Java",               Supported   },
   {"-javascript", swig_javascript, "Javascript",         Supported   },
+  {"-kotlin",     swig_kotlin,     "Kotlin",             Experimental},
   {"-lua",        swig_lua,        "Lua",                Supported   },
   {"-modula3",    NULL,            "Modula 3",           Disabled    },
   {"-ocaml",      swig_ocaml,      "OCaml",              Experimental},

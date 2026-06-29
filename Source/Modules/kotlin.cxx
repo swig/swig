@@ -1,0 +1,5921 @@
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
+ * (or any later version) of the GNU General Public License. Some additional
+ * terms also apply to certain portions of SWIG. The full details of the SWIG
+ * license and copyrights can be found in the LICENSE and COPYRIGHT files
+ * included with the SWIG source code as distributed by the SWIG developers
+ * and at https://www.swig.org/legal.html.
+ *
+ * kotlin.cxx
+ *
+ * Kotlin language module for SWIG.
+ * ----------------------------------------------------------------------------- */
+
+#include "swigmod.h"
+#include "cparse.h"
+#include <errno.h>
+#include <limits.h>  // for INT_MAX
+#include <ctype.h>
+#include "javadoc.h"
+
+/* Hash type used for upcalls from C/C++ */
+typedef DOH UpcallData;
+
+class KOTLIN : public Language {
+  static const char *usage;
+  const String *empty_string;
+  const String *public_string;
+  const String *protected_string;
+
+  Hash *swig_types_hash;
+  File *f_begin;
+  File *f_runtime;
+  File *f_runtime_h;
+  File *f_header;
+  File *f_wrappers;
+  File *f_init;
+  File *f_directors;
+  File *f_directors_h;
+  List *filenames_list;
+
+  bool proxy_flag;                // Flag for generating proxy classes
+  bool nopgcpp_flag;              // Flag for suppressing the premature garbage collection prevention parameter
+  bool native_function_flag;      // Flag for when wrapping a native function
+  bool enum_constant_flag;        // Flag for when wrapping an enum or constant
+  bool static_flag;               // Flag for when wrapping a static functions or member variables
+  bool variable_wrapper_flag;     // Flag for when wrapping a nonstatic member variable
+  bool wrapping_member_flag;      // Flag for when wrapping a member variable/enum/const
+  bool global_variable_flag;      // Flag for when wrapping a global variable
+  bool old_variable_names;        // Flag for old style variable names in the intermediary class
+  bool member_func_flag;          // flag set when wrapping a member function
+  bool doxygen;                   // flag for converting found doxygen to javadoc
+  bool comment_creation_chatter;  // flag for getting information about where comments were created in kotlin.cxx
+
+  String *imclass_name;              // intermediary class name
+  String *module_class_name;         // module class name
+  String *constants_interface_name;  // constants interface name
+  String *imclass_class_code;        // intermediary class code
+  String *proxy_class_def;
+  String *proxy_class_code;
+  String *interface_class_code;  // if %feature("interface") was declared for a class, here goes the interface declaration
+  String *module_class_code;
+  String *proxy_class_name;       // proxy class name
+  String *full_proxy_class_name;  // fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
+  String *full_imclass_name;      // fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
+  String *variable_name;          // Name of a variable being wrapped
+  String *proxy_class_constants_code;
+  String *proxy_class_companion_code;  // static members go into the proxy class companion object
+  Hash *director_bridge_hash;          // upcall bridges for protected director methods per class, collected before the proxy class buffers exist
+  String *prop_getter_code;            // getter accessor for the variable currently being wrapped as a Kotlin property
+  String *prop_setter_code;            // setter accessor for the variable currently being wrapped as a Kotlin property
+  String *prop_type;                   // Kotlin type of the variable currently being wrapped as a Kotlin property
+  String *module_class_constants_code;
+  String *common_begin_code;
+  String *enum_code;
+  String *package;                   // Optional package name
+  String *jnipackage;                // Package name used in the JNI code
+  String *package_path;              // Package name used internally by JNI (slashes)
+  String *imclass_imports;           // intermediary class imports from %pragma
+  String *module_imports;            // module imports from %pragma
+  String *imclass_baseclass;         // inheritance for intermediary class class from %pragma
+  String *imclass_package;           // package in which to generate the intermediary class
+  String *module_baseclass;          // inheritance for module class from %pragma
+  String *imclass_interfaces;        // interfaces for intermediary class class from %pragma
+  String *module_interfaces;         // interfaces for module class from %pragma
+  String *imclass_class_modifiers;   // class modifiers for intermediary class overridden by %pragma
+  String *module_class_modifiers;    // class modifiers for module class overridden by %pragma
+  String *constants_modifiers;       // access modifiers for constants interface overridden by %pragma
+  String *upcasts_code;              // C++ casts for inheritance hierarchies C++ code
+  String *imclass_cppcasts_code;     // C++ casts up inheritance hierarchies intermediary class code
+  String *imclass_directors;         // Intermediate class director code
+  String *destructor_call;           // C++ destructor call if any
+  String *destructor_throws_clause;  // C++ destructor throws clause if any
+
+  // Director method stuff:
+  List *dmethods_seq;
+  Hash *dmethods_table;
+  int n_dmethods;
+  int n_directors;
+  int first_class_dmethod;
+  int curr_class_dmethod;
+  int nesting_depth;
+
+  enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
+
+public:
+  /* -----------------------------------------------------------------------------
+   * KOTLIN()
+   * ----------------------------------------------------------------------------- */
+
+  KOTLIN() :
+    empty_string(NewString("")),
+    public_string(NewString("")),
+    protected_string(NewString("protected")),
+    swig_types_hash(NULL),
+    f_begin(NULL),
+    f_runtime(NULL),
+    f_runtime_h(NULL),
+    f_header(NULL),
+    f_wrappers(NULL),
+    f_init(NULL),
+    f_directors(NULL),
+    f_directors_h(NULL),
+    filenames_list(NULL),
+    proxy_flag(true),
+    nopgcpp_flag(false),
+    native_function_flag(false),
+    enum_constant_flag(false),
+    static_flag(false),
+    variable_wrapper_flag(false),
+    wrapping_member_flag(false),
+    global_variable_flag(false),
+    old_variable_names(false),
+    member_func_flag(false),
+    doxygen(false),
+    comment_creation_chatter(false),
+    imclass_name(NULL),
+    module_class_name(NULL),
+    constants_interface_name(NULL),
+    imclass_class_code(NULL),
+    proxy_class_def(NULL),
+    proxy_class_code(NULL),
+    interface_class_code(NULL),
+    module_class_code(NULL),
+    proxy_class_name(NULL),
+    full_proxy_class_name(NULL),
+    full_imclass_name(NULL),
+    variable_name(NULL),
+    proxy_class_constants_code(NULL),
+    proxy_class_companion_code(NULL),
+    director_bridge_hash(NULL),
+    prop_getter_code(NULL),
+    prop_setter_code(NULL),
+    prop_type(NULL),
+    module_class_constants_code(NULL),
+    common_begin_code(NULL),
+    enum_code(NULL),
+    package(NULL),
+    jnipackage(NULL),
+    package_path(NULL),
+    imclass_imports(NULL),
+    module_imports(NULL),
+    imclass_baseclass(NULL),
+    imclass_package(NULL),
+    module_baseclass(NULL),
+    imclass_interfaces(NULL),
+    module_interfaces(NULL),
+    imclass_class_modifiers(NULL),
+    module_class_modifiers(NULL),
+    constants_modifiers(NULL),
+    upcasts_code(NULL),
+    imclass_cppcasts_code(NULL),
+    imclass_directors(NULL),
+    destructor_call(NULL),
+    destructor_throws_clause(NULL),
+    dmethods_seq(NULL),
+    dmethods_table(NULL),
+    n_dmethods(0),
+    n_directors(0),
+    first_class_dmethod(0),
+    curr_class_dmethod(0),
+    nesting_depth(0) {
+    /* for now, multiple inheritance in directors is disabled, this
+       should be easy to implement though */
+    director_multiple_inheritance = 0;
+    directorLanguage();
+  }
+
+  ~KOTLIN() {
+    delete doxygenTranslator;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * constructIntermediateClassName()
+   *
+   * Construct the fully qualified name of the intermediate class and set
+   * the full_imclass_name attribute accordingly.
+   * ----------------------------------------------------------------------------- */
+  void constructIntermediateClassName(Node *n) {
+    String *nspace = Getattr(n, "sym:nspace");
+
+    if (imclass_package && package)
+      full_imclass_name = NewStringf("%s.%s.%s", package, imclass_package, imclass_name);
+    else if (package && nspace)
+      full_imclass_name = NewStringf("%s.%s", package, imclass_name);
+    else if (imclass_package)
+      full_imclass_name = NewStringf("%s.%s", imclass_package, imclass_name);
+    else
+      full_imclass_name = NewStringf("%s", imclass_name);
+
+    if (nspace && !package) {
+      String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
+      Swig_warning(
+        WARN_KOTLIN_NSPACE_WITHOUT_PACKAGE,
+        Getfile(n),
+        Getline(n),
+        "The nspace feature is used on '%s' without -package. "
+        "The generated code may not compile as Kotlin does not support types declared in a named package accessing types declared in an unnamed package.\n",
+        SwigType_namestr(name));
+    }
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getProxyName()
+   *
+   * Test to see if a type corresponds to something wrapped with a proxy class.
+   * Return NULL if not otherwise the proxy class name, fully qualified with
+   * package name if the nspace feature is used, unless jnidescriptor is true as
+   * the package name is handled differently (unfortunately for legacy reasons).
+   * ----------------------------------------------------------------------------- */
+
+  String *getProxyName(SwigType *t, bool jnidescriptor = false) {
+    String *proxyname = NULL;
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n) {
+        proxyname = Getattr(n, "proxyname");
+        if (!proxyname || jnidescriptor) {
+          String *nspace = Getattr(n, "sym:nspace");
+          String *symname = Copy(Getattr(n, "sym:name"));
+          if (symname && !GetFlag(n, "feature:flatnested")) {
+            for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+              if (String *name = Getattr(outer_class, "sym:name")) {
+                Push(symname, jnidescriptor ? "$" : ".");
+                Push(symname, name);
+              } else
+                return NULL;
+            }
+          }
+          if (nspace) {
+            if (package && !jnidescriptor)
+              proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
+            else
+              proxyname = NewStringf("%s.%s", nspace, symname);
+          } else {
+            proxyname = Copy(symname);
+          }
+          if (!jnidescriptor) {
+            Setattr(n, "proxyname", proxyname);  // Cache it
+            Delete(proxyname);
+          }
+          Delete(symname);
+        }
+      }
+    }
+    return proxyname;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * makeValidJniName()
+   * ----------------------------------------------------------------------------- */
+
+  String *makeValidJniName(const String *name) {
+    String *valid_jni_name = NewString(name);
+    Replaceall(valid_jni_name, "_", "_1");
+    return valid_jni_name;
+  }
+
+  /* ------------------------------------------------------------
+   * main()
+   * ------------------------------------------------------------ */
+
+  virtual void main(int argc, char *argv[]) {
+
+    SWIG_library_directory("kotlin");
+
+    int doxygen_translator_flags = 0;
+
+    // Look for certain command line options
+    for (int i = 1; i < argc; i++) {
+      if (argv[i]) {
+        if (strcmp(argv[i], "-package") == 0) {
+          if (argv[i + 1]) {
+            package = NewString("");
+            Printf(package, argv[i + 1]);
+            if (Len(package) == 0) {
+              Delete(package);
+              package = 0;
+            }
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if ((strcmp(argv[i], "-doxygen") == 0)) {
+          Swig_mark_arg(i);
+          doxygen = true;
+          scan_doxygen_comments = true;
+        } else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
+          Swig_mark_arg(i);
+          doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+        } else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
+          Swig_mark_arg(i);
+          doxygen_translator_flags |= DoxygenTranslator::debug_parser;
+        } else if ((strcmp(argv[i], "-noproxy") == 0)) {
+          Swig_mark_arg(i);
+          proxy_flag = false;
+        } else if (strcmp(argv[i], "-nopgcpp") == 0) {
+          Swig_mark_arg(i);
+          nopgcpp_flag = true;
+        } else if (strcmp(argv[i], "-oldvarnames") == 0) {
+          Swig_mark_arg(i);
+          old_variable_names = true;
+        } else if (strcmp(argv[i], "-help") == 0) {
+          Printf(stdout, "%s", usage);
+        }
+      }
+    }
+
+    if (doxygen)
+      doxygenTranslator = new JavaDocConverter(doxygen_translator_flags);
+
+    // Add a symbol to the parser for conditional compilation
+    Preprocessor_define("SWIGKOTLIN 1", 0);
+
+    SWIG_config_file("kotlin.swg");
+
+    allow_overloading();
+    Swig_interface_feature_enable();
+  }
+
+  /* ---------------------------------------------------------------------
+   * top()
+   * --------------------------------------------------------------------- */
+
+  virtual int top(Node *n) {
+
+    // Get any options set in the module directive
+    Node *module = Getattr(n, "module");
+    Node *optionsnode = Getattr(module, "options");
+
+    if (optionsnode) {
+      if (Getattr(optionsnode, "jniclassname"))
+        imclass_name = Copy(Getattr(optionsnode, "jniclassname"));
+      /* check if directors are enabled for this module.  note: this
+       * is a "master" switch, without which no director code will be
+       * emitted.  %feature("director") statements are also required
+       * to enable directors for individual classes or methods.
+       *
+       * use %module(directors="1") modulename at the start of the
+       * interface file to enable director generation.
+       */
+      if (Getattr(optionsnode, "directors")) {
+        allow_directors();
+      }
+      if (Getattr(optionsnode, "dirprot")) {
+        allow_dirprot();
+      }
+      allow_allprotected(GetFlag(optionsnode, "allprotected"));
+      common_begin_code = Getattr(optionsnode, "kbegin");
+      if (common_begin_code)
+        Printf(common_begin_code, "\n");
+    }
+
+    /* Initialize all of the output files */
+    String *outfile = Getattr(n, "outfile");
+    String *outfile_h = Getattr(n, "outfile_h");
+
+    if (!outfile) {
+      Printf(stderr, "Unable to determine outfile\n");
+      Exit(EXIT_FAILURE);
+    }
+
+    f_begin = NewFile(outfile, "w", SWIG_output_files());
+    if (!f_begin) {
+      FileErrorDisplay(outfile);
+      Exit(EXIT_FAILURE);
+    }
+
+    if (Swig_directors_enabled()) {
+      if (!outfile_h) {
+        Printf(stderr, "Unable to determine outfile_h\n");
+        Exit(EXIT_FAILURE);
+      }
+      f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
+      if (!f_runtime_h) {
+        FileErrorDisplay(outfile_h);
+        Exit(EXIT_FAILURE);
+      }
+    }
+
+    f_runtime = NewString("");
+    f_init = NewString("");
+    f_header = NewString("");
+    f_wrappers = NewString("");
+    f_directors_h = NewString("");
+    f_directors = NewString("");
+
+    /* Register file targets with the SWIG file handler */
+    Swig_register_filebyname("begin", f_begin);
+    Swig_register_filebyname("header", f_header);
+    Swig_register_filebyname("wrapper", f_wrappers);
+    Swig_register_filebyname("runtime", f_runtime);
+    Swig_register_filebyname("init", f_init);
+    Swig_register_filebyname("director", f_directors);
+    Swig_register_filebyname("director_h", f_directors_h);
+
+    swig_types_hash = NewHash();
+    filenames_list = NewList();
+
+    // Make the intermediary class and module class names. The intermediary class name can be set in the module directive.
+    if (!imclass_name) {
+      imclass_name = NewStringf("%sJNI", Getattr(n, "name"));
+      module_class_name = Copy(Getattr(n, "name"));
+    } else {
+      // Rename the module name if it is the same as intermediary class name - a backwards compatibility solution
+      if (Cmp(imclass_name, Getattr(n, "name")) == 0)
+        module_class_name = NewStringf("%sModule", Getattr(n, "name"));
+      else
+        module_class_name = Copy(Getattr(n, "name"));
+    }
+    constants_interface_name = NewStringf("%sConstants", module_class_name);
+
+    // module class and intermediary classes are always created
+    if (!addSymbol(imclass_name, module))
+      return SWIG_ERROR;
+    if (!addSymbol(module_class_name, module))
+      return SWIG_ERROR;
+
+    imclass_class_code = NewString("");
+    proxy_class_def = NewString("");
+    proxy_class_code = NewString("");
+    module_class_constants_code = NewString("");
+    imclass_baseclass = NewString("");
+    imclass_package = NULL;
+    imclass_interfaces = NewString("");
+    imclass_class_modifiers = NewString("");
+    module_class_code = NewString("");
+    module_baseclass = NewString("");
+    module_interfaces = NewString("");
+    module_imports = NewString("");
+    module_class_modifiers = NewString("");
+    constants_modifiers = NewString("");
+    imclass_imports = NewString("");
+    imclass_cppcasts_code = NewString("");
+    imclass_directors = NewString("");
+    upcasts_code = NewString("");
+    dmethods_seq = NewList();
+    dmethods_table = NewHash();
+    n_dmethods = 0;
+    n_directors = 0;
+    jnipackage = NewString("");
+    package_path = NewString("");
+
+    Swig_banner(f_begin);
+
+    Swig_obligatory_macros(f_runtime, "KOTLIN");
+
+    if (Swig_directors_enabled()) {
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
+
+      /* Emit initial director header and director code: */
+      Swig_banner(f_directors_h);
+      Printf(f_directors_h, "\n");
+      Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", module_class_name);
+      Printf(f_directors_h, "#define SWIG_%s_WRAP_H_\n\n", module_class_name);
+
+      Printf(f_directors, "\n\n");
+      Printf(f_directors, "/* ---------------------------------------------------\n");
+      Printf(f_directors, " * C++ director class methods\n");
+      Printf(f_directors, " * --------------------------------------------------- */\n\n");
+      if (outfile_h) {
+        String *filename = Swig_file_filename(outfile_h);
+        Printf(f_directors, "#include \"%s\"\n\n", filename);
+        Delete(filename);
+      }
+    }
+
+    Printf(f_runtime, "\n");
+
+    String *wrapper_name = NewString("");
+
+    if (package) {
+      String *jniname = makeValidJniName(package);
+      Printv(jnipackage, jniname, NIL);
+      Delete(jniname);
+      Replaceall(jnipackage, ".", "_");
+      Append(jnipackage, "_");
+      Printv(package_path, package, NIL);
+      Replaceall(package_path, ".", "/");
+    }
+    String *jniname = makeValidJniName(imclass_name);
+    Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, jniname);
+    Delete(jniname);
+
+    Swig_name_register("wrapper", Char(wrapper_name));
+    if (old_variable_names) {
+      Swig_name_register("set", "set_%n%v");
+      Swig_name_register("get", "get_%n%v");
+    }
+
+    Delete(wrapper_name);
+
+    Printf(f_wrappers, "\n#ifdef __cplusplus\n");
+    Printf(f_wrappers, "extern \"C\" {\n");
+    Printf(f_wrappers, "#endif\n\n");
+
+    /* Emit code */
+    Language::top(n);
+
+    if (Swig_directors_enabled()) {
+      // Insert director runtime into the f_runtime file (make it occur before %header section)
+      Swig_insert_file("director_common.swg", f_runtime);
+      Swig_insert_file("director.swg", f_runtime);
+    }
+    // Generate the intermediary class
+    {
+      String *filen = NewStringf("%s%s.kt", outputDirectory(imclass_package), imclass_name);
+      File *f_im = NewFile(filen, "w", SWIG_output_files());
+      if (!f_im) {
+        FileErrorDisplay(filen);
+        Exit(EXIT_FAILURE);
+      }
+      Append(filenames_list, Copy(filen));
+      Delete(filen);
+      filen = NULL;
+
+      // Start writing out the intermediary class file
+      emitBanner(f_im);
+
+      if (imclass_package && package)
+        Printf(f_im, "package %s.%s\n", package, imclass_package);
+      else if (imclass_package)
+        Printf(f_im, "package %s\n", imclass_package);
+      else if (package)
+        Printf(f_im, "package %s\n", package);
+
+      if (imclass_imports)
+        Printf(f_im, "%s\n", imclass_imports);
+
+      if (Len(imclass_class_modifiers) > 0)
+        Printf(f_im, "%s ", imclass_class_modifiers);
+      Printf(f_im, "%s ", imclass_name);
+
+      // Kotlin uses a single ':' clause for both the base class and interfaces
+      if (imclass_baseclass && *Char(imclass_baseclass)) {
+        Printf(f_im, ": %s ", imclass_baseclass);
+        if (Len(imclass_interfaces) > 0)
+          Printv(f_im, ", ", imclass_interfaces, " ", NIL);
+      } else if (Len(imclass_interfaces) > 0) {
+        Printv(f_im, ": ", imclass_interfaces, " ", NIL);
+      }
+      Printf(f_im, "{\n");
+
+      // Add the intermediary class methods
+      Replaceall(imclass_class_code, "$module", module_class_name);
+      Replaceall(imclass_class_code, "$imclassname", imclass_name);
+      kotlinReindent(imclass_class_code);
+      Printv(f_im, imclass_class_code, NIL);
+      kotlinReindent(imclass_cppcasts_code);
+      Printv(f_im, imclass_cppcasts_code, NIL);
+      if (Len(imclass_directors) > 0) {
+        kotlinReindent(imclass_directors);
+        Printv(f_im, "\n", imclass_directors, NIL);
+      }
+
+      if (n_dmethods > 0) {
+        // The JvmStatic annotation is required so that the JNI code receives a real jclass
+        // for looking up the static director upcall methods
+        Putc('\n', f_im);
+        Printf(f_im, "    @JvmStatic\n");
+        Printf(f_im, "    private external fun swig_module_init()\n");
+        Printf(f_im, "    init {\n");
+        Printf(f_im, "        swig_module_init()\n");
+        Printf(f_im, "    }\n");
+      }
+      // Finish off the class
+      Printf(f_im, "}\n");
+      Delete(f_im);
+    }
+
+    // Generate the Kotlin module class
+    {
+      String *filen = NewStringf("%s%s.kt", SWIG_output_directory(), module_class_name);
+      File *f_module = NewFile(filen, "w", SWIG_output_files());
+      if (!f_module) {
+        FileErrorDisplay(filen);
+        Exit(EXIT_FAILURE);
+      }
+      Append(filenames_list, Copy(filen));
+      Delete(filen);
+      filen = NULL;
+
+      // Start writing out the module class file
+      emitBanner(f_module);
+
+      if (package)
+        Printf(f_module, "package %s\n", package);
+
+      if (module_imports)
+        Printf(f_module, "%s\n", module_imports);
+
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+        if (comment_creation_chatter)
+          Printf(f_module, "/* This was generated from top() */\n");
+        Printv(f_module, doxygen_comments, NIL);
+        Delete(doxygen_comments);
+      }
+      if (Len(module_class_modifiers) > 0)
+        Printf(f_module, "%s ", module_class_modifiers);
+      Printf(f_module, "%s ", module_class_name);
+
+      // Kotlin uses a single ':' clause for both the base class and interfaces
+      {
+        bool have_super = false;
+        if (module_baseclass && *Char(module_baseclass)) {
+          Printf(f_module, ": %s ", module_baseclass);
+          have_super = true;
+        }
+        if (Len(module_interfaces) > 0)
+          Printv(f_module, have_super ? ", " : ": ", module_interfaces, " ", NIL);
+      }
+      Printf(f_module, "{\n");
+
+      Replaceall(module_class_code, "$module", module_class_name);
+      Replaceall(module_class_constants_code, "$module", module_class_name);
+
+      Replaceall(module_class_code, "$imclassname", imclass_name);
+      Replaceall(module_class_constants_code, "$imclassname", imclass_name);
+
+      // Write out all the global constants. Unlike Java, which uses a separate constants
+      // interface implemented by the module class, the constants live in the module object
+      // itself as Kotlin objects cannot inherit from other objects.
+      kotlinReindent(module_class_constants_code);
+      Printv(f_module, module_class_constants_code, NIL);
+
+      // Add the wrapper methods
+      kotlinReindent(module_class_code);
+      Printv(f_module, module_class_code, NIL);
+
+      // Finish off the class
+      Printf(f_module, "}\n");
+      Delete(f_module);
+    }
+
+    if (upcasts_code)
+      Printv(f_wrappers, upcasts_code, NIL);
+
+    emitDirectorUpcalls();
+
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "}\n");
+    Printf(f_wrappers, "#endif\n");
+
+    // Output a Kotlin type wrapper class for each SWIG type
+    for (Iterator swig_type = First(swig_types_hash); swig_type.key; swig_type = Next(swig_type)) {
+      emitTypeWrapperClass(swig_type.key, swig_type.item);
+    }
+
+    // Check for overwriting file problems on filesystems that are case insensitive
+    Iterator it1;
+    Iterator it2;
+    for (it1 = First(filenames_list); it1.item; it1 = Next(it1)) {
+      String *item1_lower = Swig_string_lower(it1.item);
+      for (it2 = Next(it1); it2.item; it2 = Next(it2)) {
+        String *item2_lower = Swig_string_lower(it2.item);
+        if (it1.item && it2.item) {
+          if (Strcmp(item1_lower, item2_lower) == 0) {
+            Swig_warning(WARN_LANG_PORTABILITY_FILENAME,
+                         input_file,
+                         line_number,
+                         "Portability warning: File %s will be overwritten by %s on case insensitive filesystems such as "
+                         "Windows' FAT32 and NTFS unless the class/module name is renamed\n",
+                         it1.item,
+                         it2.item);
+          }
+        }
+        Delete(item2_lower);
+      }
+      Delete(item1_lower);
+    }
+
+    Delete(swig_types_hash);
+    swig_types_hash = NULL;
+    Delete(filenames_list);
+    filenames_list = NULL;
+    Delete(imclass_name);
+    imclass_name = NULL;
+    Delete(imclass_class_code);
+    imclass_class_code = NULL;
+    Delete(proxy_class_def);
+    proxy_class_def = NULL;
+    Delete(proxy_class_code);
+    proxy_class_code = NULL;
+    Delete(module_class_constants_code);
+    module_class_constants_code = NULL;
+    Delete(imclass_baseclass);
+    imclass_baseclass = NULL;
+    Delete(imclass_package);
+    imclass_package = NULL;
+    Delete(imclass_interfaces);
+    imclass_interfaces = NULL;
+    Delete(imclass_class_modifiers);
+    imclass_class_modifiers = NULL;
+    Delete(module_class_name);
+    module_class_name = NULL;
+    Delete(constants_interface_name);
+    constants_interface_name = NULL;
+    Delete(module_class_code);
+    module_class_code = NULL;
+    Delete(module_baseclass);
+    module_baseclass = NULL;
+    Delete(module_interfaces);
+    module_interfaces = NULL;
+    Delete(module_imports);
+    module_imports = NULL;
+    Delete(module_class_modifiers);
+    module_class_modifiers = NULL;
+    Delete(constants_modifiers);
+    constants_modifiers = NULL;
+    Delete(imclass_imports);
+    imclass_imports = NULL;
+    Delete(imclass_cppcasts_code);
+    imclass_cppcasts_code = NULL;
+    Delete(imclass_directors);
+    imclass_directors = NULL;
+    Delete(upcasts_code);
+    upcasts_code = NULL;
+    Delete(package);
+    package = NULL;
+    Delete(jnipackage);
+    jnipackage = NULL;
+    Delete(package_path);
+    package_path = NULL;
+    Delete(dmethods_seq);
+    dmethods_seq = NULL;
+    Delete(dmethods_table);
+    dmethods_table = NULL;
+    n_dmethods = 0;
+
+    /* Close all of the files */
+    Dump(f_header, f_runtime);
+
+    if (Swig_directors_enabled()) {
+      Dump(f_directors, f_runtime);
+      Dump(f_directors_h, f_runtime_h);
+
+      Printf(f_runtime_h, "\n");
+      Printf(f_runtime_h, "#endif\n");
+
+      Delete(f_runtime_h);
+      f_runtime_h = NULL;
+      Delete(f_directors);
+      f_directors = NULL;
+      Delete(f_directors_h);
+      f_directors_h = NULL;
+    }
+
+    Dump(f_wrappers, f_runtime);
+    Wrapper_pretty_print(f_init, f_runtime);
+    Delete(f_header);
+    Delete(f_wrappers);
+    Delete(f_init);
+    Dump(f_runtime, f_begin);
+    Delete(f_runtime);
+    Delete(f_begin);
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * emitBanner()
+   * ----------------------------------------------------------------------------- */
+
+  void emitBanner(File *f) {
+    Printf(f, "/* ----------------------------------------------------------------------------\n");
+    Swig_banner_target_lang(f, " *");
+    Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
+    Printv(f, common_begin_code, NIL);
+  }
+
+  /*-----------------------------------------------------------------------
+   * Add new director upcall signature
+   *----------------------------------------------------------------------*/
+
+  UpcallData *addUpcallMethod(String *imclass_method, String *class_method, String *imclass_desc, String *class_desc, String *decl) {
+    String *key = NewStringf("%s|%s", imclass_method, decl);
+
+    ++curr_class_dmethod;
+
+    String *imclass_methodidx = NewStringf("%d", n_dmethods);
+    String *class_methodidx = NewStringf("%d", n_dmethods - first_class_dmethod);
+    n_dmethods++;
+
+    Hash *new_udata = NewHash();
+    Append(dmethods_seq, new_udata);
+    Setattr(dmethods_table, key, new_udata);
+
+    Setattr(new_udata, "method", Copy(class_method));
+    Setattr(new_udata, "fdesc", Copy(class_desc));
+    Setattr(new_udata, "imclass_method", Copy(imclass_method));
+    Setattr(new_udata, "imclass_fdesc", Copy(imclass_desc));
+    Setattr(new_udata, "imclass_methodidx", imclass_methodidx);
+    Setattr(new_udata, "class_methodidx", class_methodidx);
+    Setattr(new_udata, "decl", Copy(decl));
+
+    Delete(key);
+    return new_udata;
+  }
+
+  /*-----------------------------------------------------------------------
+   * Get director upcall signature
+   *----------------------------------------------------------------------*/
+
+  UpcallData *getUpcallMethodData(String *director_class, String *decl) {
+    String *key = NewStringf("%s|%s", director_class, decl);
+    UpcallData *udata = Getattr(dmethods_table, key);
+
+    Delete(key);
+    return udata;
+  }
+
+  /* ----------------------------------------------------------------------
+   * nativeWrapper()
+   * ---------------------------------------------------------------------- */
+
+  virtual int nativeWrapper(Node *n) {
+    String *wrapname = Getattr(n, "wrap:name");
+
+    if (!addSymbol(wrapname, n, imclass_name))
+      return SWIG_ERROR;
+
+    if (Getattr(n, "type")) {
+      Swig_save("nativeWrapper", n, "name", NIL);
+      Setattr(n, "name", wrapname);
+      native_function_flag = true;
+      functionWrapper(n);
+      Swig_restore(n);
+      native_function_flag = false;
+    } else {
+      Swig_error(input_file, line_number, "No return type for %%native method %s.\n", Getattr(n, "wrap:name"));
+    }
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * functionWrapper()
+   * ---------------------------------------------------------------------- */
+
+  virtual int functionWrapper(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    SwigType *returntype = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    Parm *p;
+    int i;
+    String *c_return_type = NewString("");
+    String *im_return_type = NewString("");
+    String *cleanup = NewString("");
+    String *outarg = NewString("");
+    String *body = NewString("");
+    int num_arguments = 0;
+    int gencomma = 0;
+    bool is_void_return;
+    String *overloaded_name = getOverloadedName(n);
+    String *nondir_args = NewString("");
+    bool is_destructor = (Cmp(Getattr(n, "nodeType"), "destructor") == 0);
+
+    if (!Getattr(n, "sym:overloaded")) {
+      if (!addSymbol(symname, n, imclass_name))
+        return SWIG_ERROR;
+    }
+
+    /*
+       The rest of this function deals with generating the intermediary class wrapper function (that wraps
+       a c/c++ function) and generating the JNI c code. Each Kotlin wrapper function has a
+       matching JNI c function call.
+     */
+
+    // A new wrapper function object
+    Wrapper *f = NewWrapper();
+
+    // Make a wrapper name for this function
+    String *jniname = makeValidJniName(overloaded_name);
+    String *wname = Swig_name_wrapper(jniname);
+
+    Delete(jniname);
+
+    /* Attach the non-standard typemaps to the parameter list. */
+    Swig_typemap_attach_parms("jni", l, f);
+    Swig_typemap_attach_parms("ktype", l, f);
+    Swig_typemap_attach_parms("kstype", l, f);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("jni", n, "", 0))) {
+      Printf(c_return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s\n", SwigType_str(returntype, 0));
+    }
+
+    if ((tm = Swig_typemap_lookup("ktype", n, "", 0))) {
+      Printf(im_return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_KTYPE_UNDEF, input_file, line_number, "No ktype typemap defined for %s\n", SwigType_str(returntype, 0));
+    }
+
+    is_void_return = Cmp(c_return_type, "void") == 0;
+    if (!is_void_return)
+      Wrapper_add_localv(f, "jresult", c_return_type, "jresult = 0", NIL);
+
+    Printv(f->def, "SWIGEXPORT ", c_return_type, " JNICALL ", wname, "(JNIEnv *jenv, jclass jcls", NIL);
+
+    // Usually these function parameters are unused - The code below ensures
+    // that compilers do not issue such a warning if configured to do so.
+
+    Printv(f->code, "    (void)jenv;\n", NIL);
+    Printv(f->code, "    (void)jcls;\n", NIL);
+
+    // Emit all of the local variables for holding arguments.
+    emit_parameter_variables(l, f);
+
+    /* Attach the standard typemaps */
+    emit_attach_parmmaps(l, f);
+
+    // Parameter overloading
+    Setattr(n, "wrap:parms", l);
+    Setattr(n, "wrap:name", wname);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Kotlin
+    if (Getattr(n, "sym:overloaded")) {
+      // Emit warnings for the few cases that can't be overloaded in Kotlin and give up on generating wrapper
+      Swig_overload_check(n);
+      if (Getattr(n, "overload:ignore")) {
+        DelWrapper(f);
+        return SWIG_OK;
+      }
+    }
+
+    Printf(imclass_class_code, "  external fun %s(", overloaded_name);
+
+    num_arguments = emit_num_arguments(l);
+
+    // Now walk the function parameter list and generate code to get arguments
+    for (i = 0, p = l; i < num_arguments; i++) {
+
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+        p = Getattr(p, "tmap:in:next");
+      }
+
+      SwigType *pt = Getattr(p, "type");
+      String *ln = Getattr(p, "lname");
+      String *im_param_type = NewString("");
+      String *c_param_type = NewString("");
+      String *arg = NewString("");
+
+      Printf(arg, "j%s", ln);
+
+      /* Get the JNI C types of the parameter */
+      if ((tm = Getattr(p, "tmap:jni"))) {
+        Printv(c_param_type, tm, NIL);
+      } else {
+        Swig_warning(WARN_KOTLIN_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      /* Get the intermediary class parameter types of the parameter */
+      if ((tm = Getattr(p, "tmap:ktype"))) {
+        Printv(im_param_type, tm, NIL);
+      } else {
+        Swig_warning(WARN_KOTLIN_TYPEMAP_KTYPE_UNDEF, input_file, line_number, "No ktype typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      /* Add parameter to intermediary class method */
+      if (gencomma)
+        Printf(imclass_class_code, ", ");
+      Printf(imclass_class_code, "%s: %s", arg, im_param_type);
+
+      // Add parameter to C function
+      Printv(f->def, ", ", c_param_type, " ", arg, NIL);
+
+      ++gencomma;
+
+      // Premature garbage collection prevention parameter.
+      // It is nullable as a null proxy class reference is passed as a null pointer.
+      if (!is_destructor) {
+        String *pgc_parameter = prematureGarbageCollectionPreventionParameter(pt, p);
+        if (pgc_parameter) {
+          Printf(imclass_class_code, ", %s_: %s?", arg, pgc_parameter);
+          Printf(f->def, ", jobject %s_", arg);
+          Printf(f->code, "    (void)%s_;\n", arg);
+        }
+      }
+      // Get typemap for this argument
+      if ((tm = Getattr(p, "tmap:in"))) {
+        addThrows(n, "tmap:in", p);
+        Replaceall(tm, "$arg", arg); /* deprecated? */
+        Replaceall(tm, "$input", arg);
+        Setattr(p, "emit:input", arg);
+
+        Printf(nondir_args, "%s\n", tm);
+
+        p = Getattr(p, "tmap:in:next");
+      } else {
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+        p = nextSibling(p);
+      }
+
+      Delete(im_param_type);
+      Delete(c_param_type);
+      Delete(arg);
+    }
+
+    Printv(f->code, nondir_args, NIL);
+    Delete(nondir_args);
+
+    /* Insert constraint checking code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:check"))) {
+        addThrows(n, "tmap:check", p);
+        Replaceall(tm, "$arg", Getattr(p, "emit:input")); /* deprecated? */
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(f->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:check:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+
+    /* Insert cleanup code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:freearg"))) {
+        addThrows(n, "tmap:freearg", p);
+        Replaceall(tm, "$arg", Getattr(p, "emit:input")); /* deprecated? */
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(cleanup, tm, "\n", NIL);
+        p = Getattr(p, "tmap:freearg:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+
+    /* Insert argument output code */
+    for (p = l; p;) {
+      if ((tm = Getattr(p, "tmap:argout"))) {
+        addThrows(n, "tmap:argout", p);
+        Replaceall(tm, "$arg", Getattr(p, "emit:input")); /* deprecated? */
+        Replaceall(tm, "$result", "jresult");
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(outarg, tm, "\n", NIL);
+        p = Getattr(p, "tmap:argout:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+
+    // Get any Kotlin exception classes in the throws typemap
+    ParmList *throw_parm_list = NULL;
+    if ((throw_parm_list = Getattr(n, "catchlist"))) {
+      Swig_typemap_attach_parms("throws", throw_parm_list, f);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+        if (Getattr(p, "tmap:throws")) {
+          addThrows(n, "tmap:throws", p);
+        }
+      }
+    }
+
+    // Now write code to make the function call
+    if (!native_function_flag) {
+
+      if (Swig_director_emit_dynamic_cast(n, f)) {
+        /* Add protection */
+        Append(f->code, "if (!darg) {\n");
+        Append(f->code, "  if (!jenv->ExceptionCheck()) {\n");
+        Append(f->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"'self' is not a director\");\n");
+        Append(f->code, "  }\n");
+        if (is_void_return)
+          Append(f->code, "  return;\n");
+        else
+          Append(f->code, "  return jresult;\n");
+        Append(f->code, "}\n");
+      }
+      String *actioncode = emit_action(n);
+
+      // Handle exception classes specified in the "except" feature's "throws" attribute
+      addThrows(n, "feature:except", n);
+
+      /* Return value if necessary  */
+      if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
+        addThrows(n, "tmap:out", n);
+        Replaceall(tm, "$result", "jresult");
+
+        if (GetFlag(n, "feature:new"))
+          Replaceall(tm, "$owner", "1");
+        else
+          Replaceall(tm, "$owner", "0");
+
+        Printf(f->code, "%s", tm);
+        if (Len(tm))
+          Printf(f->code, "\n");
+      } else {
+        Swig_warning(
+          WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
+      }
+      emit_return_variable(n, returntype, f);
+    }
+
+    /* Output argument output code */
+    Printv(f->code, outarg, NIL);
+
+    /* Output cleanup code */
+    Printv(f->code, cleanup, NIL);
+
+    /* Look to see if there is any newfree cleanup code */
+    if (GetFlag(n, "feature:new")) {
+      if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
+        addThrows(n, "tmap:newfree", n);
+        Printf(f->code, "%s\n", tm);
+      }
+    }
+
+    /* See if there is any return cleanup code */
+    if (!native_function_flag) {
+      if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
+        addThrows(n, "tmap:ret", n);
+        Printf(f->code, "%s\n", tm);
+      }
+    }
+
+    /* Finish C function and intermediary class function definitions */
+    if (Cmp(im_return_type, "Unit") == 0)
+      Printf(imclass_class_code, ")\n");
+    else
+      Printf(imclass_class_code, "): %s\n", im_return_type);
+
+    Printf(f->def, ") {");
+
+    if (!is_void_return)
+      Printv(f->code, "    return jresult;\n", NIL);
+    Printf(f->code, "}\n");
+
+    /* Substitute the cleanup code */
+    Replaceall(f->code, "$cleanup", cleanup);
+
+    Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
+
+    /* Substitute the function name */
+    Replaceall(f->code, "$symname", symname);
+
+    /* Contract macro modification */
+    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
+
+    if (!is_void_return)
+      Replaceall(f->code, "$null", "0");
+    else
+      Replaceall(f->code, "$null", "");
+
+    /* Dump the function out */
+    if (!native_function_flag)
+      Wrapper_print(f, f_wrappers);
+
+    if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
+      moduleClassFunctionHandler(n);
+    }
+
+    /*
+     * Generate the proxy class getters/setters for public member variables.
+     * Not for enums and constants.
+     */
+    if (proxy_flag && wrapping_member_flag && !enum_constant_flag) {
+      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) != 0;
+
+      String *getter_setter_name = NewString("");
+      if (!getter_flag)
+        Printf(getter_setter_name, "set");
+      else
+        Printf(getter_setter_name, "get");
+      Putc(toupper((int)*Char(variable_name)), getter_setter_name);
+      Printf(getter_setter_name, "%s", Char(variable_name) + 1);
+
+      Setattr(n, "proxyfuncname", getter_setter_name);
+      Setattr(n, "imfuncname", symname);
+
+      proxyClassFunctionHandler(n);
+      Delete(getter_setter_name);
+    }
+
+    Delete(c_return_type);
+    Delete(im_return_type);
+    Delete(cleanup);
+    Delete(outarg);
+    Delete(body);
+    Delete(overloaded_name);
+    DelWrapper(f);
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * variableWrapper()
+   * ----------------------------------------------------------------------- */
+
+  virtual int variableWrapper(Node *n) {
+    variable_wrapper_flag = true;
+    Language::variableWrapper(n); /* Default to functions */
+    variable_wrapper_flag = false;
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * globalvariableHandler()
+   * ------------------------------------------------------------------------ */
+
+  virtual int globalvariableHandler(Node *n) {
+
+    variable_name = Getattr(n, "sym:name");
+    global_variable_flag = true;
+    int ret = Language::globalvariableHandler(n);
+    assembleProxyProperty(module_class_code);
+    global_variable_flag = false;
+    return ret;
+  }
+
+  String *getCurrentScopeName(String *nspace) {
+    String *scope = 0;
+    if (nspace || getCurrentClass()) {
+      scope = NewString("");
+      if (nspace)
+        Printf(scope, "%s", nspace);
+      if (Node *cls = getCurrentClass()) {
+        if (Node *outer = Getattr(cls, "nested:outer")) {
+          String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+          for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+            Push(outerClassesPrefix, ".");
+            Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+          }
+          Printv(scope, nspace ? "." : "", outerClassesPrefix, ".", proxy_class_name, NIL);
+          Delete(outerClassesPrefix);
+        } else
+          Printv(scope, nspace ? "." : "", proxy_class_name, NIL);
+      }
+    }
+    return scope;
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumDeclaration()
+   *
+   * C/C++ enums can be mapped in one of 4 ways, depending on the kotlin:enum feature specified:
+   * 1) Simple enums - simple constant within the proxy class or module class
+   * 2) Typeunsafe enums - simple constant in a Kotlin class (class named after the c++ enum name)
+   * 3) Typesafe enum - typesafe enum pattern (class named after the c++ enum name)
+   * 4) Proper enums - proper Kotlin enum
+   * Anonymous enums always default to 1)
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumDeclaration(Node *n) {
+
+    if (!ImportMode) {
+      if (getCurrentClass() && (cplus_mode != PUBLIC))
+        return SWIG_NOWRAP;
+
+      String *nspace = Getattr(n, "sym:nspace");  // NSpace/getNSpace() only works during Language::enumDeclaration call
+
+      enum_code = NewString("");
+      String *symname = Getattr(n, "sym:name");
+      String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
+      EnumFeature enum_feature = decodeEnumFeature(n);
+      String *typemap_lookup_type = Getattr(n, "name");
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Kotlin enum
+
+        if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+          String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+          if (comment_creation_chatter)
+            Printf(enum_code, "/* This was generated from enumDeclaration() */\n");
+          Printv(enum_code, doxygen_comments, NIL);
+          Delete(doxygen_comments);
+        }
+
+        String *scope = getCurrentScopeName(nspace);
+        if (!addSymbol(symname, n, scope))
+          return SWIG_ERROR;
+
+        // Pure Kotlin baseclass and interfaces
+        const String *pure_baseclass = typemapLookup(n, "kbase", typemap_lookup_type, WARN_NONE);
+        const String *pure_interfaces = typemapLookup(n, "kinterfaces", typemap_lookup_type, WARN_NONE);
+
+        // Emit the enum. Kotlin uses a single ':' clause for both the base class and interfaces.
+        Printv(enum_code,
+               typemapLookup(n, "kclassmodifiers", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_CLASSMOD_UNDEF),  // Class modifiers (enum modifiers really)
+               " ",
+               symname,
+               (*Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "",
+               pure_baseclass,
+               (*Char(pure_baseclass) && *Char(pure_interfaces)) ? ", " : "",
+               pure_interfaces,
+               " {\n",
+               NIL);
+        // The typesafe and typeunsafe patterns generate static members which go into the
+        // companion object - it is opened here and closed again by the kbody typemap.
+        if (enum_feature == TypesafeEnum || enum_feature == TypeunsafeEnum)
+          Printv(enum_code, "  companion object {\n", NIL);
+        // Kotlin nested classes are static-like by default so '$static' is always removed
+        Replaceall(enum_code, "$static ", "");
+        Delete(scope);
+      } else {
+        if (symname && !Getattr(n, "unnamedinstance"))
+          Printf(constants_code, "  // %s \n", symname);
+        // Translate and write javadoc comment for the enum itself if flagged
+        if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+          String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+          if (comment_creation_chatter)
+            Printf(constants_code, "/* This was generated from enumDeclaration() */\n");
+          Printf(constants_code, Char(doxygen_comments));
+          Printf(constants_code, "\n");
+          Delete(doxygen_comments);
+        }
+      }
+
+      if (proxy_flag && !is_wrapping_class()) {
+        // Global enums / enums in a namespace
+        assert(!full_imclass_name);
+        constructIntermediateClassName(n);
+      }
+
+      // Emit each enum item
+      Language::enumDeclaration(n);
+
+      if (proxy_flag && !is_wrapping_class()) {
+        Delete(full_imclass_name);
+        full_imclass_name = 0;
+      }
+
+      if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
+        // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Kotlin enum
+        // Finish the enum declaration
+        // Typemaps are used to generate the enum definition in a similar manner to proxy classes.
+        Printv(enum_code,
+               (enum_feature == ProperEnum) ? ";\n" : "",
+               typemapLookup(n, "kbody", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_KBODY_UNDEF),  // main body of class
+               typemapLookup(n, "kcode", typemap_lookup_type, WARN_NONE),                        // extra Kotlin code
+               "}",
+               NIL);
+
+        // Inject any extra companion object members supplied via the kcompanion typemap at the
+        // $kcompanionmembers marker that the kbody typemap places inside the companion object.
+        const String *enum_companion = typemapLookup(n, "kcompanion", typemap_lookup_type, WARN_NONE);
+        Replaceall(enum_code, "$kcompanionmembers", enum_companion ? enum_companion : "");
+
+        Replaceall(enum_code, "$kotlinclassname", symname);
+
+        // Substitute $enumvalues - intended usage is for typesafe enums
+        if (Getattr(n, "enumvalues"))
+          Replaceall(enum_code, "$enumvalues", Getattr(n, "enumvalues"));
+        else
+          Replaceall(enum_code, "$enumvalues", "");
+
+        if (proxy_flag && is_wrapping_class()) {
+          // Enums defined within the C++ class are emitted as nested classes directly in the
+          // proxy class body (not in the companion object) so they are referenced as Outer.Enum
+
+          // Add extra indentation
+          Replaceall(enum_code, "\n", "\n  ");
+          Replaceall(enum_code, "  \n", "\n");
+          Printv(proxy_class_code, "  ", enum_code, "\n\n", NIL);
+        } else {
+          // Global enums are defined in their own file
+          String *output_directory = outputDirectory(nspace);
+          String *filen = NewStringf("%s%s.kt", output_directory, symname);
+          File *f_enum = NewFile(filen, "w", SWIG_output_files());
+          if (!f_enum) {
+            FileErrorDisplay(filen);
+            Exit(EXIT_FAILURE);
+          }
+          Append(filenames_list, Copy(filen));
+          Delete(filen);
+          filen = NULL;
+
+          // Start writing out the enum file
+          emitBanner(f_enum);
+
+          if (package || nspace) {
+            Printf(f_enum, "package ");
+            if (package)
+              Printv(f_enum, package, nspace ? "." : "", NIL);
+            if (nspace)
+              Printv(f_enum, nspace, NIL);
+            Printf(f_enum, "\n");
+          }
+
+          kotlinReindent(enum_code);
+          Printv(f_enum,
+                 typemapLookup(n, "kimports", typemap_lookup_type, WARN_NONE),  // Import statements
+                 "\n",
+                 enum_code,
+                 "\n",
+                 NIL);
+
+          Printf(f_enum, "\n");
+          Delete(f_enum);
+          Delete(output_directory);
+        }
+      } else {
+        // Wrap C++ enum with simple constant
+        Printf(enum_code, "\n");
+        if (proxy_flag && is_wrapping_class())
+          Printv(proxy_class_constants_code, enum_code, NIL);
+        else
+          Printv(module_class_constants_code, enum_code, NIL);
+      }
+
+      Delete(enum_code);
+      enum_code = NULL;
+    }
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * enumvalueDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  virtual int enumvalueDeclaration(Node *n) {
+    if (getCurrentClass() && (cplus_mode != PUBLIC))
+      return SWIG_NOWRAP;
+
+    Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+    String *symname = Getattr(n, "sym:name");
+    String *value = Getattr(n, "value");
+    String *name = Getattr(n, "name");
+    Node *parent = parentNode(n);
+    int unnamedinstance = GetFlag(parent, "unnamedinstance");
+    String *parent_name = Getattr(parent, "name");
+    String *nspace = getNSpace();
+    String *newsymname = 0;
+    String *tmpValue;
+
+    // Strange hack from parent method
+    if (value)
+      tmpValue = NewString(value);
+    else
+      tmpValue = NewString(name);
+    // Note that this is used in enumValue() amongst other places
+    Setattr(n, "value", tmpValue);
+
+    // Deal with enum values that are not int
+    int swigtype = SwigType_type(Getattr(n, "type"));
+    if (swigtype == T_CHAR) {
+      if (Getattr(n, "enumstringval")) {
+        String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
+        Setattr(n, "enumvalue", val);
+        Delete(val);
+      }
+    } else {
+      String *numval = Getattr(n, "enumnumval");
+      if (numval) {
+        const char *p = Char(numval);
+        if (isdigit(p[0])) {
+          char *e;
+          errno = 0;
+          unsigned long long value = strtoull(p, &e, 0);
+          if (errno != ERANGE && *e == '\0' && value >= 0x80000000) {
+            // Use hex for larger unsigned integer constants in Kotlin code since
+            // Kotlin allows implicit conversion to a signed integer value.
+            String *hexval = NewStringf("0x%llx", value);
+            Setattr(n, "enumvalue", hexval);
+            Delete(hexval);
+          } else {
+            Setattr(n, "enumvalue", numval);
+          }
+        } else {
+          // Emit negative values as-is.
+          Setattr(n, "enumvalue", numval);
+        }
+      }
+    }
+
+    {
+      EnumFeature enum_feature = decodeEnumFeature(parent);
+
+      if ((enum_feature == SimpleEnum) && GetFlag(parent, "scopedenum")) {
+        newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
+        symname = newsymname;
+      }
+
+      // Add to language symbol table
+      String *scope = 0;
+      if (unnamedinstance || !parent_name || enum_feature == SimpleEnum) {
+        String *enumClassPrefix = getEnumClassPrefix();
+        if (enumClassPrefix) {
+          scope = NewString("");
+          if (nspace)
+            Printf(scope, "%s.", nspace);
+          Printf(scope, "%s", enumClassPrefix);
+        } else {
+          scope = Copy(constants_interface_name);
+        }
+      } else {
+        scope = getCurrentScopeName(nspace);
+        if (!scope)
+          scope = Copy(Getattr(parent, "sym:name"));
+        else
+          Printf(scope, ".%s", Getattr(parent, "sym:name"));
+      }
+      if (!addSymbol(symname, n, scope))
+        return SWIG_ERROR;
+
+      if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
+        if (!GetFlag(n, "firstenumitem"))
+          Printf(enum_code, ",\n");
+      }
+
+      // Translate and write javadoc comment if flagged
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+        if (comment_creation_chatter)
+          Printf(enum_code, "/* This was generated from enumvalueDeclaration() */\n");
+        Printv(enum_code, doxygen_comments, NIL);
+        Delete(doxygen_comments);
+      }
+
+      if ((enum_feature == ProperEnum) && parent_name && !unnamedinstance) {
+        // Wrap (non-anonymous) C/C++ enum with a proper Kotlin enum
+        // Emit the enum item.
+        Printf(enum_code, "  %s", symname);
+        if (Getattr(n, "enumvalue")) {
+          String *value = enumValue(n);
+          Printf(enum_code, "(%s)", value);
+          Delete(value);
+        }
+      } else {
+        // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+        SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
+        Setattr(n, "type", typemap_lookup_type);
+        const String *tm = typemapLookup(n, "kstype", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF);
+
+        String *return_type = Copy(tm);
+        substituteClassname(typemap_lookup_type, return_type);
+        const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+        methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+        // public is implicit in Kotlin, so emit the modifier (with separating space) only when non-empty
+        String *mmods = Len(methodmods) ? NewStringf("%s ", methodmods) : NewString("");
+
+        if ((enum_feature == TypesafeEnum) && parent_name && !unnamedinstance) {
+          // Wrap (non-anonymous) enum using the typesafe enum pattern
+          if (Getattr(n, "enumvalue")) {
+            String *value = enumValue(n);
+            Printf(enum_code, "    @JvmField %sval %s = %s(\"%s\", %s)\n", mmods, symname, return_type, symname, value);
+            Delete(value);
+          } else {
+            Printf(enum_code, "    @JvmField %sval %s = %s(\"%s\")\n", mmods, symname, return_type, symname);
+          }
+        } else {
+          // Simple integer constants
+          // Note these are always generated for anonymous enums, no matter what enum_feature is specified
+          // Code generated is the same for SimpleEnum and TypeunsafeEnum -> the class it is generated into is determined later
+          String *value = enumValue(n);
+          // Typeunsafe enum constants live inside the enum class companion object, so indent them
+          // one level deeper than constants emitted directly into a module or proxy class.
+          const char *indent = ((enum_feature == TypeunsafeEnum) && parent_name && !unnamedinstance) ? "    " : "  ";
+          Printf(enum_code, "%s@JvmField %sval %s: %s = %s\n", indent, mmods, symname, return_type, value);
+          Delete(value);
+        }
+        Delete(mmods);
+        Delete(return_type);
+      }
+
+      // Add the enum value to the comma separated list being constructed in the enum declaration.
+      String *enumvalues = Getattr(parent, "enumvalues");
+      if (!enumvalues)
+        Setattr(parent, "enumvalues", Copy(symname));
+      else
+        Printv(enumvalues, ", ", symname, NIL);
+      Delete(scope);
+    }
+
+    Delete(newsymname);
+    Delete(tmpValue);
+    Swig_restore(n);
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
+   * constantWrapper()
+   * Used for wrapping constants - #define or %constant.
+   * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
+   * Kotlin static final variables are generated for these.
+   * If the %kotlinconst(1) feature is used then the C constant value is used to initialise the Kotlin final variable.
+   * If not, a JNI method is generated to get the C constant value for initialisation of the Kotlin final variable.
+   * However, if the %kotlinconstvalue feature is used, it overrides all other ways to generate the initialisation.
+   * Also note that this method might be called for wrapping enum items (when the enum is using %kotlinconst(0)).
+   * ------------------------------------------------------------------------ */
+
+  virtual int constantWrapper(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    String *return_type = NewString("");
+    String *constants_code = NewString("");
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+        Printf(constants_code, "/* This was generated from constantWrapper() */\n");
+      Printv(constants_code, doxygen_comments, NIL);
+      Delete(doxygen_comments);
+    }
+
+    bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
+
+    const String *itemname = (proxy_flag && wrapping_member_flag) ? variable_name : symname;
+    if (!is_enum_item) {
+      String *scope = 0;
+      if (proxy_class_name) {
+        String *nspace = getNSpace();
+        scope = NewString("");
+        if (nspace)
+          Printf(scope, "%s.", nspace);
+        Printf(scope, "%s", proxy_class_name);
+      } else {
+        scope = Copy(constants_interface_name);
+      }
+      if (!addSymbol(itemname, n, scope))
+        return SWIG_ERROR;
+      Delete(scope);
+    }
+
+    // The %kotlinconst feature determines how the constant value is obtained
+    int const_feature_flag = GetFlag(n, "feature:kotlin:const");
+
+    /* Adjust the enum type for the Swig_typemap_lookup.
+     * We want the same kstype typemap for all the enum items so we use the enum type (parent node). */
+    if (is_enum_item) {
+      t = Getattr(parentNode(n), "enumtype");
+      Setattr(n, "type", t);
+    }
+
+    /* Attach the non-standard typemaps to the parameter list. */
+    Swig_typemap_attach_parms("kstype", l, NULL);
+
+    /* Get Kotlin return types */
+    bool classname_substituted_flag = false;
+
+    if ((tm = Swig_typemap_lookup("kstype", n, "", 0))) {
+      classname_substituted_flag = substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF, input_file, line_number, "No kstype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+    // public is implicit in Kotlin, so emit the modifier (with separating space) only when non-empty
+    String *mmods = Len(methodmods) ? NewStringf("%s ", methodmods) : NewString("");
+
+    Printf(constants_code, "  @JvmField %sval %s: %s = ", mmods, itemname, return_type);
+    Delete(mmods);
+
+    // Check for the %kotlinconstvalue feature
+    String *value = Getattr(n, "feature:kotlin:constvalue");
+
+    if (value) {
+      Printf(constants_code, "%s\n", value);
+    } else if (!const_feature_flag) {
+      // Default enum and constant handling will work with any type of C constant and initialises the Kotlin variable from C through a JNI call.
+
+      if (classname_substituted_flag) {
+        if (SwigType_isenum(t)) {
+          // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
+          Printf(
+            constants_code, "%s.swigToEnum(%s.%s())\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+        } else {
+          // This handles function pointers using the %constant directive
+          // The constructor needs the plain class name, so strip any nullable '?' suffix from the kstype
+          String *construct_type = Copy(return_type);
+          if (Len(construct_type) > 0 && *(Char(construct_type) + Len(construct_type) - 1) == '?')
+            Delslice(construct_type, Len(construct_type) - 1, Len(construct_type));
+          Printf(
+            constants_code, "%s(%s.%s(), false)\n", construct_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+          Delete(construct_type);
+        }
+      } else {
+        Printf(constants_code, "%s.%s()\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+      }
+
+      // Each constant and enum value is wrapped with a separate JNI function call
+      SetFlag(n, "feature:immutable");
+      enum_constant_flag = true;
+      variableWrapper(n);
+      enum_constant_flag = false;
+    } else {
+      // Alternative constant handling uses the C syntax to make a true Kotlin constant,
+      // translating any C operators (e.g. the bitwise and shift operators) that differ in Kotlin
+      String *cvalue = Getattr(n, "wrappedasconstant") ? Getattr(n, "staticmembervariableHandler:value") : Getattr(n, "value");
+      String *kvalue = kotlinConstExpr(cvalue);
+      Printf(constants_code, "%s\n", kvalue ? kvalue : cvalue);
+      Delete(kvalue);
+    }
+
+    // Emit the generated code to appropriate place
+    // Enums only emit the intermediate and JNI methods, so no proxy or module class wrapper methods needed
+    if (!is_enum_item) {
+      if (proxy_flag && wrapping_member_flag)
+        Printv(proxy_class_constants_code, constants_code, NIL);
+      else
+        Printv(module_class_constants_code, constants_code, NIL);
+    }
+    // Cleanup
+    Swig_restore(n);
+    Delete(return_type);
+    Delete(constants_code);
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * insertDirective()
+   * ----------------------------------------------------------------------------- */
+
+  virtual int insertDirective(Node *n) {
+    int ret = SWIG_OK;
+    String *code = Getattr(n, "code");
+    String *section = Getattr(n, "section");
+    Replaceall(code, "$module", module_class_name);
+    Replaceall(code, "$imclassname", imclass_name);
+
+    if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
+      if (proxy_class_code) {
+        Swig_typemap_replace_embedded_typemap(code, n);
+        int offset = Len(code) > 0 && *Char(code) == '\n' ? 1 : 0;
+        Printv(proxy_class_code, Char(code) + offset, "\n", NIL);
+      }
+    } else {
+      ret = Language::insertDirective(n);
+    }
+    return ret;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * pragmaDirective()
+   *
+   * Valid Pragmas:
+   * jniclassbase            - base (extends) for the intermediary class
+   * jniclasspackage         - package in which to generate the intermediary class
+   * jniclassclassmodifiers  - class modifiers for the intermediary class
+   * jniclasscode            - text (kotlin code) is copied verbatim to the intermediary class
+   * jniclassimports         - import statements for the intermediary class
+   * jniclassinterfaces      - interface (implements) for the intermediary class
+   *
+   * modulebase              - base (extends) for the module class
+   * moduleclassmodifiers    - class modifiers for the module class
+   * modulecode              - text (kotlin code) is copied verbatim to the module class
+   * moduleimports           - import statements for the module class
+   * moduleinterfaces        - interface (implements) for the module class
+   *
+   * constantsmodifiers      - access modifiers for the constants interface
+   * ----------------------------------------------------------------------------- */
+
+  virtual int pragmaDirective(Node *n) {
+    if (!ImportMode) {
+      String *lang = Getattr(n, "lang");
+      String *code = Getattr(n, "name");
+      String *value = Getattr(n, "value");
+
+      if (Strcmp(lang, "kotlin") == 0) {
+
+        String *strvalue = NewString(value);
+        Replaceall(strvalue, "\\\"", "\"");
+
+        if (Strcmp(code, "jniclassbase") == 0) {
+          Delete(imclass_baseclass);
+          imclass_baseclass = Copy(strvalue);
+        } else if (Strcmp(code, "jniclasspackage") == 0) {
+          Delete(imclass_package);
+          imclass_package = Copy(strvalue);
+          String *imclass_class_package_jniname = makeValidJniName(imclass_package);
+          Printv(jnipackage, imclass_class_package_jniname, NIL);
+          Delete(imclass_class_package_jniname);
+          Replaceall(jnipackage, NSPACE_SEPARATOR, "_");
+          Append(jnipackage, "_");
+
+          String *wrapper_name = NewString("");
+          String *imclass_class_jniname = makeValidJniName(imclass_name);
+          Printf(wrapper_name, "Java_%s%s_%%f", jnipackage, imclass_class_jniname);
+          Delete(imclass_class_jniname);
+
+          Swig_name_unregister("wrapper");
+          Swig_name_register("wrapper", Char(wrapper_name));
+
+          Delete(wrapper_name);
+        } else if (Strcmp(code, "jniclassclassmodifiers") == 0) {
+          Delete(imclass_class_modifiers);
+          imclass_class_modifiers = Copy(strvalue);
+        } else if (Strcmp(code, "jniclasscode") == 0) {
+          Printf(imclass_class_code, "%s\n", strvalue);
+        } else if (Strcmp(code, "jniclassimports") == 0) {
+          Delete(imclass_imports);
+          imclass_imports = Copy(strvalue);
+        } else if (Strcmp(code, "jniclassinterfaces") == 0) {
+          Delete(imclass_interfaces);
+          imclass_interfaces = Copy(strvalue);
+        } else if (Strcmp(code, "modulebase") == 0) {
+          Delete(module_baseclass);
+          module_baseclass = Copy(strvalue);
+        } else if (Strcmp(code, "moduleclassmodifiers") == 0) {
+          Delete(module_class_modifiers);
+          module_class_modifiers = Copy(strvalue);
+        } else if (Strcmp(code, "modulecode") == 0) {
+          Printf(module_class_code, "%s\n", strvalue);
+        } else if (Strcmp(code, "moduleimports") == 0) {
+          Delete(module_imports);
+          module_imports = Copy(strvalue);
+        } else if (Strcmp(code, "moduleinterfaces") == 0) {
+          Delete(module_interfaces);
+          module_interfaces = Copy(strvalue);
+        } else if (Strcmp(code, "constantsmodifiers") == 0) {
+          Delete(constants_modifiers);
+          constants_modifiers = Copy(strvalue);
+        } else {
+          Swig_error(input_file, line_number, "Unrecognized pragma.\n");
+        }
+        Delete(strvalue);
+      }
+    }
+    return Language::pragmaDirective(n);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getQualifiedInterfaceName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getQualifiedInterfaceName(Node *n) {
+    String *ret = Getattr(n, "interface:qname");
+    if (!ret) {
+      String *nspace = Getattr(n, "sym:nspace");
+      String *symname = Getattr(n, "interface:name");
+      if (nspace) {
+        if (package)
+          ret = NewStringf("%s.%s.%s", package, nspace, symname);
+        else
+          ret = NewStringf("%s.%s", nspace, symname);
+      } else {
+        ret = Copy(symname);
+      }
+      Setattr(n, "interface:qname", ret);
+    }
+    return ret;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getInterfaceName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getInterfaceName(SwigType *t, bool qualified) {
+    String *interface_name = NULL;
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n && Getattr(n, "interface:name"))
+        interface_name = qualified ? getQualifiedInterfaceName(n) : Getattr(n, "interface:name");
+    }
+    return interface_name;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * addInterfaceNameAndUpcasts()
+   * ----------------------------------------------------------------------------- */
+
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, List *base_list, SwigType *c_classname) {
+    for (Iterator it = First(base_list); it.item; it = Next(it)) {
+      Node *base = it.item;
+      SwigType *c_baseclassname = Getattr(base, "name");
+      String *interface_name = Getattr(base, "interface:name");
+      String *qualified_interface_name = getQualifiedInterfaceName(base);
+      SwigType *bsmart = Getattr(base, "smart");
+      if (Len(interface_list))
+        Append(interface_list, ", ");
+      Append(interface_list, qualified_interface_name);
+
+      Node *attributes = NewHash();
+      String *interface_code = Copy(typemapLookup(base, "kinterfacecode", Getattr(base, "classtypeobj"), WARN_KOTLIN_TYPEMAP_INTERFACECODE_UNDEF, attributes));
+      String *cptr_method_name = 0;
+      if (interface_code) {
+        Replaceall(interface_code, "$interfacename", interface_name);
+        Replaceall(interface_code, "$kotlininterfacename", qualified_interface_name);
+        Printv(interface_upcasts, interface_code, NIL);
+        cptr_method_name = Copy(Getattr(attributes, "tmap:kinterfacecode:cptrmethod"));
+      }
+      if (!cptr_method_name)
+        cptr_method_name = NewStringf("%s_GetInterfaceCPtr", interface_name);
+      Replaceall(cptr_method_name, ".", "_");
+      Replaceall(cptr_method_name, "$interfacename", interface_name);
+
+      String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
+      upcastsCode(smart, bsmart, upcast_method_name, c_classname, c_baseclassname);
+
+      Delete(upcast_method_name);
+      Delete(cptr_method_name);
+      Delete(interface_code);
+    }
+  }
+
+  /* -----------------------------------------------------------------------------
+   * upcastsCode()
+   *
+   * Add code for C++ casting to base class
+   * ----------------------------------------------------------------------------- */
+
+  void upcastsCode(SwigType *smart, SwigType *bsmart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
+    String *jniname = makeValidJniName(upcast_method_name);
+    String *wname = Swig_name_wrapper(jniname);
+
+    Printf(imclass_cppcasts_code, "  external fun %s(jarg1: Long): Long\n", upcast_method_name);
+
+    if (smart) {
+      if (bsmart) {
+        String *smartnamestr = SwigType_namestr(smart);
+        String *bsmartnamestr = SwigType_namestr(bsmart);
+
+        Printv(upcasts_code,
+               "SWIGEXPORT jlong JNICALL ",
+               wname,
+               "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+               "    jlong baseptr = 0;\n"
+               "    ",
+               smartnamestr,
+               " *argp1;\n"
+               "    (void)jenv;\n"
+               "    (void)jcls;\n"
+               "    argp1 = *(",
+               smartnamestr,
+               " **)&jarg1;\n"
+               "    *(",
+               bsmartnamestr,
+               " **)&baseptr = argp1 ? new ",
+               bsmartnamestr,
+               "(*argp1) : 0;\n"
+               "    return baseptr;\n"
+               "}\n",
+               "\n",
+               NIL);
+
+        Delete(bsmartnamestr);
+        Delete(smartnamestr);
+      }
+    } else {
+      String *classname = SwigType_namestr(c_classname);
+      String *baseclassname = SwigType_namestr(c_baseclassname);
+
+      Printv(upcasts_code,
+             "SWIGEXPORT jlong JNICALL ",
+             wname,
+             "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+             "    jlong baseptr = 0;\n"
+             "    (void)jenv;\n"
+             "    (void)jcls;\n"
+             "    *(",
+             baseclassname,
+             " **)&baseptr = *(",
+             classname,
+             " **)&jarg1;\n"
+             "    return baseptr;\n"
+             "}\n",
+             "\n",
+             NIL);
+
+      Delete(baseclassname);
+      Delete(classname);
+    }
+
+    Delete(wname);
+    Delete(jniname);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * emitProxyClassDefAndCPPCasts()
+   * ----------------------------------------------------------------------------- */
+
+  void emitProxyClassDefAndCPPCasts(Node *n) {
+    SwigType *c_classname = Getattr(n, "name");
+    SwigType *c_baseclassname = NULL;
+    String *baseclass = NULL;
+    String *interface_list = NewStringEmpty();
+    String *interface_upcasts = NewStringEmpty();
+    SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
+    bool feature_director = Swig_directorclass(n) ? true : false;
+    bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
+    SwigType *smart = Getattr(n, "smart");
+    SwigType *bsmart = 0;
+
+    // Inheritance from pure Kotlin classes
+    Node *attributes = NewHash();
+    const String *pure_baseclass = typemapLookup(n, "kbase", typemap_lookup_type, WARN_NONE, attributes);
+    bool purebase_replace = GetFlag(attributes, "tmap:kbase:replace") ? true : false;
+    bool purebase_notderived = GetFlag(attributes, "tmap:kbase:notderived") ? true : false;
+    Delete(attributes);
+
+    // C++ inheritance
+    Node *basenode = NULL;
+    if (!purebase_replace) {
+      List *baselist = Getattr(n, "bases");
+      if (baselist) {
+        Iterator base = First(baselist);
+        while (base.item) {
+          if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
+            SwigType *baseclassname = Getattr(base.item, "name");
+            if (!c_baseclassname) {
+              String *name = getProxyName(baseclassname);
+              if (name) {
+                c_baseclassname = baseclassname;
+                baseclass = name;
+                bsmart = Getattr(base.item, "smart");
+                basenode = base.item;
+              }
+            } else {
+              /* Warn about multiple inheritance for additional base class(es) */
+              String *proxyclassname = Getattr(n, "classtypeobj");
+              Swig_warning(WARN_KOTLIN_MULTIPLE_INHERITANCE,
+                           Getfile(n),
+                           Getline(n),
+                           "Warning for %s, base %s ignored. Multiple inheritance is not supported in Kotlin.\n",
+                           SwigType_namestr(proxyclassname),
+                           SwigType_namestr(baseclassname));
+            }
+          }
+          base = Next(base);
+        }
+      }
+    }
+
+    List *interface_bases = Getattr(n, "interface:bases");
+    if (interface_bases)
+      addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
+
+    bool derived = baseclass != 0;
+    if (derived && purebase_notderived)
+      pure_baseclass = empty_string;
+    const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+
+    if (purebase_replace) {
+      wanted_base = pure_baseclass;
+      derived = false;
+      baseclass = NULL;
+      if (purebase_notderived)
+        Swig_error(
+          Getfile(n), Getline(n), "The kbase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
+    } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+      Swig_warning(WARN_KOTLIN_MULTIPLE_INHERITANCE,
+                   Getfile(n),
+                   Getline(n),
+                   "Warning for %s, base %s ignored. Multiple inheritance is not supported in Kotlin. "
+                   "Perhaps you need one of the 'replace' or 'notderived' attributes in the kbase typemap?\n",
+                   typemap_lookup_type,
+                   pure_baseclass);
+    }
+
+    // Pure Kotlin interfaces
+    const String *pure_interfaces = typemapLookup(n, "kinterfaces", typemap_lookup_type, WARN_NONE);
+
+    if (*Char(interface_list) && *Char(pure_interfaces))
+      Append(interface_list, ", ");
+    Append(interface_list, pure_interfaces);
+    // Start writing the proxy class
+    if (!has_outerclass)  // Import statements
+      Printv(proxy_class_def, typemapLookup(n, "kimports", typemap_lookup_type, WARN_NONE), "\n", NIL);
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+      if (comment_creation_chatter)
+        Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */\n");
+      Printv(proxy_class_def, doxygen_comments, NIL);
+      Delete(doxygen_comments);
+    }
+
+    // C++ nested classes correspond to Kotlin nested classes which are static-like by default
+    // Kotlin uses a single ':' clause for both the base class and interfaces
+    const String *class_modifiers = typemapLookup(n, "kclassmodifiers", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_CLASSMOD_UNDEF);
+    // A Kotlin class is final unless its modifiers make it inheritable; 'open' on a member of a final class has no effect.
+    bool final_class = !Strstr(class_modifiers, "open") && !Strstr(class_modifiers, "abstract");
+    Printv(proxy_class_def,
+           class_modifiers,      // Class modifiers
+           " $kotlinclassname",  // Class name and bases
+           (*Char(wanted_base) || *Char(interface_list)) ? " : " : "",
+           wanted_base,
+           (*Char(wanted_base) && *Char(interface_list)) ? ", " : "",
+           interface_list,
+           " {",
+           derived ? typemapLookup(n, "kbody_derived", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_KBODY_UNDEF) :  // main body of class
+             typemapLookup(n, "kbody", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_KBODY_UNDEF),                   // main body of class
+           NIL);
+
+    // Companion object members common to all proxy classes (getCPtr and swigRelease)
+    {
+      const String *companion_tm =
+        derived ? typemapLookup(n, "kcompanion_derived", typemap_lookup_type, WARN_NONE) : typemapLookup(n, "kcompanion", typemap_lookup_type, WARN_NONE);
+      if (companion_tm && *Char(companion_tm))
+        Insert(proxy_class_companion_code, 0, companion_tm);
+    }
+
+    // C++ destructor is wrapped by the delete method
+    // Note that the method name is specified in a typemap attribute called methodname
+    String *destruct = NewString("");
+    const String *tm = NULL;
+    attributes = NewHash();
+    const String *destruct_methodname = NULL;
+    const String *destruct_methodmodifiers = NULL;
+    const String *destruct_parameters = NULL;
+    if (derived) {
+      tm = typemapLookup(n, "kdestruct_derived", typemap_lookup_type, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:kdestruct_derived:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:kdestruct_derived:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:kdestruct_derived:parameters");
+    } else {
+      tm = typemapLookup(n, "kdestruct", typemap_lookup_type, WARN_NONE, attributes);
+      destruct_methodname = Getattr(attributes, "tmap:kdestruct:methodname");
+      destruct_methodmodifiers = Getattr(attributes, "tmap:kdestruct:methodmodifiers");
+      destruct_parameters = Getattr(attributes, "tmap:kdestruct:parameters");
+    }
+    if (tm && *Char(tm)) {
+      if (!destruct_methodname) {
+        Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in kdestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
+      if (!destruct_methodmodifiers) {
+        Swig_error(
+          Getfile(n), Getline(n), "No methodmodifiers attribute defined in kdestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+      }
+      if (!destruct_parameters)
+        destruct_parameters = empty_string;
+    }
+    // Emit the finalize and delete methods
+    if (tm) {
+      // Finalize method
+      if (*Char(destructor_call)) {
+        Printv(proxy_class_def, typemapLookup(n, "kfinalize", typemap_lookup_type, WARN_NONE), NIL);
+      }
+      // delete method
+      Printv(destruct, tm, NIL);
+      if (*Char(destructor_call))
+        Replaceall(destruct, "$jnicall", destructor_call);
+      else
+        Replaceall(destruct, "$jnicall", "throw UnsupportedOperationException(\"C++ destructor does not have public access\")");
+      if (*Char(destruct)) {
+        Printv(proxy_class_def, "\n  ", NIL);
+        const String *methodmods = Getattr(n, "destructmethodmodifiers");
+        if (!methodmods)
+          methodmods = destruct_methodmodifiers;
+        // Drop the redundant 'open' from delete() on a final class - it has no effect and Kotlin warns about it.
+        String *emitted_methodmods = NewString(methodmods);
+        if (final_class) {
+          Replaceall(emitted_methodmods, " open", "");
+          Replaceall(emitted_methodmods, "open ", "");
+        }
+        Printv(proxy_class_def, emitted_methodmods, NIL);
+        Printv(proxy_class_def, " fun ", destruct_methodname, "(", destruct_parameters, ")", " ", destruct, "\n", NIL);
+        Delete(emitted_methodmods);
+      }
+    }
+    if (*Char(interface_upcasts))
+      Printv(proxy_class_def, interface_upcasts, NIL);
+
+    /* Insert directordisconnect typemap, if this class has directors enabled */
+    /* Also insert the swigTakeOwnership and swigReleaseOwnership methods */
+    if (feature_director) {
+      String *destruct_jnicall, *release_jnicall, *take_jnicall;
+      String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
+
+      destruct_jnicall = NewStringf("%s()", destruct_methodname);
+      release_jnicall = NewStringf("%s.%s(this, swigCPtr, false)", full_imclass_name, changeown_method_name);
+      take_jnicall = NewStringf("%s.%s(this, swigCPtr, true)", full_imclass_name, changeown_method_name);
+
+      // When the base class is also a director class it already declares these methods,
+      // so the methods in the derived class are overrides
+      bool base_director = basenode && Swig_directorclass(basenode);
+
+      emitCodeTypemap(
+        n, false, typemap_lookup_type, "directordisconnect", "methodname", destruct_jnicall, base_director ? "protected override" : "protected open");
+      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_release", "methodname", release_jnicall, base_director ? "override" : "open");
+      emitCodeTypemap(n, false, typemap_lookup_type, "directorowner_take", "methodname", take_jnicall, base_director ? "override" : "open");
+
+      Delete(destruct_jnicall);
+      Delete(changeown_method_name);
+      Delete(release_jnicall);
+      Delete(take_jnicall);
+    }
+
+    Delete(interface_upcasts);
+    Delete(interface_list);
+    Delete(attributes);
+    Delete(destruct);
+
+    // Emit extra user code
+    Printv(proxy_class_def,
+           typemapLookup(n, "kcode", typemap_lookup_type, WARN_NONE),  // extra Kotlin code
+           "\n",
+           NIL);
+
+    if (derived) {
+      String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
+      upcastsCode(smart, bsmart, upcast_method_name, c_classname, c_baseclassname);
+      Delete(upcast_method_name);
+    }
+  }
+
+  /* ----------------------------------------------------------------------
+   * emitInterfaceDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface, String *nspace) {
+    if (package || nspace) {
+      Printf(f_interface, "package ");
+      if (package)
+        Printv(f_interface, package, nspace ? "." : "", NIL);
+      if (nspace)
+        Printv(f_interface, nspace, NIL);
+      Printf(f_interface, "\n");
+    }
+
+    Printv(f_interface, typemapLookup(n, "kimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
+
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+      Printv(f_interface, doxygen_comments, NIL);
+      Delete(doxygen_comments);
+    }
+
+    Printv(f_interface, typemapLookup(n, "kinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_KOTLIN_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
+    Printf(f_interface, " %s", interface_name);
+
+    String *additional = Getattr(n, "feature:interface:additional");
+    String *bases = additional ? Copy(additional) : 0;
+    if (List *baselist = Getattr(n, "bases")) {
+      for (Iterator base = First(baselist); base.item; base = Next(base)) {
+        if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
+          continue;  // TODO: warn about skipped non-interface bases
+        String *base_iname = getQualifiedInterfaceName(base.item);
+        if (!bases)
+          bases = Copy(base_iname);
+        else {
+          Append(bases, ", ");
+          Append(bases, base_iname);
+        }
+      }
+    }
+    if (bases) {
+      Printv(f_interface, " : ", bases, NIL);
+      Delete(bases);
+    }
+    Printf(f_interface, " {\n");
+
+    Node *attributes = NewHash();
+    String *interface_code = Copy(typemapLookup(n, "kinterfacecode", Getattr(n, "classtypeobj"), WARN_KOTLIN_TYPEMAP_INTERFACECODE_UNDEF, attributes));
+    if (interface_code) {
+      String *interface_declaration = Copy(Getattr(attributes, "tmap:kinterfacecode:declaration"));
+      if (interface_declaration) {
+        Replaceall(interface_declaration, "$interfacename", interface_name);
+        kotlinReindent(interface_declaration);
+        Printv(f_interface, interface_declaration, NIL);
+        Delete(interface_declaration);
+      }
+      Delete(interface_code);
+    }
+  }
+
+  /* ----------------------------------------------------------------------
+   * classDeclaration()
+   * ---------------------------------------------------------------------- */
+
+  int classDeclaration(Node *n) {
+    return Language::classDeclaration(n);
+  }
+
+  /* ----------------------------------------------------------------------
+   * classHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int classHandler(Node *n) {
+    File *f_proxy = NULL;
+    File *f_interface = NULL;
+    String *old_proxy_class_name = proxy_class_name;
+    String *old_full_proxy_class_name = full_proxy_class_name;
+    String *old_full_imclass_name = full_imclass_name;
+    String *old_destructor_call = destructor_call;
+    String *old_destructor_throws_clause = destructor_throws_clause;
+    String *old_proxy_class_constants_code = proxy_class_constants_code;
+    String *old_proxy_class_companion_code = proxy_class_companion_code;
+    String *old_proxy_class_def = proxy_class_def;
+    String *old_proxy_class_code = proxy_class_code;
+    bool has_outerclass = Getattr(n, "nested:outer") && !GetFlag(n, "feature:flatnested");
+    String *old_interface_class_code = interface_class_code;
+    interface_class_code = 0;
+
+    if (proxy_flag) {
+      proxy_class_name = NewString(Getattr(n, "sym:name"));
+      String *nspace = getNSpace();
+      constructIntermediateClassName(n);
+
+      String *outerClassesPrefix = 0;
+      if (Node *outer = Getattr(n, "nested:outer")) {
+        outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
+        for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
+          Push(outerClassesPrefix, ".");
+          Push(outerClassesPrefix, Getattr(outer, "sym:name"));
+        }
+      }
+      if (!nspace) {
+        full_proxy_class_name = outerClassesPrefix ? NewStringf("%s.%s", outerClassesPrefix, proxy_class_name) : NewStringf("%s", proxy_class_name);
+
+        if (Cmp(proxy_class_name, imclass_name) == 0) {
+          Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
+          Exit(EXIT_FAILURE);
+        }
+
+        if (Cmp(proxy_class_name, module_class_name) == 0) {
+          Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
+          Exit(EXIT_FAILURE);
+        }
+      } else {
+        if (outerClassesPrefix) {
+          if (package)
+            full_proxy_class_name = NewStringf("%s.%s.%s.%s", package, nspace, outerClassesPrefix, proxy_class_name);
+          else
+            full_proxy_class_name = NewStringf("%s.%s.%s", nspace, outerClassesPrefix, proxy_class_name);
+        } else {
+          if (package)
+            full_proxy_class_name = NewStringf("%s.%s.%s", package, nspace, proxy_class_name);
+          else
+            full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
+        }
+      }
+
+      String *interface_name = GetFlag(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
+      if (outerClassesPrefix) {
+        String *fnspace = nspace ? NewStringf("%s.%s", nspace, outerClassesPrefix) : outerClassesPrefix;
+        if (!addSymbol(proxy_class_name, n, fnspace))
+          return SWIG_ERROR;
+        if (interface_name && !addInterfaceSymbol(interface_name, n, fnspace))
+          return SWIG_ERROR;
+        if (nspace)
+          Delete(fnspace);
+        Delete(outerClassesPrefix);
+      } else {
+        if (!addSymbol(proxy_class_name, n, nspace))
+          return SWIG_ERROR;
+        if (interface_name && !addInterfaceSymbol(interface_name, n, nspace))
+          return SWIG_ERROR;
+      }
+
+      // Each outer proxy class goes into a separate file
+      if (!has_outerclass) {
+        String *output_directory = outputDirectory(nspace);
+        String *filen = NewStringf("%s%s.kt", output_directory, proxy_class_name);
+        f_proxy = NewFile(filen, "w", SWIG_output_files());
+        if (!f_proxy) {
+          FileErrorDisplay(filen);
+          Exit(EXIT_FAILURE);
+        }
+        Append(filenames_list, Copy(filen));
+        Delete(filen);
+        Delete(output_directory);
+
+        // Start writing out the proxy class file
+        emitBanner(f_proxy);
+
+        if (package || nspace) {
+          Printf(f_proxy, "package ");
+          if (package)
+            Printv(f_proxy, package, nspace ? "." : "", NIL);
+          if (nspace)
+            Printv(f_proxy, nspace, NIL);
+          Printf(f_proxy, "\n");
+        }
+      } else
+        ++nesting_depth;
+
+      proxy_class_def = NewString("");
+      proxy_class_code = NewString("");
+      destructor_call = NewString("");
+      destructor_throws_clause = NewString("");
+      proxy_class_constants_code = NewString("");
+      proxy_class_companion_code = NewString("");
+
+      if (GetFlag(n, "feature:interface")) {
+        interface_class_code = NewString("");
+        String *output_directory = outputDirectory(nspace);
+        String *filen = NewStringf("%s%s.kt", output_directory, interface_name);
+        f_interface = NewFile(filen, "w", SWIG_output_files());
+        if (!f_interface) {
+          FileErrorDisplay(filen);
+          Exit(EXIT_FAILURE);
+        }
+        Append(filenames_list, filen);  // file name ownership goes to the list
+        emitBanner(f_interface);
+        emitInterfaceDeclaration(n, interface_name, interface_class_code, nspace);
+        Delete(filen);
+        Delete(output_directory);
+      }
+    }
+
+    Language::classHandler(n);
+
+    if (proxy_flag) {
+      // Emit the upcall bridges for protected director methods collected in classDirectorMethod()
+      if (director_bridge_hash) {
+        String *bridges = Getattr(director_bridge_hash, Getattr(n, "name"));
+        if (bridges) {
+          Printv(proxy_class_code, bridges, NIL);
+          Delattr(director_bridge_hash, Getattr(n, "name"));
+        }
+      }
+
+      emitProxyClassDefAndCPPCasts(n);
+
+      String *kotlinclazzname = Swig_name_member(getNSpace(), getClassPrefix(), "");  // mangled full proxy class name
+
+      Replaceall(proxy_class_def, "$kotlinclassname", proxy_class_name);
+      Replaceall(proxy_class_code, "$kotlinclassname", proxy_class_name);
+      Replaceall(proxy_class_constants_code, "$kotlinclassname", proxy_class_name);
+      Replaceall(proxy_class_companion_code, "$kotlinclassname", proxy_class_name);
+      Replaceall(interface_class_code, "$kotlinclassname", proxy_class_name);
+
+      Replaceall(proxy_class_def, "$kotlinclazzname", kotlinclazzname);
+      Replaceall(proxy_class_code, "$kotlinclazzname", kotlinclazzname);
+      Replaceall(proxy_class_constants_code, "$kotlinclazzname", kotlinclazzname);
+      Replaceall(proxy_class_companion_code, "$kotlinclazzname", kotlinclazzname);
+      Replaceall(interface_class_code, "$kotlinclazzname", kotlinclazzname);
+
+      Replaceall(proxy_class_def, "$module", module_class_name);
+      Replaceall(proxy_class_code, "$module", module_class_name);
+      Replaceall(proxy_class_constants_code, "$module", module_class_name);
+      Replaceall(proxy_class_companion_code, "$module", module_class_name);
+      Replaceall(interface_class_code, "$module", module_class_name);
+
+      Replaceall(proxy_class_def, "$imclassname", full_imclass_name);
+      Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
+      Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
+      Replaceall(proxy_class_companion_code, "$imclassname", full_imclass_name);
+      Replaceall(interface_class_code, "$imclassname", full_imclass_name);
+
+      // Static members and constants all live in a single companion object
+      String *companion_code = NewString("");
+      if (Len(proxy_class_companion_code) != 0 || Len(proxy_class_constants_code) != 0) {
+        Printv(companion_code, "\n  companion object {\n", NIL);
+        if (Len(proxy_class_companion_code) != 0)
+          Printv(companion_code, proxy_class_companion_code, NIL);
+        if (Len(proxy_class_constants_code) != 0) {
+          // Member constants are emitted at class member level but live in the companion object.
+          Swig_offset_string(proxy_class_constants_code, 1);
+          Printv(companion_code, proxy_class_constants_code, NIL);
+        }
+        Printv(companion_code, "  }\n", NIL);
+      }
+
+      if (!has_outerclass) {
+        // Reindent the whole class (including any appended nested classes) exactly once
+        kotlinReindent(proxy_class_def);
+        kotlinReindent(proxy_class_code);
+        kotlinReindent(companion_code);
+        Printv(f_proxy, proxy_class_def, proxy_class_code, companion_code, NIL);
+      } else {
+        Swig_offset_string(proxy_class_def, nesting_depth);
+        Append(old_proxy_class_code, proxy_class_def);
+        Swig_offset_string(proxy_class_code, nesting_depth);
+        Append(old_proxy_class_code, proxy_class_code);
+        Swig_offset_string(companion_code, nesting_depth);
+        Append(old_proxy_class_code, companion_code);
+      }
+      Delete(companion_code);
+
+      if (!has_outerclass) {
+        Printf(f_proxy, "}\n");
+        Delete(f_proxy);
+        f_proxy = NULL;
+      } else {
+        for (int i = 0; i < nesting_depth; ++i)
+          Append(old_proxy_class_code, "  ");
+        Append(old_proxy_class_code, "}\n\n");
+        --nesting_depth;
+      }
+
+      if (f_interface) {
+        kotlinReindent(interface_class_code);
+        Printv(f_interface, interface_class_code, "}\n", NIL);
+        Delete(f_interface);
+        f_interface = 0;
+      }
+
+      emitDirectorExtraMethods(n);
+
+      Delete(interface_class_code);
+      interface_class_code = old_interface_class_code;
+      Delete(kotlinclazzname);
+      Delete(proxy_class_name);
+      proxy_class_name = old_proxy_class_name;
+      Delete(full_proxy_class_name);
+      full_proxy_class_name = old_full_proxy_class_name;
+      Delete(full_imclass_name);
+      full_imclass_name = old_full_imclass_name;
+      Delete(destructor_call);
+      destructor_call = old_destructor_call;
+      Delete(destructor_throws_clause);
+      destructor_throws_clause = old_destructor_throws_clause;
+      Delete(proxy_class_constants_code);
+      proxy_class_constants_code = old_proxy_class_constants_code;
+      Delete(proxy_class_companion_code);
+      proxy_class_companion_code = old_proxy_class_companion_code;
+      Delete(proxy_class_def);
+      proxy_class_def = old_proxy_class_def;
+      Delete(proxy_class_code);
+      proxy_class_code = old_proxy_class_code;
+    }
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * memberfunctionHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int memberfunctionHandler(Node *n) {
+    member_func_flag = true;
+    Language::memberfunctionHandler(n);
+
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "imfuncname", intermediary_function_name);
+      proxyClassFunctionHandler(n);
+      Delete(overloaded_name);
+    }
+    member_func_flag = false;
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * staticmemberfunctionHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmemberfunctionHandler(Node *n) {
+
+    static_flag = true;
+    member_func_flag = true;
+    Language::staticmemberfunctionHandler(n);
+
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name);
+      Setattr(n, "proxyfuncname", Getattr(n, "sym:name"));
+      Setattr(n, "imfuncname", intermediary_function_name);
+      proxyClassFunctionHandler(n);
+      Delete(overloaded_name);
+    }
+    static_flag = false;
+    member_func_flag = false;
+
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * isOverrideInKotlinHierarchy()
+   *
+   * The override and hides attributes hold the hidden/overridden base class method, but
+   * Kotlin only retains the first base class of a C++ class with multiple inheritance.
+   * Returns true when the given base method is declared in a class that is part of the
+   * retained single inheritance proxy class chain, in which case the derived method must
+   * carry the override modifier. Methods marked against a dropped base class must not.
+   * ----------------------------------------------------------------------------- */
+
+  bool isOverrideInKotlinHierarchy(Node *n, Node *base_method) {
+    if (!base_method)
+      return false;
+    // A %rename can give the two methods different target language names
+    if (Cmp(Getattr(n, "sym:name"), Getattr(base_method, "sym:name")) != 0)
+      return false;
+    // Methods added with %extend sit below an extend node inside the class
+    Node *base_class = parentNode(base_method);
+    while (base_class && Cmp(nodeType(base_class), "class") != 0)
+      base_class = parentNode(base_class);
+    if (!base_class)
+      return false;
+    Node *cls = getCurrentClass();
+    while (cls) {
+      Node *first = 0;
+      List *baselist = Getattr(cls, "bases");
+      if (baselist) {
+        for (Iterator base = First(baselist); base.item; base = Next(base)) {
+          if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
+            if (getProxyName(Getattr(base.item, "name"))) {
+              first = base.item;
+              break;
+            }
+          }
+        }
+      }
+      if (!first)
+        return false;
+      if (first == base_class)
+        return true;
+      cls = first;
+    }
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * findClassMember()
+   *
+   * Look for a member with the given symbol name in the given class, descending one
+   * level into extend nodes. If decl is non-null it must match the member's decl too.
+   * ----------------------------------------------------------------------------- */
+
+  Node *findClassMember(Node *cls, String *symname, String *decl) {
+    for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
+      if (Cmp(nodeType(child), "extend") == 0) {
+        Node *member = findClassMember(child, symname, decl);
+        if (member)
+          return member;
+      }
+      if (GetFlag(child, "feature:ignore"))
+        continue;
+      if (Cmp(Getattr(child, "sym:name"), symname) != 0)
+        continue;
+      if (decl && Cmp(Getattr(child, "decl"), decl) != 0)
+        continue;
+      return child;
+    }
+    return 0;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * variableHidesBaseMember()
+   *
+   * Returns true if a wrapped member variable has the same name as a variable in one
+   * of the base classes in the retained single inheritance proxy class chain, in which
+   * case the generated Kotlin property is a property override. Note that the allocate
+   * pass does not provide the hides attribute for variables brought in with a using
+   * declaration, so the base class members are searched here instead.
+   * ----------------------------------------------------------------------------- */
+
+  bool variableHidesBaseMember(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+    if (!symname)
+      return false;
+    Node *cls = getCurrentClass();
+    while (cls) {
+      Node *first = 0;
+      List *baselist = Getattr(cls, "bases");
+      if (baselist) {
+        for (Iterator base = First(baselist); base.item; base = Next(base)) {
+          if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
+            if (getProxyName(Getattr(base.item, "name"))) {
+              first = base.item;
+              break;
+            }
+          }
+        }
+      }
+      if (!first)
+        return false;
+      Node *member = findClassMember(first, symname, 0);
+      if (member && Cmp(Getattr(member, "kind"), "variable") == 0 && is_public(member))
+        return true;
+      cls = first;
+    }
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * implementsInterfaceMethod()
+   *
+   * Returns true if the method implements a method of one of the Kotlin interfaces
+   * generated for the base classes marked with the interface feature. Such methods
+   * need the override modifier. Note that the allocate pass deliberately does not mark
+   * interface implementations with the override or hides attributes.
+   * ----------------------------------------------------------------------------- */
+
+  bool implementsInterfaceMethod(Node *n) {
+    Node *cls = getCurrentClass();
+    List *interface_bases = cls ? Getattr(cls, "interface:bases") : 0;
+    if (!interface_bases)
+      return false;
+    String *symname = Getattr(n, "sym:name");
+    String *decl = Getattr(n, "decl");
+    if (!symname)
+      return false;
+    for (Iterator base = First(interface_bases); base.item; base = Next(base)) {
+      Node *member = findClassMember(base.item, symname, decl);
+      if (member && is_public(member))
+        return true;
+    }
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * proxyClassFunctionHandler()
+   *
+   * Function called for creating a Kotlin wrapper function around a c++ function in the
+   * proxy class. Used for both static and non-static C++ class functions.
+   * C++ class static functions map to Kotlin static functions.
+   * Two extra attributes in the Node must be available. These are "proxyfuncname" -
+   * the name of the Kotlin class proxy function, which in turn will call "imfuncname" -
+   * the intermediary (JNI) function name in the intermediary class.
+   * ----------------------------------------------------------------------------- */
+
+  void proxyClassFunctionHandler(Node *n) {
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *intermediary_function_name = Getattr(n, "imfuncname");
+    String *proxy_function_name = Getattr(n, "proxyfuncname");
+    String *tm;
+    Parm *p;
+    int i;
+    String *imcall = NewString("");
+    String *return_type = NewString("");
+    String *function_code = NewString("");
+    bool setter_flag = false;
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    bool is_interface =
+      GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable") && !static_flag && Getattr(n, "interface:owner") == 0;
+
+    if (!proxy_flag)
+      return;
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Kotlin
+    if (Getattr(n, "overload:ignore"))
+      return;
+
+    // Don't generate proxy method for additional explicitcall method used in directors
+    if (GetFlag(n, "explicitcall"))
+      return;
+
+    if (l) {
+      if (SwigType_type(Getattr(l, "type")) == T_VOID) {
+        l = nextSibling(l);
+      }
+    }
+
+    /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("in", l, NULL);
+    Swig_typemap_attach_parms("ktype", l, NULL);
+    Swig_typemap_attach_parms("kstype", l, NULL);
+    Swig_typemap_attach_parms("kin", l, NULL);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("kstype", n, "", 0))) {
+      // Note that in the case of polymorphic (covariant) return types, the method's return type is changed to be the base of the C++ return type
+      SwigType *covariant = Getattr(n, "covariant");
+      substituteClassname(covariant ? covariant : t, tm);
+      Printf(return_type, "%s", tm);
+      if (covariant)
+        Swig_warning(WARN_KOTLIN_COVARIANT_RET,
+                     input_file,
+                     line_number,
+                     "Covariant return types not supported in Kotlin. Proxy method will return %s.\n",
+                     SwigType_str(covariant, 0));
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF, input_file, line_number, "No kstype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    if (wrapping_member_flag && !enum_constant_flag) {
+      // For wrapping member variables (Javabean setter)
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
+    }
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+        Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */\n");
+      Printv(function_code, doxygen_comments, NIL);
+      if (is_interface)
+        Printv(interface_class_code, "\n", doxygen_comments, NIL);
+      Delete(doxygen_comments);
+    }
+
+    /* Start generating the proxy function */
+    // Static functions get the JvmStatic annotation, mainly because Kotlin does not (yet)
+    // support calling protected companion object members from a subclass without it
+    if (static_flag)
+      Printf(function_code, "  @JvmStatic\n");
+    const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+    if (methodmods) {
+      if (is_smart_pointer()) {
+        // Smart pointer classes do not mirror the inheritance hierarchy of the underlying pointer type, so no open/override required.
+        String *mmods = Copy(methodmods);
+        Replaceall(mmods, "override", "");
+        Replaceall(mmods, "open", "");
+        Chop(mmods);  // remove trailing whitespace
+        Printf(function_code, "  %s ", mmods);
+        Delete(mmods);
+      } else {
+        Printf(function_code, "  %s ", methodmods);
+      }
+    } else {
+      methodmods = (is_public(n) ? public_string : protected_string);
+      if (Len(methodmods))
+        Printf(function_code, "  %s ", methodmods);
+      else
+        Printf(function_code, "  ");  // public is implicit in Kotlin
+      if (!static_flag && !is_smart_pointer()) {
+        // Kotlin functions are final by default so the inheritance related modifiers are explicit.
+        // A method overriding a base class method, hiding a base class method (which is also an
+        // override in Kotlin as all proxy methods are open) or implementing an interface method
+        // needs 'override'. Everything else is emitted 'open' so that a derived proxy class
+        // (or user director subclass) can override it, matching the Java module where all proxy
+        // methods can be overridden.
+        if (isOverrideInKotlinHierarchy(n, Getattr(n, "override")) || isOverrideInKotlinHierarchy(n, Getattr(n, "hides")) || is_interface ||
+            implementsInterfaceMethod(n))
+          Printf(function_code, "override ");
+        else
+          Printf(function_code, "open ");
+      }
+    }
+    Printf(function_code, "fun %s(", proxy_function_name);
+
+    if (is_interface)
+      Printf(interface_class_code, "  fun %s(", proxy_function_name);
+
+    Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
+    if (!static_flag) {
+      Printf(imcall, "swigCPtr");
+
+      String *this_type = Copy(getClassType());
+      String *name = NewString("jself");
+      String *qualifier = Getattr(n, "qualifier");
+      if (qualifier)
+        SwigType_push(this_type, qualifier);
+      SwigType_add_pointer(this_type);
+      Parm *this_parm = NewParm(this_type, name, n);
+      Swig_typemap_attach_parms("ktype", this_parm, NULL);
+      Swig_typemap_attach_parms("kstype", this_parm, NULL);
+
+      if (prematureGarbageCollectionPreventionParameter(this_type, this_parm))
+        Printf(imcall, ", this");
+
+      Delete(this_parm);
+      Delete(name);
+      Delete(this_type);
+    }
+
+    emit_mark_varargs(l);
+
+    int gencomma = !static_flag;
+
+    /* Output each parameter */
+    for (i = 0, p = l; p; i++) {
+
+      /* Ignored varargs */
+      if (checkAttribute(p, "varargs:ignore", "1")) {
+        p = nextSibling(p);
+        continue;
+      }
+
+      /* Ignored parameters */
+      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+        p = Getattr(p, "tmap:in:next");
+        continue;
+      }
+
+      /* Ignore the 'this' argument for variable wrappers */
+      if (!(variable_wrapper_flag && i == 0) || static_flag) {
+        SwigType *pt = Getattr(p, "type");
+        String *param_type = NewString("");
+
+        /* Get the Kotlin parameter type */
+        if ((tm = Getattr(p, "tmap:kstype"))) {
+          substituteClassname(pt, tm);
+          Printf(param_type, "%s", tm);
+        } else {
+          Swig_warning(WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF, input_file, line_number, "No kstype typemap defined for %s\n", SwigType_str(pt, 0));
+        }
+
+        if (gencomma)
+          Printf(imcall, ", ");
+
+        String *arg = makeParameterName(n, p, i, setter_flag);
+
+        // Use typemaps to transform type used in Kotlin proxy wrapper (in proxy class) to type used in JNI function (in intermediary class)
+        if ((tm = Getattr(p, "tmap:kin"))) {
+          addThrows(n, "tmap:kin", p);
+          substituteClassname(pt, tm);
+          Replaceall(tm, "$kotlininput", arg);
+          String *pre = Getattr(p, "tmap:kin:pre");
+          if (pre) {
+            substituteClassname(pt, pre);
+            Replaceall(pre, "$kotlininput", arg);
+            if (Len(pre_code) > 0)
+              Printf(pre_code, "\n");
+            Printv(pre_code, pre, NIL);
+          }
+          String *post = Getattr(p, "tmap:kin:post");
+          if (post) {
+            substituteClassname(pt, post);
+            Replaceall(post, "$kotlininput", arg);
+            if (Len(post_code) > 0)
+              Printf(post_code, "\n");
+            Printv(post_code, post, NIL);
+          }
+          Printv(imcall, tm, NIL);
+        } else {
+          Swig_warning(WARN_KOTLIN_TYPEMAP_KIN_UNDEF, input_file, line_number, "No kin typemap defined for %s\n", SwigType_str(pt, 0));
+        }
+
+        /* Add parameter to proxy function */
+        if (gencomma >= 2) {
+          Printf(function_code, ", ");
+          if (is_interface)
+            Printf(interface_class_code, ", ");
+        }
+        gencomma = 2;
+        Printf(function_code, "%s: %s", arg, param_type);
+        if (is_interface)
+          Printf(interface_class_code, "%s: %s", arg, param_type);
+
+        if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+          String *pgcppname = Getattr(p, "tmap:kin:pgcppname");
+          if (pgcppname) {
+            String *argname = Copy(pgcppname);
+            Replaceall(argname, "$kotlininput", arg);
+            Printf(imcall, ", %s", argname);
+            Delete(argname);
+          } else {
+            Printf(imcall, ", %s", arg);
+          }
+        }
+
+        Delete(arg);
+        Delete(param_type);
+      }
+      p = Getattr(p, "tmap:in:next");
+    }
+
+    Printf(imcall, ")");
+    // Kotlin infers Unit as the default return type, so omit ": Unit" to avoid a redundant-modifier warning
+    if (Cmp(return_type, "Unit") == 0)
+      Printf(function_code, ")");
+    else
+      Printf(function_code, "): %s", return_type);
+
+    // Transform return type used in JNI function (in intermediary class) to type used in Kotlin wrapper function (in proxy class)
+    if ((tm = Swig_typemap_lookup("kout", n, "", 0))) {
+      addThrows(n, "tmap:kout", n);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Replaceall(tm, "\n ", "\n   ");  // add extra indentation to code in typemap
+        if (is_post_code) {
+          Insert(tm, 0, "\n    try ");
+          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Insert(tm, 0, "\n    ");
+        }
+        if (is_pre_code) {
+          Insert(tm, 0, pre_code);
+          Insert(tm, 0, "\n");
+        }
+        Insert(tm, 0, "{");
+        Printf(tm, "\n  }");
+      }
+      if (GetFlag(n, "feature:new"))
+        Replaceall(tm, "$owner", "true");
+      else
+        Replaceall(tm, "$owner", "false");
+      substituteClassname(t, tm);
+
+      // For director methods: generate code to selectively make a normal polymorphic call or
+      // an explicit method call - needed to prevent infinite recursion calls in director methods.
+      Node *explicit_n = Getattr(n, "explicitcallnode");
+      if (explicit_n) {
+        String *ex_overloaded_name = getOverloadedName(explicit_n);
+        String *ex_intermediary_function_name = Swig_name_member(getNSpace(), getClassPrefix(), ex_overloaded_name);
+
+        String *ex_imcall = Copy(imcall);
+        Replaceall(ex_imcall, "$imfuncname", ex_intermediary_function_name);
+        Replaceall(imcall, "$imfuncname", intermediary_function_name);
+
+        String *excode = NewString("");
+        Printf(excode, "if (this::class == %s::class) %s else %s", proxy_class_name, imcall, ex_imcall);
+
+        Clear(imcall);
+        Printv(imcall, excode, NIL);
+        Delete(ex_overloaded_name);
+        Delete(excode);
+      } else {
+        Replaceall(imcall, "$imfuncname", intermediary_function_name);
+      }
+
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
+      Replaceall(tm, "$jnicall", imcall);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_KOUT_UNDEF, input_file, line_number, "No kout typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    if (is_interface) {
+      if (Cmp(return_type, "Unit") == 0)
+        Printf(interface_class_code, ")\n");
+      else
+        Printf(interface_class_code, "): %s\n", return_type);
+    }
+
+    if (wrapping_member_flag && !enum_constant_flag) {
+      // Collect the accessor for assembly into a Kotlin property once both accessors have been generated.
+      // See assembleProxyProperty() which is called after both the getter and setter have been processed.
+      if (setter_flag) {
+        Delete(prop_setter_code);
+        prop_setter_code = formatPropertyAccessor("set(value)", tm);
+      } else {
+        Delete(prop_getter_code);
+        prop_getter_code = formatPropertyAccessor("get()", tm);
+        Delete(prop_type);
+        prop_type = Copy(return_type);
+      }
+    } else {
+      {
+        // A "{ return EXPR }" body collapses to an idiomatic Kotlin expression body
+        String *expr = singleReturnExpr(tm);
+        if (expr) {
+          Printf(function_code, " = %s\n\n", expr);
+          Delete(expr);
+        } else {
+          Printf(function_code, " %s\n\n", tm ? tm : empty_string);
+        }
+      }
+      // Static functions go into the companion object of the proxy class, one indentation level
+      // deeper than instance methods which sit directly in the class body.
+      if (static_flag) {
+        Swig_offset_string(function_code, 1);
+        Printv(proxy_class_companion_code, function_code, NIL);
+      } else {
+        Printv(proxy_class_code, function_code, NIL);
+      }
+    }
+
+    Delete(pre_code);
+    Delete(post_code);
+    Delete(function_code);
+    Delete(return_type);
+    Delete(imcall);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * singleReturnExpr()
+   *
+   * If 'block' is a single-statement body of the exact form "{\n <ws>return EXPR\n
+   * <ws>}" return EXPR as a new string; otherwise return NULL. Used to collapse such
+   * blocks into Kotlin expression bodies. Multi-statement blocks (e.g. a SWIGTYPE*
+   * accessor with a local 'val', or a try/finally from pre/post code) return NULL.
+   * ----------------------------------------------------------------------------- */
+
+  String *singleReturnExpr(String *block) {
+    if (!block || Len(block) == 0)
+      return 0;
+    String *expr = 0;
+    List *lines = Split(block, '\n', -1);
+    if (Len(lines) == 3) {
+      const char *first = Char(Getitem(lines, 0));
+      const char *middle = Char(Getitem(lines, 1));
+      const char *last = Char(Getitem(lines, 2));
+      while (*first == ' ' || *first == '\t')
+        first++;
+      while (*middle == ' ' || *middle == '\t')
+        middle++;
+      while (*last == ' ' || *last == '\t')
+        last++;
+      if (strcmp(first, "{") == 0 && strcmp(last, "}") == 0 && strncmp(middle, "return ", 7) == 0)
+        expr = NewString(middle + 7);
+    }
+    Delete(lines);
+    return expr;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * formatPropertyAccessor()
+   *
+   * Build an idiomatic Kotlin property accessor from the kout/kin block that was
+   * generated for the wrapped variable. A block whose only statement is a single
+   * "return EXPR" collapses to an expression body ("get() = EXPR"); any other
+   * (multi-statement) block is kept verbatim but re-indented two spaces so its
+   * body and closing brace align under the accessor keyword.
+   * ----------------------------------------------------------------------------- */
+
+  String *formatPropertyAccessor(const char *accessor, String *block) {
+    if (!block || Len(block) == 0)
+      return NewString(accessor);
+
+    String *expr = singleReturnExpr(block);
+    if (expr) {
+      String *result = NewStringf("%s = %s", accessor, expr);
+      Delete(expr);
+      return result;
+    }
+    // Keep the multi-statement block but re-indent it to sit under the accessor.
+    String *reindented = Copy(block);
+    Replaceall(reindented, "\n", "\n  ");
+    String *result = NewStringf("%s %s", accessor, reindented);
+    Delete(reindented);
+    return result;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * assembleProxyProperty()
+   *
+   * Assemble the collected getter/setter accessors of a wrapped member or static
+   * member variable into a Kotlin property declaration and emit it into the given
+   * target code buffer. A variable without a setter becomes a read only 'val'.
+   * ----------------------------------------------------------------------------- */
+
+  void assembleProxyProperty(String *target, const char *modifiers = "", bool companion = false) {
+    if (prop_getter_code) {
+      String *prop = NewStringEmpty();
+      Printf(prop, "  %s%s %s: %s\n", modifiers, prop_setter_code ? "var" : "val", variable_name, prop_type);
+      Printf(prop, "    %s\n", prop_getter_code);
+      if (prop_setter_code)
+        Printf(prop, "    %s\n", prop_setter_code);
+      Printf(prop, "\n");
+      // Static properties go into the companion object, one indentation level deeper than class members.
+      if (companion)
+        Swig_offset_string(prop, 1);
+      Printv(target, prop, NIL);
+      Delete(prop);
+    }
+    Delete(prop_getter_code);
+    prop_getter_code = NULL;
+    Delete(prop_setter_code);
+    prop_setter_code = NULL;
+    Delete(prop_type);
+    prop_type = NULL;
+  }
+
+  /* ----------------------------------------------------------------------
+   * constructorHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int constructorHandler(Node *n) {
+
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    Parm *p;
+    int i;
+    String *function_code = NewString("");
+    String *helper_code =
+      NewString("");  // Holds code for the constructor helper method generated only when the kin typemap has code in the pre or post attributes
+    String *helper_args = NewString("");
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+    String *im_return_type = NewString("");
+    bool feature_director = (parentNode(n) && Swig_directorclass(n));
+
+    Language::constructorHandler(n);
+
+    // Wrappers not wanted for some methods where the parameters cannot be overloaded in Kotlin
+    if (Getattr(n, "overload:ignore"))
+      return SWIG_OK;
+
+    if (proxy_flag) {
+      String *overloaded_name = getOverloadedName(n);
+      String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
+      String *imcall = NewString("");
+
+#if 0
+      // TODO: add full support for Kotlin annotations - implementation should be same as C# attributes
+      const String *annotations = Getattr(n, "feature:kotlin:annotations");
+#else
+      const String *annotations = NULL;
+#endif
+      // Default annotation for director constructors is a warning suppression
+      static const String *suppress_warning_this_escape = NewString("@Suppress(\"LeakingThis\")");
+      if (!annotations && feature_director)
+        annotations = suppress_warning_this_escape;
+      if (annotations) {
+        Printf(function_code, "  %s\n", annotations);
+        Printf(helper_code, "  %s\n", annotations);
+      }
+
+      const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+      methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+      tm = Getattr(n, "tmap:ktype");  // typemaps were attached earlier to the node
+      Printf(im_return_type, "%s", tm);
+
+      // Translate and write javadoc comment if flagged
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+        if (comment_creation_chatter)
+          Printf(function_code, "/* This was generated from constructionhandler() */\n");
+        Printv(function_code, doxygen_comments, NIL);
+        Delete(doxygen_comments);
+      }
+
+      if (Len(methodmods))
+        Printf(function_code, "  %s constructor(", methodmods);
+      else
+        Printf(function_code, "  constructor(");  // public is implicit in Kotlin
+      Printf(helper_code, "  private fun SwigConstruct%s(", proxy_class_name);
+
+      Printv(imcall, full_imclass_name, ".", mangled_overname, "(", NIL);
+
+      /* Attach the non-standard typemaps to the parameter list */
+      Swig_typemap_attach_parms("in", l, NULL);
+      Swig_typemap_attach_parms("ktype", l, NULL);
+      Swig_typemap_attach_parms("kstype", l, NULL);
+      Swig_typemap_attach_parms("kin", l, NULL);
+
+      emit_mark_varargs(l);
+
+      int gencomma = 0;
+
+      /* Output each parameter */
+      for (i = 0, p = l; p; i++) {
+
+        /* Ignored varargs */
+        if (checkAttribute(p, "varargs:ignore", "1")) {
+          p = nextSibling(p);
+          continue;
+        }
+
+        /* Ignored parameters */
+        if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+          p = Getattr(p, "tmap:in:next");
+          continue;
+        }
+
+        SwigType *pt = Getattr(p, "type");
+        String *param_type = NewString("");
+
+        /* Get the Kotlin parameter type */
+        if ((tm = Getattr(p, "tmap:kstype"))) {
+          substituteClassname(pt, tm);
+          Printf(param_type, "%s", tm);
+        } else {
+          Swig_warning(WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF, input_file, line_number, "No kstype typemap defined for %s\n", SwigType_str(pt, 0));
+        }
+
+        if (gencomma)
+          Printf(imcall, ", ");
+
+        String *arg = makeParameterName(n, p, i, false);
+
+        // Use typemaps to transform type used in Kotlin wrapper function (in proxy class) to type used in JNI function (in intermediary class)
+        if ((tm = Getattr(p, "tmap:kin"))) {
+          addThrows(n, "tmap:kin", p);
+          substituteClassname(pt, tm);
+          Replaceall(tm, "$kotlininput", arg);
+          String *pre = Getattr(p, "tmap:kin:pre");
+          if (pre) {
+            substituteClassname(pt, pre);
+            Replaceall(pre, "$kotlininput", arg);
+            if (Len(pre_code) > 0)
+              Printf(pre_code, "\n");
+            Printv(pre_code, pre, NIL);
+          }
+          String *post = Getattr(p, "tmap:kin:post");
+          if (post) {
+            substituteClassname(pt, post);
+            Replaceall(post, "$kotlininput", arg);
+            if (Len(post_code) > 0)
+              Printf(post_code, "\n");
+            Printv(post_code, post, NIL);
+          }
+          Printv(imcall, tm, NIL);
+        } else {
+          Swig_warning(WARN_KOTLIN_TYPEMAP_KIN_UNDEF, input_file, line_number, "No kin typemap defined for %s\n", SwigType_str(pt, 0));
+        }
+
+        /* Add parameter to proxy function */
+        if (gencomma) {
+          Printf(function_code, ", ");
+          Printf(helper_code, ", ");
+          Printf(helper_args, ", ");
+        }
+        Printf(function_code, "%s: %s", arg, param_type);
+        Printf(helper_code, "%s: %s", arg, param_type);
+        Printf(helper_args, "%s", arg);
+        ++gencomma;
+
+        if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+          String *pgcppname = Getattr(p, "tmap:kin:pgcppname");
+          if (pgcppname) {
+            String *argname = Copy(pgcppname);
+            Replaceall(argname, "$kotlininput", arg);
+            Printf(imcall, ", %s", argname);
+            Delete(argname);
+          } else {
+            Printf(imcall, ", %s", arg);
+          }
+        }
+
+        Delete(arg);
+        Delete(param_type);
+        p = Getattr(p, "tmap:in:next");
+      }
+
+      Printf(imcall, ")");
+
+      Printf(function_code, ")");
+      Printf(helper_code, ")");
+      generateThrowsClause(n, function_code);
+
+      /* Insert the kconstruct typemap, doing the replacement for $directorconnect, as needed */
+      Hash *attributes = NewHash();
+      String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
+      String *construct_tm = Copy(typemapLookup(n, "kconstruct", typemap_lookup_type, WARN_KOTLIN_TYPEMAP_KCONSTRUCT_UNDEF, attributes));
+      if (construct_tm) {
+        if (!feature_director) {
+          Replaceall(construct_tm, "$directorconnect", "");
+        } else {
+          String *connect_attr = Getattr(attributes, "tmap:kconstruct:directorconnect");
+
+          if (connect_attr) {
+            Replaceall(construct_tm, "$directorconnect", connect_attr);
+          } else {
+            Swig_warning(WARN_KOTLIN_NO_DIRECTORCONNECT_ATTR,
+                         input_file,
+                         line_number,
+                         "\"directorconnect\" attribute missing in %s \"kconstruct\" typemap.\n",
+                         Getattr(n, "name"));
+            Replaceall(construct_tm, "$directorconnect", "");
+          }
+        }
+
+        Printv(function_code, " ", construct_tm, "\n", NIL);
+      }
+
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Printf(helper_code, ": %s {\n", im_return_type);
+        if (is_pre_code) {
+          Printv(helper_code, pre_code, "\n", NIL);
+        }
+        if (is_post_code) {
+          Printf(helper_code, "    try {\n");
+          Printv(helper_code, "      return ", imcall, "\n", NIL);
+          Printv(helper_code, "    } finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Printv(helper_code, "    return ", imcall, NIL);
+        }
+        Printf(helper_code, "\n  }\n");
+        String *helper_name = NewStringf("%s.SwigConstruct%s(%s)", proxy_class_name, proxy_class_name, helper_args);
+        // The construct helper lives in the companion object, one indentation level deeper.
+        Swig_offset_string(helper_code, 1);
+        Printv(proxy_class_companion_code, helper_code, "\n", NIL);
+        Replaceall(function_code, "$imcall", helper_name);
+        Delete(helper_name);
+      } else {
+        Replaceall(function_code, "$imcall", imcall);
+      }
+
+      Printv(proxy_class_code, function_code, "\n", NIL);
+
+      Delete(helper_args);
+      Delete(im_return_type);
+      Delete(pre_code);
+      Delete(post_code);
+      Delete(construct_tm);
+      Delete(attributes);
+      Delete(overloaded_name);
+      Delete(imcall);
+    }
+
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * destructorHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int destructorHandler(Node *n) {
+    Language::destructorHandler(n);
+    String *symname = Getattr(n, "sym:name");
+
+    if (proxy_flag) {
+      Printv(destructor_call, full_imclass_name, ".", Swig_name_destroy(getNSpace(), symname), "(swigCPtr)", NIL);
+      generateThrowsClause(n, destructor_throws_clause);
+      const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+      if (methodmods)
+        Setattr(getCurrentClass(), "destructmethodmodifiers", methodmods);
+    }
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * makeByValuePropertyNonNull()
+   *
+   * The getter for a by-value member variable returns the address of the member,
+   * which is never null, so the Kotlin property type should be non-null. Drop the
+   * trailing '?' from prop_type in that case. Pointer and array members can genuinely
+   * be null and keep their nullable type; reference members are already non-null.
+   * ---------------------------------------------------------------------- */
+
+  void makeByValuePropertyNonNull(Node *n) {
+    if (!prop_type || !prop_getter_code)
+      return;
+    // Only a class pointer getter (the SWIGTYPE * kout typemap) emits this null check, and that
+    // is what a by-value class member's getter uses even though it can never return null. Guarding
+    // on the pattern leaves string and primitive members (which have no such check) untouched.
+    const char *null_check = "if (cPtr == 0L) null else ";
+    if (!Strstr(prop_getter_code, null_check))
+      return;
+    SwigType *t = SwigType_typedef_resolve_all(Getattr(n, "type"));
+    bool by_value = t && !SwigType_ispointer(t) && !SwigType_isarray(t) && !SwigType_isreference(t) && !SwigType_ismemberpointer(t);
+    Delete(t);
+    if (!by_value)
+      return;
+    // The getter returns the address of the member, which is never null, so make the property
+    // type non-null and drop the matching dead null check from the getter body.
+    int len = Len(prop_type);
+    if (len > 0 && Char(prop_type)[len - 1] == '?')
+      Delslice(prop_type, len - 1, len);
+    Replaceall(prop_getter_code, null_check, "");
+  }
+
+  /* ----------------------------------------------------------------------
+   * kotlinReindent()
+   *
+   * Kotlin's coding conventions use 4 space indentation, but the module and its
+   * typemaps are written with 2 space indentation (matching Swig_offset_string,
+   * which is also used to indent nested classes). Double the run of leading spaces
+   * on every line to turn 2 space indentation into 4 space indentation. This is
+   * applied once to each generated Kotlin (.kt) buffer just before it is written,
+   * so it never affects the C/C++ wrapper file.
+   * ---------------------------------------------------------------------- */
+
+  static void kotlinReindent(String *s) {
+    if (!s || Len(s) == 0)
+      return;
+    String *out = NewStringEmpty();
+    const char *p = Char(s);
+    bool line_start = true;
+    while (*p) {
+      if (line_start) {
+        int spaces = 0;
+        while (p[spaces] == ' ')
+          ++spaces;
+        // Emit the extra run; the original leading spaces are copied by the loop below.
+        for (int i = 0; i < spaces; ++i)
+          Putc(' ', out);
+        line_start = false;
+      }
+      Putc((unsigned char)*p, out);
+      if (*p == '\n')
+        line_start = true;
+      ++p;
+    }
+    Clear(s);
+    Append(s, out);
+    Delete(out);
+  }
+
+  /* ----------------------------------------------------------------------
+   * membervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int membervariableHandler(Node *n) {
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    variable_wrapper_flag = true;
+    Language::membervariableHandler(n);
+    makeByValuePropertyNonNull(n);
+    // Member variable properties are open for the same reason as proxy methods, with a
+    // variable hiding one in a base class becoming a Kotlin property override.
+    // The %kotlinmethodmodifiers feature overrides the default modifiers.
+    const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+    bool property_override = isOverrideInKotlinHierarchy(n, Getattr(n, "hides")) || variableHidesBaseMember(n);
+    String *modifiers = NewStringf("%s ", methodmods ? Char(methodmods) : (property_override ? "override" : "open"));
+    assembleProxyProperty(proxy_class_code, Char(modifiers));
+    Delete(modifiers);
+    wrapping_member_flag = false;
+    variable_wrapper_flag = false;
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * staticmembervariableHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int staticmembervariableHandler(Node *n) {
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    static_flag = true;
+    Language::staticmembervariableHandler(n);
+    makeByValuePropertyNonNull(n);
+    assembleProxyProperty(proxy_class_companion_code, "@JvmStatic ", true);
+    wrapping_member_flag = false;
+    static_flag = false;
+    return SWIG_OK;
+  }
+
+  /* ----------------------------------------------------------------------
+   * memberconstantHandler()
+   * ---------------------------------------------------------------------- */
+
+  virtual int memberconstantHandler(Node *n) {
+    variable_name = Getattr(n, "sym:name");
+    wrapping_member_flag = true;
+    Language::memberconstantHandler(n);
+    wrapping_member_flag = false;
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getOverloadedName()
+   * ----------------------------------------------------------------------------- */
+
+  String *getOverloadedName(Node *n) {
+
+    /* Although JNI functions are designed to handle overloaded Kotlin functions,
+     * a Kotlin long is used for all classes in the SWIG intermediary class.
+     * The intermediary class methods are thus mangled when overloaded to give
+     * a unique name. */
+    String *overloaded_name = Copy(Getattr(n, "sym:name"));
+
+    if (Getattr(n, "sym:overloaded")) {
+      Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
+    }
+
+    return overloaded_name;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * moduleClassFunctionHandler()
+   * ----------------------------------------------------------------------------- */
+
+  void moduleClassFunctionHandler(Node *n) {
+    SwigType *t = Getattr(n, "type");
+    ParmList *l = Getattr(n, "parms");
+    String *tm;
+    Parm *p;
+    int i;
+    String *imcall = NewString("");
+    String *return_type = NewString("");
+    String *function_code = NewString("");
+    int num_arguments = 0;
+    String *overloaded_name = getOverloadedName(n);
+    String *func_name = NULL;
+    bool setter_flag = false;
+    String *pre_code = NewString("");
+    String *post_code = NewString("");
+
+    // Translate and write javadoc comment if flagged
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+        Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */\n");
+      Printv(function_code, doxygen_comments, NIL);
+      Delete(doxygen_comments);
+    }
+
+    if (l) {
+      if (SwigType_type(Getattr(l, "type")) == T_VOID) {
+        l = nextSibling(l);
+      }
+    }
+
+    /* Attach the non-standard typemaps to the parameter list */
+    Swig_typemap_attach_parms("kstype", l, NULL);
+    Swig_typemap_attach_parms("kin", l, NULL);
+
+    /* Get return types */
+    if ((tm = Swig_typemap_lookup("kstype", n, "", 0))) {
+      substituteClassname(t, tm);
+      Printf(return_type, "%s", tm);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF, input_file, line_number, "No kstype typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    /* Change function name for global variables */
+    if (proxy_flag && global_variable_flag) {
+      // Capitalize the first letter in the variable to create a JavaBean type getter/setter function name
+      func_name = NewString("");
+      setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
+      if (setter_flag)
+        Printf(func_name, "set");
+      else
+        Printf(func_name, "get");
+      Putc(toupper((int)*Char(variable_name)), func_name);
+      Printf(func_name, "%s", Char(variable_name) + 1);
+    } else {
+      func_name = Copy(Getattr(n, "sym:name"));
+    }
+
+    /* Start generating the function */
+    const String *methodmods = Getattr(n, "feature:kotlin:methodmodifiers");
+    methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+    if (Len(methodmods))
+      Printf(function_code, "  %s fun %s(", methodmods, func_name);
+    else
+      Printf(function_code, "  fun %s(", func_name);  // public is implicit in Kotlin
+    Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
+
+    /* Get number of required and total arguments */
+    num_arguments = emit_num_arguments(l);
+
+    bool global_or_member_variable = global_variable_flag || (wrapping_member_flag && !enum_constant_flag);
+    int gencomma = 0;
+
+    /* Output each parameter */
+    for (i = 0, p = l; i < num_arguments; i++) {
+
+      /* Ignored parameters */
+      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
+        p = Getattr(p, "tmap:in:next");
+      }
+
+      SwigType *pt = Getattr(p, "type");
+      String *param_type = NewString("");
+
+      /* Get the Kotlin parameter type */
+      if ((tm = Getattr(p, "tmap:kstype"))) {
+        substituteClassname(pt, tm);
+        Printf(param_type, "%s", tm);
+      } else {
+        Swig_warning(WARN_KOTLIN_TYPEMAP_KSTYPE_UNDEF, input_file, line_number, "No kstype typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      if (gencomma)
+        Printf(imcall, ", ");
+
+      String *arg = makeParameterName(n, p, i, global_or_member_variable);
+
+      // Use typemaps to transform type used in Kotlin wrapper function (in proxy class) to type used in JNI function (in intermediary class)
+      if ((tm = Getattr(p, "tmap:kin"))) {
+        addThrows(n, "tmap:kin", p);
+        substituteClassname(pt, tm);
+        Replaceall(tm, "$kotlininput", arg);
+        String *pre = Getattr(p, "tmap:kin:pre");
+        if (pre) {
+          substituteClassname(pt, pre);
+          Replaceall(pre, "$kotlininput", arg);
+          if (Len(pre_code) > 0)
+            Printf(pre_code, "\n");
+          Printv(pre_code, pre, NIL);
+        }
+        String *post = Getattr(p, "tmap:kin:post");
+        if (post) {
+          substituteClassname(pt, post);
+          Replaceall(post, "$kotlininput", arg);
+          if (Len(post_code) > 0)
+            Printf(post_code, "\n");
+          Printv(post_code, post, NIL);
+        }
+        Printv(imcall, tm, NIL);
+      } else {
+        Swig_warning(WARN_KOTLIN_TYPEMAP_KIN_UNDEF, input_file, line_number, "No kin typemap defined for %s\n", SwigType_str(pt, 0));
+      }
+
+      /* Add parameter to module class function */
+      if (gencomma >= 2)
+        Printf(function_code, ", ");
+      gencomma = 2;
+      Printf(function_code, "%s: %s", arg, param_type);
+
+      if (prematureGarbageCollectionPreventionParameter(pt, p)) {
+        String *pgcppname = Getattr(p, "tmap:kin:pgcppname");
+        if (pgcppname) {
+          String *argname = Copy(pgcppname);
+          Replaceall(argname, "$kotlininput", arg);
+          Printf(imcall, ", %s", argname);
+          Delete(argname);
+        } else {
+          Printf(imcall, ", %s", arg);
+        }
+      }
+
+      p = Getattr(p, "tmap:in:next");
+      Delete(arg);
+      Delete(param_type);
+    }
+
+    Printf(imcall, ")");
+    // Kotlin infers Unit as the default return type, so omit ": Unit" to avoid a redundant-modifier warning
+    if (Cmp(return_type, "Unit") == 0)
+      Printf(function_code, ")");
+    else
+      Printf(function_code, "): %s", return_type);
+
+    // Transform return type used in JNI function (in intermediary class) to type used in Kotlin wrapper function (in module class)
+    if ((tm = Swig_typemap_lookup("kout", n, "", 0))) {
+      addThrows(n, "tmap:kout", n);
+      bool is_pre_code = Len(pre_code) > 0;
+      bool is_post_code = Len(post_code) > 0;
+      if (is_pre_code || is_post_code) {
+        Replaceall(tm, "\n ", "\n   ");  // add extra indentation to code in typemap
+        if (is_post_code) {
+          Insert(tm, 0, "\n    try ");
+          Printv(tm, " finally {\n", post_code, "\n    }", NIL);
+        } else {
+          Insert(tm, 0, "\n    ");
+        }
+        if (is_pre_code) {
+          Insert(tm, 0, pre_code);
+          Insert(tm, 0, "\n");
+        }
+        Insert(tm, 0, "{");
+        Printf(tm, "\n  }");
+      }
+      if (GetFlag(n, "feature:new"))
+        Replaceall(tm, "$owner", "true");
+      else
+        Replaceall(tm, "$owner", "false");
+      substituteClassname(t, tm);
+      Replaceall(tm, "$imfuncname", overloaded_name);
+      Replaceall(tm, "$jnicall", imcall);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_KOUT_UNDEF, input_file, line_number, "No kout typemap defined for %s\n", SwigType_str(t, 0));
+    }
+
+    if (proxy_flag && global_variable_flag) {
+      // Collect the accessor for assembly into a Kotlin property in the module object,
+      // see assembleProxyProperty() called from globalvariableHandler()
+      if (setter_flag) {
+        Delete(prop_setter_code);
+        prop_setter_code = formatPropertyAccessor("set(value)", tm);
+      } else {
+        Delete(prop_getter_code);
+        prop_getter_code = formatPropertyAccessor("get()", tm);
+        Delete(prop_type);
+        prop_type = Copy(return_type);
+      }
+    } else {
+      {
+        // A "{ return EXPR }" body collapses to an idiomatic Kotlin expression body
+        String *expr = singleReturnExpr(tm);
+        if (expr) {
+          Printf(function_code, " = %s\n\n", expr);
+          Delete(expr);
+        } else {
+          Printf(function_code, " %s\n\n", tm ? tm : empty_string);
+        }
+      }
+      Printv(module_class_code, function_code, NIL);
+    }
+
+    Delete(pre_code);
+    Delete(post_code);
+    Delete(function_code);
+    Delete(return_type);
+    Delete(imcall);
+    Delete(func_name);
+  }
+
+  /*----------------------------------------------------------------------
+   * replaceSpecialVariables()
+   *--------------------------------------------------------------------*/
+
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+    (void)method;
+    SwigType *type = Getattr(parm, "type");
+    substituteClassname(type, tm);
+  }
+
+  /*----------------------------------------------------------------------
+   * decodeEnumFeature()
+   * Decode the possible enum features, which are one of:
+   *   %kotlinenum(simple)
+   *   %kotlinenum(typeunsafe) - default
+   *   %kotlinenum(typesafe)
+   *   %kotlinenum(proper)
+   *--------------------------------------------------------------------*/
+
+  EnumFeature decodeEnumFeature(Node *n) {
+    EnumFeature enum_feature = TypeunsafeEnum;
+    String *feature = Getattr(n, "feature:kotlin:enum");
+    if (feature) {
+      if (Cmp(feature, "simple") == 0)
+        enum_feature = SimpleEnum;
+      else if (Cmp(feature, "typesafe") == 0)
+        enum_feature = TypesafeEnum;
+      else if (Cmp(feature, "proper") == 0)
+        enum_feature = ProperEnum;
+    }
+    return enum_feature;
+  }
+
+  /* -----------------------------------------------------------------------
+   * kotlinConstExpr() and helpers
+   *
+   * Translate a C/C++ integer constant expression into an equivalent Kotlin
+   * expression. Most C operators are spelt the same in Kotlin, but the bitwise
+   * and shift operators have no operator form and must use the infix functions
+   * inv()/shl/shr/and/xor/or. Kotlin's infix functions all share a single
+   * precedence level (below the arithmetic operators), so the translated output
+   * is fully parenthesised to preserve the original C operator precedence.
+   *
+   * The parser only handles integer literals, identifiers, parentheses and the
+   * arithmetic/bitwise/shift/logical/comparison operators. Anything it cannot
+   * translate (char or string literals, function calls, C integer suffixes other
+   * than long, the ternary operator, ...) makes it return NULL so the caller
+   * keeps the original C text - use %kotlinconst(0) or %kotlinconstvalue for
+   * those difficult cases.
+   * ------------------------------------------------------------------------ */
+
+  static void kotlinSkipSpace(const char **pp) {
+    while (isspace((unsigned char)**pp))
+      (*pp)++;
+  }
+
+  // Match a binary operator at *p, returning its Kotlin spelling (with prec and length) or NULL.
+  static const char *kotlinBinaryOp(const char *p, int *prec, int *oplen) {
+    *oplen = 2;
+    if (p[0] == '<' && p[1] == '<') {
+      *prec = 8;
+      return "shl";
+    }
+    if (p[0] == '>' && p[1] == '>') {
+      *prec = 8;
+      return "shr";
+    }
+    if (p[0] == '<' && p[1] == '=') {
+      *prec = 7;
+      return "<=";
+    }
+    if (p[0] == '>' && p[1] == '=') {
+      *prec = 7;
+      return ">=";
+    }
+    if (p[0] == '=' && p[1] == '=') {
+      *prec = 6;
+      return "==";
+    }
+    if (p[0] == '!' && p[1] == '=') {
+      *prec = 6;
+      return "!=";
+    }
+    if (p[0] == '&' && p[1] == '&') {
+      *prec = 2;
+      return "&&";
+    }
+    if (p[0] == '|' && p[1] == '|') {
+      *prec = 1;
+      return "||";
+    }
+    *oplen = 1;
+    switch (p[0]) {
+    case '*':
+      *prec = 10;
+      return "*";
+    case '/':
+      *prec = 10;
+      return "/";
+    case '%':
+      *prec = 10;
+      return "%";
+    case '+':
+      *prec = 9;
+      return "+";
+    case '-':
+      *prec = 9;
+      return "-";
+    case '<':
+      *prec = 7;
+      return "<";
+    case '>':
+      *prec = 7;
+      return ">";
+    case '&':
+      *prec = 5;
+      return "and";
+    case '^':
+      *prec = 4;
+      return "xor";
+    case '|':
+      *prec = 3;
+      return "or";
+    default:
+      return 0;
+    }
+  }
+
+  String *kotlinParsePrimary(const char **pp) {
+    kotlinSkipSpace(pp);
+    const char *p = *pp;
+    char c = *p;
+    if (c == '(') {
+      (*pp)++;
+      String *inner = kotlinParseExpr(pp, 0);
+      if (!inner)
+        return 0;
+      kotlinSkipSpace(pp);
+      if (**pp != ')') {
+        Delete(inner);
+        return 0;
+      }
+      (*pp)++;
+      // Each binary operation is already self parenthesised, so the grouping is
+      // preserved structurally and the original parentheses can be dropped.
+      return inner;
+    }
+    if (isdigit((unsigned char)c)) {
+      const char *start = p;
+      if (c == '0' && (p[1] == 'x' || p[1] == 'X')) {
+        p += 2;
+        while (isxdigit((unsigned char)*p))
+          p++;
+      } else {
+        while (isdigit((unsigned char)*p))
+          p++;
+      }
+      const char *digits_end = p;
+      // Consume any C integer suffix. Long suffixes map to Kotlin's 'L'; the
+      // unsigned suffix is dropped (matching the signed values used elsewhere).
+      bool is_long = false;
+      while (*p == 'u' || *p == 'U' || *p == 'l' || *p == 'L') {
+        if (*p == 'l' || *p == 'L')
+          is_long = true;
+        p++;
+      }
+      // A '.', exponent or further identifier character means this is a float or
+      // something unsupported - bail so the original expression is kept.
+      if (*p == '.' || *p == 'e' || *p == 'E' || isalnum((unsigned char)*p) || *p == '_')
+        return 0;
+      *pp = p;
+      String *num = NewStringWithSize(start, (int)(digits_end - start));
+      if (is_long)
+        Append(num, "L");
+      return num;
+    }
+    if (isalpha((unsigned char)c) || c == '_') {
+      const char *start = p;
+      while (isalnum((unsigned char)*p) || *p == '_')
+        p++;
+      // Reject member access, scope resolution and function calls - too complex to translate.
+      if (*p == '.' || *p == '(' || (*p == ':' && p[1] == ':'))
+        return 0;
+      *pp = p;
+      return NewStringWithSize(start, (int)(p - start));
+    }
+    return 0;
+  }
+
+  String *kotlinParseUnary(const char **pp) {
+    kotlinSkipSpace(pp);
+    char c = **pp;
+    if (c == '~') {
+      (*pp)++;
+      String *o = kotlinParseUnary(pp);
+      if (!o)
+        return 0;
+      String *r = NewStringf("(%s).inv()", o);
+      Delete(o);
+      return r;
+    }
+    if (c == '-') {
+      (*pp)++;
+      String *o = kotlinParseUnary(pp);
+      if (!o)
+        return 0;
+      String *r = NewStringf("-%s", o);
+      Delete(o);
+      return r;
+    }
+    if (c == '!') {
+      (*pp)++;
+      String *o = kotlinParseUnary(pp);
+      if (!o)
+        return 0;
+      String *r = NewStringf("!%s", o);
+      Delete(o);
+      return r;
+    }
+    if (c == '+') {
+      (*pp)++;
+      return kotlinParseUnary(pp);
+    }
+    return kotlinParsePrimary(pp);
+  }
+
+  // Precedence climbing parser - all binary operators here are left associative.
+  String *kotlinParseExpr(const char **pp, int min_prec) {
+    String *left = kotlinParseUnary(pp);
+    if (!left)
+      return 0;
+    for (;;) {
+      kotlinSkipSpace(pp);
+      int prec, oplen;
+      const char *opk = kotlinBinaryOp(*pp, &prec, &oplen);
+      if (!opk || prec < min_prec)
+        break;
+      *pp += oplen;
+      String *right = kotlinParseExpr(pp, prec + 1);
+      if (!right) {
+        Delete(left);
+        return 0;
+      }
+      String *combined = NewStringf("(%s %s %s)", left, opk, right);
+      Delete(left);
+      Delete(right);
+      left = combined;
+    }
+    return left;
+  }
+
+  // Returns a newly allocated Kotlin expression, or NULL to keep the original C text.
+  String *kotlinConstExpr(const String *cexpr) {
+    if (!cexpr)
+      return 0;
+    const char *p = Char(cexpr);
+    String *out = kotlinParseExpr(&p, 0);
+    if (!out)
+      return 0;
+    kotlinSkipSpace(&p);
+    if (*p != '\0') {
+      // Trailing unparsed text (e.g. a ternary operator) - keep the original.
+      Delete(out);
+      return 0;
+    }
+    return out;
+  }
+
+  /* -----------------------------------------------------------------------
+   * enumValue()
+   * This method will return a string with an enum value to use in Kotlin generated
+   * code. If the %kotlinconst feature is not used, the string will contain the intermediary
+   * class call to obtain the enum value. The intermediary class and JNI methods to obtain
+   * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
+   * is one and hopefully it will compile as Kotlin code - e.g. 20 as in: enum E{e=20};
+   * The %kotlinconstvalue feature overrides all other ways to generate the constant value.
+   * The caller must delete memory allocated for the returned string.
+   * ------------------------------------------------------------------------ */
+
+  String *enumValue(Node *n) {
+    String *symname = Getattr(n, "sym:name");
+
+    // Check for the %kotlinconstvalue feature
+    String *value = Getattr(n, "feature:kotlin:constvalue");
+
+    if (!value) {
+      // The %kotlinconst feature determines how the constant value is obtained
+      int const_feature_flag = GetFlag(n, "feature:kotlin:const");
+
+      if (const_feature_flag) {
+        // Use the C syntax to make a true Kotlin constant, translating any C operators that differ in Kotlin
+        String *cvalue = Getattr(n, "enumvalue") ? Getattr(n, "enumvalue") : Getattr(n, "enumvalueex");
+        String *kvalue = kotlinConstExpr(cvalue);
+        value = kvalue ? kvalue : Copy(cvalue);
+      } else {
+        String *newsymname = 0;
+        if (!getCurrentClass() || !proxy_flag) {
+          String *enumClassPrefix = getEnumClassPrefix();
+          if (enumClassPrefix) {
+            // A global scoped enum
+            newsymname = Swig_name_member(0, enumClassPrefix, symname);
+            symname = newsymname;
+          }
+        }
+
+        // Get the enumvalue from a JNI call
+        if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
+          // Strange hack to change the name
+          Setattr(n, "name", Getattr(n, "value")); /* for wrapping of enums in a namespace when emit_action is used */
+          constantWrapper(n);
+          value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+        } else {
+          memberconstantHandler(n);
+          value = NewStringf(
+            "%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
+        }
+        Delete(newsymname);
+      }
+    }
+    return value;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getEnumName()
+   *
+   * If jnidescriptor is set, inner class names are separated with '$' otherwise a '.'
+   * and the package is also not added to the name.
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumName(SwigType *t, bool jnidescriptor) {
+    Node *enumname = NULL;
+    Node *n = enumLookup(t);
+    if (n) {
+      enumname = Getattr(n, "enumname");
+      if (!enumname || jnidescriptor) {
+        String *symname = Getattr(n, "sym:name");
+        if (symname) {
+          // Add in class scope when referencing enum if not a global enum
+          String *scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
+          String *proxyname = 0;
+          if (scopename_prefix) {
+            proxyname = getProxyName(scopename_prefix, jnidescriptor);
+          }
+          if (proxyname) {
+            const char *class_separator = jnidescriptor ? "$" : ".";
+            enumname = NewStringf("%s%s%s", proxyname, class_separator, symname);
+          } else {
+            // global enum or enum in a namespace
+            String *nspace = Getattr(n, "sym:nspace");
+            if (nspace) {
+              if (package && !jnidescriptor)
+                enumname = NewStringf("%s.%s.%s", package, nspace, symname);
+              else
+                enumname = NewStringf("%s.%s", nspace, symname);
+            } else {
+              enumname = Copy(symname);
+            }
+          }
+          if (!jnidescriptor) {
+            Setattr(n, "enumname", enumname);  // Cache it
+            Delete(enumname);
+          }
+          Delete(scopename_prefix);
+        }
+      }
+    }
+
+    return enumname;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassname()
+   *
+   * Substitute the special variable $kotlinclassname with the proxy class name for classes/structs/unions
+   * that SWIG knows about. Also substitutes enums with enum name.
+   * Otherwise use the $descriptor name for the Kotlin class name. Note that the $&kotlinclassname substitution
+   * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
+   * Note that the path separator is a '.' unless jnidescriptor is set.
+   * Inputs:
+   *   pt - parameter type
+   *   tm - typemap contents that might contain the special variable to be replaced
+   *   jnidescriptor - if set, inner class names are separated with '$' otherwise a '/' is used for the path separator
+   * Outputs:
+   *   tm - typemap contents complete with the special variable substitution
+   * Return:
+   *   substitution_performed - flag indicating if a substitution was performed
+   * ----------------------------------------------------------------------------- */
+
+  bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false) {
+    bool substitution_performed = false;
+    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+
+    if (Strstr(tm, "$kotlinclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$kotlinclassname", jnidescriptor);
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$*kotlinclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      Delete(SwigType_pop(classnametype));
+      if (Len(classnametype) > 0) {
+        substituteClassnameSpecialVariable(classnametype, tm, "$*kotlinclassname", jnidescriptor);
+        substitution_performed = true;
+      }
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$&kotlinclassname")) {
+      SwigType *classnametype = Copy(strippedtype);
+      SwigType_add_pointer(classnametype);
+      substituteClassnameSpecialVariable(classnametype, tm, "$&kotlinclassname", jnidescriptor);
+      substitution_performed = true;
+      Delete(classnametype);
+    }
+    if (Strstr(tm, "$kotlininterfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$kotlininterfacename", jnidescriptor, true);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$*kotlininterfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      Delete(SwigType_pop(interfacenametype));
+      if (Len(interfacenametype) > 0) {
+        substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*kotlininterfacename", jnidescriptor, true);
+        substitution_performed = true;
+      }
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$&kotlininterfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      SwigType_add_pointer(interfacenametype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&kotlininterfacename", jnidescriptor, true);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$interfacename", jnidescriptor, false);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$*interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      Delete(SwigType_pop(interfacenametype));
+      if (Len(interfacenametype) > 0) {
+        substituteInterfacenameSpecialVariable(interfacenametype, tm, "$*interfacename", jnidescriptor, false);
+        substitution_performed = true;
+      }
+      Delete(interfacenametype);
+    }
+    if (Strstr(tm, "$&interfacename")) {
+      SwigType *interfacenametype = Copy(strippedtype);
+      SwigType_add_pointer(interfacenametype);
+      substituteInterfacenameSpecialVariable(interfacenametype, tm, "$&interfacename", jnidescriptor, false);
+      substitution_performed = true;
+      Delete(interfacenametype);
+    }
+
+    Delete(strippedtype);
+    Delete(type);
+
+    return substitution_performed;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteClassnameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteClassnameSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, bool jnidescriptor) {
+    String *replacementname;
+
+    if (SwigType_isenum(classnametype)) {
+      String *enumname = getEnumName(classnametype, jnidescriptor);
+      if (enumname) {
+        replacementname = Copy(enumname);
+      } else {
+        bool anonymous_enum = (Cmp(classnametype, "enum ") == 0);
+        if (anonymous_enum) {
+          replacementname = NewString("Int");
+        } else {
+          // An unknown enum - one that has not been parsed (neither a C enum forward reference nor a definition) or an ignored enum
+          replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+          Replace(replacementname, "enum ", "", DOH_REPLACE_ANY);
+          Setattr(swig_types_hash, replacementname, classnametype);
+        }
+      }
+    } else {
+      String *classname = getProxyName(classnametype, jnidescriptor);  // getProxyName() works for pointers to classes too
+      if (classname) {
+        replacementname = Copy(classname);
+      } else {
+        // use $descriptor if SWIG does not know anything about this type. Note that any typedefs are resolved.
+        replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+
+        // Add to hash table so that the type wrapper classes can be created later
+        Setattr(swig_types_hash, replacementname, classnametype);
+      }
+    }
+    if (jnidescriptor)
+      Replaceall(replacementname, ".", "/");
+    Replaceall(tm, classnamespecialvariable, replacementname);
+
+    Delete(replacementname);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substituteInterfacenameSpecialVariable()
+   * ----------------------------------------------------------------------------- */
+
+  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool jnidescriptor,
+                                              bool qualified) {
+
+    String *interfacename = getInterfaceName(interfacenametype /*, jnidescriptor*/, qualified);
+    if (interfacename) {
+      String *replacementname = Copy(interfacename);
+
+      if (jnidescriptor)
+        Replaceall(replacementname, ".", "/");
+      Replaceall(tm, interfacenamespecialvariable, replacementname);
+
+      Delete(replacementname);
+    }
+  }
+
+  /* -----------------------------------------------------------------------------
+   * emitTypeWrapperClass()
+   * ----------------------------------------------------------------------------- */
+
+  void emitTypeWrapperClass(String *classname, SwigType *type) {
+    Node *n = NewHash();
+    Setfile(n, input_file);
+    Setline(n, line_number);
+
+    String *swigtype = NewString("");
+    String *filen = NewStringf("%s%s.kt", SWIG_output_directory(), classname);
+    File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
+    if (!f_swigtype) {
+      FileErrorDisplay(filen);
+      Exit(EXIT_FAILURE);
+    }
+    Append(filenames_list, Copy(filen));
+    Delete(filen);
+    filen = NULL;
+
+    // Start writing out the type wrapper class file
+    emitBanner(f_swigtype);
+
+    if (package)
+      Printf(f_swigtype, "package %s\n", package);
+
+    // Pure Kotlin baseclass and interfaces
+    const String *pure_baseclass = typemapLookup(n, "kbase", type, WARN_NONE);
+    const String *pure_interfaces = typemapLookup(n, "kinterfaces", type, WARN_NONE);
+
+    // Type wrapper classes for unknown enums can pick up an enum SWIGTYPE kbody typemap which
+    // closes the companion object that the enum declaration normally opens. Such typemaps carry
+    // a "companion" attribute so that the companion object can be opened here.
+    Node *kbody_attributes = NewHash();
+    const String *kbody_tm = typemapLookup(n, "kbody", type, WARN_KOTLIN_TYPEMAP_KBODY_UNDEF, kbody_attributes);
+    bool open_companion = Getattr(kbody_attributes, "tmap:kbody:companion") != 0;
+
+    // Emit the class. Kotlin uses a single ':' clause for both the base class and interfaces.
+    // The static members from the kcompanion typemap go into the companion object, unless the
+    // kbody typemap brings its own companion object.
+    const String *companion_tm = open_companion ? 0 : typemapLookup(n, "kcompanion", type, WARN_NONE);
+    String *companion_code = NewString("");
+    if (companion_tm && *Char(companion_tm))
+      Printv(companion_code, "\n  companion object {\n", companion_tm, "  }\n", NIL);
+
+    Printv(swigtype,
+           typemapLookup(n, "kimports", type, WARN_NONE),  // Import statements
+           "\n",
+           typemapLookup(n, "kclassmodifiers", type, WARN_KOTLIN_TYPEMAP_CLASSMOD_UNDEF),  // Class modifiers
+           " $kotlinclassname",                                                            // Class name and bases
+           (*Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "",
+           pure_baseclass,
+           (*Char(pure_baseclass) && *Char(pure_interfaces)) ? ", " : "",
+           pure_interfaces,
+           " {",
+           open_companion ? "\n  companion object {" : "",
+           kbody_tm,                                    // main body of class
+           typemapLookup(n, "kcode", type, WARN_NONE),  // extra Kotlin code
+           companion_code,
+           "}\n",
+           "\n",
+           NIL);
+    Delete(kbody_attributes);
+    Delete(companion_code);
+
+    Replaceall(swigtype, "$kotlinclassname", classname);
+    Replaceall(swigtype, "$module", module_class_name);
+    Replaceall(swigtype, "$imclassname", imclass_name);
+
+    // For unknown enums
+    Replaceall(swigtype, "$static ", "");
+    Replaceall(swigtype, "$enumvalues", "");
+
+    // An enum kbody brings its own companion object containing a $kcompanionmembers marker; inject
+    // any extra companion members from the kcompanion typemap there, as enumDeclaration() does.
+    const String *wrapper_companion = open_companion ? typemapLookup(n, "kcompanion", type, WARN_NONE) : 0;
+    Replaceall(swigtype, "$kcompanionmembers", wrapper_companion ? wrapper_companion : "");
+
+    kotlinReindent(swigtype);
+    Printv(f_swigtype, swigtype, NIL);
+
+    Delete(f_swigtype);
+    Delete(swigtype);
+    Delete(n);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * typemapLookup()
+   * n - for input only and must contain info for Getfile(n) and Getline(n) to work
+   * tmap_method - typemap method name
+   * type - typemap type to lookup
+   * warning - warning number to issue if no typemaps found
+   * typemap_attributes - the typemap attributes are attached to this node and will
+   *   also be used for temporary storage if non null
+   * return is never NULL, unlike Swig_typemap_lookup()
+   * ----------------------------------------------------------------------------- */
+
+  const String *typemapLookup(Node *n, const_String_or_char_ptr tmap_method, SwigType *type, int warning, Node *typemap_attributes = 0) {
+    Node *node = !typemap_attributes ? NewHash() : typemap_attributes;
+    Setattr(node, "type", type);
+    Setfile(node, Getfile(n));
+    Setline(node, Getline(n));
+    const String *tm = Swig_typemap_lookup(tmap_method, node, "", 0);
+    if (!tm) {
+      tm = empty_string;
+      if (warning != WARN_NONE)
+        Swig_warning(warning, Getfile(n), Getline(n), "No %s typemap defined for %s\n", tmap_method, SwigType_str(type, 0));
+    }
+    if (!typemap_attributes)
+      Delete(node);
+    return tm;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * addThrows()
+   *
+   * Adds exception classes to a throws list. The throws list is the list of classes
+   * that will form the Kotlin throws clause. Mainly for checked exceptions.
+   * ----------------------------------------------------------------------------- */
+
+  void addThrows(Node *n, const String *attribute, Node *parameter) {
+    // Get the comma separated exception classes for the throws clause - held in typemap/feature's "throws" attribute
+    String *throws_attribute = NewStringf("%s:throws", attribute);
+    String *throws = Getattr(parameter, throws_attribute);
+
+    if (throws && Len(throws) > 0) {
+      String *throws_list = Getattr(n, "kotlin:throwslist");
+      if (!throws_list) {
+        throws_list = NewList();
+        Setattr(n, "kotlin:throwslist", throws_list);
+      }
+      // Put the exception classes in the throws clause into a temporary List
+      List *temp_classes_list = Split(throws, ',', INT_MAX);
+
+      // Add the exception classes to the node throws list, but don't duplicate if already in list
+      if (temp_classes_list && Len(temp_classes_list) > 0) {
+        for (Iterator cls = First(temp_classes_list); cls.item; cls = Next(cls)) {
+          String *exception_class = NewString(cls.item);
+          Replaceall(exception_class, " ", "");   // remove spaces
+          Replaceall(exception_class, "\t", "");  // remove tabs
+          if (Len(exception_class) > 0) {
+            // $kotlinclassname substitution
+            SwigType *pt = Getattr(parameter, "type");
+            substituteClassname(pt, exception_class);
+
+            // Don't duplicate the Kotlin exception class in the throws clause
+            bool found_flag = false;
+            for (Iterator item = First(throws_list); item.item; item = Next(item)) {
+              if (Strcmp(item.item, exception_class) == 0)
+                found_flag = true;
+            }
+            if (!found_flag)
+              Append(throws_list, exception_class);
+          }
+          Delete(exception_class);
+        }
+      }
+      Delete(temp_classes_list);
+    }
+    Delete(throws_attribute);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * generateThrowsClause()
+   *
+   * Generates throws clause for checked exception
+   * ----------------------------------------------------------------------------- */
+
+  void generateThrowsClause(Node *n, String *code) {
+    // Kotlin has no checked exceptions so there is no throws clause to generate.
+    // The throws list is still collected as it documents the exceptions thrown by the C++ code.
+    (void)n;
+    (void)code;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * prematureGarbageCollectionPreventionParameter()
+   *
+   * Get the proxy class name for use in an additional generated parameter. The
+   * additional parameter is added to a native method call purely to prevent
+   * premature garbage collection of proxy classes which pass their C++ class pointer
+   * in a Kotlin long to the JNI layer.
+   * ----------------------------------------------------------------------------- */
+
+  String *prematureGarbageCollectionPreventionParameter(SwigType *t, Parm *p) {
+    String *pgcpp_kotlin_type = 0;
+    String *ktype = NewString(Getattr(p, "tmap:ktype"));
+
+    // Strip C comments
+    String *stripped_jtype = Swig_strip_c_comments(ktype);
+    if (stripped_jtype) {
+      Delete(ktype);
+      ktype = stripped_jtype;
+    }
+
+    // Remove whitespace
+    Replaceall(ktype, " ", "");
+    Replaceall(ktype, "\t", "");
+
+    if (Cmp(ktype, "Long") == 0) {
+      if (proxy_flag) {
+        if (!GetFlag(p, "tmap:ktype:nopgcpp") && !nopgcpp_flag) {
+          String *interface_name = getInterfaceName(t, true);
+          pgcpp_kotlin_type = interface_name ? interface_name : getProxyName(t);
+          if (!pgcpp_kotlin_type) {
+            // Look for proxy class parameters passed to C++ layer using non-default typemaps, ie not one of above types
+            String *kstype = NewString(Getattr(p, "tmap:kstype"));
+            if (kstype) {
+              Hash *classes = getClassHash();
+              if (classes) {
+                // Strip C comments
+                String *stripped_jstype = Swig_strip_c_comments(kstype);
+                if (stripped_jstype) {
+                  Delete(kstype);
+                  kstype = stripped_jstype;
+                }
+                // Remove whitespace
+                Replaceall(kstype, " ", "");
+                Replaceall(kstype, "\t", "");
+
+                Iterator ki;
+                for (ki = First(classes); ki.key; ki = Next(ki)) {
+                  Node *cls = ki.item;
+                  if (cls && !Getattr(cls, "feature:ignore")) {
+                    String *symname = Getattr(cls, "sym:name");
+                    if (symname && Strcmp(symname, kstype) == 0) {
+                      pgcpp_kotlin_type = symname;
+                    }
+                  }
+                }
+              }
+            }
+            Delete(kstype);
+          }
+        }
+      }
+    }
+    Delete(ktype);
+    return pgcpp_kotlin_type;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * outputDirectory()
+   *
+   * Return the directory to use for generating Kotlin classes/enums and create the
+   * subdirectory (does not create if language specific outdir does not exist).
+   * ----------------------------------------------------------------------------- */
+
+  String *outputDirectory(String *nspace) {
+    String *output_directory = Copy(SWIG_output_directory());
+    if (nspace) {
+      String *nspace_subdirectory = Copy(nspace);
+      Replaceall(nspace_subdirectory, ".", SWIG_FILE_DELIMITER);
+      String *newdir_error = Swig_new_subdirectory(output_directory, nspace_subdirectory);
+      if (newdir_error) {
+        Printf(stderr, "%s\n", newdir_error);
+        Delete(newdir_error);
+        Exit(EXIT_FAILURE);
+      }
+      Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
+      Delete(nspace_subdirectory);
+    }
+    return output_directory;
+  }
+
+  /*----------------------------------------------------------------------
+   * Start of director methods
+   *--------------------------------------------------------------------*/
+
+  /*----------------------------------------------------------------------
+   * getUpcallJNIMethod()
+   *--------------------------------------------------------------------*/
+
+  String *getUpcallJNIMethod(String *descrip) {
+    static struct {
+      char code;
+      const char *method;
+    } upcall_methods[] = {
+      {'B', "CallStaticByteMethod"   },
+      {'C', "CallStaticCharMethod"   },
+      {'D', "CallStaticDoubleMethod" },
+      {'F', "CallStaticFloatMethod"  },
+      {'I', "CallStaticIntMethod"    },
+      {'J', "CallStaticLongMethod"   },
+      {'L', "CallStaticObjectMethod" },
+      {'S', "CallStaticShortMethod"  },
+      {'V', "CallStaticVoidMethod"   },
+      {'Z', "CallStaticBooleanMethod"},
+      {'[', "CallStaticObjectMethod" }
+    };
+
+    char code;
+    int i;
+
+    code = *Char(descrip);
+    for (i = 0; i < (int)(sizeof(upcall_methods) / sizeof(upcall_methods[0])); ++i)
+      if (code == upcall_methods[i].code)
+        return NewString(upcall_methods[i].method);
+    return NULL;
+  }
+
+  /*----------------------------------------------------------------------
+   * emitDirectorUpcalls()
+   *--------------------------------------------------------------------*/
+
+  void emitDirectorUpcalls() {
+    if (n_dmethods) {
+      Wrapper *w = NewWrapper();
+      String *jni_imclass_name = makeValidJniName(imclass_name);
+      String *swig_module_init = NewString("swig_module_init");
+      String *swig_module_init_jni = makeValidJniName(swig_module_init);
+      String *dmethod_data = NewString("");
+      int n_methods = 0;
+      Iterator udata_iter;
+
+      udata_iter = First(dmethods_seq);
+      while (udata_iter.item) {
+        UpcallData *udata = udata_iter.item;
+        Printf(dmethod_data, "  { \"%s\", \"%s\" }", Getattr(udata, "imclass_method"), Getattr(udata, "imclass_fdesc"));
+        ++n_methods;
+
+        udata_iter = Next(udata_iter);
+
+        if (udata_iter.item)
+          Putc(',', dmethod_data);
+        Putc('\n', dmethod_data);
+      }
+
+      Printf(f_runtime, "namespace Swig {\n");
+      Printf(f_runtime, "  namespace {\n");
+      Printf(f_runtime, "    jclass jclass_%s = NULL;\n", imclass_name);
+      Printf(f_runtime, "    jmethodID director_method_ids[%d];\n", n_methods);
+      Printf(f_runtime, "  }\n");
+      Printf(f_runtime, "}\n");
+
+      Printf(w->def, "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls) {", jnipackage, jni_imclass_name, swig_module_init_jni);
+      Printf(w->code, "static struct {\n");
+      Printf(w->code, "  const char *method;\n");
+      Printf(w->code, "  const char *signature;\n");
+      Printf(w->code, "} methods[%d] = {\n", n_methods);
+      Printv(w->code, dmethod_data, NIL);
+      Printf(w->code, "};\n");
+
+      Wrapper_add_local(w, "i", "int i");
+
+      Printf(w->code, "Swig::jclass_%s = (jclass) jenv->NewGlobalRef(jcls);\n", imclass_name);
+      Printf(w->code, "if (!Swig::jclass_%s) return;\n", imclass_name);
+      Printf(w->code, "for (i = 0; i < (int) (sizeof(methods)/sizeof(methods[0])); ++i) {\n");
+      Printf(w->code, "  Swig::director_method_ids[i] = jenv->GetStaticMethodID(jcls, methods[i].method, methods[i].signature);\n");
+      Printf(w->code, "  if (!Swig::director_method_ids[i]) return;\n");
+      Printf(w->code, "}\n");
+
+      Printf(w->code, "}\n");
+
+      Wrapper_print(w, f_wrappers);
+      Delete(dmethod_data);
+      Delete(swig_module_init_jni);
+      Delete(swig_module_init);
+      Delete(jni_imclass_name);
+      DelWrapper(w);
+    }
+  }
+
+  /*----------------------------------------------------------------------
+   * emitDirectorExtraMethods()
+   *
+   * This is where the director connect method is generated.
+   *--------------------------------------------------------------------*/
+  void emitDirectorExtraMethods(Node *n) {
+    if (!Swig_directorclass(n))
+      return;
+
+    // Output the director connect method:
+    String *jni_imclass_name = makeValidJniName(imclass_name);
+    String *norm_name = SwigType_namestr(Getattr(n, "name"));
+    String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
+    String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
+    SwigType *smart = Getattr(n, "smart");
+    String *smartptr = smart ? SwigType_namestr(smart) : 0;
+    String *dirClassName = directorClassName(n);
+    Wrapper *code_wrap;
+
+    Printf(
+      imclass_class_code, "  external fun %s(obj: %s, cptr: Long, mem_own: Boolean, weak_global: Boolean)\n", swig_director_connect, full_proxy_class_name);
+
+    code_wrap = NewWrapper();
+    Printf(code_wrap->def,
+           "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
+           "jboolean jweak_global) {\n",
+           jnipackage,
+           jni_imclass_name,
+           swig_director_connect_jni);
+
+    if (smartptr) {
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
+      Printf(code_wrap->code, "  (void)jcls;\n");
+      Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
+      Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
+      Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    } else {
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
+      Printf(code_wrap->code, "  (void)jcls;\n");
+      Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    }
+
+    Printf(code_wrap->code,
+           "  director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
+           "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
+    Printf(code_wrap->code, "}\n");
+
+    Wrapper_print(code_wrap, f_wrappers);
+    DelWrapper(code_wrap);
+
+    Delete(swig_director_connect_jni);
+    Delete(swig_director_connect);
+
+    // Output the swigReleaseOwnership, swigTakeOwnership methods:
+    String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
+    String *changeown_jnimethod_name = makeValidJniName(changeown_method_name);
+
+    Printf(imclass_class_code, "  external fun %s(obj: %s, cptr: Long, take_or_release: Boolean)\n", changeown_method_name, full_proxy_class_name);
+
+    code_wrap = NewWrapper();
+    Printf(code_wrap->def,
+           "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
+           jnipackage,
+           jni_imclass_name,
+           changeown_jnimethod_name);
+
+    if (smartptr) {
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
+      Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
+      Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+    } else {
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+    }
+
+    Printf(code_wrap->code, "  (void)jcls;\n");
+    Printf(code_wrap->code, "  if (director) {\n");
+    Printf(code_wrap->code, "    director->swig_kotlin_change_ownership(jenv, jself, jtake_or_release ? true : false);\n");
+    Printf(code_wrap->code, "  }\n");
+    Printf(code_wrap->code, "}\n");
+
+    Wrapper_print(code_wrap, f_wrappers);
+    DelWrapper(code_wrap);
+
+    Delete(changeown_method_name);
+    Delete(changeown_jnimethod_name);
+    Delete(norm_name);
+    Delete(dirClassName);
+    Delete(jni_imclass_name);
+  }
+
+  /*----------------------------------------------------------------------
+   * emitCodeTypemap()
+   *
+   * Output a code typemap that uses $methodname and $jnicall, as used
+   * in the directordisconnect, director_release and director_take
+   * typemaps.
+   *--------------------------------------------------------------------*/
+
+  void emitCodeTypemap(Node *n, bool derived, SwigType *lookup_type, const String *typemap, const String *methodname, const String *jnicall,
+                       const char *methodmods = 0) {
+    const String *tm = NULL;
+    Node *tmattrs = NewHash();
+    String *lookup_tmname = NewString(typemap);
+    String *method_attr_name;
+    String *method_attr;
+
+    if (derived) {
+      Append(lookup_tmname, "_derived");
+    }
+
+    tm = typemapLookup(n, lookup_tmname, lookup_type, WARN_NONE, tmattrs);
+    method_attr_name = NewStringf("tmap:%s:%s", lookup_tmname, methodname);
+    method_attr = Getattr(tmattrs, method_attr_name);
+
+    if (*Char(tm)) {
+      if (method_attr) {
+        String *codebody = Copy(tm);
+        Replaceall(codebody, "$methodname", method_attr);
+        Replaceall(codebody, "$jnicall", jnicall);
+        if (methodmods)
+          Replaceall(codebody, "$methodmodifiers", methodmods);
+        Append(proxy_class_def, codebody);
+        Delete(codebody);
+      } else {
+        Swig_error(input_file, line_number, "No %s method name attribute for %s\n", lookup_tmname, proxy_class_name);
+      }
+    } else {
+      Swig_error(input_file, line_number, "No %s typemap for %s\n", lookup_tmname, proxy_class_name);
+    }
+
+    Delete(tmattrs);
+    Delete(lookup_tmname);
+    // Delete(method_attr);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * substitutePackagePath()
+   *
+   * Replace $packagepath using the kpackage typemap associated with passed
+   * parm or global package if p is 0. "$packagepath/" is replaced with "" if
+   * no package is set. Note that the path separator is a '/'.
+   * ----------------------------------------------------------------------------- */
+
+  void substitutePackagePath(String *text, Parm *p) {
+    String *pkg_path = 0;
+
+    if (p)
+      pkg_path = Swig_typemap_lookup("kpackage", p, "", 0);
+    if (!pkg_path || Len(pkg_path) == 0)
+      pkg_path = Copy(package_path);
+
+    if (Len(pkg_path) > 0) {
+      Replaceall(pkg_path, ".", "/");
+      Replaceall(text, "$packagepath", pkg_path);
+    } else {
+      Replaceall(text, "$packagepath/", empty_string);
+      Replaceall(text, "$packagepath", empty_string);
+    }
+    Delete(pkg_path);
+  }
+
+  /* ---------------------------------------------------------------
+   * Canonicalize the JNI field descriptor
+   *
+   * Replace the $packagepath and $kotlinclassname family of special
+   * variables with the desired package and Kotlin proxy name as
+   * required in the JNI field descriptors.
+   *
+   * !!SFM!! If $packagepath occurs in the field descriptor, but
+   * package_path isn't set (length == 0), then strip it and the
+   * optional trailing '/' from the resulting name.
+   *
+   * --------------------------------------------------------------- */
+
+  String *canonicalizeJNIDescriptor(String *descriptor_in, Parm *p) {
+    SwigType *type = Getattr(p, "type");
+    String *descriptor_out = Copy(descriptor_in);
+
+    substituteClassname(type, descriptor_out, true);
+    substitutePackagePath(descriptor_out, p);
+
+    return descriptor_out;
+  }
+
+  /* ---------------------------------------------------------------
+   * classDirectorMethod()
+   *
+   * Emit a virtual director method to pass a method call on to the
+   * underlying Kotlin object.
+   *
+   * --------------------------------------------------------------- */
+
+  int classDirectorMethod(Node *n, Node *parent, String *super) {
+    String *c_classname = Getattr(parent, "name");
+    String *name = Getattr(n, "name");
+    String *symname = Getattr(n, "sym:name");
+    SwigType *returntype = Getattr(n, "type");
+    String *overloaded_name = 0;
+    String *storage = Getattr(n, "storage");
+    String *value = Getattr(n, "value");
+    String *decl = Getattr(n, "decl");
+    String *declaration = NewString("");
+    String *tm;
+    Parm *p;
+    int i;
+    Wrapper *w = NewWrapper();
+    ParmList *l = Getattr(n, "parms");
+    bool is_void = !(Cmp(returntype, "void"));
+    String *qualified_return = 0;
+    bool pure_virtual = (!(Cmp(storage, "virtual")) && !(Cmp(value, "0")));
+    int status = SWIG_OK;
+    bool output_director = true;
+    String *dirclassname = directorClassName(parent);
+    String *qualified_name = NewStringf("%s::%s", dirclassname, name);
+    String *jnidesc = NewString("");
+    String *classdesc = NewString("");
+    String *jniret_desc = NewString("");
+    String *classret_desc = NewString("");
+    SwigType *c_ret_type = NULL;
+    String *jupcall_args = NewString("swigjobj");
+    String *imclass_dmethod = 0;
+    String *callback_def = NewString("");
+    String *callback_code = NewString("");
+    String *imcall_args = NewString("");
+    String *bridge_params = NewString("");
+    String *bridge_args = NewString("");
+    int classmeth_off = curr_class_dmethod - first_class_dmethod;
+    bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+    String *qualified_classname = getProxyName(getClassName());
+
+    // Kludge Alert: functionWrapper sets sym:overload properly, but it
+    // isn't at this point, so we have to manufacture it ourselves. At least
+    // we're consistent with the sym:overload name in functionWrapper. (?? when
+    // does the overloaded method name get set?)
+
+    if (!ignored_method) {
+      overloaded_name = getOverloadedName(n);
+      imclass_dmethod = Swig_name_member(getNSpace(), dirclassname, overloaded_name);
+    }
+
+    qualified_return = SwigType_rcaststr(returntype, "c_result");
+
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+        if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+          String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+          Delete(construct_result);
+        } else {
+          String *base_typename = SwigType_base(returntype);
+          String *resolved_typename = SwigType_typedef_resolve_all(base_typename);
+          Symtab *symtab = Getattr(n, "sym:symtab");
+          Node *typenode = Swig_symbol_clookup(resolved_typename, symtab);
+
+          if (SwigType_ispointer(returntype) || (typenode && Getattr(typenode, "abstracts"))) {
+            /* initialize pointers to something sane. Same for abstract
+               classes when a reference is returned. */
+            Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+          } else {
+            /* If returning a reference, initialize the pointer to a sane
+               default - if a Kotlin exception occurs, then the pointer returns
+               something other than a NULL-initialized reference. */
+            SwigType *noref_type = SwigType_del_reference(Copy(returntype));
+            String *noref_ltype = SwigType_lstr(noref_type, 0);
+            String *return_ltype = SwigType_lstr(returntype, 0);
+
+            Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
+            Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+            Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
+            Printf(w->code, "c_result = &result_default;\n");
+            Delete(return_ltype);
+            Delete(noref_ltype);
+            Delete(noref_type);
+          }
+
+          Delete(base_typename);
+          Delete(resolved_typename);
+        }
+      } else {
+        SwigType *vt;
+
+        vt = cplus_value_type(returntype);
+        if (!vt) {
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+        } else {
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(vt, "c_result"), NIL);
+          Delete(vt);
+        }
+      }
+    }
+
+    String *callback_return_type = NewString("Unit");
+    if (!ignored_method) {
+      /* Create the intermediate class wrapper. The upcall method is a true static method via
+       * the JvmStatic annotation so that the C++ director code can call it with CallStaticXXXMethod. */
+      tm = Swig_typemap_lookup("ktype", n, "", 0);
+      if (tm) {
+        Clear(callback_return_type);
+        Printv(callback_return_type, tm, NIL);
+        Printf(callback_def, "  @JvmStatic\n  fun %s(jself: %s", imclass_dmethod, qualified_classname);
+      } else {
+        Swig_warning(WARN_KOTLIN_TYPEMAP_KTYPE_UNDEF, input_file, line_number, "No ktype typemap defined for %s\n", SwigType_str(returntype, 0));
+      }
+    }
+
+    String *cdesc = NULL;
+    SwigType *covariant = Getattr(n, "covariant");
+    SwigType *adjustedreturntype = covariant ? covariant : returntype;
+    Parm *adjustedreturntypeparm = NewParmNode(adjustedreturntype, n);
+
+    if (Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0) && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
+
+      // Note that in the case of polymorphic (covariant) return types, the
+      // method's return type is changed to be the base of the C++ return
+      // type
+      String *jnidesc_canon = canonicalizeJNIDescriptor(cdesc, adjustedreturntypeparm);
+      Append(classret_desc, jnidesc_canon);
+      Delete(jnidesc_canon);
+    } else {
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                   input_file,
+                   line_number,
+                   "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                   SwigType_str(returntype, 0),
+                   SwigType_namestr(c_classname),
+                   SwigType_namestr(name));
+      output_director = false;
+    }
+
+    /* Get the JNI field descriptor for this return type, add the JNI field descriptor
+       to jniret_desc */
+    if ((c_ret_type = Swig_typemap_lookup("jni", n, "", 0))) {
+      Parm *tp = NewParmNode(c_ret_type, n);
+
+      if (!is_void && !ignored_method) {
+        String *jretval_decl = NewStringf("%s jresult", c_ret_type);
+        Wrapper_add_localv(w, "jresult", jretval_decl, "= 0", NIL);
+        Delete(jretval_decl);
+      }
+
+      String *jdesc = NULL;
+      if (Swig_typemap_lookup("directorin", tp, "", 0) && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
+
+        // Objects marshalled passing a Kotlin class across JNI boundary use jobject - the nouse flag indicates this
+        // We need the specific Kotlin class name instead of the generic 'Ljava/lang/Object;'
+        if (GetFlag(tp, "tmap:directorin:nouse"))
+          jdesc = cdesc;
+        String *jnidesc_canon = canonicalizeJNIDescriptor(jdesc, tp);
+        Append(jniret_desc, jnidesc_canon);
+        Delete(jnidesc_canon);
+      } else {
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                     input_file,
+                     line_number,
+                     "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                     SwigType_str(c_ret_type, 0),
+                     SwigType_namestr(c_classname),
+                     SwigType_namestr(name));
+        output_director = false;
+      }
+
+      Delete(tp);
+    } else {
+      Swig_warning(WARN_KOTLIN_TYPEMAP_JNI_UNDEF,
+                   input_file,
+                   line_number,
+                   "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
+                   SwigType_str(returntype, 0),
+                   SwigType_namestr(c_classname),
+                   SwigType_namestr(name));
+      output_director = false;
+    }
+
+    Delete(adjustedreturntypeparm);
+
+    Swig_director_parms_fixup(l);
+
+    /* Attach the standard typemaps */
+    Swig_typemap_attach_parms("out", l, 0);
+    Swig_typemap_attach_parms("jni", l, 0);
+    Swig_typemap_attach_parms("ktype", l, 0);
+    Swig_typemap_attach_parms("kstype", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
+    Swig_typemap_attach_parms("kdirectorin", l, 0);
+    Swig_typemap_attach_parms("directorargout", l, w);
+
+    if (!ignored_method) {
+      /* Add Kotlin environment pointer to wrapper */
+      String *jenvstr = NewString("jenv");
+      String *jobjstr = NewString("swigjobj");
+
+      Wrapper_add_localv(w, "swigjnienv", "JNIEnvWrapper", "swigjnienv(this)", NIL, NIL);
+      Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= swigjnienv.getJNIEnv()", NIL);
+      Wrapper_add_localv(w, jobjstr, "jobject", jobjstr, "= (jobject) NULL", NIL);
+      Delete(jenvstr);
+      Delete(jobjstr);
+
+      /* Preamble code */
+      Printf(w->code, "if (!swig_override[%d]) {\n", classmeth_off);
+    }
+
+    if (!pure_virtual) {
+      String *super_call = Swig_method_call(super, l);
+      if (is_void) {
+        Printf(w->code, "%s;\n", super_call);
+        if (!ignored_method)
+          Printf(w->code, "return;\n");
+      } else {
+        Printf(w->code, "return %s;\n", super_call);
+      }
+      Delete(super_call);
+    } else {
+      Printf(w->code, "SWIG_JavaThrowException(JNIEnvWrapper(this).getJNIEnv(), SWIG_JavaDirectorPureVirtual, ");
+      Printf(w->code, "\"Attempted to invoke pure virtual method %s::%s.\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
+
+      /* Make sure that we return something in the case of a pure
+       * virtual method call for syntactical reasons. */
+      if (!is_void)
+        Printf(w->code, "return %s;", qualified_return);
+      else if (!ignored_method)
+        Printf(w->code, "return;\n");
+    }
+
+    if (!ignored_method) {
+      Printf(w->code, "}\n");
+      Printf(w->code, "swigjobj = swig_get_self(jenv);\n");
+      Printf(w->code, "if (swigjobj && jenv->IsSameObject(swigjobj, NULL) == JNI_FALSE) {\n");
+    }
+
+    /* Start the Kotlin field descriptor for the intermediate class's upcall (insert jself object) */
+    Parm *tp = NewParmNode(c_classname, n);
+    String *jdesc;
+
+    if ((tm = Swig_typemap_lookup("directorin", tp, "", 0)) && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
+      String *jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
+      Append(jnidesc, jni_canon);
+      Delete(jni_canon);
+      Delete(tm);
+    } else {
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                   input_file,
+                   line_number,
+                   "No or improper directorin typemap for type %s  for use in %s::%s (skipping director method)\n",
+                   SwigType_str(returntype, 0),
+                   SwigType_namestr(c_classname),
+                   SwigType_namestr(name));
+      output_director = false;
+    }
+
+    Delete(tp);
+
+    /* Go through argument list, convert from native to Kotlin */
+    for (i = 0, p = l; p; ++i) {
+      /* Is this superfluous? */
+      while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
+        p = Getattr(p, "tmap:directorin:next");
+      }
+
+      SwigType *pt = Getattr(p, "type");
+      String *ln = makeParameterName(n, p, i, false);
+      String *c_param_type = NULL;
+      String *c_decl = NewString("");
+      String *arg = NewString("");
+
+      Printf(arg, "j%s", ln);
+
+      /* Add various typemap's 'throws' clauses */
+      addThrows(n, "tmap:directorin", p);
+      addThrows(n, "tmap:out", p);
+
+      /* And add to the upcall args */
+      Printf(jupcall_args, ", %s", arg);
+
+      /* Get parameter's intermediary C type */
+      if ((c_param_type = Getattr(p, "tmap:jni"))) {
+        Parm *tp = NewParm(c_param_type, Getattr(p, "name"), n);
+        String *desc_tm = NULL, *jdesc = NULL, *cdesc = NULL;
+
+        /* Add to local variables */
+        Printf(c_decl, "%s %s", c_param_type, arg);
+        if (!ignored_method)
+          Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
+
+        /* Add input marshalling code and update JNI field descriptor */
+        if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0)) && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) &&
+            (tm = Getattr(p, "tmap:directorin")) && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
+
+          // Objects marshalled by passing a Kotlin class across the JNI boundary use jobject as the JNI type -
+          // the nouse flag indicates this. We need the specific Kotlin class name instead of the generic 'Ljava/lang/Object;'
+          if (GetFlag(tp, "tmap:directorin:nouse"))
+            jdesc = cdesc;
+          String *jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
+          Append(jnidesc, jni_canon);
+          Delete(jni_canon);
+
+          Setattr(p, "emit:directorinput", arg);
+          Replaceall(tm, "$input", arg);
+          Replaceall(tm, "$owner", "0");
+
+          if (Len(tm))
+            if (!ignored_method)
+              Printf(w->code, "%s\n", tm);
+
+          /* Add parameter to the intermediate class code if generating the
+           * intermediate's upcall code */
+          if ((tm = Getattr(p, "tmap:ktype"))) {
+            String *din = Copy(Getattr(p, "tmap:kdirectorin"));
+            addThrows(n, "tmap:kdirectorin", p);
+
+            if (din) {
+              Replaceall(din, "$module", module_class_name);
+              Replaceall(din, "$imclassname", imclass_name);
+              substituteClassname(pt, din);
+              Replaceall(din, "$jniinput", ln);
+
+              if (i > 0)
+                Printf(imcall_args, ", ");
+              Printf(callback_def, ", %s: %s", ln, tm);
+
+              if (Cmp(din, ln)) {
+                Printv(imcall_args, din, NIL);
+              } else
+                Printv(imcall_args, ln, NIL);
+
+              // Collect the parameters for the protected method upcall bridge
+              if ((tm = Getattr(p, "tmap:kstype"))) {
+                String *bridge_type = Copy(tm);
+                substituteClassname(pt, bridge_type);
+                if (Len(bridge_params) > 0) {
+                  Printf(bridge_params, ", ");
+                  Printf(bridge_args, ", ");
+                }
+                Printf(bridge_params, "%s: %s", ln, bridge_type);
+                Printf(bridge_args, "%s", ln);
+                Delete(bridge_type);
+              }
+
+              jni_canon = canonicalizeJNIDescriptor(cdesc, p);
+              Append(classdesc, jni_canon);
+              Delete(jni_canon);
+            } else {
+              Swig_warning(WARN_KOTLIN_TYPEMAP_KDIRECTORIN_UNDEF,
+                           input_file,
+                           line_number,
+                           "No kdirectorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                           SwigType_str(pt, 0),
+                           SwigType_namestr(c_classname),
+                           SwigType_namestr(name));
+              output_director = false;
+            }
+          } else {
+            Swig_warning(WARN_KOTLIN_TYPEMAP_KTYPE_UNDEF,
+                         input_file,
+                         line_number,
+                         "No ktype typemap defined for %s for use in %s::%s (skipping director method)\n",
+                         SwigType_str(pt, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
+            output_director = false;
+          }
+
+          p = Getattr(p, "tmap:directorin:next");
+
+          Delete(desc_tm);
+        } else {
+          if (!desc_tm) {
+            Swig_warning(WARN_KOTLIN_TYPEMAP_KDIRECTORIN_UNDEF,
+                         input_file,
+                         line_number,
+                         "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                         SwigType_str(c_param_type, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
+            p = nextSibling(p);
+          } else if (!jdesc) {
+            Swig_warning(WARN_KOTLIN_TYPEMAP_DIRECTORIN_NODESC,
+                         input_file,
+                         line_number,
+                         "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                         SwigType_str(c_param_type, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
+            p = Getattr(p, "tmap:directorin:next");
+          } else if (!tm) {
+            Swig_warning(WARN_KOTLIN_TYPEMAP_KDIRECTORIN_UNDEF,
+                         input_file,
+                         line_number,
+                         "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
+                         SwigType_str(pt, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
+            p = nextSibling(p);
+          } else if (!cdesc) {
+            Swig_warning(WARN_KOTLIN_TYPEMAP_DIRECTORIN_NODESC,
+                         input_file,
+                         line_number,
+                         "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                         SwigType_str(pt, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
+            p = Getattr(p, "tmap:directorin:next");
+          }
+
+          output_director = false;
+        }
+
+      } else {
+        Swig_warning(WARN_KOTLIN_TYPEMAP_JNI_UNDEF,
+                     input_file,
+                     line_number,
+                     "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
+                     SwigType_str(pt, 0),
+                     SwigType_namestr(c_classname),
+                     SwigType_namestr(name));
+        output_director = false;
+        p = nextSibling(p);
+      }
+
+      Delete(arg);
+      Delete(c_decl);
+      Delete(ln);
+    }
+
+    /* header declaration, start wrapper definition */
+    String *target;
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    Printf(w->def, "%s", target);
+    Delete(qualified_name);
+    Delete(target);
+    target = Swig_method_decl(rtype, decl, name, l, 1);
+    Printf(declaration, "    virtual %s", target);
+    Delete(target);
+
+    // Add any exception specifications to the methods in the director class
+    // Get any Kotlin exception classes in the throws typemap
+    ParmList *throw_parm_list = NULL;
+
+    // May need to add Kotlin throws clause to director methods if %catches defined
+    // Get any Kotlin exception classes in the throws typemap
+    ParmList *catches_list = Getattr(n, "catchlist");
+    if (catches_list) {
+      Swig_typemap_attach_parms("throws", catches_list, 0);
+      Swig_typemap_attach_parms("directorthrows", catches_list, 0);
+      for (p = catches_list; p; p = nextSibling(p)) {
+        addThrows(n, "tmap:throws", p);
+      }
+    }
+
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
+    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
+      int gencomma = 0;
+
+      Append(w->def, " throw(");
+      Append(declaration, " throw(");
+
+      if (throw_parm_list) {
+        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+        Swig_typemap_attach_parms("directorthrows", throw_parm_list, 0);
+      }
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+        if (Getattr(p, "tmap:throws")) {
+          // %catches replaces the specified exception specification
+          if (!catches_list) {
+            addThrows(n, "tmap:throws", p);
+          }
+
+          if (gencomma++) {
+            Append(w->def, ", ");
+            Append(declaration, ", ");
+          }
+
+          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
+          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
+        }
+      }
+
+      Append(w->def, ")");
+      Append(declaration, ")");
+    }
+
+    Append(w->def, " {");
+    Append(declaration, ";\n");
+
+    /* Emit the intermediate class's upcall to the actual class */
+
+    String *upcall = 0;
+    String *bridge_code = 0;
+    if (!is_public(n) && !ignored_method) {
+      // Kotlin protected members are not accessible from the intermediary object (Java relies
+      // on package access here), so the upcall goes through an internal bridge method emitted
+      // into the proxy class which forwards to the protected method.
+      String *bridge_return = 0;
+      if ((tm = Swig_typemap_lookup("kstype", n, "", 0))) {
+        bridge_return = Copy(tm);
+        substituteClassname(returntype, bridge_return);
+      } else {
+        bridge_return = NewString("Unit");
+      }
+      String *bridge_ret_clause = (Cmp(bridge_return, "Unit") == 0) ? NewString("") : NewStringf(": %s", bridge_return);
+      bridge_code = NewStringf(
+        "  internal fun %s(%s)%s {\n    %s%s(%s)\n  }\n\n", imclass_dmethod, bridge_params, bridge_ret_clause, is_void ? "" : "return ", symname, bridge_args);
+      Delete(bridge_ret_clause);
+      upcall = NewStringf("jself.%s(%s)", imclass_dmethod, imcall_args);
+      Delete(bridge_return);
+    } else {
+      upcall = NewStringf("jself.%s(%s)", symname, imcall_args);
+    }
+
+    // Handle exception classes specified in the "except" feature's "throws" attribute
+    addThrows(n, "feature:except", n);
+
+    if (!is_void) {
+      if ((tm = Swig_typemap_lookup("kdirectorout", n, "", 0))) {
+        addThrows(n, "tmap:kdirectorout", n);
+        // The proxy method returns the base type of a covariant return type and, unlike
+        // Java where static methods are inherited, the companion getCPtr of the derived
+        // class does not accept the base type, so the base type's class is substituted
+        substituteClassname(covariant ? covariant : returntype, tm);
+        Replaceall(tm, "$kotlincall", upcall);
+
+        Printf(callback_code, "    return %s\n", tm);
+      }
+
+      if ((tm = Swig_typemap_lookup("out", n, "", 0)))
+        addThrows(n, "tmap:out", n);
+
+      Delete(tm);
+    } else
+      Printf(callback_code, "    %s\n", upcall);
+
+    Printf(callback_code, "  }\n");
+    Delete(upcall);
+
+    /* Finish off the inherited upcall's definition */
+    if (Cmp(callback_return_type, "Unit") == 0)
+      Printf(callback_def, ") {\n");
+    else
+      Printf(callback_def, "): %s {\n", callback_return_type);
+    Delete(callback_return_type);
+
+    if (!ignored_method) {
+      /* Emit the actual upcall through */
+      String *imclass_desc = NewStringf("(%s)%s", jnidesc, jniret_desc);
+      String *class_desc = NewStringf("(%s)%s", classdesc, classret_desc);
+      UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, imclass_desc, class_desc, decl);
+      String *methid = Getattr(udata, "imclass_methodidx");
+      String *methop = getUpcallJNIMethod(jniret_desc);
+
+      if (!is_void)
+        Printf(w->code, "jresult = (%s) ", c_ret_type);
+
+      Printf(w->code, "jenv->%s(Swig::jclass_%s, Swig::director_method_ids[%s], %s);\n", methop, imclass_name, methid, jupcall_args);
+
+      // Generate code to handle any Kotlin exception thrown by director delegation
+      directorExceptHandler(n, catches_list ? catches_list : throw_parm_list, w);
+
+      if (!is_void) {
+        String *jresult_str = NewString("jresult");
+        String *result_str = NewString("c_result");
+
+        /* Copy jresult into c_result... */
+        if ((tm = Swig_typemap_lookup("directorout", n, result_str, w))) {
+          addThrows(n, "tmap:directorout", n);
+          Replaceall(tm, "$input", jresult_str);
+          Replaceall(tm, "$result", result_str);
+          Printf(w->code, "%s\n", tm);
+        } else {
+          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
+                       input_file,
+                       line_number,
+                       "Unable to use return type %s used in %s::%s (skipping director method)\n",
+                       SwigType_str(returntype, 0),
+                       SwigType_namestr(c_classname),
+                       SwigType_namestr(name));
+          output_director = false;
+        }
+
+        Delete(jresult_str);
+        Delete(result_str);
+      }
+
+      /* Marshal outputs */
+      for (p = l; p;) {
+        if ((tm = Getattr(p, "tmap:directorargout"))) {
+          addThrows(n, "tmap:directorargout", p);
+          Replaceall(tm, "$result", makeParameterName(n, p, i, false));
+          Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+          Printv(w->code, tm, "\n", NIL);
+          p = Getattr(p, "tmap:directorargout:next");
+        } else {
+          p = nextSibling(p);
+        }
+      }
+
+      Delete(imclass_desc);
+      Delete(class_desc);
+
+      /* Terminate wrapper code */
+      Printf(w->code, "} else {\n");
+      Printf(w->code,
+             "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object in %s::%s \");\n",
+             SwigType_namestr(c_classname),
+             SwigType_namestr(name));
+      Printf(w->code, "}\n");
+
+      Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
+
+      if (!is_void)
+        Printf(w->code, "return %s;", qualified_return);
+    }
+
+    Printf(w->code, "}");
+
+    // We expose virtual protected methods via an extra public inline method which makes a straight call to the wrapped class' method
+    String *inline_extra_method = NewString("");
+    if (dirprot_mode() && !is_public(n) && !pure_virtual) {
+      Printv(inline_extra_method, declaration, NIL);
+      String *extra_method_name = NewStringf("%sSwigPublic", name);
+      Replaceall(inline_extra_method, name, extra_method_name);
+      Replaceall(inline_extra_method, ";\n", " {\n      ");
+      if (!is_void)
+        Printf(inline_extra_method, "return ");
+      String *methodcall = Swig_method_call(super, l);
+      Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
+      Delete(methodcall);
+      Delete(extra_method_name);
+    }
+
+    /* emit the director method */
+    if (status == SWIG_OK && output_director) {
+      if (!is_void) {
+        Replaceall(w->code, "$null", qualified_return);
+      } else {
+        Replaceall(w->code, "$null", "");
+      }
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
+      if (!GetFlag(n, "feature:ignore")) {
+        Printv(imclass_directors, callback_def, callback_code, NIL);
+        if (bridge_code) {
+          // The director methods are processed before the proxy class buffers exist, so the
+          // bridges are collected per class here and emitted into the proxy class in classHandler()
+          if (!director_bridge_hash)
+            director_bridge_hash = NewHash();
+          String *bridges = Getattr(director_bridge_hash, Getattr(parent, "name"));
+          if (!bridges) {
+            bridges = NewString("");
+            Setattr(director_bridge_hash, Getattr(parent, "name"), bridges);
+          }
+          Printv(bridges, bridge_code, NIL);
+        }
+      }
+      if (!Getattr(n, "defaultargs")) {
+        Replaceall(w->code, "$symname", symname);
+        Wrapper_print(w, f_directors);
+        Printv(f_directors_h, declaration, NIL);
+        Printv(f_directors_h, inline_extra_method, NIL);
+      }
+    }
+
+    Delete(inline_extra_method);
+    Delete(qualified_return);
+    Delete(jnidesc);
+    Delete(c_ret_type);
+    Delete(jniret_desc);
+    Delete(declaration);
+    Delete(callback_def);
+    Delete(callback_code);
+    Delete(bridge_code);
+    Delete(bridge_params);
+    Delete(bridge_args);
+    DelWrapper(w);
+
+    return status;
+  }
+
+  /* ------------------------------------------------------------
+   * directorExceptHandler()
+   *
+   * Emit code to map Kotlin exceptions back to C++ exceptions when
+   * feature("director:except") is applied to a method node.
+   * This is generated after the Kotlin method upcall.
+   * ------------------------------------------------------------ */
+
+  void directorExceptHandler(Node *n, ParmList *throw_parm_list, Wrapper *w) {
+
+    String *directorexcept = Getattr(n, "feature:director:except");
+    if (!directorexcept) {
+      directorexcept = NewString("");
+      Printf(directorexcept, "jthrowable $error = jenv->ExceptionOccurred();\n");
+      Printf(directorexcept, "if ($error) {");
+      Printf(directorexcept, "$directorthrowshandlers\n");
+      Printf(directorexcept, "  Swig::DirectorException::raise(jenv, $error);\n");
+      Printf(directorexcept, "}\n");
+    } else {
+      directorexcept = Copy(directorexcept);
+    }
+
+    // Can explicitly disable director:except by setting to "" or "0"
+    if (Len(directorexcept) > 0 && Cmp(directorexcept, "0") != 0) {
+
+      // Replace $packagepath
+      substitutePackagePath(directorexcept, 0);
+
+      // Replace $directorthrowshandlers with any defined typemap handlers (or nothing)
+      if (Strstr(directorexcept, "$directorthrowshandlers")) {
+        String *directorthrowshandlers_code = NewString("");
+
+        for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
+          String *tm = Getattr(p, "tmap:directorthrows");
+
+          if (tm) {
+            // replace $packagepath/$kotlinclassname
+            String *directorthrows = canonicalizeJNIDescriptor(tm, p);
+            Printv(directorthrowshandlers_code, directorthrows, NIL);
+            Delete(directorthrows);
+          } else {
+            String *t = Getattr(p, "type");
+            Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, Getfile(n), Getline(n), "No directorthrows typemap defined for %s\n", SwigType_str(t, 0));
+          }
+        }
+        Replaceall(directorexcept, "$directorthrowshandlers", directorthrowshandlers_code);
+        Delete(directorthrowshandlers_code);
+      }
+
+      Replaceall(directorexcept, "$error", "swigerror");
+      Printf(w->code, "    %s\n", directorexcept);
+    }
+    Delete(directorexcept);
+  }
+
+  /* ------------------------------------------------------------
+   * directorPrefixArgs()
+   * ------------------------------------------------------------ */
+
+  void directorPrefixArgs(Node *n) {
+    /* Need to prepend 'jenv' to the director constructor's argument list */
+    String *jenv_type = NewString("JNIEnv");
+    SwigType_add_pointer(jenv_type);
+    Parm *p = NewParm(jenv_type, NewString("jenv"), n);
+    Setattr(p, "arg:byname", "1");
+    set_nextSibling(p, NULL);
+
+    Setattr(n, "director:prefix_args", p);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorConstructor()
+   * ------------------------------------------------------------ */
+
+  int classDirectorConstructor(Node *n) {
+    Node *parent = parentNode(n);
+    String *decl = Getattr(n, "decl");
+    String *supername = Swig_class_name(parent);
+    String *dirclassname = directorClassName(parent);
+    String *sub = NewString("");
+    Parm *p;
+    ParmList *superparms = Getattr(n, "parms");
+    ParmList *parms;
+    int argidx = 0;
+
+    /* Assign arguments to superclass's parameters, if not already done */
+    for (p = superparms; p; p = nextSibling(p)) {
+      String *pname = Getattr(p, "name");
+
+      if (!pname) {
+        pname = NewStringf("arg%d", argidx++);
+        Setattr(p, "name", pname);
+      }
+    }
+
+    /* insert jenv prefix argument */
+    parms = CopyParmList(superparms);
+
+    String *jenv_type = NewString("JNIEnv");
+    SwigType_add_pointer(jenv_type);
+    p = NewParm(jenv_type, NewString("jenv"), n);
+    set_nextSibling(p, parms);
+    parms = p;
+
+    directorPrefixArgs(n);
+
+    if (!Getattr(n, "defaultargs")) {
+      /* constructor */
+      {
+        String *basetype = Getattr(parent, "classtype");
+        String *target = Swig_method_decl(0, decl, dirclassname, parms, 0);
+        String *call = Swig_csuperclass_call(0, basetype, superparms);
+        String *classtype = SwigType_namestr(Getattr(n, "name"));
+
+        Printf(f_directors, "%s::%s : %s, %s {\n", dirclassname, target, call, Getattr(parent, "director:ctor"));
+        Printf(f_directors, "}\n\n");
+
+        Delete(classtype);
+        Delete(target);
+        Delete(call);
+      }
+
+      /* constructor header */
+      {
+        String *target = Swig_method_decl(0, decl, dirclassname, parms, 1);
+        Printf(f_directors_h, "    %s;\n", target);
+        Delete(target);
+      }
+    }
+
+    Delete(sub);
+    Delete(supername);
+    Delete(jenv_type);
+    Delete(parms);
+    Delete(dirclassname);
+    return Language::classDirectorConstructor(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorDefaultConstructor()
+   * ------------------------------------------------------------ */
+
+  int classDirectorDefaultConstructor(Node *n) {
+    String *classname = Swig_class_name(n);
+    String *classtype = SwigType_namestr(Getattr(n, "name"));
+    String *dirClassName = directorClassName(n);
+    Wrapper *w = NewWrapper();
+
+    Printf(w->def, "%s::%s(JNIEnv *jenv) : %s {", dirClassName, dirClassName, Getattr(n, "director:ctor"));
+    Printf(w->code, "}\n");
+    Wrapper_print(w, f_directors);
+
+    Printf(f_directors_h, "    %s(JNIEnv *jenv);\n", dirClassName);
+    DelWrapper(w);
+    Delete(classtype);
+    Delete(classname);
+    Delete(dirClassName);
+    directorPrefixArgs(n);
+    return Language::classDirectorDefaultConstructor(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorInit()
+   * ------------------------------------------------------------ */
+
+  int classDirectorInit(Node *n) {
+    Delete(none_comparison);
+    none_comparison = NewString("");  // not used
+
+    Delete(director_ctor_code);
+    director_ctor_code = NewString("$director_new");
+
+    directorDeclaration(n);
+
+    Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
+    Printf(f_directors_h, "\npublic:\n");
+    Printf(f_directors_h, "    void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global);\n");
+
+    /* Keep track of the director methods for this class */
+    first_class_dmethod = curr_class_dmethod = n_dmethods;
+
+    return Language::classDirectorInit(n);
+  }
+
+  /* ----------------------------------------------------------------------
+   * classDirectorDestructor()
+   * ---------------------------------------------------------------------- */
+
+  int classDirectorDestructor(Node *n) {
+    Node *current_class = getCurrentClass();
+    String *full_classname = Getattr(current_class, "name");
+    String *classname = Swig_class_name(current_class);
+    String *dirClassName = directorClassName(current_class);
+    Wrapper *w = NewWrapper();
+
+    if (Getattr(n, "noexcept")) {
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirClassName);
+      Printf(w->def, "%s::~%s() noexcept {\n", dirClassName, dirClassName);
+    } else if (Getattr(n, "throw")) {
+      Printf(f_directors_h, "    virtual ~%s() throw();\n", dirClassName);
+      Printf(w->def, "%s::~%s() throw() {\n", dirClassName, dirClassName);
+    } else {
+      Printf(f_directors_h, "    virtual ~%s();\n", dirClassName);
+      Printf(w->def, "%s::~%s() {\n", dirClassName, dirClassName);
+    }
+
+    /* Ensure that correct directordisconnect typemap's method name is called
+     * here: */
+
+    Node *disconn_attr = NewHash();
+    String *disconn_methodname = NULL;
+
+    typemapLookup(n, "directordisconnect", full_classname, WARN_NONE, disconn_attr);
+    disconn_methodname = Getattr(disconn_attr, "tmap:directordisconnect:methodname");
+
+    Printv(w->code, "  swig_disconnect_director_self(\"", disconn_methodname, "\");\n", "}\n", NIL);
+
+    Wrapper_print(w, f_directors);
+
+    DelWrapper(w);
+    Delete(disconn_attr);
+    Delete(classname);
+    Delete(dirClassName);
+    return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorEnd()
+   * ------------------------------------------------------------ */
+
+  int classDirectorEnd(Node *n) {
+    String *full_classname = Getattr(n, "name");
+    String *classname = getProxyName(full_classname, true);
+    String *director_classname = directorClassName(n);
+    String *internal_classname;
+
+    Wrapper *w = NewWrapper();
+
+    if (Len(package_path) > 0)
+      internal_classname = NewStringf("%s/%s", package_path, classname);
+    else
+      internal_classname = NewStringf("%s", classname);
+
+    // If the namespace is multiple levels, the result of getNSpace() will have inserted
+    // .'s to delimit namespaces, so we need to replace those with /'s
+    Replace(internal_classname, NSPACE_SEPARATOR, "/", DOH_REPLACE_ANY);
+
+    Printf(w->def, "void %s::swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global) {", director_classname);
+
+    Printf(w->def, "static jclass baseclass = swig_new_global_ref(jenv, \"%s\");\n", internal_classname);
+    Printf(w->def, "if (!baseclass) return;\n");
+
+    Printf(w->code, "if (swig_set_self(jenv, jself, swig_mem_own, weak_global)) {\n");
+
+    int n_methods = curr_class_dmethod - first_class_dmethod;
+
+    if (n_methods) {
+      /* Emit the swig_overrides() method and the swig_override array */
+      Printf(f_directors_h, "public:\n");
+      Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
+      Printf(f_directors_h, "      return (n < %d ? swig_override[n] : false);\n", n_methods);
+      Printf(f_directors_h, "    }\n");
+      Printf(f_directors_h, "protected:\n");
+      Printf(f_directors_h, "    Swig::BoolArray<%d> swig_override;\n", n_methods);
+
+      /* Emit the code to look up the class's methods, initialize the override array */
+
+      Printf(w->code, "  bool derived = (jenv->IsSameObject(baseclass, jcls) ? false : true);\n");
+      Printf(w->code, "  for (int i = 0; i < %d; ++i) {\n", n_methods);
+      // Generally, derived classes have a mix of overridden and
+      // non-overridden methods and it is worth making a GetMethodID
+      // check during initialization to determine if each method is
+      // overridden, thus avoiding unnecessary calls into Kotlin.
+      //
+      // On the other hand, when derived classes are
+      // expected to override all director methods then the
+      // GetMethodID calls are inefficient, and it is better to let
+      // the director unconditionally call up into Kotlin.  The resulting code
+      // will still behave correctly (though less efficiently) when Kotlin
+      // code doesn't override a given method.
+      //
+      // The assumeoverride feature on a director controls whether or not
+      // overrides are assumed.
+      if (GetFlag(n, "feature:director:assumeoverride")) {
+        Printf(w->code, "  swig_override[i] = derived;\n");
+      } else {
+        Printf(w->def, "static SwigDirectorMethod methods[] = {\n");
+
+        for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+          UpcallData *udata = Getitem(dmethods_seq, i);
+
+          Printf(w->def, "SwigDirectorMethod(jenv, baseclass, \"%s\", \"%s\")", Getattr(udata, "method"), Getattr(udata, "fdesc"));
+          if (i != curr_class_dmethod - 1)
+            Putc(',', w->def);
+          Putc('\n', w->def);
+        }
+
+        Printf(w->def, "};");
+
+        Printf(w->code, "  swig_override[i] = false;\n");
+        Printf(w->code, "  if (derived) {\n");
+        Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].name, methods[i].desc);\n");
+        Printf(w->code, "    swig_override[i] = methods[i].methid && (methid != methods[i].methid);\n");
+        Printf(w->code, "    jenv->ExceptionClear();\n");
+        Printf(w->code, "  }\n");
+      }
+      Printf(w->code, "}\n");
+    } else {
+      Printf(f_directors_h, "public:\n");
+      Printf(f_directors_h, "    bool swig_overrides(int n) {\n");
+      Printf(f_directors_h, "      return false;\n");
+      Printf(f_directors_h, "    }\n");
+    }
+
+    Printf(f_directors_h, "};\n\n");
+    Printf(w->code, "}\n");
+    Printf(w->code, "}\n");
+
+    Wrapper_print(w, f_directors);
+
+    DelWrapper(w);
+    Delete(internal_classname);
+
+    return Language::classDirectorEnd(n);
+  }
+
+  /* --------------------------------------------------------------------
+   * classDirectorDisown()
+   * ------------------------------------------------------------------*/
+
+  virtual int classDirectorDisown(Node *n) {
+    (void)n;
+    return SWIG_OK;
+  }
+
+  /*----------------------------------------------------------------------
+   * extraDirectorProtectedCPPMethodsRequired()
+   *--------------------------------------------------------------------*/
+
+  bool extraDirectorProtectedCPPMethodsRequired() const {
+    return false;
+  }
+
+  /*----------------------------------------------------------------------
+   * directorDeclaration()
+   *
+   * Generate the director class's declaration
+   * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
+   *--------------------------------------------------------------------*/
+
+  void directorDeclaration(Node *n) {
+    String *base = Getattr(n, "classtype");
+    String *class_ctor = NewString("Swig::Director(jenv)");
+
+    String *directorname = directorClassName(n);
+    String *declaration = Swig_class_declaration(n, directorname);
+
+    Printf(declaration, " : public %s, public Swig::Director", base);
+
+    // Stash stuff for later.
+    Setattr(n, "director:decl", declaration);
+    Setattr(n, "director:ctor", class_ctor);
+  }
+
+  /*----------------------------------------------------------------------
+   * nestedClassesSupport()
+   *--------------------------------------------------------------------*/
+
+  NestedClassSupport nestedClassesSupport() const {
+    return NCS_Full;
+  }
+}; /* class KOTLIN */
+
+/* -----------------------------------------------------------------------------
+ * swig_kotlin()    - Instantiate module
+ * ----------------------------------------------------------------------------- */
+
+static Language *new_swig_kotlin() {
+  return new KOTLIN();
+}
+extern "C" Language *swig_kotlin(void) {
+  return new_swig_kotlin();
+}
+
+/* -----------------------------------------------------------------------------
+ * Static member variables
+ * ----------------------------------------------------------------------------- */
+
+const char *KOTLIN::usage = "\
+Kotlin Options (available with -kotlin)\n\
+     -doxygen        - Convert C++ doxygen comments to KDoc comments in proxy classes\n\
+     -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
+     -debug-doxygen-translator - Display doxygen translator module debugging information\n\
+     -nopgcpp        - Suppress premature garbage collection prevention parameter\n\
+     -noproxy        - Generate the low-level functional interface instead\n\
+                       of proxy classes\n\
+     -oldvarnames    - Old intermediary method names for variable wrappers\n\
+     -package <name> - Set name of the Kotlin package to <name>\n\
+\n";

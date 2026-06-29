@@ -75,6 +75,7 @@ skip-d		= test -n "@SKIP_D@"
 skip-go		= test -n "@SKIP_GO@"
 skip-guile	= test -n "@SKIP_GUILE@"
 skip-java	= test -n "@SKIP_JAVA@"
+skip-kotlin	= test -n "@SKIP_KOTLIN@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
 skip-lua    	= test -n "@SKIP_LUA@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
@@ -116,6 +117,7 @@ check-aliveness:
 	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-guile)    || ./$(TARGET) -guile      -help
 	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-kotlin)   || ./$(TARGET) -kotlin     -help
 	@$(skip-javascript) || ./$(TARGET) -javascript -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
@@ -139,6 +141,7 @@ check-versions:					\
 	check-go-version			\
 	check-guile-version			\
 	check-java-version			\
+	check-kotlin-version			\
 	check-javascript-version		\
 	check-lua-version			\
 	check-ocaml-version			\
@@ -173,6 +176,7 @@ check-examples:					\
 	check-go-examples			\
 	check-guile-examples			\
 	check-java-examples			\
+	check-kotlin-examples			\
 	check-javascript-examples		\
 	check-lua-examples			\
 	check-ocaml-examples			\
@@ -192,6 +196,7 @@ d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
+kotlin_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/kotlin/check.list)
 javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
@@ -248,6 +253,7 @@ check-test-suite:				\
 	check-go-test-suite			\
 	check-guile-test-suite			\
 	check-java-test-suite			\
+	check-kotlin-test-suite			\
 	check-javascript-test-suite		\
 	check-lua-test-suite			\
 	check-ocaml-test-suite			\
@@ -295,6 +301,7 @@ all-test-suite:					\
 	all-go-test-suite			\
 	all-guile-test-suite			\
 	all-java-test-suite			\
+	all-kotlin-test-suite			\
 	all-javascript-test-suite		\
 	all-lua-test-suite			\
 	all-ocaml-test-suite			\
@@ -318,6 +325,7 @@ broken-test-suite:				\
 	broken-go-test-suite			\
 	broken-guile-test-suite			\
 	broken-java-test-suite			\
+	broken-kotlin-test-suite			\
 	broken-javascript-test-suite		\
 	broken-lua-test-suite			\
 	broken-ocaml-test-suite			\
@@ -459,7 +467,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = typemaps tcl perl5 python guile java ruby php ocaml octave \
+lib-languages = typemaps tcl perl5 python guile java kotlin ruby php ocaml octave \
 	csharp lua r c go d javascript javascript/jsc \
 	javascript/v8 javascript/napi scilab xml
 

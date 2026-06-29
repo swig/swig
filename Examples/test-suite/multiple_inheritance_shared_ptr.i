@@ -36,7 +36,7 @@
 #endif
 %enddef
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %include <boost_shared_ptr.i>
 %shared_ptr(Space::ABase1)
 %shared_ptr(Space::CBase1)

@@ -26,6 +26,13 @@ namespace Foo {
     %typemap(javain) Str1 * = char *;
     %typemap(javaout) Str1 * = char *;
 #endif
+#ifdef SWIGKOTLIN
+    %typemap(jni) Str1 * = char *;
+    %typemap(ktype) Str1 * = char *;
+    %typemap(kstype) Str1 * = char *;
+    %typemap(kin) Str1 * = char *;
+    %typemap(kout) Str1 * = char *;
+#endif
 #ifdef SWIGGO
     %typemap(gotype) Str1 * = char *;
 #endif
