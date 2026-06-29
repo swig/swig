@@ -22,6 +22,9 @@
 %}
 
 %include <std_string.i>
+#if defined SWIGOCTAVE || defined SWIGPYTHON
+%implicitconv WrapPtr;
+#endif
 
 %inline %{
   #include <string>
@@ -81,6 +84,22 @@
   public:
     void accelerate(speed s = SLOW) { }
   };
+
+  // NULL and nullptr (#3472)
+  struct opaque;
+  class WrapPtr {
+  public:
+    WrapPtr(opaque*) {}
+  };
+  void wrapptr_0(int x, WrapPtr w = 0) { (void)x; (void)w; }
+  void wrapptr_0l(int x, WrapPtr w = 0L) { (void)x; (void)w; }
+  void wrapptr_null(int x, WrapPtr w = NULL) { (void)x; (void)w; }
+  // Show SWIG nullptr, but give compiler C++98 code.
+#ifdef SWIG
+  void wrapptr_nullptr(int x, WrapPtr w = nullptr) { (void)x; (void)w; }
+#else
+  void wrapptr_nullptr(int x, WrapPtr w = NULL) { (void)x; (void)w; }
+#endif
 
   // casts
   const char * casts1(const char *m = (const char *) NULL) {

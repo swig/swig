@@ -93,4 +93,10 @@ std::string Combo6(MyType &mytype) { return ""; }
 std::string Combo7(std::shared_ptr<MyType> mytype) { return mytype->valu + "Combo7"; }
 std::string Combo7(MyType &mytype) { return ""; }
 std::string Combo7(MyType *mytype) { return ""; }
+
+bool default_0(std::shared_ptr<MyType> p = 0) { return !p.get(); }
+bool default_0l(std::shared_ptr<MyType> p = 0L) { return !p.get(); }
+bool default_null(std::shared_ptr<MyType> p = NULL) { return !p.get(); }
+bool default_nullptr(std::shared_ptr<MyType> p = nullptr) { return !p.get(); }
+
 %}

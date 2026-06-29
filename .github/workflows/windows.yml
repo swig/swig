@@ -35,16 +35,19 @@ jobs:
   clang-format:
     runs-on: ubuntu-latest
     name: clang-format 21
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v6.0.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+        persist-credentials: false
+
+    - name: Check with clang-format
+      uses: RafikFarhad/clang-format-github-action@v6.0.1
+      with:
+        sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+        style: file
 
   # This action build using MSYS2 environment
   # We use two compilers C/C++:
@@ -185,9 +188,10 @@ jobs:
       uses: actions/checkout@v6
       with:
         show-progress: false
+        persist-credentials: false
 
     - name: Install CCache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.23
       with:
         key: ${{ matrix.os || 'windows-2025' }}-${{ matrix.COMPILER || 'msvc' }}
 
@@ -243,9 +247,12 @@ jobs:
             #  The MSYSTEM=MSYS, which supports 'Cygwin', uses the '/usr' path prefix.
             #  We do not use it at the moment.
 
+            # MinGW-w64 package list
+            ming_pkgs+=(binutils make autotools pcre2)
+
             case "$SWIGLANG" in
             python)
-              MORE_MSYS_PKGS+=" ${mingw_variant}python"
+              ming_pkgs+=(python)
               ;;
             ruby)
               if [[ -n "$VER" ]]; then
@@ -253,7 +260,7 @@ jobs:
                 RUBYDIR="$(cygpath -w $ruby_dir)"
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
-                MORE_MSYS_PKGS+=" ${mingw_variant}ruby"
+                ming_pkgs+=(ruby)
               fi
               ;;
             go)
@@ -268,8 +275,15 @@ jobs:
               ;;
             esac
 
-            # MinGW-w64 packages to install with MSYS2
-            for n in binutils make autotools pcre2 boost; do
+            # More MSYS2 packages to install
+            MORE_MSYS_PKGS+=" base-devel"
+
+            # Boost is needed with languages, we can skip for CCache tests
+            if [[ -n "$SWIGLANG" ]]; then
+              ming_pkgs+=(boost)
+            fi
+            # Add MinGW-w64 packages to MSYS2 packages list
+            for n in "${ming_pkgs[@]}"; do
               MORE_MSYS_PKGS+=" ${mingw_variant}$n"
             done
 
@@ -277,7 +291,7 @@ jobs:
             echo "PCRE2_CFLAGS=-I$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
             echo "PCRE2_LIBS=-L$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
 
-            echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
+            echo "MORE_MSYS_PKGS=$MORE_MSYS_PKGS" >> $GITHUB_ENV
             echo "BOOST_PATH=/c/msys64$mingw_dir" >> $GITHUB_ENV
 
             # Set MSYS2 GCC compiler location
@@ -310,6 +324,10 @@ jobs:
             fi
           fi # COMPILER
 
+          # Extra tools for debugging, like hexdump, rev, hardlink.
+          # See 'Files:' in https://packages.msys2.org/packages/util-linux
+          # MORE_MSYS_PKGS+=" util-linux"
+
           if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
             java_path="JAVA_HOME_${VER}_X64"
             echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
@@ -322,6 +340,9 @@ jobs:
     - name: Install MSYS2 Packages
       shell: cmd
       run: |
+          # We must run in `cmd`.
+          # As the update will terminate all running bash terminals!
+          # Including the terminal that may be used to execute the 'pacman' itself.
           rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
           if %ErrorLevel% NEQ 0 (exit 1)

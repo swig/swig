@@ -744,17 +744,17 @@ private:
     if (stringval) {
       return NewStringf("\"%(escape)s\"", stringval);
     }
+    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+    SwigType *unqualified_type = NIL;
+    if (SwigType_isreference(resolved_type)) {
+      SwigType *t = Copy(resolved_type);
+      t = SwigType_del_reference(t);
+      unqualified_type = SwigType_strip_qualifiers(t);
+      Delete(t);
+    } else {
+      unqualified_type = SwigType_strip_qualifiers(resolved_type);
+    }
     if (numval) {
-      SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-      SwigType *unqualified_type = NIL;
-      if (SwigType_isreference(resolved_type)) {
-        SwigType *t = Copy(resolved_type);
-        t = SwigType_del_reference(t);
-        unqualified_type = SwigType_strip_qualifiers(t);
-        Delete(t);
-      } else {
-        unqualified_type = SwigType_strip_qualifiers(resolved_type);
-      }
       if (Equal(unqualified_type, "bool")) {
         Delete(resolved_type);
         Delete(unqualified_type);
@@ -762,14 +762,55 @@ private:
       }
       Delete(resolved_type);
       Delete(unqualified_type);
-      if (SwigType_ispointer(type) && Equal(v, "0"))
-        return NewString("None");
+      if (SwigType_ispointer(type) && Equal(numval, "0"))
+        return NewString("nil");
       return Copy(v);
     }
     if (v && Len(v) > 0) {
-      if (Equal(v, "NULL") || Equal(v, "nullptr"))
-        return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
+      if (Equal(v, "nullptr")) {
+        // nullptr is type nullptr_t which doesn't implicitly convert to 0.
+        Delete(resolved_type);
+        Delete(unqualified_type);
+        return NewString("nil");
+      }
+      if (Equal(v, "NULL")) {
+        // The C and C++ standards both allow the implementation to define NULL
+        // to `0`, and the inadvertent use of NULL as an integer zero is
+        // sometimes seen in code.
+        //
+        // However this use is semantically wrong, and GCC and clang both
+        // define NULL to a magic value which warns if implicitly converted
+        // to an integer, so we only implicitly convert to zero if the type
+        // resolves to a built-in arithmetic type.
+        switch (SwigType_type(unqualified_type)) {
+        case T_INT:
+        case T_LONG:
+        case T_SHORT:
+        case T_UINT:
+        case T_USHORT:
+        case T_ULONG:
+        case T_CHAR:
+        case T_SCHAR:
+        case T_UCHAR:
+        case T_WCHAR:
+        case T_FLOAT:
+        case T_DOUBLE:
+        case T_LONGDOUBLE:
+        case T_BOOL:
+        case T_LONGLONG:
+        case T_ULONGLONG:
+          Delete(resolved_type);
+          Delete(unqualified_type);
+          return NewString("0");
+        default:
+          Delete(resolved_type);
+          Delete(unqualified_type);
+          return NewString("nil");
+        }
+      }
     }
+    Delete(resolved_type);
+    Delete(unqualified_type);
     return 0;
   }
 
