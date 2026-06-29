@@ -115,11 +115,13 @@ AC_ARG_ENABLE([ccache], AS_HELP_STRING([--disable-ccache], [disable building and
 AC_MSG_CHECKING([whether to enable ccache-swig])
 AC_MSG_RESULT([$enable_ccache])
 
-if test "$enable_ccache" = yes; then
-  AC_CONFIG_SUBDIRS(CCache)
-  ENABLE_CCACHE=1
+AS_UNSET([ENABLE_CCACHE])
+if test -d "$ABS_SRCDIR/CCache" && test "$enable_ccache" = yes; then
+  AC_CONFIG_SUBDIRS([CCache])
+  AS_VAR_SET([ENABLE_CCACHE], [1])
+  AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 fi
-AC_SUBST(ENABLE_CCACHE)
+AC_SUBST([ENABLE_CCACHE])
 
 #----------------------------------------------------------------
 # Optional packages for development
@@ -2880,7 +2882,6 @@ AC_CONFIG_FILES([
     Tools/javascript/Makefile
 ])
 AC_CONFIG_FILES([preinst-swig], [chmod +x preinst-swig])
-AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 
 #--------------------------------------------------------------------
 # Building Examples/ out of source directory

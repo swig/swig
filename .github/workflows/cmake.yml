@@ -75,6 +75,15 @@ jobs:
         show-progress: false
         persist-credentials: false
 
+    - name: Checkout CCache
+      uses: actions/checkout@v6
+      with:
+        repository: erezgeva/swig-ccache
+        ref: swig_latest
+        path: CCache
+        show-progress: false
+        persist-credentials: false
+
     - name: Install Dependencies
       run: |
           case $(uname) in
@@ -128,6 +137,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v6
       with:
+        show-progress: false
+        persist-credentials: false
+
+    - name: Checkout CCache
+      uses: actions/checkout@v6
+      with:
+        repository: erezgeva/swig-ccache
+        ref: swig_latest
+        path: CCache
         show-progress: false
         persist-credentials: false
 
