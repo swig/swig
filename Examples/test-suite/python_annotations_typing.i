@@ -2,6 +2,7 @@
 
 %include <std_string.i>
 %include <std_wstring.i>
+%include <std_complex.i>
 
 // Tests the typing annotations
 %feature("python:annotations", "typing");
@@ -85,11 +86,15 @@ void take_argv(int argc, char **argv) {}
 
 void take_argv_surround(double before, int argc, char **argv, short after) {}
 
-void argcheck_bool(bool a_bool) {}
+void argcheck_bool(
+  bool a_bool,
+  const bool &a_bool_cref
+) {}
 
 void argcheck_char(
   char a_char,
-  wchar_t a_wchar
+  wchar_t a_wchar,
+  const char &a_char_cref
 ) {}
 
 void argcheck_int(
@@ -102,17 +107,29 @@ void argcheck_int(
   long a_long,
   unsigned long a_ulong,
   long long a_llong,
-  unsigned long long a_ullong
+  unsigned long long a_ullong,
+  const short &a_short_cref,
+  const int &a_int_cref
 ) {}
 
 void argcheck_float(
   float a_float,
-  double a_double
+  double a_double,
+  const double &a_double_cref
+) {}
+
+void argcheck_complex(
+  std::complex<float> a_cfloat,
+  std::complex<double> a_cdouble,
+  const std::complex<double> &a_cdouble_cref
 ) {}
 
 void argcheck_str(
   const char* a_cstr,
-  const wchar_t *a_wcstr
+  const wchar_t *a_wcstr,
+  std::string a_stdstr,
+  std::wstring a_stdwstr,
+  const std::string &a_stdstr_cref
 ) {}
 
 void argcheck_fnptr(int(*f)(char, bool)) {}
