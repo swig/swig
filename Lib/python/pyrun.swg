@@ -22,11 +22,10 @@
 #define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Python_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Python_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 
-#ifdef SWIGPYTHON_BUILTIN
-#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(self, ptr, type, flags)
-#else
+/* always passes NULL for self -- user code (%inline, etc.) does not have
+   'self' in scope.  The tp_init path passes it via the SWIG_BUILTIN_INIT flag,
+   handled in SWIG_Python_NewPointerObj.  See issue #2613. */
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(NULL, ptr, type, flags)
-#endif
 
 #define SWIG_InternalNewPointerObj(ptr, type, flags)	SWIG_Python_NewPointerObj(NULL, ptr, type, flags)
 
@@ -1423,13 +1422,20 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 #ifdef SWIGPYTHON_BUILTIN
   (void)obj;
   if (PyWeakref_CheckProxy(pyobj)) {
-#if PY_VERSION_HEX >= 0x030d0000
+#if PY_VERSION_HEX >= 0x030d0000 && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
     if (PyWeakref_GetRef(pyobj, &pyobj) > 0)
       Py_DECREF(pyobj);
     else
       pyobj = NULL;
 #else
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
     pyobj = PyWeakref_GetObject(pyobj);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 #endif
     if (pyobj && SwigPyObject_Check(pyobj))
       return (SwigPyObject*) pyobj;
@@ -1449,8 +1455,25 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
       obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
     } else {
       if (PyWeakref_CheckProxy(pyobj)) {
-        PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+#if PY_VERSION_HEX >= 0x030d0000 && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
+	PyObject *wobj;
+	if (PyWeakref_GetRef(pyobj, &wobj) > 0) {
+	  SwigPyObject *result = SWIG_Python_GetSwigThis(wobj);
+	  Py_DECREF(wobj);
+	  return result;
+	}
+	return 0;
+#else
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+	PyObject *wobj = PyWeakref_GetObject(pyobj);
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
+#endif
       }
       obj = PyObject_GetAttr(pyobj, SWIG_This());
       if (obj) {
@@ -1790,7 +1813,7 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
   own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
   if (clientdata && clientdata->pytype) {
     SwigPyObject *newobj;
-    if (flags & SWIG_BUILTIN_TP_INIT) {
+    if ((flags & SWIG_BUILTIN_TP_INIT) && self) {
       newobj = (SwigPyObject*) self;
       if (newobj->ptr) {
 #ifndef Py_LIMITED_API
@@ -1823,7 +1846,13 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
     return SWIG_Py_Void();
   }
 
-  assert(!(flags & SWIG_BUILTIN_TP_INIT));
+  /* When self is NULL (call from user code via %inline) the BUILTIN_TP_INIT
+   * flag is meaningless - just create a new object.  See issue #2613. */
+  if (!(flags & SWIG_BUILTIN_TP_INIT) || !self) {
+    flags &= ~SWIG_BUILTIN_TP_INIT;
+  } else {
+    assert(0);
+  }
 
   robj = SwigPyObject_New(ptr, type, own);
   if (robj && clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
@@ -2028,6 +2057,25 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(arg
 }
 
 #ifdef SWIGPYTHON_BUILTIN
+
+#ifndef Py_LIMITED_API
+#define SWIG_PyType_Lookup(tp, name) _PyType_Lookup(tp, name)
+#else
+/* Look up name in the type's MRO using only limited API calls.
+   Returns a borrowed reference (NULL if not found), with any
+   AttributeError cleared (matching _PyType_Lookup behaviour). */
+SWIGINTERN PyObject *
+SWIG_PyType_Lookup(PyTypeObject *type, PyObject *name) {
+  PyObject *result = PyObject_GetAttr((PyObject *)type, name);
+  if (result) {
+    Py_DECREF(result);
+  } else {
+    PyErr_Clear();
+  }
+  return result;
+}
+#endif
+
 SWIGRUNTIME int
 SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   PyTypeObject *tp = Py_TYPE(obj);
@@ -2058,15 +2106,25 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
     SWIG_Py_INCREF(name);
   }
 
+#ifndef Py_LIMITED_API
   if (!tp->tp_dict) {
     if (PyType_Ready(tp) != 0)
       goto done;
   }
-
   descr = _PyType_Lookup(tp, name);
+#else
+  if (PyType_Ready(tp) != 0)
+    goto done;
+  descr = SWIG_PyType_Lookup(tp, name);
+#endif
   f = NULL;
-  if (descr != NULL)
+  if (descr != NULL) {
+#ifndef Py_LIMITED_API
     f = Py_TYPE(descr)->tp_descr_set;
+#else
+    f = (descrsetfunc)PyType_GetSlot(Py_TYPE(descr), Py_tp_descr_set);
+#endif
+  }
   if (!f) {
     if (PyString_Check(name)) {
       encoded_name = name;
