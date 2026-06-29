@@ -1444,7 +1444,7 @@ else
   fi
 
   #----------------------------------------------------------------
-  # Look for QuickJS settings (JSQUICKJSPATH, JSQUICKJSINC, JSQUICKJSLIB, JSQUICKJSVERSION, JSQUICKJSENABLED)
+  # Look for QuickJS settings (JSQUICKJSINC, JSQUICKJSLIB, JSQUICKJSENABLED)
   #----------------------------------------------------------------
 
   # check for include files
@@ -1516,7 +1516,7 @@ else
     LIBS=$save_LIBS
 
     if test "$JSQUICKJSLIB" != "" ; then
-      AC_MSG_CHECKING(for QuickJS qjs executable version)
+      AC_MSG_CHECKING(for QuickJS qjs executable and version)
       AC_ARG_WITH(jsquickjsexe, [  --with-jsquickjsexe=path     Set location of QuickJS executable], [JSQUICKJSEXEDIR="$withval"], [JSQUICKJSEXEDIR=])
 
       # if executable is not specified we try to find it
@@ -1568,7 +1568,6 @@ AC_SUBST(JSV8DYNAMICLINKING)
 
 AC_SUBST(JSQUICKJSINC)
 AC_SUBST(JSQUICKJSLIB)
-AC_SUBST(JSQUICKJSVERSION)
 
 AC_SUBST(JSCENABLED)
 AC_SUBST(JSV8ENABLED)
