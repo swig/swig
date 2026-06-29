@@ -39,7 +39,7 @@ SWIGRUNTIME void SWIG_QuickJS_exception(JSContext *ctx, int code, const char* ms
 #define SWIG_QUICKJS_VALUE_MAX_LEN 512
 #define SWIG_QUICKJS_EXCEPTION_MSG_MAX_LEN 600
 
-SWIGINTERN void SWIG_QuickJS_strcat(void *s, const char *v, long unsigned len) {
+SWIGINTERN void SWIG_QuickJS_strcat(void *s, const char *v, size_t len) {
   if (v && len>=1 && (strlen((const char *)s)+len<SWIG_QUICKJS_VALUE_MAX_LEN)) strncat((char*)s, v, len);
 }
 
