@@ -11,9 +11,6 @@
 #		function.
 #   For testing native v8, jsc extensions and quickjs we provide our own
 #		interpreter (see 'Tools/javascript').
-# Note: for QuickJS, the interpreter implementation is in C, not
-#		wrapped in a C++ shell as v8 or jsc. The common shell
-#		(javascript.cxx) just 'exec()' the provided executable (quickjs).
 #
 # ----------------------------------------------------------------
 all: javascript
@@ -31,7 +28,7 @@ LINKFLAGS = @JSINTERPRETERLINKFLAGS@
 
 ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
-JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
+JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@ @JSQUICKJSLIB@
 JSV8ENABLED = @JSV8ENABLED@
 JSCENABLED = @JSCENABLED@
 JSQUICKJSENABLED = @JSQUICKJSENABLED@
@@ -55,18 +52,14 @@ JS_INTERPRETER_ENABLE_JSC = -DENABLE_JSC
 endif
 
 ifeq (1, $(JSQUICKJSENABLED))
-QUICKJS = quickjs
-QJSINC = @JSQUICKJSINC@
-QJSLIB = @JSQUICKJSLIB@
-# Add -DMYQJS_DEBUG=1  if needed
-QJSVERSION = -DCONFIG_VERSION="\"@JSQUICKJSVERSION@\""
-JS_INTERPRETER_ENABLE_QUICKJS = -DQJSPATH="\"$(ROOT_DIR)/Tools/javascript/quickjs\""
-else
-QUICKJS =
+JS_INTERPRETER_SRC_QUICKJS = quickjs_shell.cxx
+# Add -DQUICKJS_SHELL_DEBUG=1  if needed
+JS_INTERPRETER_ENABLE_QUICKJS = -DENABLE_QUICKJS @JSQUICKJSINC@
+LDFLAGS += -rdynamic
 endif
 
 JS_INTERPRETER_DEFINES = $(JS_INTERPRETER_ENABLE_JSC) $(JS_INTERPRETER_ENABLE_V8) $(JS_INTERPRETER_ENABLE_QUICKJS)
-JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_INTERPRETER_SRC_V8)
+JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_INTERPRETER_SRC_V8) $(JS_INTERPRETER_SRC_QUICKJS)
 
 JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
 
@@ -76,14 +69,9 @@ JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
 javascript: $(JS_INTERPRETER_OBJS) $(QUICKJS)
 	$(JSCXX)  $(CXXFLAGS) $(JS_INTERPRETER_OBJS) $(LDFLAGS) -o javascript $(JSDYNAMICLINKING) $(LINKFLAGS)
 
-ifeq (1, $(JSQUICKJSENABLED))
-$(QUICKJS): $(srcdir)/swigqjs.c
-	$(CC) -rdynamic -o $@ -g -Wall $(QJSINC) $(QJSVERSION) $< $(QJSLIB)
-endif
-
 clean:
 	rm -f *.o
-	rm -f javascript quickjs
+	rm -f javascript
 
 distclean: clean
 	rm -f Makefile
