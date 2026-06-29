@@ -181,7 +181,25 @@ case "$SWIGLANG" in
 		fi
 		;;
 	"r")
-		$RETRY sudo apt-get -qq install r-base
+		if [[ -n "$VER" ]]; then
+			# Should helps with old version, but do not work
+			#$RETRY sudo apt-get -qq remove r-base r-base-core r-base-dev r-base-html r-doc-html r-recommended
+			sudo sed -i 's%^# deb-src %deb-src %' /etc/apt/sources.list
+			sudo sed -i 's%^Types: deb$%Types: deb deb-src%' /etc/apt/sources.list.d/*
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq build-dep r-base
+			r_build=`mktemp -d`
+			r_tarball=R-$VER.tar.gz
+			URL=https://cran.r-project.org/src/base/R-${VER:0:1}
+			$RETRY wget $URL/$r_tarball
+			tar -xf "$r_tarball" --strip-components=1 -C "$r_build"
+			cd "$r_build"
+			./configure
+			make
+			sudo make install
+		else
+			$RETRY sudo apt-get -qq install r-base
+		fi
 		;;
 	"ruby")
 		if [[ "$VER" ]]; then
