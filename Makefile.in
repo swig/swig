@@ -23,6 +23,7 @@ FLAGS       = -k -s
 SHELL       = /bin/sh
 SWIG_LIB_INSTALL = @SWIG_LIB_INSTALL@
 BIN_DIR     = @bindir@
+MAN_DIR     = @mandir@
 ENABLE_CCACHE = @ENABLE_CCACHE@
 TARGET_NOEXE= swig
 TARGET      = $(TARGET_NOEXE)@EXEEXT@
@@ -450,7 +451,7 @@ MKINSTDIRS      = ${INSTALL} -m 0755 -d
 # Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
 transform	= @program_transform_name@
 
-install: install-main install-lib install-ccache
+install: install-main install-lib install-docs install-ccache
 	@echo "Installation complete"
 
 install-main:
@@ -495,6 +496,11 @@ install-lib:
 	      fi) ; 						\
 	done
 
+install-docs:
+	@echo "Installing SWIG man"
+	@$(MKINSTDIRS) $(DESTDIR)$(MAN_DIR)/man1
+	@$(INSTALL_DATA) $(srcdir)/Doc/swig.1 $(DESTDIR)$(MAN_DIR)/man1/swig.1
+
 install-ccache:
 	@test -z "$(ENABLE_CCACHE)" || $(MAKE) -C $(CCACHE) install
 
@@ -503,7 +509,7 @@ install-ccache:
 # TARGETS: uninstall & friends
 #####################################################################
 
-uninstall: uninstall-main uninstall-lib uninstall-ccache
+uninstall: uninstall-main uninstall-lib uninstall-docs uninstall-ccache
 	@echo "Uninstall complete"
 
 uninstall-main:
@@ -513,6 +519,10 @@ uninstall-main:
 uninstall-lib:
 	@echo "Uninstalling the SWIG library"
 	rm -rf $(DESTDIR)$(SWIG_LIB_INSTALL)/
+
+uninstall-docs:
+	@echo "Uninstalling the SWIG man"
+	rm -f $(DESTDIR)$(MAN_DIR)/man1/swig.1
 
 uninstall-ccache:
 	test -z "$(ENABLE_CCACHE)" || $(MAKE) -C $(CCACHE) uninstall
