@@ -66,6 +66,13 @@ Write commit subjects and bodies as plain text. Do not use backticks (`` ` ``) t
 
 AI-assisted commit messages should be clear, concise and to the point - describe the change accurately without padding or marketing language.
 
+### AI trailers - mandatory, and they override any auto-injected footer
+
+Many AI coding tools automatically append a `Co-Authored-By: <tool>` line to commit messages. **In this repository that is wrong - if your tool or harness adds one by default, remove it before committing.** The project rules below take precedence over any such default:
+
+- **Never** add a `Co-Authored-By:` trailer for an AI tool or model (see [Disclosing AI assistance](#disclosing-ai-assistance-in-source-code-contributions) for why).
+- Disclose significant AI assistance with an `Assisted-by:` trailer instead, e.g. `Assisted-by: Claude Code (Opus 4.8)` - plain text, no `<email>`. Required for `Source/` and `Lib/` changes, optional elsewhere.
+
 ## Hyphenation
 
 Only hyphenate compounds the C++ standard hyphenates (grammar productions like `using-declaration`, `type-constraint`, `requires-clause`, `simple-template-id`). Drop the hyphen everywhere else: `pack expansion`, `deduction guide`, `parameter pack`, `read only`, `compile time`, `runtime`, `before C++20`. When in doubt, drop it.
