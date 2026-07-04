@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-05: wsfulton
+	    [Octave] Fix Octave detection in configure with newer versions of
+	    Octave.  Newer Octave changed the format of the 'octave --version'
+	    output from "GNU Octave, version X" to "GNU Octave (arch) version
+	    X", so configure no longer recognised Octave as working and
+	    silently disabled it.  Also fix the mkoctfile check,
+	    which passed PATH and LD_LIBRARY_PATH to 'env' unquoted and so
+	    broke when either contained a directory with a space in it (as can
+	    happen with Windows paths under WSL).
+
 2026-06-17: olly
 	    #3480 [Octave, Python, Ruby] Improve handling of NULL vs nullptr vs
 	    0 vs 0L.
