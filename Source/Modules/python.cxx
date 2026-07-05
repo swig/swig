@@ -755,8 +755,8 @@ public:
 
       if (!builtin) {
         /* Need builtins to qualify names like Exception that might also be
-           defined in this module (try both Python 3 and Python 2 names) */
-        Printv(f_shadow, "try:\n", "    import builtins as __builtin__\n", "except ImportError:\n", "    import __builtin__\n", NULL);
+           defined in this module */
+        Printv(f_shadow, "import builtins as __builtin__\n", NULL);
       }
 
       if (!builtin && fastproxy) {
@@ -800,15 +800,6 @@ public:
                "        else:\n",
                "            raise AttributeError(\"You cannot add class attributes to %s\" % cls)\n",
                "    return set_class_attr\n\n",
-               NIL);
-
-        Printv(f_shadow,
-               "\n",
-               "def _swig_add_metaclass(metaclass):\n",
-               "    \"\"\"Class decorator for adding a metaclass to a SWIG wrapped class - a slimmed down version of six.add_metaclass\"\"\"\n",
-               "    def wrapper(cls):\n",
-               "        return metaclass(cls.__name__, cls.__bases__, cls.__dict__.copy())\n",
-               "    return wrapper\n\n",
                NIL);
 
         Printv(f_shadow,
@@ -2492,7 +2483,7 @@ public:
    * returnTypeAnnotation()
    *
    * Helper function for constructing the function annotation
-   * of the returning type, return a empty string for Python 2.x
+   * of the returning type, return an empty string when annotations are disabled
    * ------------------------------------------------------------ */
   String *returnTypeAnnotation(Node *n) {
     type_annotation_t anno = getTypeAnnotationMode(n);
@@ -4840,25 +4831,19 @@ public:
       }
 
       if (!builtin) {
-        if (GetFlag(n, "feature:python:nondynamic"))
-          Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
+        String *metaclass = GetFlag(n, "feature:python:nondynamic") ? NewString(", metaclass=_SwigNonDynamicMeta") : NewString("");
         Printv(f_shadow, "class ", class_name, NIL);
 
         if (Len(base_class)) {
-          Printf(f_shadow, "(%s)", base_class);
+          Printf(f_shadow, "(%s%s)", base_class, metaclass);
         } else {
           if (GetFlag(n, "feature:exceptionclass")) {
-            Printf(f_shadow, "(Exception)");
+            Printf(f_shadow, "(Exception%s)", metaclass);
           } else {
-            Printf(f_shadow, "(object");
-            /* Replace @_swig_add_metaclass above with below when support for python 2.7 is dropped
-            if (GetFlag(n, "feature:python:nondynamic")) {
-              Printf(f_shadow, ", metaclass=_SwigNonDynamicMeta");
-            }
-            */
-            Printf(f_shadow, ")");
+            Printf(f_shadow, "(object%s)", metaclass);
           }
         }
+        Delete(metaclass);
 
         Printf(f_shadow, ":\n");
 

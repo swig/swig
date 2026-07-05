@@ -46,9 +46,6 @@ SWIG          = $(exec_prefix)/bin/swig
 SWIGOPT       = -python
 SWIGCC        = $(CC)
 
-# SWIG Library files.  Uncomment if rebuilding the Python interpreter
-#SWIGLIBS      = -lembed.i
-
 # Rules for creating .o files from source.
 
 COBJS         = $(SRCS:.c=.o)

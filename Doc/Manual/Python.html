@@ -172,7 +172,7 @@ Basics</a>" chapter.
 
 <p>
 SWIG is compatible with all recent Python versions (Python &gt;= 3.5).
-SWIG-4.3 supported Python 2.7.
+Python 2 is no longer supported; SWIG-4.4 was the last version to support Python 2.7.
 SWIG-4.0 supported Python 3.2.  SWIG-3.0 supported older Python 2.x and 3.x.
 </p>
 
@@ -513,48 +513,6 @@ the 'setup.py' file in the Python distribution instead.
 </p>
 
 <p>
-In earlier versions of SWIG, the <tt>embed.i</tt> library file could be used to
-rebuild the interpreter.  For example:
-</p>
-
-<div class="code"><pre>
-%module example
-
-%inline %{
-extern int fact(int);
-extern int mod(int, int);
-extern double My_variable;
-%}
-
-%include "embed.i"       // Include code for a static version of Python
-
-</pre></div>
-
-<p>
-The <tt>embed.i</tt> library file includes supporting code that
-contains everything needed to rebuild Python. To rebuild the interpreter,
-you simply do something like this:
-</p>
-
-<div class="shell"><pre>
-$ swig -python -lembed.i example.i
-$ gcc example.c example_wrap.c \
-        -Xlinker -export-dynamic \
-        -DHAVE_CONFIG_H -I/usr/include/python3.14 \
-        -I/usr/lib/python3.14/config-x86_64-linux-gnu \
-        -I/usr/lib/python3.14/config \
-        -L/usr/lib/python3.14/config -lpython3.14 -lm -ldl \
-        -o mypython
-</pre></div>
-<p>
-You will need to supply the same libraries that were used to build Python the first
-time.  This may include system libraries such as <tt>-lsocket</tt>, <tt>-lnsl</tt>,
-and <tt>-lpthread</tt>.  Assuming this actually works, the new version of Python
-should be identical to the default version except that your extension module will be
-a built-in part of the interpreter.
-</p>
-
-<p>
 <b>Comment:</b> In practice, you should probably try to avoid static
 linking if possible. Some programmers may be inclined
 to use static linking in the interest of getting better performance.
@@ -564,11 +522,11 @@ hassle in the opinion of this author).
 </p>
 
 <p>
-<b>Compatibility note:</b> The <tt>embed.i</tt> library file is
-deprecated and has not been actively maintained for many years.  Even though it
-appears to "work" with Python 2.7, no future support is guaranteed.
-If using static linking, you might want to rely on a different approach
-(perhaps using setuptools).
+<b>Compatibility note:</b> Older versions of SWIG provided an <tt>embed.i</tt>
+library file to help rebuild the interpreter with the extension module statically
+linked in.  It only ever worked with Python 2 and was removed in SWIG-4.5.0.  If you
+need static linking, follow the current Python documentation for embedding the
+interpreter (for example using setuptools).
 </p>
 
 <H3><a name="Python_nn9">33.2.5 Using your module</a></H3>
@@ -2370,8 +2328,7 @@ view, it makes the class work normally:
 
 <p>
 The fact that the class has been wrapped by a real Python class offers certain advantages.  For instance,
-you can attach new Python methods to the class and you can even inherit from it (something not supported
-by Python built-in types until Python 2.2).
+you can attach new Python methods to the class and you can even inherit from it.
 </p>
 
 <H3><a name="Python_builtin_types">33.4.2 Built-in Types</a></H3>
@@ -6335,7 +6292,7 @@ class M2(pkg2.mod3.M3): pass
 <p>By default, SWIG will generate <tt>mod2.py</tt> proxy file with
 <tt>import</tt> directive as in point 1. This can be changed with the
 <tt>-relativeimport</tt> command line option. The <tt>-relativeimport</tt> instructs
-SWIG to organize imports as in point 4 for Python 2.7.0 and newer.
+SWIG to organize imports as in point 4.
 </p>
 
 <p>
@@ -6372,7 +6329,7 @@ uses relative imports. Second case is, when one puts import directives in
 <tt>__init__.py</tt> to import symbols from submodules or subpackages and the
 submodule depends on other submodules (discussed later).</p>
 
-<H3><a name="Python_importfrominit">33.11.4 Importing from __init__.py</a></H3>
+<H3><a name="Python_importfrominit">33.11.3 Importing from __init__.py</a></H3>
 
 
 <p>Imports in <tt>__init__.py</tt> are handy when you want to populate a
@@ -6479,10 +6436,9 @@ class Bar(pkg3.foo.Foo): pass
 
 <p>then the example works again. With SWIG, you need to enable the
 <tt>-relativeimport</tt> option in order to have the above workaround in
-effect (note, that the Python 2 case also needs the <tt>-relativeimport</tt>
-workaround).</p>
+effect.</p>
 
-<H3><a name="Python_implicit_namespace_packages">33.11.5 Implicit namespace packages</a></H3>
+<H3><a name="Python_implicit_namespace_packages">33.11.4 Implicit namespace packages</a></H3>
 
 
 <p> Python 3.3 introduced
@@ -6560,7 +6516,7 @@ zipimporter requires python-3.5.1 or newer to work with subpackages.
 </p>
 
 
-<H3><a name="Python_package_search">33.11.6 Location of modules</a></H3>
+<H3><a name="Python_package_search">33.11.5 Location of modules</a></H3>
 
 
 <p>
@@ -6596,7 +6552,7 @@ The following sub-sections look more closely at the two default configurations a
 An input interface file, foo.i, results in the two modules foo.py and _foo.so for each of the configurations.
 </p>
 
-<H4><a name="Python_package_search_both_package_modules">33.11.6.1 Both modules in the same package</a></H4>
+<H4><a name="Python_package_search_both_package_modules">33.11.5.1 Both modules in the same package</a></H4>
 
 
 <p>
@@ -6631,7 +6587,7 @@ from mypackage import foo
 </div>
 
 
-<H4><a name="Python_package_search_both_global_modules">33.11.6.2 Both modules are global</a></H4>
+<H4><a name="Python_package_search_both_global_modules">33.11.5.2 Both modules are global</a></H4>
 
 
 <p>
@@ -6663,7 +6619,7 @@ import foo
 </pre>
 </div>
 
-<H4><a name="Python_package_search_wrapper_split">33.11.6.3 Split modules custom configuration</a></H4>
+<H4><a name="Python_package_search_wrapper_split">33.11.5.3 Split modules custom configuration</a></H4>
 
 
 <p>In this non-standard 'split module' configuration, the pure Python module is in a package and the low level C/C++ module is global.
@@ -6713,7 +6669,7 @@ Using one of the two default configurations is the recommended approach now.
 </p>
 
 
-<H4><a name="Python_custom_module_import">33.11.6.4 More on customizing the module import code</a></H4>
+<H4><a name="Python_custom_module_import">33.11.5.4 More on customizing the module import code</a></H4>
 
 
 <p>
@@ -6833,7 +6789,7 @@ The following will do this for the <a href="#Python_package_search_wrapper_split
 </pre>
 </div>
 
-<H4><a name="Python_package_search_static">33.11.6.5 Statically linked C modules</a></H4>
+<H4><a name="Python_package_search_static">33.11.5.5 Statically linked C modules</a></H4>
 
 
 <p>It is strongly recommended to use dynamically linked modules for the C
@@ -7295,7 +7251,6 @@ used to define an abstract base class for your own C++ class:
 
 <div class="code"><pre>
 %pythonabc(MySet, collections.abc.MutableSet);
-%pythonabc(MySet, "collections.abc.MutableSet");
 </pre></div>
 
 <p>
@@ -7307,8 +7262,6 @@ For details of abstract base class, please see
 <b>Compatibility Note:</b> SWIG-4.0.0 changed the base classes to use the
 <tt>collections.abc</tt> module instead of <tt>collections</tt> due to the deprecation
 of the classes in the <tt>collections</tt> module in Python 3.7.
-SWIG-4.1.0 introduced the flexibility of using
-either the <tt>collections.abc</tt> module for Python 3.3 and later or the <tt>collections</tt> module for earlier Python versions.
 </p>
 
 <H3><a name="Python_nn77">33.12.4 Byte string output conversion</a></H3>
@@ -7448,24 +7401,10 @@ TypeError: in method 'charstring', argument 1 of type 'char *'
 </pre></div>
 
 <p>
-This ensures that only unicode strings are accepted by wcharstring:
-</p>
-
-<div class="targetlang"><pre>
-&gt;&gt;&gt; from wchar_to_unicode import *
-&gt;&gt;&gt; wcharstring(u"hi") # Unicode string
-u'hi'
-&gt;&gt;&gt; wcharstring(b"hi") # Byte string
-Traceback (most recent call last):
-  File "&lt;stdin&gt;", line 1, in ?
-TypeError: in method 'charstring', argument 1 of type 'wchar_t *'
-</pre></div>
-
-<p>
-By defining both <tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> and
-<tt>SWIG_PYTHON_STRICT_UNICODE_WCHAR</tt>, Python wrapper code can support
-overloads taking both std::string (as Python bytes) and std::wstring
-(as Python unicode).
+Wide character strings (<tt>wchar_t *</tt> and <tt>std::wstring</tt>) always
+accept only Python unicode strings, so together with
+<tt>SWIG_PYTHON_STRICT_BYTE_CHAR</tt> the wrapper code can support overloads
+taking both std::string (as Python bytes) and std::wstring (as Python unicode).
 </p>
 
 

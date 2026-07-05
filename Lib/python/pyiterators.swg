@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * pyiterators.swg
  *
- * Implement a python 'output' iterator for Python 2.2 or higher.
+ * Implement a python 'output' iterator.
  *
  * Users can derive form the SwigPyIterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD

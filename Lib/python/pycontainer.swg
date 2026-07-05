@@ -597,9 +597,7 @@ namespace swig {
       swig::erase(self, swig::getpos(self, i));
     }
 
-    /* Overloaded methods for Python 3 compatibility 
-     * (Also useful in Python 2.x)
-     */
+    /* Slice support via __getitem__/__setitem__/__delitem__ */
     Sequence* __getitem__(SWIGPY_SLICEOBJECT *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {

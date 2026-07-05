@@ -4978,14 +4978,14 @@ The following excerpt from the Python module illustrates this:
   enum SWIGTYPE,
   bool, const bool &amp;
 {
-  $1 = (PyLong_Check($input) || PyLong_Check($input)) ? 1 : 0;
+  $1 = PyLong_Check($input) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
   float, double,
   const float &amp;, const double &amp;
 {
-  $1 = (PyFloat_Check($input) || PyLong_Check($input) || PyLong_Check($input)) ? 1 : 0;
+  $1 = (PyFloat_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_CHAR) char {

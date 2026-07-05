@@ -1342,27 +1342,6 @@ endif
 endif
 
 # -----------------------------------------------------------------
-# Build statically linked Python interpreter
-#
-# These should only be used in conjunction with the %include embed.i
-# library file
-# -----------------------------------------------------------------
-
-#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
-TKINTER =
-PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
-
-python_static: $(SRCDIR_SRCS)
-	$(SWIG) -python -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
-
-python_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -python -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
-
-# -----------------------------------------------------------------
 # Running a Python example
 # -----------------------------------------------------------------
 

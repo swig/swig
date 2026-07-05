@@ -19,7 +19,7 @@
    or as a input/output value 
 
      SwigPtr_PyObject func(SwigPtr_PyObject obj) {     
-       SwigPtr_PyObject out = PyString_FromFormat("hello %s", PyObject_AsString(obj));
+       SwigPtr_PyObject out = PyUnicode_FromFormat("hello %s", PyObject_AsString(obj));
        SWIG_Py_DECREF(out);
        return out;
      }

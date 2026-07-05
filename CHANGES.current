@@ -7,6 +7,43 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-05: jschueller
+            [Python] #2424 Updated the Python identifier warnings to match
+            Python 3. The list of Python keywords and built-in names that SWIG
+            warns about (a wrapped symbol clashing with one is renamed) now
+            tracks Python 3: the Python 3 keywords and built-ins are added,
+            including nonlocal, True, False, None and print and exec (no longer
+            statements), and the Python 2 only names such as apply, buffer, cmp,
+            file, long, unicode and xrange are dropped.
+
+2026-07-05: jschueller, wsfulton
+            [Python] #3201 Python 2 is no longer supported. SWIG now
+            targets Python 3.5 and later only, and the Python 2 code paths have
+            been removed from the generated wrappers and the SWIG library.
+
+            Macros that only ever affected Python 2 have been removed and now
+            have no effect if defined:
+              - SWIG_PYTHON_2_UNICODE - in Python 2 this let a unicode object be
+                accepted where a char* or std::string was expected; in Python 3
+                str is already unicode so it is redundant.
+              - SWIG_PYTHON_STRICT_UNICODE_WCHAR - in Python 2 this forced
+                wchar_t* and std::wstring to accept only unicode and reject byte
+                strings; that is already the only behavior in Python 3.
+            SWIG_PYTHON_STRICT_BYTE_CHAR is unchanged and still supported.
+
+            The Python 2 C API compatibility macros used by typemaps (PyInt_Check,
+            PyString_Check, PyString_AsString, Py_TPFLAGS_HAVE_CLASS and friends,
+            see pyhead.swg) are still provided, but now map to the Python 3 API.
+            In particular the PyString_* macros map to the PyBytes_* functions, so
+            a typemap using PyString_AsString now operates on a bytes object, not
+            a str.
+
+            The deprecated embed.i library, which only ever worked with Python 2,
+            has been removed, along with the python_static example build targets
+            that used it.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-07-05: wsfulton
 	    [Octave] Fix Octave detection in configure with newer versions of
 	    Octave.  Newer Octave changed the format of the 'octave --version'

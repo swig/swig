@@ -543,6 +543,10 @@ like this:
 }
 
 %typemap(freearg) (...) {
+  int i;
+  for (i = 0; i &lt; 10; i++) {
+    free(vargs$argnum[i]);
+  }
 }
 </pre>
 </div>

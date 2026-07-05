@@ -1,4 +1,3 @@
-import sys
 import file_test
 
 cstdout = file_test.GetStdOut()

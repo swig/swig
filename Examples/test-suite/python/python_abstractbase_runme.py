@@ -1,7 +1,3 @@
-import sys
-
-# collections.abc requires Python 3.3+
-
 from python_abstractbase import *
 import collections.abc
 

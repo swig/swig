@@ -703,7 +703,7 @@ SwigPyObject_compare(PyObject *v, PyObject *w)
 
 SWIGRUNTIMEINLINE int SwigPyObject_Check(PyObject *);
 
-/* Added for Python 3.x, would it also be useful for Python 2.x? */
+/* Rich comparison support */
 SWIGRUNTIME PyObject*
 SwigPyObject_richcompare(PyObject *v, PyObject *w, int op)
 {
@@ -1107,8 +1107,8 @@ SwigPyPacked_str(SwigPyPacked *v)
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))){
     return PyUnicode_FromFormat("%s%s", result, v->ty->name);
   } else {
-    return PyUnicode_FromFormat(v->ty->name);
-  }  
+    return PyUnicode_FromString(v->ty->name);
+  }
 }
 
 SWIGRUNTIME int
