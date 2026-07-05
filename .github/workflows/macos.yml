@@ -131,12 +131,12 @@ jobs:
           VER: '4.0'
         - SWIGLANG: ruby
         - SWIGLANG: go
-          VER: '1.23'
-        - SWIGLANG: go
           VER: '1.24'
           CSTD: gnu99
         - SWIGLANG: go
           VER: '1.25'
+        - SWIGLANG: go
+          VER: '1.26'
         - SWIGLANG: perl5
         - SWIGLANG: tcl
       # Run all of them, as opposed to aborting when one fails
