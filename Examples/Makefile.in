@@ -787,7 +787,7 @@ ifeq (node,$(JSENGINE))
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else ifeq (napi,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(if $(NAPI_DIR),-I$(NAPI_DIR))" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else ifeq (v8,$(JSENGINE))
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -799,7 +799,7 @@ endif
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(if $(NAPI_DIR),-I$(NAPI_DIR))" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -1559,7 +1559,9 @@ SCILAB_LIBPREFIX = lib
 
 scilab:
 	$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+# -std=gnu17 works around Scilab's system mex.h which uses 'typedef int bool;',
+# rejected as an error by C23 (the default from gcc 15 / Ubuntu 26.04 onwards).
+	$(CC) -std=gnu17 -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
 
 # ----------------------------------------------------------------
