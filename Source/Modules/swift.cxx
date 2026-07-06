@@ -1280,12 +1280,14 @@ public:
     /* Build the swiftout body, substituting $imcall and class name */
     String *body = Copy(swiftout);
     Replaceall(body, "$imcall", imcall);
-    /* Detect value-type member getter: SWIGTYPE* typemap has $owner marker; shared_ptr
-     * typemaps hardcode 'true'. Check before replacing so we can distinguish the cases.
+    /* Detect value-type member getter: the SWIGTYPE* swiftout carries the $owner
+     * marker.  The by-value SWIGTYPE and shared_ptr swiftouts instead hardcode 'true':
+     * their C 'out' typemap always heap-allocates the returned object (new T(...) or
+     * new shared_ptr<T>(...)), so the proxy must own and free it - that 'true' must be
+     * preserved, otherwise the allocation leaks (deinit skips delete when own is false).
      * Only class members (is_wrapping_class) can be value-type getters; global vars stay optional. */
     bool is_value_type_getter = variable_wrapper_flag && is_wrapping_class() && !is_static && !is_void && (Strstr(body, "$owner") != NULL);
-    /* Shared_ptr typemaps hardcode 'true' for ownership; replace with $owner first */
-    Replaceall(body, ", true)", ", $owner)");
+    /* A $owner (raw SWIGTYPE* pointer return) is owned only when the method is %newobject. */
     Replaceall(body, "$owner", GetFlag(n, "feature:new") ? "true" : "false");
     if (Strstr(body, "$swiftclassname")) {
       String *ret_cn = swiftClassNameFor(rettype);
