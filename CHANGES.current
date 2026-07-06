@@ -7,6 +7,28 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-06: wsfulton
+            [Python] Removed the Python 2 compatibility macros that were kept in
+            the generated code (pyhead.swg) only for user typemaps. A typemap
+            still using any of these must be updated to call the Python 3 C API
+            directly (the Python 3 equivalent is shown in brackets).
+
+            Python 2 C API macros removed: PyClass_Check (PyObject_IsInstance),
+            PyInt_Check (PyLong_Check), PyInt_AsLong (PyLong_AsLong),
+            PyInt_FromLong (PyLong_FromLong), PyInt_FromSize_t
+            (PyLong_FromSize_t), PyString_Check (PyBytes_Check),
+            PyString_FromString (PyUnicode_FromString), PyString_Format
+            (PyUnicode_Format), PyString_AsString (PyBytes_AsString),
+            PyString_Size (PyBytes_Size), PyString_InternFromString
+            (PyUnicode_InternFromString), Py_TPFLAGS_HAVE_CLASS
+            (Py_TPFLAGS_BASETYPE) and _PyLong_FromSsize_t (PyLong_FromSsize_t).
+
+            SWIG string helper macros removed: SWIG_Python_str_FromFormat
+            (PyUnicode_FromFormat) and SWIG_Python_str_FromChar
+            (PyUnicode_FromString).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-07-05: jschueller
             [Python] #2424 Updated the Python identifier warnings to match
             Python 3. The list of Python keywords and built-in names that SWIG
@@ -30,13 +52,6 @@ Version 4.5.0 (in progress)
                 wchar_t* and std::wstring to accept only unicode and reject byte
                 strings; that is already the only behavior in Python 3.
             SWIG_PYTHON_STRICT_BYTE_CHAR is unchanged and still supported.
-
-            The Python 2 C API compatibility macros used by typemaps (PyInt_Check,
-            PyString_Check, PyString_AsString, Py_TPFLAGS_HAVE_CLASS and friends,
-            see pyhead.swg) are still provided, but now map to the Python 3 API.
-            In particular the PyString_* macros map to the PyBytes_* functions, so
-            a typemap using PyString_AsString now operates on a bytes object, not
-            a str.
 
             The deprecated embed.i library, which only ever worked with Python 2,
             has been removed, along with the python_static example build targets

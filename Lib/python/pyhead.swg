@@ -4,25 +4,6 @@
 #endif
 #endif
 
-/* py2/3 compatibility macros not used by swig itself anymore but kept for compatibility with user typemaps */
-#define PyClass_Check(obj) PyObject_IsInstance(obj, (PyObject *)&PyType_Type)
-#define PyInt_Check(x) PyLong_Check(x)
-#define PyInt_AsLong(x) PyLong_AsLong(x)
-#define PyInt_FromLong(x) PyLong_FromLong(x)
-#define PyInt_FromSize_t(x) PyLong_FromSize_t(x)
-#define PyString_Check(name) PyBytes_Check(name)
-#define PyString_FromString(x) PyUnicode_FromString(x)
-#define PyString_Format(fmt, args)  PyUnicode_Format(fmt, args)
-#define PyString_AsString(str) PyBytes_AsString(str)
-#define PyString_Size(str) PyBytes_Size(str)	
-#define PyString_InternFromString(key) PyUnicode_InternFromString(key)
-#define Py_TPFLAGS_HAVE_CLASS Py_TPFLAGS_BASETYPE
-#define _PyLong_FromSsize_t(x) PyLong_FromSsize_t(x)
-
-/* SWIG APIs for compatibility of both Python 2 & 3 */
-
-#define SWIG_Python_str_FromFormat PyUnicode_FromFormat
-
 #if defined(SWIG_HEAPTYPES)
 #if PY_VERSION_HEX < 0x030c0000
 #include <structmember.h>
@@ -49,12 +30,6 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
     *psize = PyBytes_Size(*pbytes);
   return chars;
 #endif
-}
-
-SWIGINTERN PyObject *
-SWIG_Python_str_FromChar(const char *c)
-{
-  return PyUnicode_FromString(c); 
 }
 
 #define SWIG_RUNTIME_MODULE "swig_runtime_data" SWIG_RUNTIME_VERSION

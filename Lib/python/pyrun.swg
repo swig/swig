@@ -640,7 +640,7 @@ SwigPyObject_format(const char* fmt, SwigPyObject *v)
     if (val) {
       PyObject *ofmt;
       PyTuple_SET_ITEM(args, 0, val);
-      ofmt = SWIG_Python_str_FromChar(fmt);
+      ofmt = PyUnicode_FromString(fmt);
       if (ofmt) {
         res = PyUnicode_Format(ofmt,args);
         SWIG_Py_DECREF(ofmt);
@@ -1312,14 +1312,9 @@ SWIGRUNTIME PyObject *
 SWIG_This(void)
 {
   if (Swig_This_global == NULL)
-    Swig_This_global = SWIG_Python_str_FromChar("this");
+    Swig_This_global = PyUnicode_FromString("this");
   return Swig_This_global;
 }
-
-/* #define SWIG_PYTHON_SLOW_GETSET_THIS */
-
-/* TODO: I don't know how to implement the fast getset in Python 3 right now */
-#define SWIG_PYTHON_SLOW_GETSET_THIS 
 
 /* Returns a borrowed reference to the 'this' object */
 SWIGRUNTIME SwigPyObject *
@@ -1349,29 +1344,6 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 
   obj = 0;
 
-#if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
-  if (PyInstance_Check(pyobj)) {
-    obj = _PyInstance_Lookup(pyobj, SWIG_This());      
-  } else {
-    PyObject **dictptr = _PyObject_GetDictPtr(pyobj);
-    if (dictptr != NULL) {
-      PyObject *dict = *dictptr;
-      obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
-    } else {
-      if (PyWeakref_CheckProxy(pyobj)) {
-        PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
-	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
-      }
-      obj = PyObject_GetAttr(pyobj, SWIG_This());
-      if (obj) {
-	SWIG_Py_DECREF(obj);
-      } else {
-	if (PyErr_Occurred()) PyErr_Clear();
-	return 0;
-      }
-    }
-  }
-#else
   obj = PyObject_GetAttr(pyobj, SWIG_This());
   if (obj) {
     SWIG_Py_DECREF(obj);
@@ -1379,7 +1351,6 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     if (PyErr_Occurred()) PyErr_Clear();
     return 0;
   }
-#endif
   if (obj && !SwigPyObject_Check(obj)) {
     /* a PyObject is called 'this', try to get the 'real this'
        SwigPyObject from it */ 
@@ -1588,27 +1559,10 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
   if (newraw) {
     inst = PyObject_Call(newraw, data->newargs, NULL);
     if (inst) {
-#if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
-      PyObject **dictptr = _PyObject_GetDictPtr(inst);
-      if (dictptr != NULL) {
-        PyObject *dict = *dictptr;
-        if (dict == NULL) {
-          dict = PyDict_New();
-          *dictptr = dict;
-        }
-        if (dict) {
-          PyDict_SetItem(dict, SWIG_This(), swig_this);
-        } else{
-          SWIG_Py_DECREF(inst);
-          inst = 0;
-        }
-      }
-#else
       if (PyObject_SetAttr(inst, SWIG_This(), swig_this) == -1) {
         SWIG_Py_DECREF(inst);
         inst = 0;
       }
-#endif
     }
   } else {
     PyObject *empty_args = PyTuple_New(0);
@@ -1640,21 +1594,6 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 SWIGRUNTIME int
 SWIG_Python_SetSwigThis(PyObject *inst, PyObject *swig_this)
 {
-#if !defined(SWIG_PYTHON_SLOW_GETSET_THIS)
-  PyObject **dictptr = _PyObject_GetDictPtr(inst);
-  if (dictptr != NULL) {
-    PyObject *dict = *dictptr;
-    if (dict == NULL) {
-      dict = PyDict_New();
-      *dictptr = dict;
-    }
-    if (dict) {
-      return PyDict_SetItem(dict, SWIG_This(), swig_this);
-    } else{
-      return -1;
-    }
-  }
-#endif
   return PyObject_SetAttr(inst, SWIG_This(), swig_this);
 } 
 

@@ -40,7 +40,7 @@
 %fragment("reference_container_owner", "header", fragment="container_owner_attribute_init") {
 namespace swig {
   static PyObject* container_owner_attribute() {
-    static PyObject* attr = SWIG_Python_str_FromChar("__swig_container");
+    static PyObject* attr = PyUnicode_FromString("__swig_container");
     return attr;
   }
 

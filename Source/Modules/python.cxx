@@ -4034,7 +4034,7 @@ public:
       Printf(f_directors_h, "    PyObject *swig_get_method(size_t method_index, const char *method_name) const {\n");
       Printf(f_directors_h, "      PyObject *method = vtable[method_index];\n");
       Printf(f_directors_h, "      if (!method) {\n");
-      Printf(f_directors_h, "        swig::SwigVar_PyObject name = SWIG_Python_str_FromChar(method_name);\n");
+      Printf(f_directors_h, "        swig::SwigVar_PyObject name = PyUnicode_FromString(method_name);\n");
       Printf(f_directors_h, "        method = PyObject_GetAttr(swig_get_self(), name);\n");
       Printf(f_directors_h, "        if (!method) {\n");
       Printf(f_directors_h, "          std::string msg = \"Method in class %s doesn't exist, undefined \";\n", classname);
@@ -5950,14 +5950,14 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
                parse_args,
                arglist);
       } else {
-        Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar(\"%s\");\n", pyname);
+        Printf(w->code, "swig::SwigVar_PyObject swig_method_name = PyUnicode_FromString(\"%s\");\n", pyname);
         Printf(w->code,
                "swig::SwigVar_PyObject %s = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name %s, NULL);\n",
                Swig_cresult_name(),
                arglist);
       }
     } else {
-      Printf(w->code, "swig::SwigVar_PyObject swig_method_name = SWIG_Python_str_FromChar(\"%s\");\n", pyname);
+      Printf(w->code, "swig::SwigVar_PyObject swig_method_name = PyUnicode_FromString(\"%s\");\n", pyname);
       Printf(w->code, "swig::SwigVar_PyObject %s = PyObject_CallMethodObjArgs(swig_get_self(), (PyObject *) swig_method_name, NULL);\n", Swig_cresult_name());
     }
     Append(w->code, "#endif\n");
