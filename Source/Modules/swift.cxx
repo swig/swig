@@ -221,6 +221,8 @@ class SWIFT : public Language {
   String *enum_code;                  /* current enum being built */
   bool enum_as_struct;                /* current enum uses the struct fallback (duplicate values) */
   String *enum_type_name;             /* display name of the current enum (for struct member refs) */
+  long enum_next_value;               /* running C auto-increment value for the struct fallback */
+  bool enum_value_known;              /* whether enum_next_value is currently trustworthy */
   String *vector_element_swifttype;   /* if this class is a std::vector, the Swift type its
                                          getElement(i:) returns; used to auto-emit a
                                          RandomAccessCollection conformance (NULL otherwise) */
@@ -514,6 +516,8 @@ public:
     enum_code(NULL),
     enum_as_struct(false),
     enum_type_name(NULL),
+    enum_next_value(0),
+    enum_value_known(true),
     static_flag(false),
     variable_wrapper_flag(false),
     current_class_has_base(false),
@@ -762,6 +766,16 @@ public:
     /* --- emit module-level Swift code (module imports + helper + global fns) --- */
     if (Len(swift_module_imports))
       Printv(f_swift, swift_module_imports, "\n", NIL);
+    /* Default typed-exception builder.  swigCheckException() (from swift.swg)
+     * calls swigBuildTypedException(); a module may supply a richer one from its
+     * own %pragma(swift) modulecode (e.g. an Exceptions.i dispatching to typed
+     * Swift error classes).  Emit the nil-returning default only when it did
+     * not, so the two definitions do not collide. */
+    if (!swift_module_code || !Strstr(swift_module_code, "func swigBuildTypedException"))
+      Printv(f_swift,
+             "@inline(__always)\n"
+             "private func swigBuildTypedException() -> Error? { return nil }\n\n",
+             NIL);
     if (Len(swift_module_code))
       Printv(f_swift, swift_module_code, "\n", NIL);
 
@@ -3064,7 +3078,7 @@ public:
       Printf(director_swift_inits, "        swigCPtr = nil\n");
       Printf(director_swift_inits, "        swigCMemOwn = false\n");
     }
-    Printf(director_swift_inits, "        var cbs = swigDirectorCallbacks()\n");
+    Printf(director_swift_inits, "        let cbs = swigDirectorCallbacks()\n");
     Printf(director_swift_inits, "        let selfPtr = Unmanaged.passUnretained(self).toOpaque()\n");
     Printf(director_swift_inits, "        swigCPtr = %s(selfPtr, cbs%s%s)\n", factory, Len(c_args) ? ", " : "", c_args);
     Printf(director_swift_inits, "        swigCMemOwn = true\n");
@@ -3314,8 +3328,10 @@ public:
        * fully %ignore'd) cannot be a native Swift enum - an empty enum is not
        * constructible, so `X(rawValue:)!` in the enum typemaps would not compile.
        * Emit the rawValue struct form, which is constructible from any Int32. */
-      enum_as_struct = enumHasDuplicateValues(n) || enumHasNoWrappableItems(n);
+      enum_as_struct = enumHasDuplicateValues(n) || enumHasNoWrappableItems(n) || enumHasUnresolvedValues(n);
       enum_type_name = Copy(enum_display_name);
+      enum_next_value = 0; /* C enumerators start at 0 unless initialised */
+      enum_value_known = true;
 
       enum_code = NewString("");
       emitDoxygenComment(n, enum_code, is_wrapping_class() ? "    " : 0);
@@ -3357,6 +3373,40 @@ public:
     return true;
   }
 
+  /* True when a (non-ignored) enumerator has an explicit initialiser that SWIG
+   * could not fold to a literal (enumvalue set but no enumnumval), e.g. one
+   * defined as another enumerator `A = B`.  A native Swift enum would then
+   * auto-increment such a case to the wrong value (and possibly collide with a
+   * later explicit one), so the struct form is used instead, where a case can
+   * reference its sibling.  Implicit enumerators (no initialiser) carry
+   * enumvalueex, not enumvalue, and auto-increment correctly - they are fine. */
+  bool enumHasUnresolvedValues(Node *n) {
+    for (Node *c = firstChild(n); c; c = nextSibling(c)) {
+      if (!Equal(nodeType(c), "enumitem") || GetFlag(c, "feature:ignore"))
+        continue;
+      if (Getattr(c, "enumvalue") && !Getattr(c, "enumnumval"))
+        return true;
+    }
+    return false;
+  }
+
+  /* Find a sibling enumerator (by C name) of the given enumitem, for aliases
+   * like `A = B`; returns NULL when the value is not a plain sibling name. */
+  Node *enumSiblingNamed(Node *item, String *cname) {
+    if (!cname)
+      return NULL;
+    Node *e = parentNode(item);
+    if (!e)
+      return NULL;
+    for (Node *c = firstChild(e); c; c = nextSibling(c)) {
+      if (c == item || !Equal(nodeType(c), "enumitem"))
+        continue;
+      if (Equal(Getattr(c, "name"), cname) || Equal(Getattr(c, "sym:name"), cname))
+        return c;
+    }
+    return NULL;
+  }
+
   /* True when two (non-ignored) enumerators share the same evaluated value, which
    * a native Swift enum cannot represent (raw values must be unique). */
   bool enumHasDuplicateValues(Node *n) {
@@ -3391,11 +3441,35 @@ public:
       emitDoxygenComment(n, enum_code, "    ", /*nextLeadsNewline=*/false);
 
       if (enum_as_struct) {
-        /* Struct fallback: static-let members allow duplicate values. */
-        if (numval)
+        /* Struct fallback: static-let members allow duplicate values.  Track the
+         * C auto-increment value so implicit members (which carry no enumnumval)
+         * still get their correct value, mirroring native-enum auto-increment. */
+        Node *alias;
+        if (numval) {
           Printf(enum_code, "    public static let %s = %s(rawValue: %s)!\n", symname, enum_type_name, numval);
-        else
+          enum_next_value = strtol(Char(numval), 0, 0) + 1;
+          enum_value_known = true;
+        } else if ((alias = enumSiblingNamed(n, Getattr(n, "enumvalue")))) {
+          /* No folded value (e.g. `A = B`, an alias of another enumerator).  A
+           * static let can reference its sibling by name and inherit its value. */
+          Printf(enum_code, "    public static let %s = %s\n", symname, Getattr(alias, "sym:name"));
+          String *anum = Getattr(alias, "enumnumval");
+          if (anum) {
+            enum_next_value = strtol(Char(anum), 0, 0) + 1;
+            enum_value_known = true;
+          } else {
+            enum_value_known = false;
+          }
+        } else if (!Getattr(n, "enumvalue") && enum_value_known) {
+          /* Implicit member (no initialiser): use the running counter. */
+          Printf(enum_code, "    public static let %s = %s(rawValue: %ld)!\n", symname, enum_type_name, enum_next_value);
+          enum_next_value++;
+        } else {
+          /* An explicit initialiser SWIG could not fold and is not a plain alias:
+           * emit a compilable placeholder and stop trusting the counter. */
           Printf(enum_code, "    public static let %s = %s(rawValue: 0)!\n", symname, enum_type_name);
+          enum_value_known = false;
+        }
       } else if (numval) {
         Printf(enum_code, "    case %s = %s\n", symname, numval);
       } else {

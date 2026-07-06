@@ -115,9 +115,10 @@ SWIGEXPORT const char *swig_swift_director_store_string(const char *s) {
  * of the C++ exception together with its class name in thread-local storage.
  * The Swift side reads it with the three swig_swift_*_typed_exception_* C
  * functions below and dispatches to the right Swift proxy via
- * swigBuildTypedException() (defined in the %pragma modulecode from
- * Exceptions.i).  swigCheckException() (defined further down) first tries the
- * typed path before falling back to the string-only pending-exception path.
+ * swigBuildTypedException() (supplied by the module's %pragma(swift) modulecode,
+ * or the nil-returning default emitted by the backend).  swigCheckException()
+ * (defined further down) first tries the typed path before falling back to the
+ * string-only pending-exception path.
  */
 #ifdef __cplusplus
   struct _SwigSwiftTypedEx {
@@ -178,15 +179,11 @@ import Foundation
 %}
 
 %pragma(swift) modulecode = %{
-// Default typed-exception builder.  The typed-exception dispatch path
-// (SWIG_Swift_SetTypedException / swig_swift_*_typed_exception_*) is currently
-// unused by the backend, so no typed exception is ever pending and this returns
-// nil, letting swigCheckException() fall through to the string/NSError path.
-// A future typed-exception feature can supersede this with a richer builder.
-@inline(__always)
-private func swigBuildTypedException() -> Error? {
-    return nil
-}
+// swigBuildTypedException() maps a pending C++ exception to a Swift Error.  A
+// module can supply its own (from an Exceptions.i %pragma(swift) modulecode) to
+// dispatch to typed Swift error classes; otherwise the backend emits a
+// nil-returning default so swigCheckException() falls through to the
+// string/NSError path.
 @inline(__always)
 private func swigCheckException() throws {
     if swig_swift_get_typed_exception_type() != nil,
