@@ -735,6 +735,64 @@ java_clean:
 	rm -f *.@OBJEXT@ *@JAVASO@
 
 ##################################################################
+#####                       KOTLIN                          ######
+##################################################################
+
+# Kotlin/JVM reuses the Java settings for the JNI includes and shared library build
+# and only needs the Kotlin compiler in addition.
+
+KOTLINC = @KOTLINC@
+KOTLINFLAGS = @KOTLINFLAGS@
+
+# ----------------------------------------------------------------
+# Build a kotlin dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+kotlin: $(SRCDIR_SRCS)
+	$(SWIG) -kotlin $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
+	$(JAVALDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
+
+# ----------------------------------------------------------------
+# Build a kotlin dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+kotlin_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -kotlin -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
+	$(JAVACXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
+
+# ----------------------------------------------------------------
+# Compile kotlin files, all in a single kotlinc invocation
+# ----------------------------------------------------------------
+
+kotlin_compile: $(SRCDIR_SRCS)
+	$(COMPILETOOL) $(KOTLINC) $(KOTLINFLAGS) -include-runtime -d main.jar $(addprefix $(SRCDIR),$(KOTLINSRCS))
+
+# -----------------------------------------------------------------
+# Run kotlin example
+# -----------------------------------------------------------------
+
+kotlin_run:
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -Djava.library.path=. -cp main.jar $(RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+kotlin_version:
+	$(KOTLINC) -version
+
+# -----------------------------------------------------------------
+# Cleaning the kotlin examples
+# -----------------------------------------------------------------
+
+kotlin_clean:
+	rm -f *_wrap* *~ .~* *.class main.jar `find . -name \*.kt | grep -v runme.kt`
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@JAVASO@
+
+##################################################################
 #####                       JAVASCRIPT                      ######
 ##################################################################
 

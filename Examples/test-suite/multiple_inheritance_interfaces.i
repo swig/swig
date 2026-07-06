@@ -3,7 +3,7 @@
 %warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %include <swiginterface.i>
 %interface_custom("A", "IA", IA)
 %interface_custom("B", "IB", IB)
@@ -23,7 +23,7 @@ struct D : IC {};
 struct E : D {};
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface_custom("J", "IJ", IJ)
 %interface_custom("K", "IK", IK)
 %interface_custom("L", "IL", IL)
@@ -36,7 +36,7 @@ struct IL : IK {};
 struct M : IL {};
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface_custom("Q", "IQ", IQ)
 #endif
 %inline %{
@@ -50,7 +50,7 @@ struct V : S {};
 struct W : T {};
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface(IV1)
 %interface(IV2)
 %interface(V3)
@@ -61,7 +61,7 @@ struct IV2 : virtual IA {};
 struct V3 : IV1, IV2 {};
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface_impl(Undesirables);
 #endif
 
@@ -88,7 +88,7 @@ struct UndesirablesDerived : Undesirables {
 };
 %}
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface_impl(BaseOverloaded);
 #endif
 %inline %{
@@ -104,7 +104,7 @@ struct DerivedOverloaded : public BaseOverloaded {
 %}
 
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface(Space::X)
 #endif
 
@@ -133,7 +133,7 @@ namespace Space {
 %}
 
 // Test additional interfaces - these are designed for non-C++ interfaces
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %interface_custom("Additional1", "IAdditional1", IAdditional1)
 #endif
 

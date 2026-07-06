@@ -8,6 +8,8 @@
 # define csbase javabase
 #elif defined(SWIGD)
 # define csbase dbase
+#elif defined(SWIGKOTLIN)
+# define csbase kbase
 #endif
 
 %pragma(csharp) moduleimports=%{
@@ -20,6 +22,11 @@ public class TargetLanguageBase2 { public virtual void targetLanguageBase2Method
 %pragma(java) moduleimports=%{
 class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
 class TargetLanguageBase2 { public void targetLanguageBase2Method() {} };
+%}
+
+%pragma(kotlin) moduleimports=%{
+open class TargetLanguageBase { open fun targetLanguageBaseMethod() {} }
+open class TargetLanguageBase2 { open fun targetLanguageBase2Method() {} }
 %}
 
 %pragma(d) globalproxyimports=%{

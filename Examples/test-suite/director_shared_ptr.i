@@ -5,6 +5,11 @@ SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
 #endif
 
+#ifdef SWIGKOTLIN
+SWIG_KOTLINBODY_PROXY(public, public, SWIGTYPE)
+SWIG_KOTLINBODY_TYPEWRAPPER(public, public, public, SWIGTYPE)
+#endif
+
 %{
 #include <boost/shared_ptr.hpp>
 #include <string>
@@ -34,7 +39,7 @@ public:
 
 %}
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 

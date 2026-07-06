@@ -5,7 +5,7 @@
 
 // SWIGWARN_LANG_OVERLOAD_SHADOW: lua only has one numeric type, so the int/double overloads of
 // call shadow each other.  The other warnings suppress per target multiple inheritance notes.
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE, SWIGWARN_KOTLIN_MULTIPLE_INHERITANCE,
             SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
             SWIGWARN_D_MULTIPLE_INHERITANCE,
             SWIGWARN_PHP_MULTIPLE_INHERITANCE,

@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SWIG and Kotlin</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+
+<body bgcolor="#ffffff">
+<H1><a name="Kotlin">29 SWIG and Kotlin</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Kotlin_overview">Overview</a>
+<li><a href="#Kotlin_differences_java">Differences to the Java module</a>
+<li><a href="#Kotlin_classes">Wrapping C++ classes</a>
+<li><a href="#Kotlin_enums">Enums</a>
+<li><a href="#Kotlin_directors">Directors</a>
+<li><a href="#Kotlin_stl">STL support</a>
+<li><a href="#Kotlin_running">Compiling and running</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<p>
+This chapter describes SWIG's support of Kotlin on the JVM. The Kotlin module
+generates Kotlin/JVM code that calls into the C/C++ wrapper code through the
+Java Native Interface (JNI), so it shares its overall architecture and most of
+its JNI infrastructure with the
+<a href="Java.html#Java">Java module</a>.
+</p>
+
+<p>
+The Kotlin module is an experimental target language, see
+<a href="Introduction.html#Introduction_target_languages">Target languages</a>.
+</p>
+
+<H2><a name="Kotlin_overview">29.1 Overview</a></H2>
+
+
+<p>
+The Kotlin module works in the same three layer way as the Java module:
+</p>
+
+<ol>
+<li>A C/C++ wrapper file (<tt>example_wrap.cxx</tt>) containing the JNI functions.</li>
+<li>An intermediary Kotlin <tt>object</tt> (<tt>exampleJNI.kt</tt>) containing
+<tt>external fun</tt> declarations for each JNI function.</li>
+<li>Kotlin proxy classes, one per C++ class, plus a module <tt>object</tt> for
+global functions, variables and constants.</li>
+</ol>
+
+<p>
+Unlike the Java module no Java source files are generated at all and only the
+Kotlin compiler is needed to compile the generated code. The intermediary
+<tt>object</tt> compiles to a JVM class of the same name, so the JNI functions
+in the C/C++ wrapper file resolve against it directly.
+</p>
+
+<p>
+A simple example. Given the interface file:
+</p>
+
+<div class="code">
+<pre>
+/* File: example.i */
+%module example
+
+%inline %{
+int gcd(int x, int y);
+extern double Foo;
+%}
+</pre>
+</div>
+
+<p>
+SWIG is invoked with the <tt>-kotlin</tt> option:
+</p>
+
+<div class="shell">
+<pre>
+$ swig -kotlin -c++ example.i
+</pre>
+</div>
+
+<p>
+and the generated code can be used from Kotlin as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+fun main() {
+    System.loadLibrary("example")
+    println(example.gcd(42, 105))
+    example.Foo = 3.1415926      // global variables become properties
+    println(example.Foo)
+}
+</pre>
+</div>
+
+<H2><a name="Kotlin_differences_java">29.2 Differences to the Java module</a></H2>
+
+
+<p>
+The generated Kotlin code aims to be idiomatic Kotlin rather than a literal
+transliteration of the generated Java code:
+</p>
+
+<ul>
+<li>Global functions, variables and constants are placed in a module level
+<tt>object</tt> instead of a class with static methods. There is no separate
+constants interface - constants are <tt>val</tt> declarations in the module
+object.</li>
+
+<li>C++ member variables are wrapped as Kotlin properties with custom
+<tt>get()</tt> and <tt>set(value)</tt> accessors instead of getter and setter
+methods. Read only variables become <tt>val</tt> properties. Static member
+variables become properties in the proxy class companion object.</li>
+
+<li>Static member functions and constants are placed in a single
+<tt>companion object</tt> within the proxy class, together with the
+<tt>getCPtr</tt> and <tt>swigRelease</tt> helpers.</li>
+
+<li>Kotlin classes are final by default, so proxy classes are emitted as
+<tt>open class</tt> and the proxy methods for C++ virtual functions are
+emitted with the <tt>open</tt> modifier (or <tt>override</tt> when they
+override a method from a base proxy class).</li>
+
+<li>Pointer types are mapped to nullable Kotlin types
+(for example <tt>Foo?</tt>), with a C++ NULL pointer corresponding to Kotlin
+<tt>null</tt>. References and pass by value types use the corresponding
+non-nullable types.</li>
+
+<li>No finalizers are generated as Kotlin has no finalizer syntax and JVM
+finalization is deprecated. Memory is reclaimed by calling <tt>delete()</tt>
+explicitly or by registering proxy instances with
+<tt>java.lang.ref.Cleaner</tt>.</li>
+
+<li>Kotlin has no checked exceptions, so no throws clauses are generated.</li>
+</ul>
+
+<p>
+The directives of the Java module are available under Kotlin specific names:
+</p>
+
+<div class="indent">
+<table summary="Kotlin directives" border="1" cellpadding="4">
+<tr><th>Kotlin module</th><th>Java module equivalent</th></tr>
+<tr><td><tt>%kotlinconst</tt></td><td><tt>%javaconst</tt></td></tr>
+<tr><td><tt>%kotlinconstvalue</tt></td><td><tt>%javaconstvalue</tt></td></tr>
+<tr><td><tt>%kotlinenum</tt></td><td><tt>%javaenum</tt></td></tr>
+<tr><td><tt>%kotlinmethodmodifiers</tt></td><td><tt>%javamethodmodifiers</tt></td></tr>
+<tr><td><tt>%kotlinexception</tt></td><td><tt>%javaexception</tt></td></tr>
+<tr><td><tt>%nokotlinexception</tt></td><td><tt>%nojavaexception</tt></td></tr>
+<tr><td><tt>%clearkotlinexception</tt></td><td><tt>%clearjavaexception</tt></td></tr>
+</table>
+</div>
+
+<p>
+Likewise, the typemaps of the Java module are available under Kotlin specific
+names. The <tt>jni</tt> typemap and all of the C/C++ side typemaps
+(<tt>in</tt>, <tt>out</tt>, <tt>directorin</tt>, <tt>directorout</tt>,
+<tt>throws</tt> etc.) are identical to the Java module. The Java side typemaps
+have Kotlin equivalents: <tt>ktype</tt> (was <tt>jtype</tt>), <tt>kstype</tt>
+(was <tt>jstype</tt>), <tt>kin</tt>, <tt>kout</tt>, <tt>kbody</tt>,
+<tt>kcode</tt>, <tt>kimports</tt>, <tt>kbase</tt>, <tt>kinterfaces</tt>,
+<tt>kclassmodifiers</tt>, <tt>kconstruct</tt>, <tt>kdestruct</tt>,
+<tt>kdirectorin</tt> and <tt>kdirectorout</tt>. The additional
+<tt>kcompanion</tt> typemap contains the members of the proxy class companion
+object. The special variable <tt>$kotlinclassname</tt> replaces
+<tt>$javaclassname</tt> and <tt>$kotlininput</tt> and <tt>$kotlincall</tt>
+replace <tt>$javainput</tt> and <tt>$javacall</tt>.
+</p>
+
+<H2><a name="Kotlin_classes">29.3 Wrapping C++ classes</a></H2>
+
+
+<p>
+C++ classes are wrapped by Kotlin proxy classes. Given the C++ code:
+</p>
+
+<div class="code">
+<pre>
+class Shape {
+public:
+  double x;
+  static int nshapes;
+  virtual ~Shape();
+  virtual double area();
+  void move(double dx);
+  static int count();
+};
+
+class Circle : public Shape {
+public:
+  Circle(double r);
+  virtual double area();
+};
+</pre>
+</div>
+
+<p>
+the wrapped classes can be used naturally from Kotlin:
+</p>
+
+<div class="targetlang">
+<pre>
+val c = Circle(2.0)
+c.x = 1.5                       // member variable as property
+val s: Shape = c                // upcast to base proxy class
+println(s.area())               // virtual dispatch through C++
+Shape.nshapes                   // static member via companion object
+c.delete()                      // explicit destruction of the C++ object
+</pre>
+</div>
+
+<H2><a name="Kotlin_enums">29.4 Enums</a></H2>
+
+
+<p>
+The four enum wrapping approaches of the Java module are supported and
+selected the same way by including one of <tt>enums.swg</tt> (proper Kotlin
+<tt>enum class</tt>), <tt>enumtypesafe.swg</tt> (the default, typesafe enum
+pattern), <tt>enumtypeunsafe.swg</tt> (constant integers in a class) or
+<tt>enumsimple.swg</tt> (plain constant integers). The proper enum approach
+generates an idiomatic Kotlin enum class where each enum constant carries its
+C++ value in the <tt>swigValue</tt> property:
+</p>
+
+<div class="targetlang">
+<pre>
+enum class Color {
+  RED(exampleJNI.RED_get()),
+  GREEN,
+  BLUE(exampleJNI.BLUE_get());
+  val swigValue: Int
+  ...
+}
+</pre>
+</div>
+
+<H2><a name="Kotlin_directors">29.5 Directors</a></H2>
+
+
+<p>
+Cross language polymorphism is supported via directors in the same way as the
+<a href="Java.html#Java_directors">Java module</a>. Director enabled proxy
+classes and their virtual methods are emitted with the <tt>open</tt> modifier
+so they can be overridden from Kotlin with the usual <tt>override</tt>
+keyword:
+</p>
+
+<div class="targetlang">
+<pre>
+class KotlinCallback : Callback() {
+    override fun run(x: Int): Int = x * 3
+}
+</pre>
+</div>
+
+<p>
+C++ code invoking the virtual method through a base class pointer or reference
+then calls back into the Kotlin override.
+</p>
+
+<H2><a name="Kotlin_stl">29.6 STL support</a></H2>
+
+
+<p>
+The usual STL library files are provided (<tt>std_string.i</tt>,
+<tt>std_vector.i</tt>, <tt>std_map.i</tt>, <tt>std_list.i</tt>,
+<tt>std_set.i</tt>, <tt>std_pair.i</tt>, <tt>std_array.i</tt>,
+<tt>std_shared_ptr.i</tt>, <tt>std_unique_ptr.i</tt> and the unordered
+containers). The containers integrate with the Kotlin collection interfaces by
+extending the matching <tt>java.util</tt> abstract collection classes, so a
+wrapped <tt>std::vector</tt> is a <tt>MutableList</tt>, a wrapped
+<tt>std::map</tt> is a <tt>MutableMap</tt> and so on:
+</p>
+
+<div class="targetlang">
+<pre>
+val v = IntVector()
+v.add(1)
+v[0] = 2                        // MutableList operator access
+for (n in v) println(n)         // Kotlin iteration
+val m = StringIntMap()
+m["key"] = 42
+for ((k, n) in m) println("$k=$n")
+</pre>
+</div>
+
+<H2><a name="Kotlin_running">29.7 Compiling and running</a></H2>
+
+
+<p>
+All the generated Kotlin files for a module should be compiled in a single
+<tt>kotlinc</tt> invocation. The compiled code is run on a JVM with the Kotlin
+runtime on the classpath, most easily via the <tt>kotlin</tt> launcher that
+ships with the Kotlin compiler:
+</p>
+
+<div class="shell">
+<pre>
+$ swig -kotlin -c++ example.i
+$ g++ -c -fPIC example.cxx example_wrap.cxx -I"$JAVA_HOME/include" -I"$JAVA_HOME/include/linux"
+$ g++ -shared example.o example_wrap.o -o libexample.so
+$ kotlinc *.kt runme.kt -d .
+$ kotlin -Djava.library.path=. -classpath . RunmeKt
+</pre>
+</div>
+
+<p>
+As with Java, the native library is loaded with
+<tt>System.loadLibrary("example")</tt>, which can conveniently be placed in
+the <tt>init</tt> block of an object or at the start of <tt>main</tt>. See the
+<a href="Java.html#Java_dynamic_linking_problems">Dynamic linking problems</a>
+section in the Java chapter for help with library loading problems - the same
+advice applies to Kotlin.
+</p>
+
+</body>
+</html>

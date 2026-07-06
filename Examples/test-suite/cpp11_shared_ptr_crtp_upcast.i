@@ -3,13 +3,13 @@
 // Cutdown testcase for assert reported in https://github.com/swig/swig/issues/2768
 // Note that this test has CRTP and %template instantiations for DiscretisedDensity template parameters not fully resolved
 
-%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE,
+%warnfilter(SWIGWARN_JAVA_MULTIPLE_INHERITANCE, SWIGWARN_KOTLIN_MULTIPLE_INHERITANCE,
 	    SWIGWARN_CSHARP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) stir::DiscretisedDensity<3,float>;
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 

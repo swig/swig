@@ -1,11 +1,11 @@
 %module(directors="1") virtual_poly
 
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) copy; /* Java, C# covariant return types */
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) ref_this; /* Java, C# covariant return types */
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant; /* Java, C# covariant return types */
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant2; /* Java, C# covariant return types */
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant3; /* Java, C# covariant return types */
-%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant4; /* Java, C# covariant return types */
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) copy; /* Java, C# covariant return types */
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) ref_this; /* Java, C# covariant return types */
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant; /* Java, C# covariant return types */
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant2; /* Java, C# covariant return types */
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant3; /* Java, C# covariant return types */
+%warnfilter(SWIGWARN_JAVA_COVARIANT_RET, SWIGWARN_KOTLIN_COVARIANT_RET, SWIGWARN_CSHARP_COVARIANT_RET) covariant4; /* Java, C# covariant return types */
 
 %{
 #if defined(__SUNPRO_CC)

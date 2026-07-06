@@ -3,7 +3,7 @@
 %warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGKOTLIN)
 %include <swiginterface.i>
 %interface_impl(Space::ABase1)
 %interface_impl(Space::CBase1)

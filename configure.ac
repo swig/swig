@@ -1249,6 +1249,40 @@ AC_SUBST(JAVACFLAGS)
 AC_SUBST(JAVAC_OPTIONS)
 
 #----------------------------------------------------------------
+# Look for Kotlin
+#----------------------------------------------------------------
+
+dnl Kotlin/JVM reuses the Java detection above for the JNI headers needed to
+dnl compile the C/C++ wrappers and the java executable for running tests.
+dnl Only the Kotlin compiler itself needs to be detected here.
+
+AC_ARG_WITH(kotlin, AS_HELP_STRING([--without-kotlin], [Disable Kotlin])
+AS_HELP_STRING([--with-kotlin=path], [Set location of kotlinc executable]),[KOTLINCBIN="$withval"], [KOTLINCBIN="$alllang_default"])
+
+# First, check for "--without-kotlin" or "--with-kotlin=no".
+if test x"${KOTLINCBIN}" = xno; then
+  AC_MSG_NOTICE([Disabling Kotlin])
+  KOTLINC=
+else
+  if test "x$KOTLINCBIN" = xyes; then
+    AC_CHECK_PROGS(KOTLINC, kotlinc)
+  else
+    KOTLINC="$KOTLINCBIN"
+  fi
+fi
+
+dnl The kotlin runner script ships with kotlinc and runs compiled classes
+dnl with the Kotlin runtime on the classpath.
+if test -n "$KOTLINC"; then
+  AC_CHECK_PROGS(KOTLINRUNNER, kotlin)
+fi
+
+KOTLINFLAGS=
+AC_SUBST(KOTLINC)
+AC_SUBST(KOTLINRUNNER)
+AC_SUBST(KOTLINFLAGS)
+
+#----------------------------------------------------------------
 # Look for Javascript
 #----------------------------------------------------------------
 AC_ARG_WITH(javascript, AS_HELP_STRING([--without-javascript], [Disable Javascript]), [with_javascript="$withval"], [with_javascript="$alllang_default"])
@@ -2713,6 +2747,13 @@ fi
 AC_SUBST(SKIP_JAVA)
 
 
+SKIP_KOTLIN=
+if test -z "$KOTLINC" || test -z "$JAVA" || test -z "$JAVAINC" ; then
+    SKIP_KOTLIN="1"
+fi
+AC_SUBST(SKIP_KOTLIN)
+
+
 SKIP_JAVASCRIPT=
 if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ; } ; then
     SKIP_JAVASCRIPT="1"
@@ -2871,6 +2912,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
+    Examples/test-suite/kotlin/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
@@ -2933,6 +2975,7 @@ test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_KOTLIN"		|| langs="${langs}kotlin "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
