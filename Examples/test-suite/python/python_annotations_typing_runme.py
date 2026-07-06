@@ -103,9 +103,14 @@ if sys.version_info[0:2] >= (3, 2):
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(argcheck_str)
-        if anno != make_argcheck(
-            "str", ["a_cstr", "a_wcstr", "a_stdstr", "a_stdwstr", "a_stdstr_cref"]
-        ):
+        if anno != {
+            "a_cstr": "typing.Optional[str]",
+            "a_wcstr": "typing.Optional[str]",
+            "a_stdstr": "str",
+            "a_stdwstr": "str",
+            "a_stdstr_cref": "str",
+            "return": "None",
+        }:
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(argcheck_fnptr)
