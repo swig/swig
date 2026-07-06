@@ -109,6 +109,14 @@ SWIGEXPORT const char *swig_swift_director_store_string(const char *s) {
   #define SWIG_SWIFT_CATCH_VOID
 #endif
 
+/* %contract assertions: on a violation set the pending exception (turned into a
+ * thrown error on the Swift side by swigCheckException()) and return the
+ * method's null value.  The swift module rewrites the 2-arg
+ * SWIG_contract_assert(expr, msg) to pass the null return as nullreturn, the
+ * same way the Java, C# and D modules do. */
+#define SWIG_contract_assert(nullreturn, expr, msg) \
+    do { if (!(expr)) { SWIG_Swift_SetPendingException(msg); return nullreturn; } } while (0)
+
 /* Typed exception support.
  *
  * SWIG_Swift_SetTypedException<T>(ex, typeName) stores a heap-allocated copy

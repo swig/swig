@@ -32,7 +32,11 @@ namespace std {
     void push_back(const value_type& x);
 
     %extend {
-      const value_type& get(int i) {
+      /* Return by value: for vector<bool>, operator[] yields a proxy reference,
+       * so returning const value_type& would bind to a temporary (a
+       * -Werror=return-local-addr error).  By value works for every element
+       * type and Swift marshals the element the same way regardless. */
+      value_type get(int i) {
         if (i < 0 || (size_t)i >= $self->size())
           throw std::out_of_range("vector index out of range");
         return (*$self)[i];

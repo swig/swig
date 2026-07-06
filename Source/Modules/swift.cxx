@@ -1073,6 +1073,10 @@ public:
     Replaceall(f->code, "$cleanup", cleanup);
     Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
     Replaceall(f->code, "$symname", symname);
+    /* %contract asserts are emitted as the 2-arg SWIG_contract_assert(expr, msg);
+     * inject the method's null return so the macro can return it on violation
+     * (mirrors java.cxx / d.cxx).  Must run before $null is expanded below. */
+    Replaceall(f->code, "SWIG_contract_assert(", "SWIG_contract_assert($null, ");
     Replaceall(f->code, "$null", is_void_return ? "" : "0");
 
     Wrapper_print(f, f_wrappers);
@@ -2388,7 +2392,9 @@ public:
          * Each calls swigDirectorCallbacks() to build the callback struct; emit
          * that helper here, where the dispatch functions are known. */
         Printf(proxy_class_code, "    private func swigDirectorCallbacks() -> %s {\n", director_cb_struct_name);
-        Printf(proxy_class_code, "        var cbs = %s()\n", director_cb_struct_name);
+        /* 'var' only when there are callback fields to assign; a director with
+         * no dispatched methods leaves cbs unmutated (Swift warns on var then). */
+        Printf(proxy_class_code, "        %s cbs = %s()\n", Len(director_swift_init_cb) > 0 ? "var" : "let", director_cb_struct_name);
         Printv(proxy_class_code, director_swift_init_cb, NIL);
         Printf(proxy_class_code, "        return cbs\n");
         Printf(proxy_class_code, "    }\n");
@@ -2397,7 +2403,7 @@ public:
         /* No wrapped constructor: a single argument-less init via the default
          * factory (base must be default-constructible). */
         Printf(proxy_class_code, "    public init() throws {\n");
-        Printf(proxy_class_code, "        var cbs = %s()\n", director_cb_struct_name);
+        Printf(proxy_class_code, "        %s cbs = %s()\n", Len(director_swift_init_cb) > 0 ? "var" : "let", director_cb_struct_name);
         Printv(proxy_class_code, director_swift_init_cb, NIL);
         if (baseclass_name)
           Printf(proxy_class_code, "        super.init(nil, false)\n");
