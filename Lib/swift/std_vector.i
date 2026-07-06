@@ -42,10 +42,6 @@ namespace std {
           throw std::out_of_range("vector index out of range");
         (*$self)[i] = val;
       }
-      /* Raw data pointer for direct buffer access from Swift */
-      const value_type* data() {
-        return $self->data();
-      }
 #ifdef SWIGSWIFT
       /* Returns element by value so Swift sees the primitive/object type,
        * not a const-ref SWIGTYPE wrapper. The swift module (swift.cxx) keys on

@@ -3,7 +3,8 @@ Swift test-suite
 
 This directory contains the SWIG test suite for the Swift target language.
 
-The Swift backend is experimental.  Tests in this directory verify:
+The Swift backend is experimental.  The Swift-specific tests here each ship a
+_runme.swift script that exercises a feature of the backend:
 
   - director_minimal: director support (user-subclassable C++ virtual methods
     via open Swift classes with @convention(c) dispatch functions and
@@ -16,13 +17,23 @@ The Swift backend is experimental.  Tests in this directory verify:
 
   - swift_enums: C/C++ enumerations mapped to Swift enums (raw Int32 values).
 
+  - swift_inherit: single inheritance with C++ virtual dispatch.
+
   - swift_overload: overloaded free functions and member methods.
+
+  - swift_shared_ptr: objects managed by std::shared_ptr.
+
+  - swift_static: static (class) methods.
+
+  - swift_string: std::string mapped to Swift String.
 
   - swift_throws: C++ exceptions surfaced as Swift throwing functions.
 
-Most of the shared SWIG test suite also runs; tests not yet handled by the
-experimental backend are listed in FAILING_CPP_TESTS / FAILING_C_TESTS in
-Makefile.in.
+  - swift_vector: std::vector exposed as a Swift RandomAccessCollection.
+
+Most of the shared SWIG test suite is also generated and compiled; tests not
+yet handled by the experimental backend are listed in FAILING_CPP_TESTS /
+FAILING_C_TESTS in Makefile.in.
 
 Running the tests
 -----------------
@@ -33,9 +44,9 @@ From the SWIG root directory (after running ./configure && make):
   make all-swift-test-suite         # run all tests including known failures
   make partialcheck-swift-test-suite  # SWIG generation only, no compilation
 
-The test suite exercises SWIG generation and C++ wrapper compilation only; it
-does not compile or run the generated Swift proxy, so a Swift toolchain
-(swiftc) is not required.  Because only the C and C++ compilers used to build
-SWIG are needed, the suite is always enabled (like the experimental C target),
-and the _runme.swift scripts serve as usage examples rather than executed
-tests.
+The suite always generates the wrappers and compiles the generated C++.  When
+configure finds a Swift compiler (swiftc), tests that have a _runme.swift
+additionally compile the generated Swift proxy together with the runme and
+execute it; configure with --with-swift=/path/to/swiftc to point at a specific
+toolchain.  Without a Swift compiler the suite is compile-only, so it still
+runs using just the C and C++ compilers used to build SWIG.

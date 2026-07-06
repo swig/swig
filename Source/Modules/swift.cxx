@@ -31,21 +31,50 @@ static String *lowercaseFirst(const String *s) {
 /* -------------------------------------------------------------------------
  * Helper: backtick-escape Swift keywords.
  * ------------------------------------------------------------------------- */
-static String *swiftEscapeIdentifier(String *name) {
+static bool isSwiftKeyword(const char *name) {
   static const char *keywords[] = {
     "associatedtype",  "class",    "deinit", "enum",        "extension", "func",  "import", "init",     "inout",  "let",      "operator",
     "precedencegroup", "protocol", "struct", "subscript",   "typealias", "var",   "break",  "case",     "catch",  "continue", "default",
     "defer",           "do",       "else",   "fallthrough", "for",       "guard", "if",     "in",       "repeat", "return",   "throw",
     "switch",          "where",    "while",  "Any",         "false",     "is",    "nil",    "rethrows", "self",   "Self",     "super",
     "throws",          "true",     "try",    NULL};
+  for (int i = 0; keywords[i]; i++)
+    if (strcmp(name, keywords[i]) == 0)
+      return true;
+  return false;
+}
+
+/* Backtick-escape a single leaf identifier when it collides with a Swift
+ * keyword (e.g. a type/enum named "repeat").  Non-destructive: returns a new
+ * string and leaves the argument untouched. */
+static String *swiftKeywordEscape(const String *name) {
+  if (name && Len(name) > 0 && isSwiftKeyword(Char(name)))
+    return NewStringf("`%s`", name);
+  return Copy(name);
+}
+
+static String *swiftEscapeIdentifier(String *name) {
   if (!name || Len(name) == 0)
     return name;
-  for (int i = 0; keywords[i]; i++) {
-    if (Strcmp(name, keywords[i]) == 0) {
-      String *escaped = NewStringf("`%s`", name);
+  /* A Swift identifier can never contain a C++ qualifier.  A namespace
+   * variable's generated setter parameter arrives qualified (e.g. "ns::var"),
+   * which would emit an invalid Swift parameter name; keep the tail only. */
+  {
+    const char *s = Char(name);
+    const char *tail = s;
+    const char *sep;
+    while ((sep = strstr(tail, "::")))
+      tail = sep + 2;
+    if (tail != s) {
+      String *stripped = NewString(tail);
       Delete(name);
-      return escaped;
+      name = stripped;
     }
+  }
+  if (isSwiftKeyword(Char(name))) {
+    String *escaped = NewStringf("`%s`", name);
+    Delete(name);
+    return escaped;
   }
   return name;
 }
@@ -62,25 +91,42 @@ static String *swiftNestedName(Node *n) {
   if (parent) {
     String *nt = Getattr(parent, "nodeType");
     if (nt && (Equal(nt, "class") || Equal(nt, "classforward"))) {
-      /* Only go ONE level up (immediate parent only, no further recursion).
-       * Nested enums named "Type" use underscore to avoid Swift metatype conflict. */
+      /* Nested types are emitted nested in Swift, so qualify with the FULL
+       * enclosing-class path (recurse up the parent chain) - a one-level name
+       * resolves inside the enclosing class but not from module scope.
+       * A nested enum named "Type" uses an underscore to avoid a Swift metatype
+       * conflict; keep that immediate-parent form (rare, single-level only). */
       String *pn = Getattr(parent, "sym:name");
       if (pn && Len(pn) > 0) {
         String *ntype = Getattr(n, "nodeType");
         if (ntype && Equal(ntype, "enum") && Equal(cn, "Type"))
           return NewStringf("%s_Type", pn);
-        return NewStringf("%s.%s", pn, cn);
+        String *pfull = swiftNestedName(parent);
+        String *cesc = swiftKeywordEscape(cn);
+        String *result = NewStringf("%s.%s", pfull, cesc);
+        Delete(pfull);
+        Delete(cesc);
+        return result;
       }
     }
   }
-  return Copy(cn);
+  return swiftKeywordEscape(cn);
+}
+
+/* A class known only by a forward declaration (never defined where SWIG can see
+ * it, e.g. defined in a plain %{ %} block) has no Swift proxy, so its name must
+ * not be used as a type; treat it as opaque and let it route to a SWIGTYPE_*
+ * wrapper.  A class that IS wrapped resolves to its "class" node, not this. */
+static bool swiftNodeIsOpaqueForward(Node *n) {
+  String *nt = Getattr(n, "nodeType");
+  return nt && Equal(nt, "classforward");
 }
 
 static String *resolveSwiftClassName(SwigType *t) {
   Node *n = Language::classLookup(t);
   if (n) {
     String *cn = Getattr(n, "sym:name");
-    if (cn && Len(cn) > 0 && Strncmp(cn, "__dummy_", 8) != 0)
+    if (cn && Len(cn) > 0 && Strncmp(cn, "__dummy_", 8) != 0 && !swiftNodeIsOpaqueForward(n))
       return swiftNestedName(n);
   }
 
@@ -100,7 +146,12 @@ static String *resolveSwiftClassName(SwigType *t) {
     Node *sn = Swig_symbol_clookup(base, 0);
     if (sn) {
       String *cn = Getattr(sn, "sym:name");
-      if (cn && Len(cn) > 0 && Strncmp(cn, "__dummy_", 8) != 0) {
+      String *snt = Getattr(sn, "nodeType");
+      /* An enum VALUE is not a type: a non-type template argument such as
+       * Bar<Enum17::Val1> resolves the symbol Val1 (an enumitem), whose name
+       * must never be used as a Swift class name (it would leak the enumerator
+       * into a template instantiation's element type). */
+      if (cn && Len(cn) > 0 && Strncmp(cn, "__dummy_", 8) != 0 && !(snt && Equal(snt, "enumitem")) && !swiftNodeIsOpaqueForward(sn)) {
         String *result = swiftNestedName(sn);
         Delete(base);
         Delete(ty2);
@@ -148,6 +199,9 @@ class SWIFT : public Language {
   File *f_begin;        /* beginning of _wrap.cxx */
   File *f_runtime;      /* SWIG runtime code */
   File *f_header;       /* #include / extern declarations */
+  File *f_directors;    /* C++ director class definitions (dumped after f_header so a
+                           director base class defined in a trailing %{ } block, which
+                           lands in f_header, precedes the SwigDirector_ subclass) */
   File *f_wrappers;     /* generated C wrapper functions */
   File *f_init;         /* SWIG_init() function */
   List *filenames_list; /* for portability check */
@@ -165,6 +219,8 @@ class SWIFT : public Language {
   String *proxy_class_constants_code; /* nested enum / static let */
   String *destructor_call;            /* C call used in deinit */
   String *enum_code;                  /* current enum being built */
+  bool enum_as_struct;                /* current enum uses the struct fallback (duplicate values) */
+  String *enum_type_name;             /* display name of the current enum (for struct member refs) */
   String *vector_element_swifttype;   /* if this class is a std::vector, the Swift type its
                                          getElement(i:) returns; used to auto-emit a
                                          RandomAccessCollection conformance (NULL otherwise) */
@@ -189,14 +245,26 @@ class SWIFT : public Language {
   String *director_classname;          /* "SwigDirector_Foo" */
   String *director_symname;            /* "Foo" — set in classDirectorInit, before classHandler */
   String *director_cb_struct_name;     /* "SwigSwiftCallbacks_Foo" */
+  String *director_using_code;         /* "using Base::member;" lines for the director class body */
   String *director_cb_fields;          /* struct body: one fn-ptr field per method */
   String *director_cpp_methods;        /* C++ virtual override bodies */
   String *director_swift_dispatch_fns; /* module-level Swift @convention(c) dispatch fns */
   String *director_swift_open_methods; /* open func swig_* declarations */
   String *director_swift_init_cb;      /* cbs.swig_* = fn; lines in Swift init body */
+  String *director_cpp_ctors;          /* per-base-constructor C++ forwarding ctors */
+  String *director_factory_decls;      /* per-ctor factory bridging-header declarations */
+  String *director_swift_inits;        /* per-base-constructor Swift init(...) bodies */
   Hash *director_method_count;         /* base-name → seen-count, for overload dedup */
   Hash *class_generated_inits;         /* class sym:name → comma-list of arg counts actually emitted */
+  Hash *class_generated_methods;       /* class sym:name → |-list of method Swift signatures emitted */
+  Hash *class_processed;               /* class sym:name → "1" if wrapped in this run (same-module) */
   Hash *class_static_methods;          /* class sym:name → pipe-delimited list of static method names */
+  Hash *director_base_classes;         /* sym:name → "1" for every (transitive) base of a director class */
+  Hash *swift_types_hash;              /* SWIGTYPE_p_* wrapper class name → SwigType, for pointers/refs
+                                          to non-wrapped types; emitted as opaque proxy classes in top() */
+  Hash *swift_enum_wrapper_names;      /* subset of swift_types_hash whose type is an enum SWIG does not
+                                          wrap (in %{ }, forward-declared or %ignore'd); emitted as a
+                                          rawValue struct (not a swigCPtr proxy) so the enum typemaps work */
 
   /* =========================================================================
    * Private helpers
@@ -277,6 +345,35 @@ class SWIFT : public Language {
     }
   }
 
+  /* Mark every (transitive) base of a director class as needing 'open'. */
+  void markDirectorBases(Node *cls) {
+    List *baselist = Getattr(cls, "bases");
+    if (!baselist)
+      return;
+    for (Iterator b = First(baselist); b.item; b = Next(b)) {
+      String *bname = Getattr(b.item, "sym:name");
+      if (bname)
+        Setattr(director_base_classes, bname, "1");
+      markDirectorBases(b.item); /* transitive: ancestors of the base too */
+    }
+  }
+
+  /* Pre-pass: Swift forbids an 'open' class (every director proxy is 'open')
+   * from having a non-open superclass.  Record the ancestors of each director
+   * class so classHandler can emit them 'open' as well. */
+  void collectDirectorBases(Node *n) {
+    for (Node *c = firstChild(n); c; c = nextSibling(c)) {
+      String *nt = Getattr(c, "nodeType");
+      /* Mirror lang.cxx's director decision.  Swig_directorclass() can't be used
+       * here: it tests the "vtable" attribute, which is only built later during
+       * Language::top(), whereas this pre-pass runs before it.  The feature flags
+       * are already set, so replicate the same enablement test. */
+      if (nt && Equal(nt, "class") && Swig_directors_enabled() && GetFlag(c, "feature:director") && !GetFlag(c, "feature:nodirector"))
+        markDirectorBases(c);
+      collectDirectorBases(c);
+    }
+  }
+
   /* Emit the standard SWIG banner in the target language comment style */
   void emitBanner(File *f) {
     Printf(f, "/*\n");
@@ -291,6 +388,19 @@ class SWIFT : public Language {
     return name ? Char(name) : "";
   }
 
+  /* True when a type (after resolving typedefs and stripping pointer/reference/
+   * qualifier constructors) is a C/C++ enum.  Used to pick the enum director
+   * conversion (C++ enum <-> int) since a scoped enum has no implicit int
+   * conversion. */
+  bool swiftTypeIsEnum(SwigType *t) {
+    SwigType *r = SwigType_typedef_resolve_all(t);
+    SwigType *b = SwigType_base(r);
+    bool result = SwigType_isenum(b) ? true : false;
+    Delete(b);
+    Delete(r);
+    return result;
+  }
+
   /* A self-referential member (e.g. a method returning the enclosing class) resolves to the
    * opaque bridge type "UnsafeMutableRawPointer?"; substitute the current proxy class name so
    * the Swift signature names the class.  Consumes and replaces the passed string. */
@@ -300,6 +410,81 @@ class SWIFT : public Language {
       return Copy(proxy_class_name);
     }
     return cn;
+  }
+
+  /* A pointer/reference/array to a type SWIG does not wrap (int*, void*, a function
+   * pointer, an opaque struct) resolves to the opaque sentinel.  Rather than leak that
+   * into the Swift signature, generate a SWIGTYPE_p_* wrapper class name (mangled from
+   * the type, as Java/C# do) and record the type so the class is emitted in top().
+   * Consumes and replaces the passed string; no-op if cn is already a real class name. */
+  String *swiftWrapperNameIfOpaque(String *cn, SwigType *t) {
+    if (!Equal(cn, "UnsafeMutableRawPointer?"))
+      return cn;
+    SwigType *resolved = SwigType_typedef_resolve_all(t);
+    String *mangled = SwigType_manglestr(resolved);
+    String *name = NewStringf("SWIGTYPE%s", mangled);
+    if (!Getattr(swift_types_hash, name))
+      Setattr(swift_types_hash, name, resolved);
+    /* An enum SWIG does not wrap must be marshalled through its rawValue, not a
+     * swigCPtr proxy, so record it for the struct form of the wrapper. */
+    if (swiftTypeIsEnum(t))
+      Setattr(swift_enum_wrapper_names, name, "1");
+    Delete(mangled);
+    Delete(resolved);
+    Delete(cn);
+    return name;
+  }
+
+  /* Resolve $swiftclassname for a type: a real proxy-class name, else the enclosing
+   * class (self-reference), else a generated SWIGTYPE_p_* wrapper.  Returns owned.
+   * An unwrapped enum skips the self-reference step: it must never resolve to the
+   * enclosing class (the enum typemaps use .rawValue, which the class lacks) - it
+   * falls through to a rawValue-struct wrapper instead. */
+  String *swiftClassNameFor(SwigType *t) {
+    String *cn = resolveSwiftClassName(t);
+    if (!swiftTypeIsEnum(t))
+      cn = selfClassNameIfOpaque(cn);
+    cn = swiftWrapperNameIfOpaque(cn, t);
+    return cn;
+  }
+
+  /* Emit a minimal opaque proxy class for one SWIGTYPE_p_* wrapper, reusing the same
+   * swiftbody typemap the real proxy classes use so the marshalling stays consistent
+   * (holds swigCPtr / swigCMemOwn, provides init(ptr, own) and swigGetCPtr). */
+  void emitTypeWrapperClass(String *classname, SwigType *type) {
+    /* An unwrapped enum is marshalled by value through its rawValue (the enum
+     * typemaps read .rawValue and construct via init?(rawValue:)), so emit the
+     * same rawValue struct used as the duplicate-value enum fallback rather than
+     * a swigCPtr proxy. */
+    if (Getattr(swift_enum_wrapper_names, classname)) {
+      Printf(swift_module_code, "\npublic struct %s: Equatable {\n", classname);
+      Printf(swift_module_code, "    public let rawValue: Int32\n");
+      Printf(swift_module_code, "    public init?(rawValue: Int32) { self.rawValue = rawValue }\n");
+      Printf(swift_module_code, "}\n");
+      return;
+    }
+
+    Node *n = NewHash();
+    Setfile(n, input_file);
+    Setline(n, line_number);
+    Setattr(n, "sym:name", classname);
+
+    const String *class_mods = typemapLookup(n, "swiftclassmodifiers", type, WARN_NONE);
+    const char *mods = (class_mods && Len(class_mods) > 0) ? Char(class_mods) : "public";
+    String *body = NewString(typemapLookup(n, "swiftbody", type, WARN_NONE));
+    Replaceall(body, "$swiftclassname", classname);
+
+    Printf(swift_module_code, "\n%s class %s {\n", mods, classname);
+    Printv(swift_module_code, body, NIL);
+    Printf(swift_module_code, "}\n");
+
+    Delete(body);
+    Delete(n);
+  }
+
+  void emitTypeWrapperClasses() {
+    for (Iterator it = First(swift_types_hash); it.key; it = Next(it))
+      emitTypeWrapperClass(it.key, it.item);
   }
 
   /* Current module node (set in top()) */
@@ -313,6 +498,7 @@ public:
     f_begin(NULL),
     f_runtime(NULL),
     f_header(NULL),
+    f_directors(NULL),
     f_wrappers(NULL),
     f_init(NULL),
     filenames_list(NULL),
@@ -326,6 +512,8 @@ public:
     proxy_class_constants_code(NULL),
     destructor_call(NULL),
     enum_code(NULL),
+    enum_as_struct(false),
+    enum_type_name(NULL),
     static_flag(false),
     variable_wrapper_flag(false),
     current_class_has_base(false),
@@ -343,9 +531,16 @@ public:
     director_swift_dispatch_fns(NULL),
     director_swift_open_methods(NULL),
     director_swift_init_cb(NULL),
+    director_cpp_ctors(NULL),
+    director_factory_decls(NULL),
+    director_swift_inits(NULL),
     director_method_count(NULL),
     class_generated_inits(NewHash()),
+    class_generated_methods(NewHash()),
+    class_processed(NewHash()),
     class_static_methods(NewHash()),
+    swift_types_hash(NULL),
+    swift_enum_wrapper_names(NULL),
     current_module(NULL) {
     directorLanguage();
     /* Swift directors use a separate factory function; the regular constructor
@@ -357,6 +552,8 @@ public:
   ~SWIFT() {
     delete doxygenTranslator;
     Delete(class_generated_inits);
+    Delete(class_generated_methods);
+    Delete(class_processed);
     Delete(class_static_methods);
   }
 
@@ -420,6 +617,10 @@ public:
     if (autorename)
       collectRenames(n);
 
+    /* Record ancestors of director classes so they are emitted 'open' too. */
+    director_base_classes = NewHash();
+    collectDirectorBases(n);
+
     /* --- collect module name --- */
     String *module = Getattr(n, "name");
 
@@ -445,6 +646,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     f_runtime = NewString("");
     f_header = NewString("");
+    f_directors = NewString("");
     f_wrappers = NewString("");
     f_init = NewString("");
 
@@ -461,6 +663,8 @@ public:
     swift_module_imports = NewString("");
     upcasts_code = NewString("");
     vector_element_swifttype = NULL;
+    swift_types_hash = NewHash();
+    swift_enum_wrapper_names = NewHash();
 
     Swig_register_filebyname("begin", f_begin);
     Swig_register_filebyname("runtime", f_runtime);
@@ -468,11 +672,15 @@ public:
     Swig_register_filebyname("wrapper", f_wrappers);
     Swig_register_filebyname("init", f_init);
 
-    /* classDirector() in lang.cxx always writes using_protected_members_code to
-     * "director_h" regardless of language.  Register f_header for both handles so
-     * that content lands somewhere harmless (the using-declarations are valid C++). */
-    Swig_register_filebyname("director", f_header);
-    Swig_register_filebyname("director_h", f_header);
+    /* classDirector() in lang.cxx writes using_protected_members_code (the
+     * "using Base::member;" lines that expose protected members in allprotected
+     * mode) to the "director_h" handle, just before calling classDirectorEnd.
+     * Those declarations are only valid inside the director class body, so route
+     * both handles to a dedicated buffer that classDirectorEnd splices into the
+     * class definition (and clears afterwards for the next class). */
+    director_using_code = NewString("");
+    Swig_register_filebyname("director", director_using_code);
+    Swig_register_filebyname("director_h", director_using_code);
 
     /* --- Inject the SWIG runtime into the C output --- */
     Swig_banner(f_begin);
@@ -485,8 +693,13 @@ public:
      * language; including this header makes that code compile.  Our director classes
      * do NOT inherit Swig::Director, so dynamic_cast<Swig::Director*> always returns
      * nullptr and the upcall branch is never taken — the code is harmless dead code. */
-    if (Swig_directors_enabled())
+    if (Swig_directors_enabled()) {
+      /* Suppress the core's dummy Swig::DirectorException stub (emitted under
+       * #ifndef SWIG_DIRECTORS for non-director languages); swift/director.swg
+       * defines the real one, so without this the two clash (redefinition). */
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_insert_file("swift/director.swg", f_runtime);
+    }
 
     /* --- Open C header file and emit declarations --- */
     Printf(swift_header_code, "/* Auto-generated by SWIG – do not edit. */\n");
@@ -542,6 +755,10 @@ public:
     if (Len(upcasts_code))
       Printv(f_wrappers, upcasts_code, NIL);
 
+    /* Opaque wrapper classes for pointers/refs to non-wrapped types (SWIGTYPE_p_*),
+     * collected during code generation.  Appended to the module code before it is dumped. */
+    emitTypeWrapperClasses();
+
     /* --- emit module-level Swift code (module imports + helper + global fns) --- */
     if (Len(swift_module_imports))
       Printv(f_swift, swift_module_imports, "\n", NIL);
@@ -570,11 +787,13 @@ public:
     /* --- merge C/C++ buffers into the wrap file --- */
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
+    Dump(f_directors, f_begin);
     Dump(f_wrappers, f_begin);
     Wrapper_pretty_print(f_init, f_begin);
 
     Delete(f_runtime);
     Delete(f_header);
+    Delete(f_directors);
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_begin);
@@ -588,6 +807,10 @@ public:
     swift_module_imports = NULL;
     Delete(upcasts_code);
     upcasts_code = NULL;
+    Delete(swift_types_hash);
+    swift_types_hash = NULL;
+    Delete(swift_enum_wrapper_names);
+    swift_enum_wrapper_names = NULL;
     Delete(filenames_list);
     filenames_list = NULL;
 
@@ -804,7 +1027,7 @@ public:
      * "in" typemaps that initialise arg1.
      * Note: director_classname is only valid inside classDirectorInit..End,
      * which runs AFTER functionWrapper; use proxy_class_name instead. */
-    if (Strstr(actioncode, "(darg)->") && director_flag && proxy_class_name) {
+    if (Strstr(actioncode, "darg") && director_flag && proxy_class_name) {
       String *darg_init = NewStringf("  SwigDirector_%s *darg = (SwigDirector_%s *)arg1;\n", proxy_class_name, proxy_class_name);
       Insert(actioncode, 0, darg_init);
       Delete(darg_init);
@@ -835,6 +1058,7 @@ public:
 
     Replaceall(f->code, "$cleanup", cleanup);
     Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
+    Replaceall(f->code, "$symname", symname);
     Replaceall(f->code, "$null", is_void_return ? "" : "0");
 
     Wrapper_print(f, f_wrappers);
@@ -921,13 +1145,12 @@ public:
       Printv(swift_return_type, "/* UNKNOWN */", NIL);
     }
 
-    {
-      String *ret_cn = resolveSwiftClassName(rettype);
-      ret_cn = selfClassNameIfOpaque(ret_cn);
+    if (Strstr(swift_return_type, "$swiftclassname")) {
+      String *ret_cn = swiftClassNameFor(rettype);
       Replaceall(swift_return_type, "$swiftclassname", ret_cn);
-      Replaceall(swift_return_type, "$module", moduleName());
       Delete(ret_cn);
     }
+    Replaceall(swift_return_type, "$module", moduleName());
     bool is_void = (Len(swift_return_type) == 0 || Cmp(swift_return_type, "Void") == 0);
 
     /* -- look up swiftout typemap -- */
@@ -970,6 +1193,11 @@ public:
       }
     }
 
+    /* C++ allows repeated parameter names (e.g. f(int argx, int argx)); Swift
+     * rejects the duplicate internal names.  Track names seen in this signature
+     * and suffix any collision so the emitted parameter list stays valid. */
+    Hash *seen_arg_names = NewHash();
+
     /* Walk parameters, skipping those consumed by "numinputs=0" typemaps */
     for (i = i_start, p = p_start; i < num_args; i++) {
       while (checkAttribute(p, "tmap:in:numinputs", "0"))
@@ -989,16 +1217,23 @@ public:
       else
         swift_arg_name = NewStringf("arg%d", i + 1);
       swift_arg_name = swiftEscapeIdentifier(swift_arg_name);
+      if (Getattr(seen_arg_names, swift_arg_name)) {
+        String *unique = NewStringf("%s_%d", swift_arg_name, i + 1);
+        Delete(swift_arg_name);
+        swift_arg_name = unique;
+      }
+      Setattr(seen_arg_names, swift_arg_name, "1");
 
       /* Swift parameter type */
       String *swift_param_type = NewString("");
       if ((tm = Getattr(p, "tmap:swifttype"))) {
         Printv(swift_param_type, tm, NIL);
-        String *pcn = paramSwiftClassName(p);
-        pcn = selfClassNameIfOpaque(pcn);
-        Replaceall(swift_param_type, "$swiftclassname", pcn);
+        if (Strstr(swift_param_type, "$swiftclassname")) {
+          String *pcn = swiftClassNameFor(Getattr(p, "type"));
+          Replaceall(swift_param_type, "$swiftclassname", pcn);
+          Delete(pcn);
+        }
         Replaceall(swift_param_type, "$module", moduleName());
-        Delete(pcn);
       } else {
         Swig_warning(WARN_SWIFT_TYPEMAP_SWIFTTYPE_UNDEF, input_file, line_number, "No swifttype for %s\n", SwigType_str(pt, 0));
         Printv(swift_param_type, "/* UNKNOWN */", NIL);
@@ -1009,11 +1244,12 @@ public:
       if ((tm = Getattr(p, "tmap:swiftin"))) {
         Printv(swiftin_tm, tm, NIL);
         Replaceall(swiftin_tm, "$swiftinput", swift_arg_name);
-        String *pcn = paramSwiftClassName(p);
-        pcn = selfClassNameIfOpaque(pcn);
-        Replaceall(swiftin_tm, "$swiftclassname", pcn);
+        if (Strstr(swiftin_tm, "$swiftclassname")) {
+          String *pcn = swiftClassNameFor(Getattr(p, "type"));
+          Replaceall(swiftin_tm, "$swiftclassname", pcn);
+          Delete(pcn);
+        }
         Replaceall(swiftin_tm, "$module", moduleName());
-        Delete(pcn);
       } else {
         Swig_warning(WARN_SWIFT_TYPEMAP_SWIFTIN_UNDEF, input_file, line_number, "No swiftin for %s\n", SwigType_str(pt, 0));
         Printv(swiftin_tm, swift_arg_name, NIL);
@@ -1036,6 +1272,7 @@ public:
       Delete(swift_param_type);
       Delete(swiftin_tm);
     }
+    Delete(seen_arg_names);
 
     /* Build $imcall: the actual C function call */
     String *imcall = NewStringf("%s(%s)", wname, c_args);
@@ -1050,13 +1287,12 @@ public:
     /* Shared_ptr typemaps hardcode 'true' for ownership; replace with $owner first */
     Replaceall(body, ", true)", ", $owner)");
     Replaceall(body, "$owner", GetFlag(n, "feature:new") ? "true" : "false");
-    {
-      String *ret_cn = resolveSwiftClassName(rettype);
-      ret_cn = selfClassNameIfOpaque(ret_cn);
+    if (Strstr(body, "$swiftclassname")) {
+      String *ret_cn = swiftClassNameFor(rettype);
       Replaceall(body, "$swiftclassname", ret_cn);
-      Replaceall(body, "$module", moduleName());
       Delete(ret_cn);
     }
+    Replaceall(body, "$module", moduleName());
 
     /* Value-type member getters always return the address of a struct member — never null.
      * Convert the guard-let optional pattern to force-unwrap and strip '?' from return type. */
@@ -1142,6 +1378,31 @@ public:
           is_override = false;
       }
     }
+    /* Signature-based override detection: Swift requires 'override' for any member
+     * that shadows a superclass member - including a non-virtual one, and cases the
+     * C++ "override" attribute misses (templated bases, using-declarations, access
+     * changes).  Match this method's Swift signature (name + argument labels)
+     * against methods already emitted for an ancestor proxy class, and record this
+     * one so further-derived classes can do the same. */
+    if (in_class && proxy_class_name) {
+      /* Key on the full Swift signature (name + argument labels AND types): Swift
+       * treats a method with a different parameter type as an overload, not an
+       * override (e.g. a covariant parameter foxy(BaseInt) vs foxy(DerivedInt)).
+       * Return type is excluded, since Swift permits a covariant return override.
+       * Static (class) methods are keyed separately - a static cannot override an
+       * instance method and vice versa. */
+      String *method_key = NewStringf("%s%s(%s)", is_static ? "static:" : "", swift_name, swift_params);
+      Node *cls_node = getCurrentClass();
+      if (cls_node && current_class_has_base && ancestorHasGeneratedMethodWith(cls_node, method_key))
+        is_override = true;
+      else if (is_override && cls_node && swiftSuperclassProcessed(cls_node))
+        /* The core marked this an override, but the same-module Swift superclass
+         * exposes no method with this exact signature (a covariant parameter makes
+         * it a distinct Swift overload), so it is not a Swift override. */
+        is_override = false;
+      recordGeneratedMethod(proxy_class_name, method_key);
+      Delete(method_key);
+    }
     /* Access modifier defaults to public, but can be overridden per method with
      * %feature("swiftmethodmodifiers") (e.g. "internal", "private", "fileprivate"),
      * analogous to %csmethodmodifiers / %javamethodmodifiers. The "override" and
@@ -1179,8 +1440,11 @@ public:
 
     /* If this is std_vector.i's getElement(i:) accessor, remember the exact Swift type
      * it returns. classHandler uses it to auto-emit a RandomAccessCollection conformance
-     * whose subscript return type matches getElement by construction. */
-    if (!is_void && is_wrapping_class() && Equal(symname, "getElement") && !vector_element_swifttype) {
+     * whose subscript return type matches getElement by construction.  The vector
+     * accessor takes an index argument; require at least one parameter so an unrelated
+     * getElement() (e.g. a plain getter returning a member) does not falsely mark the
+     * class as a collection. */
+    if (!is_void && is_wrapping_class() && Equal(symname, "getElement") && !vector_element_swifttype && l && ParmList_len(l) >= 1) {
       vector_element_swifttype = Copy(swift_return_type);
     }
 
@@ -1237,9 +1501,12 @@ public:
   }
 
   /* Resolve the Swift class name for a wrapped-class parameter type (for
-   * substituting $swiftclassname in typemaps). */
-  static String *paramSwiftClassName(Parm *p) {
-    return resolveSwiftClassName(Getattr(p, "type"));
+   * substituting $swiftclassname in typemaps).  Uses the full swiftClassNameFor
+   * path so a pointer/reference to a non-wrapped type gets a distinct SWIGTYPE_*
+   * wrapper name - director method overloads on distinct opaque pointers (e.g.
+   * method(int*) vs method(double*)) must not collapse to one Swift signature. */
+  String *paramSwiftClassName(Parm *p) {
+    return swiftClassNameFor(Getattr(p, "type"));
   }
 
   /* =========================================================================
@@ -1255,6 +1522,9 @@ public:
     director_swift_dispatch_fns = NewString("");
     director_swift_open_methods = NewString("");
     director_swift_init_cb = NewString("");
+    director_cpp_ctors = NewString("");
+    director_factory_decls = NewString("");
+    director_swift_inits = NewString("");
     director_method_count = NewHash();
     return SWIG_OK;
   }
@@ -1269,11 +1539,63 @@ public:
   }
 
   /* =========================================================================
-   * classDirectorConstructors() – suppress lang.cxx's director-aware constructor
-   * generation.  Swift creates directors via _wrap_new_SwigDirector_Foo (from
-   * classDirectorEnd), so regular _wrap_new_Foo must stay plain.
+   * classDirectorConstructors() – emit one forwarding constructor + factory +
+   * Swift init per wrapped base constructor.  Runs after classDirectorInit, so
+   * the director buffers exist.  constructorHandler ran earlier (member emission)
+   * and stashed the Swift init parameter / C argument lists on each ctor node.
+   * A director class with no wrapped constructor leaves the buffers empty and
+   * falls back to the single default factory in classDirectorEnd / classHandler.
    * ========================================================================= */
-  virtual int classDirectorConstructors(Node *) {
+  virtual int classDirectorConstructors(Node *n) {
+    /* Does the director class have a wrapped base? (mirrors the baseclass_name
+     * detection in classHandler; current_class_has_base is not yet valid here,
+     * as the director pass runs before classHandler.) */
+    bool has_base = false;
+    List *baselist = Getattr(n, "bases");
+    if (baselist) {
+      for (Iterator b = First(baselist); b.item; b = Next(b)) {
+        if (!GetFlag(b.item, "feature:ignore") && Getattr(b.item, "sym:name")) {
+          has_base = true;
+          break;
+        }
+      }
+    }
+
+    for (Node *ni = firstChild(n); ni; ni = nextSibling(ni)) {
+      String *nt = Getattr(ni, "nodeType");
+      if (!nt)
+        continue;
+      /* Inherited constructors ("using Base::Base;") appear as a "using" node
+       * (usingctor set) wrapping one synthesized "constructor" child per inherited
+       * signature.  Descend into it and forward those ctors too - otherwise a
+       * class whose base has no default constructor gets a director subclass that
+       * default-constructs the (deleted) base. */
+      if (Equal(nt, "using") && Getattr(ni, "usingctor")) {
+        for (Node *ci = firstChild(ni); ci; ci = nextSibling(ci)) {
+          String *cnt = Getattr(ci, "nodeType");
+          if (!cnt || !Equal(cnt, "constructor") || Getattr(ci, "overload:ignore") || GetFlag(ci, "feature:ignore"))
+            continue;
+          String *caccess = Getattr(ci, "access");
+          if (caccess && Equal(caccess, "private"))
+            continue;
+          emitDirectorConstructor(ci, has_base);
+        }
+        continue;
+      }
+      if (!Equal(nt, "constructor"))
+        continue;
+      /* Skip an %ignore'd constructor (feature:ignore): it is not wrapped, and the
+       * real definition may even hide it (e.g. made private in a %{ } block). */
+      if (Getattr(ni, "overload:ignore") || GetFlag(ni, "feature:ignore"))
+        continue;
+      /* Forward public and protected base constructors: the SwigDirector_
+       * subclass can call a protected base ctor, and a director base often has
+       * only protected constructors (e.g. an abstract class). Skip private. */
+      String *access = Getattr(ni, "access");
+      if (access && Equal(access, "private"))
+        continue;
+      emitDirectorConstructor(ni, has_base);
+    }
     return SWIG_OK;
   }
 
@@ -1290,6 +1612,14 @@ public:
    * ========================================================================= */
   virtual int classDirectorMethod(Node *n, Node *parent, String *super) {
 
+    /* A virtual method with default arguments (e.g. f(int i=0)) is expanded by
+     * SWIG into the full-signature node plus synthetic reduced-parameter copies
+     * (f(int) and f()).  Emit the director override only for the full signature;
+     * a copy would generate a mismatched 'override' (int f() over base f(int)).
+     * The 'defaultargs' attribute is set only on the copies (matches java.cxx). */
+    if (Getattr(n, "defaultargs"))
+      return SWIG_OK;
+
     String *c_symname = Getattr(n, "sym:name");
     String *cpp_name = Getattr(n, "name");
     SwigType *rettype = Getattr(n, "type");
@@ -1298,26 +1628,38 @@ public:
 
     bool is_void_ret = (SwigType_type(rettype) == T_VOID);
 
+    /* A %ignore'd virtual method has no target-language symbol (sym:name is null)
+     * and no Swift callback.  The C++ director subclass must still override it so
+     * it is not left abstract, but that override simply delegates to the base
+     * (or, for a pure virtual, throws) - none of the sym:name-derived callback
+     * machinery below applies.  Mirrors java.cxx's ignored_method handling. */
+    bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+
     /* Method name variations.
      * Overloaded virtual methods produce duplicate base names; append an index
      * (starting at 1 for the second overload) so C struct fields stay unique. */
-    String *swift_mname = swiftMethodName(c_symname);
-    String *prev_count_str = Getattr(director_method_count, swift_mname);
-    int overload_idx = prev_count_str ? atoi(Char(prev_count_str)) : 0;
-    String *new_count_str = NewStringf("%d", overload_idx + 1);
-    Setattr(director_method_count, swift_mname, new_count_str);
-    Delete(new_count_str);
+    String *swift_mname = NULL;
+    String *cb_field = NULL;
+    String *dispatch_fn = NULL;
+    String *open_fn = NULL;
+    if (!ignored_method) {
+      swift_mname = swiftMethodName(c_symname);
+      String *prev_count_str = Getattr(director_method_count, swift_mname);
+      int overload_idx = prev_count_str ? atoi(Char(prev_count_str)) : 0;
+      String *new_count_str = NewStringf("%d", overload_idx + 1);
+      Setattr(director_method_count, swift_mname, new_count_str);
+      Delete(new_count_str);
 
-    /* cb_field and dispatch_fn get a numeric suffix for all but the first overload */
-    String *cb_field, *dispatch_fn;
-    if (overload_idx == 0) {
-      cb_field = NewStringf("swig_%s", swift_mname);
-      dispatch_fn = NewStringf("_swift_director_%s_%s_dispatch", par_symname, swift_mname);
-    } else {
-      cb_field = NewStringf("swig_%s_%d", swift_mname, overload_idx);
-      dispatch_fn = NewStringf("_swift_director_%s_%s_%d_dispatch", par_symname, swift_mname, overload_idx);
+      /* cb_field and dispatch_fn get a numeric suffix for all but the first overload */
+      if (overload_idx == 0) {
+        cb_field = NewStringf("swig_%s", swift_mname);
+        dispatch_fn = NewStringf("_swift_director_%s_%s_dispatch", par_symname, swift_mname);
+      } else {
+        cb_field = NewStringf("swig_%s_%d", swift_mname, overload_idx);
+        dispatch_fn = NewStringf("_swift_director_%s_%s_%d_dispatch", par_symname, swift_mname, overload_idx);
+      }
+      open_fn = Copy(swift_mname); /* override method keeps the C++ name */
     }
-    String *open_fn = Copy(swift_mname); /* override method keeps the C++ name */
 
     /* Attach typemaps needed for parameter iteration */
     Swig_typemap_attach_parms("in", l, NULL); /* for emit_num_arguments */
@@ -1374,10 +1716,36 @@ public:
       if ((tm = Swig_typemap_lookup("directorout", n, "jresult", 0))) {
         directorout_code = NewString(tm);
         Replaceall(directorout_code, "$result", "jresult");
+        /* A reference to a const-qualified pointer (e.g. Element *const *&): the
+         * generic SWIGTYPE& directorout casts through $1_ltype, which strips the
+         * embedded const, so the dereferenced lvalue (Element**) cannot bind to
+         * the const-qualified reference return.  Rebuild the cast from the actual
+         * return type to preserve the const. */
+        if (SwigType_isreference(rettype)) {
+          SwigType *referenced = Copy(rettype);
+          SwigType_del_reference(referenced);
+          String *rstr = SwigType_str(referenced, 0);
+          if (SwigType_ispointer(referenced) && Strstr(rstr, "const")) {
+            SwigType_add_pointer(referenced);
+            String *cast = SwigType_str(referenced, 0);
+            Delete(directorout_code);
+            directorout_code = NewStringf("*(%s)jresult", cast);
+            Delete(cast);
+          }
+          Delete(rstr);
+          Delete(referenced);
+        }
       }
       if ((tm = Swig_typemap_lookup("swiftdirectorout", n, "", 0))) {
         swiftdirectorout_code = NewString(tm);
         Replaceall(swiftdirectorout_code, "$input", "swresult");
+        /* An opaque pointer return has no proxy class: swresult is already the raw
+         * UnsafeMutableRawPointer?, so return it directly rather than dereferencing
+         * a non-existent .swigCPtr (mirrors the opaque swiftdirectorin case). */
+        if (Equal(swift_ret, "UnsafeMutableRawPointer?")) {
+          Delete(swiftdirectorout_code);
+          swiftdirectorout_code = NewString("swresult");
+        }
       }
     }
 
@@ -1420,8 +1788,13 @@ public:
         imt = NewString(tm);
       }
 
-      /* Swift swifttype for open func param */
+      /* Swift swifttype for open func param.  swt_uses_classname records whether
+       * the open-func param type is a proxy/wrapper class (its swifttype typemap
+       * referenced $swiftclassname) rather than a raw Swift type (void* →
+       * UnsafeMutableRawPointer?, a primitive pointer/ref → Int32, ...); the
+       * swiftdirectorin conversion below must stay consistent with it. */
       String *swt = NewStringf("UnsafeMutableRawPointer?");
+      bool swt_uses_classname = false;
       if ((tm = Getattr(p, "tmap:swifttype"))) {
         Delete(swt);
         swt = NewString(tm);
@@ -1429,6 +1802,7 @@ public:
           String *cn = paramSwiftClassName(p);
           Replaceall(swt, "$swiftclassname", cn);
           Delete(cn);
+          swt_uses_classname = true;
         }
       }
 
@@ -1472,6 +1846,10 @@ public:
       } else if (Strcmp(ct, "const char *") == 0 && !SwigType_ispointer(pt)) {
         /* std::string const& or std::string value: call .c_str() to get const char* */
         din = NewStringf("%s.c_str()", cpp_var);
+      } else if (swiftTypeIsEnum(pt)) {
+        /* enum (value or reference): the callback ABI is int; a scoped enum has
+         * no implicit int conversion, so cast explicitly. */
+        din = NewStringf("(int)%s", cpp_var);
       } else {
         din = Copy(cpp_var);
       }
@@ -1483,9 +1861,19 @@ public:
         sdin = NewString(tm);
         Replaceall(sdin, "$input", j_var);
         if (Strstr(sdin, "$swiftclassname")) {
-          String *cn = paramSwiftClassName(p);
-          Replaceall(sdin, "$swiftclassname", cn);
-          Delete(cn);
+          /* Keep the conversion consistent with the open-func param type (swt).
+           * When swt is a raw Swift type (not a proxy/wrapper class - void*,
+           * primitive pointer/ref, ...) the incoming dispatch arg already IS that
+           * type, so pass it through; building a proxy over it would both mismatch
+           * swt and emit invalid "UnsafeMutableRawPointer?(x, false)". */
+          if (!swt_uses_classname) {
+            Delete(sdin);
+            sdin = Copy(j_var);
+          } else {
+            String *cn = paramSwiftClassName(p);
+            Replaceall(sdin, "$swiftclassname", cn);
+            Delete(cn);
+          }
         }
       } else {
         sdin = Copy(j_var); /* identity fallback */
@@ -1511,8 +1899,16 @@ public:
         Append(dispatch_ca, ", ");
         Append(open_params, ", ");
       }
-      Printf(dispatch_ca, "%s: %s", arg_name, sw_var);
-      Printf(open_params, "%s: %s", arg_name, swt);
+      /* An unnamed C++ parameter has no Swift argument label: use the '_' (no
+       * external label) form in the open-func declaration and omit the label at
+       * the call site.  Emitting "%s:" with an empty name would be invalid Swift. */
+      if (Len(arg_name) > 0) {
+        Printf(dispatch_ca, "%s: %s", arg_name, sw_var);
+        Printf(open_params, "%s: %s", arg_name, swt);
+      } else {
+        Printf(dispatch_ca, "%s", sw_var);
+        Printf(open_params, "_ %s: %s", sw_var, swt);
+      }
       gencomma = 1;
 
       Delete(cpp_type_str);
@@ -1530,30 +1926,67 @@ public:
     }
 
     /* ---- 1. Callback struct field ----------------------------------------- */
-    Printf(director_cb_fields, "    %s (*%s)(%s);\n", c_ret, cb_field, cb_params);
+    if (!ignored_method)
+      Printf(director_cb_fields, "    %s (*%s)(%s);\n", c_ret, cb_field, cb_params);
 
     /* ---- 2. C++ director virtual override ---------------------------------- */
     String *cpp_ret_str = SwigType_str(rettype, 0);
-    /* Detect const method.  SWIG's declarator notation has two forms:
-     *  - Original declaration: "f(params).q(const)." (const at end)
-     *  - Vtable/director entries: "q(const).f(params)." (const at start)
-     * Check both; also ensure "q(const)" is NOT only inside f(...) params
-     * (which would mean a const parameter, not a const method). */
+    /* 'super' is the vtable fqdname, which uses SWIG's internal template notation
+     * (e.g. "Foo<(int)>::bar").  Convert it to valid C++ ("Foo< int >::bar") for
+     * the base-class delegate call, matching Swig_method_call().  Idempotent for
+     * non-template names. */
+    String *super_name = SwigType_namestr(super);
+    /* Detect a const *member function*.  In SWIG's declarator notation the const
+     * method qualifier is applied to the function, so it appears immediately
+     * before "f(" - "q(const).f()." (or "q(const).f(params).").  A const applied
+     * to the RETURN type instead sits AFTER the function, e.g. "int *const f()" →
+     * "f().q(const).p.", which must NOT be treated as a const method (that would
+     * emit an "() const" override that does not match the base). */
     String *decl = Getattr(n, "decl");
-    bool is_const_method = false;
-    if (decl) {
-      const char *ds = Char(decl);
-      /* Form 1: vtable entries — const at start */
-      if (strncmp(ds, "q(const).", 9) == 0)
-        is_const_method = true;
-      /* Form 2: original declarations — const after closing ')' of f(...) */
-      else if (strstr(ds, ").q(const)") != NULL)
-        is_const_method = true;
-    }
+    bool is_const_method = decl && Strstr(decl, "q(const).f(") != NULL;
+    /* A conversion operator ("operator int", "operator Foo") encodes its result
+     * type in the name and must NOT have a separate return type in the
+     * declaration ("virtual operator int()", not "virtual int operator int()"). */
+    const char *ret_prefix = Getattr(n, "conversion_operator") ? "" : Char(cpp_ret_str);
+    const char *ret_sep = Getattr(n, "conversion_operator") ? "" : " ";
     if (is_const_method)
-      Printf(director_cpp_methods, "  virtual %s %s(%s) const override {\n", cpp_ret_str, cpp_name, cpp_sig_params);
+      Printf(director_cpp_methods, "  virtual %s%s%s(%s) const override {\n", ret_prefix, ret_sep, cpp_name, cpp_sig_params);
     else
-      Printf(director_cpp_methods, "  virtual %s %s(%s) override {\n", cpp_ret_str, cpp_name, cpp_sig_params);
+      Printf(director_cpp_methods, "  virtual %s%s%s(%s) override {\n", ret_prefix, ret_sep, cpp_name, cpp_sig_params);
+    if (ignored_method) {
+      /* No Swift callback: an ignored non-pure virtual delegates straight to the
+       * base; an ignored pure virtual has no base implementation, so throw the
+       * standard director pure-virtual exception (raise() is [[noreturn]]). */
+      String *ig_storage = Getattr(n, "storage");
+      String *ig_value = Getattr(n, "value");
+      bool ig_pure_virtual = (!Cmp(ig_storage, "virtual") && !Cmp(ig_value, "0"));
+      if (ig_pure_virtual) {
+        String *pname = SwigType_namestr(Getattr(parent, "name"));
+        Printf(director_cpp_methods, "    Swig::DirectorPureVirtualException::raise(\"%s::%s\");\n", pname, cpp_name);
+        Delete(pname);
+      } else if (is_void_ret)
+        Printf(director_cpp_methods, "    this->%s(%s);\n", super_name, cpp_base_args);
+      else
+        Printf(director_cpp_methods, "    return this->%s(%s);\n", super_name, cpp_base_args);
+      Printf(director_cpp_methods, "  }\n");
+      Delete(cpp_ret_str);
+      Delete(super_name);
+      Delete(cpp_base_args);
+      Delete(c_ret);
+      Delete(im_ret);
+      Delete(swift_ret);
+      Delete(directorout_code);
+      Delete(swiftdirectorout_code);
+      Delete(cb_params);
+      Delete(cpp_sig_params);
+      Delete(cpp_din_code);
+      Delete(cpp_cb_args);
+      Delete(dispatch_params);
+      Delete(dispatch_body);
+      Delete(dispatch_ca);
+      Delete(open_params);
+      return SWIG_OK;
+    }
     Printf(director_cpp_methods, "    if (swig_callbacks.%s) {\n", cb_field);
     Printv(director_cpp_methods, cpp_din_code, NIL);
     if (is_void_ret) {
@@ -1589,13 +2022,32 @@ public:
       }
     }
     Printf(director_cpp_methods, "    }\n");
-    /* Default: delegate to base class (super is already "ClassName::methodName") */
+    /* Default: delegate to base class (super_name is "ClassName::methodName") */
     if (is_void_ret)
-      Printf(director_cpp_methods, "    this->%s(%s);\n", super, cpp_base_args);
+      Printf(director_cpp_methods, "    this->%s(%s);\n", super_name, cpp_base_args);
     else
-      Printf(director_cpp_methods, "    return this->%s(%s);\n", super, cpp_base_args);
+      Printf(director_cpp_methods, "    return this->%s(%s);\n", super_name, cpp_base_args);
     Printf(director_cpp_methods, "  }\n");
+    /* Protected virtual methods are not accessible through a base-class pointer,
+     * so the C wrapper cannot upcall them directly.  Mirror java.cxx/csharp.cxx:
+     * in dirprot mode expose a public inline "<name>SwigPublic" that makes the
+     * non-virtual base call, which the wrapper invokes via the darg director
+     * pointer.  Pure virtuals have no base implementation, so skip them. */
+    {
+      String *storage = Getattr(n, "storage");
+      String *value = Getattr(n, "value");
+      bool pure_virtual = (!Cmp(storage, "virtual") && !Cmp(value, "0"));
+      if (dirprot_mode() && !is_public(n) && !pure_virtual) {
+        const char *qual = is_const_method ? " const" : "";
+        Printf(director_cpp_methods, "  %s %sSwigPublic(%s)%s {\n", cpp_ret_str, cpp_name, cpp_sig_params, qual);
+        if (is_void_ret)
+          Printf(director_cpp_methods, "    %s(%s);\n  }\n", super_name, cpp_base_args);
+        else
+          Printf(director_cpp_methods, "    return %s(%s);\n  }\n", super_name, cpp_base_args);
+      }
+    }
     Delete(cpp_ret_str);
+    Delete(super_name);
     Delete(cpp_base_args);
 
     /* ---- 3. Swift dispatch function --------------------------------------- */
@@ -1641,12 +2093,22 @@ public:
 
     /* ---- 4. open func declaration ---------------------------------------- */
     String *sw_def = swifttypeDefault(swift_ret);
+    /* Mark 'override' when a superclass already exposes this virtual - whether as
+     * a director open-func stub or a regular proxy method (in Swift an 'open func'
+     * and a 'func' with the same signature are the same overridable member, so
+     * they share one key).  Record it for further-derived classes. */
+    String *of_sig = NewStringf("%s(%s)", open_fn, open_params);
+    bool of_override = parent && ancestorHasGeneratedMethodWith(parent, of_sig, /*recurse=*/true);
+    if (par_symname)
+      recordGeneratedMethod(par_symname, of_sig);
+    Delete(of_sig);
+    const char *of_kw = of_override ? "override " : "";
     if (is_void_ret) {
-      Printf(director_swift_open_methods, "    open func %s(%s) throws {}\n", open_fn, open_params);
+      Printf(director_swift_open_methods, "    %sopen func %s(%s) throws {}\n", of_kw, open_fn, open_params);
     } else if (Len(sw_def) > 0) {
-      Printf(director_swift_open_methods, "    open func %s(%s) throws -> %s { %s }\n", open_fn, open_params, swift_ret, sw_def);
+      Printf(director_swift_open_methods, "    %sopen func %s(%s) throws -> %s { %s }\n", of_kw, open_fn, open_params, swift_ret, sw_def);
     } else {
-      Printf(director_swift_open_methods, "    open func %s(%s) throws -> %s {}\n", open_fn, open_params, swift_ret);
+      Printf(director_swift_open_methods, "    %sopen func %s(%s) throws -> %s {}\n", of_kw, open_fn, open_params, swift_ret);
     }
     Delete(sw_def);
 
@@ -1679,60 +2141,87 @@ public:
    * ========================================================================= */
   virtual int classDirectorEnd(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    String *cname = Getattr(n, "name"); /* fully-qualified C++ class name */
+    /* Fully-qualified C++ class name.  SwigType_namestr converts SWIG's internal
+     * template notation ("Foo<(int)>") to valid C++ ("Foo< int >"); idempotent
+     * for non-template names. */
+    String *cname = SwigType_namestr(Getattr(n, "name"));
 
     /* ---- C header: callback struct + factory declaration ------------------ */
     Printf(swift_header_code, "/* Director callbacks for %s */\n", symname);
     Printf(swift_header_code, "typedef struct {\n");
     Printv(swift_header_code, director_cb_fields, NIL);
     Printf(swift_header_code, "} %s;\n\n", director_cb_struct_name);
-    Printf(swift_header_code, "SWIGEXPORT void *_wrap_new_%s(void *swig_self, %s cbs);\n\n", director_classname, director_cb_struct_name);
+    /* Factory declarations reference the callback struct, so they must follow the
+     * typedef above.  Per-constructor factories were buffered by
+     * emitDirectorConstructor; otherwise declare the single default factory. */
+    if (Len(director_cpp_ctors) > 0)
+      Printv(swift_header_code, director_factory_decls, "\n", NIL);
+    else if (Getattr(n, "allocate:default_constructor"))
+      Printf(swift_header_code, "SWIGEXPORT void *_wrap_new_%s(void *swig_self, %s cbs);\n\n", director_classname, director_cb_struct_name);
 
-    /* ---- f_header: callback struct (needed in .cxx before director class) - */
-    Printf(f_header, "\n/* Director callback struct for %s */\n", symname);
-    Printf(f_header, "typedef struct {\n");
-    Printv(f_header, director_cb_fields, NIL);
-    Printf(f_header, "} %s;\n", director_cb_struct_name);
+    /* The director class is written to f_directors (dumped after all of f_header,
+     * so a base class defined in a trailing %{ } block precedes it). */
+    /* ---- callback struct (needed before the director class) --------------- */
+    Printf(f_directors, "\n/* Director callback struct for %s */\n", symname);
+    Printf(f_directors, "typedef struct {\n");
+    Printv(f_directors, director_cb_fields, NIL);
+    Printf(f_directors, "} %s;\n", director_cb_struct_name);
 
-    /* ---- f_header: C++ director class definition -------------------------- */
-    Printf(f_header, "\n/* C++ director class for %s */\n", symname);
-    Printf(f_header, "class %s : public %s {\npublic:\n", director_classname, cname);
-    Printf(f_header, "  void *swig_self;\n");
-    Printf(f_header, "  %s swig_callbacks;\n", director_cb_struct_name);
-    Printf(f_header, "  explicit %s(void *s, %s cbs)\n", director_classname, director_cb_struct_name);
-    Printf(f_header, "      : swig_self(s), swig_callbacks(cbs) {}\n");
-    /* Default and copy constructors: lang.cxx generates _wrap_new_X() and
-     * _wrap_new_X(const BaseClass&) wrappers for every director class.
-     * These constructors make that code compile; the constructed objects have
-     * swig_self=nullptr and are not usable from Swift (Swift creates directors
-     * exclusively via _wrap_new_SwigDirector_X(swiftSelf, cbs)). */
-    Printf(f_header, "  %s() : %s(), swig_self(nullptr), swig_callbacks({}) {}\n", director_classname, cname);
-    Printf(f_header, "  %s(const %s&) : %s(), swig_self(nullptr), swig_callbacks({}) {}\n", director_classname, cname, cname);
-    Printf(f_header, "  virtual ~%s() {}\n", director_classname);
-    Printv(f_header, director_cpp_methods, NIL);
-    Printf(f_header, "};\n\n");
+    /* ---- C++ director class definition ------------------------------------ */
+    Printf(f_directors, "\n/* C++ director class for %s */\n", symname);
+    Printf(f_directors, "class %s : public %s {\npublic:\n", director_classname, cname);
+    Printf(f_directors, "  void *swig_self;\n");
+    Printf(f_directors, "  %s swig_callbacks;\n", director_cb_struct_name);
+    if (Len(director_cpp_ctors) > 0) {
+      /* Per-base-constructor forwarding ctors (supports a base with no default
+       * constructor); emitted by emitDirectorConstructor. */
+      Printv(f_directors, director_cpp_ctors, NIL);
+    } else if (Getattr(n, "allocate:default_constructor")) {
+      /* Base is default-constructible with no wrapped constructor: a single
+       * factory ctor plus default/copy ctors to satisfy any lang.cxx-generated
+       * _wrap_new_X() / _wrap_new_X(const BaseClass&) references.  The default and
+       * copy objects have swig_self=nullptr and are not usable from Swift (Swift
+       * creates directors exclusively via _wrap_new_SwigDirector_X). */
+      Printf(f_directors, "  explicit %s(void *s, %s cbs)\n", director_classname, director_cb_struct_name);
+      Printf(f_directors, "      : swig_self(s), swig_callbacks(cbs) {}\n");
+      Printf(f_directors, "  %s() : %s(), swig_self(nullptr), swig_callbacks({}) {}\n", director_classname, cname);
+      Printf(f_directors, "  %s(const %s&) : %s(), swig_self(nullptr), swig_callbacks({}) {}\n", director_classname, cname, cname);
+    }
+    Printf(f_directors, "  virtual ~%s() {}\n", director_classname);
+    Printv(f_directors, director_cpp_methods, NIL);
+    /* allprotected mode: "using Base::member;" lines exposing protected members,
+     * written to the "director_h" handle by lang.cxx before this call.  They are
+     * only legal inside the class body, so splice them in here, then clear the
+     * buffer for the next director class. */
+    if (Len(director_using_code) > 0) {
+      Printv(f_directors, director_using_code, NIL);
+      Clear(director_using_code);
+    }
+    Printf(f_directors, "};\n\n");
 
     /* ---- f_wrappers: extern "C" factory function (inside extern "C" block) */
     /* When the class uses %shared_ptr, return a heap-allocated shared_ptr so that
      * the Swift-side swigCPtr holds a shared_ptr<T>* as expected by all shared_ptr
      * typemaps (e.g. _wrap_GlobalFileAccess__SwigSet). */
-    if (Getattr(n, "feature:smartptr")) {
-      Printf(f_wrappers,
-             "SWIGEXPORT void *_wrap_new_%s(void *swig_self, %s cbs) {\n"
-             "    return new std::shared_ptr< %s >(new %s(swig_self, cbs));\n"
-             "}\n\n",
-             director_classname,
-             director_cb_struct_name,
-             cname,
-             director_classname);
-    } else {
-      Printf(f_wrappers,
-             "SWIGEXPORT void *_wrap_new_%s(void *swig_self, %s cbs) {\n"
-             "    return new %s(swig_self, cbs);\n"
-             "}\n\n",
-             director_classname,
-             director_cb_struct_name,
-             director_classname);
+    if (Len(director_cpp_ctors) == 0 && Getattr(n, "allocate:default_constructor")) {
+      if (Getattr(n, "feature:smartptr")) {
+        Printf(f_wrappers,
+               "SWIGEXPORT void *_wrap_new_%s(void *swig_self, %s cbs) {\n"
+               "    return new std::shared_ptr< %s >(new %s(swig_self, cbs));\n"
+               "}\n\n",
+               director_classname,
+               director_cb_struct_name,
+               cname,
+               director_classname);
+      } else {
+        Printf(f_wrappers,
+               "SWIGEXPORT void *_wrap_new_%s(void *swig_self, %s cbs) {\n"
+               "    return new %s(swig_self, cbs);\n"
+               "}\n\n",
+               director_classname,
+               director_cb_struct_name,
+               director_classname);
+      }
     }
 
     /* Swift open class and dispatch functions are emitted by classHandler so that
@@ -1745,8 +2234,13 @@ public:
     director_cb_fields = NULL;
     Delete(director_cpp_methods);
     director_cpp_methods = NULL;
+    Delete(director_cpp_ctors);
+    director_cpp_ctors = NULL;
+    Delete(director_factory_decls);
+    director_factory_decls = NULL;
     Delete(director_method_count);
     director_method_count = NULL;
+    Delete(cname);
 
     return SWIG_OK;
   }
@@ -1770,6 +2264,11 @@ public:
     bool old_current_class_has_base = current_class_has_base;
 
     proxy_class_name = NewString(cn);
+    /* Mark this class as processed in this run, so override detection can tell a
+     * same-module superclass (authoritative: no recorded init => not inherited)
+     * from a cross-module %import base we never saw. */
+    if (Getattr(n, "sym:name"))
+      Setattr(class_processed, Getattr(n, "sym:name"), "1");
     proxy_class_def = NewString("");
     proxy_class_code = NewString("");
     proxy_class_constants_code = NewString("");
@@ -1826,10 +2325,13 @@ public:
     emitDoxygenComment(n, proxy_class_def, 0);
 
     /* Director classes must be open so Swift code can subclass them directly.
-     * Swift's 'open' already implies public access, so we use it instead of
-     * the class_mods modifier (which is 'public' from the swiftclassmodifiers
-     * typemap). */
-    if (director_flag) {
+     * A base of a director must also be open, since Swift forbids an 'open'
+     * subclass of a non-open class (recorded by the collectDirectorBases
+     * pre-pass).  Swift's 'open' already implies public access, so we use it
+     * instead of the class_mods modifier (which is 'public' from the
+     * swiftclassmodifiers typemap). */
+    bool needs_open = director_flag || Getattr(director_base_classes, cn);
+    if (needs_open) {
       if (baseclass_name)
         Printf(proxy_class_def, "\nopen class %s: %s {\n", cn, baseclass_name);
       else
@@ -1865,21 +2367,36 @@ public:
     /* classDirectorEnd (called from inside Language::classHandler above) left
      * director_swift_* strings alive for us to consume here. */
     if (director_flag && director_swift_init_cb) {
-      /* director public init — initialises swigCPtr via the C++ director ctor */
-      Printf(proxy_class_code, "    public init() throws {\n");
-      Printf(proxy_class_code, "        var cbs = %s()\n", director_cb_struct_name);
-      Printv(proxy_class_code, director_swift_init_cb, NIL);
-      if (baseclass_name)
-        Printf(proxy_class_code, "        super.init(nil, false)\n");
-      else {
-        Printf(proxy_class_code, "        swigCPtr = nil\n");
-        Printf(proxy_class_code, "        swigCMemOwn = false\n");
+      if (Len(director_swift_inits) > 0) {
+        /* One init(...) per wrapped base constructor (emitDirectorConstructor).
+         * Each calls swigDirectorCallbacks() to build the callback struct; emit
+         * that helper here, where the dispatch functions are known. */
+        Printf(proxy_class_code, "    private func swigDirectorCallbacks() -> %s {\n", director_cb_struct_name);
+        Printf(proxy_class_code, "        var cbs = %s()\n", director_cb_struct_name);
+        Printv(proxy_class_code, director_swift_init_cb, NIL);
+        Printf(proxy_class_code, "        return cbs\n");
+        Printf(proxy_class_code, "    }\n");
+        Printv(proxy_class_code, director_swift_inits, NIL);
+      } else if (Getattr(n, "allocate:default_constructor")) {
+        /* No wrapped constructor: a single argument-less init via the default
+         * factory (base must be default-constructible). */
+        Printf(proxy_class_code, "    public init() throws {\n");
+        Printf(proxy_class_code, "        var cbs = %s()\n", director_cb_struct_name);
+        Printv(proxy_class_code, director_swift_init_cb, NIL);
+        if (baseclass_name)
+          Printf(proxy_class_code, "        super.init(nil, false)\n");
+        else {
+          Printf(proxy_class_code, "        swigCPtr = nil\n");
+          Printf(proxy_class_code, "        swigCMemOwn = false\n");
+        }
+        Printf(proxy_class_code, "        let selfPtr = Unmanaged.passUnretained(self).toOpaque()\n");
+        Printf(proxy_class_code, "        swigCPtr = _wrap_new_%s(selfPtr, cbs)\n", director_classname);
+        Printf(proxy_class_code, "        swigCMemOwn = true\n");
+        Printf(proxy_class_code, "        try swigCheckException()\n");
+        Printf(proxy_class_code, "    }\n");
       }
-      Printf(proxy_class_code, "        let selfPtr = Unmanaged.passUnretained(self).toOpaque()\n");
-      Printf(proxy_class_code, "        swigCPtr = _wrap_new_%s(selfPtr, cbs)\n", director_classname);
-      Printf(proxy_class_code, "        swigCMemOwn = true\n");
-      Printf(proxy_class_code, "        try swigCheckException()\n");
-      Printf(proxy_class_code, "    }\n");
+      /* else: base is not default-constructible and no constructor is wrapped
+       * (all %ignore'd) - the director is abstract, so emit no Swift init. */
       /* open func stubs for each virtual method */
       Printv(proxy_class_code, director_swift_open_methods, NIL);
     }
@@ -1950,6 +2467,8 @@ public:
       director_swift_open_methods = NULL;
       Delete(director_swift_init_cb);
       director_swift_init_cb = NULL;
+      Delete(director_swift_inits);
+      director_swift_inits = NULL;
     }
 
     /* ----- Restore outer class state -------------------------------------- */
@@ -2293,6 +2812,273 @@ public:
     }
   }
 
+  /* Record a method's Swift signature (name#labelkey) for the given proxy class,
+   * so a derived class can tell whether it is shadowing/overriding it. */
+  void recordGeneratedMethod(const String *class_sym, const String *key) {
+    String *current = Getattr(class_generated_methods, class_sym);
+    if (!current) {
+      Setattr(class_generated_methods, class_sym, key);
+    } else {
+      String *merged = NewStringf("%s|%s", current, key);
+      Setattr(class_generated_methods, class_sym, merged);
+      Delete(merged);
+    }
+  }
+
+  /* Was the Swift superclass (first non-ignored base) processed in this run?
+   * If so, its emitted methods/inits are recorded, so a missing signature match
+   * is authoritative (rather than a cross-module base we never saw). */
+  bool swiftSuperclassProcessed(Node *cls) {
+    List *bases = Getattr(cls, "bases");
+    if (!bases)
+      return false;
+    for (Iterator b = First(bases); b.item; b = Next(b)) {
+      if (GetFlag(b.item, "feature:ignore"))
+        continue;
+      String *bsym = Getattr(b.item, "sym:name");
+      if (!bsym)
+        return false;
+      return (Getattr(class_processed, bsym) != NULL);
+    }
+    return false;
+  }
+
+  /* Does any ancestor proxy class expose a method with this Swift signature?
+   * Swift requires 'override' on a member that shadows one from a superclass,
+   * even a non-virtual one, which the C++ "override" attribute does not capture. */
+  bool ancestorHasGeneratedMethodWith(Node *cls, const String *key, bool recurse = true) {
+    List *bases = Getattr(cls, "bases");
+    if (!bases)
+      return false;
+    /* Swift is single-inheritance: only the first non-ignored base becomes the
+     * superclass, so follow just that chain (a method in a second, dropped base
+     * is not overridable from Swift).  recurse=false checks only the direct
+     * superclass: used for initializers, which - unlike methods - are not
+     * inherited down the chain because every proxy declares a designated
+     * init(_:_:), disabling Swift's automatic initializer inheritance. */
+    for (Iterator b = First(bases); b.item; b = Next(b)) {
+      if (GetFlag(b.item, "feature:ignore"))
+        continue;
+      String *bsym = Getattr(b.item, "sym:name");
+      if (!bsym)
+        return false; /* first base not wrapped => no Swift superclass */
+      String *recorded = Getattr(class_generated_methods, bsym);
+      if (recorded) {
+        String *target = NewStringf("|%s|", key);
+        String *padded = NewStringf("|%s|", recorded);
+        bool found = (Strstr(padded, target) != NULL);
+        Delete(target);
+        Delete(padded);
+        if (found)
+          return true;
+      }
+      return recurse ? ancestorHasGeneratedMethodWith(b.item, key, true) : false;
+    }
+    return false;
+  }
+
+  /* =========================================================================
+   * emitDirectorConstructor() – for one wrapped base constructor of a director
+   * class, emit a C++ forwarding ctor (into director_cpp_ctors), an extern "C"
+   * factory (into f_wrappers + a bridging-header decl), and a Swift init(...)
+   * (into director_swift_inits).  This lets a director subclass a C++ base with
+   * no default constructor: the base ctor arguments are threaded through the
+   * factory alongside the Swift self pointer and the callback struct.
+   *
+   * Called from classDirectorConstructors (the director pass), which runs before
+   * constructorHandler, so the Swift parameter / C argument lists are built here
+   * from the raw parms rather than reused from constructorHandler.
+   * ========================================================================= */
+  void emitDirectorConstructor(Node *n, bool has_base) {
+    ParmList *l = Getattr(n, "parms");
+    Swig_typemap_attach_parms("in", l, NULL);
+    Swig_typemap_attach_parms("ctype", l, NULL);
+    Swig_typemap_attach_parms("imtype", l, NULL);
+    Swig_typemap_attach_parms("swifttype", l, NULL);
+    Swig_typemap_attach_parms("swiftin", l, NULL);
+
+    /* SwigType_namestr converts SWIG's template notation ("Foo<(int)>") to valid
+     * C++ ("Foo< int >") for the base-class initializer; idempotent otherwise. */
+    String *cname = SwigType_namestr(Getattr(Swig_methodclass(n), "name"));
+    String *overname = Getattr(n, "sym:overname");
+    String *factory = NewStringf("_wrap_new_%s%s", director_classname, overname ? overname : "");
+
+    /* Single pass building, per parameter:
+     * - swift_params / c_args : the Swift init signature and the C call args
+     * - ctype_params          : the factory/ctor C-ABI parameter signature
+     * - base_args             : C->C++ conversion for the base ctor call
+     * - call_args             : plain arg names forwarded factory -> ctor */
+    String *swift_params = NewString("");
+    String *c_args = NewString("");
+    String *ctype_params = NewString("");
+    String *base_args = NewString("");
+    String *call_args = NewString("");
+    int num_args = emit_num_arguments(l);
+    Parm *p = l;
+    int idx = 0, comma = 0;
+    String *tm;
+    for (int i = 0; i < num_args; i++) {
+      while (checkAttribute(p, "tmap:in:numinputs", "0"))
+        p = Getattr(p, "tmap:in:next");
+      idx++;
+      SwigType *pt = Getattr(p, "type");
+      String *pname = Getattr(p, "name");
+      String *lname = Getattr(p, "lname");
+      String *aname = NewStringf("a%d", idx);
+
+      /* Swift init parameter name + type */
+      String *swift_arg_name;
+      if (pname && Len(pname) > 0)
+        swift_arg_name = Copy(pname);
+      else if (lname && Len(lname) > 0)
+        swift_arg_name = Copy(lname);
+      else
+        swift_arg_name = NewStringf("arg%d", idx);
+      swift_arg_name = swiftEscapeIdentifier(swift_arg_name);
+
+      String *swift_param_type = NewString("");
+      if ((tm = Getattr(p, "tmap:swifttype"))) {
+        Printv(swift_param_type, tm, NIL);
+        if (Strstr(swift_param_type, "$swiftclassname")) {
+          String *pcn = swiftClassNameFor(Getattr(p, "type"));
+          Replaceall(swift_param_type, "$swiftclassname", pcn);
+          Delete(pcn);
+        }
+        Replaceall(swift_param_type, "$module", moduleName());
+      } else {
+        Printv(swift_param_type, "/* UNKNOWN */", NIL);
+      }
+
+      String *swiftin_tm = NewString("");
+      if ((tm = Getattr(p, "tmap:swiftin"))) {
+        Printv(swiftin_tm, tm, NIL);
+        Replaceall(swiftin_tm, "$swiftinput", swift_arg_name);
+        if (Strstr(swiftin_tm, "$swiftclassname")) {
+          String *pcn = swiftClassNameFor(Getattr(p, "type"));
+          Replaceall(swiftin_tm, "$swiftclassname", pcn);
+          Delete(pcn);
+        }
+        Replaceall(swiftin_tm, "$module", moduleName());
+      } else {
+        Printv(swiftin_tm, swift_arg_name, NIL);
+      }
+
+      /* ctype param + C->C++ conversion for the base ctor call */
+      String *ct = Getattr(p, "tmap:ctype") ? Copy(Getattr(p, "tmap:ctype")) : NewString("void *");
+      String *conv;
+      if (Strcmp(ct, "void *") == 0) {
+        if (SwigType_ispointer(pt)) {
+          String *ts = SwigType_str(pt, 0);
+          conv = NewStringf("(%s)%s", ts, aname);
+          Delete(ts);
+        } else {
+          SwigType *bare = Copy(pt);
+          if (SwigType_isreference(bare))
+            SwigType_del_reference(bare);
+          if (SwigType_isqualifier(bare))
+            SwigType_del_qualifier(bare);
+          String *ts = SwigType_str(bare, 0);
+          conv = NewStringf("*(%s *)%s", ts, aname);
+          Delete(ts);
+          Delete(bare);
+        }
+      } else if (Strcmp(ct, "const char *") == 0 && !SwigType_ispointer(pt)) {
+        conv = NewStringf("std::string(%s)", aname);
+      } else if (swiftTypeIsEnum(pt)) {
+        /* Enum ctor param: the C ABI is int; cast back to the enum type for the
+         * base-class constructor call (a scoped enum has no implicit conversion). */
+        String *ts = SwigType_str(pt, 0);
+        conv = NewStringf("(%s)%s", ts, aname);
+        Delete(ts);
+      } else {
+        conv = Copy(aname);
+      }
+
+      if (comma) {
+        Printf(swift_params, ", ");
+        Printf(c_args, ", ");
+        Printf(ctype_params, ", ");
+        Printf(base_args, ", ");
+        Printf(call_args, ", ");
+      }
+      Printf(swift_params, "%s: %s", swift_arg_name, swift_param_type);
+      Printv(c_args, swiftin_tm, NIL);
+      Printf(ctype_params, "%s %s", ct, aname);
+      Printv(base_args, conv, NIL);
+      Printv(call_args, aname, NIL);
+      comma = 1;
+
+      Delete(swift_arg_name);
+      Delete(swift_param_type);
+      Delete(swiftin_tm);
+      Delete(aname);
+      Delete(conv);
+      Delete(ct);
+      p = Getattr(p, "tmap:in:next") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+    }
+
+    const char *sep = Len(ctype_params) ? ", " : "";
+    const char *csep = Len(call_args) ? ", " : "";
+
+    /* C++ forwarding constructor (emitted inside the director class body). */
+    Printf(director_cpp_ctors, "  %s(void *s, %s cbs%s%s)\n", director_classname, director_cb_struct_name, sep, ctype_params);
+    Printf(director_cpp_ctors, "      : %s(%s), swig_self(s), swig_callbacks(cbs) {}\n", cname, base_args);
+
+    /* extern "C" factory: bridging-header declaration + definition.  The
+     * declaration is buffered and flushed by classDirectorEnd after the callback
+     * struct typedef, since it references that struct by name. */
+    String *factory_params = NewStringf("void *s, %s cbs%s%s", director_cb_struct_name, sep, ctype_params);
+    Printf(director_factory_decls, "SWIGEXPORT void *%s(%s);\n", factory, factory_params);
+    if (Getattr(Swig_methodclass(n), "feature:smartptr"))
+      Printf(f_wrappers,
+             "SWIGEXPORT void *%s(%s) {\n    return new std::shared_ptr< %s >(new %s(s, cbs%s%s));\n}\n\n",
+             factory,
+             factory_params,
+             cname,
+             director_classname,
+             csep,
+             call_args);
+    else
+      Printf(f_wrappers, "SWIGEXPORT void *%s(%s) {\n    return new %s(s, cbs%s%s);\n}\n\n", factory, factory_params, director_classname, csep, call_args);
+
+    /* Swift init(...) that constructs the director through the factory.  The
+     * callback struct is built by swigDirectorCallbacks() (emitted by classHandler
+     * once the dispatch functions are known — classDirectorMethods runs after this
+     * constructor pass, so director_swift_init_cb is not yet populated here). */
+    /* Mark 'override' when the (direct) director superclass exposes an init with
+     * the same signature; record this one for further-derived directors. */
+    String *dinit_sig = NewStringf("init(%s)", swift_params);
+    Node *dcls = Swig_methodclass(n);
+    bool dinit_override = has_base && dcls && ancestorHasGeneratedMethodWith(dcls, dinit_sig, /*recurse=*/false);
+    if (director_symname)
+      recordGeneratedMethod(director_symname, dinit_sig);
+    Delete(dinit_sig);
+    Printf(director_swift_inits, "\n    %spublic init(%s) throws {\n", dinit_override ? "override " : "", swift_params);
+    /* Initialise stored properties (or the base) before any use of self, so the
+     * swigDirectorCallbacks() instance-method call below is legal. */
+    if (has_base)
+      Printf(director_swift_inits, "        super.init(nil, false)\n");
+    else {
+      Printf(director_swift_inits, "        swigCPtr = nil\n");
+      Printf(director_swift_inits, "        swigCMemOwn = false\n");
+    }
+    Printf(director_swift_inits, "        var cbs = swigDirectorCallbacks()\n");
+    Printf(director_swift_inits, "        let selfPtr = Unmanaged.passUnretained(self).toOpaque()\n");
+    Printf(director_swift_inits, "        swigCPtr = %s(selfPtr, cbs%s%s)\n", factory, Len(c_args) ? ", " : "", c_args);
+    Printf(director_swift_inits, "        swigCMemOwn = true\n");
+    Printf(director_swift_inits, "        try swigCheckException()\n");
+    Printf(director_swift_inits, "    }\n");
+
+    Delete(factory);
+    Delete(factory_params);
+    Delete(swift_params);
+    Delete(c_args);
+    Delete(ctype_params);
+    Delete(base_args);
+    Delete(call_args);
+    Delete(cname);
+  }
+
   /* =========================================================================
    * constructorHandler() – generates init() for the proxy class.
    * ========================================================================= */
@@ -2301,14 +3087,15 @@ public:
     Parm *p;
     int i;
 
-    /* Let the base class call functionWrapper to get the C wrapper and attach typemaps */
-    Language::constructorHandler(n);
-
-    /* For director classes the public init() is injected by classHandler (it creates a
-     * C++ SwigDirector_Foo object with the callback struct).  Suppress the plain
-     * _wrap_new_Foo proxy init here to avoid a duplicate-signature compile error. */
+    /* Director classes are constructed via the per-constructor factory emitted in
+     * classDirectorConstructors (which builds the SwigDirector_ subclass).  Skip
+     * the plain _wrap_new_Foo wrapper entirely: it is never called from Swift and
+     * would not compile for an abstract or non-default-constructible base. */
     if (director_flag)
       return SWIG_OK;
+
+    /* Let the base class call functionWrapper to get the C wrapper and attach typemaps */
+    Language::constructorHandler(n);
 
     /* Skip overloads that SWIG decided not to wrap (no C wrapper generated) */
     if (Getattr(n, "overload:ignore"))
@@ -2347,11 +3134,12 @@ public:
       String *swift_param_type = NewString("");
       if ((tm = Getattr(p, "tmap:swifttype"))) {
         Printv(swift_param_type, tm, NIL);
-        String *pcn = paramSwiftClassName(p);
-        pcn = selfClassNameIfOpaque(pcn);
-        Replaceall(swift_param_type, "$swiftclassname", pcn);
+        if (Strstr(swift_param_type, "$swiftclassname")) {
+          String *pcn = swiftClassNameFor(Getattr(p, "type"));
+          Replaceall(swift_param_type, "$swiftclassname", pcn);
+          Delete(pcn);
+        }
         Replaceall(swift_param_type, "$module", moduleName());
-        Delete(pcn);
       } else {
         Printv(swift_param_type, "/* UNKNOWN */", NIL);
       }
@@ -2360,11 +3148,12 @@ public:
       if ((tm = Getattr(p, "tmap:swiftin"))) {
         Printv(swiftin_tm, tm, NIL);
         Replaceall(swiftin_tm, "$swiftinput", swift_arg_name);
-        String *pcn = paramSwiftClassName(p);
-        pcn = selfClassNameIfOpaque(pcn);
-        Replaceall(swiftin_tm, "$swiftclassname", pcn);
+        if (Strstr(swiftin_tm, "$swiftclassname")) {
+          String *pcn = swiftClassNameFor(Getattr(p, "type"));
+          Replaceall(swiftin_tm, "$swiftclassname", pcn);
+          Delete(pcn);
+        }
         Replaceall(swiftin_tm, "$module", moduleName());
-        Delete(pcn);
       } else {
         Printv(swiftin_tm, swift_arg_name, NIL);
       }
@@ -2394,6 +3183,7 @@ public:
      * colons (e.g. "- Returns:"), and parentNode() of a %extend constructor is
      * not the class node, so neither heuristic is reliable on its own. */
     bool has_base = current_class_has_base;
+
     /* Use l (= wrap:parms, has typemaps) for override tracking.
      * Swig_restore() in Language::constructorHandler strips typemaps from "parms". */
     /* Build full init key: "{num}:{label1}:{label2}:..." from wrap:parms (has typemaps).
@@ -2424,7 +3214,24 @@ public:
         fp = Getattr(fp, "tmap:in:next") ? Getattr(fp, "tmap:in:next") : nextSibling(fp);
       }
     }
-    bool is_override = !is_class_specific_ctor && cls_node && has_base && ancestorHasGeneratedInitWith(cls_node, init_key);
+    /* Detect whether this init overrides a superclass init.  Prefer a type-exact
+     * match on the full Swift signature (a differently-typed parameter makes it a
+     * distinct init, not an override); fall back to the label-based key only for a
+     * cross-module (%import) base that was never processed in this run.  Use
+     * getCurrentClass() for the ancestor walk since parentNode() of a %extend
+     * constructor is not the class node. */
+    Node *ctor_cls = getCurrentClass() ? getCurrentClass() : cls_node;
+    String *init_sig = NewStringf("init(%s)", swift_params);
+    bool is_override;
+    if (is_class_specific_ctor || !ctor_cls || !has_base) {
+      is_override = false;
+    } else if (ancestorHasGeneratedMethodWith(ctor_cls, init_sig, /*recurse=*/false)) {
+      is_override = true;
+    } else if (swiftSuperclassProcessed(ctor_cls)) {
+      is_override = false;
+    } else {
+      is_override = ancestorHasGeneratedInitWith(ctor_cls, init_key);
+    }
     emitDoxygenComment(n, proxy_class_code, "    ");
     Printf(proxy_class_code, "\n    %spublic init(%s) throws {\n", is_override ? "override " : "", swift_params);
 
@@ -2442,10 +3249,15 @@ public:
     Printf(proxy_class_code, "        try swigCheckException()\n");
     Printf(proxy_class_code, "    }\n");
 
-    /* Record this init so derived classes can detect needed "override" */
-    if (proxy_class_name)
+    /* Record this init so derived classes can detect needed "override": the
+     * type-exact signature for same-module matching and the label key for the
+     * cross-module path. */
+    if (proxy_class_name) {
       recordGeneratedInit(proxy_class_name, init_key);
+      recordGeneratedMethod(proxy_class_name, init_sig);
+    }
 
+    Delete(init_sig);
     Delete(init_key);
     Delete(swift_params);
     Delete(c_args);
@@ -2484,25 +3296,83 @@ public:
       if (is_wrapping_class() && proxy_class_name && Equal(symname, "Type"))
         enum_display_name = NewStringf("%s_Type", proxy_class_name);
       else
-        enum_display_name = Copy(symname);
+        enum_display_name = swiftKeywordEscape(symname); /* e.g. an enum named `repeat` */
 
       /* Target: module-level code or nested in the current class */
       String *constants_dest = is_wrapping_class() ? proxy_class_constants_code : swift_module_code;
 
+      /* Decide the representation.  A native Swift `enum X: Int32` needs unique,
+       * compile-time raw values; C/C++ enums may repeat a value (e.g. several
+       * enumerators all equal to 10) or use constant expressions.  SWIG evaluates
+       * each enumerator to `enumnumval`, so when those are all present and unique
+       * we emit a native enum, otherwise a struct with static-let members (which
+       * allow duplicate values).  Both expose `rawValue` and `init?(rawValue:)`,
+       * so the enum typemaps work unchanged for either form. */
+      /* An enum with no wrappable cases (forward-declared, defined in %{ } or
+       * fully %ignore'd) cannot be a native Swift enum - an empty enum is not
+       * constructible, so `X(rawValue:)!` in the enum typemaps would not compile.
+       * Emit the rawValue struct form, which is constructible from any Int32. */
+      enum_as_struct = enumHasDuplicateValues(n) || enumHasNoWrappableItems(n);
+      enum_type_name = Copy(enum_display_name);
+
       enum_code = NewString("");
       emitDoxygenComment(n, enum_code, is_wrapping_class() ? "    " : 0);
-      Printf(enum_code, "\npublic enum %s: Int32 {\n", enum_display_name);
+      if (enum_as_struct) {
+        Printf(enum_code, "\npublic struct %s: Equatable {\n", enum_display_name);
+        Printf(enum_code, "    public let rawValue: Int32\n");
+        Printf(enum_code, "    public init?(rawValue: Int32) { self.rawValue = rawValue }\n");
+      } else {
+        Printf(enum_code, "\npublic enum %s: Int32 {\n", enum_display_name);
+      }
       Delete(enum_display_name);
 
       Language::enumDeclaration(n);
 
       Printf(enum_code, "}\n");
 
+      /* A forward-declared / opaque / fully-ignored native enum yields no cases;
+       * Swift forbids a raw type on an empty enum, so drop the ": Int32". */
+      if (!enum_as_struct && !Strstr(enum_code, "\n    case ") && !Strstr(enum_code, "\n        case "))
+        Replaceall(enum_code, ": Int32 {", " {");
+
       Printv(constants_dest, enum_code, NIL);
       Delete(enum_code);
       enum_code = NULL;
+      Delete(enum_type_name);
+      enum_type_name = NULL;
+      enum_as_struct = false;
     }
     return SWIG_OK;
+  }
+
+  /* True when an enum has no non-ignored enumerators (a forward declaration, an
+   * enum defined only inside %{ }, or one whose items are all %ignore'd). */
+  bool enumHasNoWrappableItems(Node *n) {
+    for (Node *c = firstChild(n); c; c = nextSibling(c)) {
+      if (Equal(nodeType(c), "enumitem") && !GetFlag(c, "feature:ignore"))
+        return false;
+    }
+    return true;
+  }
+
+  /* True when two (non-ignored) enumerators share the same evaluated value, which
+   * a native Swift enum cannot represent (raw values must be unique). */
+  bool enumHasDuplicateValues(Node *n) {
+    Hash *seen = NewHash();
+    bool dup = false;
+    for (Node *c = firstChild(n); c && !dup; c = nextSibling(c)) {
+      if (!Equal(nodeType(c), "enumitem") || GetFlag(c, "feature:ignore"))
+        continue;
+      String *numval = Getattr(c, "enumnumval");
+      if (!numval)
+        continue;
+      if (Getattr(seen, numval))
+        dup = true;
+      else
+        Setattr(seen, numval, "1");
+    }
+    Delete(seen);
+    return dup;
   }
 
   /* =========================================================================
@@ -2511,23 +3381,21 @@ public:
   virtual int enumvalueDeclaration(Node *n) {
     if (!ImportMode && enum_code) {
       String *symname = Getattr(n, "sym:name");
-      /* Use only enumvalue (explicit literal). enumvalueex contains C++
-       * expressions like "PREV_CASE + 1" or "Foo::BAR" that are invalid
-       * as Swift enum raw values. */
-      String *value = Getattr(n, "enumvalue");
+      /* SWIG evaluates each enumerator to a plain integer in "enumnumval"
+       * (e.g. "(mytype0)10" -> "10"), which is the only form usable as a Swift
+       * raw value; the raw "enumvalue" holds the original C++ expression. */
+      String *numval = Getattr(n, "enumnumval");
 
       emitDoxygenComment(n, enum_code, "    ", /*nextLeadsNewline=*/false);
 
-      if (value && !Strstr(value, "::")) {
-        /* Check if value is a numeric literal or a symbolic alias (another case name).
-         * Swift cannot have two cases with the same raw value; emit 'static let' instead. */
-        const char *vstart = Char(value);
-        bool is_numeric = (vstart && (*vstart == '-' || isdigit((unsigned char)*vstart)));
-        if (is_numeric) {
-          Printf(enum_code, "    case %s = %s\n", symname, value);
-        } else {
-          Printf(enum_code, "    public static let %s: Self = .%s\n", symname, value);
-        }
+      if (enum_as_struct) {
+        /* Struct fallback: static-let members allow duplicate values. */
+        if (numval)
+          Printf(enum_code, "    public static let %s = %s(rawValue: %s)!\n", symname, enum_type_name, numval);
+        else
+          Printf(enum_code, "    public static let %s = %s(rawValue: 0)!\n", symname, enum_type_name);
+      } else if (numval) {
+        Printf(enum_code, "    case %s = %s\n", symname, numval);
       } else {
         Printf(enum_code, "    case %s\n", symname);
       }
@@ -2538,6 +3406,345 @@ public:
   /* =========================================================================
    * constantWrapper() – emits a Swift static constant or global let.
    * ========================================================================= */
+  /* Integer code of a C character-literal body starting at p (the first char
+   * after the opening quote), handling the escape sequences that may appear in
+   * a constant expression.  strtol self-terminates at the closing quote. */
+  int charLiteralCode(const char *p) {
+    if (p[0] != '\\')
+      return (unsigned char)p[0];
+    switch (p[1]) {
+    case 'n':
+      return '\n';
+    case 't':
+      return '\t';
+    case 'r':
+      return '\r';
+    case 'a':
+      return 7;
+    case 'b':
+      return 8;
+    case 'f':
+      return 12;
+    case 'v':
+      return 11;
+    case '\\':
+      return '\\';
+    case '\'':
+      return '\'';
+    case '"':
+      return '"';
+    case 'x':
+      return (int)strtol(p + 2, NULL, 16);
+    default:
+      if (p[1] >= '0' && p[1] <= '7')
+        return (int)strtol(p + 1, NULL, 8);
+      return (unsigned char)p[1];
+    }
+  }
+
+  /* Replace every C character literal embedded in a constant expression with its
+   * integer code (Swift has no character type in an Int32 context), dropping a
+   * wide/unicode prefix (L, u, U) directly before the quote.  Text outside char
+   * literals is copied verbatim.  Used for expressions like 'A'+12 or ('d')<<24
+   * that the whole-token char handling in swiftConstantValue does not reach. */
+  String *replaceCharLiterals(String *value) {
+    const char *s = Char(value);
+    int n = Len(value);
+    String *out = NewString("");
+    int i = 0;
+    while (i < n) {
+      if ((s[i] == 'L' || s[i] == 'u' || s[i] == 'U') && i + 1 < n && s[i + 1] == '\'') {
+        i++; /* drop wide/unicode char-literal prefix */
+        continue;
+      }
+      if (s[i] == '\'') {
+        int j = i + 1;
+        if (j < n && s[j] == '\\')
+          j += 2; /* skip backslash + first escape char before scanning */
+        while (j < n && s[j] != '\'')
+          j++;
+        Printf(out, "%d", charLiteralCode(s + i + 1));
+        i = (j < n) ? j + 1 : j;
+        continue;
+      }
+      Putc(s[i], out);
+      i++;
+    }
+    return out;
+  }
+
+  /* A C constant expression that cannot be represented as a Swift constant: it
+   * contains a function-style call — the sizeof operator, a cast, or a macro
+   * that did not expand (e.g. sizeof(int), cat(1,2)).  Emitting such a value
+   * verbatim would produce Swift that does not compile, so the caller skips it. */
+  bool constantValueRepresentable(String *value) {
+    const char *s = Char(value);
+    int n = Len(value);
+    for (int i = 0; i < n; i++) {
+      if (isalpha((unsigned char)s[i]) || s[i] == '_') {
+        int j = i;
+        while (j < n && (isalnum((unsigned char)s[j]) || s[j] == '_'))
+          j++;
+        int k = j;
+        while (k < n && isspace((unsigned char)s[k]))
+          k++;
+        if (k < n && s[k] == '(') /* identifier followed by '(' => call/sizeof/cast */
+          return false;
+        i = j - 1;
+      }
+    }
+    return true;
+  }
+
+  /* True if the constant value is a boolean-valued expression: it uses a
+   * comparison or logical operator that yields int in C but Bool in Swift, so
+   * it cannot be emitted as an integer Swift 'let' (Swift rejects Bool vs
+   * Int32).  Bit shifts (<<, >>) are integer operators and are deliberately not
+   * treated as comparisons; content inside char/string literals is skipped. */
+  bool constantValueIsBoolean(String *value) {
+    const char *s = Char(value);
+    int n = Len(value);
+    for (int i = 0; i < n; i++) {
+      char c = s[i];
+      if (c == '\'' || c == '"') { /* skip over a char/string literal */
+        char q = c;
+        for (i++; i < n && s[i] != q; i++)
+          if (s[i] == '\\')
+            i++;
+        continue;
+      }
+      char nx = (i + 1 < n) ? s[i + 1] : '\0';
+      if (c == '<' || c == '>') {
+        if (nx == c) { /* << or >> : shift, not a comparison */
+          i++;
+          continue;
+        }
+        return true; /* < > <= >= */
+      }
+      if ((c == '=' || c == '!') && nx == '=') /* == or != */
+        return true;
+      if (c == '&' && nx == '&') /* && */
+        return true;
+      if (c == '|' && nx == '|') /* || */
+        return true;
+      if (c == '!' && nx != '=') /* unary logical not */
+        return true;
+    }
+    return false;
+  }
+
+  /* Re-encode a C string literal (with its surrounding quotes) as a Swift string
+   * literal.  C octal (\ooo), hex (\xHH) and the \a \b \f \v escapes have no
+   * Swift form, so the C escapes are decoded to bytes and re-emitted: \0 \t \n
+   * \r \\ \" as Swift escapes, other control bytes as \u{..}, printable ASCII
+   * verbatim, and bytes >= 0x80 passed through unchanged (the Swift source is
+   * UTF-8, so a multibyte UTF-8 sequence reproduces its character). */
+  String *swiftStringLiteral(String *value) {
+    const char *s = Char(value);
+    int n = Len(value);
+    if (n < 2 || s[0] != '"' || s[n - 1] != '"')
+      return Copy(value);
+    String *out = NewString("\"");
+    for (int i = 1; i < n - 1; i++) {
+      unsigned char b;
+      if (s[i] == '\\' && i + 1 < n - 1) {
+        char e = s[++i];
+        if (e == 'x') {
+          int v = 0, k = 0;
+          while (i + 1 < n - 1 && isxdigit((unsigned char)s[i + 1]) && k < 2) {
+            char h = s[++i];
+            v = v * 16 + (h <= '9' ? h - '0' : (tolower(h) - 'a' + 10));
+            k++;
+          }
+          b = (unsigned char)v;
+        } else if (e >= '0' && e <= '7') {
+          int v = e - '0', k = 1;
+          while (i + 1 < n - 1 && s[i + 1] >= '0' && s[i + 1] <= '7' && k < 3) {
+            v = v * 8 + (s[++i] - '0');
+            k++;
+          }
+          b = (unsigned char)v;
+        } else {
+          switch (e) {
+          case 'n':
+            b = '\n';
+            break;
+          case 't':
+            b = '\t';
+            break;
+          case 'r':
+            b = '\r';
+            break;
+          case 'a':
+            b = 7;
+            break;
+          case 'b':
+            b = 8;
+            break;
+          case 'f':
+            b = 12;
+            break;
+          case 'v':
+            b = 11;
+            break;
+          default:
+            b = (unsigned char)e;
+            break; /* \\ \' \" \? and unknowns */
+          }
+        }
+      } else {
+        b = (unsigned char)s[i];
+      }
+      if (b == '\0')
+        Printv(out, "\\0", NIL);
+      else if (b == '\t')
+        Printv(out, "\\t", NIL);
+      else if (b == '\n')
+        Printv(out, "\\n", NIL);
+      else if (b == '\r')
+        Printv(out, "\\r", NIL);
+      else if (b == '\\')
+        Printv(out, "\\\\", NIL);
+      else if (b == '"')
+        Printv(out, "\\\"", NIL);
+      else if ((b >= 0x20 && b < 0x7F) || b >= 0x80) {
+        char t[2] = {(char)b, 0};
+        Printv(out, t, NIL);
+      } else {
+        Printf(out, "\\u{%x}", (int)b);
+      }
+    }
+    Printv(out, "\"", NIL);
+    return out;
+  }
+
+  /* Convert a C constant literal to an equivalent Swift literal.  Handles the
+   * cases that otherwise emit invalid Swift: integer/float literals carrying
+   * a C suffix (1234LL, 1.5f) which Swift rejects, character literals ('x',
+   * '\n', '\341') which Swift has no equivalent for in an Int32 context, and
+   * character literals embedded in an expression ('A'+12).  Any other value
+   * (a non-char expression, a macro reference, a string) is returned unchanged. */
+  String *swiftConstantValue(String *value, int tt) {
+    const char *s = Char(value);
+    int n = Len(value);
+    if (n == 0)
+      return Copy(value);
+
+    /* Strip a single layer of surrounding parentheses (SWIG wraps some constant
+     * expressions, e.g. (';') or (42)) and re-process the inner literal. */
+    if (n >= 3 && s[0] == '(' && s[n - 1] == ')') {
+      String *inner = NewStringWithSize((void *)(s + 1), n - 2);
+      String *r = swiftConstantValue(inner, tt);
+      String *wrapped = NewStringf("(%s)", r);
+      Delete(inner);
+      Delete(r);
+      return wrapped;
+    }
+
+    /* String literal: re-encode C escapes that Swift does not accept. */
+    if (s[0] == '"' && s[n - 1] == '"')
+      return swiftStringLiteral(value);
+
+    /* Character literal: translate to its integer code (Swift has no char type
+     * in an Int32 context).  Covers a printable char and the common escapes. */
+    if (s[0] == '\'' && s[n - 1] == '\'' && n >= 3) {
+      int code;
+      if (s[1] == '\\') {
+        char e = s[2];
+        switch (e) {
+        case 'n':
+          code = '\n';
+          break;
+        case 't':
+          code = '\t';
+          break;
+        case 'r':
+          code = '\r';
+          break;
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+          code = (int)strtol(s + 2, NULL, 8);
+          break; /* octal escape */
+        case 'x':
+          code = (int)strtol(s + 3, NULL, 16);
+          break; /* hex escape */
+        case '\\':
+          code = '\\';
+          break;
+        case '\'':
+          code = '\'';
+          break;
+        case '"':
+          code = '"';
+          break;
+        case 'a':
+          code = 7;
+          break;
+        case 'b':
+          code = 8;
+          break;
+        case 'f':
+          code = 12;
+          break;
+        case 'v':
+          code = 11;
+          break;
+        default:
+          code = (unsigned char)e;
+          break;
+        }
+      } else {
+        code = (unsigned char)s[1];
+      }
+      return NewStringf("%d", code);
+    }
+
+    /* Numeric literal with a C suffix: strip the trailing [uUlLfF] run, but only
+     * for a clean literal (leave hex digits, expressions and macros untouched). */
+    if (isdigit((unsigned char)s[0])) {
+      bool hex = (n > 1 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'));
+      int i = 0;
+      if (hex) {
+        i = 2;
+        while (i < n && isxdigit((unsigned char)s[i]))
+          i++;
+      } else {
+        while (i < n && (isdigit((unsigned char)s[i]) || s[i] == '.' || s[i] == 'e' || s[i] == 'E' ||
+                         ((s[i] == '+' || s[i] == '-') && i > 0 && (s[i - 1] == 'e' || s[i - 1] == 'E'))))
+          i++;
+      }
+      int j = i;
+      while (j < n && strchr("uUlLfF", s[j]))
+        j++;
+      if (i < n && j == n) /* had a suffix and nothing else trailing */
+        return NewStringWithSize((void *)s, i);
+    }
+
+    /* Expression (not a plain literal): translate any embedded character
+     * literals to their integer codes so it type-checks in Swift; other tokens
+     * are copied unchanged. */
+    if (strchr(s, '\''))
+      return replaceCharLiterals(value);
+
+    return Copy(value);
+  }
+
+  /* Value for a Swift Bool constant: map the C integer forms 0/1 to false/true;
+   * true/false and boolean expressions are already valid Swift and pass through. */
+  String *swiftBoolConstant(String *value) {
+    if (Equal(value, "0"))
+      return NewString("false");
+    if (Equal(value, "1"))
+      return NewString("true");
+    return Copy(value);
+  }
+
   virtual int constantWrapper(Node *n) {
     /* Enum values are emitted by enumvalueDeclaration; skip them here. */
     if (Cmp(nodeType(n), "enumitem") == 0)
@@ -2556,14 +3763,30 @@ public:
     if (value && Strstr(value, "::"))
       return SWIG_OK;
     SwigType *type = Getattr(n, "type");
+    int tt = SwigType_type(type);
+
+    /* Skip constants whose value is a C construct with no Swift equivalent
+     * (sizeof, a cast, or an unexpanded function-style macro): emitting it
+     * verbatim would produce Swift that does not compile. */
+    if (!constantValueRepresentable(value))
+      return SWIG_OK;
+
+    /* A constant whose value is a boolean expression generally does not
+     * type-check in Swift: C treats int operands as booleans (1 && 0), allows
+     * chained comparisons (2 < (2 < 2)) and yields int from a comparison, none
+     * of which Swift accepts.  Skip such constants, as with the sizeof/cast
+     * constants above; a bare true/false bool literal is kept. */
+    if (constantValueIsBoolean(value) && !Equal(value, "true") && !Equal(value, "false"))
+      return SWIG_OK;
 
     String *constants_dest = is_wrapping_class() ? proxy_class_constants_code : swift_module_code;
 
     /* Determine Swift type */
     String *swift_type = NewString("");
-    int tt = SwigType_type(type);
-    if (tt == T_BOOL || tt == T_SCHAR || tt == T_UCHAR || tt == T_SHORT || tt == T_USHORT || tt == T_INT || tt == T_UINT || tt == T_LONG || tt == T_ULONG ||
-        tt == T_LONGLONG || tt == T_ULONGLONG || tt == T_CHAR) {
+    if (tt == T_BOOL) {
+      Printv(swift_type, "Bool", NIL);
+    } else if (tt == T_SCHAR || tt == T_UCHAR || tt == T_SHORT || tt == T_USHORT || tt == T_INT || tt == T_UINT || tt == T_LONG || tt == T_ULONG ||
+               tt == T_LONGLONG || tt == T_ULONGLONG || tt == T_CHAR) {
       Printv(swift_type, "Int32", NIL);
     } else if (tt == T_FLOAT || tt == T_DOUBLE) {
       Printv(swift_type, "Double", NIL);
@@ -2573,12 +3796,14 @@ public:
       Printv(swift_type, "Int32", NIL);
     }
 
+    String *emit_value = (tt == T_BOOL) ? swiftBoolConstant(value) : swiftConstantValue(value, tt);
     if (is_wrapping_class()) {
-      Printf(constants_dest, "    public static let %s: %s = %s\n", symname, swift_type, value);
+      Printf(constants_dest, "    public static let %s: %s = %s\n", symname, swift_type, emit_value);
     } else {
-      Printf(constants_dest, "\npublic let %s: %s = %s\n", symname, swift_type, value);
+      Printf(constants_dest, "\npublic let %s: %s = %s\n", symname, swift_type, emit_value);
     }
 
+    Delete(emit_value);
     Delete(swift_type);
     return SWIG_OK;
   }

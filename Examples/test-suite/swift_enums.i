@@ -18,7 +18,12 @@ enum class Direction {
 };
 
 Color next_color(Color c) {
-  return c == BLUE ? RED : (Color)(c + 1);
+  // Cycle through the (non-contiguous) enumerators, returning a valid Color.
+  switch (c) {
+  case RED:   return GREEN;
+  case GREEN: return BLUE;
+  default:    return RED;
+  }
 }
 
 Direction opposite(Direction d) {

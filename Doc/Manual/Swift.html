@@ -171,6 +171,15 @@ On Apple platforms you would build a framework or dylib and use a module map or
 <tt>@_implementationOnly import</tt> to expose the C bridge header to Swift.
 </p>
 
+<p>
+Complete, runnable examples are provided under <tt>Examples/swift/simple</tt>
+(free functions and a global variable) and <tt>Examples/swift/class</tt> (C++
+classes with inheritance and virtual dispatch); each builds the wrapper and runs
+a <tt>runme.swift</tt> with <tt>make check</tt>.  Both compile the generated
+proxy against the wrapper using the C bridging header
+(<tt>-import-objc-header <i>module</i>_wrap.h</tt>).
+</p>
+
 <H2><a name="Swift_wrapping">40.3 A basic tour of C/C++ wrapping</a></H2>
 
 
@@ -776,13 +785,25 @@ base class is wrapped and warning 864 is issued for each additional base.</li>
 specification or <tt>%catches</tt> have no <tt>throws</tt> typemap (warning 468);
 exceptions are still propagated, but the typed specification is not honoured.</li>
 <li><b>Member (pointer to member) function pointers</b> are not wrapped.</li>
+<li><b>Arrays of enumerations</b> - a fixed C array whose element type is an
+enum (for example <tt>Colour&nbsp;finger[5]</tt>) is not marshalled: the array
+accessor uses the generic <tt>SWIGTYPE</tt> handling, which expects a wrapped
+class rather than the Swift enum representation.  A scalar, pointer or reference
+to an enum is handled.</li>
 <li><b>STL</b> beyond <tt>std::string</tt>, <tt>std::vector</tt> and the shared
 pointer wrappers - <tt>std::map</tt>, <tt>std::pair</tt>, <tt>std::deque</tt>,
 <tt>std::unique_ptr</tt>, <tt>cdata</tt> and the general <tt>typemaps.i</tt>
 library are not yet provided.</li>
-<li><b>Directors</b> have gaps: abstract bases with no default constructor,
-conversion operators, protected members and nested director classes are not
-handled.</li>
+<li><b>Directors</b> - the common cases work, including abstract classes,
+inheritance, overloads, enums, template and nested director bases, conversion
+operators, inherited (<tt>using</tt>) constructors, a C++ base with no default
+constructor (each accessible base constructor is forwarded through the director),
+and a director base defined later in the translation unit.  The remaining gaps
+follow the general limitations above: a director method with a C++ exception
+specification (warning 468), a reference or rvalue-reference qualified virtual,
+or a move-only parameter is not wrapped.  A virtual method that a Swift subclass
+does not override is not forwarded to the C++ base implementation (the generated
+<tt>open func</tt> stub runs instead).</li>
 <li><b>Public member variables</b> are exposed read only, through a generated
 <tt>GetName()</tt> accessor rather than an assignable property (no setter).</li>
 <li><b><tt>%apply</tt> based multi-argument typemaps</b> such as the
@@ -791,12 +812,16 @@ handled.</li>
 <li><b>Varargs</b> (<tt>...</tt>) are not supported.</li>
 <li><b>C wrapping</b> - the backend targets C++; run SWIG with <tt>-c++</tt>
 (the generated wrapper uses C++ even for a C interface).</li>
+<li><b>Smaller gaps</b> - boolean constants are emitted typed as
+<tt>Int32</tt> rather than <tt>Bool</tt>, and <tt>%contract</tt> assertions are
+not generated.</li>
 </ul>
 
 <p>
 The Swift test suite records the individual unsupported test cases in the
 <tt>FAILING_CPP_TESTS</tt> and <tt>FAILING_C_TESTS</tt> lists of
-<tt>Examples/test-suite/swift/Makefile.in</tt>.
+<tt>Examples/test-suite/swift/Makefile.in</tt>, where they are grouped by cause
+and each group is annotated with the limitation above that explains it.
 </p>
 
 </body>

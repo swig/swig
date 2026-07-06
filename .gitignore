@@ -151,6 +151,14 @@ Examples/go/*/runme
 # Guile
 Examples/guile/*/my-guile
 
+# Swift
+Examples/swift/*/*.swift
+!Examples/swift/*/runme.swift
+Examples/swift/*/swift_example
+Examples/test-suite/swift/*.swift
+!Examples/test-suite/swift/*_runme.swift
+Examples/test-suite/swift/*_swiftrun
+
 # Java
 Examples/test-suite/java/*/
 Examples/test-suite/java/expected.txt

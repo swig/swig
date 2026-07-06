@@ -370,7 +370,14 @@
 /* char* / const char* director pass-through */
 %typemap(directorin)    char *              "$input"
 %typemap(directorin)    const char *        "$input"
-%typemap(directorout)   char *              "$result"
+/* The callback returns "const char *" (the char* ctype); a char*-returning C++
+ * method needs the const cast back (matches the java/csharp directors). */
+%typemap(directorout)   char *              "(char *)$result"
 %typemap(directorout)   const char *        "$result"
 %typemap(swiftdirectorin)  char *           "$input.map { String(cString: $0) } ?? \"\""
 %typemap(swiftdirectorin)  const char *     "$input.map { String(cString: $0) } ?? \"\""
+/* String -> const char* in the dispatch function.  The returned pointer must
+ * outlive the callback, so stash the bytes in a thread-local (same helper the
+ * std::string director return uses). */
+%typemap(swiftdirectorout) char *           "$input.withCString { ptr in swig_swift_director_store_string(ptr) }"
+%typemap(swiftdirectorout) const char *     "$input.withCString { ptr in swig_swift_director_store_string(ptr) }"

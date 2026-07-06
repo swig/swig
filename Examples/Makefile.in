@@ -1604,7 +1604,7 @@ scilab_clean:
 # so these rules stop at the object file and never link a shared library or
 # invoke the Swift compiler (which need not be installed).
 
-SWIFT_RUNME = ./$(RUNME)
+SWIFT_RUNME = $(SRCDIR)$(RUNME).swift
 
 # ----------------------------------------------------------------
 # Build the Swift wrapper (C)
@@ -1621,6 +1621,25 @@ swift:
 swift_cpp:
 	$(SWIG) -c++ -swift $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+
+# ----------------------------------------------------------------
+# Compile the generated Swift proxy + the runme + the wrapper object into an
+# executable and run it.  swiftc requires top-level statements in a file named
+# main.swift, so the runme is copied there.  SWIFTC comes from configure; when
+# no Swift compiler was found the run is skipped (the wrapper still built above),
+# so the examples do not require a Swift toolchain to be installed.
+# ----------------------------------------------------------------
+
+SWIFTC       = @SWIFTBIN@
+
+swift_run:
+	@if test -z "$(SWIFTC)"; then \
+	  echo "swiftc not configured (see --with-swift); skipping Swift run of $(TARGET)"; \
+	else \
+	  cp $(SWIFT_RUNME) main.swift && \
+	  $(SWIFTC) -import-objc-header $(TARGET)_wrap.h $(TARGET).swift main.swift *.@OBJEXT@ @SWIFT_CXXLIB@ -o swift_example && \
+	  $(RUNTOOL) ./swift_example $(RUNPIPE); \
+	fi
 
 # -----------------------------------------------------------------
 # Version display
@@ -1639,7 +1658,8 @@ swift_clean:
 	rm -f *_wrap* *~ .~*
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
-	rm -f *.swift
+	rm -f main.swift swift_example
+	@for f in *.swift; do case "$$f" in $(RUNME).swift) ;; *) rm -f "$$f" ;; esac; done
 
 ##################################################################
 #####                       TCL                             ######

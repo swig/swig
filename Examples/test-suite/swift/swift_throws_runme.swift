@@ -3,7 +3,8 @@
 
 // No exception: the call returns normally.
 try might_throw(fail: false)
-assert(try safe_divide(a: 10, b: 2) == 5)
+let q = try safe_divide(a: 10, b: 2)
+assert(q == 5)
 
 // A thrown C++ exception propagates as a Swift error.
 var threw = false

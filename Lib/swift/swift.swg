@@ -102,6 +102,11 @@ SWIGEXPORT const char *swig_swift_director_store_string(const char *s) {
           SWIG_Swift_SetPendingException("Unknown C++ exception"); \
           return;                                    \
       }
+#else
+  /* C has no exceptions: the try/catch wrappers are no-ops. */
+  #define SWIG_SWIFT_TRY
+  #define SWIG_SWIFT_CATCH(r)
+  #define SWIG_SWIFT_CATCH_VOID
 #endif
 
 /* Typed exception support.
@@ -156,16 +161,32 @@ SWIGEXPORT const char *swig_swift_director_store_string(const char *s) {
 #endif
 %}
 
+/* Default exception handling: wrap every wrapped call so a C++ exception is
+ * stored as the pending exception instead of escaping the C wrapper (which would
+ * call std::terminate).  Every Swift proxy method is generated as `throws` and
+ * calls swigCheckException() after the call, which then rethrows it into Swift.
+ * Users can still override this with their own %exception. */
+%exception {
+  SWIG_SWIFT_TRY
+  $action
+  SWIG_SWIFT_CATCH($null)
+}
+
 /* Swift module-level code: error type and helper injected into the .swift file */
 %pragma(swift) moduleimports = %{
 import Foundation
 %}
 
 %pragma(swift) modulecode = %{
-// swigBuildTypedException() is defined later (injected by Exceptions.i via
-// %pragma(swift) modulecode).  Swift resolves forward references within the
-// same source file, so the call below compiles correctly even though the
-// function appears later in the generated .swift file.
+// Default typed-exception builder.  The typed-exception dispatch path
+// (SWIG_Swift_SetTypedException / swig_swift_*_typed_exception_*) is currently
+// unused by the backend, so no typed exception is ever pending and this returns
+// nil, letting swigCheckException() fall through to the string/NSError path.
+// A future typed-exception feature can supersede this with a richer builder.
+@inline(__always)
+private func swigBuildTypedException() -> Error? {
+    return nil
+}
 @inline(__always)
 private func swigCheckException() throws {
     if swig_swift_get_typed_exception_type() != nil,

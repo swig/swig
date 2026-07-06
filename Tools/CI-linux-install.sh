@@ -242,6 +242,18 @@ case "$SWIGLANG" in
 			tar -xf "$scilab_tarball" --strip-components=1 -C "$HOME/.local"
 		fi
 		;;
+	"swift")
+		# Install a Swift toolchain so the test-suite compiles and runs the
+		# generated Swift proxy (otherwise the suite is compile-only).  The swift
+		# job runs on ubuntu-22.04 (see linux.yml), matching this tarball.
+		$RETRY sudo apt-get -qq install libncurses6 libpython3-dev libxml2 || true
+		SWIFT_VER=${VER:-6.0.3}
+		swift_tarball="swift-${SWIFT_VER}-RELEASE-ubuntu22.04.tar.gz"
+		$RETRY wget --progress=dot:giga "https://download.swift.org/swift-${SWIFT_VER}-release/ubuntu2204/swift-${SWIFT_VER}-RELEASE/${swift_tarball}"
+		mkdir -p "$HOME/swift"
+		tar -xf "$swift_tarball" --strip-components=1 -C "$HOME/swift"
+		update_path "$HOME/swift/usr/bin"
+		;;
 	"tcl")
 		$RETRY sudo apt-get -qq install tcl-dev
 		;;

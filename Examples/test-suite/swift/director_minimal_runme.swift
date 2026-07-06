@@ -11,8 +11,10 @@ class MyMinimal: Minimal {
 
 // Default open func stub returns false.
 let plain = try Minimal()
-assert(!(try plain.get()))
+let plainGet = try plain.get()
+assert(!plainGet)
 
 // Subclass override returns true; get() reaches it through C++ virtual dispatch.
 let sub = try MyMinimal()
-assert(try sub.get())
+let subGet = try sub.get()
+assert(subGet)

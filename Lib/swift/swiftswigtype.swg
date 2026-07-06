@@ -143,6 +143,9 @@
 %typemap(swiftdirectorin) SWIGTYPE *        "$input == nil ? nil : $swiftclassname($input!, false)"
 %typemap(swiftdirectorin) SWIGTYPE &        "$swiftclassname($input!, false)"
 %typemap(swiftdirectorin) const SWIGTYPE &  "$swiftclassname($input!, false)"
+/* By-value param: the C director passes a pointer to the value (directorin uses
+ * addressof); build a non-owning proxy over it (C++ owns the value). */
+%typemap(swiftdirectorin) SWIGTYPE          "$swiftclassname($input!, false)"
 
 /* Director typemaps: Swift return -> C return in dispatch function */
 %typemap(swiftdirectorout) SWIGTYPE *   "$input?.swigCPtr"

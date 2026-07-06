@@ -185,6 +185,7 @@ check-examples:					\
 	check-r-examples			\
 	check-ruby-examples			\
 	check-scilab-examples			\
+	check-swift-examples			\
 	check-tcl-examples			\
 
 android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
@@ -204,6 +205,7 @@ python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
+swift_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/swift/check.list)
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 
 # Running tests using v8 or jsc involves creating a custom interpreter in

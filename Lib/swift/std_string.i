@@ -11,6 +11,7 @@
 %}
 
 namespace std {
+  %naturalvar string;
   class string;
 }
 

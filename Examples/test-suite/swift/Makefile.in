@@ -5,6 +5,11 @@
 LANGUAGE     = swift
 SCRIPTSUFFIX = _runme.swift
 
+# swiftc, if one was found by configure.  When set, tests that have a runme
+# additionally compile and run the generated Swift proxy; when empty the suite
+# is compile-only (C++ wrapper generation + compilation).
+SWIFTBIN     = @SWIFTBIN@
+
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
 HAVE_CXX17   = @HAVE_CXX17@
@@ -13,18 +18,35 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
-# Swift-specific tests verifying features of the Swift backend.
-# director_minimal: exercises director (user-subclassable C++ virtual methods).
-# nested_class:     exercises nested class/struct support (Swift inner types).
-# swift_enums:      C/C++ enumerations mapped to Swift enums.
-# swift_overload:   overloaded free functions and members.
-# swift_throws:     C++ exceptions surfaced as Swift throwing functions.
+# Swift-specific tests verifying features of the Swift backend.  Each has a
+# _runme.swift that is compiled and executed when a Swift compiler is available.
+# director_minimal:  director (user-subclassable C++ virtual methods).
+# nested_class:      nested class/struct support (Swift inner types).
+# swift_enums:       C/C++ enumerations mapped to Swift enums.
+# swift_inherit:     single inheritance with C++ virtual dispatch.
+# swift_overload:    overloaded free functions and members.
+# swift_shared_ptr:  objects managed by std::shared_ptr.
+# swift_static:      static (class) methods.
+# swift_string:      std::string mapped to Swift String.
+# swift_throws:      C++ exceptions surfaced as Swift throwing functions.
+# swift_vector:      std::vector as a RandomAccessCollection.
 CPP_TEST_CASES = \
 	director_minimal \
 	nested_class \
 	swift_enums \
+	swift_inherit \
 	swift_overload \
-	swift_throws
+	swift_shared_ptr \
+	swift_static \
+	swift_string \
+	swift_throws \
+	swift_vector
+
+# C runtime test.  swift_c is a plain C interface (free functions, a C enum, a
+# POD struct and a #define constant) with a _runme.swift that is executed.  The
+# Swift backend targets C++, so it is wrapped with -c++ (see the %.ctest rule).
+C_TEST_CASES = \
+	swift_c
 
 # Multi-module tests.
 # swift_import_inherit: a class deriving from a base in an %import-ed module
@@ -34,160 +56,251 @@ MULTI_CPP_TEST_CASES = \
 
 CPP11_TEST_CASES =
 
-# Tests from the shared list that are known to fail for the experimental
-# Swift backend.  Remove entries here as support is added and verified.
+# Tests from the shared C++ list that are known to fail for the experimental
+# Swift backend, grouped by cause.  Each group maps to a documented
+# limitation (Doc/Manual/Swift.html, 'Known limitations') except the
+# 'Not yet supported' group.  Remove entries as support is added and verified.
+
+# Multiple inheritance - Swift is single-inheritance (warning 864).
 FAILING_CPP_TESTS += \
 	abstract_virtual \
-	aggregate \
-	allprotected \
-	apply_signed_char \
-	apply_strings \
-	argcargvtest \
-	autodoc \
-	catches \
-	catches_strings \
-	char_binary \
-	char_binary_rev_len \
 	constructor_copy_non_const \
-	contract \
-	cplusplus_throw \
-	cpp11_alternate_function_syntax \
-	cpp11_director_enums \
-	cpp11_director_using_constructor \
-	cpp11_directors \
-	cpp11_final_override \
 	cpp11_inheriting_constructors_typedef \
-	cpp11_move_only \
-	cpp11_move_only_valuewrapper \
-	cpp11_move_typemaps \
-	cpp11_ref_qualifiers \
-	cpp11_rvalue_reference2 \
-	cpp11_rvalue_reference_move \
 	cpp11_shared_ptr_crtp_upcast \
-	cpp11_shared_ptr_upcast \
-	cpp11_std_unique_ptr \
-	cpp11_template_parameters_decltype \
 	cpp11_template_using_base \
 	cpp11_using_functor \
-	cpp11_variadic_templates \
-	cpp17_inheriting_constructors_pack \
-	cpp17_map_no_default_ctor \
 	cpp17_using_pack_alias_template \
 	cpp17_using_pack_expansion \
-	cpp20_abbreviated_template_mixed \
-	cpp_basic \
-	default_args \
-	default_constructor \
-	director_abstract \
-	director_basic \
-	director_binary_string \
-	director_binary_string_rev_len \
-	director_classes \
-	director_comparison_operators \
-	director_constructor \
-	director_conversion_operators \
-	director_default \
-	director_enum \
-	director_exception \
-	director_exception_catches \
-	director_exception_nothrow \
-	director_extend \
-	director_frob \
-	director_ignore \
-	director_nested \
-	director_pass_by_value \
-	director_primitives \
-	director_property \
-	director_protected \
-	director_ref \
-	director_shared_ptr \
-	director_string \
-	director_unwrap_result \
-	director_using \
-	director_using_member_scopes \
-	director_void \
-	director_wombat \
-	dynamic_cast \
 	evil_diamond \
 	evil_diamond_ns \
 	evil_diamond_prop \
-	exception_memory_leak \
-	exception_order \
-	extern_throws \
-	functors \
-	injecting_base_class \
-	inout_typemaps \
-	li_attribute \
-	li_attribute_template \
-	li_boost_shared_ptr \
-	li_boost_shared_ptr_bits \
-	li_boost_shared_ptr_director \
-	li_boost_shared_ptr_template \
-	li_cdata_bytes_cpp \
-	li_cdata_cpp \
-	li_std_auto_ptr \
-	li_std_combinations \
-	li_std_deque \
-	li_std_except \
-	li_std_except_as_class \
-	li_std_map \
-	li_std_pair \
-	li_std_pair_using \
-	li_std_string \
-	li_std_vector \
-	li_std_vector_ptr \
-	li_std_wstring \
-	li_typemaps \
-	li_typemaps_apply \
-	li_windows \
-	long_long_apply \
-	member_funcptr_galore \
-	member_pointer \
-	member_pointer_const \
 	minherit2 \
 	multiple_inheritance \
 	multiple_inheritance_abstract \
 	multiple_inheritance_interfaces \
 	multiple_inheritance_nspace \
 	multiple_inheritance_overload \
-	multiple_inheritance_shared_ptr \
-	namespace_spaces \
-	nested_directors \
 	pure_virtual \
-	rename_camel \
-	rename_pcre_encoder \
-	rename_pcre_enum \
-	sizet \
-	smart_pointer_template_defaults_overload \
-	special_variable_macros \
-	special_variables \
-	stl_no_default_constructor \
-	swig_exception \
-	template_advanced_rename \
 	template_inherit_abstract \
-	threads_exception \
-	throw_exception \
-	typemap_directorout \
-	typemap_namespace \
-	typemap_various \
 	using_composition \
 	using_extend \
 	using_member_multiple_inherit \
 	using_namespace \
-	using_pointers
+	contract \
+	cpp11_variadic_templates \
+	cpp17_inheriting_constructors_pack \
+	default_constructor \
+	injecting_base_class \
+	multiple_inheritance_shared_ptr
+
+# C++ exception specifications / %catches - no 'throws' typemap (warning
+# 468).  Exceptions are still propagated; only the typed spec is unsupported.
+FAILING_CPP_TESTS += \
+	catches \
+	catches_strings \
+	cplusplus_throw \
+	cpp11_final_override \
+	cpp11_move_only \
+	cpp11_move_only_valuewrapper \
+	cpp11_rvalue_reference_move \
+	default_args \
+	director_exception_catches \
+	exception_order \
+	extern_throws \
+	li_std_except \
+	li_std_except_as_class \
+	threads_exception \
+	throw_exception \
+	using_pointers \
+	cpp11_directors \
+	director_exception \
+	director_exception_nothrow \
+	director_pass_by_value \
+	li_std_string
+
+# Pointer-to-member (member function pointer) types are not wrapped.
+FAILING_CPP_TESTS += \
+	functors \
+	cpp11_alternate_function_syntax \
+	cpp11_ref_qualifiers \
+	cpp11_rvalue_reference2 \
+	cpp_basic \
+	member_funcptr_galore \
+	member_pointer \
+	member_pointer_const \
+	namespace_spaces
+
+# %apply-based multi-argument typemaps and DYNAMIC casts (warning 453).
+FAILING_CPP_TESTS += \
+	char_binary \
+	char_binary_rev_len \
+	director_binary_string \
+	director_binary_string_rev_len \
+	li_windows \
+	apply_signed_char \
+	dynamic_cast
+
+# STL beyond std::string / std::vector / shared_ptr - std::map, std::pair,
+# std::deque, std::unique_ptr, std::auto_ptr, std::wstring, swigmove and the
+# generic stl.i are not provided.
+FAILING_CPP_TESTS += \
+	director_string \
+	stl_no_default_constructor \
+	cpp11_move_typemaps \
+	cpp11_shared_ptr_upcast \
+	cpp11_std_unique_ptr \
+	cpp11_template_parameters_decltype \
+	cpp17_map_no_default_ctor \
+	li_std_auto_ptr \
+	li_std_combinations \
+	li_std_deque \
+	li_std_map \
+	li_std_pair \
+	li_std_pair_using \
+	li_std_wstring \
+	sizet \
+	smart_pointer_template_defaults_overload
+
+# The general typemaps.i library (INPUT/OUTPUT/INOUT) is not provided.
+FAILING_CPP_TESTS += \
+	autodoc \
+	inout_typemaps \
+	li_typemaps \
+	li_typemaps_apply \
+	long_long_apply
+
+# cdata.i (raw memory blocks) is not provided (warning 490).
+FAILING_CPP_TESTS += \
+	li_cdata_bytes_cpp \
+	li_cdata_cpp
+
+# Varargs (...) are not supported.
+FAILING_CPP_TESTS += \
+	argcargvtest
+
+# Director gap - a pointer-to-array-of-enum overload (overload_arrays).
+FAILING_CPP_TESTS += \
+	overload_arrays
+
+# boost::shared_ptr - supported by the typemaps, but these tests need the
+# Boost development headers, which are not installed in this environment.
+FAILING_CPP_TESTS += \
+	director_shared_ptr \
+	li_boost_shared_ptr \
+	li_boost_shared_ptr_bits \
+	li_boost_shared_ptr_director \
+	li_boost_shared_ptr_template
+
+# Pointers, references and arrays to NON-wrapped C/C++ types (int*, void*,
+# function pointers, opaque/typedef'd types) are now wrapped with generated
+# SWIGTYPE_p_* proxy classes (as Java/C# emit), so most of this group now
+# passes.  The few remaining here fail for other reasons: a pointer/array to an
+# ENUM still resolves to the Swift enum (which has no swigCPtr) rather than a
+# wrapper (arrays_global, arrays_global_twodim); the rest are unrelated director
+# or mixed-type gaps.
+FAILING_CPP_TESTS += \
+	arrays_global \
+	arrays_global_twodim \
+	mixed_types
+
+# Types referenced by the proxy but never emitted - typedefs, forward
+# declarations, opaque/anonymous and some template-instantiation names.
+FAILING_CPP_TESTS += \
+	abstract_typedef2 \
+	char_strings \
+	class_scope_weird \
+	cpp11_shared_ptr_overload \
+	cpp11_using_typedef_struct \
+	friends_nested \
+	global_vars \
+	import_nomodule \
+	inherit_member \
+	inherit_missing \
+	namespace_typemap \
+	nested_ignore \
+	overload_null \
+	overload_polymorphic \
+	template_ns_enum \
+	template_ns_enum2 \
+	template_opaque \
+	template_retvalue \
+	template_specialization \
+	template_type_namespace \
+	template_typedef_import \
+	template_typemaps_typedef2 \
+	valuewrapper_opaque
+
+# %contract (SWIG_contract_assert) is not emitted.
+FAILING_CPP_TESTS += \
+	aggregate
+
+# Requires a C++20 <format> header not available in the c++14 CI build.
+FAILING_CPP_TESTS += \
+	cpp20_abbreviated_template_mixed
+
+# Assorted individual codegen gaps (renaming, attribute library, special
+# variable macros, naturalvar, misc typemaps) - see per-test output.
+FAILING_CPP_TESTS += \
+	apply_strings \
+	constant_directive \
+	cpp11_result_of \
+	funcptr_cpp \
+	grouping \
+	li_attribute \
+	li_attribute_template \
+	li_std_vector_ptr \
+	preproc_constants \
+	rename_camel \
+	rename_pcre_encoder \
+	rename_pcre_enum \
+	smart_pointer_inherit \
+	special_variable_macros \
+	template_advanced_rename \
+	template_default \
+	template_typedef_class_template \
+	template_typemaps_typedef \
+	typemap_directorout \
+	typemap_namespace \
+	typemap_various \
+	using_nested_member_typedef
 
 # C (.ctest) tests known to fail for the Swift backend.  The Swift backend
-# targets C++; these exercise C-only constructs it does not yet handle.
+# targets C++ (run SWIG with -c++); these plain-C cases exercise constructs
+# it does not handle in C mode, grouped by cause.
+
+# Pointers, arrays and function pointers to non-wrapped C types are now wrapped
+# with SWIGTYPE_p_* proxy classes (same fix as the C++ pointer group), so this
+# group now passes.  arrays remains because it declares an array of an ENUM,
+# which still resolves to the Swift enum (no swigCPtr) instead of a wrapper.
 FAILING_C_TESTS += \
-	contract_c \
+	arrays
+
+# C-mode wrappers that require C++ constructs the SWIGTYPE typemaps emit: the
+# by-value SWIGTYPE 'out' typemap uses 'new T(...)' (li_carrays, ret_by_value,
+# keyword_rename_c) and typemap_subst expands $descriptor to a SWIGTYPE_p_*
+# proxy-class name - neither compiles in a plain-C (.c) wrapper.
+FAILING_C_TESTS += \
 	keyword_rename_c \
 	li_carrays \
-	li_cdata \
-	li_cdata_bytes \
-	li_constraints \
-	preproc_predefined \
 	ret_by_value \
 	typemap_subst
+
+# cdata.i (raw memory blocks) is not provided (warning 490).
+FAILING_C_TESTS += \
+	li_cdata \
+	li_cdata_bytes
+
+# enums declares an array of an enum (finger[]); the SWIGTYPE array typemap
+# reads .swigCPtr on the element, which the Swift enum representation lacks.
+FAILING_C_TESTS += \
+	enums
+
+# C preprocessor constant expressions and predefined-macro detection.
+FAILING_C_TESTS += \
+	preproc_constants_c \
+	preproc_defined \
+	preproc_predefined
+
 
 include $(srcdir)/../common.mk
 
@@ -200,17 +313,54 @@ SWIGOPT += -w524 -Werror
 # Rules for the different types of tests
 #
 # swift_cpp runs SWIG to generate the C++ wrapper and the Swift proxy
-# module, then compiles the C++ wrapper.  Swift compilation is a
-# separate step and is not required by this test suite.
+# module, then compiles the C++ wrapper.  When a Swift compiler is
+# available (SWIFTBIN, from configure) the generated Swift proxy is
+# additionally verified: a test with a runme is compiled together with the
+# runme and executed; a test without a runme is type-checked with swiftc so
+# the generated Swift is proven to compile.  Without a Swift compiler the
+# suite is compile-only (C++ wrapper generation + compilation).
 # -----------------------------------------------------------------
+
+# Verify the generated proxy ($*.swift) with swiftc.  With a runme: compile the
+# proxy + the C++ wrapper object ($*_wrap.@OBJEXT@, built by swift_cpp) + the
+# runme (copied to main.swift, which swiftc requires for top-level code) into an
+# executable and run it.  Without a runme: type-check the proxy against the C
+# bridging header.  A swiftc failure or a runme assertion failure fails the test.
+# No-op when SWIFTBIN is empty.
+run_swift_test = \
+	if test -n "$(SWIFTBIN)"; then \
+	  if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
+	    echo "running swift testcase $*" ; \
+	    rm -rf $*_swiftrun && mkdir $*_swiftrun && \
+	    cp $*.swift $*_swiftrun/proxy.swift && \
+	    cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $*_swiftrun/main.swift && \
+	    $(SWIFTBIN) -import-objc-header $*_wrap.h \
+	      $*_swiftrun/proxy.swift $*_swiftrun/main.swift $*_wrap.@OBJEXT@ \
+	      @SWIFT_CXXLIB@ -o $*_swiftrun/runme && \
+	    $*_swiftrun/runme ; \
+	  else \
+	    echo "swift-compiling testcase $*" ; \
+	    $(SWIFTBIN) -typecheck -import-objc-header $*_wrap.h $*.swift ; \
+	  fi ; \
+	fi
 
 %.cpptest:
 	$(setup)
 	+$(swig_and_compile_cpp)
+	$(run_swift_test)
 
+# A C test case with a runme is a runtime test: the Swift backend targets C++
+# and the runme links against the C++ Swig runtime, so it must be wrapped with
+# -c++ (the generated wrapper is C++ even for a C interface).  A C test case
+# without a runme stays a plain-C, compile-only check.
 %.ctest:
 	$(setup)
-	+$(swig_and_compile_c)
+	+if test -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); then \
+	  $(swig_and_compile_cpp); \
+	else \
+	  $(swig_and_compile_c); \
+	fi
+	$(run_swift_test)
 
 %.multicpptest:
 	$(setup)
@@ -220,8 +370,8 @@ SWIGOPT += -w524 -Werror
 # The generated proxy for testcase 'foo' is foo.swift; the checked-in runme
 # scripts are foo_runme.swift, so the bulk clean below excludes *_runme.swift.
 %.clean:
-	@rm -f $*_wrap.* $*.swift $*.@OBJEXT@
+	@rm -rf $*_wrap.* $*.swift $*.@OBJEXT@ $*_swiftrun
 
 clean:
-	@rm -f *_wrap.* *~ *.@OBJEXT@ *@SO@
+	@rm -rf *_wrap.* *~ *.@OBJEXT@ *@SO@ *_swiftrun
 	@for f in *.swift; do case "$$f" in *_runme.swift) ;; *) rm -f "$$f" ;; esac; done

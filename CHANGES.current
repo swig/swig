@@ -7,6 +7,54 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-06: sbellus
+            Swift: substantially widen C++ coverage of the experimental backend so the
+            "supported" feature list matches what the test-suite actually compiles and
+            runs.
+
+            Pointers, references and arrays to types that are not themselves wrapped
+            (int *, void *, function pointers, opaque or typedef'd types) now generate
+            SWIGTYPE_p_* opaque wrapper classes, mirroring the Java and C# modules,
+            instead of falling through to invalid proxy marshalling.
+
+            Enumerations are handled comprehensively: scoped enum classes, enumerators
+            with duplicate values (wrapped as a struct exposing a rawValue when a native
+            Swift enum cannot represent them), values taken from SWIG's evaluated
+            constant expressions, enums passed by pointer or reference, enums named
+            after a Swift keyword, and enums SWIG does not fully see (ignored,
+            forward-declared, or defined only in a %{ %} block) which are marshalled
+            through their raw Int32 value.
+
+            Directors cover many more cases: abstract classes, template and nested
+            director bases, conversion operators, virtual overloads whose parameters are
+            distinct opaque pointers, virtual methods returning a const-qualified
+            pointer, inherited (using) constructors, and a director base class defined
+            later in the same translation unit.
+
+            std::vector now works for any element type (including bool, std::string and
+            enums). Further fixes cover namespaces, nested and forward-declared classes,
+            %naturalvar for std::string, and typemap special variables.
+
+2026-07-01: sbellus
+            Swift: run the generated Swift, not just the C++ wrapper. When a Swift
+            compiler (swiftc) is available the test-suite and examples now compile the
+            generated Swift proxy together with the runme and execute it; without one
+            they remain compile-only. configure detects swiftc and can be pointed at a
+            specific toolchain with --with-swift[=path], and the Swift CI job installs a
+            toolchain so the runtime tests run. Added the simple and class examples under
+            Examples/swift, and runtime tests covering std::string, std::vector,
+            std::shared_ptr, static methods, single inheritance, enumerations,
+            overloading, directors and C++ exceptions.
+
+            C++ exceptions thrown by a wrapped function are now caught and surfaced as
+            Swift errors by default (previously an exception could escape the wrapper and
+            call std::terminate); a user-supplied %exception still overrides this.
+
+            Swift director fixes: a C++ base class with no default constructor is now
+            supported (each base constructor is forwarded through the director factory);
+            'override' is generated correctly for virtual methods with default arguments;
+            and a duplicate Swig::DirectorException definition is avoided.
+
 2026-06-24: sbellus
             Add an experimental Swift target language, enabled with the new -swift
             command line option. It generates a C++ wrapper plus a Swift proxy module

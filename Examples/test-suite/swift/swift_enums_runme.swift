@@ -6,9 +6,13 @@ assert(Color.GREEN.rawValue == 10)
 assert(Color.BLUE.rawValue == 11)
 
 // Enums round-trip through wrapped functions.
-assert(try next_color(c: Color.RED) == Color.GREEN)
-assert(try next_color(c: Color.BLUE) == Color.RED)
+let nc1 = try next_color(c: Color.RED)
+assert(nc1 == Color.GREEN)
+let nc2 = try next_color(c: Color.BLUE)
+assert(nc2 == Color.RED)
 
 // Scoped enum (enum class).
-assert(try opposite(d: Direction.NORTH) == Direction.SOUTH)
-assert(try opposite(d: Direction.EAST) == Direction.WEST)
+let op1 = try opposite(d: Direction.NORTH)
+assert(op1 == Direction.SOUTH)
+let op2 = try opposite(d: Direction.EAST)
+assert(op2 == Direction.WEST)

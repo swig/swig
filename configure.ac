@@ -2780,10 +2780,40 @@ fi
 AC_SUBST(SKIP_SCILAB)
 
 
-dnl The Swift test-suite only generates wrappers and compiles the C++ side, so
-dnl like the C target it needs nothing beyond the CC and CXX required to build SWIG.
+dnl The Swift target is always buildable (like the C target it needs nothing
+dnl beyond the CC and CXX used to build SWIG).  When a Swift compiler (swiftc) is
+dnl available the test-suite additionally compiles and runs the generated Swift
+dnl proxy; otherwise it falls back to generating wrappers and compiling the C++
+dnl side only.  --with-swift can point at a specific swiftc.
 SKIP_SWIFT=
 AC_SUBST(SKIP_SWIFT)
+AC_ARG_WITH(swift, [  --with-swift[[=path]]     Enable the Swift runtime test-suite, optionally with a specific swiftc],[SWIFTBIN="$withval"], [SWIFTBIN=])
+if test "x$SWIFTBIN" = "xno" ; then
+    dnl --without-swift: force compile-only, do not probe.
+    SWIFTBIN=
+elif test "x$SWIFTBIN" = "xyes" -o -z "$SWIFTBIN" ; then
+    dnl --with-swift (no path) or default: autodetect swiftc on PATH.
+    AC_CHECK_PROGS(SWIFTC, swiftc)
+    SWIFTBIN="$SWIFTC"
+fi
+if test -n "$SWIFTBIN" ; then
+    AC_MSG_CHECKING(for working swiftc)
+    if $SWIFTBIN --version >/dev/null 2>&1 ; then
+        AC_MSG_RESULT([$SWIFTBIN])
+    else
+        AC_MSG_RESULT(no)
+        SWIFTBIN=
+    fi
+fi
+AC_SUBST(SWIFTBIN)
+dnl C++ standard library to link the g++/clang++-compiled wrapper against when
+dnl swiftc links the Swift runtime test/example executable: libc++ on macOS,
+dnl libstdc++ elsewhere (matching the GNU/Clang default used to build SWIG).
+case "$host_os" in
+    darwin*) SWIFT_CXXLIB="-lc++" ;;
+    *)       SWIFT_CXXLIB="-lstdc++" ;;
+esac
+AC_SUBST(SWIFT_CXXLIB)
 
 
 SKIP_TCL=
