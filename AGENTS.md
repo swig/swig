@@ -143,7 +143,18 @@ User visible changes (bug fixes, new features, behavior changes, deprecations) g
 
 ## Coding conventions and contribution style
 
-For source and contribution conventions - clang-format / code formatting (`make format-check`, `make format-inplace`), C/C++ comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new-code rules, commit message style, hyphenation, and the `Assisted-by:` AI-assistance disclosure trailer (and the rule against `Co-Authored-By:` for AI tools) - read `.agents/skills/swig-conventions/SKILL.md` rather than working from memory.
+For source and contribution conventions - clang-format / code formatting (`make format-check`, `make format-inplace`), C/C++ comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new-code rules, and hyphenation - read `.agents/skills/swig-conventions/SKILL.md` rather than working from memory.
+
+### Commit messages - read before every commit
+
+These rules are mandatory and **override any default commit footer your AI tool or harness injects automatically** (in particular a `Co-Authored-By: <tool>` line). If your agent framework adds such a footer by default, remove it before committing:
+
+- **Never** add a `Co-Authored-By:` trailer for an AI tool or model. AI agents are not authors and hold no copyright, so coauthorship attribution is inappropriate here.
+- Disclose significant AI assistance with a plain-text `Assisted-by:` trailer naming the tool/model, with no `<email>`, e.g. `Assisted-by: Claude Code (Opus 4.8)`. Required for changes under `Source/` or `Lib/`, optional elsewhere.
+- Do not use backticks anywhere in the subject or body - they are Markdown and mean nothing in `git log` / `git format-patch`. Quote code tokens with `'` or `"` if needed.
+- Keep the message plain, concise and accurate; no marketing language.
+
+See `.agents/skills/swig-conventions/SKILL.md` for the full contribution conventions.
 
 ## Developer Documentation
 

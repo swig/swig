@@ -35,6 +35,16 @@ Version 4.5.0 (in progress)
             enums). Further fixes cover namespaces, nested and forward-declared classes,
             %naturalvar for std::string, and typemap special variables.
 
+2026-07-05: wsfulton
+	    [Octave] Fix Octave detection in configure with newer versions of
+	    Octave.  Newer Octave changed the format of the 'octave --version'
+	    output from "GNU Octave, version X" to "GNU Octave (arch) version
+	    X", so configure no longer recognised Octave as working and
+	    silently disabled it.  Also fix the mkoctfile check,
+	    which passed PATH and LD_LIBRARY_PATH to 'env' unquoted and so
+	    broke when either contained a directory with a space in it (as can
+	    happen with Windows paths under WSL).
+
 2026-07-01: sbellus
             Swift: run the generated Swift, not just the C++ wrapper. When a Swift
             compiler (swiftc) is available the test-suite and examples now compile the
@@ -64,6 +74,32 @@ Version 4.5.0 (in progress)
             surfaced as Swift throwing functions. As an
             experimental language it emits Warning 524 when used; suppress it with -w524.
             See the new Swift chapter in the documentation for details.
+
+2026-06-17: olly
+	    #3480 [Octave, Python, Ruby] Improve handling of NULL vs nullptr vs
+	    0 vs 0L.
+
+	    For these target languages, SWIG has previously treated nullptr or
+	    NULL as an integer 0 if used in a situation where the type wasn't
+	    known to be a pointer.
+
+	    For nullptr this is never helpful, because it has type nullptr_t
+	    which does not implicitly convert to 0, so we no longer do this.
+
+	    For NULL it's rather dubious - C and C++ allow NULL to be defined
+	    as integer 0, so `int i = NULL` may work and is occassionally seen
+	    in real code, but it is semantically wrong.  Also GCC and clang
+	    define NULL to a magic value and by default will warn about such
+	    misuse, so it's likely to be less common than before they did this.
+	    So now SWIG only converts NULL to 0 if used in a context where we
+	    know the underlying type is an arithmetic type.
+
+	    Using an integer zero (or equivalent value such as 0L) for a NULL
+	    pointer is valid, and SWIG will still treat it as a NULL pointer if
+	    used in a context where know the type is a pointer.  This is now
+	    done based on the value of the integer constant so also applies to
+	    0L (previously it was only done if the value was written in the
+	    code as literally `0`).
 
 2026-06-17: wsfulton
             #3481 Fix the C++17 inheriting constructor pack 'using T::T ...;' over a
