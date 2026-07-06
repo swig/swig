@@ -7010,11 +7010,10 @@ Python 3 supports function annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.
 Python 3.6 and later additionally support variable annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-526/">PEP 526</a>.
-Note that currently there is no annotations support in SWIG for the <tt>-builtin</tt> nor
-the <tt>-fastproxy</tt> option.
 Annotations are added via the <tt>python:annotations</tt>
 <a href="Customization.html#Customization_features">%feature directives</a>.
-SWIG currently supports one type of function annotation.
+When using the <tt>-builtin</tt> or <tt>-fastproxy</tt> options, <tt>-pyi-stub</tt>
+needs to be passed to generate a <tt>.pyi</tt> file with stubs.
 </p>
 
 <H4><a name="Python_annotations_c">33.12.1.1 C/C++ annotation types</a></H4>
