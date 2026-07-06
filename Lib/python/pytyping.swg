@@ -31,6 +31,6 @@
     wchar_t, wchar_t const &
     "str"
 
-%typemap(pytyping) char *, wchar_t * "str"
+%typemap(pytyping) char *, wchar_t * "typing.Optional[str]"
 
 %typemap(pytyping) void "None"
