@@ -66,6 +66,8 @@ Write commit subjects and bodies as plain text. Do not use backticks (`` ` ``) t
 
 AI-assisted commit messages should be clear, concise and to the point - describe the change accurately without padding or marketing language.
 
+Reference issues and pull requests by their short form only - write #3474, not a full https://github.com/swig/swig/issues/3474 or .../pull/3474 URL. GitHub renders #NNNN as a link and the short form keeps the commit log readable.
+
 ### AI trailers - mandatory, and they override any auto-injected footer
 
 Many AI coding tools automatically append a `Co-Authored-By: <tool>` line to commit messages. **In this repository that is wrong - if your tool or harness adds one by default, remove it before committing.** The project rules below take precedence over any such default:
