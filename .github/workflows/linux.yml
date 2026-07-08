@@ -211,6 +211,8 @@ jobs:
           PY_ABI_VER: '3.5'
         - SWIGLANG: r
           os: ubuntu-24.04
+        - SWIGLANG: rust
+          continue-on-error: true
         - SWIGLANG: ruby
           VER: '2.0'
         - SWIGLANG: ruby
@@ -277,6 +279,9 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: r
           CPPSTD: c++11
+        - SWIGLANG: rust
+          CPPSTD: c++11
+          continue-on-error: true
         - SWIGLANG: ruby
           CPPSTD: c++11
           VER: '3.3'
@@ -321,6 +326,9 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: r
           CPPSTD: c++14
+        - SWIGLANG: rust
+          CPPSTD: c++14
+          continue-on-error: true
         - SWIGLANG: ruby
           CPPSTD: c++14
         - SWIGLANG: scilab
@@ -332,6 +340,11 @@ jobs:
           CPPSTD: c++17
           GCC: 13
           os: ubuntu-24.04
+        - SWIGLANG: rust
+          CPPSTD: c++17
+          GCC: 13
+          os: ubuntu-24.04
+          continue-on-error: true
         - SWIGLANG: go
           VER: '1.20'
           CPPSTD: c++17

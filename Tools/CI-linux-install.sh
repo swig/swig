@@ -220,6 +220,9 @@ case "$SWIGLANG" in
 			fi
 		fi
 		;;
+	"rust")
+		$RETRY sudo apt-get -qq install rustc
+		;;
 	"scilab")
 		if [[ -z "$VER" ]]; then
 			$RETRY sudo apt-get -qq install scilab

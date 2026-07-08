@@ -69,6 +69,9 @@ Version 4.5.0 (in progress)
 	    broke when either contained a directory with a space in it (as can
 	    happen with Windows paths under WSL).
 
+2026-07-04: trittsv
+            [Rust] Add experimental Rust target language support.
+
 2026-06-17: olly
 	    #3480 [Octave, Python, Ruby] Improve handling of NULL vs nullptr vs
 	    0 vs 0L.

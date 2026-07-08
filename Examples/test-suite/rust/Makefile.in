@@ -1,0 +1,187 @@
+#######################################################################
+# Makefile for Rust test-suite
+#######################################################################
+
+LANGUAGE     = rust
+SCRIPTSUFFIX = _runme.rs
+RUSTC        = @RUSTC@
+
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
+srcdir       = @srcdir@
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
+
+RUST_C_TEST_CASES = \
+	global_functions \
+
+RUST_CPP_TEST_CASES = \
+	cpp_basic \
+	director_alternating \
+	director_basic \
+	director_classes \
+	director_classic \
+	director_default \
+	director_ignore \
+	director_minimal \
+	director_overload \
+	director_pass_by_value \
+	director_primitives \
+	director_shared_ptr \
+	director_property \
+	director_string \
+	director_using_member_scopes \
+	director_void \
+	rust_director_advanced \
+	rust_director_create_callback \
+	rust_director_edgecases \
+	rust_director_exceptions \
+	rust_director_nspace \
+	rust_director_protected \
+	rust_director_typemaps \
+	rust_ownership \
+	rust_attributes \
+	rust_pragmas \
+	rust_prepost \
+	rust_typemaps \
+	rust_typemap_customization \
+	rust_variables \
+	rust_argcargv \
+	rust_arrays \
+	rust_boost_intrusive_ptr \
+	rust_boost_shared_ptr \
+	rust_cdata_complex \
+	rust_enums \
+	rust_exception_policy \
+	rust_keywords \
+	rust_default_args \
+	rust_module_options \
+	rust_naming \
+	rust_nspace \
+	rust_std_deque \
+	rust_std_except \
+	rust_std_list \
+	rust_std_map \
+	rust_std_pair \
+	rust_std_set \
+	rust_std_string \
+	rust_std_vector \
+	rust_std_wstring \
+	rust_swiginterface \
+	rust_swigmove \
+	rust_swigtype_inout \
+	rust_wchar \
+
+RUST_CPP11_TEST_CASES = \
+	cpp11_rust_director_noexcept \
+	rust_std_array \
+	rust_std_shared_ptr \
+	rust_std_unordered_map \
+	rust_std_unordered_set \
+	rust_std_unique_ptr \
+
+RUST_CPP11_PRE_CPP17_TEST_CASES = \
+	rust_std_auto_ptr \
+
+RUST_CPP17_TEST_CASES = \
+	rust_std_optional \
+	rust_std_string_view \
+
+RUST_CXX11_OR_LATER = \
+	$(findstring c++11,$(CXXFLAGS)) \
+	$(findstring c++14,$(CXXFLAGS)) \
+	$(findstring c++17,$(CXXFLAGS)) \
+	$(findstring c++20,$(CXXFLAGS)) \
+	$(findstring gnu++11,$(CXXFLAGS)) \
+	$(findstring gnu++14,$(CXXFLAGS)) \
+	$(findstring gnu++17,$(CXXFLAGS)) \
+	$(findstring gnu++20,$(CXXFLAGS))
+
+RUST_CXX17_OR_LATER = \
+	$(findstring c++17,$(CXXFLAGS)) \
+	$(findstring c++20,$(CXXFLAGS)) \
+	$(findstring gnu++17,$(CXXFLAGS)) \
+	$(findstring gnu++20,$(CXXFLAGS))
+
+ifneq (,$(strip $(RUST_CXX11_OR_LATER)))
+ifeq (,$(strip $(RUST_CXX17_OR_LATER)))
+RUST_CPP11_TEST_CASES += $(RUST_CPP11_PRE_CPP17_TEST_CASES)
+endif
+endif
+
+ERROR_TEST_CASES = \
+	$(RUST_CPP_TEST_CASES:=.cpptest) \
+	$(RUST_C_TEST_CASES:=.ctest)
+
+ifneq (,$(strip $(RUST_CXX11_OR_LATER)))
+ERROR_TEST_CASES += $(RUST_CPP11_TEST_CASES:=.cpptest)
+endif
+
+ifneq (,$(findstring c++17,$(CXXFLAGS)))
+ERROR_TEST_CASES += $(RUST_CPP17_TEST_CASES:=.cpptest)
+endif
+
+include $(srcdir)/../common.mk
+
+C_TEST_CASES := $(RUST_C_TEST_CASES)
+CPP_TEST_CASES := $(RUST_CPP_TEST_CASES)
+CPP11_TEST_CASES := $(RUST_CPP11_TEST_CASES)
+CPP14_TEST_CASES :=
+CPP17_TEST_CASES := $(RUST_CPP17_TEST_CASES)
+CPP20_TEST_CASES :=
+MULTI_CPP_TEST_CASES :=
+
+SRCDIR = ../$(srcdir)/
+SWIGOPT += -Werror -w524
+RUSTFLAGS =
+
+all: check
+
+broken:
+	@:
+
+%.cpptest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
+	+$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
+	+$(run_testcase)
+
+%.multicpptest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
+	+$(run_testcase)
+
+setup = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	else								  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;	  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+	  mkdir $*;							  \
+	fi
+
+run_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  cp $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) $*/$*_runme.rs && \
+	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
+	  SRCDIR='$*/' RUSTFLAGS='$(RUSTFLAGS) -L $*' RUNME='$*_runme' TARGET='$*' rust_compile && \
+	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" DYLD_LIBRARY_PATH="$*:$$DYLD_LIBRARY_PATH" \
+	  $(RUNTOOL) ./$*_runme; \
+	else \
+	  $(COMPILETOOL) $(RUSTC) $(RUSTFLAGS) --crate-type lib $*/$*/mod.rs -o $*/lib$*_rust.rlib; \
+	fi
+
+%.clean:
+	@if [ -d $* ]; then \
+	  rm -rf $*; \
+	fi
+
+clean: $(ALL_CLEAN) $(RUST_CPP11_PRE_CPP17_TEST_CASES:=.clean)
+	@rm -f *_runme
