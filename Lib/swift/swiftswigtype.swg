@@ -85,6 +85,25 @@
     }
 %}
 
+/* Body of the public init(...) generated from a C++ constructor.  $imcall is the
+ * call to the C wrapper factory.  Override this (and swiftcode, to declare the
+ * stored property) to pin a constructor argument for the object's lifetime, e.g.
+ * to keep an ARC reference alive while C++ holds a non-owning handle to it. */
+%typemap(swiftconstruct) SWIGTYPE %{{
+        swigCPtr = $imcall
+        swigCMemOwn = true
+        try swigCheckException()
+    }%}
+
+%typemap(swiftconstruct_derived) SWIGTYPE %{{
+        guard let ptr = $imcall else {
+            try swigCheckException()
+            fatalError("Constructor returned nil")
+        }
+        super.init(ptr, true)
+        try swigCheckException()
+    }%}
+
 %typemap(swiftdestruct) SWIGTYPE %{
     deinit {
         if swigCMemOwn {

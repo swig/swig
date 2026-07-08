@@ -2434,6 +2434,19 @@ public:
       Delete(destruct_code);
     }
 
+    /* ----- User-supplied extra class code (swiftcode typemap) ------------- */
+    /* Mirrors cscode/javacode: injected verbatim into the class body, e.g. to
+     * declare a stored property that swiftconstruct assigns.  No default. */
+    {
+      String *swiftcode = NewString(typemapLookup(n, "swiftcode", typemap_lookup_type, WARN_NONE));
+      if (Len(swiftcode) > 0) {
+        Replaceall(swiftcode, "$swiftclassname", cn);
+        Replaceall(swiftcode, "$module", moduleName());
+        Printv(proxy_class_code, "\n", swiftcode, NIL);
+      }
+      Delete(swiftcode);
+    }
+
     /* ----- Write the class to the Swift output buffer --------------------- */
     /* old_proxy_class_code is non-NULL when this class is being processed
      * inside another class's classHandler (i.e. it is a C++ nested class and
@@ -3255,21 +3268,18 @@ public:
       is_override = ancestorHasGeneratedInitWith(ctor_cls, init_key);
     }
     emitDoxygenComment(n, proxy_class_code, "    ");
-    Printf(proxy_class_code, "\n    %spublic init(%s) throws {\n", is_override ? "override " : "", swift_params);
 
-    if (has_base) {
-      Printf(proxy_class_code, "        guard let ptr = %s(%s) else {\n", wname, c_args);
-      Printf(proxy_class_code, "            try swigCheckException()\n");
-      Printf(proxy_class_code, "            fatalError(\"Constructor returned nil\")\n");
-      Printf(proxy_class_code, "        }\n");
-      Printf(proxy_class_code, "        super.init(ptr, true)\n");
-    } else {
-      Printf(proxy_class_code, "        swigCPtr = %s(%s)\n", wname, c_args);
-      Printf(proxy_class_code, "        swigCMemOwn = true\n");
-    }
-
-    Printf(proxy_class_code, "        try swigCheckException()\n");
-    Printf(proxy_class_code, "    }\n");
+    /* Init body comes from the swiftconstruct[_derived] typemap so a user can
+     * override it (e.g. to pin a constructor argument for the object's lifetime).
+     * The default typemaps in swiftswigtype.swg reproduce the standard body. */
+    SwigType *cons_lookup_type = getCurrentClass() ? Getattr(getCurrentClass(), "classtypeobj") : 0;
+    String *construct_tm = NewString(typemapLookup(n, has_base ? "swiftconstruct_derived" : "swiftconstruct", cons_lookup_type, WARN_NONE));
+    String *imcall = NewStringf("%s(%s)", wname, c_args);
+    Replaceall(construct_tm, "$imcall", imcall);
+    Replaceall(construct_tm, "$module", moduleName());
+    Printf(proxy_class_code, "\n    %spublic init(%s) throws %s\n", is_override ? "override " : "", swift_params, construct_tm);
+    Delete(imcall);
+    Delete(construct_tm);
 
     /* Record this init so derived classes can detect needed "override": the
      * type-exact signature for same-module matching and the label key for the

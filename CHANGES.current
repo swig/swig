@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-08: sbellus
+            Swift: add the swiftcode and swiftconstruct/swiftconstruct_derived
+            typemaps, the Swift analogues of cscode/csconstruct (C#) and
+            javacode/javaconstruct (Java). swiftcode injects code into a proxy
+            class body; swiftconstruct provides the generated init(...) body (with
+            $imcall expanding to the C constructor wrapper call). Together they let
+            a constructor argument be pinned in a stored property for the wrapping
+            object's lifetime, so ARC does not release it while C++ holds a
+            non-owning reference to it.
+
 2026-07-06: sbellus
             Swift: substantially widen C++ coverage of the experimental backend so the
             "supported" feature list matches what the test-suite actually compiles and

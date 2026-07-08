@@ -33,6 +33,7 @@
 <ul>
 <li><a href="#Swift_customization_nonnull">Non-optional pointer returns</a>
 <li><a href="#Swift_customization_modulecode">Injecting module level Swift code</a>
+<li><a href="#Swift_customization_classcode">Injecting class code and customizing constructors</a>
 </ul>
 <li><a href="#Swift_typemaps">Typemaps</a>
 <ul>
@@ -563,6 +564,56 @@ extension $module {
 %}
 </pre>
 </div>
+
+<H3><a name="Swift_customization_classcode">40.7.3 Injecting class code and customizing constructors</a></H3>
+
+
+<p>
+Two per-class typemaps let you add code to a generated proxy class and customize
+its initializer, mirroring the <tt>cscode</tt>/<tt>csconstruct</tt> (C#) and
+<tt>javacode</tt>/<tt>javaconstruct</tt> (Java) typemaps:
+</p>
+
+<ul>
+<li><b><tt>swiftcode</tt></b> - injected verbatim into the class body.  There is
+no default, so it is empty unless you define it.</li>
+<li><b><tt>swiftconstruct</tt></b> (and <tt>swiftconstruct_derived</tt> for a
+class with a wrapped base) - the body of the generated <tt>init(...)</tt>,
+including the surrounding braces.  <tt>$imcall</tt> expands to the call to the
+underlying C constructor wrapper.  The default reproduces the standard body.</li>
+</ul>
+
+<p>
+A common use is to pin a constructor argument for the wrapping object's whole
+lifetime.  When C++ stores only a non-owning reference or pointer to an argument,
+the Swift proxy for that argument must be retained or ARC may release it (and free
+the C++ object) while the wrapper still refers to it.  Declare a stored property
+with <tt>swiftcode</tt> and assign it in <tt>swiftconstruct</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(swiftcode) Adapter %{
+    // Pinned for the adapter's whole lifetime.
+    private var keptCodec: Codec?
+%}
+%typemap(swiftconstruct) Adapter %{{
+        swigCPtr = $imcall
+        swigCMemOwn = true
+        try swigCheckException()
+        keptCodec = codec
+    }%}
+</pre>
+</div>
+
+<p>
+Here <tt>codec</tt> is the name of the constructor's parameter.  The stored
+property must be an optional (or otherwise carry a default value): the proxy's
+internal <tt>init(_:_:)</tt> designated initializer does not set it, so a
+non-optional <tt>let</tt> without a default would not compile.  For a class with
+a wrapped base, assign the property before the <tt>super.init</tt> call in
+<tt>swiftconstruct_derived</tt>, as Swift's two phase initialization requires.
+</p>
 
 <H2><a name="Swift_typemaps">40.8 Typemaps</a></H2>
 

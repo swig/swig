@@ -24,6 +24,8 @@ top_builddir = @top_builddir@
 # nested_class:      nested class/struct support (Swift inner types).
 # swift_enums:       C/C++ enumerations mapped to Swift enums.
 # swift_inherit:     single inheritance with C++ virtual dispatch.
+# swift_kept_ref:    pin a constructor argument for the object's lifetime (ARC)
+#                    via the swiftcode + swiftconstruct typemaps.
 # swift_overload:    overloaded free functions and members.
 # swift_shared_ptr:  objects managed by std::shared_ptr.
 # swift_static:      static (class) methods.
@@ -35,6 +37,7 @@ CPP_TEST_CASES = \
 	nested_class \
 	swift_enums \
 	swift_inherit \
+	swift_kept_ref \
 	swift_overload \
 	swift_shared_ptr \
 	swift_static \
