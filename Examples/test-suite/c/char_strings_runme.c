@@ -109,7 +109,16 @@ int main() {
       exit(1);
     }
   }
-  
+
+  for (i=0; i<count; i++) {
+    char str[256];
+    sprintf(str, "%s%d", OTHERLAND_MSG, i);
+    if (!char_strings_SetConstCharTypedefString(str, i)) {
+      fprintf(stderr, "Test char set 9 failed, iteration %d\n", i);
+      exit(1);
+    }
+  }
+
   // get set function
   for (i=0; i<count; i++) {
     char ping[256];

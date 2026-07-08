@@ -113,6 +113,14 @@ bool SetConstCharConstStaticString(const char *const str, unsigned int number) {
   return check(static_str, number);
 }
 
+typedef const char *ConstCharStar; // typedef hiding the const, reproduces GitHub issue #3290
+
+bool SetConstCharTypedefString(ConstCharStar str, unsigned int number) {
+  static char static_str[] = CPLUSPLUS_MSG;
+  strcpy(static_str, str);
+  return check(static_str, number);
+}
+
 // get set function
 char *CharPingPong(char *str) {
   return str;

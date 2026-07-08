@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 BEGIN { use_ok('char_strings') }
 require_ok('char_strings');
 
@@ -13,3 +13,5 @@ is(char_strings::CharPingPong($val2), "greetings", 'cstr2');
 # SF#2564192
 "this is a test" =~ /(\w+)$/;
 is(char_strings::CharPingPong($1), "test", "handles Magical");
+
+ok(char_strings::SetConstCharTypedefString("Little message from the safe world.10", 10), 'const char typedef');

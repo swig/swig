@@ -66,6 +66,10 @@ void main() {
     enforce(SetConstCharConstStaticString(OTHERLAND_MSG ~ to!string(i), i), "Test char set 8 failed, iteration " ~ to!string(i));
   }
 
+  foreach (i; TEST_RANGE) {
+    enforce(SetConstCharTypedefString(OTHERLAND_MSG ~ to!string(i), i), "Test char set 9 failed, iteration " ~ to!string(i));
+  }
+
   // get set function
   foreach (i; TEST_RANGE) {
     string ping = OTHERLAND_MSG ~ to!string(i);

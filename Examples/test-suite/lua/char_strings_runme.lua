@@ -8,3 +8,5 @@ assert (char_strings.CharArrayPingPong(nil) == nil)
 
 assert (char_strings.CharArrayDimsPingPong("hi there") == "hi there")
 assert (char_strings.CharArrayDimsPingPong(nil) == nil)
+
+assert (char_strings.SetConstCharTypedefString("Little message from the safe world.10", 10))

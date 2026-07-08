@@ -17,6 +17,7 @@ check::equal(SetCharArrayStaticString($OTHERLAND_MSG_10, 10), true, "failed SetC
 check::equal(SetConstCharHeapString($OTHERLAND_MSG_10, 10), true, "failed SetConstCharHeapString");
 check::equal(SetConstCharStaticString($OTHERLAND_MSG_10, 10), true, "failed SetConstCharStaticString");
 check::equal(SetConstCharArrayStaticString($OTHERLAND_MSG_10, 10), true, "failed SetConstCharArrayStaticString");
+check::equal(SetConstCharTypedefString($OTHERLAND_MSG_10, 10), true, "failed SetConstCharTypedefString");
 
 check::equal(CharPingPong($OTHERLAND_MSG_10), $OTHERLAND_MSG_10, "failed CharPingPong");
 

@@ -429,23 +429,22 @@ rvrdeleter.reset($1); %}
 
 /* Strings.  */
 
-%typemap(gotype)
-	char *, char *&, char[ANY], char[] "string"
+%typemap(gotype) char *, char *&, char[ANY], char[] "string"
 
 /* Needed to avoid confusion with the way the go module handles
    references.  */
 %typemap(gotype) char&, unsigned char& "*byte"
 %typemap(gotype) signed char& "*int8"
 
-%typemap(in)
-	char *, char[ANY], char[]
+%typemap(in) char *(char *temp), char[ANY](char *temp), char[](char *temp)
 %{
-  $1 = ($1_ltype)malloc($input.n + 1);
-  memcpy($1, $input.p, $input.n);
-  $1[$input.n] = '\0';
+  temp = (char *)malloc($input.n + 1);
+  memcpy(temp, $input.p, $input.n);
+  temp[$input.n] = '\0';
+  $1 = ($1_ltype)temp;
 %}
 
-%typemap(in) char *& (char *temp)
+%typemap(in) char *&(char *temp)
 %{
   temp = (char *)malloc($input.n + 1);
   memcpy(temp, $input.p, $input.n);
@@ -453,35 +452,29 @@ rvrdeleter.reset($1); %}
   $1 = ($1_ltype)&temp;
 %}
 
-%typemap(freearg)
-	char *, char[ANY], char[]
-%{ free($1); %}
+%typemap(freearg) char *, char[ANY], char[]
+%{ free((char *)$1); %}
 
 %typemap(freearg) char *&
 %{ free(temp$argnum); %}
 
-%typemap(out,fragment="AllocateString")
-	char *, char *&, char[ANY], char[]
+%typemap(out,fragment="AllocateString") char *, char *&, char[ANY], char[]
 %{ $result = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0); %}
 
-%typemap(goout,fragment="CopyString")
-	char *, char *&, char[ANY], char[]
+%typemap(goout,fragment="CopyString") char *, char *&, char[ANY], char[]
 %{ $result = swigCopyString($1) %}
 
-%typemap(directorin,fragment="AllocateString")
-	char *, char *&, char[ANY], char[]
+%typemap(directorin,fragment="AllocateString") char *, char *&, char[ANY], char[]
 %{
   $input = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0);
 %}
 
-%typemap(godirectorin,fragment="CopyString")
-	char *, char *&, char[ANY], char[]
+%typemap(godirectorin,fragment="CopyString") char *, char *&, char[ANY], char[]
 %{
   $result = swigCopyString($input)
 %}
 
-%typemap(godirectorout)
-	char *, char *&, char[ANY], char[]
+%typemap(godirectorout) char *, char *&, char[ANY], char[]
 %{
   {
     p := Swig_malloc(len($input) + 1)
@@ -492,8 +485,7 @@ rvrdeleter.reset($1); %}
   }
 %}
 
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG)
-	char *, char *&, char[ANY], char[]
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) char *, char *&, char[ANY], char[]
 %{ $result = ($1_ltype)$input.p; %}
 
 /* String & length */

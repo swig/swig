@@ -93,6 +93,11 @@ public class char_strings_runme {
         throw new RuntimeException("Test char set 8 failed, iteration " + i);
     }
 
+    for (i=0; i<count; i++) {
+      if (!char_strings.SetConstCharTypedefString(OTHERLAND_MSG + i, i))
+        throw new RuntimeException("Test char set 9 failed, iteration " + i);
+    }
+
     // get set function
     for (i=0; i<count; i++) {
       String ping = OTHERLAND_MSG + i;
