@@ -59,8 +59,8 @@ int is_python_fastproxy() { return 0; }
     $2 = (char **)malloc(($1+1)*sizeof(char *));
     for (i = 0; i < $1; i++) {
       PyObject *o = PyList_GetItem($input, i);
-      if (PyString_Check(o)) {
-        $2[i] = PyString_AsString(PyList_GetItem($input, i));
+      if (PyBytes_Check(o)) {
+        $2[i] = PyBytes_AsString(PyList_GetItem($input, i));
       } else {
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;

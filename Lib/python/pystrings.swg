@@ -14,14 +14,10 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     use_binary = is_binary;
     *alloc = 0;
   }
-%#if PY_VERSION_HEX >= 0x03000000
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
   use_binary = 1;
 %#endif
   if (use_binary ? PyBytes_Check(obj) : PyUnicode_Check(obj))
-%#else
-  if (PyString_Check(obj))
-%#endif
   {
     char *cstr = NULL;
     Py_ssize_t len = 0;
@@ -60,41 +56,6 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     SWIG_Py_XDECREF(bytes);
     return ret;
   } else {
-%#if defined(SWIG_PYTHON_2_UNICODE)
-%#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
-%#error "Cannot use both SWIG_PYTHON_2_UNICODE and SWIG_PYTHON_STRICT_BYTE_CHAR at once"
-%#endif
-%#if PY_VERSION_HEX < 0x03000000
-    if (PyUnicode_Check(obj)) {
-      char *cstr = NULL;
-      Py_ssize_t len = 0;
-      if (!alloc && cptr) {
-        return SWIG_RuntimeError;
-      }
-      obj = PyUnicode_AsUTF8String(obj);
-      if (!obj)
-        return SWIG_TypeError;
-      if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
-        if (cptr) {
-          char *p = %new_array(len + 1, char);
-          if (p == NULL) {
-            SWIG_Py_XDECREF(obj);
-            return SWIG_MemoryError;
-          }
-          if (alloc) *alloc = SWIG_NEWOBJ;
-          memcpy(p, cstr, len + 1);
-          *cptr = p;
-        }
-        if (psize) *psize = (size_t)(len + 1);
-
-        SWIG_Py_XDECREF(obj);
-        return SWIG_OK;
-      } else {
-        SWIG_Py_XDECREF(obj);
-      }
-    }
-%#endif
-%#endif
 
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
     if (pchar_descriptor) {
@@ -122,16 +83,12 @@ SWIG_FromBinaryCharPtrAndSize(const char* carray, size_t size, int flags)
       return pchar_descriptor ? 
 	SWIG_InternalNewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
     } else {
-%#if PY_VERSION_HEX >= 0x03000000
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
       return PyBytes_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#else
       if (SWIG_IsBinaryStr(flags))
         return PyBytes_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
       return PyUnicode_DecodeUTF8(carray, %numeric_cast(size, Py_ssize_t), "surrogateescape");
-%#endif
-%#else
-      return PyString_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#endif
     }
   } else {

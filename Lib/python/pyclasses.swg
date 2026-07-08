@@ -19,7 +19,7 @@
    or as a input/output value 
 
      SwigPtr_PyObject func(SwigPtr_PyObject obj) {     
-       SwigPtr_PyObject out = PyString_FromFormat("hello %s", PyObject_AsString(obj));
+       SwigPtr_PyObject out = PyUnicode_FromFormat("hello %s", PyObject_AsString(obj));
        SWIG_Py_DECREF(out);
        return out;
      }
@@ -121,7 +121,7 @@ namespace swig {
   as in
 
   int func () {
-    SwigVar_PyObject obj = PyString_FromString("hello");
+    SwigVar_PyObject obj = PyUnicode_FromString("hello");
   }
 
   ie, 'obj' is created and destructed in the same scope from

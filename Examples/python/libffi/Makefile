@@ -13,10 +13,5 @@ build:
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	TARGET='$(TARGET)' INTERFACE='$(INTERFACE)' LIBS='-L/usr/local/lib -lffi' python
 
-static:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' SRCS='$(SRCS)' \
-	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-	TARGET='mypython' INTERFACE='$(INTERFACE)' python_static
-
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' python_clean

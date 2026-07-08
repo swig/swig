@@ -139,7 +139,9 @@ For debugging the SWIG compiler — gdb setup, the `swigprint`/`locswigprint` he
 
 ## Changelog
 
-User visible changes (bug fixes, new features, behavior changes, deprecations) go in `CHANGES.current` for the in progress release. On release, those entries are appended to `CHANGES`. `RELEASENOTES` holds higher level per release summaries. Entry style: see existing entries for date/issue number format. Describe only what a user observes - new syntax, generated wrapper behaviour, warning/error messages - and leave internal helper names, refactors, and `Source/` symbols out. Purely internal changes do not get a `CHANGES.current` entry.
+Any user visible change (bug fix, new feature, behavior change, deprecation) must be accompanied by a `CHANGES.current` entry describing it, added as part of the same change - do not leave it for later. On release, those entries are appended to `CHANGES`; `RELEASENOTES` holds higher level per release summaries.
+
+Write entries so a user immediately understands them: clear, easy to follow, succinct and to the point. Describe only what a user observes - new syntax, generated wrapper behaviour, warning/error messages, an incompatibility - and leave internal helper names, refactors, and `Source/` symbols out. Match the date and issue number format of the existing entries at the top of `CHANGES.current`, newest first, and flag a breaking change with a `*** POTENTIAL INCOMPATIBILITY ***` line. Purely internal changes with no observable effect do not get a `CHANGES.current` entry.
 
 ## Coding conventions and contribution style
 

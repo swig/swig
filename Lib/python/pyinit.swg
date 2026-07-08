@@ -153,11 +153,7 @@ SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), P
     if (ml)
       func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
   }
-#if PY_VERSION_HEX >= 0x03000000
   return PyInstanceMethod_New(func);
-#else
-  return PyMethod_New(func, NULL, NULL);
-#endif
 }
 
 /* -----------------------------------------------------------------------------
@@ -196,14 +192,9 @@ extern "C"
 #endif
 
 SWIGEXPORT 
-#if PY_VERSION_HEX >= 0x03000000
-  PyObject*
-#else
-  void
-#endif
+PyObject*
 SWIG_init(void) {
 
-#if PY_VERSION_HEX >= 0x03000000
   static PyModuleDef_Slot SwigSlots[] = {
     { Py_mod_exec, (void *)SWIG_mod_exec },
 #ifdef SWIGPYTHON_NOGIL
@@ -227,12 +218,6 @@ SWIG_init(void) {
   };
 
   return PyModuleDef_Init(&SWIG_module);
-#else
-  PyObject *m = Py_InitModule(SWIG_name, SwigMethods);
-  if (m && SWIG_mod_exec(m) != 0) {
-    Py_DECREF(m);
-  }
-#endif
 }
 
 SWIGINTERN int SWIG_mod_exec(PyObject *m) {

@@ -35,6 +35,58 @@ Version 4.5.0 (in progress)
             enums). Further fixes cover namespaces, nested and forward-declared classes,
             %naturalvar for std::string, and typemap special variables.
 
+2026-07-06: wsfulton
+            [Python] Removed the Python 2 compatibility macros that were kept in
+            the generated code (pyhead.swg) only for user typemaps. A typemap
+            still using any of these must be updated to call the Python 3 C API
+            directly (the Python 3 equivalent is shown in brackets).
+
+            Python 2 C API macros removed: PyClass_Check (PyObject_IsInstance),
+            PyInt_Check (PyLong_Check), PyInt_AsLong (PyLong_AsLong),
+            PyInt_FromLong (PyLong_FromLong), PyInt_FromSize_t
+            (PyLong_FromSize_t), PyString_Check (PyBytes_Check),
+            PyString_FromString (PyUnicode_FromString), PyString_Format
+            (PyUnicode_Format), PyString_AsString (PyBytes_AsString),
+            PyString_Size (PyBytes_Size), PyString_InternFromString
+            (PyUnicode_InternFromString), Py_TPFLAGS_HAVE_CLASS
+            (Py_TPFLAGS_BASETYPE) and _PyLong_FromSsize_t (PyLong_FromSsize_t).
+
+            SWIG string helper macros removed: SWIG_Python_str_FromFormat
+            (PyUnicode_FromFormat) and SWIG_Python_str_FromChar
+            (PyUnicode_FromString).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2026-07-05: jschueller
+            [Python] #2424 Updated the Python identifier warnings to match
+            Python 3. The list of Python keywords and built-in names that SWIG
+            warns about (a wrapped symbol clashing with one is renamed) now
+            tracks Python 3: the Python 3 keywords and built-ins are added,
+            including nonlocal, True, False, None and print and exec (no longer
+            statements), and the Python 2 only names such as apply, buffer, cmp,
+            file, long, unicode and xrange are dropped.
+
+2026-07-05: jschueller, wsfulton
+            [Python] #3201 Python 2 is no longer supported. SWIG now
+            targets Python 3.5 and later only, and the Python 2 code paths have
+            been removed from the generated wrappers and the SWIG library.
+
+            Macros that only ever affected Python 2 have been removed and now
+            have no effect if defined:
+              - SWIG_PYTHON_2_UNICODE - in Python 2 this let a unicode object be
+                accepted where a char* or std::string was expected; in Python 3
+                str is already unicode so it is redundant.
+              - SWIG_PYTHON_STRICT_UNICODE_WCHAR - in Python 2 this forced
+                wchar_t* and std::wstring to accept only unicode and reject byte
+                strings; that is already the only behavior in Python 3.
+            SWIG_PYTHON_STRICT_BYTE_CHAR is unchanged and still supported.
+
+            The deprecated embed.i library, which only ever worked with Python 2,
+            has been removed, along with the python_static example build targets
+            that used it.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2026-07-05: wsfulton
 	    [Octave] Fix Octave detection in configure with newer versions of
 	    Octave.  Newer Octave changed the format of the 'octave --version'

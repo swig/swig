@@ -46,9 +46,6 @@ SWIG          = $(exec_prefix)/bin/swig
 SWIGOPT       = -python
 SWIGCC        = $(CC)
 
-# SWIG Library files.  Uncomment if rebuilding the Python interpreter
-#SWIGLIBS      = -lembed.i
-
 # Rules for creating .o files from source.
 
 COBJS         = $(SRCS:.c=.o)
@@ -71,7 +68,7 @@ BUILD         = @LDSHARED@
 
 # Python installation
 
-PY_INCLUDE    = -DHAVE_CONFIG_H @PYINCLUDE@
+PY_INCLUDE    = -DHAVE_CONFIG_H
 
 # Build libraries (needed for static builds)
 
