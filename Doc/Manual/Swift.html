@@ -812,9 +812,12 @@ does not override is not forwarded to the C++ base implementation (the generated
 <li><b>Varargs</b> (<tt>...</tt>) are not supported.</li>
 <li><b>C wrapping</b> - the backend targets C++; run SWIG with <tt>-c++</tt>
 (the generated wrapper uses C++ even for a C interface).</li>
-<li><b>Smaller gaps</b> - boolean constants are emitted typed as
-<tt>Int32</tt> rather than <tt>Bool</tt>, and <tt>%contract</tt> assertions are
-not generated.</li>
+<li><b>Smaller gaps</b> - a constant whose value has no Swift equivalent is
+omitted from the generated module: a boolean-valued expression
+(<tt>#define M (A&gt;B)</tt>, <tt>1 &amp;&amp; 0</tt>, a chained comparison), a
+<tt>sizeof</tt> or cast expression, or an unexpanded function-style macro.
+Simple integer, floating point, string and boolean literal constants are
+wrapped.</li>
 </ul>
 
 <p>
