@@ -2592,12 +2592,12 @@ void R::main(int argc, char *argv[]) {
       Swig_mark_arg(i);
       i++;
       Swig_mark_arg(i);
-      Rpackage = argv[i];
+      Rpackage = NewString(argv[i]);
     } else if (strcmp(argv[i], "-dll") == 0) {
       Swig_mark_arg(i);
       i++;
       Swig_mark_arg(i);
-      DllName = argv[i];
+      DllName = NewString(argv[i]);
     } else if (strcmp(argv[i], "-help") == 0) {
       showUsage();
     } else if (strcmp(argv[i], "-namespace") == 0) {
