@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-08: vadz
+            #3403 Fixed a crash the doxygen parser triggered by a structural
+            comment such as @name/@{ followed by a blank line with no documentation
+            attached.
+
 2026-07-06: wsfulton
             [Python] Removed the Python 2 compatibility macros that were kept in
             the generated code (pyhead.swg) only for user typemaps. A typemap
