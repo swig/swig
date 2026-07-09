@@ -2643,16 +2643,14 @@ fi
 AC_SUBST(SKIP_SCILAB)
 
 
-dnl The Swift target is always buildable (like the C target it needs nothing
-dnl beyond the CC and CXX used to build SWIG).  When a Swift compiler (swiftc) is
-dnl available the test-suite additionally compiles and runs the generated Swift
-dnl proxy; otherwise it falls back to generating wrappers and compiling the C++
-dnl side only.  --with-swift can point at a specific swiftc.
+dnl The Swift test-suite and examples compile and run the generated Swift proxy,
+dnl so they need a working Swift compiler (swiftc).  As with the other target
+dnl languages, Swift is skipped altogether when no functional swiftc is found.
+dnl --with-swift can point at a specific swiftc; --without-swift skips Swift.
 SKIP_SWIFT=
-AC_SUBST(SKIP_SWIFT)
-AC_ARG_WITH(swift, [  --with-swift[[=path]]     Enable the Swift runtime test-suite, optionally with a specific swiftc],[SWIFTBIN="$withval"], [SWIFTBIN=])
+AC_ARG_WITH(swift, [  --with-swift[[=path]]     Enable the Swift test-suite and examples, optionally with a specific swiftc],[SWIFTBIN="$withval"], [SWIFTBIN=])
 if test "x$SWIFTBIN" = "xno" ; then
-    dnl --without-swift: force compile-only, do not probe.
+    dnl --without-swift: skip Swift, do not probe.
     SWIFTBIN=
 elif test "x$SWIFTBIN" = "xyes" -o -z "$SWIFTBIN" ; then
     dnl --with-swift (no path) or default: autodetect swiftc on PATH.
@@ -2668,6 +2666,13 @@ if test -n "$SWIFTBIN" ; then
         SWIFTBIN=
     fi
 fi
+if test -z "$SWIFTBIN" ; then
+    dnl No functional swiftc: skip the Swift test-suite and examples, consistent
+    dnl with how the other target languages are skipped when their toolchain is
+    dnl unavailable.
+    SKIP_SWIFT="1"
+fi
+AC_SUBST(SKIP_SWIFT)
 AC_SUBST(SWIFTBIN)
 dnl C++ standard library to link the g++/clang++-compiled wrapper against when
 dnl swiftc links the Swift runtime test/example executable: libc++ on macOS,
