@@ -17,6 +17,11 @@ Version 4.5.0 (in progress)
             object's lifetime, so ARC does not release it while C++ holds a
             non-owning reference to it.
 
+2026-07-08: vadz
+            #3403 Fixed a crash the doxygen parser triggered by a structural
+            comment such as @name/@{ followed by a blank line with no documentation
+            attached.
+
 2026-07-06: sbellus
             Swift: substantially widen C++ coverage of the experimental backend so the
             "supported" feature list matches what the test-suite actually compiles and
