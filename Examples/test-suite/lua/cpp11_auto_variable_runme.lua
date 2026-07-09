@@ -1,7 +1,5 @@
 local v=require("cpp11_auto_variable")
 
-
-
 assert(not v.f)
 assert(swig_type(v.f) == "boolean")
 assert(v.t)
@@ -28,7 +26,7 @@ assert(swig_type(v.lc) == "long double *") -- swig do not support long double
 
 assert(v.wstring_lit_len1 == 6)
 assert(v.wstring_lit_len2 == 6)
-assert(v.pi_approx == (355.0 / 133.0)) -- Lua uses same C++ double math!
+assert(cmp_flt(v.pi_approx, (355.0 / 133.0)))
 assert(v.Bar ==  "foo")
 assert(v.Foo ==  "bar")
 assert(v.Bar2 == "foo")

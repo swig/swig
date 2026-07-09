@@ -9,9 +9,7 @@ for i=0,3 do assert(iv[i]==i) end
 
 local x = average(iv)
 
-function near(x,y) return math.abs(x-y)<0.001 end
-
-assert(near(x,1.5))
+assert(cmp_flt(x,1.5))
 
 local rv = RealVector()
 rv:push_back(10)
@@ -21,7 +19,7 @@ rv:push_back(11.5)
 
 local a=half(rv)
 for i=0,rv:size()-1 do
-	assert(near(a[i],rv[i]/2))
+	assert(cmp_flt(a[i],rv[i]/2))
 end
 
 local dv = DoubleVector(10)
@@ -30,7 +28,7 @@ for i=0,9 do dv[i] = i/2.0 end
 halve_in_place(dv)
 
 for i=0,9 do
-	assert(near(dv[i],i/4))
+	assert(cmp_flt(dv[i],i/4))
 end
 
 sv=StructVector(4)

@@ -7,3 +7,8 @@ local module = require(name)
 for k,v in pairs(module) do _G[k]=v end -- move to global
 return module
 end
+function cmp_flt(x,y,d) -- compare float numbers
+if type(d) == "number" then
+return math.abs(x-y) < d end
+return math.abs(x-y) < 0.001
+end
