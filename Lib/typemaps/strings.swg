@@ -45,14 +45,14 @@
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 
-%typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (int res, Char *buf = 0, int alloc = 0) {
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtr) Char const*& (int res, Char *buf = 0, int alloc = 0), Char *& (int res, Char *buf = 0, int alloc = 0) {
   res = SWIG_AsCharPtr($input, &buf, &alloc);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
-  $1 = &buf;
-}    
-%typemap(freearg, noblock=1,match="in") Char const*& {
+  $1 = ($1_ltype)&buf;
+}
+%typemap(freearg, noblock=1,match="in") Char const*&, Char *& {
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 
@@ -63,7 +63,7 @@
 }
 
 
-%typemap(out,noblock=1,fragment=#SWIG_FromCharPtr) Char const*& {
+%typemap(out,noblock=1,fragment=#SWIG_FromCharPtr) Char const*&, Char *& {
   %set_output(SWIG_FromCharPtr(*$1));
 }
 
@@ -161,8 +161,8 @@
 /* directorin */
 
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtr)
-  Char *, Char const*, Char *const, Char const *const, 
-  Char const *&, Char *const &, Char const *const & {
+  Char *, Char const*, Char *const, Char const *const,
+  Char *&, Char const *&, Char *const &, Char const *const & {
   $input = SWIG_FromCharPtr((const Char *)$1);
 }
 
@@ -187,7 +187,7 @@
 }
 
 
-%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Char *const& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ), Char const*const& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ) { 
+%typemap(directorout,noblock=1,fragment=#SWIG_AsCharPtr,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) Char *& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ), Char *const& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ), Char const*const& (int res, Char *buf = 0, int alloc = SWIG_NEWOBJ) {
   res = SWIG_AsCharPtr($input, &buf, &alloc);
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res, "$type");
@@ -200,7 +200,7 @@
   }
 }
 %typemap(directorfree,noblock=1)
-  Char * const&, Char const* const& {
+  Char *&, Char * const&, Char const* const& {
   if (director) {
     director->swig_release_ownership(%as_voidptr(*$input));
   }
@@ -211,7 +211,7 @@
 /* typecheck */
 
 %typemap(typecheck,noblock=1,precedence=StringCode,
-	 fragment=#SWIG_AsCharPtr) Char *, const Char *, Char const*& {
+	 fragment=#SWIG_AsCharPtr) Char *, const Char *, Char const*&, Char *& {
   int res = SWIG_AsCharPtr($input, 0, 0);
   $1 = SWIG_CheckState(res);
 }

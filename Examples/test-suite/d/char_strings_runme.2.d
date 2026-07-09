@@ -77,6 +77,18 @@ void main() {
     enforce(ping == pong, "Test PingPong 1 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
   }
 
+  foreach (i; TEST_RANGE) {
+    string ping = OTHERLAND_MSG ~ to!string(i);
+    string pong = CharArrayPingPong(ping);
+    enforce(ping == pong, "Test PingPong 2 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
+  }
+
+  foreach (i; TEST_RANGE) {
+    string ping = OTHERLAND_MSG ~ to!string(i);
+    string pong = CharArrayDimsPingPong(ping);
+    enforce(ping == pong, "Test PingPong 3 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
+  }
+
   // variables
   foreach (i; TEST_RANGE) {
     const msg = OTHERLAND_MSG ~ to!string(i);

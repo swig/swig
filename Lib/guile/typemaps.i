@@ -328,6 +328,11 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
  %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = ($1_ltype)SWIG_scm2str($input);}
  %typemap (out,    doc="<string>")              char * {$result = SWIG_str02scm((const char *)$1);}
  %typemap (varout, doc="<string>")              char * {$result = SWIG_str02scm($1);}
+ %typemap (in, doc="$NAME is a string")          char *&($*1_ltype temp, int must_free = 0), const char *&($*1_ltype temp, int must_free = 0) {
+   temp = ($*1_ltype) SWIG_scm2str($input); $1 = &temp;
+   must_free = 1;
+ }
+ %typemap (out, doc="<string>")                  char *&, const char *& {$result = SWIG_str02scm((const char *)*$1);}
  %typemap (in, doc="$NAME is a string")          char **INPUT(char * temp, int must_free = 0) {
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
@@ -343,6 +348,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    the function call. */
 
 %typemap (freearg) char * "if (must_free$argnum) SWIG_free((char *)$1);"
+%typemap (freearg) char *&, const char *& "if (must_free$argnum) SWIG_free((char *)temp$argnum);"
 %typemap (freearg) char **INPUT, char **INOUT "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   

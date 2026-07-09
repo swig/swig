@@ -99,6 +99,20 @@ public class char_strings_runme {
         throw new Exception("Test PingPong 1 failed.\nExpected:" + ping + "\nReceived:" + pong);
     }
 
+    for (i=0; i<count; i++) {
+      string ping = OTHERLAND_MSG + i;
+      string pong = char_strings.CharArrayPingPong(ping);
+      if (ping != pong)
+        throw new Exception("Test PingPong 2 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      string ping = OTHERLAND_MSG + i;
+      string pong = char_strings.CharArrayDimsPingPong(ping);
+      if (ping != pong)
+        throw new Exception("Test PingPong 3 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
     // variables
     for (i=0; i<count; i++) {
       char_strings.global_char = OTHERLAND_MSG + i;

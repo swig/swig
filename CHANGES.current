@@ -8,6 +8,18 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-07-09: wsfulton
+            [Guile, JavaScript, Lua, OCaml, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            Added 'char *&' (a reference to a char pointer) string typemaps to the
+            target languages that were missing them. A 'char *&' function
+            argument, return value or variable - and, via const reference stripping,
+            a 'char *const&' - is now marshalled as a string in every target
+            language rather than as an opaque pointer; previously only C#, D, Go,
+            Java and PHP did so. The common char_strings test now also has a runme
+            for every target language, all exercising the same set of functions, so
+            there is complete char *& typemap coverage and testing across all
+            supported languages.
+
+2026-07-09: wsfulton
             [Guile] #3290 Fixed 'invalid conversion from const void* to void*' C++
             compilation error when wrapping a function taking a 'const char *'
             argument hidden behind a typedef, such as 'typedef const char *MyString;'.
