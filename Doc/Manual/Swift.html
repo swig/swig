@@ -40,6 +40,7 @@
 <li><a href="#Swift_typemaps_example">A worked example</a>
 <li><a href="#Swift_typemaps_directors">Director typemaps</a>
 <li><a href="#Swift_typemaps_custom">Defining your own typemaps</a>
+<li><a href="#Swift_typemaps_customizations">Common customizations</a>
 </ul>
 <li><a href="#Swift_known_limitations">Known limitations</a>
 </ul>
@@ -569,26 +570,79 @@ extension $module {
 
 
 <p>
-Two per-class typemaps let you add code to a generated proxy class and customize
-its initializer, mirroring the <tt>cscode</tt>/<tt>csconstruct</tt> (C#) and
-<tt>javacode</tt>/<tt>javaconstruct</tt> (Java) typemaps:
+Sometimes the auto-generated proxy class is not quite what you want: you would
+like to add a Swift-native convenience to a wrapped class, make it conform to a
+Swift protocol, or run a little extra Swift code every time an object is created.
+Two per-class typemaps let you do exactly that without editing generated files:
 </p>
 
 <ul>
-<li><b><tt>swiftcode</tt></b> - injected verbatim into the class body.  There is
-no default, so it is empty unless you define it.</li>
+<li><b><tt>swiftcode</tt></b> - anything you put here is dropped verbatim into the
+class body, so you can add computed properties, helper methods, protocol
+conformances, or a stored property to hold onto another object.  It is empty
+unless you define it, so it only ever adds what you write.</li>
 <li><b><tt>swiftconstruct</tt></b> (and <tt>swiftconstruct_derived</tt> for a
 class with a wrapped base) - the body of the generated <tt>init(...)</tt>,
-including the surrounding braces.  <tt>$imcall</tt> expands to the call to the
-underlying C constructor wrapper.  The default reproduces the standard body.</li>
+including the surrounding braces, so you can run your own code as part of
+construction.  <tt>$imcall</tt> expands to the call to the underlying C
+constructor wrapper; leave it in place and add your code around it.  The default
+reproduces the standard body, so you only override it when you need to.</li>
 </ul>
 
 <p>
-A common use is to pin a constructor argument for the wrapping object's whole
-lifetime.  When C++ stores only a non-owning reference or pointer to an argument,
-the Swift proxy for that argument must be retained or ARC may release it (and free
-the C++ object) while the wrapper still refers to it.  Declare a stored property
-with <tt>swiftcode</tt> and assign it in <tt>swiftconstruct</tt>:
+These are the Swift analogues of the <tt>cscode</tt>/<tt>csconstruct</tt> (C#) and
+<tt>javacode</tt>/<tt>javaconstruct</tt> (Java) typemaps.
+</p>
+
+<p>
+The most common reason to reach for them is object lifetime.  Some C++
+constructors keep a <i>non-owning</i> reference or pointer to one of their
+arguments - that is, they store a <tt>T&amp;</tt> or a raw <tt>T*</tt> and use it
+later, but they do not own it: they neither copy it nor take responsibility for
+freeing it, and simply assume the caller keeps that object alive for as long as
+it is needed.  (An <i>owning</i> argument, by contrast, is one taken by value, in
+a <tt>std::shared_ptr</tt>, or in a <tt>std::unique_ptr</tt>, where the object
+manages the argument's lifetime itself and there is nothing to worry about.)
+</p>
+
+<p>
+A non-owning argument is easy to use safely in C++, but easy to get wrong from
+Swift, because ARC only tracks the Swift references it can see - it knows nothing
+about the reference stashed away inside the C++ object.  Take a class that stores
+its argument by reference:
+</p>
+
+<div class="code">
+<pre>
+class Adapter {
+public:
+  Adapter(Codec&amp; codec) : codec_(codec) {}   // stores a reference, does not own it
+  void run();                                 // uses codec_ later
+private:
+  Codec&amp; codec_;                              // non-owning: someone else must keep the Codec alive
+};
+</pre>
+</div>
+
+<p>
+This natural-looking Swift then crashes:
+</p>
+
+<div class="targetlang">
+<pre>
+let adapter = Adapter(codec: Codec())   // the Codec is a temporary
+adapter.run()                           // the Codec is already gone -&gt; dangling reference
+</pre>
+</div>
+
+<p>
+Once the initialiser returns, nothing in <em>Swift</em> refers to that
+<tt>Codec</tt> any more, so ARC releases it; its <tt>deinit</tt> frees the
+underlying C++ <tt>Codec</tt>, and the <tt>codec_</tt> reference inside
+<tt>adapter</tt> is left dangling.  The fix is to make the borrow visible to ARC:
+store the argument in a property on the wrapping object so its lifetime is tied
+to the wrapper's.  Declare the property with <tt>swiftcode</tt> and assign it in
+<tt>swiftconstruct</tt>:
 </p>
 
 <div class="code">
@@ -663,17 +717,26 @@ Each typemap slot fills one role in that pipeline:
 <tr><td><tt>swiftout</tt></td><td>Swift</td><td>The Swift body that calls the bridge (<tt>$imcall</tt>), checks for a pending exception, and converts the result to <tt>swifttype</tt>.</td></tr>
 <tr><td><tt>swiftclassmodifiers</tt></td><td>Swift</td><td>Access modifiers placed before <tt>class</tt> in a proxy declaration (<tt>public</tt>, or <tt>open</tt> for director classes).</td></tr>
 <tr><td><tt>swiftbody</tt> / <tt>swiftbody_derived</tt></td><td>Swift</td><td>The stored properties, initializer and <tt>swigGetCPtr</tt> emitted inside a proxy class (the derived variant is used for subclasses).</td></tr>
+<tr><td><tt>swiftcode</tt></td><td>Swift</td><td>Extra Swift source injected verbatim into the proxy class body; empty unless you define it.</td></tr>
+<tr><td><tt>swiftconstruct</tt> / <tt>swiftconstruct_derived</tt></td><td>Swift</td><td>The body of the generated <tt>init(...)</tt> including its braces (<tt>$imcall</tt> calls the underlying C++ constructor); the <tt>_derived</tt> variant is used for a class with a wrapped base.</td></tr>
 <tr><td><tt>swiftdestruct</tt> / <tt>swiftdestruct_derived</tt></td><td>Swift</td><td>The <tt>deinit</tt> that releases the C++ object when the proxy owns it.</td></tr>
 <tr><td><tt>directorin</tt> / <tt>directorout</tt></td><td>C++</td><td>Director only: convert a callback parameter from C++ to C, and convert the Swift override's return value from C back to C++.</td></tr>
 <tr><td><tt>swiftdirectorin</tt> / <tt>swiftdirectorout</tt></td><td>Swift</td><td>Director only: the Swift side of the same conversions, inside the dispatch closure that calls your override.</td></tr>
 </table>
 
 <p>
-Standard typemaps for <tt>bool</tt>, the integer and floating point types and
-<tt>void</tt> ship in <tt>Lib/swift/swiftprimitives.swg</tt> and wrapped class
-types in <tt>Lib/swift/swiftswigtype.swg</tt>; both are included automatically.
-The following library files add further support and are included from your
-interface file as needed:
+Every slot above already has a default, so you almost never write typemaps for
+ordinary wrapping - the defaults handle functions, classes, enums and the like
+out of the box, and you only define a typemap to <em>override</em> a default for
+a particular type.  Standard typemaps for <tt>bool</tt>, the integer and floating
+point types and <tt>void</tt> ship in <tt>Lib/swift/swiftprimitives.swg</tt>, and
+any wrapped class or pointer/reference gets the generic defaults from
+<tt>Lib/swift/swiftswigtype.swg</tt> (for a class <tt>Widget</tt>: <tt>ctype</tt>
+<tt>void *</tt>, <tt>imtype</tt> <tt>UnsafeMutableRawPointer?</tt>,
+<tt>swifttype</tt> <tt>Widget?</tt>, and so on); both files are included
+automatically.  The one slot with no default is <tt>swiftcode</tt>, which is
+empty until you define it.  The following library files add further support and
+are included from your interface file as needed:
 </p>
 
 <div class="code">
@@ -818,6 +881,90 @@ A function declared <tt>Celsius freezing();</tt> then surfaces in Swift as
 <tt>public func freezing() throws -&gt; Double</tt>, and <tt>Celsius</tt>
 parameters likewise appear as <tt>Double</tt>, with no proxy class generated for
 the type.
+</p>
+
+<H3><a name="Swift_typemaps_customizations">40.8.4 Common customizations</a></H3>
+
+
+<p>
+In everyday wrapping you rarely touch typemaps at all - the defaults do the job.
+When you do reach for one, it is usually to solve a specific problem like those
+below.  Each names the typemap(s) involved and, where relevant, points at a
+fuller example.
+</p>
+
+<p>
+<b>Present a C/C++ type as a nicer Swift type.</b>  When a value would otherwise
+reach Swift as a bare number, pointer or proxy, redefine its Swift-facing slots
+(<tt>swifttype</tt> with <tt>swiftin</tt> / <tt>swiftout</tt>) to convert it.  For
+instance, to hand a C++ epoch timestamp (seconds since 1970, carried as a
+<tt>long</tt>) to Swift as a Foundation <tt>Date</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(swifttype) Timestamp "Date"
+%typemap(swiftin)   Timestamp "Int($swiftinput.timeIntervalSince1970)"
+%typemap(swiftout)  Timestamp %{
+    let seconds = $imcall
+    try swigCheckException()
+    return Date(timeIntervalSince1970: TimeInterval(seconds))
+%}
+</pre>
+</div>
+
+<p>
+A function <tt>Timestamp addSeconds(Timestamp base, int secs);</tt> then reads as
+<tt>func addSeconds(base: Date, secs: Int32) throws -&gt; Date</tt> in Swift.  If
+the type also needs a different representation <em>crossing the C boundary</em>
+(not just on the Swift side), map <tt>ctype</tt> / <tt>imtype</tt> / <tt>in</tt> /
+<tt>out</tt> as well - see <a href="#Swift_typemaps_custom">Defining your own
+typemaps</a>.
+</p>
+
+<p>
+<b>Add Swift-native API to a wrapped class.</b>  Use <tt>swiftcode</tt> to drop
+your own members - computed properties, convenience methods, factories, or a
+protocol conformance - straight into the generated proxy:
+</p>
+
+<div class="code">
+<pre>
+%typemap(swiftcode) Point %{
+    /// So callers can write Point.origin instead of Point(x: 0, y: 0).
+    static var origin: Point { return try! Point(x: 0, y: 0) }
+%}
+</pre>
+</div>
+
+<p>
+<b>Run code when an object is created, or keep an argument alive.</b>  Override
+<tt>swiftconstruct</tt> to add code to the generated initializer - most often to
+store a constructor argument in a <tt>swiftcode</tt> property so ARC keeps it
+alive for the wrapper's whole lifetime.  This is worked through in
+<a href="#Swift_customization_classcode">Injecting class code and customizing
+constructors</a>.
+</p>
+
+<p>
+<b>Change a class's visibility or allow subclassing.</b>  Set
+<tt>swiftclassmodifiers</tt> to, for example, <tt>open</tt> so Swift code may
+subclass a wrapped class, or <tt>public final</tt> / <tt>internal</tt> to
+restrict it:
+</p>
+
+<div class="code">
+<pre>
+%typemap(swiftclassmodifiers) Point "open"
+</pre>
+</div>
+
+<p>
+<b>Fix how a director sees a special-typed callback.</b>  When you subclass a C++
+class in Swift and one of its virtual methods uses a type whose default
+conversion is not what you want, adjust the director typemaps (<tt>directorin</tt>
+/ <tt>directorout</tt> and <tt>swiftdirectorin</tt> / <tt>swiftdirectorout</tt>);
+see <a href="#Swift_typemaps_directors">Director typemaps</a>.
 </p>
 
 <H2><a name="Swift_known_limitations">40.9 Known limitations</a></H2>
