@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-09: wsfulton
+            [Guile] #3290 Fixed 'invalid conversion from const void* to void*' C++
+            compilation error when wrapping a function taking a 'const char *'
+            argument hidden behind a typedef, such as 'typedef const char *MyString;'.
+
+2026-07-09: wsfulton
+            [Go] Fixed the wrapper generated for a function or variable returning
+            'char *&' (a reference to a char pointer), which previously returned a
+            corrupted string because the returned pointer was not dereferenced.
+
 2026-07-09: jschueller, olly, wsfulton
             [Go] #3290 Fixed 'invalid conversion' C++ compilation errors in the
             generated wrapper when a function takes a 'const char *' argument

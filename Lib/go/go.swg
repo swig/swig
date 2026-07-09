@@ -456,10 +456,13 @@ rvrdeleter.reset($1); %}
 %{ free((char *)$1); %}
 
 %typemap(freearg) char *&
-%{ free(temp$argnum); %}
+%{ free((char *)*$1); %}
 
-%typemap(out,fragment="AllocateString") char *, char *&, char[ANY], char[]
+%typemap(out,fragment="AllocateString") char *, char[ANY], char[]
 %{ $result = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0); %}
+
+%typemap(out,fragment="AllocateString") char *&
+%{ $result = Swig_AllocateString((char*)*$1, *$1 ? strlen((char*)*$1) : 0); %}
 
 %typemap(goout,fragment="CopyString") char *, char *&, char[ANY], char[]
 %{ $result = swigCopyString($1) %}

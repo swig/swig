@@ -167,11 +167,22 @@ func main() {
 		}
 	}
 
-	// char *& tests (the char *& return values are verified separately once the
-	// Go char *& 'out' typemap is fixed)
+	// char *& tests
+	for i := uint(0); i < count; i++ {
+		if char_strings.GetCharPointerRef() != CPLUSPLUS_MSG {
+			panic("Test char pointer ref get failed, iteration " + strconv.Itoa(int(i)))
+		}
+	}
+
 	for i := uint(0); i < count; i++ {
 		if !char_strings.SetCharPointerRef(OTHERLAND_MSG+strconv.Itoa(int(i)), i) {
 			panic("Test char pointer ref set failed, iteration " + strconv.Itoa(int(i)))
+		}
+	}
+
+	for i := uint(0); i < count; i++ {
+		if char_strings.GetConstCharPointerRef() != CPLUSPLUS_MSG {
+			panic("Test const char pointer ref get failed, iteration " + strconv.Itoa(int(i)))
 		}
 	}
 

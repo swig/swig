@@ -342,7 +342,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 /* SWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);"
+%typemap (freearg) char * "if (must_free$argnum) SWIG_free((char *)$1);"
 %typemap (freearg) char **INPUT, char **INOUT "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
