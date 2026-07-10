@@ -29,7 +29,7 @@ ls -la $(which $CC) $(which $CXX)
 $CC --version
 $CXX --version
 
-$RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
+$RETRY sudo apt-get -qq install libboost-dev libpcre2-dev
 # Note: testflags.py needs python, but python is pre-installed
 
 WITHLANG=$SWIGLANG
