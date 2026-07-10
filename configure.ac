@@ -2491,6 +2491,13 @@ else
 AC_MSG_RESULT($TCLLIB)
 fi
 
+AC_MSG_CHECKING(for Tcl interpreter)
+TCLSH=tclsh
+if test -n "$TCL_VERSION"; then
+    TCLSH="tclsh$TCL_VERSION"
+fi
+AC_MSG_RESULT([$TCLSH])
+
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
 *-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
@@ -2517,6 +2524,7 @@ esac
 
 fi
 
+AC_SUBST(TCLSH)
 AC_SUBST(TCLINCLUDE)
 AC_SUBST(TCLLIB)
 AC_SUBST(TCLDYNAMICLINKING)

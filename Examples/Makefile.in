@@ -1569,11 +1569,10 @@ scilab_clean:
 
 # Set these to your local copy of Tcl
 
-TCLSH       = tclsh
+TCLSH       = @TCLSH@
 TCL_INCLUDE = @TCLINCLUDE@
 TCL_LIB     = @TCLLIB@
 TCL_OPTS    = @LIBS@
-TK_OPTS     = -ltk -ltcl @LIBS@
 
 # Extra Tcl specific dynamic linking options
 TCL_DLNK   = @TCLDYNAMICLINKING@
