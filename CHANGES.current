@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-11: wsfulton
+            [Tcl] Add support for Tcl 9. Fix
+              error: implicit declaration of function Tcl_NewSizeIntObj.
+
 2026-07-09: wsfulton
             [Guile, JavaScript, Lua, OCaml, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
             Added 'char *&' (a reference to a char pointer) string typemaps to the
