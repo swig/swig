@@ -237,7 +237,7 @@ case "$SWIGLANG" in
 		fi
 		;;
 	"tcl")
-		$RETRY sudo apt-get -qq install tcl-dev
+		$RETRY sudo apt-get -qq install tcl${VER}-dev
 		;;
 esac
 update_env 'WITHLANG' "$WITHLANG"
