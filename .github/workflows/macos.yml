@@ -139,6 +139,7 @@ jobs:
           VER: '1.26'
         - SWIGLANG: perl5
         - SWIGLANG: tcl
+        - SWIGLANG: lua
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -184,14 +185,22 @@ jobs:
           brew untap aws/tap
           # Trust Microsoft Azure tap
           brew trust azure/bicep
+          brew_pkgs=(boost bison automake)
+          if test "$SWIGLANG" = "lua"; then
+            brew_pkgs+=(lua)
+          fi
           # See Homebrew site: https://brew.sh/
-          brew install boost bison automake
+          brew install ${brew_pkgs[@]}
           # Ensure we use the newer version of bison
           bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
           echo "$bison_dir" >> $GITHUB_PATH
           BOOST_INC="$(brew ls boost | grep 'boost/shared_ptr.hpp$' | head -1 | sed 's?/boost/shared_ptr.hpp$??')"
           # Boost header include path, for testing
           echo "BOOST_INC=$BOOST_INC" >> $GITHUB_ENV
+          if test "$SWIGLANG" = "lua"; then
+            lua_dir="$(brew ls lua | grep '/bin/lua$' | head -1 | sed 's?/bin/lua$??')"
+            echo "LUADIR=$lua_dir" >> $GITHUB_ENV
+          fi
 
           cpu_count=$(sysctl -n hw.ncpu)
           if test $cpu_count -gt 1; then
@@ -256,13 +265,15 @@ jobs:
                 ;;
               python)
                 echo "/Library/Frameworks/Python.framework/Versions/$VER/bin" >> $GITHUB_PATH
+                # Can also be found in:
+                # "$RUNNER_TOOL_CACHE/Python/$VER.*/$arc/bin"
                 ;;
               ruby)
-                ruby_dir="$(ls -d /Users/runner/hostedtoolcache/Ruby/$VER.*/$arc/bin)"
+                ruby_dir="$(ls -d $RUNNER_TOOL_CACHE/Ruby/$VER.*/$arc/bin)"
                 echo "$ruby_dir" >> $GITHUB_PATH
                 ;;
               go)
-                go_dir="$(ls -d /Users/runner/hostedtoolcache/go/$VER.*/$arc/bin)"
+                go_dir="$(ls -d $RUNNER_TOOL_CACHE/go/$VER.*/$arc/bin)"
                 echo "$go_dir" >> $GITHUB_PATH
                 ;;
               esac
@@ -278,6 +289,9 @@ jobs:
           fi
           CONFIGOPTS+=(CFLAGS="$CFLAGS")
           CONFIGOPTS+=(CXXFLAGS="$CXXFLAGS")
+          if test -n "$LUADIR"; then
+            CONFIGOPTS+=(--with-lua="$LUADIR/bin/lua" --with-luaincl="$LUADIR/include/lua" --with-lualib="$LUADIR/lib")
+          fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
