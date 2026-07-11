@@ -172,20 +172,12 @@ jobs:
           VER: '3.13'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.8'
+          PY_ABI_VER: '3.5'
+        - SWIGLANG: python
           VER: '3.13'
           PY_ABI_VER: '3.9'
           CSTD: gnu99
-        - SWIGLANG: python
-          VER: '3.13-dbg'
-          CSTD: gnu99
-        - SWIGLANG: python
-          VER: '3.13'
-          CSTD: gnu99
-          SWIG_FEATURES: -nogil  # Test that -nogil has no effect on non-free-threading Python
-        - SWIGLANG: python
-          VER: '3.13t'
-          CSTD: gnu99
-          SWIG_FEATURES: -nogil
         - SWIGLANG: python
           VER: '3.14'
           PY_ABI_VER: '3.14'
@@ -194,6 +186,17 @@ jobs:
           VER: '3.14'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.14-dbg'
+          CSTD: gnu99
+        - SWIGLANG: python
+          VER: '3.14'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil  # Test that -nogil has no effect on non-free-threading Python
+        - SWIGLANG: python
+          VER: '3.14t'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil
+        - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.8'
@@ -201,14 +204,18 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          VER: '3.13'
+          VER: '3.14'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
-          VER: '3.13'
+          VER: '3.14'
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          VER: '3.8'
-          PY_ABI_VER: '3.5'
+          VER: '3.15'
+          continue-on-error: true
+        - SWIGLANG: python
+          VER: '3.15'
+          SWIG_FEATURES: -builtin
+          continue-on-error: true
         - SWIGLANG: r
           os: ubuntu-24.04
         - SWIGLANG: ruby
