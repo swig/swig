@@ -52,7 +52,9 @@ jobs:
   # This action build using MSYS2 environment
   # We use two compilers C/C++:
   # - Microsoft Visual Studio compiler.
+  #   with default C++ standard c++20 and C standard c17
   # - MinGW-w64 GCC compiler with MSVCRT or UCRT C standard library.
+  #   with default C++ standard c++11 and C standard c11
   # We use 2 package managers
   # - NuGet packages are compatible with Visual Studio compiler.
   # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
@@ -153,8 +155,7 @@ jobs:
 
     env:
       CFLAGS: '-O2'
-      CXXFLAGS: '-O2'
-      CCCL_OPTIONS: '--cccl-muffle /W3 /EHsc'
+      CCCL_OPTIONS: '--cccl-muffle /W3 /EHsc /FS'
       PCRE2_CCCL_LD: '-lpcre2-8-static --cccl-link /NODEFAULTLIB:MSVCRT'
       CHECK_OPTIONS: 'CSHARPOPTIONS=-platform:x64'
       SWIGLANG: ${{ matrix.SWIGLANG }}
@@ -171,6 +172,7 @@ jobs:
 #  https://learn.microsoft.com//cpp/build/reference/compiler-options
 #  /EHc  extern "C" defaults to nothrow.
 #  /EHs  Enable C++ exception handling (no SEH exceptions).
+#  /FS   Forces writes to the PDB file to be serialized through MSPDBSRV.EXE.
 #  /W3   Warning level.
 #  /WX   Treat warnings as errors.
 #  https://learn.microsoft.com//cpp/build/reference/linker-options
@@ -206,7 +208,7 @@ jobs:
     # Set MSVC compilers path and environment variables.
     - name: Setup MSVC
       if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
-      uses: TheMrMilchmann/setup-msvc-dev@v3
+      uses: TheMrMilchmann/setup-msvc-dev@v4
       with:
         arch: x64
 
@@ -216,14 +218,17 @@ jobs:
           set -x
           uname --all
 
+          # Convert to Unix
+          runner_toolcache="$(cygpath -u "$RUNNER_TOOL_CACHE")"
+
           if [[ "$COMPILER" = "gcc" ]]; then
             # MinGW-w64 variant to use
             # See: https://www.msys2.org/docs/environments
             MSYS2_UENV="${MSYS2_ENV^^}" # Change to uppercase
             if [[ "$MSYSTEM" != "$MSYS2_UENV" ]]; then
-                MSYSTEM="$MSYS2_UENV"
-                # Change MSYS2 active environment
-                echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
+              MSYSTEM="$MSYS2_UENV"
+              # Change MSYS2 active environment
+              echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
             fi
             case "$MSYSTEM" in
             MINGW64) # Use MinGW-w64 with old Microsoft Visual C++ Runtime
@@ -256,7 +261,7 @@ jobs:
               ;;
             ruby)
               if [[ -n "$VER" ]]; then
-                ruby_dir="$(ls -d /c/hostedtoolcache/windows/Ruby/$VER.*)/x64/bin"
+                ruby_dir="$(ls -d $runner_toolcache/Ruby/$VER.*)/x64/bin"
                 RUBYDIR="$(cygpath -w $ruby_dir)"
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
@@ -315,7 +320,7 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                python_dir="$(ls -d /c/hostedtoolcache/windows/Python/$VER.*)/x64"
+                python_dir="$(ls -d $runner_toolcache/Python/$VER.*)/x64"
                 PYTHONDIR="$(cygpath -w $python_dir)"
                 echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
                 echo "$PYTHONDIR" >> $GITHUB_PATH
@@ -357,6 +362,7 @@ jobs:
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
+            CXXFLAGS+=' -O2'
             which gcc
             gcc --version | head -n1
             which g++
@@ -396,7 +402,10 @@ jobs:
             echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
           fi
           if [[ -n "$CPPSTD" ]]; then
-            echo "CXXFLAGS=$CXXFLAGS -std=$CPPSTD" >> $GITHUB_ENV
+            CXXFLAGS+=" -std=$CPPSTD"
+          fi
+          if [[ -n "$CXXFLAGS" ]]; then
+            echo "CXXFLAGS=$CXXFLAGS" >> $GITHUB_ENV
           fi
 
           make --version | head -n2
@@ -425,6 +434,11 @@ jobs:
     - name: Build
       shell: bash
       run: |
+          if [[ -z "$COMPILER" ]]; then
+            # Use the optimization on build only
+            CXXFLAGS+=' -O2'
+            export CXXFLAGS
+          fi
           make -s $SWIGJOBS
 
     # Test the Windows swig have a proper SWIG library path
