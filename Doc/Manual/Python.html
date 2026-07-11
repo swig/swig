@@ -23,6 +23,12 @@
 <li><a href="#Python_nn11">Compiling for 64-bit platforms</a>
 <li><a href="#Python_nn12">Building Python extensions under Windows</a>
 <li><a href="#Python_commandline">Additional Python commandline options</a>
+<ul>
+<li><a href="#Python_castmode">castmode</a>
+<li><a href="#Python_dirvtable">dirvtable</a>
+<li><a href="#Python_extranative">extranative</a>
+<li><a href="#Python_fastunpack">fastunpack</a>
+</ul>
 </ul>
 <li><a href="#Python_nn13">A tour of basic C/C++ wrapping</a>
 <ul>
@@ -972,6 +978,114 @@ swig -python -help
 
 <p>
 Many of these options are covered later on and their use should become clearer by the time you have finished reading this section on SWIG and Python.
+</p>
+
+<p>
+Some of the options also have an equivalent <tt>%module</tt> directive option,
+which can be placed in the interface file instead of being passed on the
+command line.  The following options are described in more detail below:
+</p>
+
+<ul>
+<li><b><tt>castmode</tt></b> &ndash; <tt>%module(castmode="1")</tt> or <tt>-castmode</tt></li>
+<li><b><tt>dirvtable</tt></b> &ndash; <tt>-dirvtable</tt> only (no <tt>%module</tt> equivalent)</li>
+<li><b><tt>extranative</tt></b> &ndash; <tt>%module(extranative="1")</tt> or <tt>-extranative</tt></li>
+<li><b><tt>fastunpack</tt></b> &ndash; enabled by default, disabled with <tt>-nofastunpack</tt></li>
+</ul>
+
+<H4><a name="Python_castmode">33.2.9.1 castmode</a></H4>
+
+
+<p>
+The <tt>castmode</tt> option enables a cast-ranking dispatch mechanism for
+overloaded functions.  When enabled, SWIG generates code that selects the
+best-matching overload based on the implicit conversion distance between
+argument types, rather than simply trying each overload in declaration order.
+This allows implicit type conversions (e.g. passing an object with an
+<tt>__int__()</tt> method to a function expecting <tt>int</tt>) to resolve
+to the correct overload.
+</p>
+
+<p>
+Cast mode is available via the <tt>-castmode</tt> command line option or via
+the <tt>%module</tt> directive:
+</p>
+
+<div class="code"><pre>
+%module(castmode="1") mymodule
+</pre></div>
+
+<p>
+When cast mode is enabled, the wrapper code defines
+<tt>SWIG_CASTRANK_MODE</tt>.  Primitive type conversion typemaps return a
+cast rank indicating how many implicit conversions were needed (0 for an
+exact match, higher values for more distant conversions).  Overload dispatch
+then selects the candidate with the lowest total rank.  In Perl5, cast rank
+mode is always enabled.
+</p>
+
+<H4><a name="Python_dirvtable">33.2.9.2 dirvtable</a></H4>
+
+
+<p>
+The <tt>-dirvtable</tt> option enables a pseudo virtual table for director
+classes to speed up dispatch of overridden methods.  By default, each
+director method call retrieves the Python method via <tt>GetAttr</tt> on
+the Python object.  With <tt>-dirvtable</tt>, the runtime builds a cache of
+method pointers that avoids repeated attribute lookups.
+</p>
+
+<p>
+<b>Warning:</b> The vtable is allocated per-object and is never freed, so
+this option currently causes memory leaks.  It was removed from the
+<tt>-O</tt> optimisation set for this reason.
+</p>
+
+<H4><a name="Python_extranative">33.2.9.3 extranative</a></H4>
+
+
+<p>
+The <tt>extranative</tt> option causes C++ standard library containers
+(e.g. <tt>std::vector</tt>, <tt>std::string</tt>) to be returned as native
+SWIG wrapper objects rather than being converted to plain Python types
+(like tuples or strings).  This preserves the type identity of the
+container and allows access to its methods from Python.
+</p>
+
+<p>
+Available via the <tt>-extranative</tt> command line option or the
+<tt>%module</tt> directive:
+</p>
+
+<div class="code"><pre>
+%module(extranative="1") mymodule
+</pre></div>
+
+<p>
+When enabled, the wrapper defines <tt>SWIG_PYTHON_EXTRA_NATIVE_CONTAINERS</tt>.
+The <tt>pycontainer.swg</tt> library uses this macro to return
+<tt>SWIG_InternalNewPointerObj</tt> for types that have a registered type
+descriptor, preserving the wrapped C++ class rather than converting to a
+plain Python tuple or list.
+</p>
+
+<H4><a name="Python_fastunpack">33.2.9.4 fastunpack</a></H4>
+
+
+<p>
+The <tt>-nofastunpack</tt> option disables the use of Python's fast
+<tt>PyArg_UnpackTuple</tt> API for argument parsing, falling back to the
+traditional approach (check <tt>PyTuple_Check</tt>, get length via
+<tt>PyObject_Length</tt>, then loop using <tt>PyTuple_GET_ITEM</tt>).
+Fast unpack is enabled by default and provides faster argument parsing
+with simpler generated code.  The <tt>-nofastunpack</tt> flag is only
+needed if compatibility issues arise.
+</p>
+
+<p>
+Some argument parsing scenarios (varargs, overloaded functions, keyword
+arguments) always fall back to traditional parsing regardless of this
+option.
 </p>
 
 <H2><a name="Python_nn13">33.3 A tour of basic C/C++ wrapping</a></H2>

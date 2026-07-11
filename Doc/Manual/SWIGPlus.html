@@ -6139,6 +6139,23 @@ The wrapped C++ classes that have this ability are termed 'director' classes.
 The director feature is documented individually in each target language and the reader should locate and read this to obtain a full understanding of directors.
 </p>
 
+<p>
+By default, when using directors, SWIG wraps protected virtual methods so they
+can be overridden from the target language.  This can be controlled with the
+<tt>-dirprot</tt> (enable, default) and <tt>-nodirprot</tt> (disable) command
+line options, or with the equivalent <tt>%module</tt> options:
+</p>
+
+<div class="code"><pre>
+%module(directors="1", dirprot="1") example   <span class="comment">// enable (default)</span>
+%module(directors="1", nodirprot="1") example  <span class="comment">// disable</span>
+</pre></div>
+
+<p>
+Note that pure abstract protected members are always emitted regardless of
+the <tt>dirprot</tt>/<tt>nodirprot</tt> setting.
+</p>
+
 <H3><a name="SWIGPlus_directors_for_function_pointers">6.29.2 Using directors and target language callbacks</a></H3>
 
 
