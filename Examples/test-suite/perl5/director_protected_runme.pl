@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 19;
+use Test::More tests => 20;
 BEGIN { use_ok 'director_protected' }
 require_ok 'director_protected';
 
@@ -46,3 +46,8 @@ eval { $b->pang() };
 like $@, qr/protected member/;
 eval { $f->pang() };
 like $@, qr/protected member/;
+
+# NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+my $outer = director_protected::NestedOuter->new();
+my $base = $outer->makeDerived();
+is $base->identify(), 1;

@@ -8,6 +8,17 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-07-11: wsfulton
+            Fixed a protected or private nested class deriving from a class used
+            elsewhere in the wrapped API producing a runtime upcast helper function
+            that referenced the nested class by its inaccessible qualified name in
+            non-member scope, a C++ compile error ('class ... is protected within
+            this context'). No target language ever wraps a non-public nested class,
+            so it is now never registered for this. Affects any target language
+            using SWIG's generic runtime type table (for example Perl, Python,
+            Ruby, Tcl, Lua), most visibly since the "Keep unsupported nested
+            classes as ignored classes, not forward declarations" change.
+
+2026-07-11: wsfulton
             [Tcl] Add support for Tcl 9. Fix
               error: implicit declaration of function Tcl_NewSizeIntObj.
 

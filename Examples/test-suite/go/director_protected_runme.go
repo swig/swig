@@ -70,4 +70,11 @@ func main() {
 	if fb3.Callcheer() != "FooBar3::cheer();" {
 		panic("bad fb3.callcheer")
 	}
+
+	// NestedDerived is never wrapped (protected nested class); check Identify() still dispatches to it.
+	outer := NewNestedOuter()
+	base := outer.MakeDerived()
+	if base.Identify() != 1 {
+		panic("bad NestedOuter.MakeDerived().Identify()")
+	}
 }
