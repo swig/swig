@@ -135,6 +135,7 @@ void TestInstantiationsPart4() {
   Expression<AnyVal, AnyVal::Super> express;
   (void)express;
   DeriveToBase<Expression, AnyVal, AnyVal, AnyVal, AnyVal> derive_to_base = AnyVal();
+  (void)derive_to_base;
 }
 %}
 
