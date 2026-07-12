@@ -8,6 +8,13 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-07-12: wsfulton
+            [Lua] Directors now work with Lua 5.1 and LuaJIT, which do not have the
+            Lua 5.2 uservalue functions ('lua_getuservalue'/'lua_setuservalue') used
+            to store the table of Lua method overrides for a director object. The
+            userdata environment functions that uservalues replaced
+            ('lua_getfenv'/'lua_setfenv') are used instead when wrapping for Lua 5.1.
+
+2026-07-12: wsfulton
             [Lua] Restore support for Lua 5.1 and LuaJIT (which implements the
             Lua 5.1 API) for non-director wrapping. Reverts part of #3394 which
             dropped Lua 5.1 support.

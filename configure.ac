@@ -1493,7 +1493,6 @@ if test "x$LUABIN" = xyes; then
 fi
 
 # Check version of Lua found and only accept the supported versions - 5.1 and later.
-# Directors are the exception, requiring Lua 5.2 or later as they use lua_setuservalue().
 LUA_MINVER='5.1'
 if test -n "$LUABIN"; then
   AC_MSG_CHECKING([Lua version])
