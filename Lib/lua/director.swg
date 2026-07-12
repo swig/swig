@@ -15,6 +15,68 @@
 /* Macro to cast a pointer to a director class */
 #define SWIG_DIRECTOR_CAST(PTR) (dynamic_cast<Swig::Director*>(PTR))
 
+/* -----------------------------------------------------------------------------
+ * uservalue compatibility
+ *
+ * A director object stores the table of Lua method overrides for the object in the userdata's
+ * uservalue. Uservalues were added in Lua 5.2, replacing the userdata environments of Lua 5.1, so use
+ * the environment functions when wrapping for Lua 5.1 (this includes LuaJIT, which implements the Lua
+ * 5.1 API).
+ *
+ * The two are not quite interchangeable though. A new userdata has no uservalue (nil) in Lua 5.2 and
+ * later, but in Lua 5.1 it inherits the environment of the C function creating it, which is a table
+ * shared by every userdata the module creates (Lua's 'package' table, as it happens, inherited via the
+ * loader that ran luaopen_). Storing the overrides in that table would share them between all objects
+ * and corrupt the table. Mark the tables created here so that they can be told apart from an inherited
+ * environment, and report an unmarked environment as no uservalue, that is nil, matching Lua 5.2.
+ * ----------------------------------------------------------------------------- */
+#if LUA_VERSION_NUM >= 502
+# define SWIG_lua_getuservalue(L, idx) lua_getuservalue(L, idx)
+# define SWIG_lua_setuservalue(L, idx) lua_setuservalue(L, idx)
+#else
+/* Key marking a table as one created below. Not a valid C++ method name, so it cannot clash with an override. */
+# define SWIG_LUA_DIRECTOR_USERVALUE_KEY ".swig_director_overrides"
+
+SWIGINTERN SWIGUNUSED void SWIG_lua_getuservalue(lua_State *L, int idx) {
+  lua_getfenv(L, idx);
+  if (!lua_istable(L, -1)) {
+    lua_pop(L, 1);
+    lua_pushnil(L);
+    return;
+  }
+  lua_pushliteral(L, SWIG_LUA_DIRECTOR_USERVALUE_KEY);
+  lua_rawget(L, -2);
+  if (lua_isnil(L, -1)) {
+    lua_pop(L, 2); /* an inherited environment, not a table of overrides */
+    lua_pushnil(L);
+  } else {
+    lua_pop(L, 1); /* drop the marker, leaving the table of overrides */
+  }
+}
+
+SWIGINTERN SWIGUNUSED void SWIG_lua_setuservalue(lua_State *L, int idx) {
+  /* mark the table, so that SWIG_lua_getuservalue() can tell it apart from an inherited environment */
+  lua_pushliteral(L, SWIG_LUA_DIRECTOR_USERVALUE_KEY);
+  lua_pushboolean(L, 1);
+  lua_rawset(L, -3);
+  lua_setfenv(L, idx);
+}
+#endif
+
+/* Push the Lua override function for the named method of the director object at obj_idx,
+   or nil if the object has no override for the method. */
+SWIGINTERN SWIGUNUSED void SWIG_Lua_get_director_override(lua_State *L, int obj_idx, const char *method_name) {
+  SWIG_lua_getuservalue(L, obj_idx);
+  if (lua_istable(L, -1)) {
+    lua_pushstring(L, method_name);
+    lua_rawget(L, -2);
+    lua_remove(L, -2); /* remove the uservalue table, leaving the override or nil */
+  } else {
+    lua_pop(L, 1);
+    lua_pushnil(L);
+  }
+}
+
 namespace Swig {
 
   /* memory handler */
@@ -376,12 +438,12 @@ SWIGINTERN int SWIG_Lua_director_override(lua_State *L) {
   }
   
   /* Get or create the uservalue table */
-  lua_getuservalue(L, 1);
+  SWIG_lua_getuservalue(L, 1);
   if (lua_isnil(L, -1)) {
     lua_pop(L, 1);
     lua_newtable(L);
-    lua_pushvalue(L, -1); /* duplicate for setuservalue */
-    lua_setuservalue(L, 1);
+    lua_pushvalue(L, -1); /* duplicate for SWIG_lua_setuservalue */
+    SWIG_lua_setuservalue(L, 1);
   }
   
   /* Set the method override in the uservalue table */
@@ -407,7 +469,7 @@ SWIGINTERN int SWIG_Lua_director_get_override(lua_State *L) {
   }
   
   /* Get the uservalue table */
-  lua_getuservalue(L, 1);
+  SWIG_lua_getuservalue(L, 1);
   if (lua_isnil(L, -1)) {
     /* No uservalue, return nil */
     return 1;
@@ -433,12 +495,12 @@ SWIGINTERN int SWIG_Lua_director_derive(lua_State *L) {
   }
   
   /* Get or create the uservalue table */
-  lua_getuservalue(L, 1);
+  SWIG_lua_getuservalue(L, 1);
   if (lua_isnil(L, -1)) {
     lua_pop(L, 1);
     lua_newtable(L);
-    lua_pushvalue(L, -1); /* duplicate for setuservalue */
-    lua_setuservalue(L, 1);
+    lua_pushvalue(L, -1); /* duplicate for SWIG_lua_setuservalue */
+    SWIG_lua_setuservalue(L, 1);
   }
   
   /* Iterate over the overrides table and copy to uservalue */
