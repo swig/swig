@@ -340,67 +340,6 @@ namespace Swig {
       return own;
     }
   };
-
-  /* helper function to check if a method exists in a Lua table/userdata */
-  inline bool SWIG_Lua_director_has_method(lua_State *L, int idx, const char *method_name) {
-    bool has_method = false;
-    int top = lua_gettop(L);
-    
-    lua_pushvalue(L, idx);
-    lua_pushstring(L, method_name);
-    lua_gettable(L, -2);
-    
-    if (lua_isfunction(L, -1)) {
-      has_method = true;
-    }
-    
-    lua_settop(L, top);
-    return has_method;
-  }
-
-  /* helper function to call a Lua method on an object */
-  inline int SWIG_Lua_director_call_method(lua_State *L, int obj_idx, const char *method_name, int nargs, int nresults) {
-    /* Get the method from the object */
-    lua_pushvalue(L, obj_idx);
-    lua_pushstring(L, method_name);
-    lua_gettable(L, -2);
-    
-    if (!lua_isfunction(L, -1)) {
-      lua_pop(L, 2); /* pop nil/non-function and object copy */
-      std::string msg = "Method '";
-      msg += method_name;
-      msg += "' not found in Lua object";
-      DirectorMethodException::raise(msg.c_str());
-      return 0;
-    }
-    
-    /* Remove the extra object copy, keep the function */
-    lua_remove(L, -2);
-    
-    /* Push self (the object) as first argument */
-    lua_pushvalue(L, obj_idx);
-    
-    /* Move the additional arguments below self */
-    if (nargs > 0) {
-      /* Move self after the arguments */
-      lua_insert(L, -(nargs + 1));
-      /* Move function before self and arguments */
-      lua_insert(L, -(nargs + 2));
-    }
-    
-    /* Call the method with nargs + 1 (including self) */
-    if (lua_pcall(L, nargs + 1, nresults, 0) != 0) {
-      std::string error = "Error calling director method '";
-      error += method_name;
-      error += "': ";
-      error += lua_tostring(L, -1);
-      lua_pop(L, 1);
-      DirectorMethodException::raise(error.c_str());
-      return 0;
-    }
-    
-    return 1;
-  }
 }
 
 /* director disown support for classes */
