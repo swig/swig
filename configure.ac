@@ -1489,11 +1489,12 @@ else
 if test "x$LUABIN" = xyes; then
    # We look for a versioned Lua binary first, as there can be
    # multiple versions of Lua installed on some systems (like Debian).
-   AC_PATH_PROGS(LUABIN, [lua5.5 lua5.4 lua5.3 lua5.2 lua])
+   AC_PATH_PROGS(LUABIN, [lua5.5 lua5.4 lua5.3 lua5.2 lua5.1 lua])
 fi
 
-# check version: we need Lua 5.2 or above
-LUA_MINVER='5.2'
+# Check version of Lua found and only accept the supported versions - 5.1 and later.
+# Directors are the exception, requiring Lua 5.2 or later as they use lua_setuservalue().
+LUA_MINVER='5.1'
 if test -n "$LUABIN"; then
   AC_MSG_CHECKING([Lua version])
   AS_VAR_SET([LUA_VERSION], [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])

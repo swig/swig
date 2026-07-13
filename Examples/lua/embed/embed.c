@@ -25,7 +25,8 @@ extern int luaopen_example(lua_State*L);
 */
 int dostring(lua_State *L, char* str) {
   int ok = luaL_dostring(L,str);
-  if (ok != LUA_OK)
+  /* luaL_dostring() returns 0 on success in all Lua versions; LUA_OK is Lua 5.2 and later only */
+  if (ok != 0)
     printf("[C] ERROR in dostring: %s\n",lua_tostring(L,-1));
   return ok;
 }

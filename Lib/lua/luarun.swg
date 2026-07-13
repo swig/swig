@@ -132,6 +132,37 @@ typedef struct swig_elua_entry {
 #endif
 #endif /* SWIG_LUA_ELUA_EMULATE*/
 
+/* -----------------------------------------------------------------------------
+ * Compatibility defines for supporting Lua 5.1.
+ *
+ * Note that LuaJIT, which implements the Lua 5.1 API and does not define Lua 5.2
+ * additions. See the "Extensions from Lua 5.2" section of
+ * https://luajit.org/extensions.html: "LuaJIT is API+ABI-compatible with Lua 5.1 ..."
+ * ----------------------------------------------------------------------------- */
+
+/* lua_rawlen() was named lua_objlen() in Lua 5.1. */
+#if LUA_VERSION_NUM == 501
+# define lua_rawlen lua_objlen
+#endif
+
+/* lua_pushglobaltable is the recommended "future-proof" way to get the global
+   table for Lua 5.2 and later; define it for Lua 5.1. */
+#if LUA_VERSION_NUM < 502
+# define lua_pushglobaltable(L) lua_pushvalue(L, LUA_GLOBALSINDEX)
+#endif
+
+/* lua_rawsetp/lua_rawgetp were introduced in Lua 5.2; define them for Lua 5.1. */
+#if LUA_VERSION_NUM < 502
+#define lua_rawsetp(L,index,ptr)\
+  lua_pushlightuserdata(L,(void*)(ptr));\
+  lua_insert(L,-2);\
+  lua_rawset(L,index);
+
+#define lua_rawgetp(L,index,ptr)\
+  lua_pushlightuserdata(L,(void*)(ptr));\
+  lua_rawget(L,index);
+#endif
+
 /* --------------------------------------------------------------------------
  * Helper functions for error handling
  * -------------------------------------------------------------------------- */
@@ -1865,7 +1896,7 @@ SWIG_Lua_dostring(lua_State *L, const char *str) {
   if (str==0 || str[0]==0) return 0; /* nothing to do */
   top=lua_gettop(L); /* save stack */
   ok=luaL_dostring(L,str);
-  if (ok!=LUA_OK) {
+  if (ok!=0) {
     SWIG_DOSTRING_FAIL(lua_tostring(L,-1));
   }
   lua_settop(L,top); /* restore the stack */
