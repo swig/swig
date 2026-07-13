@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-13: sbellus
+            [Swift] A nested type whose name collides with a Swift metatype
+            expression - "Type" or "Protocol" (e.g. Shape::Type, which would be
+            Shape.Type in Swift) - does not compile and cannot be rescued with
+            backticks. SWIG now reports this with warning 869 and leaves the name
+            unchanged, instead of silently flattening it to <Class>_Type; use
+            %rename to give the type another name.
+
 2026-07-08: sbellus
             Swift: add the swiftcode and swiftconstruct/swiftconstruct_derived
             typemaps, the Swift analogues of cscode/csconstruct (C#) and

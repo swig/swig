@@ -39,3 +39,14 @@ assert(Dup.DUP_A == Dup.DUP_B)
 
 let dup = try identity_dup(d: Dup.DUP_C)
 assert(dup == Dup.DUP_C)
+
+// A nested enum named "Type" (Shape::Type) is %rename'd to Kind (to avoid the
+// Swift .Type metatype clash) and stays nested, so it is referenced as
+// Shape.Kind both from a method and from a free function.
+let shape = try Shape(t: Shape.Kind.SQUARE)
+let shapeKind = try shape.getType()
+assert(shapeKind == Shape.Kind.SQUARE)
+let circleOrdinal = try typeOrdinal(t: Shape.Kind.CIRCLE)
+assert(circleOrdinal == 0)
+let squareOrdinal = try typeOrdinal(t: Shape.Kind.SQUARE)
+assert(squareOrdinal == 1)

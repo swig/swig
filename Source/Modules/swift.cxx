@@ -83,6 +83,16 @@ static String *swiftEscapeIdentifier(String *name) {
  * Resolve the Swift proxy class name for a SWIG type.
  * Handles %template instantiations, shared_ptr<T> → T, and enums.
  * ------------------------------------------------------------------------- */
+/* Swift reserves the member names "Type" and "Protocol" for the ".Type" and
+ * ".Protocol" metatype expressions, so a nested type carrying either name does
+ * not compile - and unlike a keyword it cannot be rescued with backticks
+ * (backticks work in a type position, but "X.Type" is still the metatype in an
+ * expression, so the type cannot be constructed nor its cases named).  Such a
+ * type must be given another name with %rename. */
+static bool swiftNameCollidesWithMetatype(const String *name) {
+  return name && (Equal(name, "Type") || Equal(name, "Protocol"));
+}
+
 static String *swiftNestedName(Node *n) {
   String *cn = Getattr(n, "sym:name");
   if (!cn || Len(cn) == 0)
@@ -93,14 +103,9 @@ static String *swiftNestedName(Node *n) {
     if (nt && (Equal(nt, "class") || Equal(nt, "classforward"))) {
       /* Nested types are emitted nested in Swift, so qualify with the FULL
        * enclosing-class path (recurse up the parent chain) - a one-level name
-       * resolves inside the enclosing class but not from module scope.
-       * A nested enum named "Type" uses an underscore to avoid a Swift metatype
-       * conflict; keep that immediate-parent form (rare, single-level only). */
+       * resolves inside the enclosing class but not from module scope. */
       String *pn = Getattr(parent, "sym:name");
       if (pn && Len(pn) > 0) {
-        String *ntype = Getattr(n, "nodeType");
-        if (ntype && Equal(ntype, "enum") && Equal(cn, "Type"))
-          return NewStringf("%s_Type", pn);
         String *pfull = swiftNestedName(parent);
         String *cesc = swiftKeywordEscape(cn);
         String *result = NewStringf("%s.%s", pfull, cesc);
@@ -3323,12 +3328,19 @@ public:
       if (!symname || Getattr(n, "unnamedinstance"))
         return Language::enumDeclaration(n);
 
-      /* Nested enums named "Type" get a class-prefixed name to avoid Swift metatype conflict. */
-      String *enum_display_name;
-      if (is_wrapping_class() && proxy_class_name && Equal(symname, "Type"))
-        enum_display_name = NewStringf("%s_Type", proxy_class_name);
-      else
-        enum_display_name = swiftKeywordEscape(symname); /* e.g. an enum named `repeat` */
+      /* A nested enum whose name collides with a Swift metatype expression
+       * ("Type" / "Protocol") cannot be wrapped as-is (see
+       * swiftNameCollidesWithMetatype); warn and ask the user to %rename it. */
+      if (is_wrapping_class() && swiftNameCollidesWithMetatype(symname))
+        Swig_warning(WARN_SWIFT_NAME_COLLISION,
+                     Getfile(n),
+                     Getline(n),
+                     "Nested enum name '%s' collides with the Swift '.%s' metatype expression and will not compile. "
+                     "Use %%rename to give it another name.\n",
+                     symname,
+                     symname);
+
+      String *enum_display_name = swiftKeywordEscape(symname); /* e.g. an enum named `repeat` */
 
       /* Target: module-level code or nested in the current class */
       String *constants_dest = is_wrapping_class() ? proxy_class_constants_code : swift_module_code;

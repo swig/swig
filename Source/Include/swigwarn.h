@@ -339,6 +339,7 @@
 #define WARN_SWIFT_TYPEMAP_SWIFTBODY_UNDEF           866
 #define WARN_SWIFT_TYPEMAP_SWIFTOUT_UNDEF            867
 #define WARN_SWIFT_TYPEMAP_SWIFTIN_UNDEF             868
+#define WARN_SWIFT_NAME_COLLISION                    869
 
 /* please leave 861-869 free for Swift */
 

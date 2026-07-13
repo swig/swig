@@ -294,6 +294,27 @@ print(c.rawValue)   // 0
 </pre>
 </div>
 
+<p>
+A nested enumeration becomes a nested Swift type, so a C++ <tt>Outer::Mode</tt> is
+used as <tt>Outer.Mode</tt>.  One case needs your help: a nested type named
+<tt>Type</tt> or <tt>Protocol</tt> clashes with Swift's <tt>.Type</tt> /
+<tt>.Protocol</tt> metatype expressions - such a type will not compile and cannot
+be rescued with backticks (they work in a type position, but <tt>Outer.Type</tt>
+is still the metatype in an expression, so the enum could be neither constructed
+nor have its cases named).  SWIG reports this with warning 869; give the type
+another name with <tt>%rename</tt>:
+</p>
+
+<div class="code">
+<pre>
+%rename(Kind) Shape::Type;   // used in Swift as Shape.Kind
+
+struct Shape {
+  enum Type { CIRCLE, SQUARE };
+};
+</pre>
+</div>
+
 <H3><a name="Swift_wrapping_inheritance">40.3.4 Inheritance</a></H3>
 
 

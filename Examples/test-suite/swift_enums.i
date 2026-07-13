@@ -2,6 +2,11 @@
 
 // Swift-specific test: C++ enumerations map to Swift enums via swiftenums.swg.
 
+// A nested enum named "Type" collides with the Swift ".Type" metatype (SWIG
+// warning 869); %rename gives it a usable name.  The renamed enum stays nested
+// and is reachable both from methods and from free functions taking it.
+%rename(Kind) Shape::Type;
+
 %inline %{
 
 enum Color {
@@ -60,5 +65,20 @@ Direction opposite(Direction d) {
   default: return Direction::EAST;
   }
 }
+
+// A nested enum named "Type" is renamed to <Class>_Type (a nested Swift type
+// literally named Type would clash with the .Type metatype) and emitted at
+// module scope, so it can be referenced both inside the class and from a
+// free function taking it as an argument.
+class Shape {
+public:
+  enum Type { CIRCLE, SQUARE };
+  Shape(Type t) : t_(t) {}
+  Type getType() const { return t_; }
+private:
+  Type t_;
+};
+
+int typeOrdinal(Shape::Type t) { return (int)t; }
 
 %}
