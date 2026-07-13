@@ -66,11 +66,27 @@ void main() {
     enforce(SetConstCharConstStaticString(OTHERLAND_MSG ~ to!string(i), i), "Test char set 8 failed, iteration " ~ to!string(i));
   }
 
+  foreach (i; TEST_RANGE) {
+    enforce(SetConstCharTypedefString(OTHERLAND_MSG ~ to!string(i), i), "Test char set 9 failed, iteration " ~ to!string(i));
+  }
+
   // get set function
   foreach (i; TEST_RANGE) {
     string ping = OTHERLAND_MSG ~ to!string(i);
     string pong = CharPingPong(ping);
     enforce(ping == pong, "Test PingPong 1 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
+  }
+
+  foreach (i; TEST_RANGE) {
+    string ping = OTHERLAND_MSG ~ to!string(i);
+    string pong = CharArrayPingPong(ping);
+    enforce(ping == pong, "Test PingPong 2 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
+  }
+
+  foreach (i; TEST_RANGE) {
+    string ping = OTHERLAND_MSG ~ to!string(i);
+    string pong = CharArrayDimsPingPong(ping);
+    enforce(ping == pong, "Test PingPong 3 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
   }
 
   // variables

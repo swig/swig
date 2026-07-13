@@ -50,7 +50,7 @@ SWIGINTERNINLINE Tcl_Obj *SWIG_CreateIntList(Tcl_Interp *interp, const void *byt
     len = 0;
   }
   for (i = 0; i < len; i++) {
-    Tcl_ListObjAppendElement(interp, ret, Tcl_NewSizeIntObj(cbuf[i]));
+    Tcl_ListObjAppendElement(interp, ret, Tcl_NewWideIntObj(cbuf[i]));
   }
   return ret;
 }

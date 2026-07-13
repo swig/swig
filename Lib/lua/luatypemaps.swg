@@ -115,6 +115,12 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 %typemap(out) const char[ANY], char[ANY]
 %{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") char *& ($*1_ltype temp), const char *& ($*1_ltype temp)
+%{temp = ($*1_ltype)lua_tostring(L, $input); $1 = &temp;%}
+
+%typemap(out) char *&, const char *&
+%{  lua_pushstring(L,(const char *)*$1); SWIG_arg++;%}
+
 // char's
 // currently treating chars as small strings, not as numbers
 // (however signed & unsigned char's are numbers...)
@@ -320,7 +326,7 @@ parameters match which function
   $1 = SWIG_lua_isnilstring(L,$input) && (lua_rawlen(L,$input)==1);
 }
 
-%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[] {
+%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[], char *&, const char *& {
   $1 = SWIG_lua_isnilstring(L,$input);
 }
 

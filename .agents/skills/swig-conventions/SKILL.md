@@ -75,6 +75,10 @@ Many AI coding tools automatically append a `Co-Authored-By: <tool>` line to com
 - **Never** add a `Co-Authored-By:` trailer for an AI tool or model (see [Disclosing AI assistance](#disclosing-ai-assistance-in-source-code-contributions) for why).
 - Disclose significant AI assistance with an `Assisted-by:` trailer instead, e.g. `Assisted-by: Claude Code (Opus 4.8)` - plain text, no `<email>`. Required for `Source/` and `Lib/` changes, optional elsewhere.
 
+## CHANGES.current entries
+
+When an entry affects only certain target languages, tag it with the affected language(s) in square brackets at the start of the entry, e.g. `[Python]` or `[Octave, Python, Ruby]`. Keep the whole bracket tag on one line even when it lists many languages, starting the description on the following line if needed. Omit the bracket tag for changes that affect all (or most) target languages, the parser, or the core.
+
 ## Hyphenation
 
 Only hyphenate compounds the C++ standard hyphenates (grammar productions like `using-declaration`, `type-constraint`, `requires-clause`, `simple-template-id`). Drop the hyphen everywhere else: `pack expansion`, `deduction guide`, `parameter pack`, `read only`, `compile time`, `runtime`, `before C++20`. When in doubt, drop it.

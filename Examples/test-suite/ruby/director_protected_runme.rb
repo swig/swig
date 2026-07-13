@@ -43,3 +43,8 @@ raise RuntimeError if p == 1
 raise RuntimeError if b.pong != "Bar::pong();Foo::pong();Bar::ping();"
 raise RuntimeError if fb.pong != "Bar::pong();Foo::pong();FooBar::ping();"
 raise RuntimeError if h.pang != "FooBar::ping();"
+
+# NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+outer = Director_protected::NestedOuter.new
+base = outer.makeDerived
+raise RuntimeError if base.identify != 1

@@ -15,6 +15,48 @@ Version 4.5.0 (in progress)
             unchanged, instead of silently flattening it to <Class>_Type; use
             %rename to give the type another name.
 
+2026-07-11: wsfulton
+            Fixed a protected or private nested class deriving from a class used
+            elsewhere in the wrapped API producing a runtime upcast helper function
+            that referenced the nested class by its inaccessible qualified name in
+            non-member scope, a C++ compile error ('class ... is protected within
+            this context'). No target language ever wraps a non-public nested class,
+            so it is now never registered for this. Affects any target language
+            using SWIG's generic runtime type table (for example Perl, Python,
+            Ruby, Tcl, Lua), most visibly since the "Keep unsupported nested
+            classes as ignored classes, not forward declarations" change.
+
+2026-07-11: wsfulton
+            [Tcl] Add support for Tcl 9. Fix
+              error: implicit declaration of function Tcl_NewSizeIntObj.
+
+2026-07-09: wsfulton
+            [Guile, JavaScript, Lua, OCaml, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            Added 'char *&' (a reference to a char pointer) string typemaps to the
+            target languages that were missing them. A 'char *&' function
+            argument, return value or variable - and, via const reference stripping,
+            a 'char *const&' - is now marshalled as a string in every target
+            language rather than as an opaque pointer; previously only C#, D, Go,
+            Java and PHP did so. The common char_strings test now also has a runme
+            for every target language, all exercising the same set of functions, so
+            there is complete char *& typemap coverage and testing across all
+            supported languages.
+
+2026-07-09: wsfulton
+            [Guile] #3290 Fixed 'invalid conversion from const void* to void*' C++
+            compilation error when wrapping a function taking a 'const char *'
+            argument hidden behind a typedef, such as 'typedef const char *MyString;'.
+
+2026-07-09: wsfulton
+            [Go] Fixed the wrapper generated for a function or variable returning
+            'char *&' (a reference to a char pointer), which previously returned a
+            corrupted string because the returned pointer was not dereferenced.
+
+2026-07-09: jschueller, olly, wsfulton
+            [Go] #3290 Fixed 'invalid conversion' C++ compilation errors in the
+            generated wrapper when a function takes a 'const char *' argument
+            hidden behind a typedef, such as 'typedef const char *MyString;'.
+
 2026-07-08: sbellus
             Swift: add the swiftcode and swiftconstruct/swiftconstruct_derived
             typemaps, the Swift analogues of cscode/csconstruct (C#) and

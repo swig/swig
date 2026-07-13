@@ -671,9 +671,8 @@ class TypePass : private Dispatcher {
       }
     }
 
-    /* Inherit type definitions into the class */
-    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") &&
-                  (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
+    /* Inherit type definitions into the class. Skipped for a non-public nested class that is not wrapped. */
+    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public"))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
 

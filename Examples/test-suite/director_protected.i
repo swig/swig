@@ -152,3 +152,33 @@ class PrivateFoo : private Foo
   };
 %}
 
+// A protected nested class, directed and deriving from a class used elsewhere in the wrapped API.
+// No target language wraps a non-public nested class (regardless of dirprot/directors), but a
+// runtime upcast helper for it used to get generated anyway, naming it by its inaccessible
+// qualified name - a C++ compile error. See nested_scope.i's protectedbase block for the same
+// bug without directors involved.
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) NestedOuter::NestedDerived;
+%feature("director") NestedOuter::NestedDerived;
+
+%inline %{
+  class NestedBase {
+  public:
+    virtual ~NestedBase() {}
+    virtual int identify() { return 0; }
+  };
+
+  class NestedOuter {
+  protected:
+    class NestedDerived : public NestedBase {
+    public:
+      NestedDerived() {}
+      virtual int identify() { return 1; }
+      virtual int vmethod(int x) { return x; }
+    protected:
+      virtual int protectedvmethod(int x) { return x; }
+    };
+  public:
+    virtual ~NestedOuter() {}
+    virtual NestedBase *makeDerived() { return new NestedDerived(); }
+  };
+%}

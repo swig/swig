@@ -5,8 +5,8 @@
 #include "char_strings/char_strings_wrap.h"
 
 int main() {
-  char *CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";
-  char *OTHERLAND_MSG = "Little message from the safe world.";
+  const char *CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";
+  const char *OTHERLAND_MSG = "Little message from the safe world.";
 
   int count = 10000;
   int i = 0;
@@ -64,7 +64,6 @@ int main() {
     }
   }
 
-
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
@@ -109,7 +108,34 @@ int main() {
       exit(1);
     }
   }
-  
+
+  for (i=0; i<count; i++) {
+    char str[256];
+    sprintf(str, "%s%d", OTHERLAND_MSG, i);
+    if (!char_strings_SetCharConstStaticString(str, i)) {
+      fprintf(stderr, "Test char set 7 failed, iteration %d\n", i);
+      exit(1);
+    }
+  }
+
+  for (i=0; i<count; i++) {
+    char str[256];
+    sprintf(str, "%s%d", OTHERLAND_MSG, i);
+    if (!char_strings_SetConstCharConstStaticString(str, i)) {
+      fprintf(stderr, "Test char set 8 failed, iteration %d\n", i);
+      exit(1);
+    }
+  }
+
+  for (i=0; i<count; i++) {
+    char str[256];
+    sprintf(str, "%s%d", OTHERLAND_MSG, i);
+    if (!char_strings_SetConstCharTypedefString(str, i)) {
+      fprintf(stderr, "Test char set 9 failed, iteration %d\n", i);
+      exit(1);
+    }
+  }
+
   // get set function
   for (i=0; i<count; i++) {
     char ping[256];
@@ -121,8 +147,27 @@ int main() {
     }
   }
 
-  // variables
+  for (i=0; i<count; i++) {
+    char ping[256];
+    sprintf(ping, "%s%d", OTHERLAND_MSG, i);
+    char *pong = char_strings_CharArrayPingPong(ping);
+    if (strcmp(ping, pong) != 0) {
+      fprintf(stderr, "Test PingPong 2 failed.\nExpected:%s\nReceived:%s\n", ping, pong);
+      exit(1);
+    }
+  }
 
+  for (i=0; i<count; i++) {
+    char ping[256];
+    sprintf(ping, "%s%d", OTHERLAND_MSG, i);
+    char *pong = char_strings_CharArrayDimsPingPong(ping);
+    if (strcmp(ping, pong) != 0) {
+      fprintf(stderr, "Test PingPong 3 failed.\nExpected:%s\nReceived:%s\n", ping, pong);
+      exit(1);
+    }
+  }
+
+  // variables
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
@@ -136,7 +181,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    sprintf(char_strings_global_char_array1_get(), "%s%d", OTHERLAND_MSG, i);
+    char_strings_global_char_array1_set(str);
     if (strcmp(char_strings_global_char_array1_get(), str) != 0) {
       fprintf(stderr, "Test variables 2 failed, iteration %d\n", i);
       exit(1);
@@ -146,7 +191,7 @@ int main() {
   for (i=0; i<count; i++) {
     char str[256];
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    sprintf(char_strings_global_char_array2_get(), "%s%d", OTHERLAND_MSG, i);
+    char_strings_global_char_array2_set(str);
     if (strcmp(char_strings_global_char_array2_get(), str) != 0) {
       fprintf(stderr, "Test variables 3 failed, iteration %d\n", i);
       exit(1);
@@ -155,46 +200,61 @@ int main() {
 
   for (i=0; i<count; i++) {
     if (strcmp(char_strings_global_const_char_get(), CPLUSPLUS_MSG) != 0) {
-      fprintf(stderr, "Test variables 3 failed, iteration %d\n", i);
+      fprintf(stderr, "Test variables 4 failed, iteration %d\n", i);
       exit(1);
     }
   }
 
-  /*
   for (i=0; i<count; i++) {
-    if (strcmp(global_const_char_array1, CPLUSPLUS_MSG) != 0) {
+    if (strcmp(char_strings_global_const_char_array1_get(), CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test variables 5 failed, iteration %d\n", i);
       exit(1);
     }
   }
 
   for (i=0; i<count; i++) {
-    if (strcmp(global_const_char_array2, CPLUSPLUS_MSG) != 0) {
+    if (strcmp(char_strings_global_const_char_array2_get(), CPLUSPLUS_MSG) != 0) {
       fprintf(stderr, "Test variables 6 failed, iteration %d\n", i);
       exit(1);
     }
   }
-  */
 
   // char *& tests
-  
   for (i=0; i<count; i++) {
-    const char **str = char_strings_GetConstCharPointerRef();
+    char **str = char_strings_GetCharPointerRef();
     if (strcmp(*str, CPLUSPLUS_MSG) != 0) {
-      fprintf(stderr, "Test char pointer ref get failed, iteration %d\n",i);
+      fprintf(stderr, "Test char pointer ref get failed, iteration %d\n", i);
       exit(1);
     }
   }
-   
+
   for (i=0; i<count; i++) {
-    char *str = (char*) malloc(sizeof(char) * 256);
+    char buf[256];
+    char *str = buf;
     sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    if (!char_strings_SetConstCharPointerRef((const char **)&str, i)) {
+    if (!char_strings_SetCharPointerRef(&str, i)) {
       fprintf(stderr, "Test char pointer ref set failed, iteration %d\n", i);
+      exit(1);
+    }
+  }
+
+  for (i=0; i<count; i++) {
+    const char **str = char_strings_GetConstCharPointerRef();
+    if (strcmp(*str, CPLUSPLUS_MSG) != 0) {
+      fprintf(stderr, "Test const char pointer ref get failed, iteration %d\n", i);
+      exit(1);
+    }
+  }
+
+  for (i=0; i<count; i++) {
+    char buf[256];
+    const char *str = buf;
+    sprintf(buf, "%s%d", OTHERLAND_MSG, i);
+    if (!char_strings_SetConstCharPointerRef(&str, i)) {
+      fprintf(stderr, "Test const char pointer ref set failed, iteration %d\n", i);
       exit(1);
     }
   }
 
   exit(0);
 }
-
