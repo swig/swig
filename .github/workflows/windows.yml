@@ -62,6 +62,13 @@ jobs:
   # We use different versions of installed languages by using
   #  proper envirounment.
   build:
+    # Swift is not available on the Windows GitHub Actions image or in MSYS2, so
+    # nothing is built on Windows.  While this PR is temporarily cut down to Swift
+    # only there is nothing to run here, so the build is skipped (an empty matrix
+    # would otherwise error).  When the cut-down commit is reverted before merge,
+    # restore the matrix - without a Swift entry.
+    if: false
+
     # When continue-on-error is true for an individual build,
     # that build can fail (it'll show red),
     # but it won't fail the overall tests
@@ -85,14 +92,7 @@ jobs:
 
     strategy:
       matrix:
-        include:
-        # Experimental Swift backend (MinGW gcc build of the C++ wrapper)
-        - SWIGLANG: swift
-          COMPILER: gcc
-          CPPSTD: c++17
-          CSTD: gnu11
-          MSYS2_ENV: ucrt64
-          continue-on-error: true
+        include: []
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
