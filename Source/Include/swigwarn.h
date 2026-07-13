@@ -331,6 +331,18 @@
 
 /* 850-860 were used by Modula 3 (removed in SWIG 4.1.0) - avoid reusing for now */
 
+#define WARN_SWIFT_TYPEMAP_CTYPE_UNDEF               861
+#define WARN_SWIFT_TYPEMAP_IMTYPE_UNDEF              862
+#define WARN_SWIFT_TYPEMAP_SWIFTTYPE_UNDEF           863
+#define WARN_SWIFT_MULTIPLE_INHERITANCE              864
+#define WARN_SWIFT_TYPEMAP_CLASSMOD_UNDEF            865
+#define WARN_SWIFT_TYPEMAP_SWIFTBODY_UNDEF           866
+#define WARN_SWIFT_TYPEMAP_SWIFTOUT_UNDEF            867
+#define WARN_SWIFT_TYPEMAP_SWIFTIN_UNDEF             868
+#define WARN_SWIFT_NAME_COLLISION                    869
+
+/* please leave 861-869 free for Swift */
+
 #define WARN_PHP_MULTIPLE_INHERITANCE                870
 #define WARN_PHP_UNKNOWN_PRAGMA                      871
 /* Unused since 4.1.0: define WARN_PHP_PUBLIC_BASE                  872 */

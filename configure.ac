@@ -2651,6 +2651,47 @@ fi
 AC_SUBST(SKIP_SCILAB)
 
 
+dnl The Swift test-suite and examples compile and run the generated Swift proxy,
+dnl so they need a working Swift compiler (swiftc).  As with the other target
+dnl languages, Swift is skipped altogether when no functional swiftc is found.
+dnl --with-swift can point at a specific swiftc; --without-swift skips Swift.
+SKIP_SWIFT=
+AC_ARG_WITH(swift, [  --with-swift[[=path]]     Enable the Swift test-suite and examples, optionally with a specific swiftc],[SWIFTBIN="$withval"], [SWIFTBIN=])
+if test "x$SWIFTBIN" = "xno" ; then
+    dnl --without-swift: skip Swift, do not probe.
+    SWIFTBIN=
+elif test "x$SWIFTBIN" = "xyes" -o -z "$SWIFTBIN" ; then
+    dnl --with-swift (no path) or default: autodetect swiftc on PATH.
+    AC_CHECK_PROGS(SWIFTC, swiftc)
+    SWIFTBIN="$SWIFTC"
+fi
+if test -n "$SWIFTBIN" ; then
+    AC_MSG_CHECKING(for working swiftc)
+    if $SWIFTBIN --version >/dev/null 2>&1 ; then
+        AC_MSG_RESULT([$SWIFTBIN])
+    else
+        AC_MSG_RESULT(no)
+        SWIFTBIN=
+    fi
+fi
+if test -z "$SWIFTBIN" ; then
+    dnl No functional swiftc: skip the Swift test-suite and examples, consistent
+    dnl with how the other target languages are skipped when their toolchain is
+    dnl unavailable.
+    SKIP_SWIFT="1"
+fi
+AC_SUBST(SKIP_SWIFT)
+AC_SUBST(SWIFTBIN)
+dnl C++ standard library to link the g++/clang++-compiled wrapper against when
+dnl swiftc links the Swift runtime test/example executable: libc++ on macOS,
+dnl libstdc++ elsewhere (matching the GNU/Clang default used to build SWIG).
+case "$host_os" in
+    darwin*) SWIFT_CXXLIB="-lc++" ;;
+    *)       SWIFT_CXXLIB="-lstdc++" ;;
+esac
+AC_SUBST(SWIFT_CXXLIB)
+
+
 SKIP_TCL=
 if test -z "$TCLINCLUDE" || test -z "$TCLLIB" ; then
     SKIP_TCL="1"
@@ -2746,6 +2787,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/r/Makefile
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
+    Examples/test-suite/swift/Makefile
     Examples/test-suite/tcl/Makefile
     Source/Makefile
     Tools/javascript/Makefile
@@ -2808,6 +2850,7 @@ test -n "$SKIP_PYTHON"		|| langs="${langs}python "
 test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
+test -n "$SKIP_SWIFT"		|| langs="${langs}swift "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
 
 echo "

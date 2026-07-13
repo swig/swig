@@ -42,6 +42,7 @@ Language *swig_python(void);
 Language *swig_r(void);
 Language *swig_ruby(void);
 Language *swig_scilab(void);
+Language *swig_swift(void);
 Language *swig_tcl(void);
 Language *swig_xml(void);
 }
@@ -76,6 +77,7 @@ static TargetLanguageModule modules[] = {
   {"-ruby",       swig_ruby,       "Ruby",               Supported   },
   {"-scilab",     swig_scilab,     "Scilab",             Supported   },
   {"-sexp",       NULL,            "Lisp S-Expressions", Disabled    },
+  {"-swift",      swig_swift,      "Swift",              Experimental},
   {"-tcl",        swig_tcl,        NULL,                 Supported   },
   {"-tcl8",       swig_tcl,        "Tcl 8",              Supported   },
   {"-uffi",       NULL,            "Common Lisp / UFFI", Disabled    },

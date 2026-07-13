@@ -34,6 +34,7 @@ def get_cflags(language, std, compiler):
              "r":"-Werror " + c_common,
           "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers -Wno-attribute-warning",
         "scilab":"-Werror " + c_common + " -Wno-unused-variable",
+         "swift":"-Werror " + c_common,
            "tcl":"-Werror " + c_common,
     }
     if compiler == "clang":
@@ -74,6 +75,7 @@ def get_cxxflags(language, std, compiler):
              "r":"-Werror " + cxx_common,
           "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers -Wno-attribute-warning",
         "scilab":"-Werror " + cxx_common + " -Wno-unused-variable",
+         "swift":"-Werror " + cxx_common,
            "tcl":"-Werror " + cxx_common,
     }
     if compiler == "clang":

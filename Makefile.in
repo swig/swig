@@ -85,6 +85,7 @@ skip-python	= test -n "@SKIP_PYTHON@"
 skip-r		= test -n "@SKIP_R@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
+skip-swift	= test -n "@SKIP_SWIFT@"
 skip-tcl	= test -n "@SKIP_TCL@"
 
 # Additional dependencies for some tests
@@ -126,6 +127,7 @@ check-aliveness:
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
 	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
+	@$(skip-swift)    || ./$(TARGET) -swift      -help
 	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
 
 check-ccache:
@@ -183,6 +185,7 @@ check-examples:					\
 	check-r-examples			\
 	check-ruby-examples			\
 	check-scilab-examples			\
+	check-swift-examples			\
 	check-tcl-examples			\
 
 android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
@@ -202,6 +205,7 @@ python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
+swift_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/swift/check.list)
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 
 # Running tests using v8 or jsc involves creating a custom interpreter in
@@ -258,6 +262,7 @@ check-test-suite:				\
 	check-r-test-suite			\
 	check-ruby-test-suite			\
 	check-scilab-test-suite			\
+	check-swift-test-suite			\
 	check-tcl-test-suite			\
 
 check-%-test-suite: check-%-prepare
@@ -305,6 +310,7 @@ all-test-suite:					\
 	all-r-test-suite			\
 	all-ruby-test-suite			\
 	all-scilab-test-suite   		\
+	all-swift-test-suite			\
 	all-tcl-test-suite			\
 
 all-%-test-suite:
@@ -328,6 +334,7 @@ broken-test-suite:				\
 	broken-r-test-suite			\
 	broken-ruby-test-suite			\
 	broken-scilab-test-suite		\
+	broken-swift-test-suite			\
 	broken-tcl-test-suite			\
 
 broken-%-test-suite:
@@ -461,7 +468,7 @@ install-main:
 
 lib-languages = typemaps tcl perl5 python guile java ruby php ocaml octave \
 	csharp lua r c go d javascript javascript/jsc \
-	javascript/v8 javascript/napi scilab xml
+	javascript/v8 javascript/napi scilab swift xml
 
 lib-modules = std
 
