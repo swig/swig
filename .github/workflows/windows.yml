@@ -166,6 +166,7 @@ jobs:
       COMPILER: ${{ matrix.COMPILER }}
       OS: ${{ matrix.os }}
       INSTALL: ${{ matrix.INSTALL }}
+      JVM_VER: ${{ matrix.JVM_VER }}
 
 # cl.exe:
 #  https://learn.microsoft.com//cpp/build/reference/compiler-options
@@ -330,6 +331,10 @@ jobs:
 
           if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
             java_path="JAVA_HOME_${VER}_X64"
+            echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
+          fi
+          if [[ "$SWIGLANG" = "kotlin" ]] && [[ -n "$JVM_VER" ]]; then
+            java_path="JAVA_HOME_${JVM_VER}_X64"
             echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
           fi
 

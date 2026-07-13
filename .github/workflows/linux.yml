@@ -544,6 +544,7 @@ jobs:
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
       PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
       SKIP_CACHED_TOOLS: ${{ matrix.SKIP_CACHED_TOOLS }}
+      JVM_VER: ${{ matrix.JVM_VER }}
 
     steps:
     - name: Machine Info
