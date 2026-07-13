@@ -102,7 +102,7 @@ eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers t
 
 
 <p>
-The current SWIG implementation is designed to work with Lua version 5.2 and above. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
+The current SWIG implementation is designed to work with Lua version 5.1 and above, including LuaJIT (which implements the Lua 5.1 API - see the "Extensions from Lua 5.2" section of the <a href="https://luajit.org/extensions.html">LuaJIT Extensions</a> page: "LuaJIT is API+ABI-compatible with Lua 5.1, which prevents implementing features that would otherwise break the Lua/C API and ABI"). Directors (see <a href="#Lua_directors">Cross language polymorphism using directors</a>) additionally require Lua 5.2 or later. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
 SWIG has experimental support for eLua from version 0.8 onwards.
 </p>
 
@@ -270,7 +270,7 @@ $ gcc -fPIC -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>
-The wrappers produced by SWIG can be compiled and linked with Lua 5.2 and later. The loading is extremely simple.
+The wrappers produced by SWIG can be compiled and linked with Lua 5.1 and later, including LuaJIT. The loading is extremely simple.
 </p>
 <div class="targetlang"><pre>
 require("example")
@@ -2131,6 +2131,9 @@ that make it easy to set up these overrides without needing to understand the un
 <H3><a name="Lua_directors_enabling">29.8.1 Enabling directors</a></H3>
 
 
+<p>
+Directors require Lua 5.2 or later (unlike the rest of SWIG's Lua support, which works with Lua 5.1 and later); they are not supported with Lua 5.1 or LuaJIT, since LuaJIT is API+ABI-compatible with Lua 5.1 only (see <a href="https://luajit.org/extensions.html">luajit.org</a>) and does not provide the Lua 5.2 <code>lua_setuservalue()</code> function that directors rely on.
+</p>
 <p>
 The director feature is disabled by default. To use directors you must make two changes to the interface file.
 First, add the "directors" option to the %module directive:

@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-12: wsfulton
+            [Lua] Restore support for Lua 5.1 and LuaJIT (which implements the
+            Lua 5.1 API) for non-director wrapping. Reverts part of #3394 which
+            dropped Lua 5.1 support.
+
 2026-07-11: wsfulton
             Fixed a protected or private nested class deriving from a class used
             elsewhere in the wrapped API producing a runtime upcast helper function

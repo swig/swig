@@ -117,7 +117,12 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install guile-${VER:-2.2}-dev
 		;;
 	"lua")
-		$RETRY sudo apt-get -qq install lua${VER} liblua${VER}-dev
+		if [[ "$VER" = "5.1" ]]; then
+			# Ubuntu names the Lua 5.1 dev package irregularly, unlike every other version
+			$RETRY sudo apt-get -qq install lua5.1 liblua5.1-0-dev
+		else
+			$RETRY sudo apt-get -qq install lua${VER} liblua${VER}-dev
+		fi
 		;;
 	"ocaml")
 		$RETRY sudo apt-get -qq install ocaml camlp4
