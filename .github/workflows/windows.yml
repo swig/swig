@@ -154,7 +154,6 @@ jobs:
       fail-fast: false
 
     env:
-      CFLAGS: '-O2'
       CCCL_OPTIONS: '--cccl-muffle /W3 /EHsc /FS'
       PCRE2_CCCL_LD: '-lpcre2-8-static --cccl-link /NODEFAULTLIB:MSVCRT'
       CHECK_OPTIONS: 'CSHARPOPTIONS=-platform:x64'
@@ -362,6 +361,7 @@ jobs:
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
+            CFLAGS+=' -O2'
             CXXFLAGS+=' -O2'
             which gcc
             gcc --version | head -n1
@@ -399,7 +399,10 @@ jobs:
             fi
           fi
           if [[ -n "$CSTD" ]]; then
-            echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
+            CFLAGS+=" -std=$CSTD"
+          fi
+          if [[ -n "$CFLAGS" ]]; then
+            echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
           fi
           if [[ -n "$CPPSTD" ]]; then
             CXXFLAGS+=" -std=$CPPSTD"
@@ -436,8 +439,9 @@ jobs:
       run: |
           if [[ -z "$COMPILER" ]]; then
             # Use the optimization on build only
+            CFLAGS+=' -O2'
             CXXFLAGS+=' -O2'
-            export CXXFLAGS
+            export CFLAGS CXXFLAGS
           fi
           make -s $SWIGJOBS
 
