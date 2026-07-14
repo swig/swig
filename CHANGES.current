@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-14: wsfulton
+            [R] %rename of an enum item is now honoured in the generated R code. The
+            enum item name passed to defineEnumeration previously used the original
+            C++ name, so %rename had no effect on the name used with enumToInteger and
+            enumFromInteger even though the underlying wrapper function was renamed.
+
 2026-07-14: jschueller
             [R] #2984 Fix scoped enums (enum class) that are not declared within a class.
             The enum name was added twice to the enum item's wrapper function name,

@@ -1136,13 +1136,12 @@ int R::enumvalueDeclaration(Node *n) {
     return SWIG_NOWRAP;
   }
 
-  Swig_require("enumvalueDeclaration", n, "*name", "?value", NIL);
+  Swig_require("enumvalueDeclaration", n, "*name", "*sym:name", "?value", NIL);
   String *symname = Getattr(n, "sym:name");
   String *value = Getattr(n, "value");
   String *name = Getattr(n, "name");
   Node *parent = parentNode(n);
   String *parent_name = Getattr(parent, "name");
-  String *newsymname = 0;
   String *tmpValue;
 
   // Strange hack from parent method
@@ -1167,11 +1166,6 @@ int R::enumvalueDeclaration(Node *n) {
       Setattr(n, "enumvalue", numval);
   }
 
-  if (GetFlag(parent, "scopedenum")) {
-    newsymname = Swig_name_member(0, Getattr(parent, "sym:name"), symname);
-    symname = newsymname;
-  }
-
   {
     // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
     SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
@@ -1186,15 +1180,16 @@ int R::enumvalueDeclaration(Node *n) {
 
     String *value = enumValue(n);
     if (enum_values) {
-      Printf(enum_values, ",\n\"%s\" = %s", name, value);
+      Printf(enum_values, ",\n\"%s\" = %s", symname, value);
     } else {
       enum_values = NewString("");
-      Printf(enum_values, "\"%s\" = %s", name, value);
+      Printf(enum_values, "\"%s\" = %s", symname, value);
     }
 
     Delete(value);
   }
 
+  Swig_restore(n);
   return SWIG_OK;
 }
 

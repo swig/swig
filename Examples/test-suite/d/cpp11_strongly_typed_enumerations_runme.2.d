@@ -15,6 +15,7 @@ import cpp11_strongly_typed_enumerations.Enum11;
 import cpp11_strongly_typed_enumerations.Enum15;
 import cpp11_strongly_typed_enumerations.Enum16;
 import cpp11_strongly_typed_enumerations.Enum17;
+import cpp11_strongly_typed_enumerations.Enum18;
 import cpp11_strongly_typed_enumerations.Class1;
 import cpp11_strongly_typed_enumerations.Class2;
 import std.conv;
@@ -175,6 +176,10 @@ void main() {
   val = enumCheck(cast(int)Class2.Struct1.Enum14.Val5m, 4141);
   val = enumCheck(cast(int)Class2.Struct1.Enum14.Val6m, val);
   */
+
+  // Enum class and enumerator renamed with %rename (QEnum18 -> Enum18, QVal1 -> Val1)
+  enumCheck(cast(int)Enum18.Val1, 1181);
+  enumCheck(cast(int)Enum18.Val2, 1182);
 
   Class1 class1 = new Class1();
   enumCheck(cast(int)class1.class1Test1(Enum1.Val5a), 13);

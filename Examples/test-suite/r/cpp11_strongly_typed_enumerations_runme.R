@@ -29,9 +29,8 @@ unittest(1131, enumToInteger("Val1", "_Class1__Enum13"))
 unittest(1141, enumToInteger("Val1", "_Class1__Enum14"))
 
 # Test enum class with %rename of the enum and an enumerator.
-# TODO: known R limitation - %rename is not honoured in the R layer. The C
-# wrapper function is renamed, but defineEnumeration still uses the original
-# C++ names, so the enum is "_QEnum18" not "_Enum18" and the enumerator is
-# "QVal1" not "Val1". The expected values below should be changed when fixed.
-unittest(1181, enumToInteger("QVal1", "_QEnum18"))
+# The enumerator QVal1 is renamed to Val1 and is honoured in the R layer.
+# TODO: known R limitation - %rename of the enum itself is not honoured, so
+# the enum is still "_QEnum18" not "_Enum18".
+unittest(1181, enumToInteger("Val1", "_QEnum18"))
 unittest(1182, enumToInteger("Val2", "_QEnum18"))

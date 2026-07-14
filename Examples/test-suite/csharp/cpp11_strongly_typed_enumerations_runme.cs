@@ -161,6 +161,10 @@ public class cpp11_strongly_typed_enumerations_runme {
     val = enumCheck((int)Class2.Struct1.Enum14.Val5m, 4141);
     val = enumCheck((int)Class2.Struct1.Enum14.Val6m, val);
 
+    // Enum class and enumerator renamed with %rename (QEnum18 -> Enum18, QVal1 -> Val1)
+    enumCheck((int)Enum18.Val1, 1181);
+    enumCheck((int)Enum18.Val2, 1182);
+
     Class1 class1 = new Class1();
     enumCheck((int)class1.class1Test1(Enum1.Val5a), 13);
     enumCheck((int)class1.class1Test2(Class1.Enum12.Val5c), 1121);
