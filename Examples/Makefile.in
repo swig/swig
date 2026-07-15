@@ -1391,7 +1391,9 @@ R_SCRIPT=$(SRCDIR)$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
-# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
+# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command.
+# Its stderr is filtered to drop the "using C/C++ compiler:" banner from R >=4.3.0.
+SHLIB_STDERR_FILTER = grep -v -E '^using (C|C\+\+) compiler:|^using C\+\+[0-9]|^using SDK:'
 
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C)
@@ -1402,7 +1404,7 @@ r: $(SRCDIR_SRCS)
 ifneq ($(SRCDIR_SRCS),)
 	$(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(R_CFLAGS) $(SRCDIR_SRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null 2> $(TARGET)_shlib.stderr ; status=$$? ; $(SHLIB_STDERR_FILTER) $(TARGET)_shlib.stderr >&2 || true ; rm -f $(TARGET)_shlib.stderr ; exit $$status )
 
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
@@ -1412,7 +1414,7 @@ r_cpp: $(SRCDIR_CXXSRCS)
 ifneq ($(SRCDIR_CXXSRCS),)
 	$(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(R_CFLAGS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null 2> $(TARGET)_shlib.stderr ; status=$$? ; $(SHLIB_STDERR_FILTER) $(TARGET)_shlib.stderr >&2 || true ; rm -f $(TARGET)_shlib.stderr ; exit $$status )
 
 # -----------------------------------------------------------------
 # Run R example
