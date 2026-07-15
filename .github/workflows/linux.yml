@@ -188,6 +188,9 @@ jobs:
           VER: '3.14'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.14'
+          os: ubuntu-24.04-arm
+        - SWIGLANG: python
           VER: '3.14-dbg'
           CSTD: gnu99
         - SWIGLANG: python
