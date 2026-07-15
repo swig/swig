@@ -113,6 +113,22 @@ static String *getRClassNameCopyStruct(String *retType, int addRef) {
 }
 
 /* -------------------------------------------------------------
+ * The name the enum is registered under in the generated R code.
+ * %rename of the enum is honoured by using sym:name for the final
+ * name component, keeping any C++ scope (namespace or enclosing class).
+ * --------------------------------------------------------------*/
+
+static String *getEnumRClassName(Node *n) {
+  String *symname = Getattr(n, "sym:name");
+  String *scope = Swig_scopename_prefix(Getattr(n, "name"));
+  String *qname = scope ? NewStringf("%s::%s", scope, symname) : Copy(symname);
+  String *ename = getRClassName(qname);
+  Delete(qname);
+  Delete(scope);
+  return ename;
+}
+
+/* -------------------------------------------------------------
  * Write the elements of a list to the File*, one element per line.
  * If quote  is true, surround the element with "element".
  * This takes care of inserting a tab in front of each line and also
@@ -178,6 +194,24 @@ static void replaceRClass(String *tm, SwigType *type) {
   String *tmp = getRClassName(type, 0, 0);
   String *tmp_base = getRClassName(type, 1, 0);
   String *tmp_ref = getRClassName(type, 0, 1);
+  // Honour %rename of an enum: the mangled type uses the C++ enum name, but the
+  // enum is registered in R under its renamed sym:name, so substitute it in.
+  // enumLookup only matches a simple enum type, so reduce any pointer/reference
+  // or qualified type to its base enum type first.
+  SwigType *base = SwigType_base(type);
+  Node *enumnode = Language::enumLookup(base);
+  if (enumnode && Getattr(enumnode, "sym:name")) {
+    String *orig = getRClassName(Getattr(enumnode, "name"));
+    String *renamed = getEnumRClassName(enumnode);
+    if (!Equal(orig, renamed)) {
+      Replaceall(tmp, orig, renamed);
+      Replaceall(tmp_base, orig, renamed);
+      Replaceall(tmp_ref, orig, renamed);
+    }
+    Delete(orig);
+    Delete(renamed);
+  }
+  Delete(base);
   Replaceall(tm, "$R_class", tmp);
   Replaceall(tm, "$*R_class", tmp_base);
   Replaceall(tm, "$&R_class", tmp_ref);
@@ -1103,17 +1137,16 @@ int R::enumDeclaration(Node *n) {
     String *nspace = Getattr(n, "sym:nspace");  // NSpace/getNSpace() only works during Language::enumDeclaration call
     String *ename;
 
-    String *name = Getattr(n, "name");
-    ename = getRClassName(name);
+    // Use sym:name so that %rename of the enum is honoured.
+    ename = getEnumRClassName(n);
     if (debugMode) {
       Node *current_class = getCurrentClass();
       String *cl = NewString("");
       if (current_class) {
         cl = getEnumClassPrefix();
       }
-      Printf(stdout, "enumDeclaration: %s, %s, %s, %s, %s\n", name, symname, nspace, ename, cl);
+      Printf(stdout, "enumDeclaration: %s, %s, %s, %s, %s\n", Getattr(n, "name"), symname, nspace, ename, cl);
     }
-    Delete(name);
     // set up a call to create the R enum structure. The list of
     // individual elements will be built in enum_code
     enum_values = 0;

@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-15: wsfulton
+            [R] %rename of an enum (including an enum class) is now honoured for the
+            generated R enum name. Previously the C++ enum name was always used for the
+            name passed to defineEnumeration, so a renamed enum was registered under its
+            original name while its enum item names used the renamed name. The enum
+            class returned by the generated accessor functions (via enumFromInteger /
+            enumToInteger) now also uses the renamed name, matching the other target
+            languages.
+
 2026-07-14: wsfulton
             [Go] %rename of an enum (including an enum class) is now honoured for the
             generated Go type name. Previously the C++ enum name was always used, so a

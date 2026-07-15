@@ -28,9 +28,7 @@ unittest(1121, enumToInteger("Val1", "_Class1__Enum12"))
 unittest(1131, enumToInteger("Val1", "_Class1__Enum13"))
 unittest(1141, enumToInteger("Val1", "_Class1__Enum14"))
 
-# Test enum class with %rename of the enum and an enumerator.
-# The enumerator QVal1 is renamed to Val1 and is honoured in the R layer.
-# TODO: known R limitation - %rename of the enum itself is not honoured, so
-# the enum is still "_QEnum18" not "_Enum18".
-unittest(1181, enumToInteger("Val1", "_QEnum18"))
-unittest(1182, enumToInteger("Val2", "_QEnum18"))
+# Test enum class with %rename of the enum (QEnum18 -> Enum18) and an
+# enumerator (QVal1 -> Val1); both are honoured in the R layer.
+unittest(1181, enumToInteger("Val1", "_Enum18"))
+unittest(1182, enumToInteger("Val2", "_Enum18"))
