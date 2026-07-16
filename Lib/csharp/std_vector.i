@@ -325,7 +325,45 @@
 // Extra methods added to the collection class if operator== is defined for the class being wrapped
 // The class will then implement IList<>, which adds extra functionality
 %define SWIG_STD_VECTOR_EXTRA_OP_EQUALS_EQUALS(CTYPE...)
-    %extend {
+%proxycode %{
+  public override bool Equals(object obj) => this.Equals(obj as $csclassname);
+
+  public bool Equals($csclassname p) {
+    if (p is null) {
+      return false;
+    }
+
+    // Optimization for a common success case:
+    if (System.Object.ReferenceEquals(this, p)) {
+      return true;
+    }
+
+    // If run-time types are not exactly the same, return false:
+    if (this.GetType() != p.GetType()) {
+      return false;
+    }
+
+    return Equals(this, p);
+  }
+
+  public static bool operator ==($csclassname lhs, $csclassname rhs) {
+    if (lhs is null) {
+      if (rhs is null) {
+        return true;
+      }
+      return false;
+    }
+
+    return lhs.Equals(rhs);
+  }
+
+  public static bool operator !=($csclassname lhs, $csclassname rhs) => !(lhs == rhs);
+%}
+
+%extend {
+      static bool Equals(const std::vector< CTYPE >& lhs, const std::vector< CTYPE >& rhs) {
+        return (lhs == rhs);
+      }
       bool Contains(CTYPE const& value) {
         return std::find($self->begin(), $self->end(), value) != $self->end();
       }
@@ -351,7 +389,7 @@
         }
         return false;
       }
-    }
+}
 %enddef
 
 // Macros for std::vector class specializations/enhancements
