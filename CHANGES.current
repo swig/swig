@@ -16,6 +16,13 @@ Version 4.5.0 (in progress)
             enumToInteger) now also uses the renamed name, matching the other target
             languages.
 
+2026-07-15: trittsv
+            [Python] Added support for the 'nspace' feature. C++ classes and enums
+            can now be exposed through Python namespace objects using '%nspace' and
+            moved into different namespace hierarchies using '%nspacemove'. This is
+            supported with proxy classes, built-in types, directors, nested classes,
+            inheritance and standard library template instantiations.
+
 2026-07-14: wsfulton
             [Go] %rename of an enum (including an enum class) is now honoured for the
             generated Go type name. Previously the C++ enum name was always used, so a
