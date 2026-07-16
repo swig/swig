@@ -37,7 +37,7 @@
 <li><a href="#Python_nn22">Pointers, references, values, and arrays</a>
 <li><a href="#Python_nn23">C++ overloaded functions</a>
 <li><a href="#Python_nn24">C++ operators</a>
-<li><a href="#Python_nn25">C++ namespaces</a>
+<li><a href="#Python_namespaces">C++ namespaces</a>
 <li><a href="#Python_nn26">C++ templates</a>
 <li><a href="#Python_nn27">C++ Smart Pointers</a>
 <ul>
@@ -1993,18 +1993,21 @@ instead of raising the usual <tt>TypeError</tt> exception when an incorrect type
 This follows the guidelines in <a href="https://www.python.org/dev/peps/pep-0207/">PEP 207 - Rich Comparisons</a> and <a href="https://docs.python.org/3/library/constants.html#NotImplemented">NotImplemented Python constant</a>.
 </p>
 
-<H3><a name="Python_nn25">33.3.12 C++ namespaces</a></H3>
+<H3><a name="Python_namespaces">33.3.12 C++ namespaces</a></H3>
 
 
 <p>
-SWIG is aware of C++ namespaces, but namespace names do not appear in
-the module nor do namespaces result in a module that is broken up into
-submodules or packages.  For example, if you have a file like this,
+SWIG is aware of C++ namespaces, but namespace names do not appear in the
+Python module by default. The <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt>
+feature</a> can be used to expose classes and enums through namespace objects which
+mirror the C++ namespace hierarchy. For example:
 </p>
 
 <div class="code">
 <pre>
 %module example
+
+%nspace foo::Vector;
 
 namespace foo {
   int fact(int n);
@@ -2022,9 +2025,7 @@ it works in Python as follows:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; example.fact(3)
-6
-&gt;&gt;&gt; v = example.Vector()
+&gt;&gt;&gt; v = example.foo.Vector()
 &gt;&gt;&gt; v.x = 3.4
 &gt;&gt;&gt; print(v.y)
 0.0
@@ -2033,31 +2034,41 @@ it works in Python as follows:
 </div>
 
 <p>
-If your program has more than one namespace, name conflicts (if any) can be resolved using <tt>%rename</tt>
-For example:
+As with the general <tt>nspace</tt> feature, namespace objects are created for
+classes and enums. Functions and variables declared directly in a namespace remain
+in the module's flat scope. Therefore, <tt>fact</tt> in the example above remains
+available as <tt>example.fact</tt>.
+</p>
+
+<p>
+The <tt>%nspace</tt>, <tt>%nonspace</tt>, <tt>%clearnspace</tt>, and
+<tt>%nspacemove</tt> directives are supported. <tt>%nspacemove</tt> can expose a
+C++ type through a completely different Python namespace hierarchy:
 </p>
 
 <div class="code">
 <pre>
-%rename(Bar_spam) Bar::spam;
+%nspacemove(api::geometry) implementation::Vector;
 
-namespace Foo {
-  int spam();
-}
-
-namespace Bar {
-  int spam();
+namespace implementation {
+  struct Vector {
+  };
 }
 </pre>
 </div>
 
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; v = example.api.geometry.Vector()
+</pre>
+</div>
+
 <p>
-If you have more than one namespace and your want to keep their
-symbols separate, consider wrapping them as separate SWIG modules.
-For example, make the module name the same as the namespace and create
-extension modules for each namespace separately.  If your program
-utilizes thousands of small deeply nested namespaces each with
-identical symbol names, well, then you get what you deserve.
+Namespace objects are attributes of the generated Python module; they are not
+independently importable Python packages or modules. The feature works with both
+the default proxy classes and the <tt>-builtin</tt> option, including directors,
+inheritance between namespaces, nested classes, and standard library template
+instantiations.
 </p>
 
 <H3><a name="Python_nn26">33.3.13 C++ templates</a></H3>

@@ -39,7 +39,7 @@ namespace TopLevel
 %include <std_string.i>
 
 // nspace feature only supported by these languages
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT) || defined(SWIGPYTHON)
 %nspace TopLevel::Bar::Foo;
 %nspace TopLevel::Bar::FooBar;
 #else
