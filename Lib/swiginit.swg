@@ -129,10 +129,12 @@ extern "C" {
 SWIGINTERN int SWIG_CastCmpStruct(const void *pa, const void *pb) {
   swig_cast_info *pca = (swig_cast_info *)pa;
   swig_cast_info *pcb = (swig_cast_info *)pb;
-  if (pca->type < pcb->type)
-    return (pca->next || pcb->next == 0) ? -1 : 1;
-  if (pca->type > pcb->type)
-    return (pcb->next || pca->next == 0) ? 1 : -1;
+  /* Entries with next != 0 (newly mapped) come before entries with next == 0 (already loaded) */
+  if (!pca->next && pcb->next) return 1;
+  if (pca->next && !pcb->next) return -1;
+  /* Within the same group, sort by type pointer for binary search */
+  if (pca->type < pcb->type) return -1;
+  if (pca->type > pcb->type) return 1;
   return 0;
 }
 
