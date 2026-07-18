@@ -34,7 +34,7 @@ public:
 
 %}
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA) || defined(SWIGRUST)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -79,4 +79,3 @@ struct FooDerived : Foo {
 };
 %}
 #endif
-

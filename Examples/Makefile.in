@@ -401,6 +401,69 @@ d_clean:
 	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
+#####                       Rust                            ######
+##################################################################
+
+RUSTC = @RUSTC@
+RUST_RUNME = ./$(RUNME)
+RUST_SO = @RUSTSO@
+RUST_LDSHARED = @RUSTLDSHARED@
+RUST_CXXSHARED = @RUSTCXXSHARED@
+RUST_RUNME_CRATE = $(SRCDIR)$(RUNME).rs
+RUSTC_ENV = env MAKEFLAGS=
+
+# ----------------------------------------------------------------
+# Build a dynamically loadable Rust wrapper for a C module
+# ----------------------------------------------------------------
+
+rust: $(SRCDIR_SRCS)
+	$(SWIG) -rust $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES)
+	$(RUST_LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o lib$(TARGET)$(RUST_SO)
+
+# ----------------------------------------------------------------
+# Build a dynamically loadable Rust wrapper for a C++ module
+# ----------------------------------------------------------------
+
+rust_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -rust -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(RUST_CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o lib$(TARGET)$(RUST_SO)
+
+# ----------------------------------------------------------------
+# Compile Rust files
+# ----------------------------------------------------------------
+
+rust_compile: $(SRCDIR)$(RUNME).rs
+	if test "$(RUST_RUNME_CRATE)" != "$<"; then cp $< $(RUST_RUNME_CRATE); fi
+	$(COMPILETOOL) $(RUSTC_ENV) $(RUSTC) $(RUSTFLAGS) $(RUST_RUNME_CRATE) -L . -l dylib=$(TARGET) -o $(RUNME)
+
+# -----------------------------------------------------------------
+# Run Rust example
+# -----------------------------------------------------------------
+
+rust_run:
+	env LD_LIBRARY_PATH=$$PWD DYLD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(RUST_RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+rust_version:
+	$(RUSTC) --version
+
+# -----------------------------------------------------------------
+# Clean the Rust examples
+# -----------------------------------------------------------------
+
+rust_clean:
+	rm -rf $(TARGET)
+	rm -f *_wrap* *~ .~* $(RUNME) `find . -name \*.rs | grep -v $(RUNME).rs`
+	if test -n "$(SRCDIR)" && test "$(RUST_RUNME_CRATE)" = "$(RUNME).rs"; then rm -f $(RUNME).rs; fi
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@ *$(RUST_SO)
+
+##################################################################
 #####                       Go                              ######
 ##################################################################
 

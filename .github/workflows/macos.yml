@@ -135,6 +135,8 @@ jobs:
           CSTD: gnu99
         - SWIGLANG: go
           VER: '1.25'
+        - SWIGLANG: rust
+          continue-on-error: true
         - SWIGLANG: go
           VER: '1.26'
         - SWIGLANG: lua
@@ -277,6 +279,9 @@ jobs:
                 echo "$go_dir" >> $GITHUB_PATH
                 ;;
               esac
+            fi
+            if test "$SWIGLANG" = 'rust'; then
+              rustc --version
             fi
           fi
 

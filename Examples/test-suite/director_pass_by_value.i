@@ -2,6 +2,10 @@
 
 %director DirectorPassByValueAbstractBase;
 
+#ifdef SWIGRUST
+%include <std_string.i>
+#endif
+
 %include "cpp11_move_only_helper.i"
 
 %ignore PassedByValue::operator=;
