@@ -92,5 +92,12 @@ public class multiple_inheritance_interfaces_runme {
     d.ia("bye", false);
 
     UndesirablesSwigImpl.UndesiredStaticMethod(UndesirablesSwigImpl.UndesiredEnum.UndesiredEnum1);
+
+    // Non-static member variables are exposed as properties in the interface, so they are
+    // accessible through an interface reference to a derived class.
+    Undesirables undesirables = new UndesirablesDerived();
+    undesirables.UndesiredVariable = 42;
+    if (undesirables.UndesiredVariable != 42)
+      throw new Exception("UndesiredVariable not accessible via the Undesirables interface");
   }
 }
