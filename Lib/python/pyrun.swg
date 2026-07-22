@@ -1735,12 +1735,17 @@ SWIG_Python_DestroyModule(PyObject *obj)
   size_t i;
   if (--interpreter_counter != 0) /* another sub-interpreter may still be using the swig_module's types */
     return;
-  for (i = 0; i < swig_module->size; ++i) {
-    swig_type_info *ty = types[i];
-    if (ty->owndata) {
-      SwigPyClientData *data = (SwigPyClientData *) ty->clientdata;
-      ty->clientdata = 0;
-      if (data) SwigPyClientData_Del(data);
+  /* Only clear clientdata when this is the only module in the linked list.
+   * When other modules are present they may still need the clientdata for
+   * object destruction. */
+  if (swig_module->next == swig_module) {
+    for (i = 0; i < swig_module->size; ++i) {
+      swig_type_info *ty = types[i];
+      if (ty->owndata) {
+        SwigPyClientData *data = (SwigPyClientData *) ty->clientdata;
+        ty->clientdata = 0;
+        if (data) SwigPyClientData_Del(data);
+      }
     }
   }
   SWIG_PYOBJ_REFCNT(Swig_This_global);
