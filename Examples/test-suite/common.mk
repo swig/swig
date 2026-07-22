@@ -423,6 +423,7 @@ CPP_TEST_CASES += \
 	return_value_scope \
 	rname \
 	samename \
+	self_return \
 	sizet \
 	smart_pointer_const \
 	smart_pointer_const2 \
