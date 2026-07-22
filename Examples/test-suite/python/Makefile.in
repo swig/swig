@@ -28,6 +28,7 @@ CPP_TEST_CASES += \
 	director_guard \
 	director_stl \
 	director_wstring \
+	test_shadow \
 	file_test \
 	iadd \
 	implicittest \
