@@ -3296,6 +3296,15 @@ public:
         const char *self_parm = builtin_self ? "self" : "obj0";
         Printf(f->code, "upcall = (director && (director->swig_get_self()==%s));\n", self_parm);
       }
+      if (allow_thread) {
+        String *preaction = NewString("");
+        thread_begin_allow(n, preaction);
+        Setattr(n, "wrap:preaction", preaction);
+
+        String *postaction = NewString("");
+        thread_end_allow(n, postaction);
+        Setattr(n, "wrap:postaction", postaction);
+      }
     } else {
       if (allow_thread) {
         String *preaction = NewString("");
