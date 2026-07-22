@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-22: jschueller
+            [Python] #3315 Fix "metaclass conflict" TypeError raised when importing a
+            module built with -builtin that defines a class deriving from base classes
+            wrapped in different SWIG extension modules. Each module used to create its
+            own SwigPyObjectType metaclass instance, so a class combining bases from two
+            modules had two unrelated metaclasses. The SwigPyObjectType metaclass (and
+            the SwigPyStaticVar type) are now shared across all modules via the runtime
+            data module. This only affected Python 3.12 and later, since heap types were
+            enabled by default in SWIG 4.4.0.
+
 2026-07-15: wsfulton
             [R] %rename of an enum (including an enum class) is now honoured for the
             generated R enum name. Previously the C++ enum name was always used for the
