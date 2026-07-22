@@ -22,6 +22,22 @@ Version 4.5.0 (in progress)
             the C99 _Complex types are now only generated when the library file
             defining their in and out typemaps is included.
 
+2026-07-22: sparcyu
+            [C#] Add support for setting the C# namespace via the 'namespace' option of
+            the %module directive, as an alternative to the -namespace command line
+            option. This is convenient for build system integration where the interface
+            file is the natural place to keep the module settings, eg:
+
+              %module(namespace="Example.Net") example
+
+            The -namespace command line option takes precedence over the %module
+            namespace option when both are specified.
+
+            As part of this, keyword argument names in option lists (%module(...),
+            %feature(...) etc.) may now be the 'namespace' keyword.
+
+            Fixes #3495.
+
 2026-07-22: jschueller
             [Python] #3315 Fix "metaclass conflict" TypeError raised when importing a
             module built with -builtin that defines a class deriving from base classes

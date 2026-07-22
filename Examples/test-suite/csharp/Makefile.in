@@ -25,6 +25,7 @@ CPP_TEST_CASES = \
 	csharp_features \
 	csharp_lib_arrays \
 	csharp_lib_arrays_bool \
+	csharp_module_namespace \
 	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_swig2_compatibility \
@@ -47,7 +48,11 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 SRCDIR       = ../$(srcdir)/
-SWIGOPT += -namespace $*Namespace
+# Every testcase is generated into a namespace named after the testcase. Kept in a
+# separate variable so individual testcases can clear it (see csharp_module_namespace,
+# which sets its namespace via %module(namespace="...") in the interface file instead).
+CSHARP_NAMESPACE_OPT = -namespace $*Namespace
+SWIGOPT += $(CSHARP_NAMESPACE_OPT)
 
 CSHARPFLAGSSPECIAL =
 
@@ -59,6 +64,8 @@ complextest.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_lib_arrays_bool.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
+# Namespace is set via %module(namespace="...") in the .i file, so clear the global -namespace option.
+csharp_module_namespace.cpptest: CSHARP_NAMESPACE_OPT =
 # Doxygen tests have specific flags to generate XML documentation and deactivate warnings about XML generation
 doxygen_%.cpptest: CSHARPFLAGSSPECIAL = -doc:./$*/$*.xml -nowarn:"CS0419,CS1572,CS1573,CS1574,CS1584,CS1591"
 doxygen_%.cpptest: CSHARPSRCS_EXTRA_RUN = `$(CSHARPCONVERTPATH) $(SCRIPTDIR)/doxygen_checker.cs`

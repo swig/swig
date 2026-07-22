@@ -2095,7 +2095,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     requires_expression requirement_body;
 %type <pl>       requirement_parameter_list_opt;
 %type <id>       type_qualifier_raw;
-%type <id>       idstring idstringopt;
+%type <id>       idstring idstringopt kwargs_name;
 %type <id>       pragma_lang;
 %type <str>      pragma_arg;
 %type <includetype> includetype;
@@ -8453,6 +8453,14 @@ idstring       : identifier
                | string { $$ = Char($string); }
                ;
 
+/* Name of a keyword argument, as used in option lists such as
+   %module(...), %feature(...) and typemap attributes. This is an idstring,
+   or a hard keyword that is meaningful as an option name - currently only
+   'namespace', needed for %module(namespace="...") in the C# module. */
+kwargs_name    : idstring
+               | NAMESPACE { $$ = Swig_copy_string("namespace"); }
+               ;
+
 idstringopt    : idstring
                | %empty { $$ = 0; }
                ;
@@ -8619,43 +8627,43 @@ kwargs	       : kwargs_builder {
 	       }
 	       ;
 
-kwargs_builder : idstring EQUAL stringnum {
+kwargs_builder : kwargs_name EQUAL stringnum {
 		 Node *n = NewHash();
-		 Setattr(n, "name", $idstring);
+		 Setattr(n, "name", $kwargs_name);
 		 Setattr(n, "value", $stringnum);
 		 Delete($stringnum);
 		 $$.node = $$.last = n;
 	       }
-	       | kwargs_builder[in] COMMA idstring EQUAL stringnum {
+	       | kwargs_builder[in] COMMA kwargs_name EQUAL stringnum {
 		 $$ = $in;
 		 Node *n = NewHash();
-		 Setattr(n, "name", $idstring);
+		 Setattr(n, "name", $kwargs_name);
 		 Setattr(n, "value", $stringnum);
 		 Delete($stringnum);
 		 set_nextSibling($$.last, n);
 		 $$.last = n;
 	       }
-	       | idstring {
+	       | kwargs_name {
 		 Node *n = NewHash();
-		 Setattr(n, "name", $idstring);
+		 Setattr(n, "name", $kwargs_name);
 		 $$.node = $$.last = n;
 	       }
-	       | kwargs_builder[in] COMMA idstring {
+	       | kwargs_builder[in] COMMA kwargs_name {
 		 $$ = $in;
 		 Node *n = NewHash();
-		 Setattr(n, "name", $idstring);
+		 Setattr(n, "name", $kwargs_name);
 		 set_nextSibling($$.last, n);
 		 $$.last = n;
 	       }
-	       | idstring EQUAL stringtype {
+	       | kwargs_name EQUAL stringtype {
 		 Node *n = $stringtype;
-		 Setattr(n, "name", $idstring);
+		 Setattr(n, "name", $kwargs_name);
 		 $$.node = $$.last = n;
 	       }
-	       | kwargs_builder[in] COMMA idstring EQUAL stringtype {
+	       | kwargs_builder[in] COMMA kwargs_name EQUAL stringtype {
 		 $$ = $in;
 		 Node *n = $stringtype;
-		 Setattr(n, "name", $idstring);
+		 Setattr(n, "name", $kwargs_name);
 		 set_nextSibling($$.last, n);
 		 $$.last = n;
 	       }
