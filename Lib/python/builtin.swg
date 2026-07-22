@@ -299,8 +299,13 @@ SwigPyStaticVar_TypeOnce(void) {
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE,
     slots
   };
-  PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
+  PyObject *pytype = PyObject_GetAttrString(runtime_data_module, "SwigPyStaticVar");
+  if (pytype) {
+    return (PyTypeObject *)pytype;
+  }
+  PyErr_Clear();
+  pytype = PyType_FromSpec(&spec);
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
@@ -417,8 +422,13 @@ SwigPyObjectType_TypeOnce(void) {
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
     slots
   };
-  PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
+  PyObject *pytype = PyObject_GetAttrString(runtime_data_module, "SwigPyObjectType");
+  if (pytype) {
+    return (PyTypeObject *)pytype;
+  }
+  PyErr_Clear();
+  pytype = PyType_FromSpec(&spec);
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
