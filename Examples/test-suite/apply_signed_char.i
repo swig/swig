@@ -12,6 +12,9 @@
 %apply const signed char & {const char &};
 
 %inline %{
+  /* Some languages wrapper are agnostic, some are sensitive and fails unless char is signed.
+     To test use: make apply_signed_char.cpptest CXXFLAGS="$CXXFLAGS -funsigned-char" */
+  int is_char_signed(void) { char c = -1; return c < 0; }
   char CharValFunction(char number) { return number; }
   const char CCharValFunction(const char number) { return number; }
   const char & CCharRefFunction(const char & number) { return number; }
