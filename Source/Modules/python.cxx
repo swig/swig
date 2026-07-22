@@ -2609,6 +2609,18 @@ public:
     String *parms = make_pyParmList(n, false, false, kw);
     String *callParms = make_pyParmList(n, false, true, kw);
 
+    // %feature("shadow") provides a complete replacement function body.
+    // Emit it directly and skip the standard wrapper generation.
+    if (!builtin && Getattr(n, "feature:shadow")) {
+      String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), "", Getfile(n), Getline(n), "%feature(\"shadow\")");
+      String *pyaction = NewStringf("%s.%s", module, name);
+      Replaceall(pycode, "$action", pyaction);
+      Delete(pyaction);
+      Printv(f_dest, pycode, "\n", NIL);
+      Delete(pycode);
+      return;
+    }
+
     // Callbacks need the C function in order to extract the pointer from the swig_ptr: string
     bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
 
