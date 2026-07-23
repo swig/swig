@@ -230,6 +230,7 @@ CPP_TEST_CASES += \
 	director_simple \
 	director_shared_ptr \
 	director_template \
+	director_gil_release \
 	director_thread \
 	director_unroll \
 	director_unwrap_result \
