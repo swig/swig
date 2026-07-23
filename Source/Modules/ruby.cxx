@@ -123,7 +123,7 @@ static const char *usage = "\
 Ruby Options (available with -ruby)\n\
      -autorename     - Enable renaming of classes and methods to follow Ruby coding standards\n\
      -globalmodule   - Wrap everything into the global module\n\
-     -initname <name>- Set entry function to Init_<name> (used by `require')\n\
+     -initname <name> - Set entry function to Init_<name> (used by `require')\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\

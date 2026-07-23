@@ -117,7 +117,7 @@ Python Options (available with -python)\n\
      -fastproxy      - Use fast proxy mechanism for member methods\n\
      -flatstaticmethod         - Generate additional flattened Python methods for C++ static methods\n\
      -globals <name> - Set <name> used to access C global variable (default: 'cvar')\n\
-     -interface <mod>- Set low-level C/C++ module name to <mod> (default: module name prefixed by '_')\n\
+     -interface <mod> - Set low-level C/C++ module name to <mod> (default: module name prefixed by '_')\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
