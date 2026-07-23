@@ -17,6 +17,13 @@ Version 4.5.0 (in progress)
             data module. This only affected Python 3.12 and later, since heap types were
             enabled by default in SWIG 4.4.0.
 
+2026-07-16: jschueller
+            #3497 Fixed the SWIG_CastCmpStruct comparator in the generated runtime
+            so that it provides a strict weak ordering. The comparator mixed the
+            type-pointer ordering with the next-field priority, which could make the
+            binary search in SWIG_TypeCheck miss a valid type entry and fail a cast
+            at runtime. Affects scripting languages using SWIG's runtime type table.
+
 2026-07-15: wsfulton
             [R] %rename of an enum (including an enum class) is now honoured for the
             generated R enum name. Previously the C++ enum name was always used for the
@@ -115,6 +122,10 @@ Version 4.5.0 (in progress)
             #3403 Fixed a crash the doxygen parser triggered by a structural
             comment such as @name/@{ followed by a blank line with no documentation
             attached.
+
+2026-07-08: phetdam
+            [R] #3471 Fix corrupted output or a crash when the -package or -dll
+            command line option is passed when generating R wrappers.
 
 2026-07-06: wsfulton
             [Python] Removed the Python 2 compatibility macros that were kept in
@@ -525,6 +536,10 @@ Version 4.5.0 (in progress)
             between compiling foo.c and the equivalent preprocessed foo.i.
             ccache-swig now omits -c when invoking the preprocessor.
 
+2026-05-25: clintonstimpson
+            #3425 Suppress unused function warnings in the generated code when
+            compiling with Clang-CL.
+
 2026-05-24: wsfulton
             Fixed a one-byte buffer overflow in the cdata.i memmove typemap that
             occurred when the data length exactly matched the destination buffer size.
@@ -594,6 +609,10 @@ Version 4.5.0 (in progress)
 
             *** POTENTIAL INCOMPATIBILITY ***
 
+2026-05-16: akarantanapa
+            [C#] #3406 Fix the std_wstring.i and wchar.i pointer initialisations
+            so the generated code compiles as both C and C++.
+
 2026-05-18: wsfulton
             [Python] Doxygen comments on constructors are now emitted on
             __init__ when wrapping with -builtin, matching the default
@@ -650,6 +669,16 @@ Version 4.5.0 (in progress)
             deduction, so it now issues Warning 347 and skips the variable
             instead of generating uncompilable wrapper code that names the
             template without arguments.
+
+2026-05-14: wsfulton
+            User-defined literal operators are now emitted without the space
+            between the "" and the suffix, that is operator""_x rather than
+            operator "" _x. The spaced form is deprecated in C++23 (CWG2521) and
+            is an error under clang and MSVC with -Wdeprecated-literal-operator.
+
+2026-05-14: wsfulton
+            [Perl] Fix a -Wimplicit-const-int-float-conversion compiler warning in
+            the generated code.
 
 2026-05-12: wsfulton
             C++20: %template can now instantiate abbreviated function templates
@@ -946,6 +975,15 @@ Version 4.5.0 (in progress)
             director code by instead throwing a language specific exception:
             "'self' is not a director".
 
+2026-03-18: jschueller
+            [JavaScript, Python, Ruby] #3372 Remove redundant semicolons in the
+            generated director and iterator code to fix -Wextra-semi compiler
+            warnings.
+
+2026-03-18: erezgeva
+            [OCaml] #3378 Fix the cdata.i library so the cdata and memmove functions
+            return the raw C data correctly.
+
 2026-03-10: xSetech
             [Python] #3365 Fix descriptor() type lookup when SwigPyIterator is renamed
             via #define for use in multiple modules.
@@ -1053,6 +1091,14 @@ Version 4.5.0 (in progress)
 2025-11-06: olly
             [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
             aliases of `false` and `true` when generating documentation comments.
+
+2025-11-06: olly
+            [PHP] Fix -Wunused compiler warnings for unused helper functions in the
+            generated code.
+
+2025-11-04: olly
+            [Octave] Fix a -Wmisleading-indentation compiler warning in the generated
+            code.
 
 2025-11-02: wsfulton
             [Go] Fix various compilation problems when wrapping rvalues references.
