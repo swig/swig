@@ -13,10 +13,8 @@
 	int res = SWIG_ERROR;
 	if (PyDict_Check(obj)) {
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
-%#if PY_VERSION_HEX >= 0x03000000
-          /* In Python 3.x the ".items()" method returns a dict_items object */
-          items = PySequence_Fast(items, ".items() didn't return a sequence!");
-%#endif
+	  /* In Python 3.x the ".items()" method returns a dict_items object */
+	  items = PySequence_Fast(items, ".items() didn't return a sequence!");
 	  res = traits_asptr_stdseq<std::multimap<K,T>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  multimap_type *p = 0;

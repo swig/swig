@@ -2,6 +2,10 @@ module nspacemove_stl_runme;
 
 import std.exception;
 import nspacemove_stl.nspacemove_stl;
+static import nspacemove_stl.CPlusPlus.Standard.Ints.VectorInt;
+static import nspacemove_stl.CPlusPlus.Standard.Strings.VectorString;
+static import nspacemove_stl.CPlusPlus.Maps.MapIntInt;
+static import nspacemove_stl.CPlusPlus.Maps.MapIntString;
 
 void main() {
   auto vi = new nspacemove_stl.CPlusPlus.Standard.Ints.VectorInt.VectorInt();

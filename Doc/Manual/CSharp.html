@@ -1052,9 +1052,12 @@ marshalling for the arrays:
 <div class="targetlang">
 <pre>
 [global::System.Runtime.InteropServices.DllImport("example", EntryPoint="CSharp_myArrayCopy")]
-public static extern void myArrayCopy([global::System.Runtime.InteropServices.In, global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
-                                      [global::System.Runtime.InteropServices.Out, global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
-                                       int jarg3);
+public static extern void myArrayCopy(
+    [global::System.Runtime.InteropServices.In,
+     global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg1,
+    [global::System.Runtime.InteropServices.Out,
+     global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
+    int jarg3);
 </pre>
 </div>
 
@@ -1102,9 +1105,14 @@ and intermediary class method
 <div class="targetlang">
 <pre>
   [global::System.Runtime.InteropServices.DllImport("example", EntryPoint="CSharp_myArraySwap")]
-  public static extern void myArraySwap([global::System.Runtime.InteropServices.In, global::System.Runtime.InteropServices.Out, global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
-                                        [global::System.Runtime.InteropServices.In, global::System.Runtime.InteropServices.Out, global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
-                                         int jarg3);
+  public static extern void myArraySwap(
+      [global::System.Runtime.InteropServices.In,
+       global::System.Runtime.InteropServices.Out,
+       global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg1,
+      [global::System.Runtime.InteropServices.In,
+       global::System.Runtime.InteropServices.Out,
+       global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg2,
+      int jarg3);
 </pre>
 </div>
 
@@ -2349,7 +2357,8 @@ or even a memory access violation error such as
 
 <div class="shell">
 <pre>
-Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication that other memory is corrupt.
+Fatal error. System.AccessViolationException: Attempted to read or write protected memory.
+This is often an indication that other memory is corrupt.
 </pre>
 </div>
 

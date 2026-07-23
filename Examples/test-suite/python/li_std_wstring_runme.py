@@ -1,5 +1,4 @@
 import li_std_wstring
-import sys
 
 def check_equal(a, b):
     if a != b:
@@ -62,12 +61,6 @@ check_equal(ts.wchar_t_ptr_member, s)
 
 ################### Python specific
 
-# Byte strings only converted in Python 2
-if sys.version_info[0:2] < (3, 0):
-    x = b"hello there"
-    if li_std_wstring.test_value(x) != x:
-        raise RuntimeError("bad string mapping")
-
 # Invalid utf-8 in a byte string fails in all versions
 x = b"h\xe9llo"
 try:
@@ -77,9 +70,8 @@ except TypeError:
     pass
 
 # Check surrogateescape
-if sys.version_info[0:2] > (3, 1):
-    x = "h\udce9llo"  # surrogate escaped representation of C char*: "h\xe9llo"
-    if li_std_wstring.non_utf8_c_str() != x:
-        raise RuntimeError("surrogateescape not working")
-    if li_std_wstring.size_wstring(x) != 5 and len(x) != 5:
-        raise RuntimeError("Unexpected length")
+x = "h\udce9llo"  # surrogate escaped representation of C char*: "h\xe9llo"
+if li_std_wstring.non_utf8_c_str() != x:
+    raise RuntimeError("surrogateescape not working")
+if li_std_wstring.size_wstring(x) != 5 and len(x) != 5:
+    raise RuntimeError("Unexpected length")

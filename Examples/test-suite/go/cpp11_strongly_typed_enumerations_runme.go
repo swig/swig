@@ -159,6 +159,10 @@ func main() {
 	//val = enumCheck(int(Class2Struct1Enum14_Val5m), 4141)
 	//val = enumCheck(int(Class2Struct1Enum14_Val6m), val)
 
+	// Enum class and enumerator renamed with %rename (QEnum18 -> Enum18, QVal1 -> Val1)
+	enumCheck(int(Enum18_Val1), 1181)
+	enumCheck(int(Enum18_Val2), 1182)
+
 	class1 := NewClass1()
 	enumCheck(int(class1.Class1Test1(Enum1_Val5a)), 13)
 	enumCheck(int(class1.Class1Test2(Class1Enum12_Val5c)), 1121)

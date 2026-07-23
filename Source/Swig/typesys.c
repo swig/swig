@@ -1049,6 +1049,37 @@ SwigType *SwigType_typedef_resolve_all(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_scopename_is_suffix()
+ *
+ * Return 1 if 'sub' is a trailing component-wise part of 'full', for example
+ * 'B::C' is a suffix of 'A::B::C'.  The comparison is per scope component, so a
+ * partial token such as 'C' is not a suffix of 'AC'.  An equal name counts as a
+ * suffix.
+ * ----------------------------------------------------------------------------- */
+
+static int SwigType_scopename_is_suffix(const String *sub, const String *full) {
+  List *sublist = Swig_scopename_tolist(sub);
+  List *fulllist = Swig_scopename_tolist(full);
+  int sublen = Len(sublist);
+  int fulllen = Len(fulllist);
+  int is_suffix = 1;
+  if (sublen > fulllen) {
+    is_suffix = 0;
+  } else {
+    int i;
+    for (i = 0; i < sublen; i++) {
+      if (!Equal(Getitem(sublist, sublen - 1 - i), Getitem(fulllist, fulllen - 1 - i))) {
+        is_suffix = 0;
+        break;
+      }
+    }
+  }
+  Delete(sublist);
+  Delete(fulllist);
+  return is_suffix;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_typedef_qualified()
  *
  * Given a type declaration, this function tries to fully qualify it so that the
@@ -1103,17 +1134,34 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
           }
         } else {
           if (Swig_scopename_check(e)) {
-            String *qlast;
-            String *qname;
-            Swig_scopename_split(e, &qname, &qlast);
-            if (qname) {
-              String *tqname = SwigType_typedef_qualified(qname);
+            /* A scope qualified name might itself name a scope, for example a base
+               class named through a derived class ('Derived::Base'); use the scope's
+               canonical name so it resolves to the same type as the base named
+               directly.  Only adopt the canonical name when it names a genuinely
+               different scope.  When it is merely a less qualified spelling of the
+               scope 'e' already names in full - as for a class declared with a
+               qualified name and reached through a 'using namespace', whose canonical
+               name is a trailing part of 'e' - keep 'e' fully qualified by falling
+               back to the recursive split. */
+            Typetab *found_scope = current_scope ? SwigType_find_scope(current_scope, e) : 0;
+            String *qs = found_scope ? SwigType_scope_name(found_scope) : 0;
+            if (qs && !SwigType_scopename_is_suffix(qs, e)) {
               Clear(e);
-              Printf(e, "%s::%s", tqname, qlast);
-              Delete(qname);
-              Delete(tqname);
+              Append(e, qs);
+            } else {
+              String *qlast;
+              String *qname;
+              Swig_scopename_split(e, &qname, &qlast);
+              if (qname) {
+                String *tqname = SwigType_typedef_qualified(qname);
+                Clear(e);
+                Printf(e, "%s::%s", tqname, qlast);
+                Delete(qname);
+                Delete(tqname);
+              }
+              Delete(qlast);
             }
-            Delete(qlast);
+            Delete(qs);
 
             /* Automatic template instantiation might go here??? */
           } else {

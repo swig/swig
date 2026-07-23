@@ -3,9 +3,9 @@
 require "tests.php";
 
 // No new functions
-check::functions(array());
+check::functions(array('take_ops_intref'));
 // New classes
-check::classes(array('Alpha','Bravo','Charlie','Delta','Ops','Prims','corePoint3d','coreCallbacks_On3dEngineRedrawnData','coreCallbacksOn3dEngineRedrawnData','coreCallbacks'));
+check::classes(array('Alpha','Bravo','Charlie','Delta','Ops','Prims','corePoint3d','coreCallbacks_On3dEngineRedrawnData','coreCallbacksOn3dEngineRedrawnData','coreCallbacks','director_frob'));
 // No new vars
 check::globals(array());
 

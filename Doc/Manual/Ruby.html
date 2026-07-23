@@ -2261,7 +2261,8 @@ specifying the type of exception (for example, "MyError") and desc is
 the SWIG description of the exception class. For example: </p>
 
 <div class="code"><pre>
-%raise(SWIG_NewPointerObj(e, SWIGTYPE_p_AssertionFailedException, 0), ":AssertionFailedException", SWIGTYPE_p_AssertionFailedException);
+%raise(SWIG_NewPointerObj(e, SWIGTYPE_p_AssertionFailedException, 0),
+       ":AssertionFailedException", SWIGTYPE_p_AssertionFailedException);
 </pre></div>
 
 <p>This is useful when you want to pass the current exception

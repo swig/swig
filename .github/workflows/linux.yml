@@ -31,16 +31,19 @@ jobs:
   clang-format:
     runs-on: ubuntu-latest
     name: clang-format 18 # 18 is the oldest supported version
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          show-progress: false
-      - name: Check with clang-format
-        uses: RafikFarhad/clang-format-github-action@v4.1
-        with:
-          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
-          style: file
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+        persist-credentials: false
+
+    - name: Check with clang-format
+      uses: RafikFarhad/clang-format-github-action@v4.1
+      with:
+        sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+        style: file
 
   build:
 
@@ -52,7 +55,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     needs: [clang-format]
 
@@ -119,6 +122,8 @@ jobs:
           VER: '12'
           CPPSTD: c++11
         - SWIGLANG: lua
+          VER: '5.1'
+        - SWIGLANG: lua
           VER: '5.2'
         - SWIGLANG: lua
           VER: '5.3'
@@ -146,8 +151,6 @@ jobs:
         - SWIGLANG: php
           VER: '8.5'
           CPPSTD: c++11 # C++98 not supported by PHP.
-        - SWIGLANG: python
-          PY2: 2
         #- SWIGLANG: python
         #  VER: '3.5'
         #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
@@ -171,20 +174,12 @@ jobs:
           VER: '3.13'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.8'
+          PY_ABI_VER: '3.5'
+        - SWIGLANG: python
           VER: '3.13'
           PY_ABI_VER: '3.9'
           CSTD: gnu99
-        - SWIGLANG: python
-          VER: '3.13-dbg'
-          CSTD: gnu99
-        - SWIGLANG: python
-          VER: '3.13'
-          CSTD: gnu99
-          SWIG_FEATURES: -nogil  # Test that -nogil has no effect on non-free-threading Python
-        - SWIGLANG: python
-          VER: '3.13t'
-          CSTD: gnu99
-          SWIG_FEATURES: -nogil
         - SWIGLANG: python
           VER: '3.14'
           PY_ABI_VER: '3.14'
@@ -193,11 +188,16 @@ jobs:
           VER: '3.14'
           CSTD: gnu99
         - SWIGLANG: python
-          PY2: 2
-          SWIG_FEATURES: -builtin
+          VER: '3.14-dbg'
+          CSTD: gnu99
         - SWIGLANG: python
-          PY2: 2
-          SWIG_FEATURES: -builtin -O
+          VER: '3.14'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil  # Test that -nogil has no effect on non-free-threading Python
+        - SWIGLANG: python
+          VER: '3.14t'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil
         - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
@@ -206,14 +206,18 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          VER: '3.13'
+          VER: '3.14'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
-          VER: '3.13'
+          VER: '3.14'
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          VER: '3.8'
-          PY_ABI_VER: '3.5'
+          VER: '3.15'
+          continue-on-error: true
+        - SWIGLANG: python
+          VER: '3.15'
+          SWIG_FEATURES: -builtin
+          continue-on-error: true
         - SWIGLANG: r
           os: ubuntu-24.04
         - SWIGLANG: ruby
@@ -461,13 +465,20 @@ jobs:
           GCC: 13
           os: ubuntu-24.04
           continue-on-error: true
+        - SWIGLANG: lua
+          CPPSTD: c++20
+          VER: '5.5'
+          os: ubuntu-26.04
+        - SWIGLANG: tcl
+          CPPSTD: c++20
+          VER: '9.0'
+          os: ubuntu-26.04
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       compiler: ${{ matrix.compiler }}
-      PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
@@ -494,10 +505,10 @@ jobs:
       uses: actions/checkout@v6
       with:
         show-progress: false
-        submodules: recursive
+        persist-credentials: false
 
     - name: Install CCache
-      uses: hendrikmuhs/ccache-action@v1
+      uses: hendrikmuhs/ccache-action@v1.2.23
       with:
         key: ${{ matrix.os || 'ubuntu-22.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
 
@@ -543,7 +554,6 @@ jobs:
             $CC -dM -E - < /dev/null | grep __STDC_VERSION__
           fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
-          if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 

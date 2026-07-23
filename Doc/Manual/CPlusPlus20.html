@@ -692,7 +692,7 @@ carrying a type-constraint, including the template-id form above.
 
 <p>
 A C++11 alias template
-(see <a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Type alias and alias templates</a>
+(see <a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Alias templates</a>
 in the C++11 chapter) may carry a C++20 concept constraint on its template
 parameters, in either the type-constraint shorthand form or the
 <tt>requires</tt>-clause long form:
@@ -721,7 +721,7 @@ SWIG accepts both forms.  Both aliases resolve to the same underlying
 <tt>Box&lt;T&gt;</tt>, and the generated wrappers are identical to those for
 an unconstrained alias.  Wrapping uses the same two-step pattern as any
 other alias template as described in
-<a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Type alias and alias templates</a>
+<a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Alias templates</a>
 - instantiate the underlying template once with
 <tt>%template(Name)</tt>, then register each alias with an empty
 <tt>%template()</tt>:

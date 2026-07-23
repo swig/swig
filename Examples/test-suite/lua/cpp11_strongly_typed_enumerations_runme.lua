@@ -156,6 +156,10 @@ val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Enum14_Val6j, val)
 --val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1.Enum14_Val5m, 4141)
 --val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1.Enum14_Val6m, val)
 
+-- Enum class and enumerator renamed with %rename (QEnum18 -> Enum18, QVal1 -> Val1)
+enumCheck(cpp11_strongly_typed_enumerations.Enum18_Val1, 1181)
+enumCheck(cpp11_strongly_typed_enumerations.Enum18_Val2, 1182)
+
 class1 = cpp11_strongly_typed_enumerations.Class1()
 enumCheck(class1:class1Test1(cpp11_strongly_typed_enumerations.Enum1_Val5a), 13)
 enumCheck(class1:class1Test2(cpp11_strongly_typed_enumerations.Class1.Enum12_Val5c), 1121)

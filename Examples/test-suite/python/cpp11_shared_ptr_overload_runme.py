@@ -43,3 +43,21 @@ if ret != "XXXCombo6": raise RuntimeError("Combo6 fail:" + ret)
 
 ret = cpp11_shared_ptr_overload.Combo7(MyType("XXX"))
 if ret != "XXXCombo7": raise RuntimeError("Combo7 fail:" + ret)
+
+# Test default and None for NULL
+if not cpp11_shared_ptr_overload.default_0():
+    raise RuntimeError("default_0() fail")
+if not cpp11_shared_ptr_overload.default_0(None):
+    raise RuntimeError("default_0(None) fail")
+if not cpp11_shared_ptr_overload.default_0l():
+    raise RuntimeError("default_0l() fail")
+if not cpp11_shared_ptr_overload.default_0l(None):
+    raise RuntimeError("default_0l(None) fail")
+if not cpp11_shared_ptr_overload.default_null():
+    raise RuntimeError("default_null() fail")
+if not cpp11_shared_ptr_overload.default_null(None):
+    raise RuntimeError("default_null(None) fail")
+if not cpp11_shared_ptr_overload.default_nullptr():
+    raise RuntimeError("default_nullptr() fail")
+if not cpp11_shared_ptr_overload.default_nullptr(None):
+    raise RuntimeError("default_nullptr(None) fail")

@@ -73,6 +73,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         show-progress: false
+        persist-credentials: false
 
     - name: Install Dependencies
       run: |
@@ -128,6 +129,7 @@ jobs:
       uses: actions/checkout@v6
       with:
         show-progress: false
+        persist-credentials: false
 
     # The NuGet PCRE2 package is build with '/MT' to statically links the the UCRT library.
     # See explanation on linking option:

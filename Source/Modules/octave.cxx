@@ -516,18 +516,78 @@ public:
    *    Check if string v can be an Octave value literal,
    *    (eg. number or string), or translate it to an Octave literal.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, String *numval, String *stringval, SwigType *t) {
+  String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
     if (stringval) {
       return stringval;
     }
+    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+    SwigType *unqualified_type = NIL;
+    if (SwigType_isreference(resolved_type)) {
+      SwigType *t = Copy(resolved_type);
+      t = SwigType_del_reference(t);
+      unqualified_type = SwigType_strip_qualifiers(t);
+      Delete(t);
+    } else {
+      unqualified_type = SwigType_strip_qualifiers(resolved_type);
+    }
     if (numval) {
-      if (SwigType_type(t) == T_BOOL) {
+      if (SwigType_type(unqualified_type) == T_BOOL) {
+        Delete(resolved_type);
+        Delete(unqualified_type);
         return NewString(*Char(numval) == '0' ? "false" : "true");
       }
+      if (SwigType_ispointer(unqualified_type) && Equal(numval, "0")) {
+        Delete(resolved_type);
+        Delete(unqualified_type);
+        return NewString("None");
+      }
+      Delete(resolved_type);
+      Delete(unqualified_type);
       return numval;
     }
-    if (Equal(v, "0") || Equal(v, "NULL") || Equal(v, "nullptr"))
-      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+    if (Equal(v, "nullptr")) {
+      // nullptr is type nullptr_t which doesn't implicitly convert to 0.
+      Delete(resolved_type);
+      Delete(unqualified_type);
+      return NewString("None");
+    }
+    if (Equal(v, "NULL")) {
+      // The C and C++ standards both allow the implementation to define NULL
+      // to `0`, and the inadvertent use of NULL as an integer zero is
+      // sometimes seen in code.
+      //
+      // However this use is semantically wrong, and GCC and clang both
+      // define NULL to a magic value which warns if implicitly converted
+      // to an integer, so we only implicitly convert to zero if the type
+      // resolves to a built-in arithmetic type.
+      switch (SwigType_type(unqualified_type)) {
+      case T_INT:
+      case T_LONG:
+      case T_SHORT:
+      case T_UINT:
+      case T_USHORT:
+      case T_ULONG:
+      case T_CHAR:
+      case T_SCHAR:
+      case T_UCHAR:
+      case T_WCHAR:
+      case T_FLOAT:
+      case T_DOUBLE:
+      case T_LONGDOUBLE:
+      case T_BOOL:
+      case T_LONGLONG:
+      case T_ULONGLONG:
+        Delete(resolved_type);
+        Delete(unqualified_type);
+        return NewString("0");
+      default:
+        Delete(resolved_type);
+        Delete(unqualified_type);
+        return NewString("None");
+      }
+    }
+    Delete(resolved_type);
+    Delete(unqualified_type);
     return 0;
   }
 

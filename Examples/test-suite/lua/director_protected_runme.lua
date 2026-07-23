@@ -72,3 +72,8 @@ assert(not ret, "f:pang() should fail - f is not a director")
 
 ret, msg = pcall(function() f:cheer() end)
 assert(not ret, "f:cheer() should fail - f is not a director")
+
+-- NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+local outer = director_protected.NestedOuter()
+local base = outer:makeDerived()
+assert(base:identify() == 1, "bad NestedOuter:makeDerived():identify()")

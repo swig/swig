@@ -597,7 +597,7 @@ void traverse(const char *dir, void (*fn)(const char *, struct stat *))
 /* return the base name of a file - caller frees */
 char *str_basename(const char *s)
 {
-	char *p = strrchr(s, '/');
+	const char *p = strrchr(s, '/');
 	if (p) {
 		s = (p+1);
 	}

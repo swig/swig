@@ -17,6 +17,21 @@ static import nspacemove_nested.NewOkay50.OuterClass50;
 static import nspacemove_nested.OuterClass60;
 static import nspacemove_nested.OuterClass70;
 static import nspacemove_nested.Space.OuterClass80;
+static import nspacemove_nested.Space.InnerClass1;
+static import nspacemove_nested.Space.InnerClass2;
+static import nspacemove_nested.NewSpace3.InnerClass3;
+static import nspacemove_nested.NewSpace4.InnerClass4;
+static import nspacemove_nested.InnerClass5;
+static import nspacemove_nested.InnerClass6;
+static import nspacemove_nested.InnerClass7;
+static import nspacemove_nested.Space.InnerClass10;
+static import nspacemove_nested.Space.InnerClass20;
+static import nspacemove_nested.NewOkay30.InnerClass30;
+static import nspacemove_nested.NewOkay40.InnerClass40;
+static import nspacemove_nested.NewOkay50.InnerClass50;
+static import nspacemove_nested.InnerClass60;
+static import nspacemove_nested.InnerClass70;
+static import nspacemove_nested.Space.InnerClass80;
 
 void main() {
   // outer classes

@@ -2,6 +2,7 @@
 
 %include <std_string.i>
 %include <std_wstring.i>
+%include <std_complex.i>
 
 // Tests the typing annotations
 %feature("python:annotations", "typing");
@@ -62,12 +63,12 @@ int is_python_fastproxy() { return 0; }
   /* Check if is a list */
   if (PyList_Check($input)) {
     int i;
-    $1 = PyList_Size($input);
-    $2 = (char **) malloc(($1+1)*sizeof(char *));
+    $1 = (int)PyList_Size($input);
+    $2 = (char **)malloc(($1+1)*sizeof(char *));
     for (i = 0; i < $1; i++) {
       PyObject *o = PyList_GetItem($input, i);
-      if (PyString_Check(o)) {
-        $2[i] = PyString_AsString(PyList_GetItem($input, i));
+      if (PyBytes_Check(o)) {
+        $2[i] = PyBytes_AsString(PyList_GetItem($input, i));
       } else {
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
@@ -87,16 +88,21 @@ int is_python_fastproxy() { return 0; }
 %typemap(pytyping) (int argc, char **argv) "typing.List[str]"
 
 %inline %{
+#include <cstddef>
 
 void take_argv(int argc, char **argv) {}
 
 void take_argv_surround(double before, int argc, char **argv, short after) {}
 
-void argcheck_bool(bool a_bool) {}
+void argcheck_bool(
+  bool a_bool,
+  const bool &a_bool_cref
+) {}
 
 void argcheck_char(
   char a_char,
-  wchar_t a_wchar
+  wchar_t a_wchar,
+  const char &a_char_cref
 ) {}
 
 void argcheck_int(
@@ -109,17 +115,44 @@ void argcheck_int(
   long a_long,
   unsigned long a_ulong,
   long long a_llong,
-  unsigned long long a_ullong
+  unsigned long long a_ullong,
+  size_t a_size,
+  std::size_t a_stdsize,
+  ptrdiff_t a_ptrdiff,
+  std::ptrdiff_t a_stdptrdiff,
+  const short &a_short_cref,
+  const int &a_int_cref,
+  const size_t &a_size_cref,
+  const std::size_t &a_stdsize_cref,
+  const ptrdiff_t &a_ptrdiff_cref,
+  const std::ptrdiff_t &a_stdptrdiff_cref
 ) {}
 
 void argcheck_float(
   float a_float,
-  double a_double
+  double a_double,
+  const double &a_double_cref
+) {}
+
+/* long double has no in/out typemaps of its own, so it is wrapped as a pointer to an
+   opaque type and a Python float is not accepted. Both forms must stay typing.Any. */
+void argcheck_long_double(
+  long double a_ldouble,
+  const long double &a_ldouble_cref
+) {}
+
+void argcheck_complex(
+  std::complex<float> a_cfloat,
+  std::complex<double> a_cdouble,
+  const std::complex<double> &a_cdouble_cref
 ) {}
 
 void argcheck_str(
   const char* a_cstr,
-  const wchar_t *a_wcstr
+  const wchar_t *a_wcstr,
+  std::string a_stdstr,
+  std::wstring a_stdwstr,
+  const std::string &a_stdstr_cref
 ) {}
 
 void argcheck_fnptr(int(*f)(char, bool)) {}

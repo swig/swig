@@ -86,12 +86,31 @@ public class char_strings_runme {
         throw new Exception("Test char set 8 failed, iteration " + i);
     }
 
+    for (i=0; i<count; i++) {
+      if (!char_strings.SetConstCharTypedefString(OTHERLAND_MSG + i, i))
+        throw new Exception("Test char set 9 failed, iteration " + i);
+    }
+
     // get set function
     for (i=0; i<count*10; i++) {
       string ping = OTHERLAND_MSG + i;
       string pong = char_strings.CharPingPong(ping);
       if (ping != pong)
         throw new Exception("Test PingPong 1 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      string ping = OTHERLAND_MSG + i;
+      string pong = char_strings.CharArrayPingPong(ping);
+      if (ping != pong)
+        throw new Exception("Test PingPong 2 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      string ping = OTHERLAND_MSG + i;
+      string pong = char_strings.CharArrayDimsPingPong(ping);
+      if (ping != pong)
+        throw new Exception("Test PingPong 3 failed.\nExpected:" + ping + "\nReceived:" + pong);
     }
 
     // variables

@@ -1,34 +1,7 @@
-#if PY_VERSION_HEX >= 0x03030000 && !defined(SWIG_NO_HEAPTYPES)
+#if !defined(SWIG_NO_HEAPTYPES)
 #if !defined(SWIG_HEAPTYPES)
 #define SWIG_HEAPTYPES
 #endif
-#endif
-
-/* Compatibility macros for Python 3 */
-#if PY_VERSION_HEX >= 0x03000000
-
-#define PyClass_Check(obj) PyObject_IsInstance(obj, (PyObject *)&PyType_Type)
-#define PyInt_Check(x) PyLong_Check(x)
-#define PyInt_AsLong(x) PyLong_AsLong(x)
-#define PyInt_FromLong(x) PyLong_FromLong(x)
-#define PyInt_FromSize_t(x) PyLong_FromSize_t(x)
-#define PyString_Check(name) PyBytes_Check(name)
-#define PyString_FromString(x) PyUnicode_FromString(x)
-#define PyString_Format(fmt, args)  PyUnicode_Format(fmt, args)
-#define PyString_AsString(str) PyBytes_AsString(str)
-#define PyString_Size(str) PyBytes_Size(str)	
-#define PyString_InternFromString(key) PyUnicode_InternFromString(key)
-#define Py_TPFLAGS_HAVE_CLASS Py_TPFLAGS_BASETYPE
-#define _PyLong_FromSsize_t(x) PyLong_FromSsize_t(x)
-
-#endif
-
-/* SWIG APIs for compatibility of both Python 2 & 3 */
-
-#if PY_VERSION_HEX >= 0x03000000
-#  define SWIG_Python_str_FromFormat PyUnicode_FromFormat
-#else
-#  define SWIG_Python_str_FromFormat PyString_FromFormat
 #endif
 
 #if defined(SWIG_HEAPTYPES)
@@ -46,33 +19,16 @@
 SWIGINTERN const char *
 SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes)
 {
-#if PY_VERSION_HEX >= 0x03030000
-# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
+#if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
   *pbytes = NULL;
   return PyUnicode_AsUTF8AndSize(str, psize);
-# else
+#else
   const char *chars;
   *pbytes = PyUnicode_AsUTF8String(str);
   chars = *pbytes ? PyBytes_AsString(*pbytes) : NULL;
   if (chars && psize)
     *psize = PyBytes_Size(*pbytes);
   return chars;
-# endif
-#else
-  char *chars = NULL;
-  *pbytes = NULL;
-  PyString_AsStringAndSize(str, &chars, psize);
-  return chars;
-#endif
-}
-
-SWIGINTERN PyObject *
-SWIG_Python_str_FromChar(const char *c)
-{
-#if PY_VERSION_HEX >= 0x03000000
-  return PyUnicode_FromString(c); 
-#else
-  return PyString_FromString(c);
 #endif
 }
 
@@ -86,12 +42,6 @@ SWIG_Python_str_FromChar(const char *c)
 # define SWIGPY_CAPSULE_ATTR_NAME "type_pointer_capsule" SWIG_TYPE_TABLE_NAME
 #endif
 #define SWIGPY_CAPSULE_NAME SWIG_RUNTIME_MODULE "." SWIGPY_CAPSULE_ATTR_NAME
-
-#if PY_VERSION_HEX < 0x03020000
-#define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)
-#define PyDescr_NAME(x) (((PyDescrObject *)(x))->d_name)
-#define Py_hash_t long
-#endif
 
 #if defined(Py_LIMITED_API)
 # define PyTuple_GET_ITEM PyTuple_GetItem
@@ -120,7 +70,6 @@ SWIG_Python_str_FromChar(const char *c)
 # define SWIG_Py_XDECREF Py_XDECREF
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000
 #if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a6)
 # define SWIG_PyType_GetFullyQualifiedName PyType_GetFullyQualifiedName
 #else
@@ -146,7 +95,6 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   return result;
 }
 #endif
-#endif
 
 /* gh-114329 added PyList_GetItemRef() to Python 3.13.0a4 */
 #if (PY_VERSION_HEX >= 0x030d00a4) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a4)
@@ -168,11 +116,7 @@ SWIG_PyList_GetItemRef(PyObject *op, Py_ssize_t index) {
 #else
 SWIGINTERN int
 SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result) {
-#if PY_VERSION_HEX >= 0x03000000
   PyObject *item = PyDict_GetItemWithError(mp, key);
-#else
-  PyObject *item = _PyDict_GetItemWithError(mp, key);
-#endif
   if (item != NULL) {
     *result = (PyObject *)(item);
     SWIG_Py_INCREF(*result);
@@ -189,11 +133,7 @@ SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result) {
 SWIGINTERN int
 SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result) {
   int res;
-#if PY_VERSION_HEX >= 0x03000000
   PyObject *key_obj = PyUnicode_FromString(key);
-#else
-  PyObject *key_obj = PyString_FromString(key);
-#endif
   if (key_obj == NULL) {
     *result = NULL;
     return -1;

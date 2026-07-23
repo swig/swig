@@ -20,3 +20,11 @@ struct TemplateMoreDerived : TemplateDerived<T> {
 %template(TemplateBaseInt) TemplateBase<int>;
 %template(TempDerivedInt) TemplateDerived<int>;
 %template(TempMoreDerivedInt) TemplateMoreDerived<int>;
+
+namespace ns {
+struct NsBase {};
+}
+struct NsMiddle : ns::NsBase {};
+struct NsMoreDerived : NsMiddle {
+  using ns::NsBase::NsBase;
+};

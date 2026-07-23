@@ -189,5 +189,10 @@ def run(module_name):
     if default_args.chartest6() != "C":
         raise RuntimeError
 
+    default_args.wrapptr_0(1)
+    default_args.wrapptr_0l(1)
+    default_args.wrapptr_null(1)
+    default_args.wrapptr_nullptr(1)
+
 if __name__ == "__main__":
     run("default_args")

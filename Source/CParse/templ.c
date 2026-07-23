@@ -312,6 +312,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
         String *pack_name = Getattr(unexpanded_variadic_parm, "name"); /* e.g. "Ts" */
         String *orig_uname = Copy(uname);
         String *member_name = Copy(name);
+        Node *parent = parentNode(n);
+        Node *prev = n;
         Parm *ep = expanded_variadic_parms;
 
         /* Patch the existing node in place for the first concrete type. */
@@ -321,16 +323,34 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
         Setattr(n, "name", member_name);
         Setattr(n, "sym:needs_symtab", "1"); /* for later call to add_symbols() to add to symbol table */
         Delattr(n, "pack");
+        Delete(new_uname);
         ep = nextSibling(ep);
 
-        /* Append one sibling for each remaining concrete type (second, third, ...) */
+        /* Insert one sibling for each remaining concrete type (second, third, ...) immediately after n.
+         * The caller's child iteration captured nextSibling(n) before recursing into this node, so siblings
+         * inserted here are neither skipped (when n was the last child) nor visited a second time.  Each
+         * insertion is expanded in place so it gets the same template-parameter patching and symbol-table
+         * registration via the fall-through below that the first concrete node receives. */
         while (ep) {
           Node *copy = copyNode(n);
+          Node *after = nextSibling(prev);
           String *uc = Copy(orig_uname);
           Replaceid(uc, pack_name, Getattr(ep, "type"));
           Setattr(copy, "uname", uc);
           Setattr(copy, "name", Copy(member_name));
-          appendSibling(n, copy);
+          Delete(uc);
+          set_previousSibling(copy, prev);
+          set_nextSibling(prev, copy);
+          set_parentNode(copy, parent);
+          if (after) {
+            set_nextSibling(copy, after);
+            set_previousSibling(after, copy);
+          } else if (parent) {
+            set_lastChild(parent, copy);
+          }
+          cparse_template_expand(
+            templnode, copy, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+          prev = copy;
           ep = nextSibling(ep);
         }
         Delete(orig_uname);

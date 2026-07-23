@@ -1,9 +1,3 @@
-import sys
-
-# don't bother with Python 2
-if sys.version_info < (3,0):
-    exit(0)
-
 import pyabi311_bufferinterface
 
 def check(what, expected, actual):

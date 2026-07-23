@@ -1,9 +1,3 @@
-import sys
-
-# cdata returns a bytes object; indexing it yields ints only on Python 3.
-if sys.version_info[0] < 3:
-  sys.exit(0)
-
 from li_cdata_bytes_cpp import *
 
 m = predefStr()

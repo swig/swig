@@ -102,7 +102,11 @@ eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers t
 
 
 <p>
-The current SWIG implementation is designed to work with Lua version 5.2 and above. It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking is not available on all platforms).
+The current SWIG implementation is designed to work with Lua version 5.1 and above, including LuaJIT (which implements the Lua 5.1 API - see the
+"Extensions from Lua 5.2" section of the <a href="https://luajit.org/extensions.html">LuaJIT Extensions</a> page: "LuaJIT is API+ABI-compatible
+with Lua 5.1, which prevents implementing features that would otherwise break the Lua/C API and ABI").
+It is possible to either static link or dynamic link a Lua module into the interpreter (normally Lua static links its libraries, as dynamic linking
+is not available on all platforms).
 SWIG has experimental support for eLua from version 0.8 onwards.
 </p>
 
@@ -270,7 +274,7 @@ $ gcc -fPIC -c example.c -o example.o
 $ gcc -shared -I/usr/include/lua -L/usr/lib/lua example_wrap.o example.o -o example.so
 </pre></div>
 <p>
-The wrappers produced by SWIG can be compiled and linked with Lua 5.2 and later. The loading is extremely simple.
+The wrappers produced by SWIG can be compiled and linked with Lua 5.1 and later, including LuaJIT. The loading is extremely simple.
 </p>
 <div class="targetlang"><pre>
 require("example")

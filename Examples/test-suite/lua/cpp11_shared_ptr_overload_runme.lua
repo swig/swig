@@ -44,3 +44,13 @@ assert(ret == "XXXCombo6", "Combo6 fail:" .. ret)
 
 ret = s.Combo7(s.MyType("XXX"))
 assert(ret == "XXXCombo7", "Combo7 fail:" .. ret)
+
+-- Test default and nil for NULL
+assert(s.default_0(), "default_0() fail")
+assert(s.default_0(nil), "default_0(nil) fail")
+assert(s.default_0l(), "default_0l() fail")
+assert(s.default_0l(nil), "default_0l(nil) fail")
+assert(s.default_null(), "default_null() fail")
+assert(s.default_null(nil), "default_null(nil) fail")
+assert(s.default_nullptr(), "default_nullptr() fail")
+assert(s.default_nullptr(nil), "default_nullptr(nil) fail")

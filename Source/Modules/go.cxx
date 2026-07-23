@@ -5611,8 +5611,14 @@ private:
 
     SwigType *type = Getattr(n, "enumtype");
     assert(type);
-    char *p = Char(type);
-    int len = Len(type);
+
+    String *symname = Getattr(n, "sym:name");
+    String *scope = Swig_scopename_prefix(type);
+    SwigType *symtype = scope ? NewStringf("%s::%s", scope, symname) : Copy(symname);
+    Delete(scope);
+
+    char *p = Char(symtype);
+    int len = Len(symtype);
     SwigType *s = NewString("");
     bool capitalize = true;
     for (int i = 0; i < len; ++i, ++p) {
@@ -5631,6 +5637,7 @@ private:
 
     ret = Swig_name_mangle_type(s);
     Delete(s);
+    Delete(symtype);
     return ret;
   }
 
