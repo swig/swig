@@ -692,7 +692,8 @@ class JSCEmitter: public JSEmitter { ... };
 
 JSCEmitter::JSCEmitter() { ... }
 
-void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) { ... }
+void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
+                                  MarshallingMode mode, bool is_member, bool is_static) { ... }
 ...
 
 // JSCEmitter factory
@@ -936,7 +937,8 @@ state.clazz(NAME, Getattr(n, "sym:name"));</pre>
 <p>Applications with an embedded JavascriptCore should be able to present detailed exception messages that occur in the Javascript engine. Below is an example derived from code provided by Brian Barnes on how these exception details can be extracted.</p>
 <div class="code">
 <pre>
-void script_exception_to_string(JSContextRef js_context, JSValueRef exception_value_ref, char* return_error_string, int return_error_string_max_length)
+void script_exception_to_string(JSContextRef js_context, JSValueRef exception_value_ref,
+                                char* return_error_string, int return_error_string_max_length)
 {
   JSObjectRef exception_object;
   JSValueRef value_ref;

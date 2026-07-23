@@ -2067,7 +2067,9 @@ The command is:
 </p>
 
 <div class="shell"><pre>
-$ swig -scilab -builder -buildercflags -I/opt/foo/include -builderldflags "-L/opt/foo/lib -lfoo" -buildersources baa1.cxx, baa2.cxx example.i
+$ swig -scilab -builder -buildercflags -I/opt/foo/include \
+       -builderldflags "-L/opt/foo/lib -lfoo" \
+       -buildersources baa1.cxx, baa2.cxx example.i
 </pre></div>
 
 <H2><a name="Scilab_generated_scripts">36.7 Generated scripts</a></H2>
