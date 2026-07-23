@@ -136,7 +136,7 @@ Version 4.5.0 (in progress)
             (PyUnicode_FromFormat) and SWIG_Python_str_FromChar
             (PyUnicode_FromString).
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-07-05: jschueller
             [Python] #2424 Updated the Python identifier warnings to match
@@ -166,43 +166,43 @@ Version 4.5.0 (in progress)
             has been removed, along with the python_static example build targets
             that used it.
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-07-05: wsfulton
-	    [Octave] Fix Octave detection in configure with newer versions of
-	    Octave.  Newer Octave changed the format of the 'octave --version'
-	    output from "GNU Octave, version X" to "GNU Octave (arch) version
-	    X", so configure no longer recognised Octave as working and
-	    silently disabled it.  Also fix the mkoctfile check,
-	    which passed PATH and LD_LIBRARY_PATH to 'env' unquoted and so
-	    broke when either contained a directory with a space in it (as can
-	    happen with Windows paths under WSL).
+            [Octave] Fix Octave detection in configure with newer versions of
+            Octave.  Newer Octave changed the format of the 'octave --version'
+            output from "GNU Octave, version X" to "GNU Octave (arch) version
+            X", so configure no longer recognised Octave as working and
+            silently disabled it.  Also fix the mkoctfile check,
+            which passed PATH and LD_LIBRARY_PATH to 'env' unquoted and so
+            broke when either contained a directory with a space in it (as can
+            happen with Windows paths under WSL).
 
 2026-06-17: olly
-	    #3480 [Octave, Python, Ruby] Improve handling of NULL vs nullptr vs
-	    0 vs 0L.
+            #3480 [Octave, Python, Ruby] Improve handling of NULL vs nullptr vs
+            0 vs 0L.
 
-	    For these target languages, SWIG has previously treated nullptr or
-	    NULL as an integer 0 if used in a situation where the type wasn't
-	    known to be a pointer.
+            For these target languages, SWIG has previously treated nullptr or
+            NULL as an integer 0 if used in a situation where the type wasn't
+            known to be a pointer.
 
-	    For nullptr this is never helpful, because it has type nullptr_t
-	    which does not implicitly convert to 0, so we no longer do this.
+            For nullptr this is never helpful, because it has type nullptr_t
+            which does not implicitly convert to 0, so we no longer do this.
 
-	    For NULL it's rather dubious - C and C++ allow NULL to be defined
-	    as integer 0, so `int i = NULL` may work and is occassionally seen
-	    in real code, but it is semantically wrong.  Also GCC and clang
-	    define NULL to a magic value and by default will warn about such
-	    misuse, so it's likely to be less common than before they did this.
-	    So now SWIG only converts NULL to 0 if used in a context where we
-	    know the underlying type is an arithmetic type.
+            For NULL it's rather dubious - C and C++ allow NULL to be defined
+            as integer 0, so `int i = NULL` may work and is occassionally seen
+            in real code, but it is semantically wrong.  Also GCC and clang
+            define NULL to a magic value and by default will warn about such
+            misuse, so it's likely to be less common than before they did this.
+            So now SWIG only converts NULL to 0 if used in a context where we
+            know the underlying type is an arithmetic type.
 
-	    Using an integer zero (or equivalent value such as 0L) for a NULL
-	    pointer is valid, and SWIG will still treat it as a NULL pointer if
-	    used in a context where know the type is a pointer.  This is now
-	    done based on the value of the integer constant so also applies to
-	    0L (previously it was only done if the value was written in the
-	    code as literally `0`).
+            Using an integer zero (or equivalent value such as 0L) for a NULL
+            pointer is valid, and SWIG will still treat it as a NULL pointer if
+            used in a context where know the type is a pointer.  This is now
+            done based on the value of the integer constant so also applies to
+            0L (previously it was only done if the value was written in the
+            code as literally `0`).
 
 2026-06-17: wsfulton
             #3481 Fix the C++17 inheriting constructor pack 'using T::T ...;' over a
@@ -392,7 +392,7 @@ Version 4.5.0 (in progress)
             int&, const int& or a class pointer.
 
 2026-06-01: jschueller
-	    [Go] #3441 Fix director returning reference to local variable in int&
+            [Go] #3441 Fix director returning reference to local variable in int&
             and int&& typemaps.
 
 2026-05-31: wsfulton
@@ -427,7 +427,7 @@ Version 4.5.0 (in progress)
 
                 swig error : Unrecognized option -no-old-metatable-bindings
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-05-30: wsfulton
             C++17: parse user-defined deduction guides used for class
@@ -502,7 +502,7 @@ Version 4.5.0 (in progress)
             otherwise. Alternative documentation strings can of course still
             be set via %feature("python:tp_doc", "...") on the class.
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-05-25: wsfulton
             [Python] %nokwargs on an individual function now correctly opts that
@@ -549,7 +549,7 @@ Version 4.5.0 (in progress)
             so pass a bytes object instead. Guile cdata now also handles all
             byte values correctly.
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-05-19: jmarrec
             #3415 Fix segmentation fault when a class declares a public
@@ -592,7 +592,7 @@ Version 4.5.0 (in progress)
             Update such calls to pass the additional fragment, modelled on
             `SWIG_NewCopyWCharArray` in `Lib/typemaps/wstring.swg`.
 
-	    *** POTENTIAL INCOMPATIBILITY ***
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-05-18: wsfulton
             [Python] Doxygen comments on constructors are now emitted on
@@ -896,20 +896,20 @@ Version 4.5.0 (in progress)
 
 2026-04-25: wsfulton
             Advanced %rename fixes for templates. It is now possible to use %rename
-	    on instantiated templates for various corner cases, see "Template renaming"
-	    section in SWIGPlus.html. For example, it is now possible to selectively rename
-	    overloaded templated functions. The full power of %rename (such as using regex)
-	    can now be used on templates.
+            on instantiated templates for various corner cases, see "Template renaming"
+            section in SWIGPlus.html. For example, it is now possible to selectively rename
+            overloaded templated functions. The full power of %rename (such as using regex)
+            can now be used on templates.
 
-	    Example fix using %rename on templates:
-	      namespace Quirky {
-	        template<typename T> void funky() {}
-	      }
-	      %rename("%s_void") Quirky::funky<int>();
-	      %template(funky_int) Quirky::funky<int>;
-	    Will now generate funky_void() where previously there there was no wrapper, just
-	    a warning:
-		Warning 503: Can't wrap 'funky< int >_void' unless renamed to a valid identifier.
+            Example fix using %rename on templates:
+              namespace Quirky {
+                template<typename T> void funky() {}
+              }
+              %rename("%s_void") Quirky::funky<int>();
+              %template(funky_int) Quirky::funky<int>;
+            Will now generate funky_void() where previously there there was no wrapper, just
+            a warning:
+                Warning 503: Can't wrap 'funky< int >_void' unless renamed to a valid identifier.
 
 2026-04-17: jwuttke
             #3403 Fix -doxygen: @file block bleeding into the first class
@@ -1007,25 +1007,25 @@ Version 4.5.0 (in progress)
             %interface directives.
 
 2026-02-07: wsfulton
-	    #3323 Fix -Wsign-compare warning in 32-bit builds in SWIG_TypeClientData.
+            #3323 Fix -Wsign-compare warning in 32-bit builds in SWIG_TypeClientData.
 
 2026-02-04: jschueller
-	    #3325 Add include guard when generating SWIG runtime header.
+            #3325 Add include guard when generating SWIG runtime header.
 
 2026-01-21: jschueller
-	    #3019 Issue deprecation warning if `%typedef` is used.  This is
-	    an undocumented directive which SWIG has treated as an alias for
-	    the standard C/C++ `typedef` since at least 1996.  Replace any
-	    remaining uses with `typedef`, which also works with older SWIG
-	    versions.
+            #3019 Issue deprecation warning if `%typedef` is used.  This is
+            an undocumented directive which SWIG has treated as an alias for
+            the standard C/C++ `typedef` since at least 1996.  Replace any
+            remaining uses with `typedef`, which also works with older SWIG
+            versions.
 
 2026-01-15: olly
-	    [Octave] Octave 6 is now the oldest version we aim to support.  We
-	    haven't had any automated testing of older Octave versions since
-	    GHA dropped support for Ubuntu 20.04 on 2025-04-01.
+            [Octave] Octave 6 is now the oldest version we aim to support.  We
+            haven't had any automated testing of older Octave versions since
+            GHA dropped support for Ubuntu 20.04 on 2025-04-01.
 
 2026-01-15: jschueller
-	    [Octave] Fix save_binary prototype to be correct for Octave >= 6.
+            [Octave] Fix save_binary prototype to be correct for Octave >= 6.
 
 2025-12-17: ysmilda
             [Go] #3291 
@@ -1051,8 +1051,8 @@ Version 4.5.0 (in progress)
               };
 
 2025-11-06: olly
-	    [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
-	    aliases of `false` and `true` when generating documentation comments.
+            [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
+            aliases of `false` and `true` when generating documentation comments.
 
 2025-11-02: wsfulton
             [Go] Fix various compilation problems when wrapping rvalues references.
