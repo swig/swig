@@ -3320,7 +3320,11 @@ public:
     String *actioncode = emit_action(n);
 
     if (director_method) {
-      Append(actioncode, "} catch (Swig::DirectorException&) {\n");
+      Append(actioncode, "} catch (Swig::DirectorException& e) {\n");
+      Append(actioncode, "  e.restorePythonError();\n");
+      Append(actioncode, "  if (!PyErr_Occurred()) {\n");
+      Append(actioncode, "    PyErr_SetString(PyExc_RuntimeError, e.what());\n");
+      Append(actioncode, "  }\n");
       Append(actioncode, "  SWIG_fail;\n");
       Append(actioncode, "}\n");
     }
