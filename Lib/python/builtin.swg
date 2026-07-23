@@ -572,18 +572,24 @@ SwigPyBuiltin_getiterfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
 #define SWIGPY_BINARYFUNC_CLOSURE(wrapper)			\
 SWIGINTERN PyObject *						\
 wrapper##_binaryfunc_closure(PyObject *a, PyObject *b) {	\
-  return SwigPyBuiltin_binaryfunc_closure(wrapper, a, b);	\
+  return wrapper(a, b);						\
 }
-SWIGINTERN PyObject *
-SwigPyBuiltin_binaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyObject *b) {
-  PyObject *tuple, *result;
-  tuple = PyTuple_New(1);
-  assert(tuple);
-  SWIG_Py_INCREF(b);
-  PyTuple_SET_ITEM(tuple, 0, b);
-  result = wrapper(a, tuple);
-  SWIG_Py_DECREF(tuple);
-  return result;
+
+#define SWIGPY_INPLACE_BINARYFUNC_CLOSURE(wrapper)                      \
+SWIGINTERN PyObject *                                                    \
+wrapper##_inplace_binaryfunc_closure(PyObject *a, PyObject *b) {        \
+  PyObject *result;                                                      \
+  SwigPyObject *sobj;                                                    \
+  result = wrapper(a, b);                                                \
+  if (result) {                                                          \
+    sobj = SWIG_Python_GetSwigThis(result);                              \
+    if (sobj && sobj->ptr == ((SwigPyObject *)a)->ptr) {                 \
+      SWIG_Py_DECREF(result);                                            \
+      SWIG_Py_INCREF(a);                                                 \
+      return a;                                                          \
+    }                                                                    \
+  }                                                                      \
+  return result;                                                         \
 }
 
 typedef ternaryfunc ternarycallfunc;

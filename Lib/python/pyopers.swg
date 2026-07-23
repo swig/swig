@@ -158,51 +158,43 @@ def __truediv__(self, *args):
   Inplace operator declarations.
 
   They translate the inplace C++ operators (+=, -=, ...)  into the
-  corresponding python equivalents(__iadd__,__isub__), etc,
-  disabling the ownership of the input 'this' pointer, and assigning
-  it to the returning object:  
+  corresponding python equivalents (__iadd__, __isub__), etc.
 
-     %feature("del") *::Operator; // disables ownership by generating SWIG_POINTER_DISOWN
-     %feature("new") *::Operator; // claims ownership by generating SWIG_POINTER_OWN
-  
-  This makes the most common case safe, ie:
+  These operators return a reference to *this, so the underlying C++
+  object is the same before and after the call.  SWIG therefore keeps
+  the input 'this' pointer owned by the original Python wrapper and
+  returns the same pointer without taking new ownership — both
+  %delobject and %newobject are deliberately omitted.
 
-     A&  A::operator+=(int i) { ...; return *this; }
-    ^^^^                                    ^^^^^^
+  The old behaviour (SWIG 4.x and earlier) used %delobject and
+  %newobject, which disabled ownership on the input and claimed
+  ownership on the output.  Since both wrappers pointed at the same
+  C++ object this caused use-after-free / double-free when the
+  original wrapper outlived the returned wrapper (issue #3309).
+  If you relied on the old behaviour you can restore it per class:
 
-  will work fine, even when the resulting python object shares the
-  'this' pointer with the input one. The input object is usually
-  deleted after the operation, including the shared 'this' pointer,
-  producing 'strange' seg faults, as reported by Lucriz
-  (lucriz@sitilandia.it).
+    %feature("del","1") A::operator+=;
+    %feature("new","1") A::operator+=;
 
-  If you have an interface that already takes care of that, ie, you
-  already are using inplace operators and you are not getting
-  seg. faults, with the new scheme you could end with 'free' elements
-  that never get deleted (maybe, not sure, it depends). But if that is
-  the case, you could recover the old behaviour using
+  or globally for a given operator:
 
-     %feature("del","0") A::operator+=;
-     %feature("new","0") A::operator+=;
-
-  which recovers the old behaviour for the class 'A', or if you are
-  100% sure your entire system works fine in the old way, use:
-
-    %feature("del","") *::operator+=;
-    %feature("new","") *::operator+=;
-
-  The default behaviour assumes that the 'this' pointer's memory is
-  already owned by the SWIG object; it relinquishes ownership then
-  takes it back. This may not be the case though as the SWIG object
-  might be owned by memory managed elsewhere, eg after calling a
-  function that returns a C++ reference. In such case you will need
-  to use the features above to recover the old behaviour too.
+    %feature("del","1") *::operator+=;
+    %feature("new","1") *::operator+=;
 */
 
+/*
+ * Inplace operator macros.
+ *
+ * For builtin mode: rename the C++ operator and register its Python slot.
+ * For non-builtin mode: rename and add a shadow that calls the C wrapper
+ * then returns self, keeping the original Python wrapper alive and owning.
+ * Without this, the returned wrapper (no ownership) would leave the C++
+ * object orphaned when the original wrapper gets rebound (issue #3309).
+ */
 #if defined(SWIGPYTHON_BUILTIN)
-#define %pyinplaceoper(SwigPyOper, Oper, functp, slt) %delobject Oper; %newobject Oper; %feature("python:slot", #slt, functype=#functp) Oper; %rename(SwigPyOper) Oper
+#define %pyinplaceoper(SwigPyOper, Oper, functp, slt) %feature("python:slot", #slt, functype=#functp) Oper; %rename(SwigPyOper) Oper
 #else
-#define %pyinplaceoper(SwigPyOper, Oper, functp, slt) %delobject Oper; %newobject Oper; %rename(SwigPyOper) Oper
+#define %pyinplaceoper(SwigPyOper, Oper, functp, slt) %rename(SwigPyOper) Oper
 #endif
 
 %pyinplaceoper(__iadd__   , *::operator +=,	binaryfunc, nb_inplace_add);
@@ -215,17 +207,65 @@ def __truediv__(self, *args):
 %pyinplaceoper(__ilshift__, *::operator <<=,	binaryfunc, nb_inplace_lshift);
 %pyinplaceoper(__irshift__, *::operator >>=,	binaryfunc, nb_inplace_rshift);
 
-/* Special cases */
+#ifndef SWIGPYTHON_BUILTIN
+/* Shadow features for inplace operators: call the C wrapper and return self.
+   The __idiv__ / __itruediv__ aliases are kept for backward compatibility. */
+%feature("shadow") *::operator += %{
+def __iadd__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator -= %{
+def __isub__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator *= %{
+def __imul__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator %= %{
+def __imod__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator &= %{
+def __iand__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator |= %{
+def __ior__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator ^= %{
+def __ixor__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator <<= %{
+def __ilshift__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator >>= %{
+def __irshift__(self, *args):
+    $action(self, *args)
+    return self
+%};
+%feature("shadow") *::operator /= %{
+def __itruediv__(self, *args):
+    $action(self, *args)
+    return self
+__idiv__ = __itruediv__
+%};
+#endif
+
 #if defined(SWIGPYTHON_BUILTIN)
 %pyinplaceoper(__itruediv__   , *::operator /=,	binaryfunc, nb_inplace_divide);
 #else
-%delobject *::operator /=;
-%newobject *::operator /=;
-%feature("shadow")      *::operator /= %{
-def __itruediv__(self, *args):
-    return $action(self, *args)
-__idiv__ = __itruediv__
-%};
 %rename(__itruediv__)    *::operator /=;
 #endif
 

@@ -179,6 +179,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     {"inquiry",              "SWIGPY_INQUIRY_CLOSURE"             },
     {"getiterfunc",          "SWIGPY_GETITERFUNC_CLOSURE"         },
     {"binaryfunc",           "SWIGPY_BINARYFUNC_CLOSURE"          },
+    {"inplace_binaryfunc",   "SWIGPY_INPLACE_BINARYFUNC_CLOSURE"  },
     {"ternaryfunc",          "SWIGPY_TERNARYFUNC_CLOSURE"         },
     {"ternarycallfunc",      "SWIGPY_TERNARYCALLFUNC_CLOSURE"     },
     {"lenfunc",              "SWIGPY_LENFUNC_CLOSURE"             },
@@ -198,6 +199,8 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     {"destructor",           "SWIGPY_DESTRUCTOR_CLOSURE"          },
     {"inquiry",              "SWIGPY_INQUIRY_CLOSURE"             },
     {"getiterfunc",          "SWIGPY_GETITERFUNC_CLOSURE"         },
+    {"binaryfunc",           "SWIGPY_BINARYFUNC_CLOSURE"          },
+    {"inplace_binaryfunc",   "SWIGPY_INPLACE_BINARYFUNC_CLOSURE"  },
     {"ternaryfunc",          "SWIGPY_TERNARYFUNC_CLOSURE"         },
     {"ternarycallfunc",      "SWIGPY_TERNARYCALLFUNC_CLOSURE"     },
     {"lenfunc",              "SWIGPY_LENFUNC_CLOSURE"             },
@@ -3574,11 +3577,18 @@ public:
       String *slot = Getattr(n, "feature:python:slot");
       if (slot && !isfriend) {
         String *func_type = Getattr(n, "feature:python:slot:functype");
-        String *closure_decl = getClosure(func_type, wrapper_name, overname ? 0 : funpack);
+        String *closure_functype = func_type;
+        /* In-place number slots (nb_inplace_*) need a specialised closure
+           that returns the original PyObject when the C++ pointer hasn't
+           changed, keeping ownership intact (issue #3309). */
+        if (slot && func_type && Equal(func_type, "binaryfunc") && Len(slot) > 10 && Strncmp(slot, "nb_inplace", 10) == 0) {
+          closure_functype = NewString("inplace_binaryfunc");
+        }
+        String *closure_decl = getClosure(closure_functype, wrapper_name, overname ? 0 : funpack);
         String *feature_name = NewStringf("feature:python:%s", slot);
         String *closure_name = 0;
         if (closure_decl) {
-          closure_name = NewStringf("%s_%s_closure", wrapper_name, func_type);
+          closure_name = NewStringf("%s_%s_closure", wrapper_name, closure_functype);
           if (!GetFlag(builtin_closures, closure_name))
             Printf(builtin_closures_code, "%s /* defines %s */\n\n", closure_decl, closure_name);
           SetFlag(builtin_closures, closure_name);
@@ -3594,6 +3604,8 @@ public:
         Setattr(parent, feature_name, closure_name);
         Delete(feature_name);
         Delete(closure_name);
+        if (closure_functype != func_type)
+          Delete(closure_functype);
       }
 
       /* Handle comparison operators for builtin types */

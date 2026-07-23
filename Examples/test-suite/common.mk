@@ -313,6 +313,7 @@ CPP_TEST_CASES += \
 	li_cdata_bytes_cpp \
 	li_cpointer_cpp \
 	li_std_auto_ptr \
+	li_std_iadd \
 	li_stdint \
 	li_swigtype_inout \
 	li_typemaps \
