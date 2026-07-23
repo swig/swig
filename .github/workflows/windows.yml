@@ -28,6 +28,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
   # The clang-format version used is slightly different for each OS workflow file
