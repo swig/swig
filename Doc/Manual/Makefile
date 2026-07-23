@@ -2,6 +2,9 @@
 #
 # Note that the htmldoc package needs to be installed. wkhtmltopdf patched with qt is also required
 # and the prebuilt binaries can be installed from https://wkhtmltopdf.org/downloads.html.
+# wkhtmltopdf is no longer maintained - the final release (0.12.6.1-2, June 2022) provides Ubuntu
+# packages built for 22.04 (jammy) at the newest, but at the time of writing that package installs
+# and works correctly on 24.04 and 26.04 too.
 #
 # The .html files are first processed and updated with chapter numbering and anchor names
 # are added to the HTML headings using the python scripts. The htmldoc program is then
@@ -40,8 +43,12 @@ check:
 #     <H1><a name="X">Text</a></H1>
 #  2) Tabs in <pre> elements should be expanded to 8 spaces by default, but
 #     are expanded to just one space and css tab-size is not working.
-#  3) <pre> <tt> <code> elements do not always select a fixed-width font - try installing the
-#     Courier font to fix - these have been added to style.css.
+#  3) <pre> <tt> <code> elements do not always select a fixed-width font. wkhtmltopdf ignores the
+#     generic monospace CSS fallback, so one of the font families named in style.css has to be
+#     installed. On Debian/Ubuntu install the "Courier 10 Pitch" font with:
+#       sudo apt install xfonts-scalable
+#     Without it every code block, shell block, diagram and inline code element silently comes
+#     out in a proportional font.
 generate: SWIGDocumentation.html
 	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from https://wkhtmltopdf.org/downloads.html" && false)
 	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' --allow . SWIGDocumentation.html SWIGDocumentation.pdf
