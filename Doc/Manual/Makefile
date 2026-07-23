@@ -20,7 +20,7 @@
 # Note the # and " are escaped
 HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage swig16.png --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
 
-.PHONY: maketoc check generate all maintainer-clean validate test
+.PHONY: maketoc check check-fonts generate all maintainer-clean validate test
 
 all: maketoc check generate
 
@@ -38,6 +38,10 @@ CCache.html: ../../CCache/ccache.yo
 check:
 	all="index.html Sections.html `sed '/^#/d' chapters | grep -v CCache.html`" && for a in $$all; do echo "Check for tabs $$a" && if grep -P '\t' $$a; then echo "Please delete the tabs from the lines above" && exit 1; fi; done && for a in $$all; do echo "HTML tidy check $$a" && tidy -errors --gnu-emacs yes -quiet $$a; done;
 
+# Check a fixed-width font for the code blocks is installed before generating the pdf, see note 3 below
+check-fonts:
+	python3 checkfonts.py
+
 # Note wkhtmltopdf limitations for generating pdf docs:
 #  1) <H1><a name="X"></a>Text</H1> style links don't work and need changing to
 #     <H1><a name="X">Text</a></H1>
@@ -49,7 +53,7 @@ check:
 #       sudo apt install xfonts-scalable
 #     Without it every code block, shell block, diagram and inline code element silently comes
 #     out in a proportional font.
-generate: SWIGDocumentation.html
+generate: check-fonts SWIGDocumentation.html
 	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from https://wkhtmltopdf.org/downloads.html" && false)
 	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' --allow . SWIGDocumentation.html SWIGDocumentation.pdf
 
