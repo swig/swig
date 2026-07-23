@@ -42,7 +42,7 @@ SWIGINTERN void SWIG_Octave_Raise(const octave_value &obj, const char *type) {
 %}
 #define SWIG_Raise(obj, type, desc)     SWIG_Octave_Raise(obj, type)
 
-// Include the unified typemap library
+// Include the Unified Typemap Library
 %include <typemaps/swigtypemaps.swg>
 
 %typecheck(SWIG_TYPECHECK_SWIGOBJECT) SWIG_Object "$1 = (*$input).is_defined();";
