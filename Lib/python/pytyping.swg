@@ -1,3 +1,10 @@
+/* ------------------------------------------------------------
+ * PEP 484 type hints for the primitive types and C strings
+ *
+ * The type hints for any other type are defined in the library
+ * file providing the in and out typemaps for that type.
+ * ------------------------------------------------------------ */
+
 %typemap(pytyping) SWIGTYPE "typing.Any"
 
 %typemap(pytyping) bool, bool const & "bool"
@@ -18,19 +25,12 @@
 "int"
 
 %typemap(pytyping)
-  float,       float const &,
-  double,      double const &,
-  long double, long double const &
+  float,  float const &,
+  double, double const &
 "float"
 
-/* No 'T const &' maps for these */
-%typemap(pytyping) float _Complex, double _Complex, _Complex "complex"
+%typemap(pytyping) char, char const & "str"
 
-%typemap(pytyping)
-    char,    char const &,
-    wchar_t, wchar_t const &
-    "str"
-
-%typemap(pytyping) char *, wchar_t * "typing.Optional[str]"
+%typemap(pytyping) char * "typing.Optional[str]"
 
 %typemap(pytyping) void "None"

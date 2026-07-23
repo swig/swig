@@ -86,14 +86,27 @@ if sys.version_info[0:2] >= (3, 2):
                 "a_ulong",
                 "a_llong",
                 "a_ullong",
+                "a_size",
+                "a_stdsize",
+                "a_ptrdiff",
+                "a_stdptrdiff",
                 "a_short_cref",
                 "a_int_cref",
+                "a_size_cref",
+                "a_stdsize_cref",
+                "a_ptrdiff_cref",
+                "a_stdptrdiff_cref",
             ],
         ):
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(argcheck_float)
         if anno != make_argcheck("float", ["a_float", "a_double", "a_double_cref"]):
+            raise RuntimeError("annotations mismatch: {}".format(anno))
+
+        # long double has no in/out typemaps of its own, so it is wrapped as a pointer
+        anno = get_annotations(argcheck_long_double)
+        if anno != make_argcheck("typing.Any", ["a_ldouble", "a_ldouble_cref"]):
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(argcheck_complex)

@@ -60,7 +60,12 @@
 /* clear errors */
 #define %error_clear PyErr_Clear()
 
-/* Include the unified typemap library */
+/* PEP 484 type hints. Included before the Unified Typemap Library so that the
+   %apply in the library, such as %apply size_t { std::size_t }, also copies the
+   pytyping typemaps and not just the in, out and typecheck typemaps. */
+%include <pytyping.swg>
+
+/* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>
 
 

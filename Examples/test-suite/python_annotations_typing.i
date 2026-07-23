@@ -81,6 +81,7 @@ int is_python_fastproxy() { return 0; }
 %typemap(pytyping) (int argc, char **argv) "typing.List[str]"
 
 %inline %{
+#include <cstddef>
 
 void take_argv(int argc, char **argv) {}
 
@@ -108,14 +109,29 @@ void argcheck_int(
   unsigned long a_ulong,
   long long a_llong,
   unsigned long long a_ullong,
+  size_t a_size,
+  std::size_t a_stdsize,
+  ptrdiff_t a_ptrdiff,
+  std::ptrdiff_t a_stdptrdiff,
   const short &a_short_cref,
-  const int &a_int_cref
+  const int &a_int_cref,
+  const size_t &a_size_cref,
+  const std::size_t &a_stdsize_cref,
+  const ptrdiff_t &a_ptrdiff_cref,
+  const std::ptrdiff_t &a_stdptrdiff_cref
 ) {}
 
 void argcheck_float(
   float a_float,
   double a_double,
   const double &a_double_cref
+) {}
+
+/* long double has no in/out typemaps of its own, so it is wrapped as a pointer to an
+   opaque type and a Python float is not accepted. Both forms must stay typing.Any. */
+void argcheck_long_double(
+  long double a_ldouble,
+  const long double &a_ldouble_cref
 ) {}
 
 void argcheck_complex(

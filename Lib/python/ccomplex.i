@@ -25,3 +25,5 @@
 %typemaps_primitive(SWIG_TYPECHECK_CPLXFLT, float _Complex);
 %typemaps_primitive(SWIG_TYPECHECK_CPLXDBL, double _Complex);
 %typemaps_primitive(SWIG_TYPECHECK_CPLXDBL, _Complex);
+
+%typemap(pytyping) float _Complex, double _Complex, _Complex "complex"
