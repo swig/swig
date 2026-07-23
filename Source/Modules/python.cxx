@@ -3341,6 +3341,12 @@ public:
       Replaceall(tm, "$result", "resultobj");
       if (builtin_ctor) {
         Replaceall(tm, "$owner", "SWIG_BUILTIN_INIT");
+        /* Bypass the SWIG_NewPointerObj macro so that 'self' (the
+           tp_init argument) is passed directly to the underlying
+           function.  The macro now passes NULL (for user %inline code)
+           but tp_init must pass self to reuse the pre-allocated object.
+           See issue #2613. */
+        Replaceall(tm, "SWIG_NewPointerObj(", "SWIG_Python_NewPointerObj(self, ");
       } else if (handled_as_init) {
         Replaceall(tm, "$owner", "SWIG_POINTER_NEW");
       } else {
@@ -4189,8 +4195,10 @@ public:
     Printf(getset_def, "SWIGINTERN PyGetSetDef %s[] = {\n", getset_name);
 
     // All objects have 'this' and 'thisown' attributes
+    Printv(f_init, "#ifndef Py_LIMITED_API\n", NIL);
     Printv(f_init, "PyDict_SetItemString(d, \"this\", this_descr);\n", NIL);
     Printv(f_init, "PyDict_SetItemString(d, \"thisown\", thisown_descr);\n", NIL);
+    Printv(f_init, "#endif\n", NIL);
 
     // Now, the rest of the attributes
     for (Iterator member_iter = First(builtin_getset); member_iter.item; member_iter = Next(member_iter)) {
@@ -4673,12 +4681,27 @@ public:
       Printv(f, "#endif\n", NIL);
     }
     Printf(f, "  if (pytype) {\n");
+    Printv(f, "#ifndef Py_LIMITED_API\n", NIL);
     Printf(f, "    if (PyDict_Merge(pytype->tp_dict, dict, 1) == 0) {\n");
+    Printv(f, "#else\n", NIL);
+    Printf(f, "    {\n");
+    Printf(f, "      PyObject *key, *value;\n");
+    Printf(f, "      Py_ssize_t pos = 0;\n");
+    Printf(f, "      while (PyDict_Next(dict, &pos, &key, &value)) {\n");
+    Printf(f, "        if (PyObject_SetAttr((PyObject *)pytype, key, value) < 0) {\n");
+    Printf(f, "          pytype = 0;\n");
+    Printf(f, "          break;\n");
+    Printf(f, "        }\n");
+    Printf(f, "      }\n");
+    Printf(f, "    }\n");
+    Printv(f, "#endif\n", NIL);
     Printv(f, "      SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
     Printf(f, "      PyType_Modified(pytype);\n");
+    Printv(f, "#ifndef Py_LIMITED_API\n", NIL);
     Printf(f, "    } else {\n");
     Printf(f, "      pytype = 0;\n");
     Printf(f, "    }\n");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  }\n");
     Printf(f, "  Py_DECREF(dict);\n");
     Printf(f, "  return pytype;\n");
