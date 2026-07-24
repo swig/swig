@@ -171,6 +171,8 @@ SWIG_Ruby_define_class(swig_type_info *type)
  * --------------------------------------------------------------------------- */
 static void SWIG_Ruby_mark_swig_type(void *data) {
   struct swig_ruby_wrapped_object *wrobj = (struct swig_ruby_wrapped_object *)data;
+  if (!wrobj)
+    return;
   if (wrobj->dmark)
     wrobj->dmark(wrobj->data);
 }
@@ -183,6 +185,8 @@ static void SWIG_Ruby_mark_swig_type(void *data) {
  * --------------------------------------------------------------------------- */
 static void SWIG_Ruby_free_swig_type(void *data) {
   struct swig_ruby_wrapped_object *wrobj = (struct swig_ruby_wrapped_object *)data;
+  if (!wrobj)
+    return;
   if (wrobj->dfree)
     wrobj->dfree(wrobj->data);
 #ifndef TYPED_DATA_EMBEDDED
@@ -302,8 +306,10 @@ SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
   swig_ruby_owntype oldown = {0, 0};
   if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
     struct swig_ruby_wrapped_object *wrobj = (struct swig_ruby_wrapped_object *)RTYPEDDATA_GET_DATA(obj);
-    oldown.datafree = wrobj->dfree;
-    wrobj->dfree = own.datafree;
+    if (wrobj) {
+      oldown.datafree = wrobj->dfree;
+      wrobj->dfree = own.datafree;
+    }
   }
   return oldown;
 }
@@ -316,6 +322,9 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
   swig_cast_info *tc;
   void *vptr = 0;
   struct swig_ruby_wrapped_object *wrobj = 0;
+  /* Stand in used when the Ruby object has been detached from its wrapper, so that the ownership
+     handling below can run unchanged with any write to it harmlessly discarded. */
+  struct swig_ruby_wrapped_object detached = {0, 0, 0};
 
   /* Grab the pointer */
   if (NIL_P(obj)) {
@@ -324,6 +333,12 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
     wrobj = (struct swig_ruby_wrapped_object *)RTYPEDDATA_GET_DATA(obj);
+    /* Hand written code targeting SWIG 4.4 and earlier sometimes invalidates a proxy with
+       'DATA_PTR(obj) = NULL'. Before SWIG 4.5 that cleared the wrapped pointer itself, but now it
+       detaches the whole wrapper unless Ruby embedded it in the object slot. Treat the detached
+       object as one whose pointer has been cleared, which is what such code intends. */
+    if (!wrobj)
+      wrobj = &detached;
     vptr = wrobj->data;
   } else {
     return SWIG_ERROR;

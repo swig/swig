@@ -31,7 +31,7 @@ module Svn
   end
 end
 
-f = Svn::Fs::FileSystem.create("/tmp/myfile")
+f = Svn::Fs::FileSystem.create("myfilesystem")
 path = f.path
 f.close
 begin
@@ -47,3 +47,19 @@ begin
   raise RuntimeError.new("IOError (2) not thrown")
 rescue IOError
 end
+
+# Hand written code predating SWIG 4.5 detaches a proxy from its C object with
+# 'DATA_PTR(obj) = NULL' rather than the SWIG API. SWIG 4.5 wraps the C pointer in an
+# internal struct, so this now clears the pointer to that struct instead of the C pointer
+# itself, which used to segfault on the next conversion (#3512).
+g = Svn::Fs::FileSystem.create("myfilesystem")
+swig_assert_equal_simple("myfilesystem", g.path)
+swig_assert_simple(!g.closed?)
+g.legacy_close
+swig_assert_simple(g.closed?)
+begin
+  path = g.path
+  raise RuntimeError.new("IOError (3) not thrown")
+rescue IOError
+end
+GC.start

@@ -3966,6 +3966,11 @@ with: </p>
 <pre>SWIG_ConvertPtr(self, NULL, NULL, SWIG_POINTER_CLEAR);</pre>
 </div>
 
+<p>Code written for SWIG 4.4 and earlier which detaches a proxy object by assigning
+<tt>DATA_PTR(obj) = NULL</tt> still leaves the Ruby object referring to no C/C++ object,
+but it should be changed to use <tt>SWIG_POINTER_CLEAR</tt> as shown above, as it leaks
+the internal wrapper struct on Ruby versions before 3.3. </p>
+
 <p>See <tt>Examples/test-suite/ruby_manual_proxy.i</tt> for a complete example. </p>
 
 <H3><a name="Ruby_nn52">35.7.13 Example: STL Vector to Ruby Array</a></H3>
