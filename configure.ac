@@ -820,17 +820,16 @@ AC_SUBST(DLIBPREFIX)
 # Look for Go compilers
 #----------------------------------------------------------------
 
+AS_UNSET([GO])
+AS_UNSET([GO_CYGPATH])
+AS_UNSET([GO111MODULE])
+AS_UNSET([GOPROXY])
+
 AC_ARG_WITH(go, AS_HELP_STRING([--without-go], [Disable Go])
 AS_HELP_STRING([--with-go=path], [Set location of Go compiler]),[GOBIN="$withval"], [GOBIN="$alllang_default"])
 
 if test x"${GOBIN}" = xno; then
   AC_MSG_NOTICE([Disabling Go])
-  GO=
-  GOGCC=false
-  GCCGO=
-  GOOPT=
-  GCCGOOPT=
-  GOVERSIONOPTION=
 else
 
   if test "x$GOBIN" = xyes; then
@@ -839,11 +838,6 @@ else
     GO="$GOBIN"
   fi
 
-  GOGCC=false
-  GCCGO=
-  GOOPT=
-  GCCGOOPT=
-  GOVERSIONOPTION=
   GOMINVER='1.20'
   case $host in
   *-*-cygwin* | *-*-mingw* | *-*-msys*)
@@ -852,9 +846,28 @@ else
     ;;
   esac
 
-  if test -n "$GO" ; then
-    GOVERSIONOPTION=version
-    go_version="$($GO $GOVERSIONOPTION | sed 's%go *%%g;s%version *%%;s% .*%%')"
+  dnl See https://go.dev/wiki/InstallTroubleshooting
+  if test -z "$GOROOT"; then
+    AS_VAR_SET([GOROOT], ["`$GO env GOROOT`"])
+  fi
+  dnl See https://pkg.go.dev/cmd/cgo
+  AS_VAR_SET([CGO_CFLAGS], ["`$GO env CGO_CFLAGS`"])
+  AS_VAR_SET([CGO_CXXFLAGS], ["`$GO env CGO_CXXFLAGS`"])
+  AS_VAR_SET([CGO_CPPFLAGS], ["`$GO env CGO_CPPFLAGS`"])
+  AS_VAR_SET([CGO_LDFLAGS], ["`$GO env CGO_LDFLAGS`"])
+  dnl See https://pkg.go.dev/cmd/go
+  dnl omit version control information
+  AS_VAR_SET([GOFLAGS], ["`$GO env GOFLAGS` -buildvcs=false"])
+  dnl See https://go.dev/ref/mod#environment-variables
+  AS_VAR_SET([GO111MODULE], ['on'])
+  AS_VAR_SET([GOPROXY], ['direct'])
+  dnl Use inside GHA
+  if test -n "$GITHUB_ACTIONS"; then
+    AS_VAR_SET([GOMODCACHE], ["$RUNNER_TEMP/go/pkg/mod"])
+  fi
+
+  if test -n "$GO"; then
+    go_version="$($GO version | sed 's%go *%%g;s%version *%%;s% .*%%')"
     AC_MSG_CHECKING([whether go version is too old])
     AS_VERSION_COMPARE(["$go_version"], ["$GOMINVER"],
                    [AC_MSG_RESULT([yes - minimum version is $GOMINVER])
@@ -863,41 +876,40 @@ else
                    [AC_MSG_RESULT([no])])   dnl above GOMINVER
   fi
 
-  AC_CHECK_PROGS(GCCGO, gccgo)
-
-  if test -n "$GCCGO" ; then
-    if $GCCGO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
-      AC_MSG_CHECKING([whether gccgo version is too old])
-      go_version=[`$GO $GOVERSIONOPTION | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
-      if test "x$go_version" = x; then
-        AC_MSG_RESULT([could not determine gccgo version])
-        GCCGO=
-      elif test "$go_version" -lt 470; then
-        AC_MSG_RESULT([yes - minimum version is 4.7.0])
-        GCCGO=
-      else
-        AC_MSG_RESULT([no])
-        if test "$go_version" -lt 480; then
-          GCCGOOPT="-intgosize 32"
-        fi
-      fi
-    fi
-  fi
+  dnl TODO gccgo is not used in testings
+  dnl AC_CHECK_PROGS(GCCGO, gccgo)
+  dnl if test -n "$GCCGO" ; then
+  dnl   if $GCCGO --help 2>/dev/null | grep gccgo >/dev/null 2>&1 ; then
+  dnl     AC_MSG_CHECKING([whether gccgo version is too old])
+  dnl     go_version=[`$GO version | sed -n '1p' | sed -e 's/^.* \([0-9.]*\) *$/\1/' -e 's/[.]//g'`]
+  dnl     if test "x$go_version" = x; then
+  dnl       AC_MSG_RESULT([could not determine gccgo version])
+  dnl       GCCGO=
+  dnl     elif test "$go_version" -lt 470; then
+  dnl       AC_MSG_RESULT([yes - minimum version is 4.7.0])
+  dnl       GCCGO=
+  dnl     else
+  dnl       AC_MSG_RESULT([no])
+  dnl       if test "$go_version" -lt 480; then
+  dnl         GCCGOOPT="-intgosize 32"
+  dnl       fi
+  dnl     fi
+  dnl   fi
+  dnl fi
 fi
 
-AC_SUBST(GOGCC)
-AC_SUBST(GCCGO)
-AC_SUBST(GO)
-AC_SUBST(GOC)
-AC_SUBST(GO1)
-AC_SUBST(GO12)
-AC_SUBST(GO13)
-AC_SUBST(GO15)
-AC_SUBST(GOOPT)
-AC_SUBST(GCCGOOPT)
-AC_SUBST(GOVERSIONOPTION)
-AC_SUBST(GOMINVER)
-AC_SUBST(GO_CYGPATH)
+AC_SUBST([GO])
+AC_SUBST([GOROOT])
+AC_SUBST([GOMINVER])
+AC_SUBST([GO_CYGPATH])
+AC_SUBST([CGO_CFLAGS])
+AC_SUBST([CGO_CXXFLAGS])
+AC_SUBST([CGO_CPPFLAGS])
+AC_SUBST([CGO_LDFLAGS])
+AC_SUBST([GOFLAGS])
+AC_SUBST([GO111MODULE])
+AC_SUBST([GOPROXY])
+AC_SUBST([GOMODCACHE])
 
 #----------------------------------------------------------------
 # Look for Guile
