@@ -3351,12 +3351,33 @@ public:
         }
       }
 
+      bool self_return = !constructor && !destructor && l && Getattr(l, "self") && !GetFlag(n, "feature:self:disown") &&
+                         (SwigType_isreference(returntype) || SwigType_ispointer(returntype)) &&
+                         Cmp(SwigType_base(returntype), SwigType_base(Getattr(l, "type"))) == 0;
+
       // Unwrap return values that are director classes so that the original Python object is returned instead.
       if (!constructor && Swig_director_can_unwrap(n)) {
-        Wrapper_add_local(f, "director", "Swig::Director *director = 0");
-        Printf(f->code, "director = SWIG_DIRECTOR_CAST(%s);\n", Swig_cresult_name());
+        const char *director_var = "director";
+        Wrapper_add_local(f, director_var, "Swig::Director *director = 0");
+        Printf(f->code, "%s = SWIG_DIRECTOR_CAST(%s);\n", director_var, Swig_cresult_name());
         Append(f->code, "if (director) {\n");
         Append(f->code, "  resultobj = director->swig_get_self();\n");
+        Append(f->code, "  SWIG_Py_INCREF(resultobj);\n");
+        if (self_return) {
+          const char *self_var = builtin_self ? "self" : (funpack ? "swig_obj[0]" : "obj0");
+          Printf(f->code, "} else if ((void *)arg1 == (void *)%s) {\n", Swig_cresult_name());
+          Printf(f->code, "  resultobj = %s;\n", self_var);
+          Append(f->code, "  SWIG_Py_INCREF(resultobj);\n");
+          Append(f->code, "} else {\n");
+        } else {
+          Append(f->code, "} else {\n");
+        }
+        Printf(f->code, "%s\n", tm);
+        Append(f->code, "}\n");
+      } else if (self_return) {
+        const char *self_var = builtin_self ? "self" : (funpack ? "swig_obj[0]" : "obj0");
+        Printf(f->code, "if ((void *)arg1 == (void *)%s) {\n", Swig_cresult_name());
+        Printf(f->code, "  resultobj = %s;\n", self_var);
         Append(f->code, "  SWIG_Py_INCREF(resultobj);\n");
         Append(f->code, "} else {\n");
         Printf(f->code, "%s\n", tm);
