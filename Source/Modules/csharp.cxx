@@ -319,6 +319,20 @@ public:
     if (optionsnode) {
       if (Getattr(optionsnode, "imclassname"))
         imclass_name = Copy(Getattr(optionsnode, "imclassname"));
+      /* The C# namespace can be specified with either the -namespace commandline
+       * option or the 'namespace' module option, eg:
+       *   %module(namespace="Example.Net") example
+       * The commandline option takes precedence when both are specified. */
+      if (!namespce) {
+        String *namespace_option = Getattr(optionsnode, "namespace");
+        if (namespace_option) {
+          namespce = Copy(namespace_option);
+          if (Len(namespce) == 0) {
+            Delete(namespce);
+            namespce = 0;
+          }
+        }
+      }
       /* check if directors are enabled for this module.  note: this
        * is a "master" switch, without which no director code will be
        * emitted.  %feature("director") statements are also required

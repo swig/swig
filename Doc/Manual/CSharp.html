@@ -197,6 +197,17 @@ Note that by default, the generated C# classes have no namespace and the module 
 </li>
 
 <li>
+The namespace can alternatively be specified in the interface file itself using the <tt>namespace</tt> option of the <tt>%module</tt> directive, avoiding the need to pass <tt>-namespace</tt> on the command line. This is convenient for build systems where the interface file is the natural place to keep the module settings. For example:
+
+<div class="code">
+<pre>
+%module(namespace="com.bloggs.widget") widget
+</pre>
+</div>
+generates code into the same namespaces as the <tt>-namespace com.bloggs.widget</tt> command line option above. If both are specified, the <tt>-namespace</tt> command line option takes precedence over the <tt>%module</tt> <tt>namespace</tt> option.
+</li>
+
+<li>
 The <a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a> is also supported as described in this general section with a C# example.
 Unlike Java which requires the use of the -package option when using the <tt>nspace</tt> feature, the -namespace option is not mandatory for C#.
 </li>
