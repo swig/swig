@@ -285,6 +285,7 @@ jobs:
         - SWIGLANG: python
           CPPSTD: c++11
         - SWIGLANG: r
+          VER: 4.0.0
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11

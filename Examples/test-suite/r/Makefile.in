@@ -6,15 +6,15 @@ LANGUAGE     = r
 SCRIPTSUFFIX = _runme.R
 WRAPSUFFIX   = .R
 R_OPT        = --quiet --no-save --no-restore
-RUNR         = R CMD BATCH $(R_OPT) '--args $(SCRIPTDIR)'
+RUNR         = R CMD BATCH $(R_OPT) '--args ../$(SCRIPTDIR)'
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
 HAVE_CXX17   = @HAVE_CXX17@
 HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
-top_srcdir   = @top_srcdir@
-top_builddir = @top_builddir@
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
 
 C_TEST_CASES += \
 	r_copy_struct \
@@ -30,6 +30,7 @@ CPP_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
+SRCDIR       = ../$(srcdir)/
 
 # Ensure testsuite remains free from SWIG warnings.
 SWIGOPT += -Werror
@@ -40,17 +41,20 @@ SWIGOPT += -Werror
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
-	+$(swig_and_compile_cpp)
+	mkdir -p $*
+	+(cd $* && $(swig_and_compile_cpp))
 	$(run_testcase)
 
 %.ctest:
 	$(setup)
-	+$(swig_and_compile_c)
+	mkdir -p $*
+	+(cd $* && $(swig_and_compile_c))
 	$(run_testcase)
 
 %.multicpptest:
 	$(setup)
-	+$(swig_and_compile_multi_cpp)
+	mkdir -p $*
+	+(cd $* && $(swig_and_compile_multi_cpp))
 	$(run_multitestcase)
 
 
@@ -59,28 +63,22 @@ SWIGOPT += -Werror
 # Run the runme if it exists.  If not just load the R wrapper to
 # check for syntactic correctness
 run_testcase = \
-	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) || (cat ./$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)out ; false); \
+	cd $* &&\
+	if [ -f ../$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) ../$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) || (cat ./$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)out ; false); \
 	else \
 	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX) || (cat ./$(SCRIPTPREFIX)$*$(WRAPSUFFIX)out ; false); \
 	fi
 
 run_multitestcase = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) $(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) || (cat ./$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX)out ; false); \
+	cd $* &&\
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list | $(FROMDOS)` ; do \
+	if [ -f ../$(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) ]; then \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PATH=.:"$$PATH" $(RUNTOOL) $(RUNR) ../$(SCRIPTDIR)/$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX) || (cat ./$(SCRIPTPREFIX)$${f}$(SCRIPTSUFFIX)out ; false); \
 	else \
 	  $(RUNTOOL) $(RUNR) ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX) || (cat ./$(SCRIPTPREFIX)$${f}$(WRAPSUFFIX)out ; false); \
 	fi; \
 	done
 # Clean
-clean:
-	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' r_clean
-
 %.clean:
-	@rm -f $*.R $*_wrap.so $*_wrap.cpp $*_wrap.c $*_wrap.o $*_runme.Rout $*.Rout
-	@if [ -f  $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	   rm -f $${f}.R $${f}.Rout ; \
-	done \
-	fi
+	@rm -rf $*

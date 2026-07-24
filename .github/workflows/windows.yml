@@ -148,6 +148,9 @@ jobs:
           COMPILER: gcc
           CSTD: gnu11
           MSYS2_ENV: ucrt64
+        - SWIGLANG: r
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -377,6 +380,10 @@ jobs:
           ruby)
             which ruby.exe
             ruby -v
+            ;;
+          r)
+            which R.exe
+            R --version 2>&1 | head -n1
             ;;
           esac
           echo "WITHLANG=$WITHLANG" >> $GITHUB_ENV
