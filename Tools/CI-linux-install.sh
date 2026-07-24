@@ -80,10 +80,12 @@ case "$SWIGLANG" in
 						update_path "$tool_path"
 					else
 						$RETRY wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
+						NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 						[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 						$RETRY nvm install ${VER}
 						nvm use ${VER}
 						update_env 'USE_NVM'
+						update_env 'NVM_DIR' "$NVM_DIR"
 					fi
 					case "$VER" in
 						0.10|0.12|4|6)
@@ -95,6 +97,9 @@ case "$SWIGLANG" in
 							;;
 						10|12|14|16)
 							$RETRY npm install -g node-gyp@7
+							;;
+						18)
+							$RETRY npm install -g node-gyp@10
 							;;
 						*)
 							$RETRY npm install -g node-gyp
