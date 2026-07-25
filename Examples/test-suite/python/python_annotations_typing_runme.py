@@ -110,7 +110,9 @@ if sys.version_info[0:2] >= (3, 2):
 
         # long double has no in/out typemaps of its own, so it is wrapped as a pointer
         anno = get_annotations(argcheck_long_double)
-        if anno != make_argcheck("typing.Any", ["a_ldouble", "a_ldouble_cref"]):
+        if anno != make_argcheck(
+            "SWIGTYPE_p_long_double", ["a_ldouble", "a_ldouble_cref"]
+        ):
             raise RuntimeError("annotations mismatch: {}".format(anno))
 
         anno = get_annotations(argcheck_complex)
