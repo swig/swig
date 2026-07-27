@@ -7,6 +7,20 @@
 // Tests the typing annotations
 %feature("python:annotations", "typing");
 
+// The default library 'pytyping' typemaps annotate wrapped C/C++ types as typing.Any.
+// Opt this test module in to proxy-name annotations by defining the SWIGTYPE 'pytyping'
+// typemaps explicitly, which exercises the $pytypename and $&pytypename special variables.
+%typemap(pytyping) SWIGTYPE      "$&pytypename";
+%typemap(pytyping) SWIGTYPE []   "typing.Optional[$pytypename]";
+%typemap(pytyping) SWIGTYPE *    "typing.Optional[$pytypename]";
+%typemap(pytyping) SWIGTYPE &    "$pytypename";
+%typemap(pytyping) SWIGTYPE &&   "$pytypename";
+%typemap(pytyping) enum SWIGTYPE "int";
+
+// Exercise $*pytypename, which removes one pointer level: for a MyStruct ** argument it
+// yields the MyStruct proxy name.
+%typemap(pytyping) MyStruct ** "typing.Optional[$*pytypename]";
+
 %feature("python:annotations", "0") no_annotations;
 
 %typemap(pytyping) OptionalInt "typing.Optional[int]";
@@ -186,6 +200,8 @@ void use_memberfn_ptr(void (MyStruct::* ptr)(MyStruct&, MyStruct*, const MyStruc
 
 void use_member_ptr(int OptionalInt::*ptr) {}
 
+void use_deref(MyStruct **pp) {}
+
 enum MyEnum {
   MyEnumMember1,
   MyEnumMember2,
@@ -245,4 +261,17 @@ const MyStruct &make_struct_cref() {
   return v;
 }
 
+struct HasClassMembers {
+  MyStruct member_value;
+  MyStruct *member_pointer;
+};
+
+// Forward-declared only: no proxy class, so $pytypename falls back to an opaque
+// SWIGTYPE_ type wrapper class.
+struct ForwardOnly;
+void use_forward_only(ForwardOnly *fp) { (void)fp; }
+
 %}
+
+// A class-typed %constant is annotated at module level.
+%constant MyStruct *CONST_STRUCT = 0;

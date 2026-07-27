@@ -908,9 +908,7 @@ public:
       if (Len(f_shadow_begin) > 0)
         Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
-      Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
-      Printv(f_shadow_py, "if _swig_python_version_info >= (3, 5):\n", NULL);
-      Printv(f_shadow_py, "    import typing\n", NULL);
+      Printv(f_shadow_py, "\nimport typing\n", NULL);
 
       if (Len(f_shadow_after_begin) > 0)
         Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
@@ -2604,7 +2602,7 @@ public:
       }
     }
     SwigType *pt = Getattr(n, "type");
-    if (pt)
+    if (tm && pt)
       substitutePytypingVars(pt, tm);
     return tm;
   }
@@ -2617,8 +2615,10 @@ public:
    * --------------------------------------------------------------- */
 
   bool substitutePytypingVars(SwigType *pt, String *tm) {
+    if (!tm || !Strchr(tm, '$'))
+      return false;
     bool substitution_performed = false;
-    SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
+    SwigType *type = SwigType_typedef_resolve_all(pt);
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
 
     if (Strstr(tm, "$pytypename")) {
@@ -2633,6 +2633,11 @@ public:
       if (Len(classnametype) > 0) {
         substituteTypenameSpecialVariable(classnametype, tm, "$*pytypename");
         substitution_performed = true;
+      } else {
+        Swig_error(input_file,
+                   line_number,
+                   "The $*pytypename special variable requires a pointer or qualified type in the 'pytyping' typemap for '%s'.\n",
+                   SwigType_str(pt, 0));
       }
       Delete(classnametype);
     }
@@ -2681,7 +2686,9 @@ public:
       } else {
         // SWIG does not know anything about this type, but we still want to
         // distinguish different unknown types.
-        replacementname = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
+        String *mangled = SwigType_manglestr(classnametype);
+        replacementname = NewStringf("SWIGTYPE%s", mangled);
+        Delete(mangled);
 
         // Add to hash table so that an incomplete class can be emitted later.
         Setattr(unknown_types_hash, replacementname, classnametype);
@@ -2697,7 +2704,9 @@ public:
    *
    * Get the name for a class as if referenced from this module.
    * If the class is declared in this module, no prefix is added,
-   * otherwise, the module name is added as a prefix.
+   * otherwise the fully qualified imported name (honouring the
+   * imported module's package and the -relativeimport option) is
+   * used, matching the proxy import naming from classDeclaration().
    * --------------------------------------------------------------- */
 
   String *getProxyClassLocalName(const SwigType *t) {
@@ -2709,11 +2718,12 @@ public:
     if (!symname)
       return NULL;
     Node *mod = Getattr(n, "module");
-    String *modname = mod ? Getattr(mod, "name") : 0;
-    if (modname && Strcmp(modname, mainmodule) != 0)
-      return NewStringf("%s.%s", modname, symname);
-    else
+    if (!mod)
       return Copy(symname);
+    String *modname = Getattr(mod, "name");
+    Node *options = Getattr(mod, "options");
+    String *pkg = options ? Getattr(options, "package") : 0;
+    return import_name_string(package, mainmodule, pkg, modname, symname);
   }
 
   /* ---------------------------------------------------------------
@@ -2722,9 +2732,7 @@ public:
    * Emit a placeholder type wrapper class for every opaque type
    * referenced by a 'pytyping' annotation. The classes are declared
    * inside an 'if typing.TYPE_CHECKING' block so that they are visible
-   * to static type checkers but are not present at runtime. The version
-   * guard short circuits before 'typing.TYPE_CHECKING' is evaluated on
-   * Python versions where 'typing' has not been imported.
+   * to static type checkers but are not present at runtime.
    * --------------------------------------------------------------- */
 
   void emitTypeWrapperClasses() {
@@ -2737,7 +2745,7 @@ public:
            "# (opaque pointers, arrays, member pointers, and unparsed or ignored types).\n",
            "# They give PEP 484 annotations a named type to refer to. They are declared\n",
            "# only for static type checkers and are not present at runtime.\n",
-           "if _swig_python_version_info >= (3, 5) and typing.TYPE_CHECKING:\n",
+           "if typing.TYPE_CHECKING:\n",
            NIL);
 
     for (Iterator swig_type = First(unknown_types_hash); swig_type.key; swig_type = Next(swig_type)) {

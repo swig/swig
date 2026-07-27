@@ -6989,11 +6989,11 @@ Variable annotations were also added in SWIG-4.1.0.
 
 
 <p>
-The <tt>%feature("python:annotations", "pytyping")</tt> directive generates <a href="https://peps.python.org/pep-0484/">PEP 484</a> annotations. For example:
+The <tt>%feature("python:annotations", "typing")</tt> directive generates <a href="https://peps.python.org/pep-0484/">PEP 484</a> annotations. For example:
 </p>
 
 <div class="code"><pre>
-%feature("python:annotations", "pytyping") parse_name;
+%feature("python:annotations", "typing") parse_name;
 float parse_name(const char *name);
 </pre></div>
 
@@ -7043,7 +7043,7 @@ def optional_square(i: "typing.Optional[int]") -&gt; "typing.Optional[int]":
 </pre></div>
 
 <p>
-The <a href="https://docs.python.org/3/library/typing.html">typing</a> library is imported in the generated code if running with Python &gt;= 3.5.
+The <a href="https://docs.python.org/3/library/typing.html">typing</a> library is imported in the generated code.
 </p>
 
 <p>
@@ -7062,21 +7062,34 @@ def do_something(t: "int|float") -&gt; "int":
 </pre></div>
 
 <p>
-The following special variables can be used:
-<dl>
-<dt><tt>$pytypename</tt></dt>
-<dd>
-Similar to Java's <a href="Java.html#Java_special_variables"><tt>$javaclassname</tt></a>. Expands to the wrapped Python proxy class or type wrapper class.
-<ul>
-<li><tt>$pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *</tt></li>
-<li><tt>$&amp;pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo</tt></li>
-<li><tt>$*pytypename</tt> expands to the proxy name when wrapping a C/C++ <tt>Foo *&amp;</tt></li>
-</ul>
-If there is no wrapped proxy class, the special variable expands to an opaque type wrapper class. For example, if there's no proxy class for <tt>Foo *</tt>, <tt>$pytypename</tt> will expand to <tt>SWIGTYPE_p_Foo</tt>.
-Pointers, such as <tt>int *</tt> result in <tt>$pytypename</tt> expanding to the type wrapper class <tt>SWIGTYPE_p_int</tt>.
-These type wrapper classes are declared only for static type checkers, inside an <tt>if typing.TYPE_CHECKING</tt> block, and are not present at runtime.
-</dd>
-</dl>
+The following special variables can be used in a <tt>pytyping</tt> typemap. They are similar to Java's
+<a href="Java.html#Java_special_variables"><tt>$javaclassname</tt></a> family (see also the generic
+<a href="Typemaps.html#Typemaps_special_variables">special variables</a>) and expand to the wrapped
+Python proxy class name, or to a type wrapper class for types that have no proxy.
+</p>
+
+<p>
+<b><tt>$pytypename</tt></b><br>
+Expands to the proxy name for the type as-is, for example the proxy name when wrapping a C/C++ <tt>Foo *</tt>.
+</p>
+
+<p>
+<b><tt>$&amp;pytypename</tt></b><br>
+Expands to the proxy name for the type with a pointer added, for example the proxy name when wrapping a C/C++ <tt>Foo</tt> (by value).
+</p>
+
+<p>
+<b><tt>$*pytypename</tt></b><br>
+Expands to the proxy name for the type with one pointer removed, for example the proxy name when wrapping a C/C++ <tt>Foo *&amp;</tt>.
+</p>
+
+<p>
+If there is no wrapped proxy class, the special variable expands to an opaque type wrapper class instead.
+For example, if there is no proxy class for <tt>Foo *</tt>, <tt>$pytypename</tt> expands to <tt>SWIGTYPE_p_Foo</tt>,
+and a pointer such as <tt>int *</tt> expands to <tt>SWIGTYPE_p_int</tt>. These type wrapper classes are declared
+only for static type checkers, inside an <tt>if typing.TYPE_CHECKING</tt> block, and are not present at runtime.
+The <a href="https://docs.python.org/3/library/typing.html#typing.TYPE_CHECKING"><tt>typing.TYPE_CHECKING</tt></a> constant is <tt>False</tt> at runtime but is treated as <tt>True</tt> by static type checkers, so the wrapper classes are seen by tools such as mypy or an IDE while never being defined when the module actually runs.
+For an enumeration, the special variables expand to <tt>int</tt>.
 </p>
 
 <p>

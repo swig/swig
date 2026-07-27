@@ -123,6 +123,7 @@ C_TEST_CASES += \
 
 MULTI_CPP_TEST_CASES += \
 	import_callback \
+	python_annotations_import \
 	python_crossmod \
 	python_pyiterator_rename \
 	python_runtime_data \
@@ -195,6 +196,7 @@ clean:
 	rm -f clientdata_prop_a.py clientdata_prop_b.py
 	rm -f import_callback_x.py import_callback_y.py
 	rm -f python_crossmod_a.py python_crossmod_b.py
+	rm -f python_annotations_import_a.py python_annotations_import_b.py
 	rm -f import_share_a.py import_share_b.py import_share_c.py
 	rm -f import_stl_a.py import_stl_b.py
 	rm -f imports_a.py imports_b.py mod_a.py mod_b.py

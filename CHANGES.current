@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-27: Nerixyz, wsfulton
+            [Python] #3390 Added the $pytypename special variable for use in 'pytyping'
+            typemaps, analogous to $javaclassname. It expands to the wrapped proxy class
+            name for a type, or to an opaque SWIGTYPE_* type wrapper class (declared only
+            for static type checkers inside an 'if typing.TYPE_CHECKING' block) for types
+            that have no proxy class. The $*pytypename and $&pytypename variants are also
+            available. The default annotations are unchanged; the special variables only
+            take effect in user-defined 'pytyping' typemaps.
+
+            The 'typing' module is now imported unconditionally in the generated code as
+            SWIG supports Python 3.5 and later.
+
 2026-07-27: wsfulton
             [JavaScript, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
             The INPUT typemaps no longer generate a redundant delete of the
