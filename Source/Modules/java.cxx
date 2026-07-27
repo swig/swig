@@ -1322,13 +1322,14 @@ public:
       } else {
         if (symname && !Getattr(n, "unnamedinstance"))
           Printf(constants_code, "  // %s \n", symname);
-        // Translate and write javadoc comment for the enum itself if flagged
+        // Translate and write the comment for the enum itself if flagged. There is no equivalent Java declaration for the enum for a javadoc
+        // comment to attach to for simple enums, only the constants below, so emit it as a plain comment rather than a javadoc comment.
         if (doxygen && doxygenTranslator->hasDocumentation(n)) {
           String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+          Replace(doxygen_comments, "/**", "/*", DOH_REPLACE_FIRST);
           if (comment_creation_chatter)
             Printf(constants_code, "/* This was generated from enumDeclaration() */\n");
-          Printf(constants_code, Char(doxygen_comments));
-          Printf(constants_code, "\n");
+          Printv(constants_code, doxygen_comments, NIL);
           Delete(doxygen_comments);
         }
       }

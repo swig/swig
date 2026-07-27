@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-27: wsfulton
+            [Java] Fix javac dangling-doc-comments warning "documentation comment is
+            not attached to any declaration" in code generated using -doxygen for enums
+            wrapped as simple constants. The comment for the enum itself is now
+            generated as a plain comment, as there is no Java declaration for the enum
+            for javadoc to attach to:
+
+              // SomeEnum
+              /*
+               * Comment for the enum itself
+               */
+              /**
+               * Comment for the first item
+               */
+              public final static int SOME_ITEM_1 = exampleJNI.SOME_ITEM_1_get();
+
 2026-07-24: jun66j5, wsfulton
             [Ruby] #3512 Fix segfault when converting a proxy object that hand written
             code has detached from its C/C++ object using the pre SWIG 4.5 idiom:
