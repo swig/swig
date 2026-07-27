@@ -8,6 +8,21 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-07-27: wsfulton
+            [JavaScript, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            The INPUT typemaps no longer generate a redundant delete of the
+            parameter. For example, the code generated for:
+
+              int func_input(int *INPUT);
+
+            no longer contains:
+
+              if (SWIG_IsNewObj(res1)) delete arg1;
+
+            The delete could never execute, but GCC was unable to determine this
+            and warned about it via -Wfree-nonheap-object when compiling with
+            optimisation and link time optimisation enabled.
+
+2026-07-27: wsfulton
             [Java] Fix javac dangling-doc-comments warning "documentation comment is
             not attached to any declaration" in code generated using -doxygen for enums
             wrapped as simple constants. The comment for the enum itself is now
