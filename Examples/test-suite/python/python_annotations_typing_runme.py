@@ -261,3 +261,15 @@ if annotations_supported:
         "SWIGTYPE_p_ForwardOnly",
     ]:
         swig_assert(not hasattr(python_annotations_typing, name))
+
+    anno = get_annotations(singleOutput)
+    if anno != {"x": "int", "y": "int", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    anno = get_annotations(twoInputs)
+    if anno != {"IN1": "int", "IN2": "int", "return": "bool"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    anno = get_annotations(inout)
+    if anno != {"x": "int", "INOUT": "int", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))

@@ -68,6 +68,17 @@
 /* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>
 
+#ifndef SWIG_INOUT_NODEF
+/* Add INOUT/INPUT/OUTPUT support for the pytyping typemap */
+%define %_pytyping_inout_define(Code, Type)
+  %typemap(pytyping)
+    Type *OUTPUT, Type &OUTPUT,
+    Type *INPUT, Type &INPUT,
+    Type *INOUT, Type &INOUT
+  "$typemap(pytyping, Type)"
+%enddef
+%apply_checkctypes(%_pytyping_inout_define)
+#endif
 
 /*  ------------------------------------------------------------
  *  Python extra typemaps / typemap overrides
