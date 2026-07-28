@@ -2596,10 +2596,47 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * updateArgoutTypingFormat()
+   *
+   * Get the user specified formatting for typing annotations when argout typemaps are used.
+   * Issue warnings if they don't match existing ones.
+   * ------------------------------------------------------------ */
+
+  void updateArgoutTypingFormat(ParmList *p, const String **prefix, const String **joiner, const String **suffix) {
+    // Assume all argout parameters are returned in a list (SWIG_AppendOutput).
+    const char *default_prefix = "typing.List[typing.Union[";
+    const char *default_joiner = ", ";
+    const char *default_suffix = "]]";
+
+    const String *user_prefix = Getattr(p, "tmap:pytyping:argoutprefix");
+    if (!*prefix) {
+      *prefix = user_prefix ? user_prefix : default_prefix;
+    } else if (user_prefix && !Equal(*prefix, user_prefix)) {
+      Swig_warning(
+        WARN_PYTHON_PYTYPING_ARGOUT_MISMATCH, input_file, line_number, "Found different argout prefixes for pytyping. Prefix '%s' will be used.\n", *prefix);
+    }
+
+    const String *user_joiner = Getattr(p, "tmap:pytyping:argoutjoiner");
+    if (!*joiner) {
+      *joiner = user_joiner ? user_joiner : default_joiner;
+    } else if (user_joiner && !Equal(*joiner, user_joiner)) {
+      Swig_warning(WARN_PYTHON_PYTYPING_ARGOUT_MISMATCH, input_file, line_number, "Found different argout joiners for pytyping. '%s' will be used.\n", *joiner);
+    }
+
+    const String *user_suffix = Getattr(p, "tmap:pytyping:argoutsuffix");
+    if (!*suffix) {
+      *suffix = user_suffix ? user_suffix : default_suffix;
+    } else if (user_suffix && !Equal(*suffix, user_suffix)) {
+      Swig_warning(
+        WARN_PYTHON_PYTYPING_ARGOUT_MISMATCH, input_file, line_number, "Found different argout suffixes for pytyping. '%s' will be used.\n", *suffix);
+    }
+  }
+
+  /* ------------------------------------------------------------
    * argoutReturnTypeAnnotation()
    *
-   * Get the return type annotation for functions with argout
-   * parameters. Return NULL if there are no argout parameters.
+   * Gets the return type annotation for functions with argout
+   * parameters. Returns NULL if there are no argout parameters.
    * The annotation mode must not be NONE.
    * ------------------------------------------------------------ */
 
@@ -2616,16 +2653,20 @@ public:
 
     while (p) {
       if ((tm = Getattr(p, "tmap:argout:match_type"))) {
-        if (anno == TYPE_ANNOTATION_TYPING)
+        if (anno == TYPE_ANNOTATION_TYPING) {
+          // To allow multi-argument typemaps to specify an out parameter,
+          // we clone the list and attach the pytyping info.
+          p = CopyParmList(root);
           break;
+        }
 
+        // C annotations - concatenate all with a comma
         tm = SwigType_str(tm, 0);
         if (ret) {
           Printv(ret, ", ", tm, NULL);
-          Delete(tm);
-        } else {
+          Free(tm);
+        } else
           ret = tm;
-        }
 
         p = Getattr(p, "tmap:argout:next");
       } else {
@@ -2637,16 +2678,23 @@ public:
 
     assert(anno == TYPE_ANNOTATION_TYPING);
 
-    ParmList *copied_parms = CopyParmList(root);
-    Swig_typemap_attach_parms("pytyping", copied_parms, 0);
+    Swig_typemap_attach_parms("pytyping", p, 0);
 
-    size_t num_results = 0;
+    size_t n_ret = 0;
+    // If there are multiple return types, the annotation will be formatted as
+    // "{prefix}{type}{joiner}{type}...{suffix}".
+    const String *prefix = NULL;
+    const String *joiner = NULL;
+    const String *suffix = NULL;
+
+    // Intialize with the return type by default.
+    // Users can overwrite this in the pytyping typemap by using argoutaction="overwrite".
     if (!Equal(Getattr(n, "type"), "void")) {
       ret = lookupPytyping(n, true);
-      num_results = 1;
+      n_ret = 1;
     }
 
-    for (p = copied_parms; p; p = nextSibling(p)) {
+    while (p != NULL) {
       if (Getattr(p, "tmap:argout:match_type")) {
         tm = lookupPytyping(p, true);
         if (!tm) {
@@ -2658,26 +2706,43 @@ public:
           tm = NewString("typing.Any");
         }
 
-        if (ret) {
-          if (num_results == 1) {
-            String *combined = NewStringf("typing.List[typing.Union[%s, %s", ret, tm);
+        String *action = Getattr(p, "tmap:pytyping:argoutaction");
+        bool overwrite = Equal(action, "overwrite");
+
+        if (overwrite) {
+          n_ret = 0;  // incremented later
+          Delete(ret);
+          ret = tm;
+        } else if (ret) {
+          updateArgoutTypingFormat(p, &prefix, &joiner, &suffix);
+
+          if (n_ret == 1) {
+            String *tmp = NewStringf("%s%s%s%s", prefix, ret, joiner, tm);
             Delete(ret);
-            ret = combined;
+            ret = tmp;
           } else {
-            Printv(ret, ", ", tm, NULL);
+            Printv(ret, joiner, tm, NULL);
           }
+
           Delete(tm);
         } else {
           ret = tm;
         }
-        num_results++;
+
+        ++n_ret;
+
+        if (ParmList *next = Getattr(p, "tmap:argout:next")) {
+          p = next;
+          continue;
+        }
       }
+
+      p = nextSibling(p);
     }
 
-    if (num_results > 1)
-      Printv(ret, "]]", NULL);
+    if (n_ret > 1)
+      Printv(ret, suffix, NULL);
 
-    Delete(copied_parms);
     return ret;
   }
 
@@ -2693,7 +2758,6 @@ public:
       return NewStringEmpty();
 
     String *ret = argoutReturnTypeAnnotation(n, anno);
-
     /* If no argout typemap, then get the returning type from
      * the function prototype. */
     if (!ret) {

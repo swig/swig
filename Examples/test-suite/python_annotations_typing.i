@@ -101,12 +101,44 @@ int is_python_fastproxy() { return 0; }
 
 %typemap(pytyping) (int argc, char **argv) "typing.List[str]"
 
+%typemap(in, numinputs=0) short *OutReplace (short temp) { $1 = &temp; }
+%typemap(argout) (short *OutReplace) {
+  Py_XDECREF($result);
+  $result = PyLong_FromLong(*$1);
+}
+%typemap(pytyping, argoutaction="overwrite") short *OutReplace "int"
+
 %typemap(in, numinputs=0) short *OutAppend (short temp) { $1 = &temp; }
 %typemap(argout) (short *OutAppend) {
   $result = SWIG_AppendOutput($result, PyLong_FromLong(*$1));
 }
 %typemap(pytyping) short *OutAppend "int"
+
+%typemap(in, numinputs=0) double *OutTuple (double temp) { $1 = &temp; }
+%typemap(argout) double *OutTuple {
+  PyObject *o, *o2, *o3;
+  o = PyFloat_FromDouble(*$1);
+  if ((!$result) || ($result == Py_None)) {
+    $result = o;
+  } else {
+    if (!PyTuple_Check($result)) {
+      PyObject *o2 = $result;
+      $result = PyTuple_New(1);
+      PyTuple_SetItem($result, 0, o2);
+    }
+    o3 = PyTuple_New(1);
+    PyTuple_SetItem(o3, 0, o);
+    o2 = $result;
+    $result = PySequence_Concat(o2, o3);
+    Py_DecRef(o2);
+    Py_DecRef(o3);
+  }
+}
+%typemap(pytyping, argoutprefix="typing.Tuple[", argoutjoiner=",", argoutsuffix="]") double *OutTuple "float"
+
+%apply short *OutReplace { short *OutReplace2 };
 %apply short *OutAppend { short *OutAppend2 };
+%apply double *OutTuple { double *OutTuple2 };
 
 %typemap(in, numinputs=0) (short **short_list)(short*temp) { $1 = &temp; }
 %typemap(in, numinputs=0) (size_t *short_list_len)(size_t temp) { $1 = &temp; }
@@ -118,6 +150,18 @@ int is_python_fastproxy() { return 0; }
   $result = SWIG_AppendOutput($result, list);
 }
 %typemap(pytyping) (short **short_list, size_t *short_list_len) "typing.List[int]"
+
+// Like (short **short_list, size_t *short_list_len) except that it replaces the return value.
+%typemap(in, numinputs=0) (short **short_list_replace)(short*temp) { $1 = &temp; }
+%typemap(in, numinputs=0) (size_t *short_list_len)(size_t temp) { $1 = &temp; }
+%typemap(freearg) (short **short_list_replace) { free(*$1); }
+%typemap(argout) (short **short_list_replace, size_t *short_list_len) {
+  Py_XDECREF($result);
+  $result = PyList_New(*$2);
+  for (size_t i = 0; i < *$2; i++)
+    PyList_SetItem($result, i, PyLong_FromLong((*$1)[i]));
+}
+%typemap(pytyping, argoutaction="overwrite") (short **short_list_replace, size_t *short_list_len) "typing.List[int]"
 
 %inline %{
 #include <cstddef>
@@ -289,8 +333,13 @@ struct HasClassMembers {
 struct ForwardOnly;
 void use_forward_only(ForwardOnly *fp) { (void)fp; }
 
+void argoutVoidSingleReplace(bool arg, short *OutReplace) { *OutReplace = 42; }
 void argoutVoidSingleAppend(bool arg, short *OutAppend) { *OutAppend = 42; }
 
+bool argoutBoolSingleReplace(bool arg, short *OutReplace) {
+  *OutReplace = 42;
+  return arg;
+}
 bool argoutBoolSingleAppend(bool arg, short *OutAppend) {
   *OutAppend = 42;
   return arg;
@@ -300,10 +349,31 @@ void argoutVoidAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
   *OutAppend = 42;
   *OutAppend2 = 43;
 }
+void argoutVoidReplaceTwice(bool arg, short *OutReplace, short *OutReplace2) {
+  *OutReplace = 42;
+  *OutReplace2 = 43;
+}
 
 bool argoutBoolAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
   *OutAppend = 42;
   *OutAppend2 = 43;
+  return arg;
+}
+
+bool argoutBoolReplaceAppend(bool arg, short *OutReplace, short *OutAppend) {
+  *OutReplace = 42;
+  *OutAppend = 43;
+  return arg;
+}
+
+bool argoutBoolTuple(bool arg, double *OutTuple) {
+  *OutTuple = 42.0;
+  return arg;
+}
+
+bool argoutBoolTupleTwice(bool arg, double *OutTuple, double *OutTuple2) {
+  *OutTuple = 42.0;
+  *OutTuple2 = 43.0;
   return arg;
 }
 
@@ -312,8 +382,19 @@ void argoutMultiarg(short **short_list, size_t *short_list_len) {
   *short_list_len = 0;
 }
 
+void argoutMultiargReplace(short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
 bool argoutBoolMultiarg(bool arg, short **short_list, size_t *short_list_len) {
   *short_list = NULL;
+  *short_list_len = 0;
+  return arg;
+}
+
+bool argoutBoolMultiargReplace(bool arg, short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
   *short_list_len = 0;
   return arg;
 }
@@ -324,8 +405,20 @@ void argoutMultiargAfterFirst(int first, short **short_list, size_t *short_list_
   *short_list_len = 0;
 }
 
+void argoutMultiargReplaceAfterFirst(int first, short **short_list_replace, size_t *short_list_len) {
+  (void)first;
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
 bool argoutBoolMultiargAfterFirst(int first, short **short_list, size_t *short_list_len) {
   *short_list = NULL;
+  *short_list_len = 0;
+  return first != 0;
+}
+
+bool argoutBoolMultiargReplaceAfterFirst(int first, short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
   *short_list_len = 0;
   return first != 0;
 }
@@ -337,8 +430,21 @@ void argoutMultiargBetweenFirstLast(int first, short **short_list, size_t *short
   *short_list_len = 0;
 }
 
+void argoutMultiargReplaceBetweenFirstLast(int first, short **short_list_replace, size_t *short_list_len, double last) {
+  (void)first;
+  (void)last;
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
 bool argoutBoolMultiargBetweenFirstLast(int first, short **short_list, size_t *short_list_len, double last) {
   *short_list = NULL;
+  *short_list_len = 0;
+  return first != 0 && last != 0.0;
+}
+
+bool argoutBoolMultiargReplaceBetweenFirstLast(int first, short **short_list_replace, size_t *short_list_len, double last) {
+  *short_list_replace = NULL;
   *short_list_len = 0;
   return first != 0 && last != 0.0;
 }

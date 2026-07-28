@@ -256,10 +256,20 @@ if annotations_supported:
     ]:
         swig_assert(not hasattr(python_annotations_typing, name))
 
+    anno = get_annotations(argoutVoidSingleReplace)
+    if anno != {"arg": "bool", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutVoidSingleReplace(True), int))
+
     anno = get_annotations(argoutVoidSingleAppend)
     if anno != {"arg": "bool", "return": "int"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_assert(isinstance(argoutVoidSingleAppend(True), int))
+
+    anno = get_annotations(argoutBoolSingleReplace)
+    if anno != {"arg": "bool", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolSingleReplace(True), int))
 
     anno = get_annotations(argoutBoolSingleAppend)
     if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int]]"}:
@@ -275,8 +285,27 @@ if annotations_supported:
     if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int, int]]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_assert(isinstance(argoutBoolAppendTwice(True), list))
+    anno = get_annotations(argoutVoidReplaceTwice)
+    if anno != {"arg": "bool", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutVoidReplaceTwice(True), int))
+
+    anno = get_annotations(argoutBoolTuple)
+    if anno != {"arg": "bool", "return": "typing.Tuple[bool,float]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolTuple(True), tuple))
+
+    anno = get_annotations(argoutBoolTupleTwice)
+    if anno != {"arg": "bool", "return": "typing.Tuple[bool,float,float]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolTupleTwice(True), tuple))
 
     anno = get_annotations(argoutMultiarg)
+    if anno != {"return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutMultiarg(), list))
+
+    anno = get_annotations(argoutMultiargReplace)
     if anno != {"return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_assert(isinstance(argoutMultiarg(), list))
@@ -286,22 +315,47 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolMultiarg(True), [True, []])
 
+    anno = get_annotations(argoutBoolMultiargReplace)
+    if anno != {"arg": "bool", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargReplace(True), [])
+
     anno = get_annotations(argoutMultiargAfterFirst)
     if anno != {"first": "int", "return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutMultiargAfterFirst(1), [])
+
+    anno = get_annotations(argoutMultiargReplaceAfterFirst)
+    if anno != {"first": "int", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutMultiargReplaceAfterFirst(1), [])
 
     anno = get_annotations(argoutBoolMultiargAfterFirst)
     if anno != {"first": "int", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolMultiargAfterFirst(2), [True, []])
 
+    anno = get_annotations(argoutBoolMultiargReplaceAfterFirst)
+    if anno != {"first": "int", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargReplaceAfterFirst(2), [])
+
     anno = get_annotations(argoutMultiargBetweenFirstLast)
     if anno != {"first": "int", "last": "float", "return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutMultiargBetweenFirstLast(3, 4.0), [])
 
+    anno = get_annotations(argoutMultiargReplaceBetweenFirstLast)
+    if anno != {"first": "int", "last": "float", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutMultiargReplaceBetweenFirstLast(3, 4.0), [])
+
     anno = get_annotations(argoutBoolMultiargBetweenFirstLast)
     if anno != {"first": "int", "last": "float", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolMultiargBetweenFirstLast(5, 6.0), [True, []])
+
+    anno = get_annotations(argoutBoolMultiargReplaceBetweenFirstLast)
+    if anno != {"first": "int", "last": "float", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargReplaceBetweenFirstLast(5, 6.0), [])

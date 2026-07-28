@@ -269,6 +269,7 @@
 
 #define WARN_PYTHON_INDENT_MISMATCH                  740
 #define WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF           741
+#define WARN_PYTHON_PYTYPING_ARGOUT_MISMATCH         742
 
 /* please leave 740-749 free for Python */
 

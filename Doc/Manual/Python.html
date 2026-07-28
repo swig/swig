@@ -7149,9 +7149,19 @@ def do_something(t: "int|float") -&gt; "int":
 When <tt>argout</tt> typemaps are used, the return annotation is built from the wrapped return
 type and each matched <tt>pytyping</tt> typemap for the <tt>argout</tt> parameters. A single
 returned value keeps its type directly if the function signature returns void. Multiple returned values default to
-<tt>typing.List[typing.Union[...]]</tt>. There will be multiple returned values if the function signature returns non-void
-and there is at least one parameter that is an argout. This matches the behaviour when <tt>SWIG_AppendOutput</tt> is used.
+<tt>typing.List[typing.Union[...]]</tt>. This matches the behaviour when <tt>SWIG_AppendOutput</tt> is used.
 </p>
+
+<p>
+Use <tt>argoutaction="overwrite"</tt> in a <tt>pytyping</tt> typemap to replace the current
+annotation instead of appending to it. Use <tt>argoutprefix</tt>, <tt>argoutjoiner</tt>, and
+<tt>argoutsuffix</tt> to customize the formatting when multiple values are returned.
+</p>
+
+<div class="code"><pre>
+%typemap(pytyping, argoutaction="overwrite") short *OutReplace "int"
+%typemap(pytyping, argoutprefix="typing.Tuple[", argoutjoiner=",", argoutsuffix="]") double *OutTuple "float"
+</pre></div>
 
 <p>
 The following special variables can be used in a <tt>pytyping</tt> typemap. They are similar to Java's
