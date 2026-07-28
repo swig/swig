@@ -205,6 +205,7 @@ Examples/php/pragmas/example.php
 */__pycache__/
 /__pycache__/
 Examples/test-suite/python/*.py
+Examples/test-suite/python/*.pyi
 !Examples/test-suite/python/*runme.py
 Examples/python/**/bar.py
 Examples/python/**/base.py

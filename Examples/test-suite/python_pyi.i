@@ -1,0 +1,27 @@
+%module python_pyi
+
+// Tests the -pyi command line option, which generates a .pyi PEP 484
+// stub file. This is primarily meant for -builtin/-fastproxy, where the
+// python:annotations feature otherwise has nowhere to attach annotations.
+%feature("python:annotations", "typing");
+
+// A type with no proxy class, to exercise the opaque SWIGTYPE_* wrapper
+// class that $pytypename falls back to, which must also be emitted into
+// the .pyi stub (not just the .py shadow file) for the annotation below
+// to resolve to a real name.
+struct Unwrapped;
+%typemap(pytyping) Unwrapped * "$pytypename"
+
+%inline %{
+struct Unwrapped;
+
+class Widget {
+public:
+  Widget(int id): id(id) {}
+  int getId() const { return id; }
+  static Widget *create(int id) { return new Widget(id); }
+  int id;
+};
+
+Unwrapped *make_unwrapped() { return 0; }
+%}

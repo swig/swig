@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-28: Nerixyz, wsfulton
+            [Python] #3473 Added the -pyi command line option, which generates a .pyi
+            PEP 484 stub file alongside the wrapped module. This gives the
+            python:annotations PEP 484 typing support (see #3390 below) somewhere to
+            attach to when using -builtin or -fastproxy, where the generated module has
+            no (or only a partial) Python-level function/class definitions of its own.
+
+            Note: this is new and still under active development for this release,
+            like the rest of the pytyping annotation support below - the generated stub
+            content may change in subsequent SWIG releases as the feature matures.
+
 2026-07-27: Nerixyz, wsfulton
             [Python] #3390 Added the $pytypename special variable for use in 'pytyping'
             typemaps, analogous to $javaclassname. It expands to the wrapped proxy class
@@ -18,6 +29,11 @@ Version 4.5.0 (in progress)
 
             The 'typing' module is now imported unconditionally in the generated code as
             SWIG supports Python 3.5 and later.
+
+            Note: the pytyping annotation support (this feature, and -pyi below) is new
+            and still under active development for this release. The generated
+            annotations and stub content may change in subsequent SWIG releases as the
+            feature matures.
 
 2026-07-27: wsfulton
             [JavaScript, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
