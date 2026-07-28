@@ -883,6 +883,7 @@ C_TEST_CASES += \
 	li_math \
 	long_long \
 	memberin_extend_c \
+	multichar_constant \
 	name \
 	nested \
 	nested_extend_c \

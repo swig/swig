@@ -7609,9 +7609,16 @@ exprsimple     : exprnum
 	       }
 	       | CHARCONST {
 		  $$ = default_dtype;
-		  $$.stringval = $CHARCONST;
 		  $$.val = NewStringf("'%(escape)s'", $CHARCONST);
-		  $$.type = T_CHAR;
+		  if (Len($CHARCONST) > 1) {
+		    /* A multicharacter constant, e.g. 'ab', has type int per the C and
+		     * C++ standards (unlike a single-character literal, which has type
+		     * char in C++). Its value is implementation-defined. */
+		    $$.type = T_INT;
+		  } else {
+		    $$.stringval = $CHARCONST;
+		    $$.type = T_CHAR;
+		  }
 	       }
 	       | WCHARCONST {
 		  $$ = default_dtype;

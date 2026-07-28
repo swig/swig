@@ -21,6 +21,15 @@ Version 4.5.0 (in progress)
             like the rest of the pytyping annotation support below - the generated stub
             content may change in subsequent SWIG releases as the feature matures.
 
+2026-07-28: wsfulton
+            A multicharacter constant, such as 'ab', now has type int instead
+            of char, matching the C and C++ standards. For example:
+
+              #define MULTI 'ab'
+
+            is now wrapped as an int. Previously it was incorrectly wrapped
+            as a char, which silently truncated the value.
+
 2026-07-27: Nerixyz, wsfulton
             [Python] #3390 Added the $pytypename special variable for use in 'pytyping'
             typemaps, analogous to $javaclassname. It expands to the wrapped proxy class
