@@ -99,6 +99,7 @@ static int relativeimport = 0;
 static int flat_static_method = 0;
 static int nogil = 0;
 static int pyi_stub = 0;
+static String *pyi_filename = 0;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -124,8 +125,7 @@ Python Options (available with -python)\n\
      -flatstaticmethod         - Generate additional flattened Python methods for C++ static methods\n\
      -globals <name> - Set <name> used to access C global variable (default: 'cvar')\n\
      -interface <mod>- Set low-level C/C++ module name to <mod> (default: module name prefixed by '_')\n\
-     -keyword        - Use keyword arguments\n\
-     -pyi            - Generate a .pyi stub file\n";
+     -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
      -nogil          - Enable free-threading if supported by the Python interpreter\n\
@@ -135,6 +135,8 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
+     -pyi            - Generate a .pyi stub file\n\
+     -pyifile <file> - Generate the .pyi stub file with name <file>, also implies -pyi\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
@@ -445,6 +447,16 @@ public:
         } else if (strcmp(argv[i], "-pyi") == 0) {
           pyi_stub = 1;
           Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-pyifile") == 0) {
+          if (argv[i + 1]) {
+            pyi_stub = 1;
+            pyi_filename = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
           // clang-format off
         } else if (strcmp(argv[i], "-cppcast") == 0 ||
                    strcmp(argv[i], "-fastinit") == 0 ||
@@ -710,7 +722,8 @@ public:
     }
 
     if (pyi_stub) {
-      String *filen = NewStringf("%s%s.pyi", SWIG_output_directory(), Char(module));
+      String *filen = pyi_filename ? NewStringf("%s%s", SWIG_output_directory(), pyi_filename)
+                                    : NewStringf("%s%s.pyi", SWIG_output_directory(), Char(module));
       if ((f_stub_pyi = NewFile(filen, "w", SWIG_output_files())) == 0) {
         FileErrorDisplay(filen);
         Exit(EXIT_FAILURE);

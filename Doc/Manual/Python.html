@@ -965,6 +965,8 @@ swig -python -help
 <tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
 <tr><td>-nothreads      </td><td>Disable thread support for the entire interface</td></tr>
 <tr><td>-olddefs        </td><td>Keep the old method definitions when using -fastproxy</td></tr>
+<tr><td>-pyi            </td><td>Generate a .pyi stub file</td></tr>
+<tr><td>-pyifile &lt;file&gt;</td><td>Generate the .pyi stub file with name &lt;file&gt;, also implies -pyi</td></tr>
 <tr><td>-relativeimport </td><td>Use relative Python imports</td></tr>
 <tr><td>-threads        </td><td>Add thread support for all the interface</td></tr>
 <tr><td>-O              </td><td>Enable the following optimization options: -fastdispatch -fastproxy -fvirtual</td></tr>
@@ -7110,6 +7112,20 @@ signatures a normal Python module would, but with every body replaced by <tt>...
 never imported or executed, only read by static type checkers such as
 <a href="https://mypy-lang.org">mypy</a>/<a href="https://microsoft.github.io/pyright/">pyright</a>
 and by IDEs.
+</p>
+
+<p>
+By default the stub is written to <tt>&lt;module&gt;.pyi</tt> in the output directory, alongside
+the <tt>.py</tt> shadow file (or wherever <tt>-outdir</tt> points). Pass <tt>-pyifile &lt;file&gt;</tt>
+instead of <tt>-pyi</tt> to write it somewhere else, for example:
+</p>
+
+<div class="shell"><pre>
+$ swig -python -builtin -pyifile stubs/example.pyi -c++ example.i
+</pre></div>
+
+<p>
+<tt>-pyifile</tt> implies <tt>-pyi</tt>, so it is not necessary to pass both.
 </p>
 
 <p>
