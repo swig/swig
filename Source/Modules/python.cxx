@@ -722,8 +722,7 @@ public:
     }
 
     if (pyi_stub) {
-      String *filen = pyi_filename ? NewStringf("%s%s", SWIG_output_directory(), pyi_filename)
-                                    : NewStringf("%s%s.pyi", SWIG_output_directory(), Char(module));
+      String *filen = pyi_filename ? NewStringf("%s%s", SWIG_output_directory(), pyi_filename) : NewStringf("%s%s.pyi", SWIG_output_directory(), Char(module));
       if ((f_stub_pyi = NewFile(filen, "w", SWIG_output_files())) == 0) {
         FileErrorDisplay(filen);
         Exit(EXIT_FAILURE);
