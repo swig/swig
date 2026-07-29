@@ -138,8 +138,46 @@ if annotations_supported:
     if anno != make_argcheck("typing.Optional[SWIGTYPE_p_float]", ["arr"]):
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
-    anno = get_annotations(optional_square)
-    if anno != {"return": "typing.Optional[int]", "i": "typing.Optional[int]"}:
+    anno = get_annotations(identity_vector)
+    if anno != {
+        "return": "typing.Tuple[int, ...]",
+        "v": "collections.abc.Iterable[int]",
+    }:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(identity_vector([1, 2]), tuple))
+
+    anno = get_annotations(identity_vector_cref)
+    if anno != {
+        "return": "typing.Tuple[int, ...]",
+        "v": "collections.abc.Iterable[int]",
+    }:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(identity_vector_cref([1, 2]), tuple))
+
+    anno = get_annotations(identity_nest_vector)
+    if anno != {
+        "return": "typing.Tuple[typing.Tuple[int, ...], ...]",
+        "v": "collections.abc.Iterable[collections.abc.Iterable[int]]",
+    }:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    res = identity_nest_vector([[1, 2], [3, 4]])
+    swig_assert(isinstance(res, tuple) and isinstance(res[0], tuple))
+
+    anno = get_annotations(identity_nest_vector_cref)
+    if anno != {
+        "return": "typing.Tuple[typing.Tuple[int, ...], ...]",
+        "v": "collections.abc.Iterable[collections.abc.Iterable[int]]",
+    }:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    res = identity_nest_vector_cref([[1, 2], [3, 4]])
+    swig_assert(isinstance(res, tuple) and isinstance(res[0], tuple))
+
+    anno = get_annotations(identity_vector_ref)
+    if anno != {"return": "IntVector", "v": "IntVector"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    anno = get_annotations(identity_vector_ptr)
+    if anno != {"return": "typing.Optional[IntVector]", "v": "typing.Optional[IntVector]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
     swig_assert(optional_square(None) is None)

@@ -1154,6 +1154,26 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     Delete(amp_mangle);
     Delete(amp_type);
 
+    // ${n}_targ{m} and $targ{m}
+    if (SwigType_istemplate(ftype)) {
+      List *targs = SwigType_templateargslist(ftype);
+      Iterator targ;
+      int targ_idx = 1;
+      for (targ = First(targs); targ.item; ++targ_idx, targ = Next(targ)) {
+        ts = SwigType_str(targ.item, 0);
+        if (index == 1) {
+          sprintf(varname, "$targ%d", targ_idx);
+          Replace(s, varname, ts, DOH_REPLACE_ANY);
+          replace_local_types(locals, varname, targ.item);
+        }
+        sprintf(varname, "$%d_targ%d", index, targ_idx);
+        Replace(s, varname, ts, DOH_REPLACE_ANY);
+        replace_local_types(locals, varname, targ.item);
+        Delete(ts);
+      }
+      Delete(targs);
+    }
+
     /* Base type */
     if (SwigType_isarray(type)) {
       base_type = Copy(type);
@@ -2133,11 +2153,22 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
               Delete(dtypemap);
             }
             found_colon = Strchr(tmap_method, ':');
+
+            // Position of the '?' for queries such as "foo:bar?". In that case, "foo:bar" is searched.
+            // If this has no match, "foo" is searched.
+            char *found_questionmark = Strchr(tmap_method, '?');
+            if (found_questionmark && (found_questionmark[1] != '\0' || !found_colon))
+              found_questionmark = NULL;
+
+            // Typemap method without the keyword argument. For "foo:bar", this is "foo".
+            String *tmap_base_method = NULL;
             if (found_colon) {
               /* Substitute from a keyword argument to a typemap. Avoid emitting local variables from the attached typemap by passing NULL for the file. */
-              String *temp_tmap_method = NewStringWithSize(Char(tmap_method), (int)(found_colon - Char(tmap_method)));
-              typemap_attach_parms(temp_tmap_method, to_match_parms, NULL, override_vars);
-              Delete(temp_tmap_method);
+              tmap_base_method = NewStringWithSize(Char(tmap_method), (int)(found_colon - Char(tmap_method)));
+              typemap_attach_parms(tmap_base_method, to_match_parms, NULL, override_vars);
+
+              if (found_questionmark)
+                Delitem(tmap_method, (int)(found_questionmark - Char(tmap_method)));
             } else {
               typemap_attach_parms(tmap_method, to_match_parms, f, override_vars);
             }
@@ -2146,6 +2177,17 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
             /* Look for the typemap code */
             attr = NewStringf("tmap:%s", tmap_method);
             tm = Getattr(to_match_parms, attr);
+
+            // Look for the code without a keyword argument.
+            if (!tm && found_questionmark) {
+              Delete(attr);
+              attr = NewStringf("tmap:%s", tmap_base_method);
+              tm = Getattr(to_match_parms, attr);
+            }
+
+            if (tmap_base_method)
+              Delete(tmap_base_method);
+
             if (tm) {
               Printf(attr, "%s", ":next");
               /* fail if multi-argument lookup requested in $typemap(...) and the lookup failed */
