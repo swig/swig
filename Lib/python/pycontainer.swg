@@ -532,6 +532,10 @@ namespace swig {
   %pythoncode %{def __iter__(self):
     return self.iterator()%}
 #endif
+  // FIXME: This should use the correct type of SwigPyIterator.
+  // To pass type checking, the iterator needs to be generic over the value type.
+  %pythonstubcode %{def __iter__(self) -> "typing.Any":
+    ...%}
   }
 
 #endif //SWIG_EXPORT_ITERATOR_METHODS

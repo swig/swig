@@ -67,6 +67,6 @@ if swig_annotations_in_stub():
 for filename in generated:
     with open(filename) as f:
         source = "".join(line for line in f if "thisown" not in line)
-    for unwanted in ("_swig_property", "_swig_dispatch", "TYPE_CHECKING", '"typing.Any"'):
+    for unwanted in ("_swig_property", "_swig_dispatch", '"typing.Any"'):
         if unwanted in source:
             raise RuntimeError("{} should not contain {}".format(filename, unwanted))

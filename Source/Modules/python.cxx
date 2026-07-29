@@ -970,6 +970,8 @@ public:
         Printv(f_shadow_py, "\n", shadow_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nimport typing\n", NULL);
+      Printv(f_shadow_py, "if typing.TYPE_CHECKING:\n", NULL);
+      Printv(f_shadow_py, tab4, "import collections.abc\n", NULL);
 
       if (Len(shadow_after_begin) > 0)
         Printv(f_shadow_py, shadow_after_begin, "\n", NIL);
@@ -1026,6 +1028,7 @@ public:
         Printv(f_stub_pyi, "\n", stub_begin, "\n", NIL);
 
       Printv(f_stub_pyi, "import typing\n", NULL);
+      Printv(f_stub_pyi, "import collections.abc\n", NULL);
       if (Len(stub_imports) > 0)
         Printv(f_stub_pyi, stub_imports, NULL);
 
