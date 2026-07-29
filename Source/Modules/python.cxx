@@ -948,7 +948,7 @@ public:
         Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
 
       // Emit type wrapper classes for the opaque types referenced by annotations
-      emitTypeWrapperClasses(f_shadow_py);
+      emitTypeWrapperClasses(f_shadow_py, true);
 
       Delete(f_shadow_py);
     }
@@ -962,7 +962,7 @@ public:
         Printv(f_stub_pyi, "\n", f_stub, "\n", NIL);
 
       // Emit type wrapper classes for the opaque types referenced by annotations
-      emitTypeWrapperClasses(f_stub_pyi);
+      emitTypeWrapperClasses(f_stub_pyi, false);
 
       Delete(f_stub_pyi);
     }
@@ -1013,8 +1013,8 @@ public:
   /* ------------------------------------------------------------
    * printModuleBegin()
    *
-   * Print the banner and module docstring shared by the .py shadow
-   * file and the .pyi stub file.
+   * Print the banner and module docstring shared by the generated
+   * .py wrapper file and the .pyi stub file.
    * ------------------------------------------------------------ */
 
   static void printModuleBegin(String *f_py, String *mod_docstring) {
@@ -2429,9 +2429,13 @@ public:
    * make_pyParmList()
    *
    * Generate parameter list for Python functions or methods,
-   * reuse make_autodocParmList() to do so.
+   * reuse make_autodocParmList() to do so. for_stub should be true
+   * when the result is destined for the .pyi stub rather than the
+   * generated .py wrapper file: once -pyi/-pyifile is active, the .py
+   * file's own parameter annotations are suppressed (see
+   * returnTypeAnnotation()), but the .pyi always needs them.
    * ------------------------------------------------------------ */
-  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false) {
+  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false, bool for_stub = false) {
     /* Get the original function for a defaultargs copy,
      * see default_arguments() in parser.y. */
     Node *nn = Getattr(n, "defaultargs");
@@ -2464,6 +2468,8 @@ public:
     }
 
     type_annotation_t funcanno = getTypeAnnotationMode(n);
+    if (!for_stub && pyi_stub)
+      funcanno = TYPE_ANNOTATION_NONE;
     String *params = NewString("");
     String *_params = make_autodocParmList(n, false, ((in_class || has_self_for_count) ? 2 : 1), is_calling, funcanno);
 
@@ -2548,12 +2554,12 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * returnTypeAnnotation()
+   * returnTypeAnnotationForStubFile()
    *
    * Helper function for constructing the function annotation
    * of the returning type, return an empty string when annotations are disabled
    * ------------------------------------------------------------ */
-  String *returnTypeAnnotation(Node *n) {
+  String *returnTypeAnnotationForStubFile(Node *n) {
     type_annotation_t anno = getTypeAnnotationMode(n);
     if (anno == TYPE_ANNOTATION_NONE)
       return NewStringEmpty();
@@ -2613,12 +2619,28 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * variableAnnotation()
+   * returnTypeAnnotation()
+   *
+   * Like returnTypeAnnotationForStubFile(), but for the generated .py
+   * wrapper file. Once -pyi/-pyifile is generating a .pyi with the same
+   * information, a type checker never looks at the .py file's own
+   * annotations again (a .pyi always takes precedence over its .py
+   * for the same module), so they would be dead weight - skip
+   * computing them entirely rather than emitting information nothing
+   * will read.
+   * ------------------------------------------------------------ */
+
+  String *returnTypeAnnotation(Node *n) {
+    return pyi_stub ? NewStringEmpty() : returnTypeAnnotationForStubFile(n);
+  }
+
+  /* ------------------------------------------------------------
+   * variableAnnotationForStubFile()
    *
    * Helper function for constructing a variable annotation
    * ------------------------------------------------------------ */
 
-  String *variableAnnotation(Node *n) {
+  String *variableAnnotationForStubFile(Node *n) {
     type_annotation_t anno = getTypeAnnotationMode(n);
     if (anno == TYPE_ANNOTATION_NONE || GetFlag(n, "feature:python:annotations:novar"))
       return NewStringEmpty();
@@ -2642,19 +2664,32 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * variableAnnotation()
+   *
+   * Like variableAnnotationForStubFile(), but for the generated .py
+   * wrapper file - see returnTypeAnnotation() for why this is suppressed once
+   * -pyi/-pyifile is active.
+   * ------------------------------------------------------------ */
+
+  String *variableAnnotation(Node *n) {
+    return pyi_stub ? NewStringEmpty() : variableAnnotationForStubFile(n);
+  }
+
+  /* ------------------------------------------------------------
    * variableAnnotationForStub()
    *
-   * Like variableAnnotation(), but for use in a .pyi stub, where a
-   * bare name with no ': type' suffix is not a valid attribute/module
-   * variable declaration (it is a name-lookup expression referring to
-   * whatever else that name might resolve to). Falls back to
-   * 'typing.Any' so the stub is always syntactically valid, unlike
-   * the shadow .py file where the same helper feeds an assignment
-   * statement and an empty annotation is harmless.
+   * Like variableAnnotationForStubFile(), but for use in a .pyi stub,
+   * where a bare name with no ': type' suffix is not a valid
+   * attribute/module variable declaration (it is a name-lookup
+   * expression referring to whatever else that name might resolve
+   * to). Falls back to 'typing.Any' so the stub is always
+   * syntactically valid, unlike the generated .py wrapper file where
+   * the same helper feeds an assignment statement and an empty
+   * annotation is harmless.
    * ------------------------------------------------------------ */
 
   String *variableAnnotationForStub(Node *n) {
-    String *annotation = variableAnnotation(n);
+    String *annotation = variableAnnotationForStubFile(n);
     if (Len(annotation) == 0) {
       Delete(annotation);
       annotation = NewString(": typing.Any");
@@ -2812,12 +2847,17 @@ public:
    * emitTypeWrapperClasses()
    *
    * Emit a placeholder type wrapper class for every opaque type
-   * referenced by a 'pytyping' annotation. The classes are declared
-   * inside an 'if typing.TYPE_CHECKING' block so that they are visible
-   * to static type checkers but are not present at runtime.
+   * referenced by a 'pytyping' annotation. In the generated .py
+   * wrapper file (guard_with_type_checking=true) the classes are
+   * declared inside an 'if typing.TYPE_CHECKING' block so that they
+   * are visible to static type checkers but are not present at
+   * runtime. That guard is meaningless in the .pyi stub
+   * (guard_with_type_checking=false): a .pyi is only ever read by a
+   * type checker, never executed, so TYPE_CHECKING is trivially
+   * always true there.
    * --------------------------------------------------------------- */
 
-  void emitTypeWrapperClasses(File *f_dest) {
+  void emitTypeWrapperClasses(File *f_dest, bool guard_with_type_checking) {
     if (!f_dest || Len(unknown_types_hash) == 0)
       return;
 
@@ -2825,13 +2865,14 @@ public:
            "\n",
            "# Type wrapper classes for C/C++ types that have no Python proxy class\n",
            "# (opaque pointers, arrays, member pointers, and unparsed or ignored types).\n",
-           "# They give PEP 484 annotations a named type to refer to. They are declared\n",
-           "# only for static type checkers and are not present at runtime.\n",
-           "if typing.TYPE_CHECKING:\n",
+           "# They give PEP 484 annotations a named type to refer to.\n",
            NIL);
+    if (guard_with_type_checking)
+      Printv(f_dest, "# They are declared only for static type checkers and are not present at runtime.\n", "if typing.TYPE_CHECKING:\n", NIL);
 
+    const char *indent = guard_with_type_checking ? tab4 : "";
     for (Iterator swig_type = First(unknown_types_hash); swig_type.key; swig_type = Next(swig_type)) {
-      emitTypeWrapperClass(f_dest, swig_type.key, swig_type.item);
+      emitTypeWrapperClass(f_dest, swig_type.key, swig_type.item, indent);
     }
   }
 
@@ -2839,11 +2880,11 @@ public:
    * emitTypeWrapperClass()
    * --------------------------------------------------------------- */
 
-  void emitTypeWrapperClass(File *f_dest, String *classname, SwigType *type) {
+  void emitTypeWrapperClass(File *f_dest, String *classname, SwigType *type, const char *indent) {
     String *tstr = SwigType_lstr(type, 0);
-    Printf(f_dest, "    class %s(object):\n", classname);
-    Printf(f_dest, "        \"\"\"Opaque '%s'.\"\"\"\n", tstr);
-    Printf(f_dest, "        ...\n\n");
+    Printf(f_dest, "%sclass %s(object):\n", indent, classname);
+    Printf(f_dest, "%s    \"\"\"Opaque '%s'.\"\"\"\n", indent, tstr);
+    Printf(f_dest, "%s    ...\n\n", indent);
 
     Delete(tstr);
   }
@@ -2863,7 +2904,7 @@ public:
     bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
 
     if (!fast || olddefs) {
-      emitFunctionHeaderHelper(n, f_dest, name, kw);
+      emitFunctionHeaderHelper(n, f_dest, name, kw, false);
 
       if (have_pythonprepend(n))
         Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
@@ -2892,7 +2933,7 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionStubHelper(Node *n, File *f_dest, String *name, int kw) {
-    emitFunctionHeaderHelper(n, f_dest, name, kw);
+    emitFunctionHeaderHelper(n, f_dest, name, kw, true);
     Printv(f_dest, tab4, "...\n", NIL);
   }
 
@@ -2906,9 +2947,9 @@ public:
    * ------------------------------------------------------------ */
 
   void emitStaticMethodStubHelper(Node *n, String *symname, int kw) {
-    String *parms = make_pyParmList(n, false, false, kw);
+    String *parms = make_pyParmList(n, false, false, kw, false, true);
     Printv(f_stub, "\n", tab4, "@staticmethod", NIL);
-    Printv(f_stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+    Printv(f_stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
     if (Node *node_with_doc = find_overload_with_docstring(n))
       Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_STATICFUNC, tab8), "\n", NIL);
     Printv(f_stub, tab8, "...\n", NIL);
@@ -2918,15 +2959,17 @@ public:
    * emitFunctionHeaderHelper()
    *
    * Write the 'def name(parms) -> ret:' header and docstring shared
-   * by emitFunctionShadowHelper() and emitFunctionStubHelper() into
-   * f_dest.
+   * by emitFunctionShadowHelper() (for_stub=false) and
+   * emitFunctionStubHelper() (for_stub=true) into f_dest.
    * ------------------------------------------------------------ */
 
-  void emitFunctionHeaderHelper(Node *n, File *f_dest, String *name, int kw) {
-    String *parms = make_pyParmList(n, false, false, kw);
+  void emitFunctionHeaderHelper(Node *n, File *f_dest, String *name, int kw, bool for_stub) {
+    String *parms = make_pyParmList(n, false, false, kw, false, for_stub);
+    String *ret = for_stub ? returnTypeAnnotationForStubFile(n) : returnTypeAnnotation(n);
 
     /* Make a wrapper function to insert the code into */
-    Printv(f_dest, "\n", "def ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+    Printv(f_dest, "\n", "def ", name, "(", parms, ")", ret, ":\n", NIL);
+    Delete(ret);
 
     // When handling the last overloaded function in an overload set (and we're only called for the last one if the function is overloaded at all), we need to
     // output the docstring if any of the overloads has any documentation, not just this last one.
@@ -5362,7 +5405,8 @@ public:
       }
 
       if (pyi_stub) {
-        Printv(f_stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+        String *stub_parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
+        Printv(f_stub, "\n", tab4, "def ", symname, "(", stub_parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
           Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
         Printv(f_stub, tab8, "...\n", NIL);
@@ -5593,8 +5637,8 @@ public:
       }
 
       if (pyi_stub && add_init) {
-        String *parms = make_pyParmList(n, true, false, allow_kwargs);
-        Printv(f_stub, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+        String *parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
+        Printv(f_stub, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
           Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
         Printv(f_stub, tab8, "...\n", NIL);
@@ -5908,8 +5952,8 @@ public:
    * printClassHeader()
    *
    * Write the 'class name(bases):' header and docstring shared by
-   * the .py shadow file (addMetaclass=true, non-builtin only) and
-   * the .pyi stub file (addMetaclass=false) into f_dest.
+   * the generated .py wrapper file (addMetaclass=true, non-builtin
+   * only) and the .pyi stub file (addMetaclass=false) into f_dest.
    * ------------------------------------------------------------ */
 
   void printClassHeader(Node *n, String *class_name, String *f_dest, bool addMetaclass) {
