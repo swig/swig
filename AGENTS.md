@@ -139,11 +139,24 @@ For debugging the SWIG compiler — gdb setup, the `swigprint`/`locswigprint` he
 
 ## Changelog
 
-User visible changes (bug fixes, new features, behavior changes, deprecations) go in `CHANGES.current` for the in progress release. On release, those entries are appended to `CHANGES`. `RELEASENOTES` holds higher level per release summaries. Entry style: see existing entries for date/issue number format. Describe only what a user observes - new syntax, generated wrapper behaviour, warning/error messages - and leave internal helper names, refactors, and `Source/` symbols out. Purely internal changes do not get a `CHANGES.current` entry.
+Any user visible change (bug fix, new feature, behavior change, deprecation) must be accompanied by a `CHANGES.current` entry describing it, added as part of the same change - do not leave it for later. On release, those entries are appended to `CHANGES`; `RELEASENOTES` holds higher level per release summaries.
+
+Write entries so a user immediately understands them: clear, easy to follow, succinct and to the point. Describe only what a user observes - new syntax, generated wrapper behaviour, warning/error messages, an incompatibility - and leave internal helper names, refactors, and `Source/` symbols out. Match the date and issue number format of the existing entries at the top of `CHANGES.current`, newest first, and flag a breaking change with a `*** POTENTIAL INCOMPATIBILITY ***` line. Purely internal changes with no observable effect do not get a `CHANGES.current` entry.
 
 ## Coding conventions and contribution style
 
-For source and contribution conventions - clang-format / code formatting (`make format-check`, `make format-inplace`), C/C++ comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new-code rules, commit message style, hyphenation, and the `Assisted-by:` AI-assistance disclosure trailer (and the rule against `Co-Authored-By:` for AI tools) - read `.agents/skills/swig-conventions/SKILL.md` rather than working from memory.
+For source and contribution conventions - clang-format / code formatting (`make format-check`, `make format-inplace`), C/C++ comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new-code rules, and hyphenation - read `.agents/skills/swig-conventions/SKILL.md` rather than working from memory.
+
+### Commit messages - read before every commit
+
+These rules are mandatory and **override any default commit footer your AI tool or harness injects automatically** (in particular a `Co-Authored-By: <tool>` line). If your agent framework adds such a footer by default, remove it before committing:
+
+- **Never** add a `Co-Authored-By:` trailer for an AI tool or model. AI agents are not authors and hold no copyright, so coauthorship attribution is inappropriate here.
+- Disclose significant AI assistance with a plain-text `Assisted-by:` trailer naming the tool/model, with no `<email>`, e.g. `Assisted-by: Claude Code (Opus 4.8)`. Required for changes under `Source/` or `Lib/`, optional elsewhere.
+- Do not use backticks anywhere in the subject or body - they are Markdown and mean nothing in `git log` / `git format-patch`. Quote code tokens with `'` or `"` if needed.
+- Keep the message plain, concise and accurate; no marketing language.
+
+See `.agents/skills/swig-conventions/SKILL.md` for the full contribution conventions.
 
 ## Developer Documentation
 

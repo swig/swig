@@ -4,7 +4,7 @@ require "tests.php";
 
 // No new functions
 check::functions(array());
-check::classes(array('Foo','Bar','PrivateFoo','A','B','AA','BB'));
+check::classes(array('Foo','Bar','PrivateFoo','A','B','AA','BB','NestedBase','NestedOuter'));
 // No new vars
 check::globals(array());
 
@@ -66,5 +66,10 @@ check::equal($fb2->callping(), "FooBar2::ping();", "bad fb2::callping");
 check::equal($fb2->callcheer(), "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();", "bad fb2::callcheer");
 check::equal($fb3->callping(), "Bar::ping();", "bad fb3::callping");
 check::equal($fb3->callcheer(), "FooBar3::cheer();", "bad fb3::callcheer");
+
+// NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+$outer = new NestedOuter();
+$base = $outer->makeDerived();
+check::equal($base->identify(), 1, "bad NestedOuter::makeDerived()->identify()");
 
 check::done();

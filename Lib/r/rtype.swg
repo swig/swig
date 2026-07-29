@@ -213,6 +213,8 @@ string &, std::string &
 %typemap(scoerceout) char,
 		     char *,
 		     char &,
+		     char *&,
+		     const char *&,
                      float,
 		     double,
 		     float*,

@@ -254,7 +254,7 @@ namespace test {
 namespace Split {
 #ifdef SWIGPYTHON
     %typemap(in) PosInteger {
-	$1 = PyInt_AsLong($input);
+	$1 = PyLong_AsLong($input);
 	if ($1 < 0) {
 	    PyErr_SetString(PyExc_ValueError,"domain error\n");
 	    SWIG_fail;

@@ -10,7 +10,9 @@ for i=0,0xff do
 end
 local s2=''
 for i=1,0x100 do
-  local d = string.format("%c", 0x100 - i)
+  -- use string.char rather than string.format("%c", ...), as the latter yields an
+  -- empty string for a NUL byte in Lua 5.1 (it applies strlen() to the formatted result)
+  local d = string.char(0x100 - i)
   s2 = s2 .. d
 end
 s = s2 .. s2

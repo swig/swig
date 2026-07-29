@@ -2742,21 +2742,8 @@ public:
       Printf(w->code, "}\n");
       Printf(w->code, "int obj_idx = lua_gettop(L);\n");
 
-      /* Get method from object - first try uservalue table, then metatable */
-      Printf(w->code, "lua_getuservalue(L, obj_idx);\n");
-      Printf(w->code, "if (lua_istable(L, -1)) {\n");
-      Printf(w->code, "  lua_pushstring(L, \"%s\");\n", symname);
-      Printf(w->code, "  lua_rawget(L, -2);\n");
-      Printf(w->code, "  if (!lua_isfunction(L, -1)) {\n");
-      Printf(w->code, "    lua_pop(L, 2); /* pop nil and uservalue table */\n");
-      Printf(w->code, "    lua_pushnil(L); /* placeholder for consistency */\n");
-      Printf(w->code, "  } else {\n");
-      Printf(w->code, "    lua_remove(L, -2); /* remove uservalue table, keep function */\n");
-      Printf(w->code, "  }\n");
-      Printf(w->code, "} else {\n");
-      Printf(w->code, "  lua_pop(L, 1); /* pop non-table uservalue */\n");
-      Printf(w->code, "  lua_pushnil(L); /* placeholder */\n");
-      Printf(w->code, "}\n");
+      /* Get the Lua method override for this object, or nil if there is none */
+      Printf(w->code, "SWIG_Lua_get_director_override(L, obj_idx, \"%s\");\n", symname);
       Printf(w->code, "if (!lua_isfunction(L, -1)) {\n");
       Printf(w->code, "  lua_pop(L, 1); /* pop placeholder */\n");
       Printf(w->code, "  lua_settop(L, top);\n");

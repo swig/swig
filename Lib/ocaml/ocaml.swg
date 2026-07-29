@@ -27,13 +27,17 @@
     $result = caml_val_ptr($1,$descriptor);
 }
 
-%typemap(in) char *& (char *temp) {
-  temp = (char*)caml_val_ptr($1,$descriptor);
+%typemap(in) char *& (char *temp), const char *& ($*1_ltype temp) {
+  temp = ($*1_ltype)caml_string_val($input);
   $1 = &temp;
 }
 
-%typemap(argout) char *& {
-  swig_result =	caml_list_append(swig_result,caml_val_string_len(*$1, strlen(*$1)));
+%typemap(out) char *&, const char *& {
+  swig_result = caml_list_append(swig_result,caml_val_string((char *)*$1));
+}
+
+%typemap(argout) char *&, const char *& {
+  swig_result =	caml_list_append(swig_result,caml_val_string((char *)*$1));
 }
 
 %typemap(in) SWIGTYPE & {
@@ -209,7 +213,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 /* Again work around the empty array bound bug */
 %typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
     char *temp = caml_string_val($input);
-    strcpy((char *)$1,temp); 
+    strcpy((char *)$1,temp);
 }
 %enddef
 
@@ -217,7 +221,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %char_ptr_in(varin);
 %char_ptr_in(directorout);
 
-%define %char_ptr_out(how) 
+%define %char_ptr_out(how)
 %typemap(how) 
     char *, signed char *, unsigned char *, 
     const char *, const signed char *, const unsigned char * {

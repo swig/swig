@@ -32,11 +32,6 @@ build:
 		$(MAKE) -C $$s SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build || exit 1; \
 	done
 
-static:
-	for s in $(import_packages_subdirs); do \
-		$(MAKE) -C $$s SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static || exit 1; \
-	done
-
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_clean
 	if test "x$(SRCDIR)" != x; then \

@@ -20,7 +20,7 @@
     %include <typemaps/fragments.swg>
     <include target language fragments>
 
-    // Unified typemap section 
+    // Unified Typemap Library section 
     <specialized the typemap library macros>
     %include <typemaps/swigtypemaps.swg>
 
@@ -30,7 +30,7 @@
     === mytypemaps.swg ===
 
   While we add more docs, please take a look at the following cases
-  to see how you specialized the unified typemap library for a new
+  to see how you specialized the Unified Typemap Library for a new
   target language:
 
       Lib/python/pytypemaps.swg

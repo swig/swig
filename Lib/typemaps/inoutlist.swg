@@ -89,9 +89,7 @@ or you can use the %apply directive :
       res = SWIG_AddTmpMask(ecode);
     }
   }
-  %typemap(freearg,noblock=1,match="in") Type *INPUT, Type &INPUT {
-    if (SWIG_IsNewObj(res$argnum)) %delete($1);
-  }
+  %typemap(freearg,match="in") Type *INPUT, Type &INPUT ""
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
     void *ptr = 0;
     int res = asval_meth($input, 0);

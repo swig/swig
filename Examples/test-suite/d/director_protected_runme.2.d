@@ -3,6 +3,8 @@ module director_protected_runme;
 import std.exception;
 import director_protected.Foo;
 import director_protected.Bar;
+import director_protected.NestedOuter;
+import director_protected.NestedBase;
 
 void main() {
   Bar b = new Bar();
@@ -15,6 +17,11 @@ void main() {
   enforce(b.pong() == "Bar::pong();Foo::pong();Bar::ping();", "bad Bar::pong");
   enforce(f.pong() == "Bar::pong();Foo::pong();Bar::ping();", "bad Foo::pong");
   enforce(fb.pong() == "Bar::pong();Foo::pong();FooBar::ping();", "bad FooBar::pong");
+
+  // NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+  auto outer = new NestedOuter();
+  auto base = outer.makeDerived();
+  enforce(base.identify() == 1, "bad NestedOuter.makeDerived().identify()");
 }
 
 class FooBar : Bar {

@@ -1,6 +1,5 @@
 import doxygen_constructors
 import inspect
-import sys
 import comment_verifier
 from swig_test_utils import swig_check, swig_assert_raises
 
@@ -57,26 +56,14 @@ with swig_assert_raises(TypeError):
 # the doxygen docstring. super().__init__() from a Python subclass is the realistic path
 # that does an attribute lookup and lands on that descriptor. The subclasses below run
 # that path for positional and keyword args.
-# Python 2 still requires the explicit super(Cls, self) form; remove the legacy branch
-# when Python 2 support is dropped.
-if sys.version_info[0:2] < (3, 0):
-    class TwoArgSubclass(doxygen_constructors.ClassTwoArg):
-        def __init__(self, a, b, label):
-            super(TwoArgSubclass, self).__init__(a, b)
-            self.label = label
+class TwoArgSubclass(doxygen_constructors.ClassTwoArg):
+    def __init__(self, a, b, label):
+        super().__init__(a, b)
+        self.label = label
 
-    class KwArgSubclass(doxygen_constructors.ClassKwArg):
-        def __init__(self, **kw):
-            super(KwArgSubclass, self).__init__(**kw)
-else:
-    class TwoArgSubclass(doxygen_constructors.ClassTwoArg):
-        def __init__(self, a, b, label):
-            super().__init__(a, b)
-            self.label = label
-
-    class KwArgSubclass(doxygen_constructors.ClassKwArg):
-        def __init__(self, **kw):
-            super().__init__(**kw)
+class KwArgSubclass(doxygen_constructors.ClassKwArg):
+    def __init__(self, **kw):
+        super().__init__(**kw)
 
 sub = TwoArgSubclass(11, 2.5, "subclass-tag")
 swig_check(sub.get_a(), 11)

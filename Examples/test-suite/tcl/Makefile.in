@@ -3,7 +3,7 @@
 #######################################################################
 
 LANGUAGE     = tcl
-TCLSH        = tclsh
+TCLSH        = @TCLSH@
 SCRIPTSUFFIX = _runme.tcl
 
 HAVE_CXX11   = @HAVE_CXX11@

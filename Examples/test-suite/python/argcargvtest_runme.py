@@ -1,5 +1,4 @@
 import random
-import sys
 from swig_test_utils import (
     swig_assert,
     swig_assert_raises,
@@ -54,12 +53,8 @@ def test_empty_strings():
 
 def test_bytes_args():
     args = [b"hello"]
-    if sys.version_info < (3,):
-        swig_assert(mainc(args) == 1)
-        swig_assert(mainv(args, 0) == "hello")
-    else:
-        with swig_assert_raises(TypeError):
-            mainc(args)
+    with swig_assert_raises(TypeError):
+        mainc(args)
 
 
 def test_bad_sequence():

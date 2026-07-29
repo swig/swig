@@ -475,9 +475,6 @@ minllong = -overllong
 maxllong = overllong - 1
 maxullong = 2 * maxllong + 1
 
-# Make sure Python 2's sys.maxint is the same as the maxlong we calculated
-if sys.version_info[0] <= 2 and maxlong != sys.maxint:
-    raise RuntimeError("sys.maxint is not the maximum value of a signed long")
 
 def checkType(t, e, val, delta):
     """t = Test object, e = type name (e.g. ulong), val = max or min allowed value, delta = +1 for max, -1 for min"""

@@ -111,7 +111,9 @@ SWIGRUNTIME void SWIG_RubyUnlinkObjects(void* ptr) {
     // object might have the T_ZOMBIE type, but that's just
     // because the GC has flagged it as such for a deferred
     // destruction. Until then, it's still a T_DATA object.
-    ((struct swig_ruby_wrapped_object *)RTYPEDDATA_GET_DATA(object))->data = 0;
+    struct swig_ruby_wrapped_object *wrobj = (struct swig_ruby_wrapped_object *)RTYPEDDATA_GET_DATA(object);
+    if (wrobj)
+      wrobj->data = 0;
   }
 }
 

@@ -224,11 +224,8 @@ unittest(v, renameTest2(v))
 
 ## NewName
 N <- NewNameStruct()
-## Only half works:
-unittest("kerboom", NewNameStruct_bang_get())
-## Can't put in "bang" in the call
-## confirm with:
-## get(".__E___OldNameStruct__enumeration")
+## %rename of the enumerator kerboom to bang is honoured in the R layer
+unittest("bang", NewNameStruct_bang_get())
 
 ## TreeClass
 

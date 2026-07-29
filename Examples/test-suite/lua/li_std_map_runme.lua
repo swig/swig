@@ -55,7 +55,7 @@ for i = 0,9 do
 end
 assert(ismap:size() == 10, "ismap:size()")
 for i = 0,9 do
-    assert(ismap:get(i).num == i * 10.1, "ismap:get(i)")
+    assert(cmp_flt(ismap:get(i).num , i * 10.1), "ismap:get(" .. i .. ")")
 end
 
 -- Test a map of pointers
@@ -65,7 +65,7 @@ for i = 0,9 do
 end
 assert(ispmap:size() == 10, "ispmap:size()")
 for i = 0,9 do
-    assert(ispmap:get(i).num == i * 10.1, "ispmap:get(i)")
+    assert(cmp_flt(ispmap:get(i).num, i * 10.1), "ispmap:get(" .. i .. ")")
 end
 
 -- Test a map of constant pointers
@@ -75,7 +75,7 @@ for i = 0,9 do
 end
 assert(iscpmap:size() == 10, "iscpmap:size()")
 for i = 0,9 do
-    assert(iscpmap:get(i).num == i * 10.1, "iscpmap:get(i)")
+    assert(cmp_flt(iscpmap:get(i).num, i * 10.1), "iscpmap:get(" .. i .. ")")
 end
 
 -- Test complex type as key (Struct)

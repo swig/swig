@@ -28,7 +28,7 @@
 %include <javascriptstrings.swg>
 
 /* ------------------------------------------------------------
- *  Unified typemap section
+ *  Unified Typemap Library section
  * ------------------------------------------------------------ */
 
 #define SWIG_Object                     JSValueRef
@@ -50,5 +50,5 @@
 #define SWIG_JSC_AS_CALL_ARGS(arg1, arg2)          (context, arg1, arg2)
 %}
 
-/* Include the unified typemap library */
+/* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>
