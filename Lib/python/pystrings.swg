@@ -73,7 +73,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
-#define SWIG_FromCharPtrAndSize(carray, size) SWIG_FromBinaryCharPtrAndSize(carray, size, 0)
+%#define SWIG_FromCharPtrAndSize(carray, size) SWIG_FromBinaryCharPtrAndSize(carray, size, 0)
 SWIGINTERNINLINE PyObject *
 SWIG_FromBinaryCharPtrAndSize(const char* carray, size_t size, int flags)
 {

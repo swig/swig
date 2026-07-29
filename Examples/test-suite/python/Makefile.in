@@ -117,6 +117,7 @@ C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
+	python_charptr_fragment \
 	python_nondynamic \
 	python_varargs_typemap \
 	python_weakref \
