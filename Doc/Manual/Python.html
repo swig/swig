@@ -140,6 +140,7 @@
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
 <li><a href="#Python_annotations_pytyping">PEP 484 annotation types</a>
+<li><a href="#Python_annotations_pyi">Generating .pyi stub files</a>
 </ul>
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
@@ -964,6 +965,8 @@ swig -python -help
 <tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
 <tr><td>-nothreads      </td><td>Disable thread support for the entire interface</td></tr>
 <tr><td>-olddefs        </td><td>Keep the old method definitions when using -fastproxy</td></tr>
+<tr><td>-pyi            </td><td>Generate a .pyi stub file</td></tr>
+<tr><td>-pyifile &lt;file&gt;</td><td>Generate the .pyi stub file with name &lt;file&gt;, also implies -pyi</td></tr>
 <tr><td>-relativeimport </td><td>Use relative Python imports</td></tr>
 <tr><td>-threads        </td><td>Add thread support for all the interface</td></tr>
 <tr><td>-O              </td><td>Enable the following optimization options: -fastdispatch -fastproxy -fvirtual</td></tr>
@@ -6877,11 +6880,13 @@ Python 3 supports function annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.
 Python 3.6 and later additionally support variable annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-526/">PEP 526</a>.
-Note that currently there is no annotations support in SWIG for the <tt>-builtin</tt> nor
-the <tt>-fastproxy</tt> option.
 Annotations are added via the <tt>python:annotations</tt>
 <a href="Customization.html#Customization_features">%feature directives</a>.
-SWIG currently supports one type of function annotation.
+When using the <tt>-builtin</tt> or <tt>-fastproxy</tt> options, the proxy module has no
+Python-level function or class definitions for annotations to attach to, so the
+<tt>-pyi</tt> command line option is needed instead. <tt>-pyi</tt> is not restricted to
+those options though - it works alongside the default proxy mode too. See
+<a href="#Python_annotations_pyi">Generating .pyi stub files</a> below.
 </p>
 
 <H4><a name="Python_annotations_c">33.12.1.1 C/C++ annotation types</a></H4>
@@ -7093,7 +7098,145 @@ For an enumeration, the special variables expand to <tt>int</tt>.
 </p>
 
 <p>
+For example, adding one more function that uses a type with no proxy class:
+</p>
+
+<div class="code"><pre>
+%typemap(pytyping) Unwrapped * "$pytypename"
+
+struct Unwrapped;
+
+Unwrapped *make_unwrapped();
+</pre></div>
+
+<p>
+generates the function annotation plus the type wrapper class itself:
+</p>
+
+<div class="targetlang"><pre>
+def make_unwrapped() -&gt; "SWIGTYPE_p_Unwrapped":
+    return _example.make_unwrapped()
+
+
+# Type wrapper classes for C/C++ types that have no Python proxy class
+# (opaque pointers, arrays, member pointers, and unparsed or ignored types).
+# They give PEP 484 annotations a named type to refer to.
+# They are declared only for static type checkers and are not present at runtime.
+if typing.TYPE_CHECKING:
+    class SWIGTYPE_p_Unwrapped(object):
+        """Opaque 'Unwrapped *'."""
+        ...
+</pre></div>
+
+<p>
 <b>Compatibility Note:</b> SWIG-4.5.0 added support for PEP 484 annotation types.
+</p>
+
+<H4><a name="Python_annotations_pyi">33.12.1.3 Generating .pyi stub files</a></H4>
+
+
+<p>
+The <tt>-pyi</tt> command line option generates a <tt>.pyi</tt> (PYI, short for "Python
+Interface") <a href="https://peps.python.org/pep-0484/#stub-files">PEP 484 stub file</a>
+alongside the wrapper module. A <tt>.pyi</tt> file contains the same class and function
+signatures a normal Python module would, but with every body replaced by <tt>...</tt> - it is
+never imported or executed, only read by static type checkers such as
+<a href="https://mypy-lang.org">mypy</a>, <a href="https://microsoft.github.io/pyright/">pyright</a>
+or <a href="https://pyrefly.org">Pyrefly</a> and by IDEs.
+</p>
+
+<p>
+By default the stub is written to <tt>&lt;module&gt;.pyi</tt> in the output directory, alongside
+the generated <tt>&lt;module&gt;.py</tt> wrapper file (or wherever <tt>-outdir</tt> points). Pass
+<tt>-pyifile &lt;file&gt;</tt>
+instead of <tt>-pyi</tt> to give it a different name or write it somewhere else, for example:
+</p>
+
+<div class="shell"><pre>
+$ swig -python -builtin -pyifile stubs/example.pyi -c++ example.i
+</pre></div>
+
+<p>
+<tt>-pyifile</tt> implies <tt>-pyi</tt>, so it is not necessary to pass both.
+</p>
+
+<p>
+This matters most for <tt>-builtin</tt> and <tt>-fastproxy</tt>, where the annotations described
+above have nowhere to go: with <tt>-builtin</tt> there are no Python-level function definitions in
+the generated module at all (the types are implemented directly in C), and <tt>-fastproxy</tt>
+skips generating a full Python wrapper function for most members for speed. <tt>-pyi</tt> gives
+annotations a home in both cases without affecting the generated wrapper code or its performance.
+</p>
+
+<p>
+For example, wrapping the <tt>OptionalInt</tt> and <tt>Unwrapped</tt> example from the previous
+section with:
+</p>
+
+<div class="shell"><pre>
+$ swig -python -builtin -pyi -c++ example.i
+</pre></div>
+
+<p>
+produces <tt>example.pyi</tt> alongside the usual <tt>example.py</tt>:
+</p>
+
+<div class="targetlang"><pre>
+# This file was automatically generated by SWIG (https://www.swig.org).
+# ...
+import typing
+
+class OptionalInt(object):
+
+    def __init__(self, *args):
+        ...
+    has_value: "bool"
+    value: "int"
+
+def optional_square(i: "typing.Optional[int]") -&gt; "typing.Optional[int]":
+    ...
+
+def make_unwrapped() -&gt; "SWIGTYPE_p_Unwrapped":
+    ...
+
+
+# Type wrapper classes for C/C++ types that have no Python proxy class
+# (opaque pointers, arrays, member pointers, and unparsed or ignored types).
+# They give PEP 484 annotations a named type to refer to.
+class SWIGTYPE_p_Unwrapped(object):
+    """Opaque 'Unwrapped *'."""
+    ...
+</pre></div>
+
+<p>
+A member with no resolvable <tt>pytyping</tt> annotation is given a <tt>typing.Any</tt> annotation
+in the <tt>.pyi</tt> stub, since a bare name with nothing else on the line is not a valid attribute
+declaration there.
+</p>
+
+<p>
+When <tt>-pyi</tt>/<tt>-pyifile</tt> is active, the generated <tt>.py</tt> wrapper file's own annotations are
+suppressed entirely, even without <tt>-builtin</tt>/<tt>-fastproxy</tt> (where the annotations
+described above are also visible directly in <tt>.py</tt>). This matches the standard PEP 484
+convention: type checkers give a <tt>.pyi</tt> file priority over its <tt>.py</tt> companion and
+never consult the <tt>.py</tt> file's own annotations once a <tt>.pyi</tt> exists for the same
+module. For example, wrapping the same interface without <tt>-builtin</tt> still produces the same
+<tt>example.pyi</tt> above, but <tt>example.py</tt> will not have any type hints in it.
+</p>
+
+<p>
+Notice also that <tt>SWIGTYPE_p_Unwrapped</tt> is not wrapped in an <tt>if typing.TYPE_CHECKING:</tt>
+block above, unlike its counterpart shown in the previous section's <tt>example.py</tt>: that guard
+is meaningful in the <tt>.py</tt> file (the class must not exist at runtime), but a <tt>.pyi</tt> file
+has no runtime at all - it is only ever read by a type checker - so <tt>TYPE_CHECKING</tt> is
+trivially always true there, and the same classes are emitted unconditionally instead.
+</p>
+
+<p>
+<b>Compatibility Note:</b> SWIG-4.5.0 added the <tt>-pyi</tt> command line option. Like the rest
+of the <tt>pytyping</tt> support described in this section, it is experimental and still under active
+development - the generated stub content may change in subsequent SWIG releases as the feature
+matures.
 </p>
 
 <H3><a name="Python_nn75">33.12.2 Buffer interface</a></H3>

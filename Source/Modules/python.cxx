@@ -59,6 +59,8 @@ static String *builtin_methods = 0;
 static String *builtin_default_unref = 0;
 static String *builtin_closures_code = 0;
 static String *f_varlinks = 0;
+static File *f_stub_pyi = 0;
+static String *f_stub = 0;
 
 /* Mapping of mangled type names ("SWIGTYPE{mangled}") to their type */
 static Hash *unknown_types_hash = 0;
@@ -96,6 +98,8 @@ static int nortti = 0;
 static int relativeimport = 0;
 static int flat_static_method = 0;
 static int nogil = 0;
+static int pyi_stub = 0;
+static String *pyi_filename = 0;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -131,6 +135,8 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
+     -pyi            - Generate a .pyi stub file\n\
+     -pyifile <file> - Generate the .pyi stub file with name <file>, also implies -pyi\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
@@ -438,6 +444,19 @@ public:
         } else if (strcmp(argv[i], "-relativeimport") == 0) {
           relativeimport = 1;
           Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-pyi") == 0) {
+          pyi_stub = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-pyifile") == 0) {
+          if (argv[i + 1]) {
+            pyi_stub = 1;
+            pyi_filename = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
           // clang-format off
         } else if (strcmp(argv[i], "-cppcast") == 0 ||
                    strcmp(argv[i], "-fastinit") == 0 ||
@@ -702,6 +721,20 @@ public:
       }
     }
 
+    if (pyi_stub) {
+      String *filen = pyi_filename ? NewStringf("%s%s", SWIG_output_directory(), pyi_filename) : NewStringf("%s%s.pyi", SWIG_output_directory(), Char(module));
+      if ((f_stub_pyi = NewFile(filen, "w", SWIG_output_files())) == 0) {
+        FileErrorDisplay(filen);
+        Exit(EXIT_FAILURE);
+      }
+      Delete(filen);
+      filen = NULL;
+
+      f_stub = NewString("");
+
+      Swig_register_filebyname("stub_pyi", f_stub_pyi);
+    }
+
     /* If shadow classing is enabled, we're going to change the module name to "_module" */
     String *default_import_code = NewString("");
     if (shadow) {
@@ -891,19 +924,7 @@ public:
     Printf(f_wrappers, "#endif\n");
 
     if (shadow) {
-      Swig_banner_target_lang(f_shadow_py, "#");
-
-      if (mod_docstring) {
-        if (Len(mod_docstring)) {
-          const char *triple_double = "\"\"\"";
-          // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
-          // reported by pep257: https://github.com/GreenSteam/pep257
-          bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
-          Printv(f_shadow_py, "\n", triple_double, multi_line_ds ? "\n" : "", mod_docstring, multi_line_ds ? "\n" : "", triple_double, "\n", NIL);
-        }
-        Delete(mod_docstring);
-        mod_docstring = NULL;
-      }
+      printModuleBegin(f_shadow_py, mod_docstring);
 
       if (Len(f_shadow_begin) > 0)
         Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
@@ -926,9 +947,28 @@ public:
         Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
 
       // Emit type wrapper classes for the opaque types referenced by annotations
-      emitTypeWrapperClasses();
+      emitTypeWrapperClasses(f_shadow_py, true);
 
       Delete(f_shadow_py);
+    }
+
+    if (pyi_stub) {
+      printModuleBegin(f_stub_pyi, mod_docstring);
+
+      Printv(f_stub_pyi, "import typing\n", NULL);
+
+      if (Len(f_stub) > 0)
+        Printv(f_stub_pyi, "\n", f_stub, "\n", NIL);
+
+      // Emit type wrapper classes for the opaque types referenced by annotations
+      emitTypeWrapperClasses(f_stub_pyi, false);
+
+      Delete(f_stub_pyi);
+    }
+
+    if (mod_docstring) {
+      Delete(mod_docstring);
+      mod_docstring = NULL;
     }
 
     /* Close all of the files */
@@ -954,6 +994,7 @@ public:
     Delete(f_shadow_imports);
     Delete(f_shadow_begin);
     Delete(f_shadow);
+    Delete(f_stub);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_builtins);
@@ -966,6 +1007,25 @@ public:
     Delete(unknown_types_hash);
 
     return SWIG_OK;
+  }
+
+  /* ------------------------------------------------------------
+   * printModuleBegin()
+   *
+   * Print the banner and module docstring shared by the generated
+   * .py wrapper file and the .pyi stub file.
+   * ------------------------------------------------------------ */
+
+  static void printModuleBegin(String *f_py, String *mod_docstring) {
+    Swig_banner_target_lang(f_py, "#");
+
+    if (mod_docstring && Len(mod_docstring)) {
+      const char *triple_double = "\"\"\"";
+      // follow PEP257 rules: https://www.python.org/dev/peps/pep-0257/
+      // reported by pep257: https://github.com/GreenSteam/pep257
+      bool multi_line_ds = Strchr(mod_docstring, '\n') != 0;
+      Printv(f_py, "\n", triple_double, multi_line_ds ? "\n" : "", mod_docstring, multi_line_ds ? "\n" : "", triple_double, "\n", NIL);
+    }
   }
 
   /* ------------------------------------------------------------
@@ -2368,9 +2428,13 @@ public:
    * make_pyParmList()
    *
    * Generate parameter list for Python functions or methods,
-   * reuse make_autodocParmList() to do so.
+   * reuse make_autodocParmList() to do so. for_stub should be true
+   * when the result is destined for the .pyi stub rather than the
+   * generated .py wrapper file: once -pyi/-pyifile is active, the .py
+   * file's own parameter annotations are suppressed (see
+   * returnTypeAnnotation()), but the .pyi always needs them.
    * ------------------------------------------------------------ */
-  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false) {
+  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false, bool for_stub = false) {
     /* Get the original function for a defaultargs copy,
      * see default_arguments() in parser.y. */
     Node *nn = Getattr(n, "defaultargs");
@@ -2403,6 +2467,8 @@ public:
     }
 
     type_annotation_t funcanno = getTypeAnnotationMode(n);
+    if (!for_stub && pyi_stub)
+      funcanno = TYPE_ANNOTATION_NONE;
     String *params = NewString("");
     String *_params = make_autodocParmList(n, false, ((in_class || has_self_for_count) ? 2 : 1), is_calling, funcanno);
 
@@ -2487,12 +2553,12 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * returnTypeAnnotation()
+   * returnTypeAnnotationForStubFile()
    *
    * Helper function for constructing the function annotation
    * of the returning type, return an empty string when annotations are disabled
    * ------------------------------------------------------------ */
-  String *returnTypeAnnotation(Node *n) {
+  String *returnTypeAnnotationForStubFile(Node *n) {
     type_annotation_t anno = getTypeAnnotationMode(n);
     if (anno == TYPE_ANNOTATION_NONE)
       return NewStringEmpty();
@@ -2552,12 +2618,28 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * variableAnnotation()
+   * returnTypeAnnotation()
+   *
+   * Like returnTypeAnnotationForStubFile(), but for the generated .py
+   * wrapper file. Once -pyi/-pyifile is generating a .pyi with the same
+   * information, a type checker never looks at the .py file's own
+   * annotations again (a .pyi always takes precedence over its .py
+   * for the same module), so they would be dead weight - skip
+   * computing them entirely rather than emitting information nothing
+   * will read.
+   * ------------------------------------------------------------ */
+
+  String *returnTypeAnnotation(Node *n) {
+    return pyi_stub ? NewStringEmpty() : returnTypeAnnotationForStubFile(n);
+  }
+
+  /* ------------------------------------------------------------
+   * variableAnnotationForStubFile()
    *
    * Helper function for constructing a variable annotation
    * ------------------------------------------------------------ */
 
-  String *variableAnnotation(Node *n) {
+  String *variableAnnotationForStubFile(Node *n) {
     type_annotation_t anno = getTypeAnnotationMode(n);
     if (anno == TYPE_ANNOTATION_NONE || GetFlag(n, "feature:python:annotations:novar"))
       return NewStringEmpty();
@@ -2577,6 +2659,40 @@ public:
     }
     String *annotation = type ? NewStringf(": \"%s\"", type) : NewString("");
     Delete(type);
+    return annotation;
+  }
+
+  /* ------------------------------------------------------------
+   * variableAnnotation()
+   *
+   * Like variableAnnotationForStubFile(), but for the generated .py
+   * wrapper file - see returnTypeAnnotation() for why this is suppressed once
+   * -pyi/-pyifile is active.
+   * ------------------------------------------------------------ */
+
+  String *variableAnnotation(Node *n) {
+    return pyi_stub ? NewStringEmpty() : variableAnnotationForStubFile(n);
+  }
+
+  /* ------------------------------------------------------------
+   * variableAnnotationForStub()
+   *
+   * Like variableAnnotationForStubFile(), but for use in a .pyi stub,
+   * where a bare name with no ': type' suffix is not a valid
+   * attribute/module variable declaration (it is a name-lookup
+   * expression referring to whatever else that name might resolve
+   * to). Falls back to 'typing.Any' so the stub is always
+   * syntactically valid, unlike the generated .py wrapper file where
+   * the same helper feeds an assignment statement and an empty
+   * annotation is harmless.
+   * ------------------------------------------------------------ */
+
+  String *variableAnnotationForStub(Node *n) {
+    String *annotation = variableAnnotationForStubFile(n);
+    if (Len(annotation) == 0) {
+      Delete(annotation);
+      annotation = NewString(": typing.Any");
+    }
     return annotation;
   }
 
@@ -2730,26 +2846,32 @@ public:
    * emitTypeWrapperClasses()
    *
    * Emit a placeholder type wrapper class for every opaque type
-   * referenced by a 'pytyping' annotation. The classes are declared
-   * inside an 'if typing.TYPE_CHECKING' block so that they are visible
-   * to static type checkers but are not present at runtime.
+   * referenced by a 'pytyping' annotation. In the generated .py
+   * wrapper file (guard_with_type_checking=true) the classes are
+   * declared inside an 'if typing.TYPE_CHECKING' block so that they
+   * are visible to static type checkers but are not present at
+   * runtime. That guard is meaningless in the .pyi stub
+   * (guard_with_type_checking=false): a .pyi is only ever read by a
+   * type checker, never executed, so TYPE_CHECKING is trivially
+   * always true there.
    * --------------------------------------------------------------- */
 
-  void emitTypeWrapperClasses() {
-    if (!f_shadow_py || Len(unknown_types_hash) == 0)
+  void emitTypeWrapperClasses(File *f_dest, bool guard_with_type_checking) {
+    if (!f_dest || Len(unknown_types_hash) == 0)
       return;
 
-    Printv(f_shadow_py,
+    Printv(f_dest,
            "\n",
            "# Type wrapper classes for C/C++ types that have no Python proxy class\n",
            "# (opaque pointers, arrays, member pointers, and unparsed or ignored types).\n",
-           "# They give PEP 484 annotations a named type to refer to. They are declared\n",
-           "# only for static type checkers and are not present at runtime.\n",
-           "if typing.TYPE_CHECKING:\n",
+           "# They give PEP 484 annotations a named type to refer to.\n",
            NIL);
+    if (guard_with_type_checking)
+      Printv(f_dest, "# They are declared only for static type checkers and are not present at runtime.\n", "if typing.TYPE_CHECKING:\n", NIL);
 
+    const char *indent = guard_with_type_checking ? tab4 : "";
     for (Iterator swig_type = First(unknown_types_hash); swig_type.key; swig_type = Next(swig_type)) {
-      emitTypeWrapperClass(swig_type.key, swig_type.item);
+      emitTypeWrapperClass(f_dest, swig_type.key, swig_type.item, indent);
     }
   }
 
@@ -2757,11 +2879,11 @@ public:
    * emitTypeWrapperClass()
    * --------------------------------------------------------------- */
 
-  void emitTypeWrapperClass(String *classname, SwigType *type) {
+  void emitTypeWrapperClass(File *f_dest, String *classname, SwigType *type, const char *indent) {
     String *tstr = SwigType_lstr(type, 0);
-    Printf(f_shadow_py, "    class %s(object):\n", classname);
-    Printf(f_shadow_py, "        \"\"\"Opaque '%s'.\"\"\"\n", tstr);
-    Printf(f_shadow_py, "        ...\n\n");
+    Printf(f_dest, "%sclass %s(object):\n", indent, classname);
+    Printf(f_dest, "%s    \"\"\"Opaque '%s'.\"\"\"\n", indent, tstr);
+    Printf(f_dest, "%s    ...\n\n", indent);
 
     Delete(tstr);
   }
@@ -2775,20 +2897,13 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionShadowHelper(Node *n, File *f_dest, String *name, int kw) {
-    String *parms = make_pyParmList(n, false, false, kw);
     String *callParms = make_pyParmList(n, false, true, kw);
 
     // Callbacks need the C function in order to extract the pointer from the swig_ptr: string
     bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
 
     if (!fast || olddefs) {
-      /* Make a wrapper function to insert the code into */
-      Printv(f_dest, "\n", "def ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-
-      // When handling the last overloaded function in an overload set (and we're only called for the last one if the function is overloaded at all), we need to
-      // output the docstring if any of the overloads has any documentation, not just this last one.
-      if (Node *node_with_doc = find_overload_with_docstring(n))
-        Printv(f_dest, tab4, docstring(node_with_doc, AUTODOC_FUNC, tab4, true), "\n", NIL);
+      emitFunctionHeaderHelper(n, f_dest, name, kw, false);
 
       if (have_pythonprepend(n))
         Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
@@ -2807,6 +2922,58 @@ public:
       /* If there is no addtofunc directive then just assign from the extension module (for speed up) */
       Printv(f_dest, name, " = ", module, ".", name, "\n", NIL);
     }
+  }
+
+  /* ------------------------------------------------------------
+   * emitFunctionStubHelper()
+   *
+   * Write a .pyi stub declaration (header plus a '...' body) for a
+   * non-member function into f_dest.
+   * ------------------------------------------------------------ */
+
+  void emitFunctionStubHelper(Node *n, File *f_dest, String *name, int kw) {
+    emitFunctionHeaderHelper(n, f_dest, name, kw, true);
+    Printv(f_dest, tab4, "...\n", NIL);
+  }
+
+  /* ------------------------------------------------------------
+   * emitStaticMethodStubHelper()
+   *
+   * Write a .pyi stub declaration for a static member function into
+   * f_stub. Used both for -builtin classes (staticmemberfunctionHandler()
+   * returns before reaching the code below that also emits this for
+   * non-builtin classes) and for the non-builtin case itself.
+   * ------------------------------------------------------------ */
+
+  void emitStaticMethodStubHelper(Node *n, String *symname, int kw) {
+    String *parms = make_pyParmList(n, false, false, kw, false, true);
+    Printv(f_stub, "\n", tab4, "@staticmethod", NIL);
+    Printv(f_stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
+    if (Node *node_with_doc = find_overload_with_docstring(n))
+      Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_STATICFUNC, tab8), "\n", NIL);
+    Printv(f_stub, tab8, "...\n", NIL);
+  }
+
+  /* ------------------------------------------------------------
+   * emitFunctionHeaderHelper()
+   *
+   * Write the 'def name(parms) -> ret:' header and docstring shared
+   * by emitFunctionShadowHelper() (for_stub=false) and
+   * emitFunctionStubHelper() (for_stub=true) into f_dest.
+   * ------------------------------------------------------------ */
+
+  void emitFunctionHeaderHelper(Node *n, File *f_dest, String *name, int kw, bool for_stub) {
+    String *parms = make_pyParmList(n, false, false, kw, false, for_stub);
+    String *ret = for_stub ? returnTypeAnnotationForStubFile(n) : returnTypeAnnotation(n);
+
+    /* Make a wrapper function to insert the code into */
+    Printv(f_dest, "\n", "def ", name, "(", parms, ")", ret, ":\n", NIL);
+    Delete(ret);
+
+    // When handling the last overloaded function in an overload set (and we're only called for the last one if the function is overloaded at all), we need to
+    // output the docstring if any of the overloads has any documentation, not just this last one.
+    if (Node *node_with_doc = find_overload_with_docstring(n))
+      Printv(f_dest, tab4, docstring(node_with_doc, AUTODOC_FUNC, tab4, true), "\n", NIL);
   }
 
   /* ------------------------------------------------------------
@@ -3008,6 +3175,11 @@ public:
     if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
       emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, symname, 0);
     }
+
+    if (pyi_stub && !in_class && use_static_method) {
+      emitFunctionStubHelper(n, f_stub, symname, 0);
+    }
+
     DelWrapper(f);
     Delete(dispatch);
     Delete(dispatch_code);
@@ -3669,6 +3841,10 @@ public:
         emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, iname, allow_kwargs);
       }
 
+      if (pyi_stub && !in_class) {
+        emitFunctionStubHelper(n, f_stub, iname, allow_kwargs);
+      }
+
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
         dispatchFunction(n, linkage, funpack, builtin_self, builtin_ctor, director_class, use_static_method);
@@ -4033,6 +4209,15 @@ public:
           Printv(f_s, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
       }
     }
+
+    if (pyi_stub && !in_class) {
+      String *annotation = variableAnnotationForStub(n);
+      Printv(f_stub, iname, annotation, "\n", NIL);
+      if (have_docstring(n))
+        Printv(f_stub, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
+      Delete(annotation);
+    }
+
     return SWIG_OK;
   }
 
@@ -4925,7 +5110,33 @@ public:
 
   virtual int classHandler(Node *n) {
     File *f_shadow_file = f_shadow;
-    Node *base_node = NULL;
+
+    if (shadow || pyi_stub) {
+      class_name = Getattr(n, "sym:name");
+      real_classname = Getattr(n, "name");
+
+      if (!addSymbol(class_name, n))
+        return SWIG_ERROR;
+    }
+
+    if (builtin) {
+      List *baselist = Getattr(n, "bases");
+      Node *base_node = NULL;
+      if (baselist && Len(baselist) > 0) {
+        Iterator b = First(baselist);
+        base_node = b.item;
+      }
+
+      Hash *base_richcompare = NULL;
+      Hash *richcompare = NULL;
+      if (base_node)
+        base_richcompare = Getattr(base_node, "python:richcompare");
+      if (base_richcompare)
+        richcompare = Copy(base_richcompare);
+      else
+        richcompare = NewHash();
+      Setattr(n, "python:richcompare", richcompare);
+    }
 
     if (shadow) {
 
@@ -4934,94 +5145,10 @@ public:
       have_repr = 0;
       have_builtin_static_member_method_callback = false;
 
-      class_name = Getattr(n, "sym:name");
-      real_classname = Getattr(n, "name");
-
-      if (!addSymbol(class_name, n))
-        return SWIG_ERROR;
-
-      if (builtin) {
-        List *baselist = Getattr(n, "bases");
-        if (baselist && Len(baselist) > 0) {
-          Iterator b = First(baselist);
-          base_node = b.item;
-        }
-      }
-
       shadow_indent = (String *)tab4;
 
-      /* Handle inheritance */
-      String *base_class = NewString("");
-      List *baselist = Getattr(n, "bases");
-      if (baselist && Len(baselist)) {
-        Iterator b;
-        b = First(baselist);
-        while (b.item) {
-          String *bname = Getattr(b.item, "python:proxy");
-          bool ignore = GetFlag(b.item, "feature:ignore") ? true : false;
-          if (!bname || ignore) {
-            if (!bname && !ignore) {
-              Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
-                           Getfile(n),
-                           Getline(n),
-                           "Base class '%s' ignored - unknown module name for base. Either import the appropriate module interface file or specify the name of "
-                           "the module in the %%import directive.\n",
-                           SwigType_namestr(Getattr(b.item, "name")));
-            }
-            b = Next(b);
-            continue;
-          }
-          Printv(base_class, bname, NIL);
-          b = Next(b);
-          if (b.item) {
-            Printv(base_class, ", ", NIL);
-          }
-        }
-      }
-
-      if (builtin) {
-        Hash *base_richcompare = NULL;
-        Hash *richcompare = NULL;
-        if (base_node)
-          base_richcompare = Getattr(base_node, "python:richcompare");
-        if (base_richcompare)
-          richcompare = Copy(base_richcompare);
-        else
-          richcompare = NewHash();
-        Setattr(n, "python:richcompare", richcompare);
-      }
-
-      /* dealing with abstract base class */
-      String *abcs = Getattr(n, "feature:python:abc");
-      if (abcs) {
-        if (Len(base_class) > 0)
-          Printv(base_class, ", ", NIL);
-        Printv(base_class, abcs, NIL);
-      }
-
       if (!builtin) {
-        String *metaclass = GetFlag(n, "feature:python:nondynamic") ? NewString(", metaclass=_SwigNonDynamicMeta") : NewString("");
-        Printv(f_shadow, "class ", class_name, NIL);
-
-        if (Len(base_class)) {
-          Printf(f_shadow, "(%s%s)", base_class, metaclass);
-        } else {
-          if (GetFlag(n, "feature:exceptionclass")) {
-            Printf(f_shadow, "(Exception%s)", metaclass);
-          } else {
-            Printf(f_shadow, "(object%s)", metaclass);
-          }
-        }
-        Delete(metaclass);
-
-        Printf(f_shadow, ":\n");
-
-        // write docstrings if requested
-        if (have_docstring(n)) {
-          String *str = docstring(n, AUTODOC_CLASS, tab4);
-          if (str && Len(str))
-            Printv(f_shadow, tab4, str, "\n\n", NIL);
-        }
+        printClassHeader(n, class_name, f_shadow, true);
 
         Printv(f_shadow, tab4, "thisown = property(lambda x: x.this.own(), ", "lambda x, v: x.this.own(v), doc=\"The membership flag\")\n", NIL);
         /* Add static attribute */
@@ -5029,6 +5156,10 @@ public:
           Printv(f_shadow_file, tab4, "__setattr__ = _swig_setattr_nondynamic_instance_variable(object.__setattr__)\n", NIL);
         }
       }
+    }
+
+    if (pyi_stub) {
+      printClassHeader(n, class_name, f_stub, false);
     }
 
     /* Emit all of the members */
@@ -5219,12 +5350,16 @@ public:
       Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
+      int allow_kwargs = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
+      String *parms = make_pyParmList(n, true, false, allow_kwargs);
+
       if (shadow && !builtin) {
         int fproxy = fastproxy;
         String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
         if (Strcmp(symname, "__repr__") == 0) {
           have_repr = 1;
         }
+
         if (Getattr(n, "feature:shadow")) {
           String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n), "%feature(\"shadow\")");
           String *pyaction = NewStringf("%s.%s", module, fullname);
@@ -5234,8 +5369,6 @@ public:
           Delete(pycode);
           fproxy = 0;
         } else {
-          int allow_kwargs = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
-          String *parms = make_pyParmList(n, true, false, allow_kwargs);
           String *callParms = make_pyParmList(n, true, true, allow_kwargs);
           if (!have_addtofunc(n)) {
             if (!fastproxy || olddefs) {
@@ -5266,7 +5399,16 @@ public:
           Printf(f_shadow, tab4);
           Printf(f_shadow, "%s = _swig_new_instance_method(%s.%s)\n", symname, module, Swig_name_member(NSPACE_TODO, class_name, symname));
         }
+
         Delete(fullname);
+      }
+
+      if (pyi_stub) {
+        String *stub_parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
+        Printv(f_stub, "\n", tab4, "def ", symname, "(", stub_parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
+        if (Node *node_with_doc = find_overload_with_docstring(n))
+          Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
+        Printv(f_stub, tab8, "...\n", NIL);
       }
     }
     return SWIG_OK;
@@ -5321,6 +5463,8 @@ public:
         Delete(wname);
         Delete(pyflags);
       }
+      if (pyi_stub)
+        emitStaticMethodStubHelper(n, symname, kw);
       return SWIG_OK;
     }
 
@@ -5356,6 +5500,9 @@ public:
       }
       Delete(staticfunc_name);
     }
+    if (pyi_stub)
+      emitStaticMethodStubHelper(n, symname, kw);
+
     return SWIG_OK;
   }
 
@@ -5399,19 +5546,19 @@ public:
     Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
+      int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
+      int handled_as_init = 0;
+      if (!have_constructor) {
+        String *nname = Getattr(n, "sym:name");
+        String *sname = Getattr(getCurrentClass(), "sym:name");
+        String *cname = Swig_name_construct(NSPACE_TODO, sname);
+        handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
+        Delete(cname);
+      }
+      const int add_init = !have_constructor && handled_as_init;
       if (shadow) {
-        int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
-        int handled_as_init = 0;
-        if (!have_constructor) {
-          String *nname = Getattr(n, "sym:name");
-          String *sname = Getattr(getCurrentClass(), "sym:name");
-          String *cname = Swig_name_construct(NSPACE_TODO, sname);
-          handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
-          Delete(cname);
-        }
-
         String *subfunc = Swig_name_construct(NSPACE_TODO, symname);
-        if (!have_constructor && handled_as_init) {
+        if (add_init) {
           if (!builtin) {
             if (Getattr(n, "feature:shadow")) {
               String *pycode = indent_pythoncode(Getattr(n, "feature:shadow"), tab4, Getfile(n), Getline(n), "%feature(\"shadow\")");
@@ -5486,6 +5633,14 @@ public:
           }
         }
         Delete(subfunc);
+      }
+
+      if (pyi_stub && add_init) {
+        String *parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
+        Printv(f_stub, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
+        if (Node *node_with_doc = find_overload_with_docstring(n))
+          Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
+        Printv(f_stub, tab8, "...\n", NIL);
       }
 
       if (builtin && in_class) {
@@ -5585,6 +5740,17 @@ public:
       Delete(mname);
       Delete(setname);
       Delete(getname);
+    }
+
+    if (pyi_stub) {
+      String *variable_annotation = variableAnnotationForStub(n);
+      Printv(f_stub, tab4, symname, variable_annotation, "\n", NIL);
+      if (have_docstring(n)) {
+        String *s = docstring(n, AUTODOC_VAR, tab4);
+        if (Len(s))
+          Printv(f_stub, tab4, s, "\n", NIL);
+      }
+      Delete(variable_annotation);
     }
 
     return SWIG_OK;
@@ -5779,6 +5945,76 @@ public:
 
   virtual String *defaultExternalRuntimeFilename() {
     return NewString("swigpyrun.h");
+  }
+
+  /* ------------------------------------------------------------
+   * printClassHeader()
+   *
+   * Write the 'class name(bases):' header and docstring shared by
+   * the generated .py wrapper file (addMetaclass=true, non-builtin
+   * only) and the .pyi stub file (addMetaclass=false) into f_dest.
+   * ------------------------------------------------------------ */
+
+  void printClassHeader(Node *n, String *class_name, String *f_dest, bool addMetaclass) {
+    /* Handle inheritance */
+    String *base_class = NewString("");
+    List *baselist = Getattr(n, "bases");
+    if (baselist && Len(baselist)) {
+      Iterator b;
+      b = First(baselist);
+      while (b.item) {
+        String *bname = Getattr(b.item, "python:proxy");
+        bool ignore = GetFlag(b.item, "feature:ignore") ? true : false;
+        if (!bname || ignore) {
+          if (!bname && !ignore) {
+            Swig_warning(WARN_TYPE_UNDEFINED_CLASS,
+                         Getfile(n),
+                         Getline(n),
+                         "Base class '%s' ignored - unknown module name for base. Either import the appropriate module interface file or specify the name of "
+                         "the module in the %%import directive.\n",
+                         SwigType_namestr(Getattr(b.item, "name")));
+          }
+          b = Next(b);
+          continue;
+        }
+        Printv(base_class, bname, NIL);
+        b = Next(b);
+        if (b.item) {
+          Printv(base_class, ", ", NIL);
+        }
+      }
+    }
+
+    /* dealing with abstract base class */
+    String *abcs = Getattr(n, "feature:python:abc");
+    if (abcs) {
+      if (Len(base_class) > 0)
+        Printv(base_class, ", ", NIL);
+      Printv(base_class, abcs, NIL);
+    }
+
+    String *metaclass = (addMetaclass && GetFlag(n, "feature:python:nondynamic")) ? NewString(", metaclass=_SwigNonDynamicMeta") : NewString("");
+    Printv(f_dest, "class ", class_name, NIL);
+
+    if (Len(base_class)) {
+      Printf(f_dest, "(%s%s)", base_class, metaclass);
+    } else {
+      if (GetFlag(n, "feature:exceptionclass")) {
+        Printf(f_dest, "(Exception%s)", metaclass);
+      } else {
+        Printf(f_dest, "(object%s)", metaclass);
+      }
+    }
+    Delete(metaclass);
+
+    Printf(f_dest, ":\n");
+
+    // write docstrings if requested
+    if (have_docstring(n)) {
+      String *str = docstring(n, AUTODOC_CLASS, tab4);
+      if (str && Len(str))
+        Printv(f_dest, tab4, str, "\n\n", NIL);
+    }
   }
 
   /*----------------------------------------------------------------------

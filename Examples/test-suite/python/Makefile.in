@@ -67,6 +67,7 @@ CPP_TEST_CASES += \
 	python_nokwargs_keyword \
 	python_overload_simple_cast \
 	python_pickle \
+	python_pyi \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -140,6 +141,7 @@ SWIGOPT += -Werror
 # Custom tests - tests with additional commandline options
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
+python_pyi.cpptest: SWIGOPT += -pyi
 
 # Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
 # PY_ABI_VER is unset for python_runtime_data_builtin because stable ABI is not supported by builtin
@@ -186,9 +188,9 @@ run_testcase = \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
-# Clean: remove the generated .py file
+# Clean: remove the generated .py and .pyi files
 %.clean:
-	@rm -f $*.py
+	@rm -f $*.py $*.pyi
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean
