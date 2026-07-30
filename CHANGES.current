@@ -23,6 +23,14 @@ Version 4.5.0 (in progress)
             emitted before the fragment defining these macros and so still cannot
             use them.
 
+2026-07-30: wsfulton
+            [JavaScript] Fixed building the examples and test-suite with the node
+            engine when node-addon-api is not installed.
+
+            Also, the node-addon-api headers provided by a distro package (such as
+            the Debian/Ubuntu node-addon-api package) are now detected by configure
+            without npm needing to be installed, enabling the napi engine.
+
 2026-07-28: Nerixyz, wsfulton
             [Python] #3473 Added the -pyi command line option, which generates a .pyi
             PEP 484 stub file alongside the wrapped module. This gives the
