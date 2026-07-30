@@ -852,6 +852,7 @@ C_TEST_CASES += \
 	c_delete \
 	c_delete_function \
 	char_constant \
+	charptr_fragment \
 	command_line_define \
 	const_const \
 	constant_expr_c \

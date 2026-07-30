@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-30: erezgeva, wsfulton
+            [JavaScript, Octave, Perl, Python, R, Ruby, Scilab] #3522
+            SWIG_FromCharPtrAndSize, SWIG_FromBinaryCharPtrAndSize,
+            SWIG_ToUint8Array, SWIG_FromUint8Array and the Scilab SWIG_AsVal_* and
+            SWIG_From_* macros are now passed on to the generated wrapper instead of
+            being consumed by the SWIG preprocessor. Code that SWIG does not macro
+            expand can now use them, such as a typemap delimited with %{ ... %}:
+
+              %typemap(out,fragment="SWIG_FromCharPtrAndSize") struct CharBuf %{
+                $result = SWIG_FromCharPtrAndSize($1.str, $1.len);
+              %}
+
+            Note that a %{ ... %} block inserting code into the header section is
+            emitted before the fragment defining these macros and so still cannot
+            use them.
+
 2026-07-28: Nerixyz, wsfulton
             [Python] #3473 Added the -pyi command line option, which generates a .pyi
             PEP 484 stub file alongside the wrapped module. This gives the
