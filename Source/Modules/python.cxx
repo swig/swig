@@ -105,11 +105,7 @@ static String *pyi_filename = 0;
 namespace {
 enum autodoc_t { AUTODOC_CLASS, AUTODOC_CTOR, AUTODOC_DTOR, AUTODOC_STATICFUNC, AUTODOC_FUNC, AUTODOC_METHOD, AUTODOC_CONST, AUTODOC_VAR };
 
-enum type_annotation_t {
-  TYPE_ANNOTATION_NONE = 0,
-  TYPE_ANNOTATION_C,
-  TYPE_ANNOTATION_TYPING,
-};
+enum type_annotation_t { TYPE_ANNOTATION_NONE = 0, TYPE_ANNOTATION_C, TYPE_ANNOTATION_TYPING };
 }  // namespace
 
 static const char *usage1 = "\
