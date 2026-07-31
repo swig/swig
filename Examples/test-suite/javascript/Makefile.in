@@ -29,6 +29,7 @@ CPP_TEST_CASES += \
 	li_std_map_member
 
 C_TEST_CASES += \
+	javascript_uint8array_fragment \
 	li_cdata_carrays \
 
 # napi fails
