@@ -370,10 +370,9 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
  * ----------------------------------------------------------------------------- */
 
 static bool print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypecheckoff) {
-  char tmp[256];
-  sprintf(tmp, Char(argv_template_string), j);
   String *tm = Getattr(pj, "tmap:typecheck");
   if (tm) {
+    String *tmp = NewStringf(argv_template_string, j);
     tm = Copy(tm);
     Replaceid(tm, Getattr(pj, "lname"), "_v");
     String *conv = Getattr(pj, "implicitconv");
@@ -385,6 +384,7 @@ static bool print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypeche
     Replaceall(tm, "$input", tmp);
     Printv(f, tm, "\n", NIL);
     Delete(tm);
+    Delete(tmp);
     return true;
   } else
     return false;
@@ -397,7 +397,7 @@ static bool print_typecheck(String *f, int j, Parm *pj, bool implicitconvtypeche
 static String *ReplaceFormat(const_String_or_char_ptr fmt, int j) {
   String *lfmt = NewString(fmt);
   char buf[50];
-  sprintf(buf, "%d", j);
+  snprintf(buf, sizeof(buf), "%d", j);
   Replaceall(lfmt, "$numargs", buf);
   int i;
   String *commaargs = NewString("");

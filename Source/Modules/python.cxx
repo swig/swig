@@ -3410,16 +3410,16 @@ public:
         num_fixed_arguments -= atoi(Char(Getattr(p, "tmap:in:numinputs")));
       }
       if (!parse_from_tuple)
-        sprintf(source, "self");
+        strcpy(source, "self");
       else if (funpack) {
         if (!swig_obj_added && !overname) {
-          sprintf(source, "PyObject *swig_obj[%d]", num_arguments);
+          snprintf(source, sizeof(source), "PyObject *swig_obj[%d]", num_arguments);
           Wrapper_add_localv(f, "swig_obj", source, NIL);
           swig_obj_added = true;
         }
-        sprintf(source, "swig_obj[%d]", add_self && !overname ? i - 1 : i);
+        snprintf(source, sizeof(source), "swig_obj[%d]", add_self && !overname ? i - 1 : i);
       } else
-        sprintf(source, "obj%d", builtin_ctor ? i + 1 : i);
+        snprintf(source, sizeof(source), "obj%d", builtin_ctor ? i + 1 : i);
 
       if (parse_from_tuple) {
         Printf(arglist, ", ");
@@ -6202,7 +6202,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
       if ((tm = Getattr(p, "tmap:directorin")) != 0) {
         String *parse = Getattr(p, "tmap:directorin:parse");
         if (!parse) {
-          sprintf(source, "obj%d", idx++);
+          snprintf(source, sizeof(source), "obj%d", idx++);
           String *input = NewString(source);
           Setattr(p, "emit:directorinput", input);
           Replaceall(tm, "$input", input);
@@ -6239,7 +6239,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
         if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
           Node *module = Getattr(parent, "module");
           Node *target = Swig_directormap(module, ptype);
-          sprintf(source, "obj%d", idx++);
+          snprintf(source, sizeof(source), "obj%d", idx++);
           String *nonconst = 0;
           /* strip pointer/reference --- should move to Swig/stype.c */
           String *nptype = NewString(Char(ptype) + 2);
@@ -6418,7 +6418,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
           Replaceall(tm, "$input", Swig_cresult_name());
         }
         char temp[24];
-        sprintf(temp, "%d", idx);
+        snprintf(temp, sizeof(temp), "%d", idx);
         Replaceall(tm, "$argnum", temp);
 
         /* TODO check this */

@@ -645,7 +645,7 @@ public:
 
       SwigType *pt = Getattr(p, "type");
       /* Look for an input typemap */
-      sprintf(source, "%d", i + 1);
+      snprintf(source, sizeof(source), "%d", i + 1);
       if ((tm = Getattr(p, "tmap:in"))) {
         Replaceall(tm, "$input", source);
         Setattr(p, "emit:input", source);
@@ -2782,7 +2782,7 @@ public:
         String *ptype = Getattr(p, "type");
 
         if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-          sprintf(source, "obj%d", idx++);
+          snprintf(source, sizeof(source), "obj%d", idx++);
           Replaceall(tm, "$input", source);
           Replaceall(tm, "$owner", "0");
           Printv(wrap_args, tm, "\n", NIL);
