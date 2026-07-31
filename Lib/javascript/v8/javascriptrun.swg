@@ -12,6 +12,21 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
 #define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
 
+/* The object a wrapped method or accessor was invoked on.
+ *
+ * v8 12.6 deprecated FunctionCallbackInfo::Holder() and 13.5 removed it.  This() has
+ * always been available and is what v8 says to use instead, so no version check is needed.
+ *
+ * For PropertyCallbackInfo, v8 12.7 added HolderV2(), 14.4 removed Holder() and 14.6
+ * removed This() too, leaving HolderV2() as the only way to get at the receiver.
+ */
+#define SWIGV8_ARGS_THIS(args) (args).This()
+#if (SWIG_V8_VERSION < 0x1207)
+#define SWIGV8_INFO_HOLDER(info) (info).Holder()
+#else
+#define SWIGV8_INFO_HOLDER(info) (info).HolderV2()
+#endif
+
 #define SWIGV8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
 #define SWIGV8_HANDLESCOPE_ESC() v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 #define SWIGV8_ESCAPE(val) return scope.Escape(val)
@@ -52,8 +67,22 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
 #define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
-#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
-#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
+/* v8 13.3 added Utf8LengthV2/WriteUtf8V2 and deprecated Utf8Length/WriteUtf8, which
+ * 14.4 then removed.  The V2 versions are used as soon as they are available as the
+ * deprecation warning is an error when compiling with -Werror.
+ *
+ * SWIGV8_UTF8_LENGTH is the number of bytes needed to encode the string, excluding the
+ * terminating NUL.  SWIGV8_WRITE_UTF8's 'len' is the full size of the buffer, including
+ * room for the NUL; it always NUL terminates and returns the number of bytes written,
+ * including the NUL.
+ */
+#if (SWIG_V8_VERSION < 0x1303)
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) ((size_t)(handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, (int)(len)))
+#define SWIGV8_UTF8_LENGTH(handle) ((size_t)(handle)->Utf8Length(v8::Isolate::GetCurrent()))
+#else
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8V2(v8::Isolate::GetCurrent(), buffer, len, v8::String::WriteFlags::kNullTerminate)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8LengthV2(v8::Isolate::GetCurrent())
+#endif
 #define SWIGV8_OBJECT_TEMPLATE_INSTACE(tmpl) tmpl->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(v8::Isolate::GetCurrent())
 
@@ -292,7 +321,7 @@ SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
 
   if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for equals.");
 
-  res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
+  res1 = SWIG_GetInstancePtr(SWIGV8_ARGS_THIS(args), &arg1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ERROR, "Could not get pointer from 'this' object for equals.");
   }
@@ -318,7 +347,7 @@ SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
   intptr_t result;
   int res1;
 
-  res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
+  res1 = SWIG_GetInstancePtr(SWIGV8_ARGS_THIS(args), &arg1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
   }
