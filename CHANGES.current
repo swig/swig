@@ -17,6 +17,15 @@ Version 4.5.0 (in progress)
             is now just pointed at and the existing bounded copy in the memberin
             typemap puts it into the array.
 
+2026-07-31: wsfulton
+            [JavaScript] The v8 and node engines now build against v8 13.x and 14.x,
+            as used by Node.js 24 and 26. These removed FunctionCallbackInfo::Holder(),
+            PropertyCallbackInfo::Holder(), String::Utf8Length, String::WriteUtf8 and
+            the untagged v8::Object aligned internal field pointer accessors, and
+            deprecated the untagged v8::External accessors.
+
+            The minimum supported v8 version is unchanged at 7.4.
+
 2026-07-30: erezgeva, wsfulton
             [JavaScript, Octave, Perl, Python, R, Ruby, Scilab] #3522
             SWIG_FromCharPtrAndSize, SWIG_FromBinaryCharPtrAndSize,

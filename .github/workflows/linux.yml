@@ -461,6 +461,12 @@ jobs:
           GCC: 13
           os: ubuntu-24.04
         - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '26'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-24.04
+        - SWIGLANG: javascript
           ENGINE: node
           VER: '20'
           CPPSTD: c++20
@@ -475,6 +481,12 @@ jobs:
         - SWIGLANG: javascript
           ENGINE: node
           VER: '24'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-24.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '26'
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-24.04
