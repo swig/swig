@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-07-31: wsfulton
+            [OCaml] Fix wrapping of char array members and parameters, such as:
+
+              struct S { char name[8]; };
+
+            The generated code copied the string with strcpy through the
+            uninitialised local for the array, that is, a null pointer.  The string
+            is now just pointed at and the existing bounded copy in the memberin
+            typemap puts it into the array.
+
 2026-07-30: erezgeva, wsfulton
             [JavaScript, Octave, Perl, Python, R, Ruby, Scilab] #3522
             SWIG_FromCharPtrAndSize, SWIG_FromBinaryCharPtrAndSize,
