@@ -40,6 +40,10 @@
  */
 #define DOH_NO_POISON_MALLOC_FREE
 
+/* Include stdint.h so that PTRDIFF_MAX is defined before the bison template code picks a type for YYPTRDIFF_T - it
+ * otherwise falls back to long, which is 32 bits on 64 bit Windows and gives an MSVC C4244 warning. */
+#include <stdint.h>
+
 #include "swig.h"
 #include "cparse.h"
 #include "preprocessor.h"
@@ -2517,7 +2521,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 echo_directive : ECHO HBLOCK {
 		 char temp[64];
 		 Replace($HBLOCK,"$file",cparse_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", cparse_line);
+		 snprintf(temp, sizeof(temp),"%d", cparse_line);
 		 Replace($HBLOCK,"$line",temp,DOH_REPLACE_ANY);
 		 Printf(stderr,"%s\n", $HBLOCK);
 		 Delete($HBLOCK);
@@ -2527,7 +2531,7 @@ echo_directive : ECHO HBLOCK {
 		 char temp[64];
 		 String *s = $string;
 		 Replace(s,"$file",cparse_file, DOH_REPLACE_ANY);
-		 sprintf(temp,"%d", cparse_line);
+		 snprintf(temp, sizeof(temp),"%d", cparse_line);
 		 Replace(s,"$line",temp,DOH_REPLACE_ANY);
 		 Printf(stderr,"%s\n", s);
 		 Delete(s);
@@ -5027,7 +5031,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 				  p = nextSibling(p);
 				  continue;
 				}
-				sprintf(tmp, "$%d", i);
+				snprintf(tmp, sizeof(tmp), "$%d", i);
 				Replaceid(fname, name, tmp);
 				p = nextSibling(p);
 			      }
@@ -5067,7 +5071,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 				  String *name = Getattr(p, "name");
 				  Parm *pp = nextSibling(p);
 				  ++i;
-				  sprintf(tmp, "$%d", i);
+				  snprintf(tmp, sizeof(tmp), "$%d", i);
 				  while (pp) {
 				    Replaceid(Getattr(pp, "value"), name, tmp);
 				    pp = nextSibling(pp);
