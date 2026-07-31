@@ -468,13 +468,11 @@ jobs:
           os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: v8
-          CSTD: c++14
           CPPSTD: c++14
           VER: '7.8' # oldest we can easily test
           os: ubuntu-22.04
         - SWIGLANG: javascript
           ENGINE: v8
-          CSTD: c++14
           CPPSTD: c++14
           VER: '10.2'
           os: ubuntu-24.04

@@ -785,10 +785,10 @@ javascript_build: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else ifeq (napi,$(JSENGINE))
+else ifeq (napi,$(JSENGINE)) # napi must be compiled as c++
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(NAPI_INCLUDE)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else ifeq (v8,$(JSENGINE))
+else ifeq (v8,$(JSENGINE)) # v8 must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else
@@ -817,8 +817,8 @@ ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else ifeq (v8, $(ENGINE)) # v8 must be compiled as c++
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else # node and napi must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
