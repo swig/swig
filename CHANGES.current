@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-08-01: jschueller, wsfulton
+            [Python] #2015 Fix reference count underflow for a PyObject *
+            director method argument, such as:
+
+              %feature("director") Callback;
+              struct Callback {
+                virtual void callback(PyObject *param1) = 0;
+              };
+
+            The count dropped by one on each upcall until the object was freed while
+            still in use. swig::SwigPtr_PyObject and swig::SwigVar_PyObject too.
+
 2026-07-31: wsfulton
             [OCaml] Fix wrapping of char array members and parameters, such as:
 

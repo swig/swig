@@ -37,6 +37,16 @@
    
 */
 
+/*
+  The director wrapper variable holding a director method argument is a
+  SwigVar_PyObject, which DECREFs on scope exit.  The argument itself is a
+  borrowed reference, so INCREF it to balance that DECREF.
+*/
+%typemap(directorin,noblock=1) PyObject * {
+  $input = $1;
+  SWIG_Py_XINCREF($input);
+}
+
 namespace swig {
   %ignore SwigPtr_PyObject;
   struct SwigPtr_PyObject {};
@@ -136,15 +146,6 @@ namespace swig {
   struct SwigVar_PyObject {};
   %apply PyObject * {SwigVar_PyObject};
   %apply PyObject * const& {SwigVar_PyObject const&};
-}
-
-/* Directorin typemap for PyObject*: the C++ function parameter is a
-   borrowed reference and must be INCREFed to balance the DECREF in
-   ~SwigVar_PyObject.  Without this the refcount drops on each director
-   call, eventually freeing the object prematurely (#2015). */
-%typemap(directorin,noblock=1) PyObject * {
-  $input = $1;
-  Py_INCREF($input);
 }
 
 %{

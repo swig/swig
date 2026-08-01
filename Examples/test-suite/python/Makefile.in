@@ -26,7 +26,6 @@ CPP_TEST_CASES += \
 	callback \
 	complextest \
 	director_guard \
-	director_pyobject \
 	director_stl \
 	director_wstring \
 	file_test \
@@ -60,6 +59,7 @@ CPP_TEST_CASES += \
 	python_builtin \
 	python_destructor_exception \
 	python_director \
+	python_director_pyobject \
 	python_docstring \
 	python_extranative \
 	python_flatstaticmethod \
