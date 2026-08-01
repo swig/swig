@@ -1,29 +1,25 @@
 /* Check that SWIG_FromUint8Array and SWIG_ToUint8Array reach the C
    compiler rather than being consumed by the SWIG preprocessor.
 
-   A typemap delimited with %{ ... %} is not macro expanded by SWIG, so the macro
-   names below survive into the generated wrapper, and the generated code only
-   compiles if the library defines them for the C compiler too.
-
-   The function are used by Javascript for the Uint8Array type. */
+   Only the jsc and napi libraries define these as macros - for node and v8 they
+   are functions, so the check only bites for jsc and napi.  The functions are
+   used by JavaScript for the Uint8Array type. */
 
 %module javascript_uint8array_fragment
 
-/* Include Javascript Uint8Array functions */
-%include "javascriptuint8array.swg"
+/* Include JavaScript Uint8Array functions */
+%include <javascriptuint8array.swg>
 
 %wrapper %{
-/* Code inserted verbatim like this is not macro expanded by SWIG either, so
+/* Code inserted verbatim like this is not macro expanded by SWIG, so
    SWIG_FromUint8Array and SWIG_ToUint8Array have to be usable by the C compiler.
    The typemaps go through these aliases so that %set_output and other SWIG macros
-   can still be used.
-   These SWIG macros are not expanded inside a verbatim delimited typemap
-   either */
+   can still be used - these are not expanded in a verbatim block either. */
 #define swig_fromuint8array(a, b, c, d) SWIG_FromUint8Array(a, b, c, d)
 #define swig_touint8array(a, b) SWIG_ToUint8Array(a, b)
 %}
 
-%typemap(in,noblock=0,fragment="SWIG_FromUint8Array") (const void *data, size_t len) (void *buf = NULL, int alloc = 0) {
+%typemap(in,fragment="SWIG_FromUint8Array") (const void *data, size_t len) (void *buf = NULL, int alloc = 0) {
   size_t len = 0;
   int res = swig_fromuint8array($input, &buf, &len, &alloc);
   if (!SWIG_IsOK(res)) {

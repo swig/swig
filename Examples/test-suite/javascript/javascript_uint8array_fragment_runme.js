@@ -1,12 +1,12 @@
 var javascript_uint8array_fragment = require("javascript_uint8array_fragment");
 
-var assertIsEqual = function(expected, actual, msg) {
-  if (expected !== actual) {
+var assertIsEqual = function(actual, expected, msg) {
+  if (actual !== expected) {
     throw new Error(msg);
   }
 };
 
-var d = javascript_uint8array_fragment.getData()
+var d = javascript_uint8array_fragment.getData();
 // Verify fetched data from C
 assertIsEqual(d instanceof Uint8Array, true, "Not Uint8array");
 assertIsEqual(d.length, 5, "wrong length");
