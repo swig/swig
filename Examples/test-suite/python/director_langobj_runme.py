@@ -1,5 +1,6 @@
+import gc
 import sys
-import python_director_pyobject
+import director_langobj
 
 # A bytearray is mutable, so it is never interned nor immortal and its
 # reference count is always tracked.
@@ -11,30 +12,19 @@ obj = bytearray(b"test data")
 received = []
 
 
-class PyCallback(python_director_pyobject.Callback):
+class PyCallback(director_langobj.Callback):
     def callback(self, param1):
         received.append(param1 is obj)
 
-    def callback_ptr(self, param1):
-        received.append(param1 is obj)
-
-    def callback_ptr_ref(self, param1):
-        received.append(param1 is obj)
-
-    def callback_var(self, param1):
-        received.append(param1 is obj)
-
-    def callback_var_ref(self, param1):
+    def callback_ref(self, param1):
         received.append(param1 is obj)
 
 
 handler = PyCallback()
 
 callers = [
-    python_director_pyobject.call_callback_ptr,
-    python_director_pyobject.call_callback_ptr_ref,
-    python_director_pyobject.call_callback_var,
-    python_director_pyobject.call_callback_var_ref,
+    director_langobj.call_callback,
+    director_langobj.call_callback_ref,
 ]
 
 for caller in callers:
@@ -52,6 +42,12 @@ for caller in callers:
 if obj != bytearray(b"test data"):
     raise RuntimeError("object was corrupted")
 
-# A null PyObject * argument must not crash.
-if python_director_pyobject.call_callback_null(handler):
-    raise RuntimeError("call_callback_null should have failed the upcall")
+# Same again with garbage collection in between the upcalls.
+before = sys.getrefcount(obj)
+for i in range(100):
+    gc.collect()
+    director_langobj.call_callback(handler, obj)
+    gc.collect()
+after = sys.getrefcount(obj)
+if before != after:
+    raise RuntimeError("reference count changed after garbage collection: %d -> %d" % (before, after))

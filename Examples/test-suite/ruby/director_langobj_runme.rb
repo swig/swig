@@ -6,9 +6,9 @@
 
 require 'swig_assert'
 
-require 'ruby_director_value'
+require 'director_langobj'
 
-class MyCallback < Ruby_director_value::Callback
+class MyCallback < Director_langobj::Callback
   attr_reader :received
   def callback(param1)
     @received = param1
@@ -21,12 +21,12 @@ end
 handler = MyCallback.new
 obj = "test data"
 
-Ruby_director_value.call_callback(handler, obj)
+Director_langobj.call_callback(handler, obj)
 if not handler.received.equal?(obj)
   raise RuntimeError, "callback did not receive the object itself, got #{handler.received.inspect}"
 end
 
-Ruby_director_value.call_callback_ref(handler, obj)
+Director_langobj.call_callback_ref(handler, obj)
 if not handler.received.equal?(obj)
   raise RuntimeError, "callback_ref did not receive the object itself, got #{handler.received.inspect}"
 end

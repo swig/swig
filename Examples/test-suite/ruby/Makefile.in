@@ -32,7 +32,6 @@ CPP_TEST_CASES = \
 	li_std_wstring_inherit \
 	primitive_types \
 	ruby_alias_method \
-	ruby_director_value \
 	ruby_global_immutable_vars_cpp \
 	ruby_keywords \
 	ruby_minherit_shared_ptr \
