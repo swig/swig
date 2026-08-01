@@ -7,6 +7,26 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-08-01: wsfulton
+            [Python] Fix reference count leak for a swig::SwigVar_PyObject director
+            method argument passed by value.  The count was incremented twice on each
+            upcall, once by the assignment into the director wrapper variable and once
+            by the directorin typemap, but only decremented once.
+
+2026-08-01: wsfulton
+            [Python, Ruby, Perl, Octave] Fix director method arguments taking a const
+            reference to the language object type, such as:
+
+              %feature("director") Callback;
+              struct Callback {
+                virtual void callback(PyObject *const &param1) = 0;
+              };
+
+            There was no directorin typemap for these, so the argument was wrapped as
+            an opaque proxy object instead of being passed through unchanged.  For Ruby
+            the generated code did not even compile.  swig::SwigPtr_PyObject const& and
+            swig::SwigVar_PyObject const& are fixed too.
+
 2026-08-01: jschueller, wsfulton
             [Python] #2015 Fix reference count underflow for a PyObject *
             director method argument, such as:
