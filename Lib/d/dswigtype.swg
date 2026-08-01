@@ -232,12 +232,12 @@
 %{ static $*1_ltype swig_temp;
    swig_temp = ($*1_ltype)$input;
    $result = &swig_temp; %}
-%typemap(ddirectorin,
-  nativepointer="cast($dtype)$winput"
-) SWIGTYPE *const& "($winput is null) ? null : new $*dclassname($winput, false)"
-%typemap(ddirectorout,
-  nativepointer="cast(void*)$dcall"
-) SWIGTYPE *const& "$*dclassname.swigGetCPtr($dcall)"
+// Unlike SWIGTYPE *, the dtype typemap above has no nativepointer attribute, so
+// the proxy method always takes the wrapper class, even for a pointer to a
+// primitive type. These must not have one either, otherwise the director
+// callback passes the raw pointer to a proxy method expecting the wrapper.
+%typemap(ddirectorin) SWIGTYPE *const& "($winput is null) ? null : new $*dclassname($winput, false)"
+%typemap(ddirectorout) SWIGTYPE *const& "$*dclassname.swigGetCPtr($dcall)"
 
 /*
  * D String & D array represent in C

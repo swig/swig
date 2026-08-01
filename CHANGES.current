@@ -8,6 +8,19 @@ Version 4.5.0 (in progress)
 ===========================
 
 2026-08-01: wsfulton
+            [D] Fix a director method taking a pointer to a primitive type by const
+            reference, such as:
+
+              %feature("director") Callback;
+              struct Callback {
+                virtual void callback(int *const &param1) = 0;
+              };
+
+            The generated D did not compile.  The proxy method takes the wrapper
+            class, SWIGTYPE_p_int in this case, but the director callback passed the
+            raw pointer straight to it.
+
+2026-08-01: wsfulton
             [Python] Fix reference count leak for a swig::SwigVar_PyObject director
             method argument passed by value.  The count was incremented twice on each
             upcall, once by the assignment into the director wrapper variable and once
