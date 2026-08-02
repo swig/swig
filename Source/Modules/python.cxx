@@ -2549,6 +2549,92 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * argoutReturnTypeAnnotation()
+   *
+   * Get the return type annotation for functions with argout
+   * parameters. Return NULL if there are no argout parameters.
+   * The annotation mode must not be NONE.
+   * ------------------------------------------------------------ */
+
+  String *argoutReturnTypeAnnotation(Node *n, type_annotation_t anno) {
+    assert(anno != TYPE_ANNOTATION_NONE);
+
+    String *ret = NULL;
+    String *tm;
+
+    ParmList *p = Getattr(n, "wrap:parms");
+    if (!p)
+      p = Getattr(n, "parms");
+    ParmList *root = p;
+
+    while (p) {
+      if ((tm = Getattr(p, "tmap:argout:match_type"))) {
+        if (anno == TYPE_ANNOTATION_TYPING)
+          break;
+
+        tm = SwigType_str(tm, 0);
+        if (ret) {
+          Printv(ret, ", ", tm, NULL);
+          Delete(tm);
+        } else {
+          ret = tm;
+        }
+
+        p = Getattr(p, "tmap:argout:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+    if (!p)
+      return ret;
+
+    assert(anno == TYPE_ANNOTATION_TYPING);
+
+    ParmList *copied_parms = CopyParmList(root);
+    Swig_typemap_attach_parms("pytyping", copied_parms, 0);
+
+    size_t num_results = 0;
+    if (!Equal(Getattr(n, "type"), "void")) {
+      ret = lookupPytyping(n, true);
+      num_results = 1;
+    }
+
+    for (p = copied_parms; p; p = nextSibling(p)) {
+      if (Getattr(p, "tmap:argout:match_type")) {
+        tm = lookupPytyping(p, true);
+        if (!tm) {
+          Swig_warning(WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF,
+                       input_file,
+                       line_number,
+                       "Missing required entry in pytyping typemap for %s\n",
+                       SwigType_str(Getattr(p, "tmap:argout:match_type"), 0));
+          tm = NewString("typing.Any");
+        }
+
+        if (ret) {
+          if (num_results == 1) {
+            String *combined = NewStringf("typing.List[typing.Union[%s, %s", ret, tm);
+            Delete(ret);
+            ret = combined;
+          } else {
+            Printv(ret, ", ", tm, NULL);
+          }
+          Delete(tm);
+        } else {
+          ret = tm;
+        }
+        num_results++;
+      }
+    }
+
+    if (num_results > 1)
+      Printv(ret, "]]", NULL);
+
+    Delete(copied_parms);
+    return ret;
+  }
+
+  /* ------------------------------------------------------------
    * returnTypeAnnotationForStubFile()
    *
    * Helper function for constructing the function annotation
@@ -2559,59 +2645,7 @@ public:
     if (anno == TYPE_ANNOTATION_NONE)
       return NewStringEmpty();
 
-    String *ret = 0;
-    int num_argout = 0;
-    Parm *p = Getattr(n, "parms");
-    SwigType *match_type;
-    /* Try to guess the returning type by argout typemap,
-     * however the result may not accurate. */
-    while (p) {
-      if ((match_type = Getattr(p, "tmap:argout:match_type"))) {
-        String *tm = 0;
-        switch (anno) {
-        case TYPE_ANNOTATION_C:
-          tm = SwigType_str(match_type, 0);
-          break;
-        case TYPE_ANNOTATION_TYPING:
-          tm = lookupPytyping(p, true);
-          if (!tm)
-            Swig_warning(
-              WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF, input_file, line_number, "Missing required entry in pytyping typemap for %s\n", SwigType_str(match_type, 0));
-          break;
-        case TYPE_ANNOTATION_NONE:
-          break;  // unreachable
-        }
-
-        if (ret) {
-          Printv(ret, ", ", tm, NULL);
-          Delete(tm);
-        } else {
-          ret = tm;
-        }
-        num_argout++;
-        p = Getattr(p, "tmap:argout:next");
-      } else {
-        p = nextSibling(p);
-      }
-    }
-    /* When there is more than one output value, the wrapper returns them in a Python list, see SWIG_Python_AppendOutput. The function's own
-     * return value, when not void, is the first element of that list. The annotation must be a list type because a bare comma separated list is invalid. */
-    if (ret && anno == TYPE_ANNOTATION_TYPING) {
-      int num_results = num_argout;
-      String *funcret = lookupPytyping(n, true);
-      if (funcret && !Equal(funcret, "None")) {
-        String *combined = NewStringf("%s, %s", funcret, ret);
-        Delete(ret);
-        ret = combined;
-        num_results++;
-      }
-      Delete(funcret);
-      if (num_results > 1) {
-        String *list = NewStringf("typing.List[typing.Union[%s]]", ret);
-        Delete(ret);
-        ret = list;
-      }
-    }
+    String *ret = argoutReturnTypeAnnotation(n, anno);
 
     /* If no argout typemap, then get the returning type from
      * the function prototype. */

@@ -7067,6 +7067,14 @@ def do_something(t: "int|float") -&gt; "int":
 </pre></div>
 
 <p>
+When <tt>argout</tt> typemaps are used, the return annotation is built from the wrapped return
+type and each matched <tt>pytyping</tt> typemap for the <tt>argout</tt> parameters. A single
+returned value keeps its type directly if the function signature returns void. Multiple returned values default to
+<tt>typing.List[typing.Union[...]]</tt>. There will be multiple returned values if the function signature returns non-void
+and there is at least one parameter that is an argout. This matches the behaviour when <tt>SWIG_AppendOutput</tt> is used.
+</p>
+
+<p>
 The following special variables can be used in a <tt>pytyping</tt> typemap. They are similar to Java's
 <a href="Java.html#Java_special_variables"><tt>$javaclassname</tt></a> family (see also the generic
 <a href="Typemaps.html#Typemaps_special_variables">special variables</a>) and expand to the wrapped

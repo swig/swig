@@ -32,7 +32,8 @@ Version 4.5.0 (in progress)
             was annotated "typing.Any, typing.Any" and is now
             "typing.List[typing.Union[typing.Any, typing.Any]]". The function's own
             return value, when not void, is the first element of the list and is now
-            included in the annotation. The C/C++ annotations, that is
+            included in the annotation. Multi-argument argout typemaps now use their
+            matching pytyping typemap too. The C/C++ annotations, that is
             %feature("python:annotations", "c"), are unchanged.
 
 2026-08-01: wsfulton

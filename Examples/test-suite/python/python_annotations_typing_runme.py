@@ -1,5 +1,5 @@
 import inspect
-from swig_test_utils import swig_assert
+from swig_test_utils import swig_assert, swig_check
 
 from python_annotations_typing import *
 
@@ -281,3 +281,33 @@ if annotations_supported:
     if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int, int]]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_assert(isinstance(argoutBoolAppendTwice(True), list))
+
+    anno = get_annotations(argoutMultiarg)
+    if anno != {"return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutMultiarg(), list))
+
+    anno = get_annotations(argoutBoolMultiarg)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiarg(True), [True, []])
+
+    anno = get_annotations(argoutMultiargAfterFirst)
+    if anno != {"first": "int", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutMultiargAfterFirst(1), [])
+
+    anno = get_annotations(argoutBoolMultiargAfterFirst)
+    if anno != {"first": "int", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargAfterFirst(2), [True, []])
+
+    anno = get_annotations(argoutMultiargBetweenFirstLast)
+    if anno != {"first": "int", "last": "float", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutMultiargBetweenFirstLast(3, 4.0), [])
+
+    anno = get_annotations(argoutBoolMultiargBetweenFirstLast)
+    if anno != {"first": "int", "last": "float", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargBetweenFirstLast(5, 6.0), [True, []])
