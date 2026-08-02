@@ -2560,6 +2560,7 @@ public:
       return NewStringEmpty();
 
     String *ret = 0;
+    int num_argout = 0;
     Parm *p = Getattr(n, "parms");
     SwigType *match_type;
     /* Try to guess the returning type by argout typemap,
@@ -2587,11 +2588,31 @@ public:
         } else {
           ret = tm;
         }
+        num_argout++;
         p = Getattr(p, "tmap:argout:next");
       } else {
         p = nextSibling(p);
       }
     }
+    /* When there is more than one output value, the wrapper returns them in a Python list, see SWIG_Python_AppendOutput. The function's own
+     * return value, when not void, is the first element of that list. The annotation must be a list type because a bare comma separated list is invalid. */
+    if (ret && anno == TYPE_ANNOTATION_TYPING) {
+      int num_results = num_argout;
+      String *funcret = lookupPytyping(n, true);
+      if (funcret && !Equal(funcret, "None")) {
+        String *combined = NewStringf("%s, %s", funcret, ret);
+        Delete(ret);
+        ret = combined;
+        num_results++;
+      }
+      Delete(funcret);
+      if (num_results > 1) {
+        String *list = NewStringf("typing.List[typing.Union[%s]]", ret);
+        Delete(ret);
+        ret = list;
+      }
+    }
+
     /* If no argout typemap, then get the returning type from
      * the function prototype. */
     if (!ret) {

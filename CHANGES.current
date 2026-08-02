@@ -21,6 +21,20 @@ Version 4.5.0 (in progress)
 
             generated space1::space1::Point in the wrappers, which did not compile.
 
+2026-08-02: Nerixyz, wsfulton
+            [Python] #3469 Fix the PEP 484 type hint generated for a function with
+            more than one output value. Such a function returns the values in a Python
+            list, but was annotated with a bare comma separated list of the individual
+            types, which is not a valid annotation. For example:
+
+              void divide(int numerator, int denominator, int *OUTPUT, int *OUTPUT);
+
+            was annotated "typing.Any, typing.Any" and is now
+            "typing.List[typing.Union[typing.Any, typing.Any]]". The function's own
+            return value, when not void, is the first element of the list and is now
+            included in the annotation. The C/C++ annotations, that is
+            %feature("python:annotations", "c"), are unchanged.
+
 2026-08-01: wsfulton
             [D] Fix a director method taking a pointer to a primitive type by const
             reference, such as:

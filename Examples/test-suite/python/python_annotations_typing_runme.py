@@ -261,3 +261,23 @@ if annotations_supported:
         "SWIGTYPE_p_ForwardOnly",
     ]:
         swig_assert(not hasattr(python_annotations_typing, name))
+
+    anno = get_annotations(argoutVoidSingleAppend)
+    if anno != {"arg": "bool", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutVoidSingleAppend(True), int))
+
+    anno = get_annotations(argoutBoolSingleAppend)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolSingleAppend(True), list))
+
+    anno = get_annotations(argoutVoidAppendTwice)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[int, int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutVoidAppendTwice(True), list))
+
+    anno = get_annotations(argoutBoolAppendTwice)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int, int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolAppendTwice(True), list))

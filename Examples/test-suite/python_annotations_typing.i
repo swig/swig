@@ -101,6 +101,13 @@ int is_python_fastproxy() { return 0; }
 
 %typemap(pytyping) (int argc, char **argv) "typing.List[str]"
 
+%typemap(in, numinputs=0) short *OutAppend (short temp) { $1 = &temp; }
+%typemap(argout) (short *OutAppend) {
+  $result = SWIG_AppendOutput($result, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutAppend "int"
+%apply short *OutAppend { short *OutAppend2 };
+
 %inline %{
 #include <cstddef>
 
@@ -270,6 +277,24 @@ struct HasClassMembers {
 // SWIGTYPE_ type wrapper class.
 struct ForwardOnly;
 void use_forward_only(ForwardOnly *fp) { (void)fp; }
+
+void argoutVoidSingleAppend(bool arg, short *OutAppend) { *OutAppend = 42; }
+
+bool argoutBoolSingleAppend(bool arg, short *OutAppend) {
+  *OutAppend = 42;
+  return arg;
+}
+
+void argoutVoidAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
+  *OutAppend = 42;
+  *OutAppend2 = 43;
+}
+
+bool argoutBoolAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
+  *OutAppend = 42;
+  *OutAppend2 = 43;
+  return arg;
+}
 
 %}
 
