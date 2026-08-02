@@ -275,3 +275,13 @@ void use_forward_only(ForwardOnly *fp) { (void)fp; }
 
 // A class-typed %constant is annotated at module level.
 %constant MyStruct *CONST_STRUCT = 0;
+
+%apply int *INPUT { short *IN1, short *IN2 };
+
+%inline %{
+
+void singleOutput(int x, int y, int *OUTPUT) {}
+bool twoInputs(short *IN1, short *IN2) { return true; }
+void inout(int x, int *INOUT) {}
+
+%}
