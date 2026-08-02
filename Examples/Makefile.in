@@ -1311,6 +1311,8 @@ endif
 PYFLAGS           = -Werror
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
+PYREFLY           = @PYREFLY@
+PYREFLY_FLAGS     = --summary=none --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import
 PYABI3AUDIT	  = @PYABI3AUDIT@
 
 # ----------------------------------------------------------------
@@ -1350,6 +1352,11 @@ PYSCRIPT = $(RUNME).py
 python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
 	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
+endif
+ifneq (,$(PYREFLY))
+ifneq (,$(filter -typehints,$(SWIG_FEATURES)))
+	$(COMPILETOOL) $(PYREFLY) check $(PYREFLY_FLAGS) $(PYREFLY_EXTRA_FLAGS) *.py $(if $(filter -pyi,$(SWIG_FEATURES)),$(wildcard *.pyi))
+endif
 endif
 	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(PYSCRIPT) $(RUNPIPE)
 

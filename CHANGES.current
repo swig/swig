@@ -21,6 +21,21 @@ Version 4.5.0 (in progress)
 
             generated space1::space1::Point in the wrappers, which did not compile.
 
+2026-08-02: wsfulton
+            [Python] #735 Added the -typehints command line option, which turns on
+            PEP 484 type hints for the whole interface, equivalent to using the global
+            feature:
+
+              %feature("python:annotations", "typing");
+
+            The python:annotations feature takes precedence over the option, so it can
+            still be used to override it for individual symbols. A feature value of "0"
+            turns the type hints off again:
+
+              %feature("python:annotations", "0") no_hints;
+
+            The SWIGPYTHON_TYPEHINTS preprocessor symbol is defined when using -typehints.
+
 2026-08-02: Nerixyz, wsfulton
             [Python] #3469 Fix the PEP 484 type hint generated for a function with
             more than one output value. Such a function returns the values in a Python

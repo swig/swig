@@ -100,6 +100,7 @@ static int flat_static_method = 0;
 static int nogil = 0;
 static int pyi_stub = 0;
 static String *pyi_filename = 0;
+static int typehints = 0;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -135,6 +136,7 @@ static const char *usage3 = "\
      -pyifile <file> - Generate the .pyi stub file with name <file>, also implies -pyi\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
+     -typehints      - Generate PEP 484 type hints for the whole interface\n\
      -O              - Enable the following optimization options:\n\
                          -fastdispatch -fastproxy -fvirtual\n\
 \n";
@@ -235,8 +237,12 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
   return NULL;
 }
 
+/* Determine the annotation mode for a node. The 'python:annotations' feature takes precedence over the -typehints command line option,
+   so a value of "0" turns the option off for a single symbol. */
 static type_annotation_t getTypeAnnotationMode(Node *n) {
   String *annotation_type = Getattr(n, "feature:python:annotations");
+  if (!annotation_type)
+    return typehints ? TYPE_ANNOTATION_TYPING : TYPE_ANNOTATION_NONE;
   if (Equal(annotation_type, "c"))
     return TYPE_ANNOTATION_C;
   if (Equal(annotation_type, "typing"))
@@ -439,6 +445,10 @@ public:
           Swig_mark_arg(i);
         } else if (strcmp(argv[i], "-relativeimport") == 0) {
           relativeimport = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-typehints") == 0) {
+          typehints = 1;
+          Preprocessor_define("SWIGPYTHON_TYPEHINTS", 0);
           Swig_mark_arg(i);
         } else if (strcmp(argv[i], "-pyi") == 0) {
           pyi_stub = 1;
@@ -679,6 +689,10 @@ public:
 
     if (fastproxy) {
       Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
+    }
+
+    if (typehints) {
+      Printf(f_runtime, "#define SWIGPYTHON_TYPEHINTS\n");
     }
 
     if (nogil) {

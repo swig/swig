@@ -140,6 +140,7 @@
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
 <li><a href="#Python_annotations_pytyping">PEP 484 annotation types</a>
+<li><a href="#Python_annotations_typehints">Type hints for the whole interface</a>
 <li><a href="#Python_annotations_pyi">Generating .pyi stub files</a>
 </ul>
 <li><a href="#Python_nn75">Buffer interface</a>
@@ -969,6 +970,7 @@ swig -python -help
 <tr><td>-pyifile &lt;file&gt;</td><td>Generate the .pyi stub file with name &lt;file&gt;, also implies -pyi</td></tr>
 <tr><td>-relativeimport </td><td>Use relative Python imports</td></tr>
 <tr><td>-threads        </td><td>Add thread support for all the interface</td></tr>
+<tr><td>-typehints      </td><td>Generate PEP 484 type hints for the whole interface</td></tr>
 <tr><td>-O              </td><td>Enable the following optimization options: -fastdispatch -fastproxy -fvirtual</td></tr>
 
 </table>
@@ -6881,7 +6883,9 @@ Python 3 supports function annotations as defined in
 Python 3.6 and later additionally support variable annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-526/">PEP 526</a>.
 Annotations are added via the <tt>python:annotations</tt>
-<a href="Customization.html#Customization_features">%feature directives</a>.
+<a href="Customization.html#Customization_features">%feature directives</a>, or turned on for
+the whole interface with the <tt>-typehints</tt> command line option, see
+<a href="#Python_annotations_typehints">Type hints for the whole interface</a> below.
 When using the <tt>-builtin</tt> or <tt>-fastproxy</tt> options, the proxy module has no
 Python-level function or class definitions for annotations to attach to, so the
 <tt>-pyi</tt> command line option is needed instead. <tt>-pyi</tt> is not restricted to
@@ -7140,7 +7144,89 @@ if typing.TYPE_CHECKING:
 <b>Compatibility Note:</b> SWIG-4.5.0 added support for PEP 484 annotation types.
 </p>
 
-<H4><a name="Python_annotations_pyi">33.12.1.3 Generating .pyi stub files</a></H4>
+<H4><a name="Python_annotations_typehints">33.12.1.3 Type hints for the whole interface</a></H4>
+
+
+<p>
+The <tt>-typehints</tt> command line option turns on
+<a href="#Python_annotations_pytyping">PEP 484 annotation types</a> for every symbol in the
+interface, without having to modify the interface file. It is equivalent to adding the
+global feature:
+</p>
+
+<div class="code"><pre>
+%feature("python:annotations", "typing");
+</pre></div>
+
+<p>
+so the following two invocations generate the same wrappers:
+</p>
+
+<div class="shell"><pre>
+$ swig -python -typehints -c++ example.i
+$ swig -python -c++ example.i        # with the global %feature in example.i
+</pre></div>
+
+<p>
+The <tt>python:annotations</tt> feature takes precedence over the option, so it can be used to
+override <tt>-typehints</tt> for individual symbols. A feature value of <tt>"0"</tt> turns the
+type hints off again, and a value of <tt>"c"</tt> selects
+<a href="#Python_annotations_c">C/C++ annotation types</a> instead:
+</p>
+
+<div class="code"><pre>
+%feature("python:annotations", "0") no_hints;      // no annotations at all
+%feature("python:annotations", "c") c_hints;       // C/C++ types, not PEP 484 types
+
+float parse_name(const char *name);
+float no_hints(const char *name);
+float c_hints(const char *name);
+</pre></div>
+
+<p>
+When wrapped with <tt>-typehints</tt>, generates:
+</p>
+
+<div class="targetlang"><pre>
+def parse_name(name: "typing.Optional[str]") -&gt; "float":
+    return _example.parse_name(name)
+
+def no_hints(name):
+    return _example.no_hints(name)
+
+def c_hints(name: "char const *") -&gt; "float":
+    return _example.c_hints(name)
+</pre></div>
+
+<p>
+Variable annotations can be turned off separately with the
+<tt>python:annotations:novar</tt> feature flag, as described in
+<a href="#Python_annotations_c">C/C++ annotation types</a>.
+</p>
+
+<p>
+The <tt>SWIGPYTHON_TYPEHINTS</tt> preprocessor symbol is defined when <tt>-typehints</tt> is
+used, in both the interface file and the generated wrapper, so an interface can adapt to it:
+</p>
+
+<div class="code"><pre>
+#ifdef SWIGPYTHON_TYPEHINTS
+%typemap(pytyping) MyType "typing.Optional[int]";
+#endif
+</pre></div>
+
+<p>
+As with the feature, <tt>-typehints</tt> on its own has no effect when using <tt>-builtin</tt>
+or <tt>-fastproxy</tt>, as there are no Python-level function or class definitions for the
+annotations to attach to. Combine it with <tt>-pyi</tt> to generate the annotations into a stub
+file instead, see <a href="#Python_annotations_pyi">Generating .pyi stub files</a> below.
+</p>
+
+<p>
+<b>Compatibility Note:</b> SWIG-4.5.0 added the <tt>-typehints</tt> command line option.
+</p>
+
+<H4><a name="Python_annotations_pyi">33.12.1.4 Generating .pyi stub files</a></H4>
 
 
 <p>

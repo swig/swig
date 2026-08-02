@@ -2122,6 +2122,12 @@ if test -n "$PY3INCLUDE" ; then
     pycodestyle_version=`$PYCODESTYLE --version 2>/dev/null`
     AC_MSG_RESULT($pycodestyle_version)
   fi
+  AC_CHECK_PROGS(PYREFLY, pyrefly)
+  if test -n "$PYREFLY"; then
+    AC_MSG_CHECKING(pyrefly version)
+    pyrefly_version=`$PYREFLY --version 2>/dev/null`
+    AC_MSG_RESULT($pyrefly_version)
+  fi
   if test -n "$PY3INCLUDE" ; then
     AC_CHECK_PROGS(PYABI3AUDIT, [abi3audit])
   fi
