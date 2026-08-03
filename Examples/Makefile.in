@@ -1381,7 +1381,7 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
-	rm -f $(TARGET).py $(TARGET).pyi
+	rm -f $(TARGET).py*
 	rm -f *_abi3_report.json
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 
