@@ -3233,8 +3233,10 @@ public:
     }
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
-    if (!builtin_self && (use_static_method || !builtin))
-      add_method(symname, wname, 0, Getattr(n, "sym:previousSibling") ? n : NULL);
+    if (!builtin_self && (use_static_method || !builtin)) {
+      String *constructor_name = builtin ? Getattr(n, "constructorHandler:sym:name") : NULL;
+      add_method(constructor_name ? constructor_name : symname, wname, 0, Getattr(n, "sym:previousSibling") ? n : NULL);
+    }
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
@@ -3898,8 +3900,10 @@ public:
     bool use_static_method = flat_static_method || !Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage");
     /* Now register the function with the interpreter.   */
     if (!Getattr(n, "sym:overloaded")) {
-      if (!builtin_self && (use_static_method || !builtin))
-        add_method(iname, wname, allow_kwargs, n, funpack, num_required, num_arguments);
+      if (!builtin_self && (use_static_method || !builtin)) {
+        String *constructor_name = builtin ? Getattr(n, "constructorHandler:sym:name") : NULL;
+        add_method(constructor_name ? constructor_name : iname, wname, allow_kwargs, n, funpack, num_required, num_arguments);
+      }
 
       /* Create a shadow for this function (if enabled and not in a member function) */
       if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
@@ -5693,8 +5697,6 @@ public:
                   f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
               Printv(f_shadow_stubs, tab4, "return val\n", NIL);
             }
-          } else {
-            Printf(f_shadow_stubs, "%s = %s\n", symname, subfunc);
           }
         }
         Delete(subfunc);

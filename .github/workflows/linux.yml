@@ -210,6 +210,10 @@ jobs:
           CSTD: gnu99
           SWIG_FEATURES: -typehints
         - SWIGLANG: python
+          VER: '3.14'
+          CSTD: gnu99
+          SWIG_FEATURES: -builtin -typehints
+        - SWIGLANG: python
           VER: '3.14-dbg'
           CSTD: gnu99
         - SWIGLANG: python

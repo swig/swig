@@ -21,6 +21,17 @@ Version 4.5.0 (in progress)
 
             generated space1::space1::Point in the wrappers, which did not compile.
 
+2026-08-03: wsfulton
+            [Python] When using -builtin, internal new_ prefixed entry points for
+            alternate constructors were mistakenly exposed by the low-level C/C++
+            module. This occurred for constructors explicitly renamed with %rename,
+            constructor template instantiations named with %template, and synthesized
+            default constructors for C structs renamed with %rename. These constructors
+            are now exported only under their public names, without aliases in the
+            generated Python module.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-08-02: wsfulton
             [Python] #735 Added the -typehints command line option, which turns on
             PEP 484 type hints for the whole interface, equivalent to using the global
