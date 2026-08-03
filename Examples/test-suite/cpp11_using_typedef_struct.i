@@ -29,4 +29,27 @@ int fn1(AffineMatrix a) { return a.x; }
 int fn2(CacheView a) { return a.x; }
 int fn3(Abstract *a) { _internal(a); return 0; }
 int fn4(const Abstract *a) { _internal(a); return 0; }
+
+namespace ANamespace {
+  struct ControlPoint {
+    int abc;
+  };
+}
+
+namespace Another {
+  template <typename T>
+  struct Vec {
+    using size_type = int;
+    Vec(T v) {}
+  };
+}
+
+using InNamespaceInt = Another::Vec<ANamespace::ControlPoint>;
+using WrapAgain = Another::Vec<InNamespaceInt::size_type>;
+
+// This needs to use SwigValueWrapper because there's no default constructor.
+// Test that the name is correct (i.e. it compiles).
+WrapAgain identity(WrapAgain in) {
+  return in;
+}
 %}

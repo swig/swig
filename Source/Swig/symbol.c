@@ -1907,15 +1907,17 @@ static SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab) {
     String *qp = Swig_symbol_type_qualify(tp, ntab);
     Node *n = Swig_symbol_clookup(qp, ntab);
     if (n) {
-      String *qual = Swig_symbol_qualified(n);
       np = Copy(Getattr(n, "name"));
       Delete(tp);
       tp = np;
-      if (qual && Len(qual)) {
-        Insert(np, 0, "::");
-        Insert(np, 0, qual);
+      if (!Swig_scopename_check(np)) {
+        String *qual = Swig_symbol_qualified(n);
+        if (qual && Len(qual)) {
+          Insert(np, 0, "::");
+          Insert(np, 0, qual);
+        }
+        Delete(qual);
       }
-      Delete(qual);
     } else {
       np = qp;
     }
