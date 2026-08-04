@@ -1661,6 +1661,27 @@ String *Swig_symbol_qualified(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * symbol_qualified_name()
+ *
+ * Return a copy of a symbol's name, qualified with the symbol's scope.  TypePass patches a class name
+ * with its enclosing scope once the class contents have been traversed, so the name may or may not be
+ * qualified already and the scope must not be added a second time (eg 'Space::Space::Point').
+ * ----------------------------------------------------------------------------- */
+
+static String *symbol_qualified_name(Node *n) {
+  String *name = Copy(Getattr(n, "name"));
+  if (!Swig_scopename_check(name)) {
+    String *qname = Swig_symbol_qualified(n);
+    if (qname && Len(qname)) {
+      Insert(name, 0, "::");
+      Insert(name, 0, qname);
+    }
+    Delete(qname);
+  }
+  return name;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_isoverloaded()
  *
  * Check if a symbol is overloaded.  Returns the first symbol if so.
@@ -1823,23 +1844,13 @@ SwigType *Swig_symbol_type_qualify(const SwigType *t, Symtab *st) {
       /* Note: the unary scope operator (::) is being removed from the template parameters here. */
       n = Swig_symbol_clookup_check(e, st, symbol_no_constructor);
       if (n) {
-        String *name = Getattr(n, "name");
+        String *qname = symbol_qualified_name(n);
         Clear(e);
-        Append(e, name);
+        Append(e, qname);
+        Delete(qname);
 #ifdef SWIG_DEBUG
-        Printf(stderr, "symbol_qual_ei %d %s %s %p\n", i, name, e, st);
+        Printf(stderr, "symbol_qual_ei %d %s %s %p\n", i, Getattr(n, "name"), e, st);
 #endif
-        if (!Swig_scopename_check(name)) {
-          String *qname = Swig_symbol_qualified(n);
-          if (qname && Len(qname)) {
-            Insert(e, 0, "::");
-            Insert(e, 0, qname);
-          }
-#ifdef SWIG_DEBUG
-          Printf(stderr, "symbol_qual_sc %d %s %s %p\n", i, qname, e, st);
-#endif
-          Delete(qname);
-        }
       } else if (SwigType_istemplate(e)) {
         SwigType *ty = symbol_template_qualify(e, st);
         Clear(e);
@@ -1907,17 +1918,9 @@ static SwigType *Swig_symbol_template_reduce(SwigType *qt, Symtab *ntab) {
     String *qp = Swig_symbol_type_qualify(tp, ntab);
     Node *n = Swig_symbol_clookup(qp, ntab);
     if (n) {
-      np = Copy(Getattr(n, "name"));
+      np = symbol_qualified_name(n);
       Delete(tp);
       tp = np;
-      if (!Swig_scopename_check(np)) {
-        String *qual = Swig_symbol_qualified(n);
-        if (qual && Len(qual)) {
-          Insert(np, 0, "::");
-          Insert(np, 0, qual);
-        }
-        Delete(qual);
-      }
     } else {
       np = qp;
     }

@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-08-04: Nerixyz
+            #3526 Fix the scope of a template argument being added twice when the
+            argument is named through an alias declaration of a template
+            instantiation, for example:
+
+              namespace space1 {
+                struct Point { int x; };
+                template <typename T> struct Holder { using size_type = int; };
+              }
+              using PointHolder = space1::Holder<space1::Point>;
+              using PointSizeHolder = space1::Holder<PointHolder::size_type>;
+
+            generated space1::space1::Point in the wrappers, which did not compile.
+
 2026-08-01: wsfulton
             [D] Fix a director method taking a pointer to a primitive type by const
             reference, such as:
