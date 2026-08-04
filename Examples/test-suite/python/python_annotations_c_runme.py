@@ -2,12 +2,13 @@ from swig_test_utils import swig_annotations_in_stub, swig_get_annotations
 
 from python_annotations_c import *
 
-# No __annotations__ support with -builtin or -fastproxy
+# Annotations are only added to the runtime objects for the default proxy classes,
+# but with -pyi they are always available in the generated .pyi stub file
 annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
 
 def get_annotations(obj):
-    return swig_get_annotations(obj, "python_annotations_c")
+    return swig_get_annotations(obj, "python_annotations_c", is_python_fastproxy())
 
 if annotations_supported:
     anno = get_annotations(MakeShort)

@@ -5,7 +5,7 @@ from python_typehints import *
 
 
 def get_annotations(obj):
-    return swig_get_annotations(obj, "python_typehints")
+    return swig_get_annotations(obj, "python_typehints", is_python_fastproxy())
 
 
 def check(anno, expected):
@@ -17,7 +17,8 @@ def check(anno, expected):
 if is_typehints() != 1:
     raise RuntimeError("SWIGPYTHON_TYPEHINTS is not defined")
 
-# No __annotations__ support with -builtin or -fastproxy
+# Annotations are only added to the runtime objects for the default proxy classes,
+# but with -pyi they are always available in the generated .pyi stub file
 annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
 if annotations_supported:
