@@ -1,17 +1,11 @@
-import inspect
+from swig_test_utils import swig_annotations_in_stub, swig_get_annotations
 
 import python_typehints
 from python_typehints import *
 
 
 def get_annotations(obj):
-    # Python >=3.14 removed the __annotations__ attribute; retrieve it via inspect (see also annotationlib)
-    if hasattr(inspect, "get_annotations"):
-        # Python >=3.10
-        return inspect.get_annotations(obj)
-    else:
-        # Python <3.10
-        return getattr(obj, "__annotations__", {})
+    return swig_get_annotations(obj, "python_typehints")
 
 
 def check(anno, expected):
@@ -24,7 +18,7 @@ if is_typehints() != 1:
     raise RuntimeError("SWIGPYTHON_TYPEHINTS is not defined")
 
 # No __annotations__ support with -builtin or -fastproxy
-annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
 if annotations_supported:
     # PEP 484 type hints are on for the whole interface without using %feature("python:annotations", "typing")

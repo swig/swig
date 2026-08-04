@@ -22,7 +22,7 @@ for node in ast.walk(tree):
         names.add(node.target.id)
 
 # Everything expected from a -builtin class should appear in the stub.
-expected = {"SizedCollection", "Widget", "__init__", "getId", "create", "id", "make_unwrapped", "SWIGTYPE_p_Unwrapped"}
+expected = {"Empty", "SizedCollection", "Widget", "__init__", "getId", "create", "id", "make_unwrapped", "SWIGTYPE_p_Unwrapped"}
 missing = expected - names
 if missing:
     raise RuntimeError("python_pyi.pyi is missing expected declarations: %s" % sorted(missing))

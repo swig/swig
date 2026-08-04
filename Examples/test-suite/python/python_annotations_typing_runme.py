@@ -1,20 +1,13 @@
-import inspect
-from swig_test_utils import swig_assert, swig_check
+from swig_test_utils import swig_annotations_in_stub, swig_assert, swig_check, swig_get_annotations
 
 from python_annotations_typing import *
 
 # No __annotations__ support with -builtin or -fastproxy
-annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
-def get_annotations(cls):
-    # Python >=3.14 removed the __annotations__ attribute
-    # retrieve it via inspect (see also annotationlib)
-    if hasattr(inspect, "get_annotations"):
-        # Python >=3.10
-        return inspect.get_annotations(cls)
-    else:
-        # Python <3.10
-        return getattr(cls, "__annotations__", {})
+
+def get_annotations(obj):
+    return swig_get_annotations(obj, "python_annotations_typing")
 
 if annotations_supported:
     anno = get_annotations(global_ints)

@@ -203,7 +203,7 @@ check_typehints = $(if $(filter -typehints,$(SWIG_FEATURES)), \
 check_typehints_multi_cpp = \
 	$(if $(filter -typehints,$(SWIG_FEATURES)), \
 	  for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	    $(COMPILETOOL) $(PYREFLY) check $(PYREFLY_FLAGS) $(PYREFLY_EXTRA_FLAGS) $$f.py || exit 1; \
+	    $(COMPILETOOL) $(PYREFLY) check $(PYREFLY_FLAGS) $(PYREFLY_EXTRA_FLAGS) $$f.py $(if $(filter -pyi,$(SWIG_FEATURES)),$$f.pyi) || exit 1; \
 	  done)
 endif
 

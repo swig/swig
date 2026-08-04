@@ -1,16 +1,10 @@
 import sys
-import inspect
+
+from swig_test_utils import swig_annotations_in_stub, swig_get_annotations
 
 
-def get_annotations(cls):
-    # Python >=3.14 removed the __annotations__ attribute
-    # retrieve it via inspect (see also annotationlib)
-    if hasattr(inspect, "get_annotations"):
-        # Python >=3.10
-        return inspect.get_annotations(cls)
-    else:
-        # Python <3.10
-        return getattr(cls, "__annotations__", {})
+def get_annotations(obj):
+    return swig_get_annotations(obj, "python_annotations_variable_c")
 
 
 # Variable annotations for properties is only supported in python-3.6 and later (PEP 526)
@@ -19,7 +13,7 @@ if sys.version_info[0:2] >= (3, 6):
     from python_annotations_variable_c import *
 
     # No SWIG __annotations__ support with -builtin or -fastproxy
-    annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+    annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
     if annotations_supported:
         anno = get_annotations(python_annotations_variable_c)
