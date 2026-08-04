@@ -61,6 +61,7 @@ static String *builtin_closures_code = 0;
 static String *f_varlinks = 0;
 static File *f_stub_pyi = 0;
 static String *f_stub = 0;
+static String *f_stub_begin = 0;
 
 /* Mapping of mangled type names ("SWIGTYPE{mangled}") to their type */
 static Hash *unknown_types_hash = 0;
@@ -69,6 +70,7 @@ static String *methods;
 static String *methods_proxydocs;
 static String *class_name;
 static String *shadow_indent = 0;
+static String *stub_indent = 0;
 static int in_class = 0;
 static int no_header_file = 0;
 static int max_bases = 0;
@@ -741,6 +743,7 @@ public:
       filen = NULL;
 
       f_stub = NewString("");
+      f_stub_begin = NewString("");
 
       Swig_register_filebyname("stub_pyi", f_stub_pyi);
     }
@@ -965,6 +968,9 @@ public:
     if (pyi_stub) {
       printModuleBegin(f_stub_pyi, mod_docstring);
 
+      if (Len(f_stub_begin) > 0)
+        Printv(f_stub_pyi, "\n", f_stub_begin, "\n", NIL);
+
       Printv(f_stub_pyi, "import typing\n", NULL);
 
       if (Len(f_stub) > 0)
@@ -1005,6 +1011,7 @@ public:
     Delete(f_shadow_begin);
     Delete(f_shadow);
     Delete(f_stub);
+    Delete(f_stub_begin);
     Delete(f_header);
     Delete(f_wrappers);
     Delete(f_builtins);
@@ -5229,6 +5236,7 @@ public:
 
     if (pyi_stub) {
       printClassHeader(n, class_name, f_stub, false);
+      stub_indent = (String *)tab4;
     }
 
     /* Emit all of the members */
@@ -5257,6 +5265,7 @@ public:
 
     Language::classHandler(n);
 
+    stub_indent = 0;
     in_class = 0;
 
     /* Complete the class */
@@ -5962,6 +5971,18 @@ public:
       if (shadow) {
         String *pycode = indent_pythoncode(code, "", Getfile(n), Getline(n), "%pythonbegin or %insert(\"pythonbegin\") block");
         Printv(f_shadow_begin, pycode, NIL);
+        Delete(pycode);
+      }
+    } else if (!ImportMode && (Cmp(section, "pythonstub") == 0)) {
+      if (pyi_stub) {
+        String *pycode = indent_pythoncode(code, stub_indent, Getfile(n), Getline(n), "%pythonstubcode or %insert(\"pythonstub\") block");
+        Printv(f_stub, pycode, NIL);
+        Delete(pycode);
+      }
+    } else if (!ImportMode && (Cmp(section, "pythonstubbegin") == 0)) {
+      if (pyi_stub) {
+        String *pycode = indent_pythoncode(code, "", Getfile(n), Getline(n), "%pythonstubbegin or %insert(\"pythonstubbegin\") block");
+        Printv(f_stub_begin, pycode, NIL);
         Delete(pycode);
       }
     } else {
