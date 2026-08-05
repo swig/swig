@@ -12,6 +12,21 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_RETURN(val) args.GetReturnValue().Set(val); return
 #define SWIGV8_RETURN_INFO(val, info) info.GetReturnValue().Set(val); return
 
+/* The object a wrapped method or accessor was invoked on.
+ *
+ * v8 12.6 deprecated FunctionCallbackInfo::Holder() and 13.5 removed it.  This() has
+ * always been available and is what v8 says to use instead, so no version check is needed.
+ *
+ * For PropertyCallbackInfo, v8 12.7 added HolderV2(), 14.4 removed Holder() and 14.6
+ * removed This() too, leaving HolderV2() as the only way to get at the receiver.
+ */
+#define SWIGV8_ARGS_THIS(args) (args).This()
+#if (SWIG_V8_VERSION < 0x1207)
+#define SWIGV8_INFO_HOLDER(info) (info).Holder()
+#else
+#define SWIGV8_INFO_HOLDER(info) (info).HolderV2()
+#endif
+
 #define SWIGV8_HANDLESCOPE() v8::HandleScope scope(v8::Isolate::GetCurrent());
 #define SWIGV8_HANDLESCOPE_ESC() v8::EscapableHandleScope scope(v8::Isolate::GetCurrent());
 #define SWIGV8_ESCAPE(val) return scope.Escape(val)
@@ -27,7 +42,14 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 
 #define SWIGV8_ARRAY_NEW(size) v8::Array::New(v8::Isolate::GetCurrent(), size)
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(v8::Isolate::GetCurrent(), bool)
+/* v8 14.3 added a type tag to v8::External and deprecated the versions without one */
+#if (SWIG_V8_VERSION < 0x1403)
 #define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val)
+#define SWIGV8_EXTERNAL_VALUE(handle) (handle)->Value()
+#else
+#define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val, v8::kExternalPointerTypeTagDefault)
+#define SWIGV8_EXTERNAL_VALUE(handle) (handle)->Value(v8::kExternalPointerTypeTagDefault)
+#endif
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), func)
 #define SWIGV8_FUNCTEMPLATE_NEW_VOID() v8::FunctionTemplate::New(v8::Isolate::GetCurrent())
 #define SWIGV8_INT32_NEW(num) v8::Int32::New(v8::Isolate::GetCurrent(), num)
@@ -46,14 +68,44 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_ARRAY_GET(array, index) (array)->Get(SWIGV8_CURRENT_CONTEXT(), index).ToLocalChecked()
 #define SWIGV8_ARRAY_SET(array, index, value) SWIGV8_MAYBE_CHECK((array)->Set(SWIGV8_CURRENT_CONTEXT(), index, value))
 
+/* v8 14.2 removed the aligned internal field pointer accessors that take no
+ * EmbedderDataTypeTag, having added the tagged versions in 14.1.  Only the tagged setter
+ * exists in 14.1, so the switch is made at 14.2 when both are available.
+ *
+ * The tag passed when setting must match the tag passed when getting, so the default tag
+ * is used - a SWIG specific tag would stop a module wrapped by an older SWIG from being
+ * read by one wrapped by a newer SWIG.
+ */
+#if (SWIG_V8_VERSION < 0x1402)
+#define SWIGV8_ALIGNED_POINTER_GET(obj, index) (obj)->GetAlignedPointerFromInternalField(index)
+#define SWIGV8_ALIGNED_POINTER_SET(obj, index, ptr) (obj)->SetAlignedPointerInInternalField(index, ptr)
+#else
+#define SWIGV8_ALIGNED_POINTER_GET(obj, index) (obj)->GetAlignedPointerFromInternalField(index, v8::kEmbedderDataTypeTagDefault)
+#define SWIGV8_ALIGNED_POINTER_SET(obj, index, ptr) (obj)->SetAlignedPointerInInternalField(index, ptr, v8::kEmbedderDataTypeTagDefault)
+#endif
+
 #define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
 
 #define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
 #define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
-#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
-#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
+/* v8 13.3 added Utf8LengthV2/WriteUtf8V2 and deprecated Utf8Length/WriteUtf8, which
+ * 14.4 then removed.  The V2 versions are used as soon as they are available as the
+ * deprecation warning is an error when compiling with -Werror.
+ *
+ * SWIGV8_UTF8_LENGTH is the number of bytes needed to encode the string, excluding the
+ * terminating NUL.  SWIGV8_WRITE_UTF8's 'len' is the full size of the buffer, including
+ * room for the NUL; it always NUL terminates and returns the number of bytes written,
+ * including the NUL.
+ */
+#if (SWIG_V8_VERSION < 0x1303)
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) ((size_t)(handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, (int)(len)))
+#define SWIGV8_UTF8_LENGTH(handle) ((size_t)(handle)->Utf8Length(v8::Isolate::GetCurrent()))
+#else
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8V2(v8::Isolate::GetCurrent(), buffer, len, v8::String::WriteFlags::kNullTerminate)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8LengthV2(v8::Isolate::GetCurrent())
+#endif
 #define SWIGV8_OBJECT_TEMPLATE_INSTACE(tmpl) tmpl->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(v8::Isolate::GetCurrent())
 
@@ -153,7 +205,7 @@ SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(SWIGV8_OBJECT objRef, void **ptr, swi
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
-  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(SWIGV8_ALIGNED_POINTER_GET(objRef, 0));
 
   if(cdata == NULL) {
     return SWIG_ERROR;
@@ -201,7 +253,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(SWIGV8_VALUE valRef, void **ptr) {
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
-  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
+  SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(SWIGV8_ALIGNED_POINTER_GET(objRef, 0));
 
   if(cdata == NULL) {
     return SWIG_ERROR;
@@ -218,7 +270,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
   cdata->info = info;
 
-  obj->SetAlignedPointerInInternalField(0, cdata);
+  SWIGV8_ALIGNED_POINTER_SET(obj, 0, cdata);
 
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 
@@ -292,7 +344,7 @@ SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
 
   if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for equals.");
 
-  res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
+  res1 = SWIG_GetInstancePtr(SWIGV8_ARGS_THIS(args), &arg1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ERROR, "Could not get pointer from 'this' object for equals.");
   }
@@ -318,7 +370,7 @@ SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
   intptr_t result;
   int res1;
 
-  res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
+  res1 = SWIG_GetInstancePtr(SWIGV8_ARGS_THIS(args), &arg1);
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
   }
@@ -378,7 +430,7 @@ swig_type_info *SwigV8Packed_UnpackData(SWIGV8_VALUE valRef, void *ptr, size_t s
 
     SWIGV8_OBJECT objRef = SWIGV8_TO_OBJECT(valRef);
 
-    sobj = static_cast<SwigV8PackedData*>(objRef->GetAlignedPointerFromInternalField(0));
+    sobj = static_cast<SwigV8PackedData*>(SWIGV8_ALIGNED_POINTER_GET(objRef, 0));
     if (sobj == NULL || sobj->size != size) return 0;
     memcpy(ptr, sobj->data, size);
     return sobj->type;
@@ -419,7 +471,7 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
   v8::Local<v8::Private> privateKey = v8::Private::ForApi(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW("__swig__packed_data__"));
   obj->SetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey, SWIGV8_BOOLEAN_NEW(true));
 
-  obj->SetAlignedPointerInInternalField(0, cdata);
+  SWIGV8_ALIGNED_POINTER_SET(obj, 0, cdata);
 
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 

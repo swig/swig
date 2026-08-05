@@ -2488,7 +2488,7 @@ public:
         if (tm != 0) {
           Replaceall(tm, "$input", Swig_cresult_name());
           char temp[24];
-          sprintf(temp, "%d", idx);
+          snprintf(temp, sizeof(temp), "%d", idx);
           Replaceall(tm, "$argnum", temp);
 
           /* TODO check this */

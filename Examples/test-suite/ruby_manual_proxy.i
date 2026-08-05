@@ -57,6 +57,15 @@ static VALUE svn_fs_swig_rb_close(VALUE self) {
   return Qnil;
 }
 
+/* The way hand written code invalidated a proxy before SWIG 4.5 introduced the TypedData
+   wrapper. It is no longer the recommended approach, see svn_fs_swig_rb_close above, but it
+   must not crash on any Ruby version, see #3512. */
+static VALUE svn_fs_swig_rb_legacy_close(VALUE self) {
+  DATA_PTR(self) = NULL;
+
+  return Qnil;
+}
+
 static VALUE svn_fs_swig_rb_closed(VALUE self) {
   void *ptr = 0;
   int res;
@@ -73,5 +82,9 @@ static VALUE svn_fs_swig_rb_closed(VALUE self) {
     cSvnfs = rb_const_get(_mSWIG, rb_intern("TYPE_p_svn_fs_t"));
     rb_define_method(cSvnfs, "close",
                      VALUEFUNC(svn_fs_swig_rb_close), 0);
+    rb_define_method(cSvnfs, "legacy_close",
+                     VALUEFUNC(svn_fs_swig_rb_legacy_close), 0);
+    rb_define_method(cSvnfs, "closed?",
+                     VALUEFUNC(svn_fs_swig_rb_closed), 0);
   }
 %}

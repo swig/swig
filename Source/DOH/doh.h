@@ -19,6 +19,12 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __cplusplus
+/* Pull in <cstdio> here so that the "using ::sprintf" it performs happens before sprintf is
+ * poisoned at the end of this header.  Otherwise a C++ translation unit which includes <cstdio>
+ * afterwards, directly or via <string>, would fail to compile with DOH_POISON defined. */
+#include <cstdio>
+#endif
 
 /* Set the namespace prefix for DOH API functions. This can be used to control
    visibility of the functions in libraries */
@@ -499,6 +505,9 @@ extern void DohMemoryDebug(void);
 #pragma GCC poison realloc calloc
 /* Use Exit() instead (which will remove output files on error). */
 #pragma GCC poison abort exit
+/* Use snprintf() instead - sprintf() has no bounds checking and is deprecated on some
+ * platforms, such as macOS. */
+#pragma GCC poison sprintf
 #endif
 
 #endif /* SWIG_DOH_H */

@@ -1,4 +1,7 @@
+import ast
 import contextlib
+import inspect
+import os
 import random
 import string
 import sys
@@ -13,6 +16,114 @@ def swig_check(lhs, rhs):
     """More user friendly assert function which shows values in an AssertionError if they are not equal"""
     if not lhs == rhs:
         raise AssertionError("'{lhs}' != '{rhs}', repr(lhs)={lr}, repr(rhs)={rr}".format(lhs=lhs, rhs=rhs, lr=repr(lhs), rr=repr(rhs)))
+
+
+def swig_annotations_in_stub():
+    """Return whether generated annotations are stored in a .pyi stub."""
+    return "-pyi" in os.environ.get("SWIG_FEATURES", "").split()
+
+
+def _swig_stub_annotation_text(annotation):
+    """Return the text represented by a generated stub annotation AST node."""
+    value = getattr(annotation, "value", None)
+    if isinstance(value, str):
+        return value
+    value = getattr(annotation, "s", None)
+    if isinstance(value, str):
+        return value
+    if isinstance(annotation, ast.Name):
+        return annotation.id
+    raise RuntimeError("unexpected annotation in generated stub: {}".format(ast.dump(annotation)))
+
+
+def _swig_stub_lookup(tree, names):
+    """Find the AST declaration for a list of nested names, or None if absent."""
+    node = tree
+    for name in names:
+        matches = [
+            child
+            for child in node.body
+            if isinstance(child, (ast.ClassDef, ast.FunctionDef)) and child.name == name
+        ]
+        if not matches:
+            return None
+        node = matches[-1]
+    return node
+
+
+def _swig_split_flat_name(tree, names):
+    """Split a flat -fastproxy method name, Class_method, into its stub class and method names."""
+    for child in tree.body:
+        if isinstance(child, ast.ClassDef) and names[0].startswith(child.name + "_"):
+            return [child.name, names[0][len(child.name) + 1:]] + names[1:]
+    return names
+
+
+def _swig_stub_node(tree, qualified_name, fastproxy):
+    """Find the AST declaration for a qualified name in a generated stub."""
+    names = qualified_name.split(".")
+    if fastproxy:
+        # With -fastproxy a method is the flat C wrapper function, so its
+        # __qualname__ is Class_method rather than Class.method. Module level
+        # functions keep their plain name, so only split names not found as is.
+        if _swig_stub_lookup(tree, names) is None:
+            names = _swig_split_flat_name(tree, names)
+    node = _swig_stub_lookup(tree, names)
+    if node is None:
+        raise RuntimeError("{} is missing from generated stub".format(qualified_name))
+    return node
+
+
+def swig_get_annotations(obj, module_name, fastproxy=False):
+    """Return the annotations for a generated Python object.
+
+    When SWIG_FEATURES contains -pyi, read the annotations from the generated
+    ``module_name + ".pyi"`` stub. Otherwise, read annotations attached to the
+    runtime object, using inspect.get_annotations() when available and falling
+    back to __annotations__ on older Python versions.
+
+    Args:
+        obj: Generated module, class, or function to inspect.
+        module_name: Generated module name used to locate its .pyi file.
+        fastproxy: True when the module was generated with -fastproxy, as the
+            proxy methods are then named after the flat C wrapper functions
+            rather than after the methods in the stub.
+
+    Returns:
+        A dictionary mapping annotated names to their annotation values.
+    """
+    if not swig_annotations_in_stub():
+        if hasattr(inspect, "get_annotations"):
+            return inspect.get_annotations(obj)  # python 3.10 added inspect.get_annotations
+        return getattr(obj, "__annotations__", {})  # python 3.14 removed __annotations__
+
+    with open(module_name + ".pyi") as stub_file:
+        tree = ast.parse(stub_file.read(), filename=stub_file.name)
+
+    node = tree if inspect.ismodule(obj) else _swig_stub_node(tree, obj.__qualname__, fastproxy)
+    annotations = {}
+    for child in node.body:
+        if isinstance(child, ast.AnnAssign) and isinstance(child.target, ast.Name):
+            value = getattr(child.annotation, "value", None)
+            is_string = isinstance(value, str)
+            if child.annotation.__class__.__name__ == "Str":
+                is_string = isinstance(getattr(child.annotation, "s", None), str)
+            if is_string:
+                annotations[child.target.id] = _swig_stub_annotation_text(child.annotation)
+
+    if isinstance(node, ast.FunctionDef):
+        arguments = getattr(node.args, "posonlyargs", []) + node.args.args + node.args.kwonlyargs
+        if node.args.vararg:
+            arguments.append(node.args.vararg)
+        if node.args.kwarg:
+            arguments.append(node.args.kwarg)
+        for argument in arguments:
+            if argument.annotation:
+                annotations[argument.arg] = _swig_stub_annotation_text(argument.annotation)
+        if node.returns:
+            annotations["return"] = _swig_stub_annotation_text(node.returns)
+
+    return annotations
 
 
 @contextlib.contextmanager

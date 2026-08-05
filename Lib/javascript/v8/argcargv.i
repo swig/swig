@@ -39,7 +39,8 @@ SWIGINTERN int SWIG_AsVal_string (SWIGV8_VALUE valRef, SWIGV8_STRING *str)
   }
   memset($2, 0, arraysize);
   for (i = 0; i < len; i++) {
-    int res, slen;
+    int res;
+    size_t slen;
     $*2_ltype pstr;
     SWIGV8_STRING str;
     SWIGV8_VALUE jsvalue = SWIGV8_ARRAY_GET(array, i);
@@ -52,11 +53,9 @@ SWIGINTERN int SWIG_AsVal_string (SWIGV8_VALUE valRef, SWIGV8_STRING *str)
     if (pstr == NULL) {
       SWIG_exception_fail(SWIG_ERROR, "memory allocation of a string failed");
     }
-    if (slen) {
-      res = SWIGV8_WRITE_UTF8(str, pstr, slen);
-      if (res != slen) {
-        SWIG_exception_fail(SWIG_ERROR, "wrong string length");
-      }
+    /* The buffer size passed in includes room for the NUL, as does the count returned */
+    if (SWIGV8_WRITE_UTF8(str, pstr, slen + 1) != slen + 1) {
+      SWIG_exception_fail(SWIG_ERROR, "wrong string length");
     }
     pstr[slen] = 0;
     $2[i] = pstr;

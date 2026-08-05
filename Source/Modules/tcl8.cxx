@@ -323,7 +323,7 @@ public:
       String *ln = Getattr(p, "lname");
 
       /* Produce string representations of the source and target arguments */
-      sprintf(source, "objv[%d]", i + 1);
+      snprintf(source, sizeof(source), "objv[%d]", i + 1);
 
       if (i == num_required)
         Putc('|', argstr);
@@ -376,7 +376,7 @@ public:
       Putc(';', argstr);
       /* If variable length arguments we need to emit the in typemap here */
       if (p && (tm = Getattr(p, "tmap:in"))) {
-        sprintf(source, "objv[%d]", i + 1);
+        snprintf(source, sizeof(source), "objv[%d]", i + 1);
         Printf(incode, "if (objc > %d) {\n", i);
         Replaceall(tm, "$input", source);
         Printv(incode, tm, "\n", NIL);

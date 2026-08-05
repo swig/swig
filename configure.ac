@@ -1292,31 +1292,33 @@ else
     fi
     AC_CHECK_PROGS(NODENPM, npm)
     JSNAPIENABLED=
+    AC_MSG_CHECKING([for Node-API (napi) header directory])
+    # First, npm may have installed node-addon-api, use npm to try find headers
     if test -n "$NODENPM"; then
-      AC_MSG_CHECKING([for Node-API (napi) header directory])
       NODENPM_PREFIX=$($NODENPM config get prefix)
       if test -n "$NODENPM_PREFIX"; then
         NODENAPI_DIR=$NODENPM_PREFIX/lib/node_modules/node-addon-api
         if test -f "$NODENAPI_DIR/napi.h"; then
           JSNAPIENABLED=1
-          AC_SUBST(NODENAPI_DIR)
         fi
-      fi
-      # Try Debian/Ubuntu 'node-addon-api' package location
-      if test -z "$JSNAPIENABLED" && which dpkg > /dev/null 2>&1; then
-        napi_dir="$(dpkg -L node-addon-api 2> /dev/null | grep '\/napi.h$' | head -1 | sed 's%/napi.h%%')"
-        if test -n "$napi_dir" && test -f "$napi_dir/napi.h"; then
-          NODENAPI_DIR="$napi_dir"
-          JSNAPIENABLED=1
-          AC_SUBST(NODENAPI_DIR)
-        fi
-      fi
-      if test -n "$JSNAPIENABLED"; then
-        AC_MSG_RESULT([$NODENAPI_DIR])
-      else
-        AC_MSG_RESULT([not found])
       fi
     fi
+    # Second, try Debian/Ubuntu node-addon-api package location to find headers
+    if test -z "$JSNAPIENABLED" && which dpkg > /dev/null 2>&1; then
+      napi_dir="$(dpkg -L node-addon-api 2> /dev/null | grep '\/napi.h$' | head -1 | sed 's%/napi.h%%')"
+      if test -n "$napi_dir" && test -f "$napi_dir/napi.h"; then
+        NODENAPI_DIR="$napi_dir"
+        JSNAPIENABLED=1
+      fi
+    fi
+    if test -n "$JSNAPIENABLED"; then
+      NAPI_INCLUDE="-I$NODENAPI_DIR"
+      AC_MSG_RESULT([$NODENAPI_DIR])
+    else
+      NAPI_INCLUDE=
+      AC_MSG_RESULT([not found])
+    fi
+    AC_SUBST(NAPI_INCLUDE)
     AC_SUBST(JSNAPIENABLED)
   fi
 
@@ -1489,11 +1491,11 @@ else
 if test "x$LUABIN" = xyes; then
    # We look for a versioned Lua binary first, as there can be
    # multiple versions of Lua installed on some systems (like Debian).
-   AC_PATH_PROGS(LUABIN, [lua5.5 lua5.4 lua5.3 lua5.2 lua])
+   AC_PATH_PROGS(LUABIN, [lua5.5 lua5.4 lua5.3 lua5.2 lua5.1 lua])
 fi
 
-# check version: we need Lua 5.2 or above
-LUA_MINVER='5.2'
+# Check version of Lua found and only accept the supported versions - 5.1 and later.
+LUA_MINVER='5.1'
 if test -n "$LUABIN"; then
   AC_MSG_CHECKING([Lua version])
   AS_VAR_SET([LUA_VERSION], [`$LUABIN -e 'print(string.match(_VERSION, "%d+[.]%d+"))'`])
@@ -2119,6 +2121,12 @@ if test -n "$PY3INCLUDE" ; then
     AC_MSG_CHECKING(pycodestyle version)
     pycodestyle_version=`$PYCODESTYLE --version 2>/dev/null`
     AC_MSG_RESULT($pycodestyle_version)
+  fi
+  AC_CHECK_PROGS(PYREFLY, pyrefly)
+  if test -n "$PYREFLY"; then
+    AC_MSG_CHECKING(pyrefly version)
+    pyrefly_version=`$PYREFLY --version 2>/dev/null`
+    AC_MSG_RESULT($pyrefly_version)
   fi
   if test -n "$PY3INCLUDE" ; then
     AC_CHECK_PROGS(PYABI3AUDIT, [abi3audit])

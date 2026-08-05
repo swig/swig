@@ -1,6 +1,7 @@
 -- The following global functions are available for all tests in the test-suite
 function catch_undef_globs() -- catch "undefined" global variables
-setmetatable(_ENV, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+-- use _G rather than _ENV, as _ENV is Lua 5.2 and later only; both name the same table here
+setmetatable(_G, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
 end
 function require_to_globs(name)
 local module = require(name)

@@ -210,16 +210,25 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(how)  char *, signed char *, unsigned char * {
     $1 = ($ltype)caml_string_val($input);
 }
-/* Again work around the empty array bound bug */
-%typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
-    char *temp = caml_string_val($input);
-    strcpy((char *)$1,temp);
-}
 %enddef
 
 %char_ptr_in(in);
 %char_ptr_in(varin);
 %char_ptr_in(directorout);
+
+%define %char_array_in(how)
+%typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
+    $1 = ($ltype)caml_string_val($input);
+}
+%enddef
+
+%char_array_in(in);
+%char_array_in(directorout);
+
+%typemap(varin) char [ANY], signed char [ANY], unsigned char [ANY] {
+    char *temp = caml_string_val($input);
+    strcpy((char *)$1,temp);
+}
 
 %define %char_ptr_out(how)
 %typemap(how) 

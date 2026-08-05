@@ -21,7 +21,7 @@
 %include <rubystrings.swg>
 
 /* ------------------------------------------------------------
- *  Unified typemap section
+ *  Unified Typemap Library section
  * ------------------------------------------------------------ */
 
 /* Directors are supported in Ruby */
@@ -51,7 +51,7 @@
   $1 = &self;
 }
 
-/* Include the unified typemap library */
+/* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>
 
 

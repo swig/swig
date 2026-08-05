@@ -13,7 +13,7 @@
 #define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
 #define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
 
-// Include the unified typemap library
+// Include the Unified Typemap Library
 %include <typemaps/swigtypemaps.swg>
 
 /* ---------------------------------------------------------------------------*/

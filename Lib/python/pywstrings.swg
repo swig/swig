@@ -62,4 +62,6 @@ SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 }
 }
 
+%typemap(pytyping) wchar_t, wchar_t const & "str"
 
+%typemap(pytyping) wchar_t * "typing.Optional[str]"

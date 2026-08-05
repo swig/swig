@@ -1322,13 +1322,14 @@ public:
       } else {
         if (symname && !Getattr(n, "unnamedinstance"))
           Printf(constants_code, "  // %s \n", symname);
-        // Translate and write javadoc comment for the enum itself if flagged
+        // Translate and write the comment for the enum itself if flagged. There is no equivalent Java declaration for the enum for a javadoc
+        // comment to attach to for simple enums, only the constants below, so emit it as a plain comment rather than a javadoc comment.
         if (doxygen && doxygenTranslator->hasDocumentation(n)) {
           String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+          Replace(doxygen_comments, "/**", "/*", DOH_REPLACE_FIRST);
           if (comment_creation_chatter)
             Printf(constants_code, "/* This was generated from enumDeclaration() */\n");
-          Printf(constants_code, Char(doxygen_comments));
-          Printf(constants_code, "\n");
+          Printv(constants_code, doxygen_comments, NIL);
           Delete(doxygen_comments);
         }
       }
@@ -1466,7 +1467,16 @@ public:
         if (isdigit(p[0])) {
           char *e;
           errno = 0;
+          // long long is not in C++98, but every compiler we support provides it as an
+          // extension and it is needed here for enum values which don't fit in 32 bits.
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlong-long"
+#endif
           unsigned long long value = strtoull(p, &e, 0);
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
           if (errno != ERANGE && *e == '\0' && value >= 0x80000000) {
             // Use hex for larger unsigned integer constants in Java code since
             // Java allows implicit conversion to a signed integer value.

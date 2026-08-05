@@ -1575,7 +1575,7 @@ public:
           if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
             Node *module = Getattr(parent, "module");
             Node *target = Swig_directormap(module, ptype);
-            sprintf(source, "obj%d", idx++);
+            snprintf(source, sizeof(source), "obj%d", idx++);
             String *nonconst = 0;
             /* strip pointer/reference --- should move to Swig/stype.c */
             String *nptype = NewString(Char(ptype) + 2);

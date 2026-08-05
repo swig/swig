@@ -667,7 +667,7 @@ public:
           continue;
         }
 
-        sprintf(source, "args(%d)", j);
+        snprintf(source, sizeof(source), "args(%d)", j);
         Setattr(p, "emit:input", source);
 
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
@@ -1556,7 +1556,7 @@ public:
         tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
         if (tm != 0) {
           char temp[24];
-          sprintf(temp, "out(%d)", idx);
+          snprintf(temp, sizeof(temp), "out(%d)", idx);
           Replaceall(tm, "$input", temp);
           //    Replaceall(tm, "$argnum", temp);
           Replaceall(tm, "$disown", Getattr(n, "wrap:disown") ? "SWIG_POINTER_DISOWN" : "0");
@@ -1583,7 +1583,7 @@ public:
       for (p = l; p;) {
         if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
           char temp[24];
-          sprintf(temp, "out(%d)", idx);
+          snprintf(temp, sizeof(temp), "out(%d)", idx);
           Replaceall(tm, "$result", temp);
           Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
           Printv(w->code, tm, "\n", NIL);

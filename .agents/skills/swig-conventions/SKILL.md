@@ -1,6 +1,6 @@
 ---
 name: swig-conventions
-description: 'SWIG source and contribution conventions: clang-format / code formatting, C/C++ comment style (quotes, widths, function header blocks), parser.y new-code rules, commit message style, hyphenation, and AI-assistance disclosure. Read before writing or editing Source/ or Lib/ code, comments, or commit messages.'
+description: 'SWIG source and contribution conventions: clang-format / code formatting, C/C++ comment style (quotes, widths, function header blocks), parser.y new-code rules, commit message style, hyphenation, CHANGES.current file entries for user visible release notes and AI-assistance disclosure. Read before writing or editing Source/ or Lib/ code, comments, or commit messages.'
 ---
 
 # SWIG Coding and Contribution Conventions
@@ -77,7 +77,23 @@ Many AI coding tools automatically append a `Co-Authored-By: <tool>` line to com
 
 ## CHANGES.current entries
 
+CHANGES.current entries are the release notes section for users to read what has changed. An entry is only added if a change is visible to users. Internal implementation details is not recorded here. The entries should be concise. If there is no referenced issue, then more detail can be added with a short example.
+
 When an entry affects only certain target languages, tag it with the affected language(s) in square brackets at the start of the entry, e.g. `[Python]` or `[Octave, Python, Ruby]`. Keep the whole bracket tag on one line even when it lists many languages, starting the description on the following line if needed. Omit the bracket tag for changes that affect all (or most) target languages, the parser, or the core.
+
+If there is an associated issue number or pull request, then put it after any affected languages(s) listed in the square brackets, for example "[Lua] #3493 Restore support for Lua 5.1."
+
+Show a code, interface or generated-output example as an indented block, not squeezed inline into the prose. The entry body sits at 12 spaces; indent the block two spaces further (to 14) and set it off with a blank line before and after, the same way existing entries present snippets. Make the snippet short, concise, concrete, self-contained and complete. It is okay to use `{...}` placeholders for irrelevant code if it makes the snippet concise. A bare identifier, type or symbol name mentioned in passing can stay inline as plain text, such as Foo below. For example:
+
+```
+            [Go] The previous behaviour can be restored by renaming the typedef back
+            to the enum name, for example:
+
+              %rename(Foo) FooEnum;
+              typedef enum Foo { FooA, FooB } FooEnum;
+
+            makes the generated Go type Foo again.
+```
 
 ## Hyphenation
 

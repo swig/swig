@@ -117,6 +117,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
   int maxwidth;
   char *w = 0;
   char *stemp;
+  size_t stemp_size = 0;
   int nbytes = 0;
   char encoder[128], *ec = 0;
   int plevel = 0;
@@ -151,7 +152,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       } else if (*p == '*') {
         /* Width field is specified in the format list */
         widthval = va_arg(ap, int);
-        sprintf(temp, "%d", widthval);
+        snprintf(temp, sizeof(temp), "%d", widthval);
         for (w = temp; *w; w++) {
           *(fmt++) = *w;
         }
@@ -220,7 +221,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       } else if (*p == '*') {
         /* Precision field is specified in the format list */
         precval = va_arg(ap, int);
-        sprintf(temp, "%d", precval);
+        snprintf(temp, sizeof(temp), "%d", precval);
         for (w = temp; *w; w++) {
           *(fmt++) = *w;
         }
@@ -309,13 +310,15 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           *fmt = 0;
           if ((maxwidth + 1) < OBUFLEN) {
             stemp = obuffer;
+            stemp_size = sizeof(obuffer);
           } else {
-            stemp = (char *)DohMalloc(maxwidth + 1);
+            stemp_size = (size_t)maxwidth + 1;
+            stemp = (char *)DohMalloc(stemp_size);
           }
           if (enc) {
-            nbytes += sprintf(stemp, newformat, Data(enc));
+            nbytes += snprintf(stemp, stemp_size, newformat, Data(enc));
           } else {
-            nbytes += sprintf(stemp, newformat, Data(Sval));
+            nbytes += snprintf(stemp, stemp_size, newformat, Data(Sval));
           }
           if (Writen(so, stemp, (int)strlen(stemp)) < 0)
             return -1;
@@ -348,10 +351,12 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           *fmt = 0;
           if ((maxwidth + 1) < OBUFLEN) {
             stemp = obuffer;
+            stemp_size = sizeof(obuffer);
           } else {
-            stemp = (char *)DohMalloc(maxwidth + 1);
+            stemp_size = (size_t)maxwidth + 1;
+            stemp = (char *)DohMalloc(stemp_size);
           }
-          nbytes += sprintf(stemp, newformat, doh);
+          nbytes += snprintf(stemp, stemp_size, newformat, doh);
           if (Writen(so, stemp, (int)strlen(stemp)) < 0)
             return -1;
           if (stemp != obuffer) {
@@ -368,10 +373,13 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
         /* Only allocate a buffer if it is too big to fit.  Shouldn't have to do
            this very often */
 
-        if (maxwidth < OBUFLEN)
+        if (maxwidth < OBUFLEN) {
           stemp = obuffer;
-        else
-          stemp = (char *)DohMalloc(maxwidth + 1);
+          stemp_size = sizeof(obuffer);
+        } else {
+          stemp_size = (size_t)maxwidth + 1;
+          stemp = (char *)DohMalloc(stemp_size);
+        }
         switch (*p) {
         case 'd':
         case 'i':
@@ -382,18 +390,18 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
           if (p[-1] == 'l') {
             if (p[-2] == 'l') {
               long long llvalue = va_arg(ap, long long);
-              nbytes += sprintf(stemp, newformat, llvalue);
+              nbytes += snprintf(stemp, stemp_size, newformat, llvalue);
               break;
             }
             long lvalue = va_arg(ap, long);
-            nbytes += sprintf(stemp, newformat, lvalue);
+            nbytes += snprintf(stemp, stemp_size, newformat, lvalue);
             break;
           }
           /* FALLTHRU */
         case 'c':
           {
             int ivalue = va_arg(ap, int);
-            nbytes += sprintf(stemp, newformat, ivalue);
+            nbytes += snprintf(stemp, stemp_size, newformat, ivalue);
             break;
           }
         case 'f':
@@ -403,13 +411,13 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
         case 'G':
           {
             double dvalue = va_arg(ap, double);
-            nbytes += sprintf(stemp, newformat, dvalue);
+            nbytes += snprintf(stemp, stemp_size, newformat, dvalue);
             break;
           }
         case 'p':
           {
             void *pvalue = va_arg(ap, void *);
-            nbytes += sprintf(stemp, newformat, pvalue);
+            nbytes += snprintf(stemp, stemp_size, newformat, pvalue);
             break;
           }
         default:
