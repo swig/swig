@@ -4,6 +4,9 @@
 %pythoncode %{
 import collections.abc
 %}
+%pythonstubcode %{
+import collections.abc
+%}
 %pythonabc(std::vector, "collections.abc.MutableSequence");
 %pythonabc(std::list, "collections.abc.MutableSequence");
 %pythonabc(std::map, "collections.abc.MutableMapping");

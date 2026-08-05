@@ -769,7 +769,7 @@ endif
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
-NAPI_DIR = @NODENAPI_DIR@
+NAPI_INCLUDE = @NAPI_INCLUDE@
 
 javascript_wrapper:
 ifneq (jsc,$(JSENGINE))
@@ -785,10 +785,10 @@ javascript_build: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else ifeq (napi,$(JSENGINE))
+else ifeq (napi,$(JSENGINE)) # napi must be compiled as c++
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else ifeq (v8,$(JSENGINE))
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(NAPI_INCLUDE)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (v8,$(JSENGINE)) # v8 must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else
@@ -799,7 +799,7 @@ endif
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(NAPI_INCLUDE)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -817,8 +817,8 @@ ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else ifeq (v8, $(ENGINE)) # v8 must be compiled as c++
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else # node and napi must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -1311,6 +1311,8 @@ endif
 PYFLAGS           = -Werror
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
+PYREFLY           = @PYREFLY@
+PYREFLY_FLAGS     = --summary=none --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import
 PYABI3AUDIT	  = @PYABI3AUDIT@
 
 # ----------------------------------------------------------------
@@ -1351,6 +1353,11 @@ python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
 	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
 endif
+ifneq (,$(PYREFLY))
+ifneq (,$(filter -typehints,$(SWIG_FEATURES)))
+	$(COMPILETOOL) $(PYREFLY) check $(PYREFLY_FLAGS) $(PYREFLY_EXTRA_FLAGS) *.py $(if $(filter -pyi,$(SWIG_FEATURES)),$(wildcard *.pyi))
+endif
+endif
 	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(PYSCRIPT) $(RUNPIPE)
 
 ifneq (,$(SRCDIR))
@@ -1374,7 +1381,7 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
-	rm -f $(TARGET).py $(TARGET).pyi
+	rm -f $(TARGET).py*
 	rm -f *_abi3_report.json
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 

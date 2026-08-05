@@ -8,8 +8,7 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
-NAPI_DIR = @NODENAPI_DIR@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api -I $(NAPI_DIR)
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ @NAPI_INCLUDE@
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -30,6 +29,7 @@ CPP_TEST_CASES += \
 	li_std_map_member
 
 C_TEST_CASES += \
+	javascript_uint8array_fragment \
 	li_cdata_carrays \
 
 # napi fails

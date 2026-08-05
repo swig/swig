@@ -680,9 +680,9 @@ public:
 
       // Produce names of source and target
       if (args_passed_as_array)
-        sprintf(source, "argv[%d]", i);
+        snprintf(source, sizeof(source), "argv[%d]", i);
       else
-        sprintf(source, "s_%d", i);
+        snprintf(source, sizeof(source), "s_%d", i);
 
       if (!args_passed_as_array) {
         if (i != 0)

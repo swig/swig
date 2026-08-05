@@ -1,19 +1,14 @@
-import inspect
+from swig_test_utils import swig_annotations_in_stub, swig_get_annotations
 
 from python_annotations_import_b import *
 
-# No __annotations__ support with -builtin or -fastproxy
-annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+# Annotations are only added to the runtime objects for the default proxy classes,
+# but with -pyi they are always available in the generated .pyi stub file
+annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
-def get_annotations(cls):
-    # Python >=3.14 removed the __annotations__ attribute
-    # retrieve it via inspect (see also annotationlib)
-    if hasattr(inspect, "get_annotations"):
-        # Python >=3.10
-        return inspect.get_annotations(cls)
-    else:
-        # Python <3.10
-        return getattr(cls, "__annotations__", {})
+
+def get_annotations(obj):
+    return swig_get_annotations(obj, "python_annotations_import_b", is_python_fastproxy())
 
 if annotations_supported:
     # Klass is defined in the imported module python_annotations_import_a, so

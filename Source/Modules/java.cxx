@@ -1467,7 +1467,16 @@ public:
         if (isdigit(p[0])) {
           char *e;
           errno = 0;
+          // long long is not in C++98, but every compiler we support provides it as an
+          // extension and it is needed here for enum values which don't fit in 32 bits.
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wlong-long"
+#endif
           unsigned long long value = strtoull(p, &e, 0);
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
           if (errno != ERANGE && *e == '\0' && value >= 0x80000000) {
             // Use hex for larger unsigned integer constants in Java code since
             // Java allows implicit conversion to a signed integer value.

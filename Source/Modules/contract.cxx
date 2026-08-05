@@ -235,7 +235,7 @@ void Contracts::substitute_parms(String *s, ParmList *p, int method) {
     argnum++;
   }
   while (p) {
-    sprintf(argname, "arg%d", argnum);
+    snprintf(argname, sizeof(argname), "arg%d", argnum);
     String *name = Getattr(p, "name");
     if (name) {
       Replaceid(s, name, argname);

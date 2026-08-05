@@ -31,6 +31,7 @@
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 %typemap(directorin) SWIG_Object "$input = $1;"
+%typemap(directorin) SWIG_Object const & "$input = $1;"
 %typemap(directorout) SWIG_Object "$result = $input;"
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
