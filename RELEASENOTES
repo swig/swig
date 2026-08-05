@@ -22,8 +22,8 @@ SWIG-4.5.0 summary:
   parameter packs.
 - Numerous using-declaration, inherited-constructor and
   typedef-scope name resolution fixes.
-- User-defined literal operators are emitted without the
-  deprecated whitespace.
+- User-defined literal operators emitted without deprecated
+  whitespace and multicharacter constants corrected to use int type.
 - More powerful %rename for instantiated templates.
 - cdata.i now uses a binary data type (e.g. Python bytes,
   JavaScript Uint8Array) so all byte values round-trip correctly.
@@ -36,11 +36,11 @@ SWIG-4.5.0 summary:
 - Fewer compiler warnings in generated code.
 - Python 2 is no longer supported; SWIG now targets Python 3.5 and
   later. Python 2 code paths and compatibility macros are removed
-  from the generated wrappers and the SWIG library, and the
+  from the generated wrappers and the SWIG library and the
   keyword/built-in warning list now tracks Python 3.
-- Python: PEP 484 type annotations for simple types and constants via
-  pytyping typemaps, -builtin docstring parity, a
-  metaclass conflict fix under -builtin and %nokwargs fixes.
+- Python: PEP 484 type annotations support added, new -typehints and
+ .pyi stub generation, -builtin docstring parity, metaclass and
+  director reference counting fixes and %nokwargs fixes.
 - Lua: director support added; std::array, std::set,
   std::unordered_set, std::unordered_map, shared_ptr and nested
   class support added. Minimum Lua version is now 5.1.
@@ -49,13 +49,15 @@ SWIG-4.5.0 summary:
   TypedData storage on Ruby 3.3 and later; GC compaction crash fix
   for STL containers of Ruby objects.
 - Go: %rename of enums honoured, new -unique-id/-no-unique-id
-  flags, Windows build and test support, and various
+  flags, Windows build and test support and various
   rvalue-reference and director fixes.
 - R: %rename of enums and enum items honoured, scoped enum fixes
   and R 4.6.0 compatibility.
+- JavaScript: v8 and node engines support v8 13.x and 14.x, as used by
+  Node.js 24 and 26, with improved node-addon-api detection.
 - Tcl 9 support.
 - Minor fixes and improvements specific to: C#, D, Guile, Java,
-  JavaScript, Octave, OCaml, Perl, PHP, Scilab.
+  Octave, OCaml, Perl, PHP, Scilab.
 
 SWIG-4.4.1 summary:
 - Fix errors with some combinations of Py_LIMITED_API and recent Python
@@ -623,5 +625,3 @@ SWIG-1.3.22 summary:
 - RPM fixes.
 - Various minor improvements and bug fixes for C#, Chicken, Guile, Java, 
   MzScheme, Perl, Php, Python, Ruby and XML.
-
-
