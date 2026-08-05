@@ -529,6 +529,10 @@ jobs:
           CPPSTD: c++20
           VER: '9.0'
           os: ubuntu-26.04
+        # Experimental Swift backend
+        - SWIGLANG: swift
+          CPPSTD: c++17
+          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
