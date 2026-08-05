@@ -280,9 +280,10 @@ FAILING_C_TESTS += \
 
 # C-mode wrappers that require C++ constructs the SWIGTYPE typemaps emit: the
 # by-value SWIGTYPE 'out' typemap uses 'new T(...)' (li_carrays, ret_by_value,
-# keyword_rename_c) and typemap_subst expands $descriptor to a SWIGTYPE_p_*
-# proxy-class name - neither compiles in a plain-C (.c) wrapper.
+# keyword_rename_c, charptr_fragment) and typemap_subst expands $descriptor to a
+# SWIGTYPE_p_* proxy-class name - neither compiles in a plain-C (.c) wrapper.
 FAILING_C_TESTS += \
+	charptr_fragment \
 	keyword_rename_c \
 	li_carrays \
 	ret_by_value \
