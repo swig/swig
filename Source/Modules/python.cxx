@@ -947,6 +947,8 @@ public:
         Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nimport typing\n", NULL);
+      Printv(f_shadow_py, "if typing.TYPE_CHECKING:\n", NULL);
+      Printv(f_shadow_py, tab4, "import collections.abc\n", NULL);
 
       if (Len(f_shadow_after_begin) > 0)
         Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);

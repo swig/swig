@@ -26,5 +26,9 @@ public class runme {
       throw new Exception("test failed");
     if (special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3))
       throw new Exception("test failed");
+    if (OptionalAttrTest.OptionalAttrResult != "int")
+      throw new Exception("test failed");
+    if (OptionalAttrTest.OptionalAttrFallback != "NoAttrType")
+      throw new Exception("test failed");
   }
 }

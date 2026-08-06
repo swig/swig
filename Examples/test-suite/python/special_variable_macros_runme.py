@@ -26,3 +26,9 @@ if special_variable_macros.provideStringInt(999) != "1000":
     raise "test failed"
 if special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3):
     raise "test failed"
+
+# Test $targ template arg substitution
+p = special_variable_macros.PairIntDouble(5, 6.5)
+r = special_variable_macros.testTargs(p)
+if r.first != 5 or r.second != 6.5:
+    raise "test failed"

@@ -3,6 +3,7 @@
 %include <std_string.i>
 %include <std_wstring.i>
 %include <std_complex.i>
+%include <std_vector.i>
 
 // Tests the typing annotations
 %feature("python:annotations", "typing");
@@ -58,6 +59,8 @@ int *no_annotations(int &ri, const char *c) { return NULL; }
 %}
 %template(TemplateShort) Space::Template<short>;
 %template(MakeShort) makeT<short>;
+%template(IntVector) std::vector<int>;
+%template(IntNestVector) std::vector< std::vector<int> >;
 
 %inline %{
 #ifdef SWIGPYTHON_BUILTIN
@@ -189,6 +192,16 @@ void argcheck_str(
 
 void argcheck_fnptr(int(*f)(char, bool)) {}
 void argcheck_array(float arr[3]) {}
+
+std::vector<int> identity_vector(std::vector<int> v) { return v; }
+std::vector<std::vector<int> > identity_nest_vector(std::vector<std::vector<int> > v) { return v; }
+std::vector<int> const& identity_vector_cref(std::vector<int> const& v) { return v; }
+std::vector<std::vector<int> > const& identity_nest_vector_cref(std::vector<std::vector<int> > const& v) { return v; }
+std::vector<int> & identity_vector_ref(std::vector<int> & v) { return v; }
+std::vector<int> * identity_vector_ptr(std::vector<int> * v) { return v; }
+
+void vector_ref(std::vector<int> &v) { (void)v; }
+void vector_ptr(std::vector<int> *v) { (void)v; }
 
 struct OptionalInt {
   OptionalInt() : has_value(false) {}
