@@ -4,6 +4,16 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 4.6.0 (in progress)
+===========================
+
+2026-08-07: trittsv
+            [Python] Added support for the 'nspace' feature. C++ classes and enums
+            can now be exposed through Python namespace objects using '%nspace' and
+            moved into different namespace hierarchies using '%nspacemove'. This is
+            supported with proxy classes, built-in types, directors, nested classes,
+            inheritance and standard library template instantiations.
+
 Version 4.5.0 (06 Aug 2026)
 ===========================
 
