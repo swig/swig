@@ -41,6 +41,7 @@ Language *swig_php(void);
 Language *swig_python(void);
 Language *swig_r(void);
 Language *swig_ruby(void);
+Language *swig_rust(void);
 Language *swig_scilab(void);
 Language *swig_tcl(void);
 Language *swig_xml(void);
@@ -74,6 +75,7 @@ static TargetLanguageModule modules[] = {
   {"-python",     swig_python,     "Python",             Supported   },
   {"-r",          swig_r,          "R (aka GNU S)",      Supported   },
   {"-ruby",       swig_ruby,       "Ruby",               Supported   },
+  {"-rust",       swig_rust,       "Rust",               Experimental},
   {"-scilab",     swig_scilab,     "Scilab",             Supported   },
   {"-sexp",       NULL,            "Lisp S-Expressions", Disabled    },
   {"-tcl",        swig_tcl,        NULL,                 Supported   },

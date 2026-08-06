@@ -33,6 +33,7 @@ def get_cflags(language, std, compiler):
         "python":"-Werror " + c_common + sign_conversion_flags,
              "r":"-Werror " + c_common,
           "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers -Wno-attribute-warning",
+          "rust":"-Werror " + c_common,
         "scilab":"-Werror " + c_common + " -Wno-unused-variable",
            "tcl":"-Werror " + c_common,
     }
@@ -73,6 +74,7 @@ def get_cxxflags(language, std, compiler):
         "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
           "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers -Wno-attribute-warning",
+          "rust":"-Werror " + cxx_common,
         "scilab":"-Werror " + cxx_common + " -Wno-unused-variable",
            "tcl":"-Werror " + cxx_common,
     }

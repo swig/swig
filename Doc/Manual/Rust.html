@@ -1,0 +1,790 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SWIG and Rust</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body bgcolor="#FFFFFF">
+<H1><a name="Rust">40 SWIG and Rust</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Rust_introduction">Introduction</a>
+<li><a href="#Rust_commandline">Additional command line options</a>
+<li><a href="#Rust_simple_example">Simple example</a>
+<li><a href="#Rust_exception_handling">Exception handling</a>
+<li><a href="#Rust_ownership">Ownership and nullability</a>
+<li><a href="#Rust_standard_library">Standard library wrappers</a>
+<li><a href="#Rust_nspace">C++ namespaces</a>
+<li><a href="#Rust_pragmas">Pragmas</a>
+<li><a href="#Rust_typemap_customization">Typemap customization</a>
+<li><a href="#Rust_directors">Directors</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<H2><a name="Rust_introduction">40.1 Introduction</a></H2>
+
+
+<p>
+The Rust module is an experimental target language module for generating Rust
+bindings to C and C++ code. It is intentionally modelled on the structure of the
+C# module: SWIG emits a C or C++ wrapper source file, a raw Rust FFI layer, a
+public proxy layer, runtime support code, and optional director callback
+plumbing. The generated Rust API is expected to evolve while the module is
+reviewed and hardened, so no backwards compatibility guarantee is made while it
+has experimental status.
+</p>
+
+<p>
+The generated Rust module directory is named after the SWIG module by default.
+It contains <tt>mod.rs</tt>, <tt>ffi.rs</tt>, <tt>runtime.rs</tt>,
+<tt>proxy.rs</tt> and <tt>module.rs</tt>. Wrapped C++ classes and top-level
+enums are emitted into their own sibling files such as
+<tt>class_Shape.rs</tt> and <tt>enum_Color.rs</tt>, then re-exported from
+<tt>mod.rs</tt>. When <tt>%nspace</tt> is enabled, namespace submodules are
+created below the generated module directory. This keeps the raw C ABI calls,
+shared runtime helpers, module-level functions and proxy types separate in the
+same broad style as the C# target's intermediary and proxy files.
+</p>
+
+<p>
+The public Rust API wraps C++ classes as proxy structs, exposes constructors,
+destructors, member functions, static members, variables and constants, maps
+nullable pointer returns to <tt>Option</tt>, maps many proxy parameters to
+<tt>&amp;T</tt>, <tt>&amp;mut T</tt>, <tt>Option&lt;&amp;T&gt;</tt> or
+<tt>Option&lt;&amp;mut T&gt;</tt>, and supports <tt>Result</tt>-based C++
+exception handling. C++ enums are generated as Rust <tt>#[repr(C)]</tt> enums
+with conversion helpers. Standard library interface files provide Rust-friendly
+helpers for strings, vectors, maps, sets, arrays, optional values and smart
+pointers.
+</p>
+
+<p>
+The module also supports C++ directors. Directors let a C++ virtual method call
+dispatch back into Rust by implementing a generated Rust trait. The generated
+director helpers keep Rust callback state alive, provide explicit disconnect and
+disown operations, bridge Rust panics or structured callback errors back through
+the C++ director layer, and include convenience helpers for factory-style APIs
+which store a callback object and return another proxy.
+</p>
+
+<p>
+Because the module is experimental, SWIG emits warning 524 when <tt>-rust</tt>
+is used. The warning can be suppressed with <tt>-w524</tt> after the user has
+accepted the experimental status.
+</p>
+
+<H2><a name="Rust_commandline">40.2 Additional command line options</a></H2>
+
+
+<p>
+The following Rust-specific command line option is available:
+</p>
+
+<div class="shell">
+<pre>
+-crate &lt;name&gt;  Set the Rust module/crate name used in generated comments
+</pre>
+</div>
+
+<p>
+The generated Rust module directory normally uses the SWIG module name. As in
+the C# module, the generated name can also be customized from the
+<tt>%module</tt> directive. Use <tt>rustname</tt> to set the generated Rust
+module directory and <tt>crate</tt> to set the crate name used in generated Rust
+comments:
+</p>
+
+<div class="code">
+<pre>
+%module(rustname="example_rust", crate="example_crate") example
+</pre>
+</div>
+
+<p>
+When the <tt>rustname</tt> option is used, Rust code imports the generated
+directory name:
+</p>
+
+<div class="targetlang">
+<pre>
+mod example_rust;
+</pre>
+</div>
+
+<H2><a name="Rust_simple_example">40.3 Simple example</a></H2>
+
+
+<p>
+Given a C source file:
+</p>
+
+<div class="code">
+<pre>
+int add(int a, int b) {
+  return a + b;
+}
+</pre>
+</div>
+
+<p>
+and the following SWIG interface:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%{
+extern int add(int a, int b);
+%}
+
+extern int add(int a, int b);
+</pre>
+</div>
+
+<p>
+Run SWIG and build the shared library:
+</p>
+
+<div class="shell">
+<pre>
+$ swig -rust example.i
+$ cc -fPIC -c example.c example_wrap.c
+$ cc -shared example.o example_wrap.o -o libexample.so
+</pre>
+</div>
+
+<p>
+The generated <tt>example/mod.rs</tt> can then be used from Rust:
+</p>
+
+<div class="targetlang">
+<pre>
+mod example;
+
+fn main() {
+    let result = example::add(19, 23);
+    assert_eq!(result, 42);
+}
+</pre>
+</div>
+
+<p>
+Compile and run the Rust program with the generated library on the library path:
+</p>
+
+<div class="shell">
+<pre>
+$ rustc runme.rs -L . -l dylib=example -o runme
+$ LD_LIBRARY_PATH=. ./runme
+</pre>
+</div>
+
+<p>
+For C++ code, use <tt>-c++</tt> and compile the generated wrapper with a C++
+compiler:
+</p>
+
+<div class="shell">
+<pre>
+$ swig -rust -c++ example.i
+$ c++ -fPIC -c example.cxx example_wrap.cxx
+$ c++ -shared example.o example_wrap.o -o libexample.so
+</pre>
+</div>
+
+<p>
+The source tree contains runnable Rust examples under <tt>Examples/rust</tt>.
+After configuring and building SWIG with Rust enabled, run:
+</p>
+
+<div class="shell">
+<pre>
+$ make -C Examples/rust/simple check
+$ make -C Examples/rust/class check
+$ make -C Examples/rust/director check
+</pre>
+</div>
+
+<p>
+The Rust test-suite can be run with <tt>make check-rust-test-suite</tt>. The
+Linux GitHub Actions workflow runs the Rust examples and test-suite in the
+default compiler mode and in C++11, C++14 and C++17 configurations. Rust remains
+marked experimental in CI, so these jobs are allowed to fail without failing the
+entire workflow while the target language is still under development.
+</p>
+
+<H2><a name="Rust_exception_handling">40.4 Exception handling</a></H2>
+
+
+<p>
+Rust wrappers use the normal SWIG <a href="Typemaps.html#Typemaps_throws_typemap">"throws" typemap</a>
+mechanism for C++ exceptions. The Rust <tt>std_except.i</tt> library file
+installs default typemaps for the standard C++ exception hierarchy. When a C++
+exception is caught by the generated wrapper, the Rust side receives a
+structured <tt>RustException</tt>:
+</p>
+
+<div class="targetlang">
+<pre>
+pub struct RustException {
+    pub kind: RustExceptionKind,
+    pub code: Option&lt;&amp;'static str&gt;,
+    pub type_name: String,
+    pub message: String,
+}
+
+pub enum RustExceptionKind {
+    BadCast,
+    InvalidArgument,
+    OutOfRange,
+    Overflow,
+    Runtime,
+    Logic,
+    Unknown,
+}
+</pre>
+</div>
+
+<p>
+<tt>RustExceptionKind</tt> is a compact target language category. The exact C++
+exception type is kept in <tt>type_name</tt>, for example
+<tt>"std::out_of_range"</tt>. <tt>RustException</tt> implements the standard
+Rust <tt>Display</tt> and <tt>Error</tt> traits.
+</p>
+
+<p>
+By default the generated Rust API follows SWIG's traditional compatibility
+style: a plain function or method panics if C++ throws, while a generated
+<tt>try_</tt> wrapper returns a <tt>Result</tt>:
+</p>
+
+<div class="targetlang">
+<pre>
+let value = example::read_value();       // panics on C++ exception
+let value = example::try_read_value()?;  // returns Result&lt;T, RustException&gt;
+
+match example::try_read_value() {
+    Ok(value) =&gt; println!("{}", value),
+    Err(error) =&gt; eprintln!("{}: {}", error.type_name, error.message),
+}
+</pre>
+</div>
+
+<p>
+For a Rust-first API, use the <tt>exceptionpolicy</tt> pragma:
+</p>
+
+<div class="code">
+<pre>
+%pragma(rust) exceptionpolicy="result"
+</pre>
+</div>
+
+<p>
+With this policy enabled, the plain function, method or constructor returns
+<tt>Result</tt>. The panic-on-exception compatibility wrapper is still generated
+with a <tt>panic_</tt> prefix:
+</p>
+
+<div class="targetlang">
+<pre>
+let value = example::read_value()?;       // returns Result&lt;T, RustException&gt;
+let value = example::panic_read_value();  // panics on C++ exception
+
+let object = example::Widget::new()?;     // returns Result&lt;Widget, RustException&gt;
+let object = example::Widget::panic_new();
+</pre>
+</div>
+
+<p>
+The accepted policy values are <tt>"panic"</tt> and <tt>"result"</tt>. The
+default is <tt>"panic"</tt>.
+</p>
+
+<p>
+The compact <tt>RustExceptionKind</tt> category enum can be customized for
+module-specific C++ exception types:
+</p>
+
+<div class="code">
+<pre>
+%pragma(rust) exceptionkind="MyLibraryError=Logic"
+%pragma(rust) exceptioncode="MyLibraryError=MY_LIBRARY_ERROR"
+
+%typemap(throws, canthrow=1) MyLibraryError %{
+  SWIG_RustSetPendingException("MyLibraryError", $1.what());
+  return $null;
+%}
+</pre>
+</div>
+
+<p>
+When the generated Rust code receives <tt>"MyLibraryError"</tt>, the
+<tt>RustException</tt> keeps <tt>type_name == "MyLibraryError"</tt>, maps
+<tt>kind</tt> to <tt>RustExceptionKind::Logic</tt>, and stores
+<tt>code == Some(MY_LIBRARY_ERROR)</tt>. Accepted category names are
+<tt>BadCast</tt>, <tt>InvalidArgument</tt>, <tt>OutOfRange</tt>,
+<tt>Overflow</tt>, <tt>Runtime</tt>, <tt>Logic</tt> and <tt>Unknown</tt>.
+</p>
+
+<p>
+Director callbacks are protected by generated panic and error bridges. A Rust
+callback can panic, or it can call <tt>rust_director_error</tt> to report a
+structured callback error. The generated C++ director receives this as a
+director exception path instead of allowing a Rust panic to unwind through C++.
+If the C++ virtual method is declared <tt>noexcept</tt>, the generated director
+terminates rather than throwing through the non-throwing exception
+specification.
+</p>
+
+<H2><a name="Rust_ownership">40.5 Ownership and nullability</a></H2>
+
+
+<p>
+Generated Rust proxy classes store C++ object pointers as
+<tt>std::ptr::NonNull&lt;c_void&gt;</tt> together with a
+<tt>RustOwnership</tt> value. A proxy object therefore cannot contain a null
+pointer. C++ pointer return values are represented as <tt>Option&lt;T&gt;</tt>,
+so a null C++ pointer becomes <tt>None</tt>. References and value returns are
+converted to non-null proxies and panic if the C++ wrapper unexpectedly returns
+null.
+</p>
+
+<p>
+Owned proxies delete the wrapped C++ object from <tt>Drop</tt>. Borrowed
+proxies never delete the wrapped object. Generated proxy classes provide
+<tt>ownership()</tt>, <tt>is_owned()</tt>, <tt>is_borrowed()</tt>,
+<tt>borrow_proxy()</tt>, <tt>disown()</tt> and <tt>into_raw()</tt> to make the
+ownership transition explicit. Raw pointer construction remains unsafe and uses
+<tt>from_raw()</tt>, <tt>borrowed()</tt> or <tt>from_raw_owned()</tt>, each of
+which returns <tt>Option&lt;T&gt;</tt> to reject null pointers.
+</p>
+
+<div class="targetlang">
+<pre>
+let mut widget = example::Widget::new();
+assert!(widget.is_owned());
+
+let borrowed = widget.borrow_proxy();
+assert!(borrowed.is_borrowed());
+
+let raw = widget.into_raw();          // Rust no longer owns the C++ object
+let widget = unsafe {
+    example::Widget::from_raw(raw)
+}.expect("expected non-null Widget pointer");
+</pre>
+</div>
+
+<p>
+Function and method parameters use Rust references when SWIG can identify a
+wrapped proxy type. A C++ <tt>const T *</tt> parameter becomes
+<tt>Option&lt;&amp;T&gt;</tt>, <tt>T *</tt> becomes
+<tt>Option&lt;&amp;mut T&gt;</tt>, <tt>const T &amp;</tt> becomes
+<tt>&amp;T</tt> and <tt>T &amp;</tt> becomes <tt>&amp;mut T</tt>. The raw FFI
+layer still receives C pointers; the public proxy layer converts Rust
+references and <tt>None</tt> into the appropriate C ABI pointer.
+</p>
+
+<div class="targetlang">
+<pre>
+let mut object = example::Widget::new();
+
+example::inspect(Some(&amp;object));      // const Widget *
+example::update(Some(&amp;mut object));   // Widget *
+example::use_ref(&amp;object);            // const Widget &amp;
+example::mutate_ref(&amp;mut object);     // Widget &amp;
+</pre>
+</div>
+
+<p>
+The public <tt>as_ptr()</tt> method exposes a read-only
+<tt>*const c_void</tt> for diagnostics or integration with lower-level code.
+Generated module internals use a crate-visible mutable pointer accessor for
+calling the raw C ABI wrappers. <tt>borrow_proxy()</tt> returns a lifetime-bound
+borrowed proxy view which dereferences to the proxy type and never frees the
+C++ object.
+</p>
+
+<H2><a name="Rust_standard_library">40.6 Standard library wrappers</a></H2>
+
+
+<p>
+The Rust standard library files follow the same broad organization as the C#
+library files while exposing Rust-shaped helper methods where possible. The
+library includes wrappers for strings, wide strings, string views, vectors,
+arrays, lists, deques, maps, sets, unordered maps, unordered sets, pairs,
+optional values, C data buffers, complex values, common STL support and smart
+pointers such as <tt>std::shared_ptr</tt>, <tt>std::unique_ptr</tt>,
+<tt>std::auto_ptr</tt> and Boost smart pointers.
+</p>
+
+<p>
+Sequence-like containers such as <tt>std::vector</tt>,
+<tt>std::deque</tt>, <tt>std::list</tt> and <tt>std::array</tt> provide
+<tt>len()</tt>, <tt>is_empty()</tt>, <tt>indices()</tt>, <tt>iter()</tt> and
+<tt>IntoIterator</tt> for borrowed proxies in addition to the lower-level
+wrapped C++ methods. Associative containers such as <tt>std::map</tt>,
+<tt>std::set</tt>, <tt>std::unordered_map</tt> and
+<tt>std::unordered_set</tt> provide <tt>len()</tt>, <tt>is_empty()</tt> and
+borrowed iteration. Maps also provide <tt>keys()</tt>, <tt>values()</tt> and
+pair iteration.
+</p>
+
+<div class="targetlang">
+<pre>
+let values = example::IntVector::new();
+values.push_back(10);
+values.push_back(20);
+
+assert_eq!(values.len(), 2);
+assert!(!values.is_empty());
+
+for value in &amp;values {
+    println!("{}", value);
+}
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+let table = example::IntIntMap::new();
+table.setitem(4, 40);
+table.setitem(8, 80);
+
+let key_sum: i32 = table.keys().sum();
+let value_sum: i32 = table.values().sum();
+let product_sum: i32 = table.iter().map(|(key, value)| key * value).sum();
+
+assert_eq!(key_sum, 12);
+assert_eq!(value_sum, 120);
+assert_eq!(product_sum, 800);
+</pre>
+</div>
+
+<p>
+The <tt>std_optional.i</tt> wrapper maps <tt>std::optional&lt;T&gt;</tt> to
+<tt>Option&lt;T&gt;</tt> for wrapped proxy values. A present optional object
+becomes <tt>Some(value)</tt>; an empty optional becomes <tt>None</tt>.
+</p>
+
+<H2><a name="Rust_nspace">40.7 C++ namespaces</a></H2>
+
+
+<p>
+The Rust module supports the common SWIG <tt>%nspace</tt> feature. When enabled,
+top-level C++ classes and enums in a namespace are emitted into matching Rust
+submodules below the generated module directory, in the same style that the C#
+module emits namespace-specific proxy files.
+</p>
+
+<div class="code">
+<pre>
+%module example
+%nspace;
+
+%inline %{
+namespace outer {
+class Thing {
+public:
+  Thing(int value) : value_(value) {
+  }
+  int value() const {
+    return value_;
+  }
+private:
+  int value_;
+};
+}
+%}
+</pre>
+</div>
+
+<p>
+This generates files such as <tt>example/outer/mod.rs</tt> and
+<tt>example/outer/class_Thing.rs</tt>. Rust code can then use the namespaced
+proxy through the generated Rust module path:
+</p>
+
+<div class="targetlang">
+<pre>
+mod example;
+
+fn main() {
+    let thing = example::outer::Thing::new(7);
+    assert_eq!(thing.value(), 7);
+}
+</pre>
+</div>
+
+<H2><a name="Rust_pragmas">40.8 Pragmas</a></H2>
+
+
+<p>
+The Rust module supports <tt>%pragma(rust)</tt> customization points modelled
+after the C# module's pragma mechanism. The following pragmas customize the
+generated Rust module:
+</p>
+
+<div class="code">
+<pre>
+%pragma(rust) moduleimports=%{
+use std::os::raw::c_int as MyInt;
+%}
+
+%pragma(rust) modulecode=%{
+pub const MODULE_MARKER: MyInt = 10;
+%}
+
+%pragma(rust) externattributes=%{
+#[allow(improper_ctypes)]
+%}
+
+%pragma(rust) externcode=%{
+  pub fn extra_c_symbol(input: MyInt) -&gt; MyInt;
+%}
+
+%pragma(rust) classattributes=%{
+#[repr(C)]
+%}
+
+%pragma(rust) classderive="Debug"
+
+%pragma(rust) classcode=%{
+  pub fn marker(&amp;self) -&gt; MyInt {
+    MODULE_MARKER
+  }
+%}
+
+%pragma(rust) visibility="pub"
+
+%pragma(rust) exceptionpolicy="result"
+
+%pragma(rust) exceptionkind="MyLibraryError=Logic"
+
+%pragma(rust) exceptioncode="MyLibraryError=MY_LIBRARY_ERROR"
+
+%pragma(rust) methodcase="preserve"
+</pre>
+</div>
+
+<p>
+<tt>moduleimports</tt> and <tt>modulecode</tt> are emitted in
+<tt>module.rs</tt>. Public items emitted by <tt>modulecode</tt> are re-exported
+by <tt>mod.rs</tt>. <tt>moduleimports</tt> are also emitted where generated FFI
+and proxy code may need the same aliases. <tt>externattributes</tt> and
+<tt>externcode</tt> customize the generated <tt>extern "C"</tt> block in
+<tt>ffi.rs</tt>. <tt>classattributes</tt>, <tt>classderive</tt> and
+<tt>classcode</tt> are applied to generated proxy classes. <tt>visibility</tt>
+sets the visibility token used for generated proxy classes and constants.
+</p>
+
+<p>
+<tt>exceptionpolicy</tt> selects whether plain generated wrappers panic on C++
+exceptions (<tt>"panic"</tt>) or return <tt>Result</tt>
+(<tt>"result"</tt>). <tt>exceptionkind</tt> maps a concrete C++ exception type
+name to a <tt>RustExceptionKind</tt> category. <tt>exceptioncode</tt> maps a
+concrete C++ exception type name to a stable string code stored in
+<tt>RustException::code</tt> and emits a public constant for that code.
+<tt>methodcase</tt> controls generated public free function and proxy method
+names; accepted values are <tt>"preserve"</tt> and <tt>"snake"</tt>. The
+default is <tt>"preserve"</tt>, so generated Rust names match the original C++
+API unless the user explicitly asks SWIG to convert them.
+</p>
+
+<H2><a name="Rust_typemap_customization">40.9 Typemap customization</a></H2>
+
+
+<p>
+The Rust module uses Rust-specific typemap names for the same stages that C#
+customizes with <tt>imtype</tt>, <tt>cstype</tt>, <tt>csin</tt>,
+<tt>csout</tt>, <tt>csvarin</tt>, <tt>csvarout</tt>,
+<tt>csdirectorin</tt> and <tt>csdirectorout</tt>. The corresponding Rust names
+are <tt>imtype</tt>, <tt>rusttype</tt>, <tt>rustin</tt>,
+<tt>rustout</tt>, <tt>rustvarin</tt>, <tt>rustvarout</tt>,
+<tt>rustdirectorin</tt> and <tt>rustdirectorout</tt>. The Rust
+<tt>rustin</tt> and <tt>rustdirectorin</tt> typemaps support
+<tt>pre</tt>, <tt>post</tt> and <tt>terminator</tt> attributes for setup and
+cleanup code around generated calls.
+</p>
+
+<p>
+Generated proxy classes can be customized with <tt>rustattributes</tt>,
+<tt>rustderive</tt>, <tt>rustbody</tt>, <tt>rusttraits</tt> and
+<tt>rustdrop</tt> typemaps. These correspond to the common C# pattern of
+injecting proxy attributes, proxy code, interface implementations and disposal
+customization, but emit Rust attributes, inherent impl methods, trait impls and
+drop hook code.
+</p>
+
+<div class="code">
+<pre>
+%typemap(rustderive) Widget "Debug"
+%typemap(rustbody) Widget %{
+  pub fn marker(&amp;self) -&gt; i32 {
+    7
+  }
+%}
+%typemap(rusttraits) Widget %{
+impl WidgetMarker for Widget {
+  fn marker_value(&amp;self) -&gt; i32 {
+    self.marker()
+  }
+}
+%}
+%typemap(rustdrop) Widget %{
+  eprintln!("dropping Widget proxy");
+%}
+</pre>
+</div>
+
+<p>
+Some C# typemap attributes do not have direct Rust equivalents because Rust has
+different language concepts. For example, C# property attributes and explicit
+interface lists map to Rust pragmas and trait impl injection rather than to a
+single target-language attribute string. The Rust backend documents these as
+Rust-specific pragmas and typemaps rather than keeping C# names in the public
+customization surface.
+</p>
+
+<H2><a name="Rust_directors">40.10 Directors</a></H2>
+
+
+<p>
+Director support is enabled in the same way as other director capable target
+languages. Use the <tt>directors</tt> module option and apply the
+<tt>director</tt> feature to the C++ class whose virtual methods should be
+overridden from Rust:
+</p>
+
+<div class="code">
+<pre>
+%module(directors="1") messages
+%feature("director") Receiver;
+
+%inline %{
+class Receiver {
+public:
+  Receiver() : last(0) {
+  }
+  virtual ~Receiver() {
+  }
+  virtual void message(int value) {
+    last = value;
+  }
+  int last;
+};
+
+inline void deliver(Receiver *receiver, int value) {
+  receiver-&gt;message(value);
+}
+%}
+</pre>
+</div>
+
+<p>
+For a class named <tt>Receiver</tt>, the generated Rust module contains an
+opaque <tt>Receiver</tt> proxy struct, callback type aliases such as
+<tt>ReceiverCallback0</tt>, method metadata arrays such as
+<tt>ReceiverDirectorMethodTypes0</tt>, a <tt>ReceiverDirector</tt> trait
+describing the callbacks, a raw <tt>Receiver::connect_director</tt> method, a
+typed <tt>Receiver::connect_director_trait</tt> helper and a
+<tt>ReceiverDirectorHandle</tt> helper which keeps the Rust callback object
+alive and disconnects the director when the handle is dropped. When
+<tt>%nspace</tt> is used, these director helpers are emitted next to the proxy
+type in the generated namespace module.
+</p>
+
+<div class="targetlang">
+<pre>
+mod messages;
+
+use messages::{Receiver, ReceiverDirector, ReceiverDirectorOwned};
+use std::os::raw::c_int;
+
+struct MyReceiver {
+    total: c_int,
+}
+
+impl ReceiverDirector for MyReceiver {
+    fn message(&amp;mut self, value: c_int) {
+        self.total += value;
+    }
+}
+
+fn main() {
+    let mut receiver =
+        ReceiverDirectorOwned::from_proxy(Receiver::new(), MyReceiver { total: 0 });
+
+    messages::deliver(Some(receiver.as_proxy_mut()), 42);
+    assert_eq!(receiver.director().total, 42);
+}
+</pre>
+</div>
+
+<p>
+The exact callback alias numbers follow the order of director methods emitted
+for the class. For example, the first director method in <tt>Receiver</tt> uses
+<tt>ReceiverCallback0</tt>. The raw <tt>connect_director</tt> method remains
+available for code that wants to provide callback function pointers directly,
+but ordinary Rust code should prefer the generated trait and owned helper types.
+</p>
+
+<p>
+Director method arguments and return values are marshalled through Rust
+<tt>ctype</tt>, <tt>directorin</tt>, <tt>directorout</tt>,
+<tt>directorargout</tt>, <tt>rustdirectorin</tt> and
+<tt>rustdirectorout</tt> typemaps, following the same director typemap structure
+used by the C# module. Constructed Rust proxy objects own their C++ object by
+default and release it from <tt>Drop</tt>; use <tt>disown()</tt> or
+<tt>into_raw()</tt> when the C++ side takes ownership.
+</p>
+
+<p>
+Director handles can be converted into a disowned guard with
+<tt>into_disowned()</tt>. This keeps the Rust callback state alive for C++ code
+that stores the director object and later allows explicit disconnection or
+recovery of the callback state. User director trait methods are safe Rust
+methods; generated extern callback shims contain the raw pointer reconstruction
+and panic/error bridge. If a callback needs to inspect a raw pointer argument
+such as <tt>void *</tt> or <tt>char *</tt>, that operation remains explicitly
+unsafe in the callback body. Protected virtual director methods are supported
+with the <tt>dirprot</tt> module option.
+</p>
+
+<p>
+For callback-heavy APIs where a static C++ <tt>create</tt> method stores a
+director callback and returns a proxy object, SWIG also generates a Rust helper
+which owns both the returned proxy and the callback guard. This avoids dropping
+the Rust callback state while C++ still holds the director pointer:
+</p>
+
+<div class="targetlang">
+<pre>
+let mut service =
+    MessageService::try_create_with_director(MyReceiver { total: 0 })?;
+
+service.sendEnable(true);
+service.sendValue("temperature".to_string(), 23);
+
+assert!(service.director().enabled);
+assert_eq!(service.director().last_id, "temperature");
+
+let (service_proxy, callbacks) = service.into_parts();
+</pre>
+</div>
+
+<p>
+The lower-level <tt>DirectorOwned</tt> and <tt>DirectorHandle</tt> APIs remain
+available for methods that do not follow this factory shape, for APIs that
+register more than one callback, or for code that needs explicit disconnect and
+disown control.
+</p>
+
+</body>
+</html>

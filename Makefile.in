@@ -84,6 +84,7 @@ skip-php	= test -n "@SKIP_PHP@"
 skip-python	= test -n "@SKIP_PYTHON@"
 skip-r		= test -n "@SKIP_R@"
 skip-ruby	= test -n "@SKIP_RUBY@"
+skip-rust	= test -n "@SKIP_RUST@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-tcl	= test -n "@SKIP_TCL@"
 
@@ -125,6 +126,7 @@ check-aliveness:
 	@$(skip-python)   || ./$(TARGET) -python     -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
 	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
+	@$(skip-rust)     || ./$(TARGET) -rust       -help
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
 	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
 
@@ -148,6 +150,7 @@ check-versions:					\
 	check-python-version			\
 	check-r-version				\
 	check-ruby-version			\
+	check-rust-version			\
 	check-scilab-version			\
 	check-tcl-version			\
 
@@ -182,6 +185,7 @@ check-examples:					\
 	check-python-examples			\
 	check-r-examples			\
 	check-ruby-examples			\
+	check-rust-examples			\
 	check-scilab-examples			\
 	check-tcl-examples			\
 
@@ -201,6 +205,7 @@ php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
 python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
 ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
+rust_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/rust/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 
@@ -257,6 +262,7 @@ check-test-suite:				\
 	check-python-test-suite			\
 	check-r-test-suite			\
 	check-ruby-test-suite			\
+	check-rust-test-suite			\
 	check-scilab-test-suite			\
 	check-tcl-test-suite			\
 
@@ -304,6 +310,7 @@ all-test-suite:					\
 	all-python-test-suite			\
 	all-r-test-suite			\
 	all-ruby-test-suite			\
+	all-rust-test-suite			\
 	all-scilab-test-suite   		\
 	all-tcl-test-suite			\
 
@@ -327,6 +334,7 @@ broken-test-suite:				\
 	broken-python-test-suite		\
 	broken-r-test-suite			\
 	broken-ruby-test-suite			\
+	broken-rust-test-suite			\
 	broken-scilab-test-suite		\
 	broken-tcl-test-suite			\
 
@@ -461,7 +469,7 @@ install-main:
 
 lib-languages = typemaps tcl perl5 python guile java ruby php ocaml octave \
 	csharp lua r c go d javascript javascript/jsc \
-	javascript/v8 javascript/napi scilab xml
+	javascript/v8 javascript/napi rust scilab xml
 
 lib-modules = std
 
