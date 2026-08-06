@@ -240,6 +240,15 @@ SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
 { SWIG_DThrowException(code, msg); return $null; }
 #endif // SWIGD
 
+#ifdef SWIGSWIFT
+/* Store the message as the pending exception; swigCheckException() on the Swift
+ * side turns it into a thrown NSError.  The error code is not mapped to a Swift
+ * error type (the backend surfaces every C++ exception as an NSError), so it is
+ * intentionally unused here. */
+#define SWIG_exception(code, msg)\
+{ (void)code; SWIG_Swift_SetPendingException(msg); return $null; }
+#endif // SWIGSWIFT
+
 #ifdef __cplusplus
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception

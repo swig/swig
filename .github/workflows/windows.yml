@@ -62,6 +62,13 @@ jobs:
   # We use different versions of installed languages by using
   #  proper envirounment.
   build:
+    # Swift is not available on the Windows GitHub Actions image or in MSYS2, so
+    # nothing Swift-related runs here.  While the workflows are temporarily cut
+    # down to Swift only there is nothing left to build, so the build is skipped
+    # (an empty matrix would otherwise error).  Reverting the cut-down commit
+    # restores the full Windows matrix (which has no Swift entry).
+    if: false
+
     # When continue-on-error is true for an individual build,
     # that build can fail (it'll show red),
     # but it won't fail the overall tests
@@ -85,69 +92,7 @@ jobs:
 
     strategy:
       matrix:
-        include:
-        - SWIGLANG: csharp
-          INSTALL: 'true'
-        - SWIGLANG: csharp
-          os: windows-2025-vs2026
-        - SWIGLANG: csharp
-          INSTALL: 'true'
-          COMPILER: gcc
-        - SWIGLANG: csharp
-          COMPILER: gcc
-          MSYS2_ENV: ucrt64
-        - SWIGLANG: java
-          VER: 8
-        - SWIGLANG: java
-          VER: 17
-        - SWIGLANG: java
-          VER: 21
-        - SWIGLANG: java
-          VER: 25
-        - SWIGLANG: java
-          COMPILER: gcc
-          CSTD: gnu99
-          VER: 8
-        - SWIGLANG: java
-          COMPILER: gcc
-          VER: 11
-        - SWIGLANG: java
-          COMPILER: gcc
-          VER: 25
-        - SWIGLANG: java
-          COMPILER: gcc
-          MSYS2_ENV: ucrt64
-        - SWIGLANG: python
-          VER: '3.10'
-          SWIG_FEATURES: -builtin
-        - SWIGLANG: python
-          VER: '3.13'
-        - SWIGLANG: python
-          VER: '3.14'
-        - SWIGLANG: python
-          COMPILER: gcc
-          MSYS2_ENV: ucrt64
-# To fix - swig fails to link, see job failure: https://github.com/swig/swig/actions/runs/27424393216/job/81058274348
-#       - SWIGLANG: ruby
-#         COMPILER: gcc
-#         MSYS2_ENV: ucrt64
-        - SWIGLANG: ruby
-          VER: '3.2'
-          COMPILER: gcc
-          CPPSTD: c++11
-          MSYS2_ENV: ucrt64
-        - SWIGLANG: ruby
-          VER: '3.3'
-          COMPILER: gcc
-          MSYS2_ENV: ucrt64
-        - SWIGLANG: go
-          VER: '1.25'
-          COMPILER: gcc
-          CSTD: gnu11
-        - SWIGLANG: go
-          COMPILER: gcc
-          CSTD: gnu11
-          MSYS2_ENV: ucrt64
+        include: []
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
