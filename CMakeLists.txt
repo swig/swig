@@ -119,6 +119,9 @@ set_property (SOURCE ${CMAKE_CURRENT_BINARY_DIR}/swigwarn.swg PROPERTY GENERATED
 install (DIRECTORY ${SWIG_ROOT}/Lib/ DESTINATION ${SWIG_LIB})
 install (FILES ${CMAKE_CURRENT_BINARY_DIR}/swigwarn.swg DESTINATION ${SWIG_LIB})
 
+# install man
+install (FILES ${CMAKE_CURRENT_SOURCE_DIR}/Doc/swig.1 DESTINATION share/man/man1)
+
 # sources
 # ---------
 file (GLOB DOH_SOURCES ${SWIG_SOURCE_DIR}/DOH/*.c)
