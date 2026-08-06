@@ -503,7 +503,7 @@ struct Instances {
 %}
 
 // Repeated values
-#if defined(SWIGJAVA)
+#ifdef SWIGJAVA_SOURCE
 %javaconst(1);
 // needed for typesafe and proper enums only
 %javaconst(0) ignoreA_three;
@@ -686,7 +686,7 @@ enum Enum2995 {
 #endif
 %}
 
-#if defined(SWIGJAVA)
+#ifdef SWIGJAVA_SOURCE
 %javaconst(0);
 #elif defined(SWIGCSHARP)
 %csconst(0);

@@ -57,11 +57,22 @@ $importtype(IRemoteAsyncIO)
 %typemap(javaout) void IRemoteSyncIO::syncmethod ";"
 %typemap(javaout) void IRemoteAsyncIO::asyncmethod ";"
 #if defined(SWIGJAVA)
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %javamethodmodifiers IRemoteSyncIO::syncmethod "abstract public";
 %javamethodmodifiers IRemoteAsyncIO::asyncmethod "abstract public";
 // Features are inherited by derived classes, so override this
 %javamethodmodifiers RemoteMpe::syncmethod "public"
 %javamethodmodifiers RemoteMpe::asyncmethod "public"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers IRemoteSyncIO::syncmethod "public";
+%javamethodmodifiers IRemoteAsyncIO::asyncmethod "public";
+// Features are inherited by derived classes, so override this
+%javamethodmodifiers RemoteMpe::syncmethod "public override"
+%javamethodmodifiers RemoteMpe::asyncmethod "public override"
+// The companion object of an interface must not contain the getCPtr helpers
+%typemap(javacompanion) IRemoteSyncIO ""
+%typemap(javacompanion) IRemoteAsyncIO ""
+#endif /* SWIGJAVA_TARGET */
 #elif defined(SWIGCSHARP)
 %csmethodmodifiers IRemoteSyncIO::syncmethod "";
 %csmethodmodifiers IRemoteAsyncIO::asyncmethod "";

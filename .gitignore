@@ -163,6 +163,11 @@ Examples/java/doxygen/javadocs
 Examples/test-suite/javascript/*/
 *.gyp
 
+# Kotlin
+Examples/kotlin/*/*.kt
+Examples/kotlin/*/main.jar
+Examples/test-suite/kotlin/*/
+
 # Lua
 Examples/lua/dual/dual
 Examples/lua/dual/swigluarun.h

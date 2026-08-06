@@ -141,8 +141,12 @@
 
 %feature("director") Foo;
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaclassmodifiers) MyNS::Exception1, MyNS::Exception2, MyNS::Unexpected %{@SuppressWarnings("serial")
 public class%}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaclassmodifiers) MyNS::Exception1, MyNS::Exception2, MyNS::Unexpected "open class"
+#endif /* SWIGJAVA_TARGET */
 
 // Rename exceptions on java side to make translation of exceptions more clear
 %rename(MyJavaException1) MyNS::Exception1;
@@ -150,7 +154,15 @@ public class%}
 %rename(MyJavaUnexpected) MyNS::Unexpected;
 
 %typemap(javabase) ::MyNS::Exception1,::MyNS::Exception2,::MyNS::Unexpected "java.lang.Exception"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %rename(getMessage) what() const;  // Rename all what() methods
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%rename(getWhat) what() const;  // Rename all what() methods
+%typemap(javacode) ::MyNS::Exception1,::MyNS::Exception2,::MyNS::Unexpected %{
+  override val message: String?
+    get() = getWhat()
+%}
+#endif /* SWIGJAVA_TARGET */
 
 namespace MyNS {
 

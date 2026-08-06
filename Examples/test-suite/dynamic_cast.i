@@ -25,9 +25,15 @@ public:
 #endif
 
 #if defined(SWIGJAVA)
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) Foo * {
     return new Bar($jnicall, $owner);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) Foo * {
+    return Bar($jnicall, $owner)
+  }
+#endif /* SWIGJAVA_TARGET */
 #endif
 
 #if defined(SWIGCSHARP)

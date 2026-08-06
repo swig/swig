@@ -26,6 +26,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CTYPE, CONST_REFERENCE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %proxycode %{
   @SuppressWarnings("this-escape")
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
@@ -86,6 +87,63 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     doReserve(n);
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%proxycode %{
+  constructor(initialElements: Array<$typemap(jboxtype, CTYPE)>) : this() {
+    doReserve(initialElements.size)
+
+    for (element in initialElements) {
+      doAdd(element);
+    }
+  }
+
+  constructor(initialElements: Iterable<$typemap(jboxtype, CTYPE)>) : this() {
+    for (element in initialElements) {
+      doAdd(element);
+    }
+  }
+
+  override fun get(index: Int): $typemap(jboxtype, CTYPE) {
+    return doGet(index);
+  }
+
+  override fun set(index: Int, element: $typemap(jboxtype, CTYPE)): $typemap(jboxtype, CTYPE) {
+    return doSet(index, element)
+  }
+
+  override fun add(element: $typemap(jboxtype, CTYPE)): Boolean {
+    modCount++;
+    doAdd(element)
+    return true;
+  }
+
+  override fun add(index: Int, element: $typemap(jboxtype, CTYPE)) {
+    modCount++;
+    doAdd(index, element);
+  }
+
+  override fun removeAt(index: Int): $typemap(jboxtype, CTYPE) {
+    modCount++;
+    return doRemove(index);
+  }
+
+  override fun removeRange(fromIndex: Int, toIndex: Int) {
+    modCount++;
+    doRemoveRange(fromIndex, toIndex);
+  }
+
+  override val size: Int
+    get() = doSize()
+
+  fun capacity(): Int {
+    return doCapacity();
+  }
+
+  fun reserve(n: Int) {
+    doReserve(n);
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
   public:
     typedef size_t size_type;
@@ -179,6 +237,11 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     }
 %enddef
 
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+// isEmpty() and clear() are members of the Java collection interfaces so need the override modifier
+%javamethodmodifiers std::vector::empty         "override";
+%javamethodmodifiers std::vector::clear         "override";
+#endif
 %javamethodmodifiers std::vector::doCapacity    "private";
 %javamethodmodifiers std::vector::doReserve     "private";
 %javamethodmodifiers std::vector::doSize        "private";

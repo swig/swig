@@ -9,8 +9,13 @@
 
 // const enum SWIGTYPE & typemaps
 %typemap(jni) const enum SWIGTYPE & "jint"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) const enum SWIGTYPE & "int"
 %typemap(jstype) const enum SWIGTYPE & "int"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) const enum SWIGTYPE & "Int"
+%typemap(jstype) const enum SWIGTYPE & "Int"
+#endif
 
 %typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input; 
@@ -38,8 +43,13 @@
 
 // enum SWIGTYPE typemaps
 %typemap(jni) enum SWIGTYPE "jint"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "int"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) enum SWIGTYPE "Int"
+%typemap(jstype) enum SWIGTYPE "Int"
+#endif
 
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}

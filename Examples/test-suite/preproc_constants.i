@@ -7,7 +7,12 @@
 %dmanifestconst CONST_STRING4;
 #endif
 #ifdef SWIGJAVA
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %javaconst(1) CONST_STRING4;
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+// Kotlin lack full support of C/C++ escape sequences
+%javaconstvalue("\"zer\\u0000zer\\u0000\"") CONST_STRING4;
+#endif /* SWIGJAVA_TARGET */
 #endif
 
 %{
