@@ -5,6 +5,7 @@
 %feature("python:annotations", "c") mymethod;
 %feature("python:annotations", "c") makeT<short>;
 %feature("python:annotations", "c") global_ints;
+%feature("python:annotations", "c") global_overloaded;
 
 %inline %{
 namespace Space {
