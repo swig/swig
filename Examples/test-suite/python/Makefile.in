@@ -71,6 +71,7 @@ CPP_TEST_CASES += \
 	python_overload_simple_cast \
 	python_pickle \
 	python_pyi \
+	python_pyi_overloads_positional \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -147,6 +148,7 @@ python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 python_typehints.cpptest: SWIGOPT += -typehints
 python_pyi.cpptest: SWIGOPT += -pyi
+python_pyi_overloads_positional.cpptest: SWIGOPT += -pyi
 
 # C/C++ annotations are not PEP 484 type hints, so -typehints and Pyrefly do not apply to these tests.
 python_annotations_c.cpptest: override SWIG_FEATURES := $(filter-out -typehints,$(SWIG_FEATURES))
