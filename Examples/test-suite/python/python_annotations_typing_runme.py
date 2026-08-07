@@ -1,6 +1,14 @@
-from swig_test_utils import swig_annotations_in_stub, swig_assert, swig_check, swig_get_annotations
+from swig_test_utils import (
+    swig_annotations_in_stub,
+    swig_assert,
+    swig_check,
+    swig_get_annotations,
+    swig_get_overload_annotations,
+    swig_can_get_overloads,
+)
 
 from python_annotations_typing import *
+import typing
 
 # Annotations are only added to the runtime objects for the default proxy classes,
 # but with -pyi they are always available in the generated .pyi stub file
@@ -9,6 +17,17 @@ annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or
 
 def get_annotations(obj):
     return swig_get_annotations(obj, "python_annotations_typing", is_python_fastproxy())
+
+def check_overloads(fn, expected):
+    if not swig_can_get_overloads():
+        return
+    swig_check(
+        swig_get_overload_annotations(
+            fn, "python_annotations_typing", is_python_fastproxy()
+        ),
+        expected,
+    )
+
 
 if annotations_supported:
     anno = get_annotations(global_ints)
@@ -20,8 +39,18 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
     anno = get_annotations(global_overloaded)
-    if anno != {"return": "typing.Optional[SWIGTYPE_p_int]"}:
+    if anno != {}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
+    check_overloads(
+        global_overloaded,
+        [
+            {
+                "ri": "SWIGTYPE_p_int",
+                "return": "typing.Optional[SWIGTYPE_p_int]",
+            },
+            {"return": "typing.Optional[SWIGTYPE_p_int]"},
+        ],
+    )
 
     ts = MakeShort(10)
 
@@ -239,6 +268,72 @@ if annotations_supported:
     anno = get_annotations(use_forward_only)
     if anno != {"return": "None", "fp": "typing.Optional[SWIGTYPE_p_ForwardOnly]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    swig_check(get_annotations(Overloader.__init__), {})
+    check_overloads(
+        Overloader.__init__,
+        [
+            {},
+            {"arg2": "int"},
+            {"arg2": "typing.Optional[SWIGTYPE_p_void]"},
+        ],
+    )
+
+    swig_check(get_annotations(Overloader.inside), {})
+    check_overloads(
+        Overloader.inside,
+        [
+            {
+                "before": "int",
+                "argc": "typing.List[str]",
+                "foo": "int",
+                "bar": "int",
+                "return": "int",
+            },
+            {"str": "typing.Optional[str]", "return": "bool"},
+        ],
+    )
+
+    # Only has default parameters, so there shouldn't be any @typing.overloads.
+    swig_check(
+        get_annotations(Overloader.withDefaults1),
+        {"foo": "int", "bar": "int", "return": "None"},
+    )
+    check_overloads(Overloader.withDefaults1, [])
+
+    # Only default parameters, but this has a default parameter that can't be expressed in the function signature.
+    swig_check(get_annotations(Overloader.withDefaults2), {"return": "None"})
+    check_overloads(Overloader.withDefaults2, [])
+
+    # This has default parameters in overloads. It should have one @typing.overload per C++ overload.
+    swig_check(get_annotations(Overloader.withDefaultsOverload), {})
+    check_overloads(
+        Overloader.withDefaultsOverload,
+        [
+            {
+                "ms": "MyStruct",
+                "bar": "int",
+                "return": "None",
+            },
+            {
+                "bar": "int",
+                "return": "None",
+            },
+        ],
+    )
+
+    swig_check(get_annotations(Overloader.staticOverload), {})
+    check_overloads(
+        Overloader.staticOverload,
+        [
+            {"arg1": "int", "return": "None"},
+            {
+                "arg1": "str",
+                "arg2": "typing.Optional[SWIGTYPE_p_int]",
+                "return": "bool",
+            },
+        ],
+    )
 
     import python_annotations_typing
 
