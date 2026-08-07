@@ -114,6 +114,7 @@ public class director_classes_runme {
     if (myCaller.ValCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
     if (myCaller.RefCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
     if (myCaller.PtrCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
+    if (myCaller.ConstPtrCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
     if (myCaller.ConstPtrRefCall(dh).getVal() != dh.getVal()) throw new RuntimeException("failed");
 
     // Fully overloaded method test (all methods in base class are overloaded)
@@ -172,6 +173,11 @@ class JavaDerived extends Base
   public DoubleHolder Ptr(DoubleHolder x)
   {
     if (director_classes.getPrintDebug()) System.out.println("JavaDerived - Ptr(" + x.getVal() + ")");
+    return x;
+  }
+  public DoubleHolder ConstPtr(DoubleHolder x)
+  {
+    if (director_classes.getPrintDebug()) System.out.println("JavaDerived - ConstPtr(" + x.getVal() + ")");
     return x;
   }
   public DoubleHolder ConstPtrRef(DoubleHolder x)
