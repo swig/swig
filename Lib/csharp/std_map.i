@@ -213,6 +213,28 @@
     }
   }
 
+  // A user-defined conversion operator from Dictionary<K, T>
+  public static implicit operator $csclassname(global::System.Collections.Generic.Dictionary<$typemap(cstype, K), $typemap(cstype, T)> convertInstance) {
+    var newInstance = new $csclassname();
+
+    foreach(var item in convertInstance) {
+      newInstance[item.Key] = item.Value;
+    }
+
+    return newInstance;
+  }
+
+  // A user-defined conversion operator to Dictionary<K, T>
+  public static implicit operator global::System.Collections.Generic.Dictionary<$typemap(cstype, K), $typemap(cstype, T)>($csclassname convertInstance) {
+    var newInstance = new global::System.Collections.Generic.Dictionary<$typemap(cstype, K), $typemap(cstype, T)>();
+
+    foreach(var item in convertInstance) {
+      newInstance[item.Key] = item.Value;
+    }
+
+    return newInstance;
+  }
+
 %}
 
   public:
