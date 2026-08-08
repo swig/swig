@@ -821,6 +821,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   SwigType *type;
   SwigType *mtype = 0;
   String *name;
+  String *qpname = 0;
   String *multi_tmap_method;
   Hash *tm;
   Hash *tm1 = 0;
@@ -832,8 +833,19 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   type = Getattr(parms, "type");
   name = Getattr(parms, "name");
 
+  /* Compute qualified name for member variable setter parameter matching,
+   * e.g. %typemap(in) int * _A::v { ... } */
+  if (name && Getattr(parms, "sym:symtab")) {
+    String *qsn = Swig_symbol_qualified(parms);
+    if (qsn && Len(qsn)) {
+      qpname = NewStringf("%s::%s", qsn, name);
+      Delete(qsn);
+    }
+  }
+
   /* Try to find a match on the first type */
-  tm = typemap_search(tmap_method, type, name, 0, &mtype, parms);
+  tm = typemap_search(tmap_method, type, name, qpname, &mtype, parms);
+  Delete(qpname);
   if (tm) {
     if (mtype && SwigType_isarray(mtype)) {
       Setattr(parms, "tmap:match", mtype);
