@@ -11,6 +11,69 @@
 #include <stdexcept>
 %}
 
+%inline %{
+namespace swig {
+
+// Minimal iterator-like implementation just sufficient to support range-based
+// for loops.
+//
+// Note that we still provide postfix increment and operator==() for
+// consistency with prefix increment and operator!=(), even though they are not
+// needed, strictly speaking.
+template <class T>
+class vector_citer {
+public:
+    using vector = std::vector<T>;
+
+    vector_citer(const vector* v, size_t idx) : v_{v}, idx_{idx} {}
+
+    const T& operator*() const  { return v_->at(idx_); }
+
+    vector_citer& operator++() { ++idx_; return *this; }
+    vector_citer operator++(int) { vector_citer tmp = *this; ++idx_; return tmp; }
+
+    bool operator==(const vector_citer& other) const { return idx_ == other.idx_ && v_ == other.v_; }
+    bool operator!=(const vector_citer& other) const { return !(*this == other); }
+
+private:
+    const vector* v_;
+    size_t idx_;
+};
+
+// As usual, we need a specialization for bool because std::vector<bool> uses a
+// proxy reference type and we can't return a reference to a temporary proxy
+// object from operator*(). We could return just T in the primary template
+// above, but this would result in an extra copy which could be undesirable
+// for large objects.
+template <>
+class vector_citer<bool> {
+public:
+    using vector = std::vector<bool>;
+
+    vector_citer(const vector* v, size_t idx) : v_{v}, idx_{idx} {}
+
+    bool operator*() const { return v_->at(idx_); }
+
+    vector_citer& operator++() { ++idx_; return *this; }
+    vector_citer operator++(int) { vector_citer tmp = *this; ++idx_; return tmp; }
+
+    bool operator==(const vector_citer& other) const { return idx_ == other.idx_ && v_ == other.v_; }
+    bool operator!=(const vector_citer& other) const { return !(*this == other); }
+
+private:
+    const vector* v_;
+    size_t idx_;
+};
+
+} // namespace swig
+%}
+
+// Rename operators to wrap them.
+%rename(equal) swig::vector_citer::operator==;
+%rename(not_equal) swig::vector_citer::operator!=;
+%rename(pre_inc) swig::vector_citer::operator++();
+%rename(post_inc) swig::vector_citer::operator++(int);
+
 namespace std {
 
     template<class T> class vector {
@@ -33,7 +96,7 @@ namespace std {
         void clear();
         void push_back(const value_type& x);
         %extend {
-            const_reference get(int i) throw (std::out_of_range) {
+            const_reference get(int i) const throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
@@ -47,6 +110,11 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
+
+            swig::vector_citer<T> begin() const { return swig::vector_citer<T>(self, 0); }
+            swig::vector_citer<T> end() const { return swig::vector_citer<T>(self, self->size()); }
+            swig::vector_citer<T> cbegin() const { return swig::vector_citer<T>(self, 0); }
+            swig::vector_citer<T> cend() const { return swig::vector_citer<T>(self, self->size()); }
         }
     };
 
@@ -72,7 +140,7 @@ namespace std {
         void clear();
         void push_back(bool x);
         %extend {
-            bool get(int i) throw (std::out_of_range) {
+            bool get(int i) const throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
@@ -86,6 +154,16 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
+
+            swig::vector_citer<T> begin() const { return swig::vector_citer<T>(self, 0); }
+            swig::vector_citer<T> end() const { return swig::vector_citer<T>(self, self->size()); }
+            swig::vector_citer<T> cbegin() const { return swig::vector_citer<T>(self, 0); }
+            swig::vector_citer<T> cend() const { return swig::vector_citer<T>(self, self->size()); }
         }
     };
 }
+
+// Macro to allow iterating over wrapped std::vector using range-based for loops.
+%define SWIG_STD_VECTOR_ITERATOR(CTYPE)
+    %template(vector_citer_ ## #@CTYPE) swig::vector_citer<CTYPE>;
+%enddef
