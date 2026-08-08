@@ -7309,7 +7309,7 @@ def two_values(arg: "bool") -&gt; "typing.List[typing.Union[bool, int]]":
 <p>
 Each <tt>argout</tt> typemap is assumed to append exactly one value, which is what the
 <tt>typemaps.i</tt> <tt>OUTPUT</tt> family does. A typemap doing anything else must say so with the
-<tt>numoutputs</tt> and <tt>overwrite</tt> attributes, otherwise the annotation
+<tt>numoutputs</tt>, <tt>overwrite</tt> and <tt>container</tt> attributes, otherwise the annotation
 will not describe what the function really returns. Each is shown below and they are documented in
 the <a href="Typemaps.html#Typemaps_nn32">"argout" typemap</a> section.
 </p>
@@ -7368,6 +7368,38 @@ bool replace_result(bool arg, short *OutReplace);
 def replace_result(arg: "bool") -&gt; "str":
 </pre>
 </div>
+
+<p>
+Use <tt>container="tuple"</tt> for a typemap appending into a tuple, using a replacement for
+<tt>SWIG_AppendOutput</tt>, so that multiple returned values are annotated as
+<tt>typing.Tuple[...]</tt> rather than <tt>typing.List[typing.Union[...]]</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) short *OutTuple (short temp) { $1 = &amp;temp; }
+%typemap(argout, container="tuple", fragment="MyTupleAppend") short *OutTuple {
+  $result = MyTupleAppend($result, PyLong_FromLong(*$1), $isvoidresult);
+}
+%typemap(pytyping) short *OutTuple "int"
+%apply short *OutTuple { short *OutTuple2 };
+
+void two_tuple_values(short *OutTuple, short *OutTuple2);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def two_tuple_values() -&gt; "typing.Tuple[int, int]":
+</pre>
+</div>
+
+<p>
+All the <tt>argout</tt> typemaps for one function append into the same <tt>$result</tt>, so they
+have to agree on the container. <a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when
+they do not and the return type is then annotated <tt>typing.Any</tt>, as no single type describes
+the nested result.
+</p>
 
 <p>
 Finally, an <a href="Typemaps.html#Typemaps_nn28">"out"</a> typemap that suppresses the function

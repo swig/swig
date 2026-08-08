@@ -3057,7 +3057,7 @@ return values are often appended to return value of the function.
 <p>
 Appending is a convention, not a requirement. An "argout" typemap is free to check an error
 code and return nothing, or to discard <tt>$result</tt> and replace it with something else.
-SWIG cannot tell which of these a typemap does by looking at the code, so two optional
+SWIG cannot tell which of these a typemap does by looking at the code, so three optional
 attributes are provided to say so.
 </p>
 
@@ -3091,6 +3091,29 @@ appending to it, discarding everything returned before it, including the functio
 }
 </pre>
 </div>
+
+<p>
+The <tt>container</tt> attribute says what the typemap appends into when more than one value is
+returned. It defaults to <tt>"list"</tt>, which is what <tt>SWIG_AppendOutput</tt> builds for most
+target languages. Use <tt>"tuple"</tt> for a typemap that appends into a fixed size sequence
+instead, using a replacement for <tt>SWIG_AppendOutput</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout, container="tuple") short *OutTuple {
+  $result = MyTupleAppend($result, PyLong_FromLong(*$1), $isvoidresult);
+}
+</pre>
+</div>
+
+<p>
+The container is a property of the whole wrapped function, as all the "argout" typemaps append
+into the same <tt>$result</tt>. If the "argout" typemaps matched for one function disagree,
+they cannot all be appending into the same thing, so SWIG cannot work out the type of the values
+returned and uses a catch-all type for the return type instead, <tt>typing.Any</tt> in the case
+of Python. <a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when this happens.
+</p>
 
 <p>
 <b>Note:</b> These attributes are only needed for target languages that generate accurate type

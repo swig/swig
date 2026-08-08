@@ -51,6 +51,9 @@ include $(srcdir)/../common.mk
 # whatever we do here.
 $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
 
+# The argout container consistency check only runs when the return type is being described.
+swig_argout_container.ctest: SWIGOPT += -typehints
+
 # Unique module names are obtained from the .i file name (required for parallel make).
 # Note: -module overrides %module in the .i file.
 MODULE_OPTION=-module $*

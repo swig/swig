@@ -3810,6 +3810,37 @@ void Language::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
   (void)parm;
 }
 
+/* ----------------------------------------------------------------------
+ * Language::composeOutputType()
+ *
+ * Compose the target language type for everything a wrapped function returns.
+ * 'types' holds one type string per returned value in the order the values are
+ * returned, as worked out by emit_output_summary(): the function return value
+ * first when it survives, then one per matched 'argout' typemap.
+ *
+ * Only target languages that generate return type information, such as the Python
+ * PEP 484 annotations, need to override this. An override provides full support for
+ * 'argout' typemaps in the return type:
+ *   - each value an 'argout' typemap adds is included in the type,
+ *   - any number of values can be returned,
+ *   - the values can be returned in any container.
+ * The default implementation copes with a single returned value only.
+ *
+ * How the entries combine is language specific and follows whatever that
+ * language's SWIG_AppendOutput builds. Python aggregates two or more values into
+ * a list, so it composes "typing.List[typing.Union[...]]", while a language whose
+ * helper builds a fixed size sequence composes a tuple type. The 'container'
+ * attribute on the 'argout' typemap says which of these the typemap builds and is
+ * available as the wrap:outputcontainer attribute on n.
+ *
+ * Returns a new string owned by the caller, or NULL if no type can be composed.
+ * ---------------------------------------------------------------------- */
+
+String *Language::composeOutputType(Node *n, List *types) {
+  (void)n;
+  return Len(types) == 1 ? Copy(Getitem(types, 0)) : 0;
+}
+
 Language *Language::instance() {
   return this_;
 }

@@ -170,6 +170,47 @@ int is_python_fastproxy() { return 0; }
   }
 %}
 
+/* An argout typemap building a tuple rather than the list SWIG_AppendOutput builds.
+   The helper is in a fragment so that it is only emitted when a typemap using it is. */
+%fragment("AppendOutput_Tuple", "header") %{
+SWIGINTERN PyObject *AppendOutput_Tuple(PyObject *result, PyObject *obj, int isvoidresult) {
+  PyObject *tmp, *joined;
+  if (!result)
+    return obj;
+  if (result == Py_None && isvoidresult) {
+    Py_DECREF(result);
+    return obj;
+  }
+  if (!PyTuple_Check(result)) {
+    tmp = PyTuple_New(1);
+    PyTuple_SET_ITEM(tmp, 0, result);
+    result = tmp;
+  }
+  tmp = PyTuple_New(1);
+  PyTuple_SET_ITEM(tmp, 0, obj);
+  joined = PySequence_Concat(result, tmp);
+  Py_DECREF(result);
+  Py_DECREF(tmp);
+  return joined;
+}
+%}
+
+%typemap(in, numinputs=0) short *OutTuple (short temp) { $1 = &temp; }
+%typemap(argout, container="tuple", fragment="AppendOutput_Tuple") short *OutTuple {
+  $result = AppendOutput_Tuple($result, PyLong_FromLong(*$1), $isvoidresult);
+}
+%typemap(pytyping) short *OutTuple "int"
+%apply short *OutTuple { short *OutTuple2 };
+
+/* An overwriting argout typemap that builds the tuple the ones after it append into. */
+%typemap(in, numinputs=0) short *OutTupleReplace (short temp) { $1 = &temp; }
+%typemap(argout, overwrite=1, container="tuple") short *OutTupleReplace {
+  Py_XDECREF($result);
+  $result = PyTuple_New(1);
+  PyTuple_SET_ITEM($result, 0, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutTupleReplace "int"
+
 %inline %{
 #include <cstddef>
 
@@ -415,6 +456,33 @@ bool argoutBoolReplaceThenAppend(bool arg, short *OutReplace, short *OutAppend) 
   (void)arg;
   *OutReplace = 42;
   *OutAppend = 43;
+  return arg;
+}
+
+void argoutVoidTupleSingle(short *OutTuple) {
+  *OutTuple = 42;
+}
+
+bool argoutBoolTupleSingle(bool arg, short *OutTuple) {
+  *OutTuple = 42;
+  return arg;
+}
+
+void argoutVoidTupleTwice(short *OutTuple, short *OutTuple2) {
+  *OutTuple = 42;
+  *OutTuple2 = 43;
+}
+
+bool argoutBoolTupleTwice(bool arg, short *OutTuple, short *OutTuple2) {
+  *OutTuple = 42;
+  *OutTuple2 = 43;
+  return arg;
+}
+
+bool argoutBoolTupleReplaceThenAppend(bool arg, short *OutTupleReplace, short *OutTuple) {
+  (void)arg;
+  *OutTupleReplace = 41;
+  *OutTuple = 42;
   return arg;
 }
 

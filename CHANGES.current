@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-16: wsfulton
+            Add the container attribute to the argout typemap, saying what the typemap
+            appends into when more than one value is returned. It defaults to "list",
+            what SWIG_AppendOutput builds, and "tuple" is also supported for typemaps
+            using a replacement for SWIG_AppendOutput that builds a fixed size sequence.
+
+            New warning 478 is issued when the argout typemaps matched for one function
+            do not all build the same container, as they all append into the same
+            $result. The type of the values returned cannot then be worked out and a
+            catch-all type, such as typing.Any for Python, is used for the return type.
+
+2026-08-16: wsfulton
             #3469 #684 Add the numoutputs and overwrite attributes to the argout
             typemap, so that a typemap can say what it returns rather than SWIG
             assuming every argout typemap appends exactly one value:
@@ -444,6 +455,20 @@ Version 4.6.0 (in progress)
             being accepted:
 
               const auto& fn(int x) -> int;   // Error, not valid C++
+
+2026-08-08: wsfulton
+            [Python] The container attribute on the argout typemap selects the PEP 484
+            annotation used for multiple returned values, typing.List[typing.Union[...]]
+            for a list and typing.Tuple[...] for a tuple:
+
+              %typemap(argout, container="tuple") short *OutTuple {
+                $result = MyTupleAppend($result, PyLong_FromLong(*$1), $isvoidresult);
+              }
+              %typemap(pytyping) short *OutTuple "int"
+
+              void two_values(short *OutTuple, short *OutTuple2);
+
+            is annotated -> "typing.Tuple[int, int]".
 
 2026-08-08: wsfulton
             [Python] #3469 #684 PEP 484 return annotations now take the numoutputs

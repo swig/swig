@@ -2677,31 +2677,63 @@ public:
    * matching the behaviour of SWIG_AppendOutput.
    * ------------------------------------------------------------ */
 
-  String *formatOutputTypes(List *types, type_annotation_t anno) {
+  String *formatOutputTypes(List *types, Node *n, type_annotation_t anno) {
     int num_results = Len(types);
-    if (num_results == 0) {
-      /* The argout typemaps return nothing at all and the function return value is suppressed.
-         For C annotations fall back to the function return type as there is nothing better. */
-      return anno == TYPE_ANNOTATION_C ? NULL : NewString("None");
-    }
 
-    String *ret;
-    if (anno == TYPE_ANNOTATION_C)
-      ret = NewStringEmpty();
-    else if (num_results == 1)
+    if (anno != TYPE_ANNOTATION_C)
+      return composeOutputType(n, types);
+
+    /* C annotations are all the argout parameter types concatenated with a comma. */
+    if (num_results == 0)
+      return NULL;
+
+    String *ret = NewStringEmpty();
+    for (int i = 0; i < num_results; i++) {
+      if (i > 0)
+        Printv(ret, ", ", NULL);
+      Printv(ret, Getitem(types, i), NULL);
+    }
+    return ret;
+  }
+
+  /* ------------------------------------------------------------
+   * composeOutputType()
+   *
+   * Compose the annotation describing everything the wrapped
+   * function returns. Two or more values are returned in the
+   * container the argout typemaps build, a list unless they say
+   * otherwise with the container attribute.
+   * ------------------------------------------------------------ */
+
+  String *composeOutputType(Node *n, List *types) {
+    int num_results = Len(types);
+    if (num_results == 0)
+      return NewString("None");
+    if (num_results == 1)
       return Copy(Getitem(types, 0));
-    else
+
+    String *container = Getattr(n, "wrap:outputcontainer");
+    String *ret;
+    const char *close;
+
+    if (container && Equal(container, "tuple")) {
+      ret = NewString("typing.Tuple[");
+      close = "]";
+    } else if (container && !Equal(container, "list")) {
+      /* The argout typemaps disagree on the container, so the type of the values returned is unknown. */
+      return NewString("typing.Any");
+    } else {
+      /* SWIG_Python_AppendOutput builds a list, which is heterogeneous in practice. */
       ret = NewString("typing.List[typing.Union[");
+      close = "]]";
+    }
 
     for (int i = 0; i < num_results; i++) {
       if (i > 0)
         Printv(ret, ", ", NULL);
       Printv(ret, Getitem(types, i), NULL);
     }
-
-    if (anno != TYPE_ANNOTATION_C)
-      Printv(ret, "]]", NULL);
-
+    Printv(ret, close, NULL);
     return ret;
   }
 
@@ -2718,7 +2750,7 @@ public:
     if (!types)
       return NULL;
 
-    String *ret = formatOutputTypes(types, anno);
+    String *ret = formatOutputTypes(types, n, anno);
     Delete(types);
     return ret;
   }

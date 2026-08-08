@@ -331,6 +331,34 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolReplaceThenAppend(True), ["replaced42", 43])
 
+    # container="tuple" says the argout typemaps build a tuple rather than a list.
+    # A single returned value is not put in a container at all
+    anno = get_annotations(argoutVoidTupleSingle)
+    if anno != {"return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutVoidTupleSingle(), 42)
+
+    anno = get_annotations(argoutBoolTupleSingle)
+    if anno != {"arg": "bool", "return": "typing.Tuple[bool, int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolTupleSingle(True), (True, 42))
+
+    anno = get_annotations(argoutVoidTupleTwice)
+    if anno != {"return": "typing.Tuple[int, int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutVoidTupleTwice(), (42, 43))
+
+    anno = get_annotations(argoutBoolTupleTwice)
+    if anno != {"arg": "bool", "return": "typing.Tuple[bool, int, int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolTupleTwice(True), (True, 42, 43))
+
+    # an overwriting typemap sets the container the argout typemaps after it append into
+    anno = get_annotations(argoutBoolTupleReplaceThenAppend)
+    if anno != {"arg": "bool", "return": "typing.Tuple[int, int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolTupleReplaceThenAppend(True), (41, 42))
+
     anno = get_annotations(argoutMultiarg)
     if anno != {"return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
