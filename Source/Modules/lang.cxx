@@ -780,6 +780,33 @@ Doc/Manual/Typemaps.html for complete details.\n");
     }
   }
 
+  if ((Strcmp(method, "out") == 0) || (Strcmp(method, "argout") == 0)) {
+    Hash *k = kwargs;
+    while (k) {
+      if (checkAttribute(k, "name", "numoutputs")) {
+        String *value = Getattr(k, "value");
+        if (!is_non_negative_integer(value)) {
+          Swig_error(Getfile(n), Getline(n), "Invalid numoutputs value '%s' in the %s typemap. It must be a non-negative integer.\n", value, method);
+          return SWIG_ERROR;
+        }
+        if (GetInt(k, "value") > 1) {
+          Swig_error(Getfile(n), Getline(n), "Only numoutputs=0 and numoutputs=1 are supported in the %s typemap.\n", method);
+          return SWIG_ERROR;
+        }
+        break;
+      }
+      k = nextSibling(k);
+    }
+    if (!k) {
+      k = NewHash();
+      Setattr(k, "name", "numoutputs");
+      Setattr(k, "value", "1");
+      set_nextSibling(k, kwargs);
+      Setattr(n, "kwargs", k);
+      kwargs = k;
+    }
+  }
+
   if (Strcmp(method, "ignore") == 0) {
     Swig_error(Getfile(n), Getline(n), "%%typemap(ignore) is no longer supported. Use %%typemap(in,numinputs=0).\n");
   }

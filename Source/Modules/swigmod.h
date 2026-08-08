@@ -378,6 +378,7 @@ List *SWIG_output_files();
 void SWIG_library_directory(const char *);
 int emit_num_arguments(ParmList *);
 int emit_num_required(ParmList *);
+void emit_output_summary(Node *n, ParmList *parms);
 int emit_isvarargs(ParmList *p);
 bool emit_isvarargs_function(Node *n);
 void emit_attach_parmmaps(ParmList *, Wrapper *f);
@@ -405,6 +406,7 @@ bool Swig_director_can_unwrap(Node *n);
 
 /* Utilities */
 
+bool is_non_negative_integer(String *value);
 int is_public(Node *n);
 int is_private(Node *n);
 int is_protected(Node *n);

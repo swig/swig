@@ -13,6 +13,25 @@
 
 #include "swigmod.h"
 
+/* -----------------------------------------------------------------------------
+ * is_non_negative_integer()
+ *
+ * Checks that a typemap attribute value is written as a non-negative integer.
+ * GetInt() uses atoi(), which quietly turns anything unparseable into zero, so a
+ * value has to be checked with this before being read with GetInt().
+ * ----------------------------------------------------------------------------- */
+
+bool is_non_negative_integer(String *value) {
+  const char *c = value ? Char(value) : 0;
+  if (!c || !*c)
+    return false;
+  for (; *c; c++) {
+    if ((*c < '0') || (*c > '9'))
+      return false;
+  }
+  return true;
+}
+
 int is_public(Node *n) {
   String *access = Getattr(n, "access");
   return !access || !Cmp(access, "public");

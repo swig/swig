@@ -197,6 +197,7 @@
 #define WARN_TYPEMAP_OUT_OPTIMAL_MULTIPLE            475
 #define WARN_TYPEMAP_INITIALIZER_LIST                476
 #define WARN_TYPEMAP_DIRECTORTHROWS_UNDEF            477
+#define WARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH       478
 
 /* -- Fragments -- */
 #define WARN_FRAGMENT_NOT_FOUND                      490
