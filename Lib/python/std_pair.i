@@ -189,15 +189,19 @@ SwigPython_std_pair_setitem (PyObject *a, Py_ssize_t b, PyObject *c)
 def __repr__(self):
     return str((self.first, self.second))
 def __getitem__(self, index): 
-    if not (index % 2):
+    if index == 0:
         return self.first
-    else:
+    elif index == 1:
         return self.second
-def __setitem__(self, index, val):
-    if not (index % 2):
-        self.first = val
     else:
-        self.second = val%}
+        raise IndexError
+def __setitem__(self, index, val):
+    if index == 0:
+        self.first = val
+    elif index == 1:
+        self.second = val
+    else:
+        raise IndexError%}
 }
 #endif
 %enddef
