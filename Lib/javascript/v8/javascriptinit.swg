@@ -35,7 +35,7 @@ SWIG_V8_GetModule(v8::Local<v8::Context> context) {
     return 0;
   }
 
-  void *ptr = moduleinfo_extern->Value();
+  void *ptr = SWIGV8_EXTERNAL_VALUE(moduleinfo_extern);
   assert(ptr);
   swig_module_info *retptr = static_cast<swig_module_info *>(ptr);
   assert(retptr);

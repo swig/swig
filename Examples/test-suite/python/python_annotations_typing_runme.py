@@ -1,20 +1,14 @@
-import inspect
-from swig_test_utils import swig_assert
+from swig_test_utils import swig_annotations_in_stub, swig_assert, swig_check, swig_get_annotations
 
 from python_annotations_typing import *
 
-# No __annotations__ support with -builtin or -fastproxy
-annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+# Annotations are only added to the runtime objects for the default proxy classes,
+# but with -pyi they are always available in the generated .pyi stub file
+annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
-def get_annotations(cls):
-    # Python >=3.14 removed the __annotations__ attribute
-    # retrieve it via inspect (see also annotationlib)
-    if hasattr(inspect, "get_annotations"):
-        # Python >=3.10
-        return inspect.get_annotations(cls)
-    else:
-        # Python <3.10
-        return getattr(cls, "__annotations__", {})
+
+def get_annotations(obj):
+    return swig_get_annotations(obj, "python_annotations_typing", is_python_fastproxy())
 
 if annotations_supported:
     anno = get_annotations(global_ints)
@@ -261,3 +255,53 @@ if annotations_supported:
         "SWIGTYPE_p_ForwardOnly",
     ]:
         swig_assert(not hasattr(python_annotations_typing, name))
+
+    anno = get_annotations(argoutVoidSingleAppend)
+    if anno != {"arg": "bool", "return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutVoidSingleAppend(True), int))
+
+    anno = get_annotations(argoutBoolSingleAppend)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolSingleAppend(True), list))
+
+    anno = get_annotations(argoutVoidAppendTwice)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[int, int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutVoidAppendTwice(True), list))
+
+    anno = get_annotations(argoutBoolAppendTwice)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, int, int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutBoolAppendTwice(True), list))
+
+    anno = get_annotations(argoutMultiarg)
+    if anno != {"return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_assert(isinstance(argoutMultiarg(), list))
+
+    anno = get_annotations(argoutBoolMultiarg)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiarg(True), [True, []])
+
+    anno = get_annotations(argoutMultiargAfterFirst)
+    if anno != {"first": "int", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutMultiargAfterFirst(1), [])
+
+    anno = get_annotations(argoutBoolMultiargAfterFirst)
+    if anno != {"first": "int", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargAfterFirst(2), [True, []])
+
+    anno = get_annotations(argoutMultiargBetweenFirstLast)
+    if anno != {"first": "int", "last": "float", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutMultiargBetweenFirstLast(3, 4.0), [])
+
+    anno = get_annotations(argoutBoolMultiargBetweenFirstLast)
+    if anno != {"first": "int", "last": "float", "return": "typing.List[typing.Union[bool, typing.List[int]]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolMultiargBetweenFirstLast(5, 6.0), [True, []])

@@ -3208,7 +3208,7 @@ public:
 
         Putc(',', arglist);
         if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-          sprintf(source, "obj%d", idx++);
+          snprintf(source, sizeof(source), "obj%d", idx++);
           String *input = NewString(source);
           Setattr(p, "emit:directorinput", input);
           Replaceall(tm, "$input", input);
@@ -3233,7 +3233,7 @@ public:
           if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
             Node *modname = Getattr(parent, "module");
             Node *target = Swig_directormap(modname, parameterType);
-            sprintf(source, "obj%d", idx++);
+            snprintf(source, sizeof(source), "obj%d", idx++);
             String *nonconst = 0;
             /* strip pointer/reference --- should move to Swig/stype.c */
             String *nptype = NewString(Char(parameterType) + 2);

@@ -41,7 +41,7 @@ SWIG_FromUint8Array(Napi::Value valRef, void** cptr, size_t* psize, int *alloc)
 }
 
 %fragment("SWIG_ToUint8Array", "header") {
-#define SWIG_ToUint8Array(buf, len) SWIG_EnvToUint8Array(env, buf, len)
+%#define SWIG_ToUint8Array(buf, len) SWIG_EnvToUint8Array(env, buf, len)
 SWIGINTERN Napi::Value SWIG_EnvToUint8Array(Napi::Env env, void* buf, size_t len)
 {
   if (buf != NULL && len > 0) {

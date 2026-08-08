@@ -918,6 +918,7 @@ static int check_locals_type(ParmList *p, const char *s) {
 static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, SwigType *rtype, String *pname, String *lname, int index, Hash *override_vars) {
   char var[512];
   char *varname;
+  size_t varname_size;
   SwigType *ftype;
   int bare_substitution_count = 0;
 
@@ -940,8 +941,9 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       locals = 0;
   }
 
-  sprintf(var, "$%d_", index);
+  snprintf(var, sizeof(var), "$%d_", index);
   varname = &var[strlen(var)];
+  varname_size = sizeof(var) - (size_t)(varname - var);
 
   /* If the original datatype was an array. We're going to go through and substitute
      its array dimensions */
@@ -958,11 +960,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       String *dim = SwigType_array_getdim(type, i);
       if (index == 1) {
         char t[32];
-        sprintf(t, "$dim%d", i);
+        snprintf(t, sizeof(t), "$dim%d", i);
         Replace(s, t, dim, DOH_REPLACE_ANY);
         replace_local_types(locals, t, dim);
       }
-      sprintf(varname, "dim%d", i);
+      snprintf(varname, varname_size, "dim%d", i);
       Replace(s, var, dim, DOH_REPLACE_ANY);
       replace_local_types(locals, var, dim);
       if (Len(size))
@@ -970,7 +972,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       Append(size, dim);
       Delete(dim);
     }
-    sprintf(varname, "size");
+    snprintf(varname, varname_size, "size");
     Replace(s, var, size, DOH_REPLACE_ANY);
     replace_local_types(locals, var, size);
     Delete(size);
@@ -1068,7 +1070,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
           Replace(s, "$*type", ts, DOH_REPLACE_ANY);
           replace_local_types(locals, "$*type", star_type);
         }
-        sprintf(varname, "$*%d_type", index);
+        snprintf(varname, varname_size, "$*%d_type", index);
         Replace(s, varname, ts, DOH_REPLACE_ANY);
         replace_local_types(locals, varname, star_type);
         Delete(ts);
@@ -1081,7 +1083,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
         Replace(s, "$*ltype", ts, DOH_REPLACE_ANY);
         replace_local_types(locals, "$*ltype", star_ltype);
       }
-      sprintf(varname, "$*%d_ltype", index);
+      snprintf(varname, varname_size, "$*%d_ltype", index);
       Replace(s, varname, ts, DOH_REPLACE_ANY);
       replace_local_types(locals, varname, star_ltype);
       Delete(ts);
@@ -1091,14 +1093,14 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       if (index == 1)
         Replace(s, "$*mangle", star_mangle, DOH_REPLACE_ANY);
 
-      sprintf(varname, "$*%d_mangle", index);
+      snprintf(varname, varname_size, "$*%d_mangle", index);
       Replace(s, varname, star_mangle, DOH_REPLACE_ANY);
 
       star_descriptor = NewStringf("SWIGTYPE%s", star_mangle);
       if (index == 1)
         if (Replace(s, "$*descriptor", star_descriptor, DOH_REPLACE_ANY))
           SwigType_remember(star_type);
-      sprintf(varname, "$*%d_descriptor", index);
+      snprintf(varname, varname_size, "$*%d_descriptor", index);
       if (Replace(s, varname, star_descriptor, DOH_REPLACE_ANY))
         SwigType_remember(star_type);
 
@@ -1117,7 +1119,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       Replace(s, "$&type", ts, DOH_REPLACE_ANY);
       replace_local_types(locals, "$&type", amp_type);
     }
-    sprintf(varname, "$&%d_type", index);
+    snprintf(varname, varname_size, "$&%d_type", index);
     Replace(s, varname, ts, DOH_REPLACE_ANY);
     replace_local_types(locals, varname, amp_type);
     Delete(ts);
@@ -1130,7 +1132,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       Replace(s, "$&ltype", ts, DOH_REPLACE_ANY);
       replace_local_types(locals, "$&ltype", amp_ltype);
     }
-    sprintf(varname, "$&%d_ltype", index);
+    snprintf(varname, varname_size, "$&%d_ltype", index);
     Replace(s, varname, ts, DOH_REPLACE_ANY);
     replace_local_types(locals, varname, amp_ltype);
     Delete(ts);
@@ -1139,14 +1141,14 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     amp_mangle = SwigType_manglestr(amp_type);
     if (index == 1)
       Replace(s, "$&mangle", amp_mangle, DOH_REPLACE_ANY);
-    sprintf(varname, "$&%d_mangle", index);
+    snprintf(varname, varname_size, "$&%d_mangle", index);
     Replace(s, varname, amp_mangle, DOH_REPLACE_ANY);
 
     amp_descriptor = NewStringf("SWIGTYPE%s", amp_mangle);
     if (index == 1)
       if (Replace(s, "$&descriptor", amp_descriptor, DOH_REPLACE_ANY))
         SwigType_remember(amp_type);
-    sprintf(varname, "$&%d_descriptor", index);
+    snprintf(varname, varname_size, "$&%d_descriptor", index);
     if (Replace(s, varname, amp_descriptor, DOH_REPLACE_ANY))
       SwigType_remember(amp_type);
 
@@ -1193,13 +1195,13 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
   /* Replace variable usage $n. with (&$n)-> */
   {
     char temp[64];
-    sprintf(var, "$%d.", index);
-    sprintf(temp, "(&$%d)->", index);
+    snprintf(var, sizeof(var), "$%d.", index);
+    snprintf(temp, sizeof(temp), "(&$%d)->", index);
     Replace(s, var, temp, DOH_REPLACE_ANY);
   }
 
   /* Replace the bare $n variable */
-  sprintf(var, "$%d", index);
+  snprintf(var, sizeof(var), "$%d", index);
   bare_substitution_count = replace_with_override(s, var, lname, DOH_REPLACE_NUMBER_END, override_vars);
   replace_local_names(locals, var, lname, override_vars);
 
@@ -1571,7 +1573,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       Append(value, mangle);
       Delete(mangle);
     }
-    sprintf(temp, "%s:%s", cmethod, ckwname);
+    snprintf(temp, sizeof(temp), "%s:%s", cmethod, ckwname);
     Setattr(node, typemap_method_name(temp), value);
     Delete(value);
     kw = nextSibling(kw);
@@ -1588,13 +1590,13 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
 
   Setattr(node, typemap_method_name(tmap_method), s);
   if (locals) {
-    sprintf(temp, "%s:locals", cmethod);
+    snprintf(temp, sizeof(temp), "%s:locals", cmethod);
     Setattr(node, typemap_method_name(temp), locals);
     Delete(locals);
   }
 
   if (Checkattr(tm, "type", "SWIGTYPE")) {
-    sprintf(temp, "%s:SWIGTYPE", cmethod);
+    snprintf(temp, sizeof(temp), "%s:SWIGTYPE", cmethod);
     Setattr(node, typemap_method_name(temp), "1");
   }
 
@@ -1612,7 +1614,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   /* Look for code fragments */
   {
     String *fragment;
-    sprintf(temp, "%s:fragment", cmethod);
+    snprintf(temp, sizeof(temp), "%s:fragment", cmethod);
     fragment = Getattr(node, typemap_method_name(temp));
     if (fragment) {
       String *fname = Copy(fragment);
@@ -1872,7 +1874,7 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
         Delattr(p, "tmap:match");
 
       if (Checkattr(tm, "type", "SWIGTYPE")) {
-        sprintf(temp, "%s:SWIGTYPE", cmethod);
+        snprintf(temp, sizeof(temp), "%s:SWIGTYPE", cmethod);
         Setattr(p, typemap_method_name(temp), "1");
       }
       p = nextSibling(p);
@@ -1891,20 +1893,20 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
     Setattr(firstp, typemap_method_name(tmap_method), s); /* Code object */
 
     if (locals) {
-      sprintf(temp, "%s:locals", cmethod);
+      snprintf(temp, sizeof(temp), "%s:locals", cmethod);
       Setattr(firstp, typemap_method_name(temp), locals);
       Delete(locals);
     }
 
     /* Attach a link to the next parameter.  Needed for multimaps */
-    sprintf(temp, "%s:next", cmethod);
+    snprintf(temp, sizeof(temp), "%s:next", cmethod);
     Setattr(firstp, typemap_method_name(temp), p);
 
     /* Attach kwargs */
     typemap_attach_kwargs(tm, tmap_method, firstp, nmatch);
 
     /* Replace the argument number */
-    sprintf(temp, "%d", argnum);
+    snprintf(temp, sizeof(temp), "%d", argnum);
     Replace(s, "$argnum", temp, DOH_REPLACE_ANY);
 
     /* Print warnings, if any */

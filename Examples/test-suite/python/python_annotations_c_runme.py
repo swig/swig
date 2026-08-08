@@ -1,28 +1,35 @@
+from swig_test_utils import swig_annotations_in_stub, swig_get_annotations
+
 from python_annotations_c import *
 
-# No __annotations__ support with -builtin or -fastproxy
-annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+# Annotations are only added to the runtime objects for the default proxy classes,
+# but with -pyi they are always available in the generated .pyi stub file
+annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
+
+
+def get_annotations(obj):
+    return swig_get_annotations(obj, "python_annotations_c", is_python_fastproxy())
 
 if annotations_supported:
-    anno = MakeShort.__annotations__
+    anno = get_annotations(MakeShort)
     if anno != {'x': 'int', 'return': 'Space::Template< short >'}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
-    anno = global_ints.__annotations__
+    anno = get_annotations(global_ints)
     if anno != {'ri': 'int &', 't': 'TemplateShort', 'return': 'int *'}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
     ts = MakeShort(10)
 
-    anno = MakeShort.__annotations__
+    anno = get_annotations(MakeShort)
     if anno != {'x': 'int', 'return': 'Space::Template< short >'}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
-    anno = ts.mymethod.__annotations__
+    anno = get_annotations(ts.mymethod)
     if anno != {'arg2': 'int', 'tt': 'TemplateShort', 'return': 'void'}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
     # No annotations
-    anno = no_annotations.__annotations__
+    anno = get_annotations(no_annotations)
     if anno != {}:
         raise RuntimeError("annotations mismatch: {}".format(anno))

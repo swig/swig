@@ -76,7 +76,7 @@
 
 /* By value */
 #if defined(__cplusplus) && defined(%implicitconv_flag)
-%typemap(in,implicitconv=1) SWIGTYPE (void *argp, int res = 0) {
+%typemap(in,implicitconv=1) SWIGTYPE (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -90,7 +90,7 @@
   }
 }
 #else
-%typemap(in) SWIGTYPE (void *argp, int res = 0) {
+%typemap(in) SWIGTYPE (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 

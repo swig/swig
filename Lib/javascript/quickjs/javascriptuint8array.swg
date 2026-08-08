@@ -4,7 +4,7 @@
  * ------------------------------------------------------------ */
 
 %fragment("SWIG_FromUint8Array", "header") {
-#define SWIG_FromUint8Array(val, cptr, psize, alloc) SWIG_QuickJS_FromUint8Array(ctx, val, cptr, psize, alloc)
+%#define SWIG_FromUint8Array(val, cptr, psize, alloc) SWIG_QuickJS_FromUint8Array(ctx, val, cptr, psize, alloc)
 SWIGINTERN int
 SWIG_QuickJS_FromUint8Array(JSContext *ctx, JSValueConst val, void** cptr, size_t* psize, int *alloc)
 {
@@ -48,7 +48,7 @@ SWIG_QuickJS_FromUint8Array(JSContext *ctx, JSValueConst val, void** cptr, size_
 }
 
 %fragment("SWIG_ToUint8Array", "header") {
-#define SWIG_ToUint8Array(buf, len) SWIG_QuickJS_ToUint8Array(ctx, buf, len)
+%#define SWIG_ToUint8Array(buf, len) SWIG_QuickJS_ToUint8Array(ctx, buf, len)
 SWIGINTERN JSValue SWIG_QuickJS_ToUint8Array(JSContext *ctx, void* buf, size_t len)
 {
   if (buf != NULL && len > 0) {

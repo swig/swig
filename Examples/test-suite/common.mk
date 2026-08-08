@@ -211,6 +211,7 @@ CPP_TEST_CASES += \
 	director_finalizer \
 	director_frob \
 	director_ignore \
+	director_langobj \
 	director_minimal \
 	director_multiple_inheritance \
 	director_namespace_clash \
@@ -852,6 +853,7 @@ C_TEST_CASES += \
 	c_delete \
 	c_delete_function \
 	char_constant \
+	charptr_fragment \
 	command_line_define \
 	const_const \
 	constant_expr_c \
@@ -883,6 +885,7 @@ C_TEST_CASES += \
 	li_math \
 	long_long \
 	memberin_extend_c \
+	multichar_constant \
 	name \
 	nested \
 	nested_extend_c \

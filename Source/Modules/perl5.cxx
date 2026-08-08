@@ -732,7 +732,7 @@ public:
       SwigType *pt = Getattr(p, "type");
 
       /* Produce string representation of source and target arguments */
-      sprintf(source, "ST(%d)", i);
+      snprintf(source, sizeof(source), "ST(%d)", i);
 
       if (i >= num_required) {
         Printf(f->code, "    if (items > %d) {\n", i);
@@ -760,7 +760,7 @@ public:
 
     if (varargs) {
       if (p && (tm = Getattr(p, "tmap:in"))) {
-        sprintf(source, "ST(%d)", i);
+        snprintf(source, sizeof(source), "ST(%d)", i);
         Replaceall(tm, "$input", source);
         Setattr(p, "emit:input", source);
         Printf(f->code, "if (items >= %d) {\n", i);
@@ -805,7 +805,7 @@ public:
 
         String *in = Getattr(p, "emit:input");
         if (in) {
-          sprintf(temp, "_saved[%d]", num_saved);
+          snprintf(temp, sizeof(temp), "_saved[%d]", num_saved);
           Replaceall(tm, "$arg", temp);
           Replaceall(tm, "$input", temp);
           Printf(f->code, "_saved[%d] = %s;\n", num_saved, in);
@@ -820,7 +820,7 @@ public:
 
     /* If there were any saved arguments, emit a local variable for them */
     if (num_saved) {
-      sprintf(temp, "_saved[%d]", num_saved);
+      snprintf(temp, sizeof(temp), "_saved[%d]", num_saved);
       Wrapper_add_localv(f, "_saved", "SV *", temp, NIL);
     }
 
@@ -2309,7 +2309,7 @@ public:
         String *ptype = Getattr(p, "type");
 
         if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-          sprintf(source, "obj%d", idx++);
+          snprintf(source, sizeof(source), "obj%d", idx++);
           String *input = NewString(source);
           Setattr(p, "emit:directorinput", input);
           Replaceall(tm, "$input", input);
@@ -2337,7 +2337,7 @@ public:
           if (SwigType_ispointer(ptype) || SwigType_isreference(ptype)) {
             Node *module = Getattr(parent, "module");
             Node *target = Swig_directormap(module, ptype);
-            sprintf(source, "obj%d", idx++);
+            snprintf(source, sizeof(source), "obj%d", idx++);
             String *nonconst = 0;
             /* strip pointer/reference --- should move to Swig/stype.c */
             String *nptype = NewString(Char(ptype) + 2);
@@ -2474,7 +2474,7 @@ public:
             Replaceall(tm, "$input", Swig_cresult_name());
           }
           char temp[24];
-          sprintf(temp, "%d", idx);
+          snprintf(temp, sizeof(temp), "%d", idx);
           Replaceall(tm, "$argnum", temp);
 
           /* TODO check this */

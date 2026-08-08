@@ -91,7 +91,7 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
     char temp[32];
     char *c;
     char *f = Char(filter);
-    sprintf(temp, "%d", wnum);
+    snprintf(temp, sizeof(temp), "%d", wnum);
     while (*f != '\0' && (c = strstr(f, temp))) {
       if (*(c - 1) == '-') {
         wrn = 0; /* Warning disabled */
@@ -207,9 +207,10 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
           Insert(filter, 0, "-");
         }
       } else {
-        char *temp = (char *)Malloc(sizeof(char) * strlen(c) + 2);
+        size_t temp_size = sizeof(char) * strlen(c) + 2;
+        char *temp = (char *)Malloc(temp_size);
         if (isdigit((int)*c)) {
-          sprintf(temp, "-%s", c);
+          snprintf(temp, temp_size, "-%s", c);
         } else {
           strcpy(temp, c);
         }
@@ -262,12 +263,12 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
     fmt_eof = "%s:EOF";
   }
 
-  sprintf(wrn_wnum_fmt, "%s: %s %%d: ", fmt_line, warning);
-  sprintf(wrn_nnum_fmt, "%s: %s: ", fmt_line, warning);
-  sprintf(err_line_fmt, "%s: %s: ", fmt_line, error);
-  sprintf(err_eof_fmt, "%s: %s: ", fmt_eof, error);
-  sprintf(diag_line_fmt, "%s: ", fmt_line);
-  sprintf(diag_eof_fmt, "%s: ", fmt_eof);
+  snprintf(wrn_wnum_fmt, sizeof(wrn_wnum_fmt), "%s: %s %%d: ", fmt_line, warning);
+  snprintf(wrn_nnum_fmt, sizeof(wrn_nnum_fmt), "%s: %s: ", fmt_line, warning);
+  snprintf(err_line_fmt, sizeof(err_line_fmt), "%s: %s: ", fmt_line, error);
+  snprintf(err_eof_fmt, sizeof(err_eof_fmt), "%s: %s: ", fmt_eof, error);
+  snprintf(diag_line_fmt, sizeof(diag_line_fmt), "%s: ", fmt_line);
+  snprintf(diag_eof_fmt, sizeof(diag_eof_fmt), "%s: ", fmt_eof);
 
   msg_format = format;
   init_fmt = 1;
