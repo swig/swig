@@ -21,7 +21,12 @@ class string;
 
 // string
 %typemap(ctype) string "const char *"
-%typemap(imtype) string "string"
+%typemap(imtype,
+         inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]",
+         outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]",
+         directorinattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]",
+         directoroutattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]"
+         ) string "string"
 %typemap(cstype) string "string"
 
 %typemap(csdirectorin) string "$iminput"
@@ -58,7 +63,12 @@ class string;
 
 // const string &
 %typemap(ctype) const string & "const char *"
-%typemap(imtype) const string & "string"
+%typemap(imtype,
+         inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]",
+         outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]",
+         directorinattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]",
+         directoroutattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str)]"
+         ) const string & "string"
 %typemap(cstype) const string & "string"
 
 %typemap(csdirectorin) const string & "$iminput"
