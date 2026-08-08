@@ -2437,6 +2437,18 @@ Note that it expands to 1 in destructors and 0 in constructors.
 </tr>
 
 <tr>
+<td>$<em>isvoidresult</em></td>
+<td>
+The same as <tt>$isvoid</tt>, plus it also expands to 1 when the
+<a href="#Typemaps_nn28">"out"</a> typemap declares <tt>numoutputs=0</tt> to suppress a non void
+return value. It therefore expands to 1 whenever the wrapped function returns no value of its own,
+rather than just when the C++ return type is void. Use it in place of <tt>$isvoid</tt> where what
+matters is whether there is a value for the <a href="#Typemaps_nn32">"argout"</a> typemaps to
+append to, such as in a target language's <tt>SWIG_AppendOutput</tt> macro.
+</td>
+</tr>
+
+<tr>
 <td>$<em>symname</em></td>
 <td>
 Name of function/method being wrapped.
@@ -2888,6 +2900,46 @@ $result           - Result object returned to target language.
 
 <p>
 The "out" typemap supports an optional attribute flag called "optimal". This is for code optimisation and is detailed in the <a href="#Typemaps_optimal">Optimal code generation when returning by value</a> section.
+</p>
+
+<p>
+The "out" typemap also supports the <tt>numoutputs</tt> attribute, which says how many values
+the typemap returns to the target language. It defaults to 1 and the only other supported value
+is 0, meaning the function return value is not returned to the target language at all. This is
+useful for a C function that signals errors through its return value, where the error is turned
+into an exception and only the <a href="#Typemaps_nn32">"argout"</a> values are of interest:
+</p>
+
+<div class="code">
+<pre>
+%typemap(out, numoutputs=0) MyErr ""
+
+%typemap(ret) MyErr %{
+  if ($1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)$1);
+    SWIG_fail;
+  }
+%}
+
+%apply int *OUTPUT { int *out };
+
+MyErr get_value(int *out);
+</pre>
+</div>
+
+<p>
+Without <tt>numoutputs=0</tt> the wrapped function returns a list containing the suppressed
+return value followed by the value of <tt>out</tt>. With it, only the value of <tt>out</tt> is
+returned. The typemap does not have to set <tt>$result</tt> when <tt>numoutputs=0</tt> is used.
+</p>
+
+<p>
+<b>Note:</b> The <tt>numoutputs</tt> attribute is only supported by the scripting languages (not
+the statically typed languages, such as Java) that generate accurate type information for what a
+wrapped function returns, such as the Python
+<a href="Python.html#Python_annotations">PEP 484 annotations</a>. In such a target language it
+suppresses the return value in the generated wrapper as well as leaving the function return type
+out of the type information. Other target languages ignore the attribute.
 </p>
 
 <H3><a name="Typemaps_nn29">16.5.4 "arginit" typemap</a></H3>

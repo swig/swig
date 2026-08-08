@@ -8,6 +8,41 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-16: wsfulton
+            #3084 Add the numoutputs attribute to the out typemap. An out typemap
+            declaring numoutputs=0 does not return the function return value, so the
+            only values returned are those the argout typemaps append. This suits a C
+            function that signals errors through its return value:
+
+              %typemap(out, numoutputs=0) MyErr ""
+
+              %typemap(ret) MyErr %{
+                if (result != 0) {
+                  PyErr_Format(PyExc_RuntimeError, "error code %d", (int)result);
+                  SWIG_fail;
+                }
+              %}
+
+              %apply int *OUTPUT { int *out };
+
+              MyErr get_value(int *out);
+
+            get_value now returns just the value of out, rather than a list holding the
+            suppressed return value followed by out. Previously this needed an out
+            typemap pushing a placeholder plus a ret typemap unpicking it again.
+
+            A new $isvoidresult special variable provides the $isvoid functionality
+            extended to cover this case. It expands to 1 for a void return, just as
+            $isvoid does, and additionally for a non void return that an out typemap
+            has suppressed with numoutputs=0. In other words it asks whether the wrapped
+            function returns a value to the target language, rather than whether the C++
+            return type is void, which is what the argout typemaps need to know when
+            deciding whether there is anything to append to.
+
+            $isvoid is unchanged and continues to describe the C++ return type, so
+            typemaps relying on that meaning are unaffected. The SWIG_AppendOutput macro
+            now uses $isvoidresult in its place.
+
+2026-08-16: wsfulton
             [Python] Stop generating a return annotation on __init__ when a constructor
             has a parameter using an argout typemap. Python requires __init__ to return
             None, and constructors without such a parameter never had one. For example:

@@ -460,6 +460,14 @@ Note that it expands to 1 in destructors and 0 in constructors.</td>
 </tr>
 
 <tr>
+<td>$isvoidresult</td>
+<td>The same as $isvoid, plus it also expands to 1 when the
+<a href="Typemaps.html#Typemaps_nn28">"out"</a> typemap declares <tt>numoutputs=0</tt> to suppress
+a non void return value. It therefore expands to 1 whenever the wrapped function returns no value
+of its own, rather than just when the C++ return type is void.</td>
+</tr>
+
+<tr>
 <td>$name</td>
 <td>The C/C++ symbol name for the function.</td>
 </tr>

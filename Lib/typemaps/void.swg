@@ -25,9 +25,9 @@
 /* out */
 
 #if defined(VOID_Object)
-%typemap(out,noblock=1) void { $result = VOID_Object; }
+%typemap(out,noblock=1,numoutputs=0) void { $result = VOID_Object; }
 #else
-%typemap(out,noblock=1) void {}
+%typemap(out,noblock=1,numoutputs=0) void {}
 #endif
 
 /* varin */

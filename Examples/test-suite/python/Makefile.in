@@ -79,6 +79,7 @@ CPP_TEST_CASES += \
 	python_threads \
 	python_typehints \
 	python_typemap_macro \
+	python_typemap_numoutputs \
 	python_various \
 	simutry \
 	std_containers \

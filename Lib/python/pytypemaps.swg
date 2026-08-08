@@ -45,7 +45,7 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, $isvoid)
+#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, $isvoidresult)
 
 /* set constant */
 #if defined(SWIGPYTHON_BUILTIN)

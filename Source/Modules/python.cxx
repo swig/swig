@@ -3847,6 +3847,12 @@ public:
     }
     emit_return_variable(n, returntype, f);
 
+    /* An out typemap declaring numoutputs=0 for a non void return does not return the function return
+       value and so need not set $result at all. Provide the None that is returned when no argout
+       typemap appends anything. A void return always has an out typemap that sets $result. */
+    if (checkAttribute(n, "tmap:out:numoutputs", "0") && Cmp(returntype, "void") != 0)
+      Append(f->code, "if (!resultobj) resultobj = SWIG_Py_Void();\n");
+
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
 
@@ -3911,6 +3917,10 @@ public:
     Replaceall(f->code, "$cleanup", cleanup);
 
     bool isvoid = !Cmp(returntype, "void");
+    /* $isvoidresult is 1 when the wrapper has no return value of its own for the argout typemaps to
+       append to. That is normally a void return, but an out typemap can also declare numoutputs=0. */
+    bool isvoidresult = checkAttribute(n, "tmap:out:numoutputs", "0");
+    Replaceall(f->code, "$isvoidresult", isvoidresult ? "1" : "0");
     Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
@@ -6664,6 +6674,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   /* emit the director method */
   if (status == SWIG_OK) {
+    Replaceall(w->code, "$isvoidresult", is_void ? "1" : "0");
     Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
     if (!Getattr(n, "defaultargs")) {
       Replaceall(w->code, "$symname", symname);
