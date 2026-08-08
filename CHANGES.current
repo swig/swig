@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-16: wsfulton
+            #3469 #684 Add the numoutputs and overwrite attributes to the argout
+            typemap, so that a typemap can say what it returns rather than SWIG
+            assuming every argout typemap appends exactly one value:
+
+              // returns nothing, just turns an error code into an exception
+              %typemap(argout, numoutputs=0) int *ERRCHECK { ... }
+
+              // replaces $result rather than appending to it
+              %typemap(argout, overwrite=1) (void *buffer, size_t len) { ... }
+
+            numoutputs defaults to 1, so existing argout typemaps are unaffected.
+            The attributes are ignored by target languages that do not describe the
+            return type of a wrapped function.
+
+2026-08-16: wsfulton
             #3084 Add the numoutputs attribute to the out typemap. An out typemap
             declaring numoutputs=0 does not return the function return value, so the
             only values returned are those the argout typemaps append. This suits a C
@@ -429,4 +444,18 @@ Version 4.6.0 (in progress)
             being accepted:
 
               const auto& fn(int x) -> int;   // Error, not valid C++
+
+2026-08-08: wsfulton
+            [Python] #3469 #684 PEP 484 return annotations now take the numoutputs
+            and overwrite argout typemap attributes into account. An argout typemap
+            declaring numoutputs=0 no longer contributes a type to the annotation and
+            one declaring overwrite=1 discards the types collected before it, so:
+
+              %typemap(argout, numoutputs=0) short *OutCheck { ... }
+              %typemap(pytyping) short *OutCheck "None"
+
+              bool check_only(bool arg, short *OutCheck);
+
+            is now annotated -> "bool" rather than
+            -> "typing.List[typing.Union[bool, None]]".
 

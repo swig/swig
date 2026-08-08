@@ -3055,6 +3055,52 @@ return values are often appended to return value of the function.
 </p>
 
 <p>
+Appending is a convention, not a requirement. An "argout" typemap is free to check an error
+code and return nothing, or to discard <tt>$result</tt> and replace it with something else.
+SWIG cannot tell which of these a typemap does by looking at the code, so two optional
+attributes are provided to say so.
+</p>
+
+<p>
+The <tt>numoutputs</tt> attribute says how many values the typemap returns. It defaults to 1
+and the only other supported value is 0, for a typemap that returns nothing:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout, numoutputs=0) int *ERRCHECK {
+  if (*$1 != 0) {
+    /* turn the error code into an exception */
+    SWIG_exception_fail(SWIG_RuntimeError, "call failed");
+  }
+}
+</pre>
+</div>
+
+<p>
+The <tt>overwrite</tt> attribute marks a typemap that replaces <tt>$result</tt> instead of
+appending to it, discarding everything returned before it, including the function return value:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout, overwrite=1) (void *rbuffer, size_t len) {
+  Py_DecRef($result);   /* Blow away any previous result */
+  $result = PyBytes_FromStringAndSize((char *)$1, result);
+  free($1);
+}
+</pre>
+</div>
+
+<p>
+<b>Note:</b> These attributes are only needed for target languages that generate accurate type
+information for what a wrapped function returns, such as the Python
+<a href="Python.html#Python_annotations">PEP 484 annotations</a>. They do not change the
+generated wrapper code, so a target language without such support ignores them and adding them
+to a typemap is harmless.
+</p>
+
+<p>
 See the <tt>typemaps.i</tt> library file for examples.
 </p>
 

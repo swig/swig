@@ -125,8 +125,55 @@ int is_python_fastproxy() { return 0; }
 %typemap(argout) short *CtorFlag { (void)*$1; }
 %typemap(pytyping) short *CtorFlag "None"
 
+/* An argout typemap that only checks an error code returns nothing of its own. */
+%typemap(in, numinputs=0) short *OutCheck (short temp) { $1 = &temp; }
+%typemap(argout, numoutputs=0) short *OutCheck {
+  if (*$1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)*$1);
+    SWIG_fail;
+  }
+}
+%typemap(pytyping) short *OutCheck "None"
+
+/* An argout typemap that overwrites $result discards everything returned before it. */
+%typemap(in, numinputs=0) short *OutReplace (short temp) { $1 = &temp; }
+%typemap(argout, overwrite=1) short *OutReplace {
+  Py_XDECREF($result);
+  $result = PyUnicode_FromFormat("replaced%d", (int)*$1);
+}
+%typemap(pytyping) short *OutReplace "str"
+%apply short *OutReplace { short *OutReplace2 };
+
+/* Like (short **short_list, size_t *short_list_len) except that it replaces everything
+   returned before it rather than appending to it. This is the case reported in #3469 -
+   the function return value is dropped, so the annotation is the type the typemap builds
+   rather than a list containing it. */
+%typemap(in, numinputs=0) (short **short_list_replace)(short*temp) { $1 = &temp; }
+%typemap(freearg) (short **short_list_replace) { free(*$1); }
+%typemap(argout, overwrite=1) (short **short_list_replace, size_t *short_list_len) {
+  PyObject *list = PyList_New(*$2);
+  for (size_t i = 0; i < *$2; i++)
+    PyList_SetItem(list, i, PyLong_FromLong((*$1)[i]));
+  Py_XDECREF($result);
+  $result = list;
+}
+%typemap(pytyping) (short **short_list_replace, size_t *short_list_len) "typing.List[int]"
+
+/* An out typemap using numoutputs=0 turns the function return value into an exception,
+   so it is not one of the returned values and is not part of the annotation. This is the
+   case reported in #3084. */
+%typemap(out, numoutputs=0) MyErr ""
+%typemap(ret) MyErr %{
+  if ($1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)$1);
+    SWIG_fail;
+  }
+%}
+
 %inline %{
 #include <cstddef>
+
+typedef int MyErr;
 
 struct ArgoutConstructor {
   int value;
@@ -318,6 +365,59 @@ bool argoutBoolAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
   return arg;
 }
 
+bool argoutBoolCheckOnly(bool arg, short *OutCheck) {
+  *OutCheck = 0;
+  return arg;
+}
+
+void argoutVoidCheckOnly(bool arg, short *OutCheck) {
+  (void)arg;
+  *OutCheck = 0;
+}
+
+bool argoutBoolCheckAndAppend(bool arg, short *OutCheck, short *OutAppend) {
+  *OutCheck = 0;
+  *OutAppend = 42;
+  return arg;
+}
+
+void argoutVoidReplace(bool arg, short *OutReplace) {
+  (void)arg;
+  *OutReplace = 42;
+}
+
+void argoutVoidReplaceTwice(bool arg, short *OutReplace, short *OutReplace2) {
+  (void)arg;
+  *OutReplace = 42;
+  *OutReplace2 = 43;
+}
+
+bool argoutBoolReplaceTwice(bool arg, short *OutReplace, short *OutReplace2) {
+  *OutReplace = 42;
+  *OutReplace2 = 43;
+  return arg;
+}
+
+bool argoutBoolReplace(bool arg, short *OutReplace) {
+  (void)arg;
+  *OutReplace = 42;
+  return arg;
+}
+
+bool argoutBoolAppendThenReplace(bool arg, short *OutAppend, short *OutReplace) {
+  (void)arg;
+  *OutAppend = 42;
+  *OutReplace = 43;
+  return arg;
+}
+
+bool argoutBoolReplaceThenAppend(bool arg, short *OutReplace, short *OutAppend) {
+  (void)arg;
+  *OutReplace = 42;
+  *OutAppend = 43;
+  return arg;
+}
+
 void argoutMultiarg(short **short_list, size_t *short_list_len) {
   *short_list = NULL;
   *short_list_len = 0;
@@ -350,6 +450,58 @@ void argoutMultiargBetweenFirstLast(int first, short **short_list, size_t *short
 
 bool argoutBoolMultiargBetweenFirstLast(int first, short **short_list, size_t *short_list_len, double last) {
   *short_list = NULL;
+  *short_list_len = 0;
+  return first != 0 && last != 0.0;
+}
+
+MyErr argoutSuppressedSingleAppend(int code, short *OutAppend) {
+  *OutAppend = 42;
+  return code;
+}
+
+MyErr argoutSuppressedAppendTwice(int code, short *OutAppend, short *OutAppend2) {
+  *OutAppend = 42;
+  *OutAppend2 = 43;
+  return code;
+}
+
+MyErr argoutSuppressedCheckOnly(int code, short *OutCheck) {
+  *OutCheck = 0;
+  return code;
+}
+
+void argoutMultiargReplace(short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargReplace(bool arg, short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+  return arg;
+}
+
+void argoutMultiargReplaceAfterFirst(int first, short **short_list_replace, size_t *short_list_len) {
+  (void)first;
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargReplaceAfterFirst(int first, short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+  return first != 0;
+}
+
+void argoutMultiargReplaceBetweenFirstLast(int first, short **short_list_replace, size_t *short_list_len, double last) {
+  (void)first;
+  (void)last;
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargReplaceBetweenFirstLast(int first, short **short_list_replace, size_t *short_list_len, double last) {
+  *short_list_replace = NULL;
   *short_list_len = 0;
   return first != 0 && last != 0.0;
 }

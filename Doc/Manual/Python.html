@@ -140,6 +140,7 @@
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
 <li><a href="#Python_annotations_pytyping">PEP 484 annotation types</a>
+<li><a href="#Python_annotations_argout">Annotations for argout typemaps</a>
 <li><a href="#Python_annotations_typehints">Type hints for the whole interface</a>
 <li><a href="#Python_annotations_pyi">Generating .pyi stub files</a>
 </ul>
@@ -7203,11 +7204,9 @@ def do_something(t: "int|float") -&gt; "int":
 </pre></div>
 
 <p>
-When <tt>argout</tt> typemaps are used, the return annotation is built from the wrapped return
-type and each matched <tt>pytyping</tt> typemap for the <tt>argout</tt> parameters. A single
-returned value keeps its type directly if the function signature returns void. Multiple returned values default to
-<tt>typing.List[typing.Union[...]]</tt>. There will be multiple returned values if the function signature returns non-void
-and there is at least one parameter that is an argout. This matches the behaviour when <tt>SWIG_AppendOutput</tt> is used.
+A function using <tt>argout</tt> typemaps returns more than one value, which needs the
+<tt>pytyping</tt> typemaps of the <tt>argout</tt> parameters as well as that of the return type.
+This is covered in <a href="#Python_annotations_argout">Annotations for argout typemaps</a> below.
 </p>
 
 <p>
@@ -7276,7 +7275,130 @@ if typing.TYPE_CHECKING:
 <b>Compatibility Note:</b> SWIG-4.5.0 added support for PEP 484 annotation types.
 </p>
 
-<H4><a name="Python_annotations_typehints">35.12.1.3 Type hints for the whole interface</a></H4>
+<H4><a name="Python_annotations_argout">35.12.1.3 Annotations for argout typemaps</a></H4>
+
+
+<p>
+A function using <a href="Typemaps.html#Typemaps_nn32">"argout"</a> typemaps returns more than the
+value in its C/C++ return type. The annotation is built from the wrapped return type followed by the
+<tt>pytyping</tt> typemap matched for each <tt>argout</tt> parameter. A single returned value keeps
+its type directly and two or more are annotated as <tt>typing.List[typing.Union[...]]</tt>, matching
+the list that <tt>SWIG_AppendOutput</tt> builds:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) short *OutValue (short temp) { $1 = &amp;temp; }
+%typemap(argout) short *OutValue {
+  $result = SWIG_AppendOutput($result, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutValue "int"
+
+void one_value(short *OutValue);
+bool two_values(bool arg, short *OutValue);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def one_value() -&gt; "int":
+def two_values(arg: "bool") -&gt; "typing.List[typing.Union[bool, int]]":
+</pre>
+</div>
+
+<p>
+Each <tt>argout</tt> typemap is assumed to append exactly one value, which is what the
+<tt>typemaps.i</tt> <tt>OUTPUT</tt> family does. A typemap doing anything else must say so with the
+<tt>numoutputs</tt> and <tt>overwrite</tt> attributes, otherwise the annotation
+will not describe what the function really returns. Each is shown below and they are documented in
+the <a href="Typemaps.html#Typemaps_nn32">"argout" typemap</a> section.
+</p>
+
+<p>
+Use <tt>numoutputs=0</tt> for a typemap that returns nothing of its own, such as one that only turns
+an error code into an exception:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) short *OutCheck (short temp) { $1 = &amp;temp; }
+%typemap(argout, numoutputs=0) short *OutCheck {
+  if (*$1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)*$1);
+    SWIG_fail;
+  }
+}
+%typemap(pytyping) short *OutCheck "None"
+
+bool check_only(bool arg, short *OutCheck);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def check_only(arg: "bool") -&gt; "bool":
+</pre>
+</div>
+
+<p>
+Without <tt>numoutputs=0</tt> the annotation would wrongly be
+<tt>typing.List[typing.Union[bool, None]]</tt>.
+</p>
+
+<p>
+Use <tt>overwrite=1</tt> for a typemap that assigns <tt>$result</tt> rather than appending to it, as
+everything returned before it is then discarded, including the function return value:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) short *OutReplace (short temp) { $1 = &amp;temp; }
+%typemap(argout, overwrite=1) short *OutReplace {
+  Py_XDECREF($result);
+  $result = PyUnicode_FromFormat("replaced%d", (int)*$1);
+}
+%typemap(pytyping) short *OutReplace "str"
+
+bool replace_result(bool arg, short *OutReplace);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def replace_result(arg: "bool") -&gt; "str":
+</pre>
+</div>
+
+<p>
+Finally, an <a href="Typemaps.html#Typemaps_nn28">"out"</a> typemap that suppresses the function
+return value should declare <tt>numoutputs=0</tt>, so that only the <tt>argout</tt> values are
+described. This suits a C function reporting errors through its return value:
+</p>
+
+<div class="code">
+<pre>
+%typemap(out, numoutputs=0) MyErr ""
+
+%typemap(ret) MyErr %{
+  if ($1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)$1);
+    SWIG_fail;
+  }
+%}
+
+%apply short *OutValue { short *out };
+
+MyErr get_value(short *out);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def get_value() -&gt; "int":
+</pre>
+</div>
+
+<H4><a name="Python_annotations_typehints">35.12.1.4 Type hints for the whole interface</a></H4>
 
 
 <p>
@@ -7358,7 +7480,7 @@ file instead, see <a href="#Python_annotations_pyi">Generating .pyi stub files</
 <b>Compatibility Note:</b> SWIG-4.5.0 added the <tt>-typehints</tt> command line option.
 </p>
 
-<H4><a name="Python_annotations_pyi">35.12.1.4 Generating .pyi stub files</a></H4>
+<H4><a name="Python_annotations_pyi">35.12.1.5 Generating .pyi stub files</a></H4>
 
 
 <p>

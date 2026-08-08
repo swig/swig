@@ -2624,22 +2624,24 @@ public:
 
     if (anno == TYPE_ANNOTATION_C) {
       /* C annotations use the argout parameter types and ignore the function return type. */
-      for (p = root; p; p = nextSibling(p)) {
-        SwigType *match_type = Getattr(p, "tmap:argout:match_type");
-        if (match_type) {
-          String *tm = SwigType_str(match_type, 0);
-          Append(types, tm);
-          Delete(tm);
-        }
+      emit_output_summary(n, root);
+      for (Iterator it = First(Getattr(n, "wrap:outputparms")); it.item; it = Next(it)) {
+        String *tm = SwigType_str(Getattr(it.item, "tmap:argout:match_type"), 0);
+        Append(types, tm);
+        Delete(tm);
       }
       return types;
     }
 
+    /* The pytyping typemaps are attached to a copy of the parameters so that the wrapper code
+       generation is not disturbed. emit_output_summary() is given the same copy so that the
+       parameters it reports back are the ones carrying the pytyping typemaps. */
     ParmList *copied_parms = CopyParmList(root);
     Swig_typemap_attach_parms("pytyping", copied_parms, 0);
+    emit_output_summary(n, copied_parms);
 
-    /* A non-void function return value is the first of the returned values. */
-    if (!Equal(Getattr(n, "type"), "void")) {
+    /* The function return value, when there is one, is the first of the returned values. */
+    if (GetFlag(n, "wrap:returnsurvives")) {
       String *tm = lookupPytyping(n, true);
       if (!tm)
         tm = NewString("typing.Any");
@@ -2647,20 +2649,22 @@ public:
       Delete(tm);
     }
 
-    for (p = copied_parms; p; p = nextSibling(p)) {
-      SwigType *match_type = Getattr(p, "tmap:argout:match_type");
-      if (match_type) {
-        String *tm = lookupPytyping(p, true);
-        if (!tm) {
-          Swig_warning(
-            WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF, input_file, line_number, "Missing required entry in pytyping typemap for %s\n", SwigType_str(match_type, 0));
-          tm = NewString("typing.Any");
-        }
-        Append(types, tm);
-        Delete(tm);
+    for (Iterator it = First(Getattr(n, "wrap:outputparms")); it.item; it = Next(it)) {
+      String *tm = lookupPytyping(it.item, true);
+      if (!tm) {
+        Swig_warning(WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF,
+                     input_file,
+                     line_number,
+                     "Missing required entry in pytyping typemap for %s\n",
+                     SwigType_str(Getattr(it.item, "tmap:argout:match_type"), 0));
+        tm = NewString("typing.Any");
       }
+      Append(types, tm);
+      Delete(tm);
     }
 
+    /* Do not leave the copied parameters attached to the node. */
+    Delattr(n, "wrap:outputparms");
     Delete(copied_parms);
     return types;
   }
@@ -2675,8 +2679,11 @@ public:
 
   String *formatOutputTypes(List *types, type_annotation_t anno) {
     int num_results = Len(types);
-    if (num_results == 0)
-      return NULL;
+    if (num_results == 0) {
+      /* The argout typemaps return nothing at all and the function return value is suppressed.
+         For C annotations fall back to the function return type as there is nothing better. */
+      return anno == TYPE_ANNOTATION_C ? NULL : NewString("None");
+    }
 
     String *ret;
     if (anno == TYPE_ANNOTATION_C)
