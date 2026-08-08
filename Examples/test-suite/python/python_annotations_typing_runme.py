@@ -276,6 +276,13 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_assert(isinstance(argoutBoolAppendTwice(True), list))
 
+    # __init__ always returns None in Python, so it never has a return annotation,
+    # not even when the constructor has a parameter using an argout typemap
+    anno = get_annotations(ArgoutConstructor.__init__)
+    if "return" in anno:
+        raise RuntimeError("__init__ should have no return annotation: {}".format(anno))
+    swig_check(ArgoutConstructor(7).value, 7)
+
     anno = get_annotations(argoutMultiarg)
     if anno != {"return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))

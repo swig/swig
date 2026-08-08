@@ -5694,7 +5694,8 @@ public:
                 Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
               }
 
-              Printv(f_shadow, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
+              /* __init__ always returns None in Python, so it never carries a return annotation. */
+              Printv(f_shadow, "\n", tab4, "def __init__(", parms, "):\n", NIL);
               if (Node *node_with_doc = find_overload_with_docstring(n))
                 Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
               if (have_pythonprepend(n))
@@ -5743,7 +5744,8 @@ public:
 
       if (pyi_stub && add_init) {
         String *parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
-        Printv(f_stub, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
+        /* __init__ always returns None in Python, so it never carries a return annotation. */
+        Printv(f_stub, "\n", tab4, "def __init__(", parms, "):\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
           Printv(f_stub, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
         Printv(f_stub, tab8, "...\n", NIL);

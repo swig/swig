@@ -7,6 +7,27 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-16: wsfulton
+            [Python] Stop generating a return annotation on __init__ when a constructor
+            has a parameter using an argout typemap. Python requires __init__ to return
+            None, and constructors without such a parameter never had one. For example:
+
+              %typemap(in, numinputs=0) short *flag (short temp) { $1 = &temp; }
+              %typemap(argout) short *flag { (void)*$1; }
+              %typemap(pytyping) short *flag "None"
+
+              struct Counter {
+                Counter(int v, short *flag);
+              };
+
+            previously generated a return annotation built from the argout typemaps:
+
+              def __init__(self, v: "int") -> "typing.List[typing.Union[typing.Any, None]]":
+
+            and now generates:
+
+              def __init__(self, v: "int"):
+
 2026-08-14: wsfulton
             [Javascript, PHP] Warning 314 no longer repeats the new name when
             renaming a Javascript keyword or the PHP 'readonly' keyword:

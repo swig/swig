@@ -119,8 +119,19 @@ int is_python_fastproxy() { return 0; }
 }
 %typemap(pytyping) (short **short_list, size_t *short_list_len) "typing.List[int]"
 
+/* An argout typemap on a constructor parameter. It must not append, as the constructor
+   result is the new object rather than something to add to. */
+%typemap(in, numinputs=0) short *CtorFlag (short temp) { $1 = &temp; }
+%typemap(argout) short *CtorFlag { (void)*$1; }
+%typemap(pytyping) short *CtorFlag "None"
+
 %inline %{
 #include <cstddef>
+
+struct ArgoutConstructor {
+  int value;
+  ArgoutConstructor(int v, short *CtorFlag) : value(v) { *CtorFlag = 1; }
+};
 
 void take_argv(int argc, char **argv) {}
 
