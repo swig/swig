@@ -11,3 +11,8 @@ with swig_assert_raises(RuntimeError):
     suppressed_two(1)
 with swig_assert_raises(RuntimeError):
     suppressed_none(1)
+
+# A user defined out typemap for void does not stop the return being void, so a single argout
+# value is returned on its own rather than appended to the None the out typemap sets.
+swig_check(user_void_out(), 11)
+swig_check(user_void_out_two(), [11, 12])

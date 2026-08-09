@@ -290,12 +290,11 @@ void emit_output_summary(Node *n, ParmList *parms) {
   String *clashing_container = 0;
   int returnsurvives;
 
-  /* The 'out' typemap decides whether the function return value is returned at all.
-     Fall back to the return type for callers that have not looked the typemap up yet. */
-  if (Getattr(n, "tmap:out:numoutputs"))
+  /* A void function has no return value to return and an 'out' typemap declaring
+     numoutputs=0 says not to return the one there is. */
+  returnsurvives = !Equal(Getattr(n, "type"), "void");
+  if (returnsurvives && Getattr(n, "tmap:out:numoutputs"))
     returnsurvives = GetInt(n, "tmap:out:numoutputs") > 0;
-  else
-    returnsurvives = !Equal(Getattr(n, "type"), "void");
 
   for (p = parms; p; p = nextSibling(p)) {
     int numoutputs;

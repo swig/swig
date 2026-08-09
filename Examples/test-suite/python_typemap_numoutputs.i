@@ -15,6 +15,13 @@
   }
 %}
 
+// A user defined out typemap for a void return overrides the one in the typemaps library, which
+// declares numoutputs=0. A void function still has no return value for the argout typemaps to
+// append to, so a single argout value must not be wrapped in a list.
+%typemap(out) void %{
+  $result = SWIG_Py_Void();
+%}
+
 %apply int *OUTPUT { int *out1, int *out2 };
 
 %inline %{
@@ -23,4 +30,7 @@ typedef int MyErr;
 MyErr suppressed_two(int code, int *out1, int *out2) { *out1 = 11; *out2 = 12; return code; }
 MyErr suppressed_one(int code, int *out1) { *out1 = 11; return code; }
 MyErr suppressed_none(int code) { return code; }
+
+void user_void_out(int *out1) { *out1 = 11; }
+void user_void_out_two(int *out1, int *out2) { *out1 = 11; *out2 = 12; }
 %}

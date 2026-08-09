@@ -3958,7 +3958,7 @@ public:
     bool isvoid = !Cmp(returntype, "void");
     /* $isvoidresult is 1 when the wrapper has no return value of its own for the argout typemaps to
        append to. That is normally a void return, but an out typemap can also declare numoutputs=0. */
-    bool isvoidresult = checkAttribute(n, "tmap:out:numoutputs", "0");
+    bool isvoidresult = isvoid || checkAttribute(n, "tmap:out:numoutputs", "0");
     Replaceall(f->code, "$isvoidresult", isvoidresult ? "1" : "0");
     Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
