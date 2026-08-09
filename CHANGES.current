@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-16: wsfulton
+            An invalid numinputs value in an in typemap is now an error. The value was
+            previously parsed leniently, taking any leading digits and ignoring the rest,
+            so numinputs="abc" was read as 0 and quietly dropped the parameter from the
+            wrapped function, while numinputs="1x" was read as 1. The value must now be
+            written as a non-negative integer:
+
+              %typemap(in, numinputs="abc") int * ""
+
+            now reports:
+
+              Error: Invalid numinputs value 'abc' in the in typemap. It must be a
+              non-negative integer.
+
+2026-08-16: wsfulton
             Add the container attribute to the argout typemap, saying what the typemap
             appends into when more than one value is returned. It defaults to "list",
             what SWIG_AppendOutput builds, and "tuple" is also supported for typemaps

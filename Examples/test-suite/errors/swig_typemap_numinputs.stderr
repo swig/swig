@@ -1,0 +1,5 @@
+swig_typemap_numinputs.i:7: Error: Invalid numinputs value 'abc' in the in typemap. It must be a non-negative integer.
+swig_typemap_numinputs.i:8: Error: Invalid numinputs value '' in the in typemap. It must be a non-negative integer.
+swig_typemap_numinputs.i:9: Error: Invalid numinputs value '-1' in the in typemap. It must be a non-negative integer.
+swig_typemap_numinputs.i:10: Error: Invalid numinputs value '1x' in the in typemap. It must be a non-negative integer.
+swig_typemap_numinputs.i:11: Error: Invalid numinputs value '0x1' in the in typemap. It must be a non-negative integer.

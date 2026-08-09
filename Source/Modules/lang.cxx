@@ -758,10 +758,14 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "in") == 0) {
-    Hash *k;
-    k = kwargs;
+    Hash *k = kwargs;
     while (k) {
       if (checkAttribute(k, "name", "numinputs")) {
+        String *value = Getattr(k, "value");
+        if (!is_non_negative_integer(value)) {
+          Swig_error(Getfile(n), Getline(n), "Invalid numinputs value '%s' in the in typemap. It must be a non-negative integer.\n", value);
+          return SWIG_ERROR;
+        }
         if (!multiinput && (GetInt(k, "value") > 1)) {
           Swig_error(Getfile(n), Getline(n), "Multiple-input typemaps (numinputs > 1) not supported by this target language module.\n");
           return SWIG_ERROR;
