@@ -452,7 +452,7 @@ To illustrate, here is a safer version of wrapping <tt>printf()</tt> in Python:
 <pre>
 %typemap(in) (const char *fmt, ...) {
     $1 = "%s";                                /* Fix format string to %s */
-    $2 = (void *) PyString_AsString($input);  /* Get string argument */
+    $2 = (void *) PyUnicode_AsUTF8($input);   /* Get string argument */
 };
 ...
 int printf(const char *fmt, ...);
@@ -476,7 +476,7 @@ wrap_printf() {
   int   result;
 
   arg1 = "%s";
-  arg2 = (void *) PyString_AsString(arg2obj);
+  arg2 = (void *) PyUnicode_AsUTF8(arg2obj);
   ...
   result = printf(arg1, arg2);
   ...
@@ -631,12 +631,12 @@ example. For example:
   argv = (char **) malloc(sizeof(char *)*(argc+1));
   for (i = 0; i &lt; argc; i++) {
     PyObject *o = PyTuple_GetItem(varargs, i);
-    if (!PyString_Check(o)) {
+    if (!PyUnicode_Check(o)) {
       free(argv);
       PyErr_SetString(PyExc_ValueError, "Expected a string");
       SWIG_fail;
     }
-    argv[i] = PyString_AsString(o);
+    argv[i] = (char *) PyUnicode_AsUTF8(o);
   }
   argv[i] = NULL;
   $1 = (void *) argv;
@@ -724,7 +724,7 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
   int    i;
 
   /* Format string */
-  $1 = PyString_AsString($input);
+  $1 = PyUnicode_AsUTF8($input);
 
   /* Variable length arguments */
   argc = PyTuple_Size(varargs);
@@ -737,9 +737,9 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
     } else if (PyFloat_Check(o)) {
       argv[i].type = VT_DOUBLE;
       argv[i].val.dvalue = PyFloat_AsDouble(o);
-    } else if (PyString_Check(o)) {
+    } else if (PyUnicode_Check(o)) {
       argv[i].type = VT_POINTER;
-      argv[i].val.pvalue = (void *) PyString_AsString(o);
+      argv[i].val.pvalue = (void *) PyUnicode_AsUTF8(o);
     } else {
       free(argv);
       PyErr_SetString(PyExc_ValueError, "Unsupported argument type");

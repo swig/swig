@@ -4966,8 +4966,9 @@ Typemaps can also be defined for groups of consecutive arguments.  For example:
 <div class="code">
 <pre>
 %typemap(in) (char *str, int len) {
-  $1 = PyString_AsString($input);
-  $2 = PyString_Size($input);
+  Py_ssize_t nbytes;
+  $1 = (char *) PyUnicode_AsUTF8AndSize($input, &amp;nbytes);
+  $2 = (int) nbytes;
 };
 
 int count(char c, char *str, int len);
@@ -5138,11 +5139,26 @@ int       PyFloat_Check(PyObject *);
 
 <div class="code">
 <pre>
-PyObject *PyString_FromString(char *);
-PyObject *PyString_FromStringAndSize(char *, lint len);
-int       PyString_Size(PyObject *);
-char     *PyString_AsString(PyObject *);
-int       PyString_Check(PyObject *);
+PyObject   *PyUnicode_FromString(const char *);
+PyObject   *PyUnicode_FromStringAndSize(const char *, Py_ssize_t len);
+const char *PyUnicode_AsUTF8(PyObject *);
+const char *PyUnicode_AsUTF8AndSize(PyObject *, Py_ssize_t *len);
+Py_ssize_t  PyUnicode_GetLength(PyObject *);
+int         PyUnicode_Check(PyObject *);
+</pre>
+</div>
+
+<p>
+<b>Python Bytes Functions</b>
+</p>
+
+<div class="code">
+<pre>
+PyObject   *PyBytes_FromString(const char *);
+PyObject   *PyBytes_FromStringAndSize(const char *, Py_ssize_t len);
+Py_ssize_t  PyBytes_Size(PyObject *);
+char       *PyBytes_AsString(PyObject *);
+int         PyBytes_Check(PyObject *);
 </pre>
 </div>
 
@@ -5212,11 +5228,17 @@ PyObject* PyDict_Items(PyObject *p);
 
 <div class="code">
 <pre>
-PyObject *PyFile_FromFile(FILE *f);
-FILE     *PyFile_AsFile(PyObject *);
-int       PyFile_Check(PyObject *);
+int PyObject_AsFileDescriptor(PyObject *);
 </pre>
 </div>
+
+<p>
+Python 3 file objects are not built on <tt>FILE *</tt>, so there is no equivalent of
+the Python 2 <tt>PyFile_FromFile</tt> and <tt>PyFile_AsFile</tt> functions.  A file
+descriptor obtained with <tt>PyObject_AsFileDescriptor</tt> can be turned into a
+<tt>FILE *</tt> with <tt>fdopen</tt>, but the resulting stream and the Python file
+object then have separate buffers.
+</p>
 
 <p>
 <b>Abstract Object Interface</b>
@@ -5227,6 +5249,41 @@ int       PyFile_Check(PyObject *);
 write me
 </pre>
 </div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 removed the Python 2 C API compatibility macros
+that earlier versions defined in the generated code for use by typemaps.  A typemap
+still using one of these has to be changed to call the Python 3 C API directly.  Each
+macro is listed below with the Python 3 API it expanded to:
+</p>
+
+<div class="code">
+<pre>
+PyClass_Check               PyObject_IsInstance
+PyInt_Check                 PyLong_Check
+PyInt_AsLong                PyLong_AsLong
+PyInt_FromLong              PyLong_FromLong
+PyInt_FromSize_t            PyLong_FromSize_t
+PyString_Check              PyBytes_Check
+PyString_FromString         PyUnicode_FromString
+PyString_Format             PyUnicode_Format
+PyString_AsString           PyBytes_AsString
+PyString_Size               PyBytes_Size
+PyString_InternFromString   PyUnicode_InternFromString
+Py_TPFLAGS_HAVE_CLASS       Py_TPFLAGS_BASETYPE
+_PyLong_FromSsize_t         PyLong_FromSsize_t
+SWIG_Python_str_FromFormat  PyUnicode_FromFormat
+SWIG_Python_str_FromChar    PyUnicode_FromString
+</pre>
+</div>
+
+<p>
+Note that <tt>PyString_Check</tt>, <tt>PyString_AsString</tt> and
+<tt>PyString_Size</tt> expanded to the <tt>PyBytes_*</tt> functions and so operated on
+a <tt>bytes</tt> object rather than a <tt>str</tt>.  A typemap that should accept a
+<tt>str</tt> needs the corresponding <tt>PyUnicode_*</tt> function instead, such as
+<tt>PyUnicode_AsUTF8</tt> in place of <tt>PyString_AsString</tt>.
+</p>
 
 <H2><a name="Python_nn58">33.9 Typemap Examples</a></H2>
 
@@ -5290,8 +5347,8 @@ previous example:
     $2 = (char **) malloc(($1+1)*sizeof(char *));
     for (i = 0; i &lt; $1; i++) {
       PyObject *o = PyList_GetItem($input, i);
-      if (PyString_Check(o)) {
-        $2[i] = PyString_AsString(PyList_GetItem($input, i));
+      if (PyUnicode_Check(o)) {
+        $2[i] = (char *) PyUnicode_AsUTF8(o);
       } else {
         PyErr_SetString(PyExc_TypeError, "list must contain strings");
         SWIG_fail;
@@ -5805,7 +5862,7 @@ The second option, which performs better and is required if you use the
 // A reference to the parent class is added to ensure the underlying C++
 // object is not deleted while the item is in use
 %typemap(ret) Wheel&amp; getWheel {
-  PyObject *bike_reference_string = SWIG_Python_str_FromChar("__bike_reference");
+  PyObject *bike_reference_string = PyUnicode_FromString("__bike_reference");
   PyObject_SetAttr($result, bike_reference_string, $self);
   Py_DecRef(bike_reference_string);
 }
@@ -5831,7 +5888,7 @@ is initialized and is done to create the "__bike_reference" Python string single
 %fragment("bike_reference_function", "header", fragment="bike_reference_init") {
 
 static PyObject *bike_reference() {
-  static PyObject *bike_reference_string = SWIG_Python_str_FromChar("__bike_reference");
+  static PyObject *bike_reference_string = PyUnicode_FromString("__bike_reference");
   return bike_reference_string;
 }
 

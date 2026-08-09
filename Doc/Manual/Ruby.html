@@ -2964,7 +2964,7 @@ a function. For example:</p>
   delete $1;
 }
 %typemap(out) string * {
-  $result = PyString_FromString($1-&gt;c_str());
+  $result = rb_str_new2($1-&gt;c_str());
 }
 ...
 

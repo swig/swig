@@ -411,8 +411,9 @@ consecutive arguments.    For example:
 <div class="code">
 <pre>
 %typemap(in) (<b>char *str, int len</b>) {
-  $1 = PyString_AsString($input);   /* char *str */
-  $2 = PyString_Size($input);       /* int len   */
+  Py_ssize_t nbytes;
+  $1 = (char *) PyUnicode_AsUTF8AndSize($input, &amp;nbytes);  /* char *str */
+  $2 = (int) nbytes;                                       /* int len   */
 }
 ...
 int count(<b>char *str, int len</b>, char c);
@@ -817,8 +818,9 @@ Here are some examples of valid typemap specifications:
 %typemap(in) (char *str, int len),
              (char *buffer, int size)
 {
-  $1 = PyString_AsString($input);
-  $2 = PyString_Size($input);
+  Py_ssize_t nbytes;
+  $1 = (char *) PyUnicode_AsUTF8AndSize($input, &amp;nbytes);
+  $2 = (int) nbytes;
 }
 
 /* Typemap with extra pattern parameters */
@@ -3052,7 +3054,7 @@ of a function.  For example:
   delete $1;
 }
 %typemap(out) string * {
-  $result = PyString_FromString($1-&gt;c_str());
+  $result = PyUnicode_FromString($1-&gt;c_str());
 }
 ...
 
@@ -3781,12 +3783,12 @@ maps perform the conversion described for the above example:
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i &lt; $1; i++) {
     PyObject *s = PyList_GetItem($input, i);
-    if (!PyString_Check(s)) {
+    if (!PyUnicode_Check(s)) {
       free($2);
       PyErr_SetString(PyExc_ValueError, "List items must be strings");
       SWIG_fail;
     }
-    $2[i] = PyString_AsString(s);
+    $2[i] = (char *) PyUnicode_AsUTF8(s);
   }
   $2[i] = 0;
 }
@@ -3898,12 +3900,12 @@ might write typemaps like this:
 <pre>
 // typemap for an outgoing buffer
 %typemap(in) (void *wbuffer, size_t len) {
-  if (!PyString_Check($input)) {
-    PyErr_SetString(PyExc_ValueError, "Expecting a string");
+  if (!PyBytes_Check($input)) {
+    PyErr_SetString(PyExc_ValueError, "Expecting a bytes object");
     SWIG_fail;
   }
-  $1 = (void *) PyString_AsString($input);
-  $2 = PyString_Size($input);
+  $1 = (void *) PyBytes_AsString($input);
+  $2 = PyBytes_Size($input);
 }
 
 // typemap for an incoming buffer
@@ -3928,7 +3930,7 @@ might write typemaps like this:
     PyErr_SetFromErrno(PyExc_IOError);
     return NULL;
   }
-  $result = PyString_FromStringAndSize($1, result);
+  $result = PyBytes_FromStringAndSize($1, result);
   free($1);
 }
 </pre>
@@ -3941,22 +3943,22 @@ scripting language object being returned to the interpreter.).
 </p>
 
 <p>
-Now, in a script, you can write code that simply passes buffers as strings like this:
+Now, in a script, you can write code that simply passes buffers as bytes objects like this:
 </p>
 
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = example.open("Makefile")
 &gt;&gt;&gt; example.read(f, 40)
-'TOP        = ../..\nSWIG       = $(TOP)/.'
+b'TOP        = ../..\nSWIG       = $(TOP)/.'
 &gt;&gt;&gt; example.read(f, 40)
-'./swig\nSRCS       = example.c\nTARGET    '
+b'./swig\nSRCS       = example.c\nTARGET    '
 &gt;&gt;&gt; example.close(f)
 0
-&gt;&gt;&gt; g = example.open("foo", example.O_WRONLY | example.O_CREAT, 0644)
-&gt;&gt;&gt; example.write(g, "Hello world\n")
+&gt;&gt;&gt; g = example.open("foo", example.O_WRONLY | example.O_CREAT, 0o644)
+&gt;&gt;&gt; example.write(g, b"Hello world\n")
 12
-&gt;&gt;&gt; example.write(g, "This is a test\n")
+&gt;&gt;&gt; example.write(g, b"This is a test\n")
 15
 &gt;&gt;&gt; example.close(g)
 0
@@ -4989,11 +4991,11 @@ The following excerpt from the Python module illustrates this:
 }
 
 %typecheck(SWIG_TYPECHECK_CHAR) char {
-  $1 = (PyString_Check($input) &amp;&amp; (PyString_Size($input) == 1)) ? 1 : 0;
+  $1 = (PyUnicode_Check($input) &amp;&amp; (PyUnicode_GetLength($input) == 1)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_STRING) char * {
-  $1 = PyString_Check($input) ? 1 : 0;
+  $1 = PyUnicode_Check($input) ? 1 : 0;
 }
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, noblock=1) SWIGTYPE * {
@@ -5034,8 +5036,8 @@ Here is an example,
 <pre>
 // Typemap for a C++ string
 %typemap(in) std::string {
-  if (PyString_Check($input)) {
-    $1 = std::string(PyString_AsString($input));
+  if (PyUnicode_Check($input)) {
+    $1 = std::string(PyUnicode_AsUTF8($input));
   } else {
     SWIG_exception(SWIG_TypeError, "string expected");
   }
