@@ -355,6 +355,26 @@ void emit_output_summary(Node *n, ParmList *parms) {
 }
 
 /* -----------------------------------------------------------------------------
+ * emit_isvoid_special_variables()
+ *
+ * Substitutes the $isvoid and $isvoidresult special variables in the wrapper code.
+ *
+ * $isvoid says whether the C++ return type is void. $isvoidresult says whether the
+ * wrapper has a return value for the 'argout' typemaps to append to, which a void
+ * return does not and neither does a return value that an 'out' typemap has
+ * suppressed with numoutputs=0.
+ *
+ * Pass n as 0 where there is no 'out' typemap to consult, such as a director
+ * method, and $isvoidresult is then the same as $isvoid.
+ * ----------------------------------------------------------------------------- */
+
+void emit_isvoid_special_variables(Node *n, String *code, bool isvoid) {
+  bool isvoidresult = isvoid || (n && checkAttribute(n, "tmap:out:numoutputs", "0"));
+  Replaceall(code, "$isvoidresult", isvoidresult ? "1" : "0");
+  Replaceall(code, "$isvoid", isvoid ? "1" : "0");
+}
+
+/* -----------------------------------------------------------------------------
  * emit_num_required()
  *
  * Computes the number of required arguments.  This function is safe for

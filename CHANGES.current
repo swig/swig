@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-16: wsfulton
+            [Lua] The $isvoid special variable is now expanded in director methods, so a
+            directorin, directorout or directorargout typemap can use it. It was
+            previously left as $isvoid in the generated C++ code, which did not compile.
+
+2026-08-16: wsfulton
             An invalid numinputs value in an in typemap is now an error. The value was
             previously parsed leniently, taking any leading digits and ignoring the rest,
             so numinputs="abc" was read as 0 and quietly dropped the parameter from the

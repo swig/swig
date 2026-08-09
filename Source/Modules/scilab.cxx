@@ -510,7 +510,7 @@ public:
 
     /* Final substitutions if applicable */
     bool isvoid = !Cmp(functionReturnType, "void");
-    Replaceall(wrapper->code, "$isvoid", isvoid ? "1" : "0");
+    emit_isvoid_special_variables(node, wrapper->code, isvoid);
 
     Replaceall(wrapper->code, "$symname", functionName);
 

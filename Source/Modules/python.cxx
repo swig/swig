@@ -3957,11 +3957,7 @@ public:
     Replaceall(f->code, "$cleanup", cleanup);
 
     bool isvoid = !Cmp(returntype, "void");
-    /* $isvoidresult is 1 when the wrapper has no return value of its own for the argout typemaps to
-       append to. That is normally a void return, but an out typemap can also declare numoutputs=0. */
-    bool isvoidresult = isvoid || checkAttribute(n, "tmap:out:numoutputs", "0");
-    Replaceall(f->code, "$isvoidresult", isvoidresult ? "1" : "0");
-    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+    emit_isvoid_special_variables(n, f->code, isvoid);
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
@@ -6714,8 +6710,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   /* emit the director method */
   if (status == SWIG_OK) {
-    Replaceall(w->code, "$isvoidresult", is_void ? "1" : "0");
-    Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
+    emit_isvoid_special_variables(0, w->code, is_void);
     if (!Getattr(n, "defaultargs")) {
       Replaceall(w->code, "$symname", symname);
       Wrapper_print(w, f_directors);

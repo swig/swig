@@ -1155,7 +1155,7 @@ public:
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
 
-    Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
+    emit_isvoid_special_variables(n, f->code, is_void_return);
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);
@@ -4730,7 +4730,7 @@ public:
       } else {
         Replaceall(w->code, "$null", "");
       }
-      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
+      emit_isvoid_special_variables(0, w->code, is_void);
       if (!GetFlag(n, "feature:ignore"))
         Printv(imclass_directors, callback_def, callback_code, NIL);
       if (!Getattr(n, "defaultargs")) {
