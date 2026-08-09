@@ -2611,13 +2611,14 @@ public:
     if (!root)
       root = Getattr(n, "parms");
 
-    /* Only functions with at least one argout parameter return anything other than the function return value. */
+    /* Only an argout typemap or an out typemap suppressing the function return value makes what
+       is returned differ from the function return type. */
     Parm *p;
     for (p = root; p; p = nextSibling(p)) {
       if (Getattr(p, "tmap:argout:match_type"))
         break;
     }
-    if (!p)
+    if (!p && !checkAttribute(n, "tmap:out:numoutputs", "0"))
       return NULL;
 
     List *types = NewList();

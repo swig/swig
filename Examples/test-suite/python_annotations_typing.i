@@ -538,6 +538,10 @@ MyErr argoutSuppressedCheckOnly(int code, short *OutCheck) {
   return code;
 }
 
+MyErr argoutSuppressedNoArgout(int code) {
+  return code;
+}
+
 void argoutMultiargReplace(short **short_list_replace, size_t *short_list_len) {
   *short_list_replace = NULL;
   *short_list_len = 0;

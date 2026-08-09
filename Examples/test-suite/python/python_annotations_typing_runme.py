@@ -407,6 +407,12 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutSuppressedCheckOnly(0), None)
 
+    # the return value is suppressed even when there is no argout typemap at all
+    anno = get_annotations(argoutSuppressedNoArgout)
+    if anno != {"code": "int", "return": "None"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutSuppressedNoArgout(0), None)
+
     # an overwriting multi-argument argout typemap - the case in issue #3469. The type the
     # typemap builds is the whole return type, it is not nested inside another list
     anno = get_annotations(argoutMultiargReplace)
