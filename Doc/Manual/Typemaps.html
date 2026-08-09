@@ -3116,6 +3116,63 @@ of Python. <a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when 
 </p>
 
 <p>
+On a typemap also using <tt>overwrite=1</tt> the attribute names the container the typemap
+assigns to <tt>$result</tt>, rather than one it appends into:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout, overwrite=1, container="tuple") short *OutTupleReplace {
+  Py_XDECREF($result);
+  $result = PyTuple_New(1);
+  PyTuple_SET_ITEM($result, 0, PyLong_FromLong(*$1));
+}
+</pre>
+</div>
+
+<p>
+Both kinds of typemap put two or more returned values in the container they name, so there is
+nothing to choose between them when a function returns several values:
+</p>
+
+<div class="code">
+<pre>
+void two_appended(short *OutTuple, short *OutTuple2);                 // -&gt; "typing.Tuple[int, int]"
+void assigned_then_appended(short *OutTupleReplace, short *OutTuple); // -&gt; "typing.Tuple[int, int]"
+</pre>
+</div>
+
+<p>
+They differ when the typemap supplies the only value a function returns. Appending combines a
+new value with whatever <tt>$result</tt> holds already, so with nothing there to combine with,
+a replacement for <tt>SWIG_AppendOutput</tt> conventionally makes <tt>$result</tt> that one
+value and does not build a container at all. This is what <tt>MyTupleAppend</tt> above does when
+<tt>$isvoidresult</tt> tells it there is no result yet. An overwriting typemap makes no such
+decision: its own code calls <tt>PyTuple_New</tt> every time it runs, so one value is in a
+tuple just as several would be:
+</p>
+
+<div class="code">
+<pre>
+void one_appended(short *OutTuple);        // -&gt; "int"
+void one_assigned(short *OutTupleReplace); // -&gt; "typing.Tuple[int]"
+</pre>
+</div>
+
+<p>
+So <tt>container</tt> on an appending typemap says what the typemap appends into when it has
+something to append to, and on an overwriting typemap it says what the typemap always builds.
+</p>
+
+<p>
+The default of <tt>"list"</tt> is for appending. Leaving the attribute off an overwriting
+typemap says something different: that the type of the value already describes everything the
+typemap assigns, and no further container wraps it. This is the usual case, as an overwriting
+typemap is normally described by a type for the object it assigns. A typemap assigning a list of
+integers is <tt>typing.List[int]</tt>, not a list holding that list.
+</p>
+
+<p>
 <b>Note:</b> These attributes are only needed for target languages that generate accurate type
 information for what a wrapped function returns, such as the Python
 <a href="Python.html#Python_annotations">PEP 484 annotations</a>. They do not change the

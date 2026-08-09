@@ -353,6 +353,23 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolTupleTwice(True), (True, 42, 43))
 
+    # an overwriting typemap builds its container itself, so a single value is in it too,
+    # unlike a container that is only appended into
+    anno = get_annotations(argoutVoidTupleReplaceOnly)
+    if anno != {"return": "typing.Tuple[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutVoidTupleReplaceOnly(), (41,))
+
+    anno = get_annotations(argoutBoolTupleReplaceOnly)
+    if anno != {"arg": "bool", "return": "typing.Tuple[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolTupleReplaceOnly(True), (41,))
+
+    anno = get_annotations(argoutBoolListReplaceOnly)
+    if anno != {"arg": "bool", "return": "typing.List[int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolListReplaceOnly(True), [41])
+
     # an overwriting typemap sets the container the argout typemaps after it append into
     anno = get_annotations(argoutBoolTupleReplaceThenAppend)
     if anno != {"arg": "bool", "return": "typing.Tuple[int, int]"}:

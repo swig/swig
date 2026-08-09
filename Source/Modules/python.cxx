@@ -2710,7 +2710,9 @@ public:
     int num_results = Len(types);
     if (num_results == 0)
       return NewString("None");
-    if (num_results == 1)
+
+    /* A single value is only in a container when an argout typemap builds one for it. */
+    if (num_results == 1 && !GetFlag(n, "wrap:outputcontainerbuilt"))
       return Copy(Getitem(types, 0));
 
     String *container = Getattr(n, "wrap:outputcontainer");
@@ -2723,6 +2725,9 @@ public:
     } else if (container && !Equal(container, "list")) {
       /* The argout typemaps disagree on the container, so the type of the values returned is unknown. */
       return NewString("typing.Any");
+    } else if (num_results == 1) {
+      ret = NewString("typing.List[");
+      close = "]";
     } else {
       /* SWIG_Python_AppendOutput builds a list, which is heterogeneous in practice. */
       ret = NewString("typing.List[typing.Union[");

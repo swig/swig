@@ -7370,6 +7370,13 @@ def replace_result(arg: "bool") -&gt; "str":
 </div>
 
 <p>
+The <tt>pytyping</tt> typemap describes the whole of what such a typemap assigns, so a typemap
+building a list of integers and annotated <tt>typing.List[int]</tt> is exactly that, rather than
+a list holding that list. Add <tt>container</tt> only when the typemap builds a container that
+the type does not already describe, as covered next.
+</p>
+
+<p>
 Use <tt>container="tuple"</tt> for a typemap appending into a tuple, using a replacement for
 <tt>SWIG_AppendOutput</tt>, so that multiple returned values are annotated as
 <tt>typing.Tuple[...]</tt> rather than <tt>typing.List[typing.Union[...]]</tt>:
@@ -7391,6 +7398,33 @@ void two_tuple_values(short *OutTuple, short *OutTuple2);
 <div class="targetlang">
 <pre>
 def two_tuple_values() -&gt; "typing.Tuple[int, int]":
+</pre>
+</div>
+
+<p>
+A single returned value is not put in a container, as an appending typemap has nothing to append
+it to, so a function using just one of these typemaps is annotated <tt>int</tt>. Combining
+<tt>container</tt> with <tt>overwrite=1</tt> says the typemap builds the container itself, and
+then a single value is in it as well:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) short *OutTupleReplace (short temp) { $1 = &amp;temp; }
+%typemap(argout, overwrite=1, container="tuple") short *OutTupleReplace {
+  Py_XDECREF($result);
+  $result = PyTuple_New(1);
+  PyTuple_SET_ITEM($result, 0, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutTupleReplace "int"
+
+void one_tuple_value(short *OutTupleReplace);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def one_tuple_value() -&gt; "typing.Tuple[int]":
 </pre>
 </div>
 

@@ -31,6 +31,8 @@ Version 4.6.0 (in progress)
             appends into when more than one value is returned. It defaults to "list",
             what SWIG_AppendOutput builds, and "tuple" is also supported for typemaps
             using a replacement for SWIG_AppendOutput that builds a fixed size sequence.
+            On a typemap also using overwrite=1 it names the container the typemap
+            assigns to $result, which holds a single value too.
 
             New warning 478 is issued when the argout typemaps matched for one function
             do not all build the same container, as they all append into the same

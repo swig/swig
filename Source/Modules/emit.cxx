@@ -281,6 +281,10 @@ int emit_num_arguments(ParmList *parms) {
  *                          the order the values are returned
  *   wrap:outputcontainer - the container the argout typemaps append into, from their
  *                          'container' attribute, or "unknown" when they disagree
+ *   wrap:outputcontainerbuilt
+ *                        - set when an overwriting argout typemap builds the container
+ *                          itself, so that a single value is in it too. A container
+ *                          that is only appended into holds a single value bare.
  * ----------------------------------------------------------------------------- */
 
 void emit_output_summary(Node *n, ParmList *parms) {
@@ -288,6 +292,7 @@ void emit_output_summary(Node *n, ParmList *parms) {
   List *outputs = NewList();
   String *container = 0;
   String *clashing_container = 0;
+  int container_built = 0;
   int returnsurvives;
 
   /* A void function has no return value to return and an 'out' typemap declaring
@@ -311,6 +316,7 @@ void emit_output_summary(Node *n, ParmList *parms) {
       returnsurvives = 0;
       Delete(container);
       container = numoutputs > 0 ? Copy(tm_container) : 0;
+      container_built = container ? 1 : 0;
       Delete(clashing_container);
       clashing_container = 0;
     } else if (numoutputs > 0) {
@@ -350,6 +356,12 @@ void emit_output_summary(Node *n, ParmList *parms) {
   } else {
     Delattr(n, "wrap:outputcontainer");
   }
+
+  if (container_built && !clashing_container)
+    SetFlag(n, "wrap:outputcontainerbuilt");
+  else
+    Delattr(n, "wrap:outputcontainerbuilt");
+
   Delete(container);
   Delete(clashing_container);
 }

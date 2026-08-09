@@ -211,6 +211,16 @@ SWIGINTERN PyObject *AppendOutput_Tuple(PyObject *result, PyObject *obj, int isv
 }
 %typemap(pytyping) short *OutTupleReplace "int"
 
+/* An overwriting argout typemap that builds a list holding the value it adds. The container
+   it names is what it assigns, so a single value is in the list too. */
+%typemap(in, numinputs=0) short *OutListReplace (short temp) { $1 = &temp; }
+%typemap(argout, overwrite=1, container="list") short *OutListReplace {
+  Py_XDECREF($result);
+  $result = PyList_New(1);
+  PyList_SetItem($result, 0, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutListReplace "int"
+
 %inline %{
 #include <cstddef>
 
@@ -476,6 +486,22 @@ void argoutVoidTupleTwice(short *OutTuple, short *OutTuple2) {
 bool argoutBoolTupleTwice(bool arg, short *OutTuple, short *OutTuple2) {
   *OutTuple = 42;
   *OutTuple2 = 43;
+  return arg;
+}
+
+void argoutVoidTupleReplaceOnly(short *OutTupleReplace) {
+  *OutTupleReplace = 41;
+}
+
+bool argoutBoolTupleReplaceOnly(bool arg, short *OutTupleReplace) {
+  (void)arg;
+  *OutTupleReplace = 41;
+  return arg;
+}
+
+bool argoutBoolListReplaceOnly(bool arg, short *OutListReplace) {
+  (void)arg;
+  *OutListReplace = 41;
   return arg;
 }
 
