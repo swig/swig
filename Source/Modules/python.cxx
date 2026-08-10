@@ -2685,8 +2685,12 @@ public:
       return composeOutputType(n, types);
 
     /* C annotations are all the argout parameter types concatenated with a comma. */
-    if (num_results == 0)
-      return NULL;
+    if (num_results == 0) {
+      /* An out typemap declaring numoutputs=0 leaves nothing at all to return, which is
+         described the way a void function is. Without one the function return value is
+         returned and the caller annotates its type. */
+      return checkAttribute(n, "tmap:out:numoutputs", "0") ? NewString("void") : NULL;
+    }
 
     String *ret = NewStringEmpty();
     for (int i = 0; i < num_results; i++) {
