@@ -181,6 +181,16 @@ String *get_raw_text_balanced(int startchar, int endchar) {
   return Scanner_get_raw_text_balanced(scan, startchar, endchar);
 }
 
+/* -----------------------------------------------------------------------------
+ * get_raw_text_to_semicolon()
+ *
+ * Returns the raw text up to, but not including, the semicolon ending the current declaration
+ * ----------------------------------------------------------------------------- */
+
+String *get_raw_text_to_semicolon(void) {
+  return Scanner_get_raw_text_to_semicolon(scan);
+}
+
 /* ----------------------------------------------------------------------------
  * void skip_decl(void)
  *

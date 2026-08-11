@@ -42,3 +42,6 @@ check_equal(succ_int(5), 6)
 # Trailing requires-clause on a non-template member of a class template.
 h = ConstrainedHolderInt(4)
 check_equal(h.cube(), 64)
+
+# Concept bodies that are ordinary expressions rather than concept-id chains.
+check_equal(pass_through_int(9), 9)

@@ -13,6 +13,25 @@
 
 #include "swig.h"
 #include "cparse.h"
+#include <ctype.h>
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_trim_whitespace()
+ *
+ * Removes any leading and trailing whitespace from the string 's', in place.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_cparse_trim_whitespace(String *s) {
+  const char *c;
+  int leading = 0;
+
+  Chop(s);
+  c = Char(s);
+  while (isspace((unsigned char)c[leading]))
+    leading++;
+  if (leading > 0)
+    Delslice(s, 0, leading);
+}
 
 /* -----------------------------------------------------------------------------
  * Swig_cparse_replace_descriptor()

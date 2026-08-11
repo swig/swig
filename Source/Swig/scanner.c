@@ -1666,6 +1666,66 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Scanner_get_raw_text_to_semicolon()
+ *
+ * Returns the raw text from the current position up to, but not including, the next ';' that is not nested inside
+ * '(...)', '[...]' or '{...}'.  Returns NULL if there is no such ';' in the text currently being scanned.
+ *
+ * The lookahead runs on a private scanner over a copy of the remaining text rather than on 's' itself.  Scanning 's'
+ * and seeking back would work only as long as the ';' is found: running to the end of the text being scanned pops it
+ * off the scanner's stack, leaving nothing to seek back to.  A private scanner also keeps the '<' '>' bracket
+ * counting used to split '>>' unaffected by the lookahead.
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_get_raw_text_to_semicolon(Scanner *s) {
+  String *result = NULL;
+  String *remaining;
+  Scanner *lookahead;
+  long position;
+  int num_levels = 0;
+
+  if (!s->str)
+    return NULL;
+
+  position = Tell(s->str);
+  remaining = NewStringWithSize(Char(s->str) + position, Len(s->str) - position);
+  Seek(remaining, 0, SEEK_SET);
+  Setfile(remaining, Getfile(s->str));
+  Setline(remaining, s->line);
+  lookahead = NewScanner();
+  Scanner_push(lookahead, remaining);
+
+  while (1) {
+    int tok = Scanner_token(lookahead);
+    if (tok <= 0) {
+      break;
+    } else if (tok == SWIG_TOKEN_LPAREN || tok == SWIG_TOKEN_LBRACKET || tok == SWIG_TOKEN_LBRACE) {
+      num_levels++;
+    } else if (tok == SWIG_TOKEN_LLBRACKET) {
+      num_levels += 2;
+    } else if (tok == SWIG_TOKEN_RPAREN || tok == SWIG_TOKEN_RBRACKET || tok == SWIG_TOKEN_RBRACE) {
+      if (--num_levels < 0)
+        break; /* A closing bracket at the outermost level - the declaration ended without a ';' */
+    } else if (tok == SWIG_TOKEN_RRBRACKET) {
+      num_levels -= 2;
+      if (num_levels < 0)
+        break;
+    } else if (tok == SWIG_TOKEN_SEMI && num_levels == 0) {
+      /* Tell() is positioned just after the ';', which is not wanted in the returned text. */
+      result = NewStringWithSize(Char(remaining), Tell(remaining) - 1);
+      Setfile(result, Getfile(remaining));
+      Setline(result, Getline(remaining));
+      break;
+    }
+  }
+
+  DelScanner(lookahead);
+  Delete(remaining);
+
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
  * Scanner_isoperator()
  *
  * Returns 0 or 1 depending on whether or not a token corresponds to a C/C++

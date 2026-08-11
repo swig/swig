@@ -321,6 +321,22 @@ example <tt>requires Numeric&lt;T&gt; &amp;&amp; SmallNumeric&lt;T&gt;</tt> or
 </p>
 
 <p>
+The body of a <tt>concept</tt> is not restricted to concept names: any
+expression is accepted, including a bare literal and one containing a
+top level comparison operator.
+</p>
+
+<div class="code">
+<pre>
+template&lt;typename T&gt;
+concept Anything = true;
+
+template&lt;typename T&gt;
+concept NonEmpty = sizeof(T) &gt; 0;
+</pre>
+</div>
+
+<p>
 A <tt>requires</tt>-expression itself - the new C++20 primary that lists
 a sequence of requirements in braces - can serve as the primary of a
 constraint, giving the "double <tt>requires</tt>" form

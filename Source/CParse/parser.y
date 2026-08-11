@@ -2133,7 +2133,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <autotype> auto_type_holder;
 %type <str>      ref_qualifier;
 %type <node>     requires_clause_opt;
-%type <node>     constraint constraint_or constraint_and constraint_primary;
+%type <node>     constraint concept_constraint constraint_or constraint_and constraint_primary;
 %type <node>     requires_expression requirement_body;
 %type <pl>       requirement_parameter_list_opt;
 %type <id>       type_qualifier_raw;
@@ -5144,12 +5144,37 @@ cpp_template_possible:  c_decl
    The wrapping cpp_template_decl rule converts the resulting node to a
    "template" node with templatetype "concept", and registers it in the symbol
    table.  The constraint subtree is stored in the "constraint" attribute.
+
+   A constraint-expression is any logical-or-expression, so it is not always a
+   chain of concept-ids, parenthesised primaries and requires-expressions, which
+   is all the constraint subgrammar models, e.g. "concept C = sizeof(T) > 0;".
+   The body text is therefore captured before parsing it, and kept as a single
+   opaque expression atom when the structural parse does not work out.
    ------------------------------------------------------------ */
-cpp_concept_decl : CONCEPT idcolon EQUAL constraint SEMI {
+cpp_concept_decl : CONCEPT idcolon EQUAL <str>{
+                  $$ = get_raw_text_to_semicolon();
+                }[body] concept_constraint SEMI {
                   $$ = new_node("concept");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "type", NewString("bool"));
-                  Setattr($$, "constraint", $constraint);
+                  if ($concept_constraint) {
+                    Setattr($$, "constraint", $concept_constraint);
+                  } else if ($body) {
+                    Node *atom = Constraint_new_atom("expression");
+                    Swig_cparse_trim_whitespace($body);
+                    Setattr(atom, "value", $body);
+                    Setattr($$, "constraint", atom);
+                    Delete(atom);
+                  }
+                  Delete($body);
+                }
+                ;
+
+concept_constraint : constraint
+                | error {
+                  /* Constraint-expression the constraint subgrammar cannot model - the concept
+                   * declaration rule above keeps the captured body text instead. */
+                  $$ = 0;
                 }
                 ;
 

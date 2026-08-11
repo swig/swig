@@ -36,6 +36,7 @@ extern void scanner_file(File *);
 extern void scanner_next_token(int);
 extern int skip_balanced(int startchar, int endchar);
 extern String *get_raw_text_balanced(int startchar, int endchar);
+extern String *get_raw_text_to_semicolon(void);
 extern void skip_decl(void);
 extern Node *parse_requirement_seq(String *body_text);
 extern void scanner_last_id(int);
@@ -56,6 +57,7 @@ extern void SWIG_cparse_set_compact_default_args(int defargs);
 extern int SWIG_cparse_template_reduce(int treduce);
 
 /* util.c */
+extern void Swig_cparse_trim_whitespace(String *s);
 extern void Swig_cparse_replace_descriptor(String *s);
 extern SwigType *Swig_cparse_smartptr(Node *n);
 extern Parm *Swig_cparse_parm(String *s);

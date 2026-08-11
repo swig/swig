@@ -27,6 +27,16 @@ Version 4.6.0 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2026-08-11: wsfulton
+            Fix syntax error parsing a C++20 concept whose body is an ordinary
+            expression rather than a chain of concept names:
+
+              template<typename T> concept Anything = true;
+              template<typename T> concept NonEmpty = sizeof(T) > 0;
+
+            Previously only a parenthesised expression was accepted, so the
+            equivalent '= (true)' worked while '= true' did not.
+
+2026-08-11: wsfulton
             Add support for the C++26 reason on a deleted function:
 
               void f() = delete("use g() instead");

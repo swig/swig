@@ -2,8 +2,9 @@
 
 // Additional C++20 concept and requires-clause forms beyond the core suite:
 // negation via parens, multi parameter requires-expression with mixed types,
-// fold-expression over a pack (variadic concept), type trait primary, and
-// deeper nesting of '&&' / '||' inside parens.
+// fold-expression over a pack (variadic concept), type trait primary, deeper
+// nesting of '&&' / '||' inside parens, and concept bodies that are ordinary
+// expressions.
 
 %inline %{
 #include <concepts>
@@ -102,6 +103,17 @@ struct ConstrainedHolder {
 //
 // template<typename T> requires Numeric<T> T pick(T x) { return x; }
 // template<typename T> requires Integer<T> T pick(T x) { return x + 1; }   // dropped, warning 302
+
+// A constraint-expression is any logical-or-expression, not only a chain of concept-ids: a bare
+// boolean literal and a comparison with a top level '>' are both concept bodies.
+template<typename T>
+concept Anything = true;
+
+template<typename T>
+concept NonEmpty = sizeof(T) > 0;
+
+template<typename T>
+T pass_through(T x) requires Anything<T> && NonEmpty<T> { return x; }
 %}
 
 %template(identity_non_numeric_tag) identity_non_numeric<Tag>;
@@ -115,3 +127,4 @@ struct ConstrainedHolder {
 %template(identity_default_double)  identity_default<double>;
 %template(succ_int)                 succ<int>;
 %template(ConstrainedHolderInt)     ConstrainedHolder<int>;
+%template(pass_through_int)         pass_through<int>;
