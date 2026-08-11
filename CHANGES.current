@@ -7,3 +7,30 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-11: wsfulton
+            Fix syntax error parsing a cv-qualified 'auto' placeholder. Both
+            orderings of the qualifier are now accepted everywhere a placeholder
+            is allowed - function return types, variables, function parameters and
+            lambdas - including with a C++20 type-constraint:
+
+              const auto& cref();
+              auto const& cref2();
+              const Numeric auto& cref3();
+              static const auto cz = 2;
+              const auto lambda = [](int x) { return x; };
+              int fn(auto const& x);
+
+            Only the 'const auto& x' ordering on a function parameter was accepted
+            before, and only without a qualifier anywhere else.
+
+            For a variable the qualifier is kept on the deduced type, so 'cz' above
+            wraps as a read only int. For a function SWIG still cannot deduce the
+            return type, so it is ignored after issuing warning 345; use %ignore
+            plus a declaration with an explicit return type to wrap it.
+
+            A trailing return type requires the placeholder on its own, so a
+            qualifier combined with one is now reported as an error rather than
+            being accepted:
+
+              const auto& fn(int x) -> int;   // Error, not valid C++
+

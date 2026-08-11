@@ -1,10 +1,8 @@
 from cpp14_auto_return_type import *
+from swig_test_utils import swig_check
 
-sc = va_static_cast()
-if sc != 42:
-    raise RuntimeError("va_static_cast fail {}".format(sc))
+swig_check(va_static_cast(), 42)
 
 x = X()
-a = x.a()
-if a != "a string":
-    raise RuntimeError("x.a fail {}".format(a))
+swig_check(x.a(), "a string")
+swig_check(x.cref(), 42)

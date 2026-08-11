@@ -16,6 +16,9 @@ assert(swig_type(v.one) == "number")
 v.zero = 42
 assert(v.zero == 42)
 
+assert(v.cz == 2)
+assert(v.zc == 3)
+
 assert(v.fa == 1)
 assert(v.da == 1)
 assert(swig_type(v.la) == "long double *") -- swig do not support long double

@@ -6,3 +6,6 @@ assert(sc == 42, "va_static_cast")
 local x = v.X()
 local a = x:a()
 assert(a == "a string", "x.a")
+
+local c = x:cref()
+assert(c == 42, "x.cref")

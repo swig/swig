@@ -501,6 +501,34 @@ static int classify_template_param_type(const SwigType *type) {
   return verdict;
 }
 
+/* Build the SwigType for the 'auto' placeholder matched by the 'auto_type_holder' rule.  'conceptid' is the C++20
+ * type-constraint concept-id and 'qualifier' the cv-qualifier, either of which may be 0, giving 'auto' for a plain
+ * 'auto', 'q(const).auto' for 'const auto' and 'q(const).auto.c(Numeric)' for 'const Numeric auto'. */
+static SwigType *auto_type_holder_type(String *qualifier, String *conceptid) {
+  SwigType *t = SwigType_new_auto(conceptid);
+  if (qualifier)
+    SwigType_push(t, qualifier);
+  return t;
+}
+
+/* Attach a C++20 type-constraint to node 'n' as a 'concept-id' atom on the 'constraint' attribute, for downstream
+ * inspection.  Does nothing when the placeholder was unconstrained. */
+static void set_concept_constraint(Node *n, String *conceptid) {
+  if (conceptid) {
+    Node *atom = Constraint_new_atom("concept-id");
+    Setattr(atom, "type", conceptid);
+    Setattr(n, "constraint", atom);
+  }
+}
+
+/* Set the undeduced 'auto' placeholder as the type of node 'n', together with any type-constraint it carries. */
+static void set_auto_type(Node *n, String *qualifier, String *conceptid) {
+  SwigType *t = auto_type_holder_type(qualifier, conceptid);
+  Setattr(n, "type", t);
+  Delete(t);
+  set_concept_constraint(n, conceptid);
+}
+
 /* If the cdecl 'n' has any parameter whose type is 'auto' or 'Concept auto' (a C++20 abbreviated function template) replace
  * each such parm with an invented type template parameter (named '__dummy_auto_<N>__') and convert 'n' to a template node
  * carrying those typenames as templateparms.  When a concept type-constraint is present, attach it as a 'constraint' attribute
@@ -817,6 +845,7 @@ static void add_symbols(Node *n) {
 
     if (cparse_cplusplus) {
       String *value = Getattr(n, "value");
+      SwigType *auto_type = Getattr(n, "type");
       if (value && Strcmp(value, "delete") == 0) {
 	/* C++11 deleted definition / deleted function */
         SetFlag(n,"deleted");
@@ -833,7 +862,9 @@ static void add_symbols(Node *n) {
 	  SetFlag(n, "feature:ignore");
 	}
       }
-      if (Equal(Getattr(n, "type"), "auto")) {
+      /* SwigType_isauto() splits the type, so pre-filter on the substring to keep add_symbols cheap.  It matches the
+       * cv-qualified placeholders too, such as the 'q(const).auto' produced for a 'const auto&' return type. */
+      if (auto_type && Strstr(auto_type, "auto") && SwigType_isauto(auto_type)) {
 	/* Ignore functions with an auto return type and no trailing return type
 	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
 	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
@@ -1969,6 +2000,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String     *type;
     String     *us;
   } ptype;
+  struct {
+    /* An 'auto' placeholder, optionally cv-qualified and type-constrained, e.g. 'const Numeric auto'. */
+    String     *qualifier;
+    String     *conceptid;
+  } autotype;
   SwigType     *type;
   String       *str;
   Parm         *p;
@@ -2093,6 +2129,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
+%type <autotype> auto_type_holder;
 %type <str>      ref_qualifier;
 %type <node>     requires_clause_opt;
 %type <node>     constraint constraint_or constraint_and constraint_primary;
@@ -3746,13 +3783,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
-           /* C++20 abbreviated function template with a constrained auto return type
-            * combined with an explicit trailing return type, e.g.
+           /* Alternate function syntax introduced in C++11, with the C++20 constrained placeholder allowed too:
+            *   auto funcName(int x, int y) -> int;
             *   Numeric auto fn(int x) -> int { return x; }
             * The trailing return type is what SWIG wraps; the concept-id is captured as a
-            * 'concept-id' atom on the 'constraint' attribute for downstream inspection. */
-           | storage_class idcolon AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
-              Node *atom;
+            * 'concept-id' atom on the 'constraint' attribute for downstream inspection.  A cv-qualifier on the
+            * placeholder is not valid C++ here, the declared type has to be the placeholder on its own. */
+           | storage_class auto_type_holder declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
@@ -3765,9 +3802,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throw",$cpp_const.throwf);
 	      Setattr($$,"noexcept",$cpp_const.nexcept);
 	      Setattr($$,"final",$cpp_const.final);
-	      atom = Constraint_new_atom("concept-id");
-	      Setattr(atom, "type", $idcolon);
-	      Setattr($$, "constraint", atom);
+              set_concept_constraint($$, $auto_type_holder.conceptid);
+              if ($auto_type_holder.qualifier)
+                Swig_error(cparse_file, cparse_line, "Function %s with a trailing return type cannot have a qualifier on 'auto'.\n", Swig_name_decl($$));
 	      if (!$c_decl_tail) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -3800,68 +3837,6 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		  }
 		  Delete(p);
 		} else if (Strncmp($declarator.id, "::", 2) == 0) {
-		  Delete($$);
-		  $$ = $c_decl_tail;
-		}
-	      } else {
-		set_nextSibling($$, $c_decl_tail);
-	      }
-
-	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
-		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
-              /* Promote any 'auto' / 'Concept auto' parm to an invented type template parameter. */
-              if ($$) promote_abbreviated_template($$);
-	      Delete($storage_class);
-           }
-           /* Alternate function syntax introduced in C++11:
-              auto funcName(int x, int y) -> int; */
-           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
-              $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
-	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
-	      Setattr($$,"type",$cpp_alternate_rettype);
-	      Setattr($$,"storage",$storage_class);
-	      Setattr($$,"name",$declarator.id);
-	      Setattr($$,"decl",$declarator.type);
-	      Setattr($$,"parms",$declarator.parms);
-	      Setattr($$,"throws",$cpp_const.throws);
-	      Setattr($$,"throw",$cpp_const.throwf);
-	      Setattr($$,"noexcept",$cpp_const.nexcept);
-	      Setattr($$,"final",$cpp_const.final);
-	      if (!$c_decl_tail) {
-		if (Len(scanner_ccode)) {
-		  String *code = Copy(scanner_ccode);
-		  Setattr($$,"code",code);
-		  Delete(code);
-		}
-	      } else {
-		Node *n = $c_decl_tail;
-		while (n) {
-		  String *type = Copy($cpp_alternate_rettype);
-		  Setattr(n,"type",type);
-		  Setattr(n,"storage",$storage_class);
-		  n = nextSibling(n);
-		  Delete(type);
-		}
-	      }
-
-	      if ($declarator.id) {
-		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
-		String *p = Swig_scopename_prefix($declarator.id);
-		if (p) {
-		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($declarator.id);
-		    Setattr($$,"name",lstr);
-		    Delete(lstr);
-		    set_nextSibling($$, $c_decl_tail);
-		  } else {
-		    Delete($$);
-		    $$ = $c_decl_tail;
-		  }
-		  Delete(p);
-		} else if (Strncmp($declarator.id, "::", 2) == 0) {
-		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = $c_decl_tail;
 		}
@@ -3882,13 +3857,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * with an explicit return type in the interface file for SWIG
             * to wrap.
             */
-	   | storage_class AUTO declarator cpp_const LBRACE {
+           | storage_class auto_type_holder declarator cpp_const LBRACE {
 	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
-	      Setattr($$, "type", NewString("auto"));
+              set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      Setattr($$, "storage", $storage_class);
 	      Setattr($$, "name", $declarator.id);
 	      Setattr($$, "decl", $declarator.type);
@@ -3914,54 +3889,6 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		  Delete(p);
 		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  /* global scope declaration/definition ignored */
-		  Delete($$);
-		  $$ = 0;
-		}
-	      }
-
-	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
-		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
-	      Delete($storage_class);
-	   }
-	   /* C++20 abbreviated function template with a constrained auto return type,
-	    * e.g. 'Numeric auto fn(int x) { return x; }'.  Parses identically to the plain
-	    * 'auto' return form above and inherits the same warn and ignore behaviour when
-	    * SWIG cannot deduce the return type; the concept-id is preserved on the
-	    * 'constraint' attribute as a 'concept-id' atom for downstream inspection. */
-	   | storage_class idcolon AUTO declarator cpp_const LBRACE {
-	      Node *atom;
-	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-
-              $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
-	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
-	      Setattr($$, "type", NewString("auto"));
-	      Setattr($$, "storage", $storage_class);
-	      Setattr($$, "name", $declarator.id);
-	      Setattr($$, "decl", $declarator.type);
-	      Setattr($$, "parms", $declarator.parms);
-	      Setattr($$, "throws", $cpp_const.throws);
-	      Setattr($$, "throw", $cpp_const.throwf);
-	      Setattr($$, "noexcept", $cpp_const.nexcept);
-	      Setattr($$, "final", $cpp_const.final);
-	      atom = Constraint_new_atom("concept-id");
-	      Setattr(atom, "type", $idcolon);
-	      Setattr($$, "constraint", atom);
-
-	      if ($declarator.id) {
-		String *p = Swig_scopename_prefix($declarator.id);
-		if (p) {
-		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($declarator.id);
-		    Setattr($$, "name", lstr);
-		    Delete(lstr);
-		  } else {
-		    Delete($$);
-		    $$ = 0;
-		  }
-		  Delete(p);
-		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  Delete($$);
 		  $$ = 0;
 		}
@@ -3975,11 +3902,11 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   // definition.  A C++ compiler will deduce the return type when it
 	   // sees the corresponding definition, but SWIG may never see that
 	   // definition.
-	   | storage_class AUTO declarator cpp_const SEMI {
+           | storage_class auto_type_holder declarator cpp_const SEMI {
 	      $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
-	      Setattr($$, "type", NewString("auto"));
+              set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      Setattr($$, "storage", $storage_class);
 	      Setattr($$, "name", $declarator.id);
 	      Setattr($$, "decl", $declarator.type);
@@ -4014,55 +3941,19 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
-	   /* C++20 abbreviated function template with a constrained auto return type,
-	    * declaration form, e.g. 'Numeric auto fn(int x);'.  Inherits the same warn and ignore
-	    * behaviour as the plain 'auto fn(...)' declaration above. */
-	   | storage_class idcolon AUTO declarator cpp_const SEMI {
-	      Node *atom;
-	      $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
-	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
-	      Setattr($$, "type", NewString("auto"));
-	      Setattr($$, "storage", $storage_class);
-	      Setattr($$, "name", $declarator.id);
-	      Setattr($$, "decl", $declarator.type);
-	      Setattr($$, "parms", $declarator.parms);
-	      Setattr($$, "throws", $cpp_const.throws);
-	      Setattr($$, "throw", $cpp_const.throwf);
-	      Setattr($$, "noexcept", $cpp_const.nexcept);
-	      Setattr($$, "final", $cpp_const.final);
-	      atom = Constraint_new_atom("concept-id");
-	      Setattr(atom, "type", $idcolon);
-	      Setattr($$, "constraint", atom);
-
-	      if ($declarator.id) {
-		String *p = Swig_scopename_prefix($declarator.id);
-		if (p) {
-		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($declarator.id);
-		    Setattr($$, "name", lstr);
-		    Delete(lstr);
-		  } else {
-		    Delete($$);
-		    $$ = 0;
-		  }
-		  Delete(p);
-		} else if (Strncmp($declarator.id, "::", 2) == 0) {
-		  Delete($$);
-		  $$ = 0;
-		}
+           /* C++11 auto variable declaration.  Any cv-qualifier on the placeholder is kept on the deduced
+              type, so 'const auto x = 42;' has type 'q(const).int'. */
+           | storage_class auto_type_holder idcolon EQUAL definetype SEMI {
+              /* deduce_type() may return a type borrowed from another node, so copy it before qualifying it. */
+              SwigType *deduced = deduce_type(&$definetype);
+              SwigType *type;
+              if (deduced) {
+                type = Copy(deduced);
+                if ($auto_type_holder.qualifier)
+                  SwigType_push(type, $auto_type_holder.qualifier);
+              } else {
+                type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      }
-
-	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
-		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
-	      Delete($storage_class);
-	   }
-	   /* C++11 auto variable declaration. */
-	   | storage_class AUTO idcolon EQUAL definetype SEMI {
-	      SwigType *type = deduce_type(&$definetype);
-	      if (!type)
-		type = NewString("auto");
 	      $$ = new_node("cdecl");
 	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
@@ -4076,8 +3967,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Delete(type);
 	   }
 	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
-	   | storage_class AUTO idcolon EQUAL error SEMI {
-	      SwigType *type = NewString("auto");
+           | storage_class auto_type_holder idcolon EQUAL error SEMI {
+              SwigType *type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      $$ = new_node("cdecl");
 	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
@@ -4144,6 +4035,37 @@ initializer   : def_args
 	      }
               ;
 
+/* Every spelling of the 'auto' placeholder: plain, cv-qualified in either order, and with a C++20 type-constraint,
+   e.g. 'auto', 'const auto', 'auto const', 'Numeric auto', 'const Numeric auto', 'Numeric auto const'.  AUTO is
+   deliberately not an alternative of type_right as it would collide with the declarator that follows the placeholder,
+   so the placeholder gets a rule of its own which every use site shares.  The cv-qualifier orderings are equivalent
+   and produce the same type. */
+auto_type_holder : AUTO {
+                   $$.qualifier = 0;
+                   $$.conceptid = 0;
+                 }
+                 | type_qualifier AUTO {
+                   $$.qualifier = $type_qualifier;
+                   $$.conceptid = 0;
+                 }
+                 | AUTO type_qualifier {
+                   $$.qualifier = $type_qualifier;
+                   $$.conceptid = 0;
+                 }
+                 | idcolon AUTO {
+                   $$.qualifier = 0;
+                   $$.conceptid = $idcolon;
+                 }
+                 | type_qualifier idcolon AUTO {
+                   $$.qualifier = $type_qualifier;
+                   $$.conceptid = $idcolon;
+                 }
+                 | idcolon AUTO type_qualifier {
+                   $$.qualifier = $type_qualifier;
+                   $$.conceptid = $idcolon;
+                 }
+                 ;
+
 cpp_alternate_rettype : primitive_type
               | TYPE_BOOL
               | TYPE_VOID
@@ -4181,19 +4103,19 @@ cpp_alternate_rettype : primitive_type
    auto myFunc = [](int x, int y) throw() -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class auto_type_holder idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$idcolon);
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$idcolon);
 		  Delete($storage_class);
 		  add_symbols($$);
 		}
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder idcolon EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$idcolon);
 		  Delete($storage_class);
@@ -6096,57 +6018,10 @@ parm_no_dox	: rawtype parameter_declarator {
 		   if ($parameter_declarator.numdefarg)
 		     Setattr($$, "numval", $parameter_declarator.numdefarg);
 		}
-                | AUTO parameter_declarator {
-                   /* C++14 generic lambda / C++20 abbreviated function template parm, e.g. 'auto x'.  Placed in parm_no_dox
-                    * rather than type_right so it does not collide with the 'storage_class AUTO declarator ...' rules. */
-                   SwigType *t = NewString("auto");
-                   SwigType_push(t, $parameter_declarator.type);
-                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
-                   Setfile($$, cparse_file);
-                   Setline($$, cparse_line);
-                   if ($parameter_declarator.defarg)
-                     Setattr($$, "value", $parameter_declarator.defarg);
-                   if ($parameter_declarator.stringdefarg)
-                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
-                   if ($parameter_declarator.numdefarg)
-                     Setattr($$, "numval", $parameter_declarator.numdefarg);
-                }
-                | idcolon AUTO parameter_declarator {
-                   /* C++20 abbreviated function template with concept type-constraint, e.g. 'Numeric auto x'. */
-                   SwigType *t = NewStringf("c(%s)", $idcolon);
-                   SwigType_push(t, "auto.");
-                   SwigType_push(t, $parameter_declarator.type);
-                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
-                   Setfile($$, cparse_file);
-                   Setline($$, cparse_line);
-                   if ($parameter_declarator.defarg)
-                     Setattr($$, "value", $parameter_declarator.defarg);
-                   if ($parameter_declarator.stringdefarg)
-                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
-                   if ($parameter_declarator.numdefarg)
-                     Setattr($$, "numval", $parameter_declarator.numdefarg);
-                }
-                | type_qualifier AUTO parameter_declarator {
-                   /* C++20 abbreviated function template with a CV-qualifier on the auto placeholder, e.g.
-                    * 'const auto x', 'const auto& x', 'volatile auto* x'. */
-                   SwigType *t = NewString("auto");
-                   SwigType_push(t, $type_qualifier);
-                   SwigType_push(t, $parameter_declarator.type);
-                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
-                   Setfile($$, cparse_file);
-                   Setline($$, cparse_line);
-                   if ($parameter_declarator.defarg)
-                     Setattr($$, "value", $parameter_declarator.defarg);
-                   if ($parameter_declarator.stringdefarg)
-                     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
-                   if ($parameter_declarator.numdefarg)
-                     Setattr($$, "numval", $parameter_declarator.numdefarg);
-                }
-                | type_qualifier idcolon AUTO parameter_declarator {
-                   /* C++20 abbreviated function template with a CV-qualified type-constraint, e.g. 'const Numeric auto& x'. */
-                   SwigType *t = NewStringf("c(%s)", $idcolon);
-                   SwigType_push(t, "auto.");
-                   SwigType_push(t, $type_qualifier);
+                | auto_type_holder parameter_declarator {
+                   /* C++14 generic lambda parm or C++20 abbreviated function template parm, in any of the placeholder
+                    * spellings, e.g. 'auto x', 'const auto& x', 'auto const& x', 'Numeric auto x', 'const Numeric auto& x'. */
+                   SwigType *t = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
                    SwigType_push(t, $parameter_declarator.type);
                    $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
                    Setfile($$, cparse_file);

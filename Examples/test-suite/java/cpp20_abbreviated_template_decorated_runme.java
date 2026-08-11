@@ -39,5 +39,13 @@ public class cpp20_abbreviated_template_decorated_runme {
     // o. Decorated auto mixed with explicit head.  T=std::string, auto=int.
     if (!cpp20_abbreviated_template_decorated.o_dec_si("box", 9).equals("box:9"))
       throw new RuntimeException("o_dec_si");
+
+    // p. auto const&
+    if (cpp20_abbreviated_template_decorated.p_dec_i(17) != 17)
+      throw new RuntimeException("p_dec_i");
+
+    // q. Numeric auto const&
+    if (cpp20_abbreviated_template_decorated.q_dec_i(18) != 18)
+      throw new RuntimeException("q_dec_i");
   }
 }

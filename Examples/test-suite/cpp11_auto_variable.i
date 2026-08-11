@@ -10,6 +10,10 @@ static constexpr auto f = false;
 static auto zero = 0;
 static constexpr auto one = 1;
 
+// Cv-qualified auto, either ordering.
+static const auto cz = 2;
+static auto const zc = 3;
+
 static auto la = 1.0L;
 static auto da = 1.0;
 static auto fa = 1.0f;
@@ -39,17 +43,19 @@ static constexpr auto NOEXCEPT_FUNC = noexcept(func);
 %ignore Bad2;
 %warnfilter(SWIGWARN_CPP11_AUTO) Bad3;
 %warnfilter(SWIGWARN_CPP11_AUTO) Bad4;
+%warnfilter(SWIGWARN_CPP11_AUTO) Bad5;
 
 %inline %{
 static auto Bad1 = &t;
 static constexpr auto Bad2 = &f;
 static auto Bad3 = &zero;
 static constexpr auto Bad4 = &one;
+static const auto Bad5 = &zero;
 %}
 %{
 // Wunused-variable warning suppression
 bool warning_suppression() {
-  return Bad1 || Bad3;
+  return Bad1 || Bad3 || *Bad5 != 0;
 }
 %}
 
