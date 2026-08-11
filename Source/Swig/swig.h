@@ -125,6 +125,8 @@ extern SwigType *SwigType_add_rvalue_reference(SwigType *t);
 extern SwigType *SwigType_del_rvalue_reference(SwigType *t);
 extern SwigType *SwigType_add_variadic(SwigType *t);
 extern SwigType *SwigType_del_variadic(SwigType *t);
+extern SwigType *SwigType_new_auto(const_String_or_char_ptr conceptid);
+extern SwigType *SwigType_add_auto(SwigType *t);
 extern SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual);
 extern SwigType *SwigType_del_qualifier(SwigType *t);
 extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);

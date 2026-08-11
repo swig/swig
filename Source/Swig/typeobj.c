@@ -1254,6 +1254,59 @@ int SwigType_istemplate(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ *                              Auto placeholders
+ *
+ * SwigType_new_auto()
+ * SwigType_add_auto()
+ * SwigType_isauto()
+ * SwigType_isconcept()
+ *
+ * Utility functions:
+ *
+ * SwigType_concept_name()      - Return the concept-id constraining the placeholder
+ * SwigType_replace_auto_base() - Replace the placeholder with a deduced type
+ *
+ * The C++11 'auto' placeholder is stored as the base element 'auto'.  A C++20
+ * constrained placeholder, such as 'Numeric auto', stores the concept-id as the
+ * base element 'c(Numeric)' with 'auto.' pushed on top, giving 'auto.c(Numeric)'.
+ * Either form carries the usual decoration, so 'const Numeric auto&' is stored
+ * as 'r.q(const).auto.c(Numeric)'.  SwigType_isauto() therefore looks for the
+ * placeholder anywhere in the element list, not just at the base.
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_new_auto()
+ *
+ * Creates the SwigType for a C++ 'auto' placeholder.  Unconstrained when
+ * conceptid is NULL, giving the base element 'auto'.  Otherwise the C++20
+ * constrained form, where the concept-id is the base element 'c(<id>)' with
+ * 'auto.' pushed on top, e.g. 'auto.c(Numeric)' for 'Numeric auto'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_new_auto(const_String_or_char_ptr conceptid) {
+  SwigType *t;
+  if (conceptid) {
+    t = NewStringf("c(%s)", conceptid);
+    SwigType_add_auto(t);
+  } else {
+    t = NewString("auto");
+  }
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_add_auto()
+ *
+ * Adds the 'auto.' element that marks the base of t as the type-constraint of
+ * a C++20 constrained 'auto' placeholder.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_add_auto(SwigType *t) {
+  Insert(t, 0, "auto.");
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_isauto()
  *
  * Tests whether t involves the C++ 'auto' placeholder.  Recognises both the
