@@ -2167,27 +2167,111 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 static const struct Decl default_decl;
 static const struct Define default_dtype;
 
-/* C++ decltype/auto type deduction. */
-static SwigType *deduce_type(const struct Define *dtype) {
-  Node *n;
-  if (!dtype->val) return NULL;
-  n = Swig_symbol_clookup(dtype->val, 0);
-  if (n) {
-    if (Strcmp(nodeType(n),"enumitem") == 0) {
-      /* For an enumitem, the "type" attribute gives us the underlying integer
-       * type - we want the "type" attribute from the enum itself, which is
-       * "parentNode".
-       */
-      n = Getattr(n, "parentNode");
-    }
-    return Getattr(n, "type");
-  } else if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
-    /* Try to deduce the type from the T_* type code. */
-    String *deduced_type = NewSwigType(dtype->type);
-    if (Len(deduced_type) > 0) return deduced_type;
-    Delete(deduced_type);
+/* Look 'name' up in the symbol table and return a copy of the type it was declared with, with its declarator
+   applied, so that the 'pg' of 'int *pg;' gives 'p.int' and not just the 'int' held in the "type" attribute.
+   Returns 0 when the name is not in scope. */
+static SwigType *symbol_full_type(String *name) {
+  Node *n = Swig_symbol_clookup(name, 0);
+  SwigType *type;
+  SwigType *decl;
+  String *storage;
+  if (!n)
+    return 0;
+  if (Equal(nodeType(n), "enumitem")) {
+    /* For an enumitem, the "type" attribute gives us the underlying integer type - we want the "type"
+     * attribute from the enum itself, which is "parentNode". */
+    n = Getattr(n, "parentNode");
   }
-  return NULL;
+  type = Getattr(n, "type");
+  if (!type)
+    return 0;
+  type = Copy(type);
+  decl = Getattr(n, "decl");
+  if (decl)
+    SwigType_push(type, decl);
+  storage = Getattr(n, "storage");
+  if (storage && Strstr(storage, "constexpr") && !SwigType_isconst(type)) {
+    /* A 'constexpr' object is const, but SWIG keeps constexpr in the "storage" attribute rather than in the
+     * type, so add the qualifier that taking the address of the object has to see. */
+    SwigType_add_qualifier(type, "const");
+  }
+  return type;
+}
+
+/* C++ decltype/auto type deduction.  Returns a new type, or 0 when the expression is not one a type can be
+   deduced from. */
+static SwigType *deduce_type(const struct Define *dtype) {
+  SwigType *deduced;
+  if (!dtype->val)
+    return 0;
+  deduced = symbol_full_type(dtype->val);
+  if (deduced) {
+    /* The name of a function is not something a variable or a decltype can be deduced from. */
+    if (!SwigType_isfunction(deduced))
+      return deduced;
+    Delete(deduced);
+  } else if (Len(dtype->val) > 1 && *Char(dtype->val) == '&') {
+    /* The address of something in scope, such as the '&g' in 'auto p = &g;', is a pointer to the type of that
+     * something.  The unary '&' rule spells the value '&' followed by its operand.  The operand may be a
+     * function here, giving a function pointer. */
+    String *operand = NewString(Char(dtype->val) + 1);
+    deduced = symbol_full_type(operand);
+    Delete(operand);
+    if (deduced) {
+      SwigType_add_pointer(deduced);
+      return deduced;
+    }
+  }
+  if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
+    /* Try to deduce the type from the T_* type code. */
+    deduced = NewSwigType(dtype->type);
+    if (Len(deduced) > 0)
+      return deduced;
+    Delete(deduced);
+  }
+  return 0;
+}
+
+/* Deduce the type the 'auto' placeholder stands for in a variable declaration, given 'initialiser_type', the type
+   deduced from the initialiser, and 'decl', the declarator the placeholder carries.  The declarator decoration is
+   not part of the placeholder: for 'auto* p = pg;' with 'pg' declared 'int *', the placeholder stands for 'int'
+   and the 'p.' belongs to the declarator, so the decoration is matched against the initialiser type and removed.
+   A reference declarator binds to the initialiser rather than being deduced from it, so the 'auto&' of
+   'auto& r = g;' with 'g' an 'int' leaves 'int' too.  Returns 0 when the declarator does not match the
+   initialiser type, which is not valid C++ anyway. */
+static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *decl) {
+  SwigType *placeholder = Copy(initialiser_type);
+  SwigType *remaining = Copy(decl);
+  int matched = 1;
+
+  if (SwigType_isreference(remaining) || SwigType_isrvalue_reference(remaining)) {
+    Delete(SwigType_pop(remaining));
+  } else {
+    /* Deduction drops the top level cv-qualifiers of the initialiser unless the variable is a reference, so
+     * 'auto x = cg;' with 'cg' declared 'const int' deduces 'int' while 'auto& r = cg;' deduces 'const int'. */
+    while (SwigType_isqualifier(placeholder))
+      Delete(SwigType_pop(placeholder));
+  }
+
+  while (matched && Len(remaining) > 0) {
+    SwigType *op = SwigType_pop(remaining);
+    /* A cv-qualifier in the declarator, as in the 'auto* const' of 'auto* const p = pg;', qualifies the variable
+     * rather than the placeholder, so there is nothing in the initialiser type to match it against. */
+    if (!SwigType_isqualifier(op)) {
+      SwigType *initialiser_op = SwigType_pop(placeholder);
+      if (!initialiser_op || !Equal(op, initialiser_op))
+        matched = 0;
+      Delete(initialiser_op);
+    }
+    Delete(op);
+  }
+
+  Delete(remaining);
+  if (!matched || Len(placeholder) == 0) {
+    Delete(placeholder);
+    placeholder = 0;
+  }
+  return placeholder;
 }
 
 // Append scanner_ccode to expr.  Some cleaning up of the code may be done.
@@ -3947,12 +4031,14 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               placeholder itself is kept on the deduced type, so 'const auto x = 42;' has type 'q(const).int'. */
            | storage_class auto_type_holder declarator EQUAL definetype SEMI {
               /* A function declarator makes the placeholder a deduced return type rather than a variable type,
-               * as in 'auto f() = delete;', and there is then nothing to deduce it from.
-               * deduce_type() may return a type borrowed from another node, so copy it before qualifying it. */
-              SwigType *deduced = SwigType_isfunction($declarator.type) ? 0 : deduce_type(&$definetype);
-              SwigType *type;
-              if (deduced) {
-                type = Copy(deduced);
+               * as in 'auto f() = delete;', and there is then nothing to deduce it from. */
+              SwigType *initialiser_type = SwigType_isfunction($declarator.type) ? 0 : deduce_type(&$definetype);
+              SwigType *type = 0;
+              if (initialiser_type) {
+                type = deduce_auto_placeholder(initialiser_type, $declarator.type);
+                Delete(initialiser_type);
+              }
+              if (type) {
                 if ($auto_type_holder.qualifier)
                   SwigType_push(type, $auto_type_holder.qualifier);
               } else {

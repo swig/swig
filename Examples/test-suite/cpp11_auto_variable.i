@@ -37,25 +37,32 @@ static constexpr auto NOEXCEPT_FUNC = noexcept(func);
 
 %}
 
-// SWIG currently can't deduce the type for examples below.
-// Test two approaches to suppressing the warning.
-%ignore Bad1;
-%ignore Bad2;
-%warnfilter(SWIGWARN_CPP11_AUTO) Bad3;
-%warnfilter(SWIGWARN_CPP11_AUTO) Bad4;
-%warnfilter(SWIGWARN_CPP11_AUTO) Bad5;
+// The address of a variable in scope deduces to a pointer to that variable's type.  A setter for a
+// pointer variable is not what is under test here, so they are read only.
+%immutable ptr_t;
+%immutable ptr_zero;
 
 %inline %{
-static auto Bad1 = &t;
-static constexpr auto Bad2 = &f;
-static auto Bad3 = &zero;
-static constexpr auto Bad4 = &one;
-static const auto Bad5 = &zero;
+static auto ptr_t = &t;                    // bool *
+static constexpr auto ptr_f = &f;          // const bool *
+static auto ptr_zero = &zero;              // int *
+static constexpr auto ptr_one = &one;      // const int *
+static const auto const_ptr_zero = &zero;  // int *const
+%}
+
+// SWIG can't deduce the type from a function call.
+// Test two approaches to suppressing the warning.
+%ignore Bad1;
+%warnfilter(SWIGWARN_CPP11_AUTO) Bad2;
+
+%inline %{
+static auto Bad1 = func();
+static auto Bad2 = func();
 %}
 %{
 // Wunused-variable warning suppression
 bool warning_suppression() {
-  return Bad1 || Bad3 || *Bad5 != 0;
+  return Bad1 != 0 || Bad2 != 0;
 }
 %}
 

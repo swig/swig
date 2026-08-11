@@ -7,6 +7,31 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-12: wsfulton
+            Deduce the type of an 'auto' variable from the declaration its
+            initialiser refers to. The declarator of that declaration is now part
+            of the deduced type, and the address of something in scope deduces to
+            a pointer to it, so the variables below are wrapped instead of being
+            ignored with warning 346:
+
+              int g = 42;
+              int *pg = &g;
+              int fn(int x);
+              auto v1 = pg;     // int *
+              auto* v2 = &g;    // int *
+              auto** v3 = &pg;  // int **
+              auto* v4 = &fn;   // int (*)(int)
+
+            The top level cv-qualifiers of the initialiser are dropped unless the
+            variable is a reference, as C++ requires:
+
+              const int cg = 42;
+              auto v5 = cg;   // int
+              auto& r1 = cg;  // const int &
+
+            'decltype' deduces types the same way, so 'decltype(pg)' is now
+            'int *' rather than 'int'.
+
 2026-08-12: kwwette
             #3531 Restore the %typemaps_string_alloc macro for string classes
             that use custom allocation and deallocation functions. The
@@ -44,10 +69,9 @@ Version 4.6.0 (in progress)
 
             The decoration is kept on the declared variable, so 'r2' above wraps
             as a read only int reference. Where SWIG cannot deduce the
-            placeholder from the initialiser, such as the '&g' pointer
-            initialisers above, the variable is still ignored after issuing
-            warning 346, as it was before for an undeducible initialiser without
-            a declarator.
+            placeholder from the initialiser, the variable is still ignored after
+            issuing warning 346, as it was before for an undeducible initialiser
+            without a declarator.
 
             The same declarator is now also accepted on a lambda:
 
