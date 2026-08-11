@@ -944,6 +944,16 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   p = NewParm(type, "self", n);
   Setattr(p, "self", "1");
   Setattr(p, "hidden", "1");
+  /* If the class has a smart pointer, store the smart pointer type on
+   * the self parm so that emit_attach_parmmaps can generate a typecheck
+   * that uses the smart pointer descriptor for overload dispatch. */
+  {
+    Node *cls = parentNode(n);
+    if (cls && Strcmp(nodeType(cls), "extend") == 0)
+      cls = parentNode(cls);
+    if (cls && Getattr(cls, "smart"))
+      Setattr(p, "smartptr", Getattr(cls, "smart"));
+  }
   /*
      Disable the 'this' ownership in 'self' to manage inplace
      operations like:
