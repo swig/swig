@@ -772,6 +772,27 @@ for actually deducing the type as for <tt>decltype()</tt>), and for specifying
 the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
 and <a href="#CPlusPlus11_alternate_function_syntax">functions</a>.</p>
 
+<p>An <tt>auto</tt> variable can carry a declarator, so the placeholder can be decorated with a
+reference, rvalue reference, pointer or cv-qualifier, just like an <tt>auto</tt> function parameter.
+The decoration is kept on the wrapped variable:</p>
+
+<div class="code"><pre>
+int g = 42;
+int *pg = &amp;g;
+
+auto&amp; r1 = g;            // int &amp;
+const auto&amp; r2 = g;      // const int &amp;
+auto&amp;&amp; r3 = 42;          // int &amp;&amp;
+auto* p1 = &amp;g;           // int *
+auto* const p2 = &amp;g;     // int *const
+auto** p3 = &amp;pg;         // int **
+auto const* p4 = &amp;g;     // const int * - a cv-qualifier may also follow the placeholder
+</pre></div>
+
+<p>The type still has to be deducible from the initialiser. The pointer examples above trip warning 346
+(<i>Unable to deduce auto type for variable 'p1' (ignored)</i>) and are dropped, because SWIG cannot
+deduce a type from <tt>&amp;g</tt>, the same as for any other initialiser it cannot handle.</p>
+
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
 
 

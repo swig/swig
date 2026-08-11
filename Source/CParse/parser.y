@@ -3942,11 +3942,14 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
-           /* C++11 auto variable declaration.  Any cv-qualifier on the placeholder is kept on the deduced
-              type, so 'const auto x = 42;' has type 'q(const).int'. */
-           | storage_class auto_type_holder idcolon EQUAL definetype SEMI {
-              /* deduce_type() may return a type borrowed from another node, so copy it before qualifying it. */
-              SwigType *deduced = deduce_type(&$definetype);
+           /* C++11 auto variable declaration.  The declarator carries any '&', '&&', '*' and cv-qualifiers applied
+              to the placeholder, so 'auto&& r = 42;' has type 'int' and decl 'z.'.  A cv-qualifier on the
+              placeholder itself is kept on the deduced type, so 'const auto x = 42;' has type 'q(const).int'. */
+           | storage_class auto_type_holder declarator EQUAL definetype SEMI {
+              /* A function declarator makes the placeholder a deduced return type rather than a variable type,
+               * as in 'auto f() = delete;', and there is then nothing to deduce it from.
+               * deduce_type() may return a type borrowed from another node, so copy it before qualifying it. */
+              SwigType *deduced = SwigType_isfunction($declarator.type) ? 0 : deduce_type(&$definetype);
               SwigType *type;
               if (deduced) {
                 type = Copy(deduced);
@@ -3958,8 +3961,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      $$ = new_node("cdecl");
 	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
-	      Setattr($$, "name", $idcolon);
-	      Setattr($$, "decl", NewStringEmpty());
+              Setattr($$, "name", $declarator.id);
+              Setattr($$, "decl", $declarator.type);
 	      Setattr($$, "value", $definetype.val);
 	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
 	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
@@ -3968,13 +3971,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Delete(type);
 	   }
 	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
-           | storage_class auto_type_holder idcolon EQUAL error SEMI {
+           | storage_class auto_type_holder declarator EQUAL error SEMI {
               SwigType *type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      $$ = new_node("cdecl");
 	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
-	      Setattr($$, "name", $idcolon);
-	      Setattr($$, "decl", NewStringEmpty());
+              Setattr($$, "name", $declarator.id);
+              Setattr($$, "decl", $declarator.type);
 	      Setattr($$, "valuetype", type);
 	      Delete($storage_class);
 	      Delete(type);
@@ -4103,22 +4106,26 @@ cpp_alternate_rettype : primitive_type
    auto myFunc = [](int x, int y) -> int { return x+y; };
    auto myFunc = [](int x, int y) throw() -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
+   auto&& myFunc = [](int x) { return x; };
+
+   The declarator is shared with the C++11 'auto' variable declaration in c_decl: both rules have the same
+   'storage_class auto_type_holder declarator EQUAL' prefix, so it has to be the same nonterminal in each.
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class auto_type_holder idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
-		  Setattr($$,"name",$idcolon);
+                  Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class auto_type_holder idcolon EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
-		  Setattr($$,"name",$idcolon);
+                  Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
 		  add_symbols($$);
 		}
-                | storage_class auto_type_holder idcolon EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
-		  Setattr($$,"name",$idcolon);
+                  Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
 		  add_symbols($$);
 		}

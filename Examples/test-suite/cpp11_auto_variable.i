@@ -71,6 +71,9 @@ static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
 // FIXME: Not currently handled by SWIG's parser:
 //static auto constexpr greeting = "Hello";
 
+// Direct-initialisation of an auto variable, deferred for now:
+//static auto direct(42);
+
 %}
 
 %{

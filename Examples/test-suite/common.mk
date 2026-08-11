@@ -643,6 +643,7 @@ CPP11_TEST_CASES += \
 	cpp11_assign_rvalue_reference \
 	cpp11_attribute_specifiers \
 	cpp11_auto_variable \
+	cpp11_auto_variable_decorated \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
 	cpp11_constexpr_friend \

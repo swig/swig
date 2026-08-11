@@ -27,6 +27,33 @@ Version 4.6.0 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2026-08-11: wsfulton
+            Fix syntax error parsing an 'auto' variable declared with a
+            declarator. The placeholder can now carry a reference, rvalue
+            reference, pointer or cv-qualifier, matching what an 'auto' function
+            parameter has always accepted:
+
+              int g = 42;
+              int *pg = &g;
+              auto& r1 = g;
+              const auto& r2 = g;
+              auto&& r3 = 42;
+              auto* p1 = &g;
+              auto* const p2 = &g;
+              auto** p3 = &pg;
+              Numeric auto& r4 = g;
+
+            The decoration is kept on the declared variable, so 'r2' above wraps
+            as a read only int reference. Where SWIG cannot deduce the
+            placeholder from the initialiser, such as the '&g' pointer
+            initialisers above, the variable is still ignored after issuing
+            warning 346, as it was before for an undeducible initialiser without
+            a declarator.
+
+            The same declarator is now also accepted on a lambda:
+
+              auto&& lambda = [](int x) { return x; };
+
+2026-08-11: wsfulton
             Fix syntax error parsing a C++20 concept whose body is an ordinary
             expression rather than a chain of concept names:
 

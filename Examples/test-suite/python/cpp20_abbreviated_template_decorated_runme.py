@@ -26,3 +26,9 @@ swig_check(p_dec_i(17), 17)
 
 # q. Numeric auto const&
 swig_check(q_dec_i(18), 18)
+
+# s. Type constrained auto variables.  'const Numeric auto&' deduces 'const int &'.
+swig_check(cvar.constrained_cref, 5)
+cvar.constrained_global = 12
+swig_check(cvar.constrained_cref, 12)
+swig_assert(cvar.constrained_ref is not None, "constrained_ref")

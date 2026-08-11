@@ -5,7 +5,11 @@
 // C++20 abbreviated function templates - decorated 'auto' parms.  The 'auto' placeholder can carry
 // the usual parameter decorations (reference, pointer, forwarding reference, CV-qualifiers) and a
 // type-constraint.  SWIG must preserve the decoration on the wrapped parameter when promoting the
-// 'auto' to an invented type template parameter.
+// 'auto' to an invented type template parameter.  The type constrained variable counterpart of the
+// same decorations is covered at the end.
+
+// A reference cannot be reseated, so only the getter makes sense.
+%immutable constrained_ref;
 
 %include <std_string.i>
 
@@ -55,6 +59,11 @@ int q_dec(Numeric auto const& x) { return int(x); }
 
 // r. Cv-qualified constrained auto return type - SWIG cannot deduce it.
 const Numeric auto& r_dec(const int& x) { return x; }
+
+// s. The same decorations on a type constrained 'auto' variable.
+int constrained_global = 5;
+Numeric auto& constrained_ref = constrained_global;
+const Numeric auto& constrained_cref = constrained_global;
 %}
 
 %template(h_dec_i)   h_dec<int>;
