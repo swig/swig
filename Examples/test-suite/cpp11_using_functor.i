@@ -29,11 +29,23 @@
 
 %rename(call) *::operator();
 
+%{
+#include <cstdio>
+#include <string>
+
+// C++26 changed std::to_string(double) to the shortest round trip form, so format explicitly instead
+static std::string double_to_string(double v) {
+  char buffer[32];
+  snprintf(buffer, sizeof(buffer), "%f", v);
+  return buffer;
+}
+%}
+
 %inline %{
 #include <string>
 
 struct IntCase    { std::string operator()(int v)    const { return "Int:" + std::to_string(v); } };
-struct DoubleCase { std::string operator()(double v) const { return "Double:" + std::to_string(v); } };
+struct DoubleCase { std::string operator()(double v) const { return "Double:" + double_to_string(v); } };
 
 template <typename I, typename D>
 struct Overloaded : I, D {

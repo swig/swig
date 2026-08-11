@@ -32,6 +32,18 @@
 
 %include <std_string.i>
 
+%{
+#include <cstdio>
+#include <string>
+
+// C++26 changed std::to_string(double) to the shortest round trip form, so format explicitly instead
+static std::string double_to_string(double v) {
+  char buffer[32];
+  snprintf(buffer, sizeof(buffer), "%f", v);
+  return buffer;
+}
+%}
+
 %inline %{
 #include <string>
 
@@ -44,7 +56,7 @@ struct IntCase {
 struct DoubleCase {
     double value;
     DoubleCase(double v = 0.0) : value(v) {}
-    std::string call(double v) const { return "Double:" + std::to_string(v); }
+    std::string call(double v) const { return "Double:" + double_to_string(v); }
 };
 
 // Inheriting constructors (using I::I;) and an inherited member (using I::call;)

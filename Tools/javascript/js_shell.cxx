@@ -65,7 +65,8 @@ std::string JSShell::LoadModule(const std::string& name, HANDLE* library) {
   if(handle == 0) {
     std::cerr << "Could not find module " << lib_path << ':'
               << std::endl << LIBRARY_ERROR() << std::endl;
-    return 0;
+    // Not 'return 0' - constructing a std::string from a null pointer is ill-formed since C++23
+    return "";
   }
 
   loaded_modules.push_back(handle);

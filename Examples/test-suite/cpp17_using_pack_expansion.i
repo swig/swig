@@ -37,12 +37,27 @@
 
 %rename(call) *::operator();
 
+%{
+#include <cstdio>
+#include <string>
+
+// C++26 changed std::to_string(double) to the shortest round trip form, so format doubles explicitly instead
+static std::string value_to_string(int v) {
+  return std::to_string(v);
+}
+static std::string value_to_string(double v) {
+  char buffer[32];
+  snprintf(buffer, sizeof(buffer), "%f", v);
+  return buffer;
+}
+%}
+
 %inline %{
 #include <string>
 #include <variant>
 
-struct IntCase    { std::string operator()(int v)    const { return "Int:" + std::to_string(v); } };
-struct DoubleCase { std::string operator()(double v) const { return "Double:" + std::to_string(v); } };
+struct IntCase    { std::string operator()(int v)    const { return "Int:" + value_to_string(v); } };
+struct DoubleCase { std::string operator()(double v) const { return "Double:" + value_to_string(v); } };
 
 template <typename... Ts>
 struct Overloaded : Ts... {
@@ -51,7 +66,7 @@ struct Overloaded : Ts... {
 
 template <typename T>
 struct Base {
-    std::string operator()(T v) const { return "T:" + std::to_string(v); }
+    std::string operator()(T v) const { return "T:" + value_to_string(v); }
 };
 
 // 'Mixed<Ts...>' uses a nested qualifier inside the using-declaration
