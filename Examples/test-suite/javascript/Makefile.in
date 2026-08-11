@@ -8,7 +8,11 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ @NAPI_INCLUDE@
+
+# node-gyp's Release configuration hardcodes -O3, which dominates the node and napi test-suite run times. GYP_OPTFLAGS
+# is appended after the flags node-gyp adds itself, so the last -O option wins - override with -O2 to compile optimised.
+GYP_OPTFLAGS = -O0
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ @NAPI_INCLUDE@ $(GYP_OPTFLAGS)
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
