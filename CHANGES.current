@@ -2093,10 +2093,9 @@ Version 4.6.0 (in progress)
 
             The decoration is kept on the declared variable, so 'r2' above wraps
             as a read only int reference. Where SWIG cannot deduce the
-            placeholder from the initialiser, such as the '&g' pointer
-            initialisers above, the variable is still ignored after issuing
-            warning 346, as it was before for an undeducible initialiser without
-            a declarator.
+            placeholder from the initialiser, the variable is still ignored after
+            issuing warning 346, as it was before for an undeducible initialiser
+            without a declarator.
 
             The same declarator is now also accepted on a lambda:
 
