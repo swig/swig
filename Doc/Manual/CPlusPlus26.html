@@ -10,13 +10,91 @@
 <H1><a name="CPlusPlus26">12 SWIG and C++26</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
+<ul>
+<li><a href="#CPlusPlus26_introduction">Introduction</a>
+<li><a href="#CPlusPlus26_core_language_changes">Core language changes</a>
+<ul>
+<li><a href="#CPlusPlus26_deleted_function_reason">Reason for a deleted function</a>
+</ul>
+<li><a href="#CPlusPlus26_standard_library_changes">Standard library changes</a>
+</ul>
 </div>
 <!-- INDEX -->
 
 
 
+<H2><a name="CPlusPlus26_introduction">12.1 Introduction</a></H2>
+
+
 <p>
-Placeholder chapter for SWIG's support of the C++26 standard.
+This chapter gives you a brief overview about the SWIG implementation of
+the C++26 standard.  C++26 is still a draft standard and SWIG does not
+enable it yet: <tt>-std=c++26</tt> is not accepted on the SWIG command
+line and the C++26 test cases are not run as part of a normal test suite
+run.
+</p>
+
+<p>
+The <tt>-std</tt> option only sets the value of <tt>__cplusplus</tt> and
+does not gate the grammar, so the C++26 constructs listed below are parsed
+whichever standard is selected.  If you are wrapping a header that checks
+<tt>__cplusplus</tt> against the value the compilers currently use for
+C++26, define the macro at the top of your interface file:
+</p>
+
+<div class="code">
+<pre>
+#undef __cplusplus
+#define __cplusplus 202400L
+</pre>
+</div>
+
+<p>
+See
+<a href="Preprocessor.html#Preprocessor_condition_compilation">Conditional Compilation</a>
+in the preprocessor chapter for more on the standard macros SWIG defines.
+</p>
+
+<H2><a name="CPlusPlus26_core_language_changes">12.2 Core language changes</a></H2>
+
+
+<H3><a name="CPlusPlus26_deleted_function_reason">12.2.1 Reason for a deleted function</a></H3>
+
+
+<p>
+C++26 allows a deleted function to carry an explanatory message, which a
+compiler quotes in the error message it emits when an attempt is made to use
+the function:
+</p>
+
+<div class="code">
+<pre>
+void oldFreeFunction() = delete("use freeFunction() instead");
+
+struct Widget {
+  Widget() = default;
+  Widget(const Widget &amp;) = delete("Widget is not copyable");
+};
+</pre>
+</div>
+
+<p>
+SWIG parses the reason and discards it, as the message is diagnostic only.
+A function declared this way behaves exactly like one declared with a plain
+<tt>= delete</tt>, so it is not wrapped.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse the
+reason on a deleted function.
+</p>
+
+<H2><a name="CPlusPlus26_standard_library_changes">12.3 Standard library changes</a></H2>
+
+
+<p>
+The SWIG library does not yet wrap any of the containers and types added
+to the standard library by C++26.
 </p>
 
 </body>

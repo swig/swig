@@ -10,13 +10,49 @@
 <H1><a name="CPlusPlus23">11 SWIG and C++23</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
+<ul>
+<li><a href="#CPlusPlus23_introduction">Introduction</a>
+<li><a href="#CPlusPlus23_core_language_changes">Core language changes</a>
+<li><a href="#CPlusPlus23_standard_library_changes">Standard library changes</a>
+</ul>
 </div>
 <!-- INDEX -->
 
 
 
+<H2><a name="CPlusPlus23_introduction">11.1 Introduction</a></H2>
+
+
 <p>
-Placeholder chapter for SWIG's support of the C++23 standard.
+This chapter gives you a brief overview about the SWIG implementation of
+the C++23 standard.  Work has not yet begun on adding support for the
+core language features introduced by C++23.
+</p>
+
+<p>
+SWIG accepts <tt>-std=c++23</tt> on the command line.  As for every other
+standard, the only effect of the option is to set <tt>__cplusplus</tt> to
+the value for that standard, <tt>202302L</tt>, so that a header with
+preprocessor checks on the value is handled the way a C++23 compiler would
+handle it.  The option does not gate the grammar, so it does not otherwise
+change what SWIG parses.  See
+<a href="Preprocessor.html#Preprocessor_condition_compilation">Conditional Compilation</a>
+in the preprocessor chapter for the full list of standard macros SWIG defines.
+</p>
+
+<H2><a name="CPlusPlus23_core_language_changes">11.2 Core language changes</a></H2>
+
+
+<p>
+No C++23 core language feature is explicitly supported yet.
+</p>
+
+<H2><a name="CPlusPlus23_standard_library_changes">11.3 Standard library changes</a></H2>
+
+
+<p>
+The SWIG library does not yet wrap any of the containers and types added
+to the standard library by C++23.
 </p>
 
 </body>

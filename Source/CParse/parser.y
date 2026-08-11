@@ -2125,6 +2125,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
+%type            deleted_reason;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
@@ -7153,13 +7154,22 @@ default_delete : deleted_definition
                 | explicit_default
 		;
 
-/* For C++ deleted definition '= delete' */
-deleted_definition : DELETE_KW {
-		  $$ = default_dtype;
-		  $$.val = NewString("delete");
-		  $$.type = T_STRING;
-		}
-		;
+/* For C++ deleted definition '= delete', optionally followed by the C++26 reason, such as '= delete("use g() instead")'.
+   The value produced is always just "delete", so every rule reaching a deleted definition via 'default_delete' or
+   'definetype' - including any rule added later, such as one for an 'auto' return type - accepts both spellings. */
+deleted_definition : DELETE_KW deleted_reason {
+                  $$ = default_dtype;
+                  $$.val = NewString("delete");
+                  $$.type = T_STRING;
+                }
+                ;
+
+/* The C++26 reason for a deleted definition is diagnostic only, so it is parsed and discarded */
+deleted_reason : LPAREN string RPAREN {
+                  Delete($string);
+                }
+               | %empty
+               ;
 
 /* For C++ explicitly defaulted functions '= default' */
 explicit_default : DEFAULT {

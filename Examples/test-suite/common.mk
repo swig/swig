@@ -776,6 +776,7 @@ CPP23_TEST_BROKEN = \
 # with a compiler supporting C++26, for example:
 #   make CXX=g++-16 CXXFLAGS=-std=c++26 check-cpp26
 CPP26_TEST_CASES += \
+	cpp26_deleted_function_reason \
 
 # Broken C++26 test cases.
 CPP26_TEST_BROKEN = \

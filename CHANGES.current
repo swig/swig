@@ -27,6 +27,14 @@ Version 4.6.0 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2026-08-11: wsfulton
+            Add support for the C++26 reason on a deleted function:
+
+              void f() = delete("use g() instead");
+
+            The reason is parsed and discarded; the function is treated exactly
+            like one declared with a plain '= delete'.
+
+2026-08-11: wsfulton
             Fix syntax error parsing a cv-qualified 'auto' placeholder. Both
             orderings of the qualifier are now accepted everywhere a placeholder
             is allowed - function return types, variables, function parameters and
