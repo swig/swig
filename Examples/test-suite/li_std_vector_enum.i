@@ -21,3 +21,6 @@
 
 %template(vector_numbers) std::vector<EnumVector::numbers>;
 
+#ifdef SWIGC
+SWIG_STD_VECTOR_ITERATOR(EnumVector::numbers)
+#endif
