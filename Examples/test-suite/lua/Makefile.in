@@ -37,6 +37,9 @@ CPP11_TEST_CASES += \
 	cpp11_std_unordered_map \
 	cpp11_std_unordered_set \
 
+CPP14_TEST_CASES += \
+	cpp14_std_function_callback  \
+
 C_TEST_CASES += \
 	lua_module_global \
 	lua_no_module_global \
