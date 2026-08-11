@@ -98,7 +98,9 @@ CPP_TEST_BROKEN += \
 	$(CPP11_TEST_BROKEN) \
 	$(CPP14_TEST_BROKEN) \
 	$(CPP17_TEST_BROKEN) \
-	$(CPP20_TEST_BROKEN)
+	$(CPP20_TEST_BROKEN) \
+	$(CPP23_TEST_BROKEN) \
+	$(CPP26_TEST_BROKEN)
 
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
@@ -763,6 +765,21 @@ CPP20_TEST_CASES += \
 # Broken C++20 test cases.
 CPP20_TEST_BROKEN = \
 
+# C++23 test cases.
+CPP23_TEST_CASES += \
+
+# Broken C++23 test cases.
+CPP23_TEST_BROKEN = \
+
+# C++26 test cases. C++26 is still a draft standard, so configure does not detect it, HAVE_CXX26
+# defaults to 0 and these test cases are not part of a normal test suite run. Run them deliberately
+# with a compiler supporting C++26, for example:
+#   make CXX=g++-16 CXXFLAGS=-std=c++26 check-cpp26
+CPP26_TEST_CASES += \
+
+# Broken C++26 test cases.
+CPP26_TEST_BROKEN = \
+
 # Doxygen support test cases: can only be used with languages supporting
 # Doxygen comment translation (currently a subset of languages) and only if not
 # disabled by configure via SKIP_DOXYGEN_TEST_CASES.
@@ -845,6 +862,14 @@ endif
 
 ifeq (1,$(HAVE_CXX20))
 CPP_TEST_CASES += $(CPP20_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX23))
+CPP_TEST_CASES += $(CPP23_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX26))
+CPP_TEST_CASES += $(CPP26_TEST_CASES)
 endif
 
 # C test cases. (Can be run individually using: make testcase.ctest)
@@ -944,6 +969,8 @@ CPP11_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP11_TEST_CASES))
 CPP14_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP14_TEST_CASES))
 CPP17_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP17_TEST_CASES))
 CPP20_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP20_TEST_CASES))
+CPP23_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP23_TEST_CASES))
+CPP26_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP26_TEST_CASES))
 MULTI_CPP_TEST_CASES := $(filter-out $(FAILING_MULTI_CPP_TESTS),$(MULTI_CPP_TEST_CASES))
 
 
@@ -960,6 +987,8 @@ ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(CPP14_TEST_CASES:=.clean) \
 			$(CPP17_TEST_CASES:=.clean) \
 			$(CPP20_TEST_CASES:=.clean) \
+			$(CPP23_TEST_CASES:=.clean) \
+			$(CPP26_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
@@ -993,6 +1022,10 @@ check-cpp14: $(CPP14_TEST_CASES:=.cpptest)
 check-cpp17: $(CPP17_TEST_CASES:=.cpptest)
 
 check-cpp20: $(CPP20_TEST_CASES:=.cpptest)
+
+check-cpp23: $(CPP23_TEST_CASES:=.cpptest)
+
+check-cpp26: $(CPP26_TEST_CASES:=.cpptest)
 
 check-multicpp: $(MULTI_CPP_TEST_CASES:=.multicpptest)
 

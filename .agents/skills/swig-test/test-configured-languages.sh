@@ -199,6 +199,7 @@ if [ "$use_flags" -eq 1 ]; then
       cpp17_*) cppstd=c++17 ;;
       cpp20_*) cppstd=c++20 ;;
       cpp23_*) cppstd=c++23 ;;
+      cpp26_*) cppstd=c++26 ;;
       *)       cppstd=c++17 ;;   # safe modern default for non-prefixed tests
     esac
   fi
