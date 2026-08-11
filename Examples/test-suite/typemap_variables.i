@@ -48,10 +48,28 @@
 %typemap(in)  int Space::nspace             "/*int nspace in */ $1=0;"
 %typemap(out) int Space::nspace             "/*int nspace out*/ $result=OUT_NULL_VALUE;"
 %typemap(in)  int member                    "/*int member in */ $1=0;"
-#ifdef SWIGTCL
+#if defined(SWIGTCL) || defined(SWIGSCILAB)
 %typemap(out) int member                    "/*int member out*/"
+#elif defined(SWIGPYTHON)
+%typemap(out) int member                    "/*int member out*/ $result=Py_None; Py_INCREF(Py_None);"
 #else
 %typemap(out) int member                    "/*int member out*/ $result=OUT_NULL_VALUE;"
+#endif
+%typemap(in)  int StructA::member           "/*int StructA::member in */ $1=0;"
+#if defined(SWIGTCL) || defined(SWIGSCILAB)
+%typemap(out) int StructA::member           "/*int StructA::member out*/"
+#elif defined(SWIGPYTHON)
+%typemap(out) int StructA::member           "/*int StructA::member out*/ $result=Py_None; Py_INCREF(Py_None);"
+#else
+%typemap(out) int StructA::member           "/*int StructA::member out*/ $result=OUT_NULL_VALUE;"
+#endif
+%typemap(in)  int StructB::member           "/*int StructB::member in */ $1=0;"
+#if defined(SWIGTCL) || defined(SWIGSCILAB)
+%typemap(out) int StructB::member           "/*int StructB::member out*/"
+#elif defined(SWIGPYTHON)
+%typemap(out) int StructB::member           "/*int StructB::member out*/ $result=Py_None; Py_INCREF(Py_None);"
+#else
+%typemap(out) int StructB::member           "/*int StructB::member out*/ $result=OUT_NULL_VALUE;"
 #endif
 %typemap(in)  int Space::Struct::smember    "/*int smember in */ $1=0;"
 %typemap(out) int Space::Struct::smember    "/*int smember out*/ $result=OUT_NULL_VALUE;"
@@ -83,6 +101,14 @@
 %inline %{
 
 int globul;
+
+struct StructA {
+  int member;
+};
+
+struct StructB {
+  int member;
+};
 
 namespace Space {
   int nspace;
