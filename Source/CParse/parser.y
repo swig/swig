@@ -2015,6 +2015,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String    *numdefarg;
     ParmList  *parms;
     short      have_parms;
+    /* C++23 explicit object parameter, that is a leading 'this' parameter on the function declarator. */
+    short      explicit_object_parm;
     ParmList  *throws;
     String    *throwf;
     String    *nexcept;
@@ -2075,6 +2077,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE AUTO NOEXCEPT /* C++11 keywords */
 %token OVERRIDE FINAL /* C++11 identifiers with special meaning */
 %token CONCEPT REQUIRES /* C++20 keywords */
+%token THIS /* C++ keyword, for the C++23 explicit object parameter and for 'this' in an expression */
 %token USING
 %token NAMESPACE
 %token NATIVE INLINE
@@ -2186,7 +2189,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
-%type            lambda_introducer lambda_body lambda_template lambda_tail;
+%type            lambda_introducer lambda_body lambda_parms lambda_template lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
 %type <str>      class_virt_specifier_opt;
 
@@ -2487,6 +2490,58 @@ static Node *new_enum_node(SwigType *enum_base_type) {
     Setattr(n, "enumbase", enum_base_type);
   }
   return n;
+}
+
+/* Add the function declarator '(parms)' to the declarator 'd', extending the declarator's type and recording 'parms'
+   as the declarator's parameter list unless an inner declarator already provided one.  'qualifier' is the trailing
+   cv-qualifier and ref-qualifier of the function, or 0 when it has none; it belongs under whatever the enclosing
+   declarator adds, so it has to go on before the declarator's existing type does. */
+static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *qualifier) {
+  SwigType *t = NewStringEmpty();
+  SwigType_add_function(t, parms);
+  if (qualifier)
+    SwigType_push(t, qualifier);
+  if (!d->have_parms) {
+    d->parms = parms;
+    d->have_parms = 1;
+  }
+  if (!d->type) {
+    d->type = t;
+  } else {
+    SwigType_push(t, d->type);
+    Delete(d->type);
+    d->type = t;
+  }
+}
+
+/* Drop the C++23 explicit object parameter, that is the leading parameter declared with the 'this' specifier, from
+   the parameter list 'parms' and return the parameters that follow it.  The explicit object parameter is how the
+   object the member function is called on is passed, so it is not one of the function's arguments and must appear
+   neither in the wrapper's parameter list nor in the function's declarator. */
+static ParmList *drop_explicit_object_parameter(ParmList *parms) {
+  if (!parms) {
+    Swig_error(cparse_file, cparse_line, "Missing parameter declaration after 'this'.\n");
+    return 0;
+  }
+  if (Getattr(parms, "value"))
+    Swig_error(cparse_file, cparse_line, "Explicit object parameter 'this' cannot have a default argument.\n");
+  return nextSibling(parms);
+}
+
+/* Diagnose the restrictions C++23 places on a function declared with an explicit object parameter: it has to be a
+   non-static, non-virtual member function and cannot be declared with a cv-qualifier or a ref-qualifier, as the
+   explicit object parameter itself is what carries the value category and constness of the object. */
+static void check_explicit_object_parameter(Node *n, String *storage, String *qualifier, String *refqualifier) {
+  String *name = Getattr(n, "name");
+  /* A member function defined outside its class is written at namespace scope, so a qualified name is a member too. */
+  int ismember = inclass || extendmode || (name && Swig_scopename_check(name));
+  if (!ismember) {
+    Swig_error(cparse_file, cparse_line, "Function %s is not a member function so cannot have an explicit object parameter 'this'.\n", Swig_name_decl(n));
+  } else if (storage && (Strstr(storage, "static") || Strstr(storage, "virtual"))) {
+    Swig_error(cparse_file, cparse_line, "Member function %s with an explicit object parameter 'this' cannot be declared static or virtual.\n", Swig_name_decl(n));
+  } else if (qualifier || refqualifier) {
+    Swig_error(cparse_file, cparse_line, "Member function %s with an explicit object parameter 'this' cannot have a qualifier.\n", Swig_name_decl(n));
+  }
 }
 
 %}
@@ -3908,6 +3963,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"decl",decl);
 	      Setattr($$,"parms",$declarator.parms);
 	      Setattr($$,"value",$initializer.val);
+              if ($declarator.explicit_object_parm)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
 	      if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 	      if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
 	      Setattr($$,"throws",$cpp_const.throws);
@@ -4051,6 +4108,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               set_concept_constraint($$, $auto_type_holder.conceptid);
               if ($auto_type_holder.qualifier)
                 Swig_error(cparse_file, cparse_line, "Function %s with a trailing return type cannot have a qualifier on 'auto'.\n", Swig_name_decl($$));
+              if ($declarator.explicit_object_parm)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
 	      if (!$c_decl_tail) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -4140,6 +4199,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "throw", $cpp_const.throwf);
 	      Setattr($$, "noexcept", $cpp_const.nexcept);
 	      Setattr($$, "final", $cpp_const.final);
+              if ($declarator.explicit_object_parm)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
 
 	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
@@ -4183,6 +4244,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "throw", $cpp_const.throwf);
 	      Setattr($$, "noexcept", $cpp_const.nexcept);
 	      Setattr($$, "final", $cpp_const.final);
+              if ($declarator.explicit_object_parm)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
 
 	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
@@ -4389,13 +4452,13 @@ cpp_alternate_rettype : primitive_type
    The declarator is shared with the C++11 'auto' variable declaration in c_decl: both rules have the same
    'storage_class auto_type_holder declarator EQUAL' prefix, so it has to be the same nonterminal in each.
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt LPAREN parms RPAREN cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
@@ -4408,6 +4471,12 @@ cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introdu
 		  add_symbols($$);
 		}
                 ;
+
+/* A lambda's parameter list, which C++23 allows to start with an explicit object parameter.  A lambda is wrapped
+   as an opaque object, so the parameters are only parsed, never used. */
+lambda_parms : LPAREN parms RPAREN
+             | LPAREN THIS parms RPAREN
+             ;
 
 lambda_introducer : LBRACKET {
 		  if (skip_balanced('[',']') < 0) Exit(EXIT_FAILURE);
@@ -6468,25 +6537,14 @@ parameter_declarator : declarator def_args {
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
 	    | direct_declarator LPAREN parms RPAREN qualifiers_exception_specification {
-	      SwigType *t;
-	      $$ = $direct_declarator;
-	      t = NewStringEmpty();
-	      SwigType_add_function(t,$parms);
-	      if ($qualifiers_exception_specification.qualifier)
-		SwigType_push(t, $qualifiers_exception_specification.qualifier);
-	      if ($qualifiers_exception_specification.nexcept)
-		SwigType_add_qualifier(t, "noexcept");
-	      if (!$$.have_parms) {
-		$$.parms = $parms;
-		$$.have_parms = 1;
-	      }
-	      if (!$$.type) {
-		$$.type = t;
-	      } else {
-		SwigType_push(t, $$.type);
-		Delete($$.type);
-		$$.type = t;
-	      }
+              SwigType *qualifier = $qualifiers_exception_specification.qualifier;
+              if ($qualifiers_exception_specification.nexcept) {
+                if (!qualifier)
+                  qualifier = NewStringEmpty();
+                SwigType_add_qualifier(qualifier, "noexcept");
+              }
+              $$ = $direct_declarator;
+              declarator_add_function(&$$, $parms, qualifier);
 	    }
             ;
 
@@ -6527,23 +6585,8 @@ plain_declarator : declarator {
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const) */
 	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
-	      SwigType *t;
-	      $$ = $direct_declarator;
-	      t = NewStringEmpty();
-	      SwigType_add_function(t, $parms);
-	      if ($cv_ref_qualifier.qualifier)
-	        SwigType_push(t, $cv_ref_qualifier.qualifier);
-	      if (!$$.have_parms) {
-		$$.parms = $parms;
-		$$.have_parms = 1;
-	      }
-	      if (!$$.type) {
-		$$.type = t;
-	      } else {
-		SwigType_push(t, $$.type);
-		Delete($$.type);
-		$$.type = t;
-	      }
+              $$ = $direct_declarator;
+              declarator_add_function(&$$, $parms, $cv_ref_qualifier.qualifier);
 	    }
             | %empty {
 	      $$ = default_decl;
@@ -6836,22 +6879,14 @@ notso_direct_declarator : idcolon {
 		    $$.type = t;
                   }
                   | notso_direct_declarator[in] LPAREN parms RPAREN {
-		    SwigType *t;
                     $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_function(t,$parms);
-		    if (!$$.have_parms) {
-		      $$.parms = $parms;
-		      $$.have_parms = 1;
-		    }
-		    if (!$$.type) {
-		      $$.type = t;
-		    } else {
-		      SwigType_push(t, $$.type);
-		      Delete($$.type);
-		      $$.type = t;
-		    }
-		  }
+                    declarator_add_function(&$$, $parms, 0);
+                  }
+                  | notso_direct_declarator[in] LPAREN THIS parms RPAREN {
+                    $$ = $in;
+                    declarator_add_function(&$$, drop_explicit_object_parameter($parms), 0);
+                    $$.explicit_object_parm = 1;
+                  }
                   ;
 
 direct_declarator : idcolon {
@@ -6964,22 +6999,18 @@ direct_declarator : idcolon {
 		    $$.type = t;
                   }
                   | direct_declarator[in] LPAREN parms RPAREN {
-		    SwigType *t;
                     $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_function(t,$parms);
-		    if (!$$.have_parms) {
-		      $$.parms = $parms;
-		      $$.have_parms = 1;
-		    }
-		    if (!$$.type) {
-		      $$.type = t;
-		    } else {
-		      SwigType_push(t, $$.type);
-		      Delete($$.type);
-		      $$.type = t;
-		    }
-		  }
+                    declarator_add_function(&$$, $parms, 0);
+                  }
+                  /* C++23 explicit object parameter: 'this' declares the first parameter of a member function to be
+                   * the object the function is called on, in place of the implicit object parameter.  It is not one
+                   * of the function's arguments, so it is dropped from both the parameter list and the declarator and
+                   * the member function is wrapped with the arguments that follow it. */
+                  | direct_declarator[in] LPAREN THIS parms RPAREN {
+                    $$ = $in;
+                    declarator_add_function(&$$, drop_explicit_object_parameter($parms), 0);
+                    $$.explicit_object_parm = 1;
+                  }
                  /* User-defined string literals. eg.
                     int operator""_mySuffix(const char* val, int length) {...}
                     The whitespace form 'operator "" _suffix' is deprecated by CWG2521 (applied to
@@ -6987,14 +7018,9 @@ direct_declarator : idcolon {
 		 /* This produces one S/R conflict. */
                  | OPERATOR ID LPAREN parms RPAREN {
 		    $$ = default_decl;
-		    SwigType *t;
 		    Append($OPERATOR, $ID);
 		    $$.id = Char($OPERATOR);
-		    t = NewStringEmpty();
-		    SwigType_add_function(t,$parms);
-		    $$.parms = $parms;
-		    $$.have_parms = 1;
-		    $$.type = t;
+                    declarator_add_function(&$$, $parms, 0);
 		  }
                   ;
 
@@ -7136,46 +7162,16 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
                     $$ = $abstract_declarator;
 		  }
                   | direct_abstract_declarator[in] LPAREN parms RPAREN {
-		    SwigType *t;
                     $$ = $in;
-		    t = NewStringEmpty();
-                    SwigType_add_function(t,$parms);
-		    if (!$$.type) {
-		      $$.type = t;
-		    } else {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		      $$.type = t;
-		    }
-		    if (!$$.have_parms) {
-		      $$.parms = $parms;
-		      $$.have_parms = 1;
-		    }
+                    declarator_add_function(&$$, $parms, 0);
 		  }
                   | direct_abstract_declarator[in] LPAREN parms RPAREN cv_ref_qualifier {
-		    SwigType *t;
                     $$ = $in;
-		    t = NewStringEmpty();
-                    SwigType_add_function(t,$parms);
-		    SwigType_push(t, $cv_ref_qualifier.qualifier);
-		    if (!$$.type) {
-		      $$.type = t;
-		    } else {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		      $$.type = t;
-		    }
-		    if (!$$.have_parms) {
-		      $$.parms = $parms;
-		      $$.have_parms = 1;
-		    }
+                    declarator_add_function(&$$, $parms, $cv_ref_qualifier.qualifier);
 		  }
                   | LPAREN parms RPAREN {
 		    $$ = default_decl;
-                    $$.type = NewStringEmpty();
-                    SwigType_add_function($$.type,$parms);
-		    $$.parms = $parms;
-		    $$.have_parms = 1;
+                    declarator_add_function(&$$, $parms, 0);
                   }
                   ;
 
@@ -7651,6 +7647,10 @@ exprmem        : idcolon ARROW ID {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s", $idcolon, $ID);
 	       }
+               | THIS ARROW ID {
+                 $$ = default_dtype;
+                 $$.val = NewStringf("this->%s", $ID);
+               }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
 		 Printf($$.val, "->%s", $ID);
@@ -7797,6 +7797,15 @@ requirement_body : LBRACE {
 /* Non-compound expression */
 exprsimple     : exprnum
                | exprmem
+               /* SWIG's scanner used to hand 'this' to the parser as an ordinary identifier and now returns a
+                  keyword token for it, so the expression grammar needs the token where the identifier used to
+                  arrive: a default member initialiser such as 'Node *parent = this;'.  SWIG has no value for it,
+                  only the text. */
+               | THIS {
+                 $$ = default_dtype;
+                 $$.val = NewString("this");
+                 $$.type = T_UNKNOWN;
+               }
                | string {
 		  $$ = default_dtype;
 		  $$.stringval = $string;

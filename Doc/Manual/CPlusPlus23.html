@@ -13,6 +13,9 @@
 <ul>
 <li><a href="#CPlusPlus23_introduction">Introduction</a>
 <li><a href="#CPlusPlus23_core_language_changes">Core language changes</a>
+<ul>
+<li><a href="#CPlusPlus23_explicit_object_parameters">Explicit object parameters</a>
+</ul>
 <li><a href="#CPlusPlus23_standard_library_changes">Standard library changes</a>
 </ul>
 </div>
@@ -25,8 +28,8 @@
 
 <p>
 This chapter gives you a brief overview about the SWIG implementation of
-the C++23 standard.  Work has not yet begun on adding support for the
-core language features introduced by C++23.
+the C++23 standard.  Support for the core language features introduced by
+C++23 has only just begun.
 </p>
 
 <p>
@@ -43,8 +46,138 @@ in the preprocessor chapter for the full list of standard macros SWIG defines.
 <H2><a name="CPlusPlus23_core_language_changes">11.2 Core language changes</a></H2>
 
 
+<H3><a name="CPlusPlus23_explicit_object_parameters">11.2.1 Explicit object parameters</a></H3>
+
+
 <p>
-No C++23 core language feature is explicitly supported yet.
+C++23 lets a member function declare its first parameter with the
+<tt>this</tt> specifier, so that the object the function is called on is an
+explicit parameter instead of the implicit <tt>*this</tt>.  The feature is
+often called "deducing this", as the parameter can be declared with a deduced
+<tt>auto</tt> placeholder.
+</p>
+
+<p>
+It was added to c++23 mainly to help remove near duplicate code.  A member function whose body
+differs only in the constness and value category of the object had to be written
+as four almost identical <tt>&amp;</tt>, <tt>const&amp;</tt>, <tt>&amp;&amp;</tt>
+and <tt>const&amp;&amp;</tt> ref-qualified overloads, and a deduced explicit
+object parameter collapses them into a single function template.  It also lets a
+base class member function deduce the derived type without the CRTP idiom, and
+lets a lambda name its own closure object, which is how the recursive lambda
+shown below is written.
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+struct Counter {
+  int value;
+
+  Counter() : value(10) {}
+
+  int by_ref(this Counter&amp; self) { return self.value + 1; }
+  int by_value(this Counter self) { return self.value + 2; }
+  int deduced(this auto&amp;&amp; self) { return self.value + 3; }
+  auto deduced_trailing(this auto&amp;&amp; self) -&gt; int { return self.value + 4; }
+  int add(this Counter&amp; self, int a, int b) { return self.value + a + b; }
+};
+%}
+</pre>
+</div>
+
+<p>
+The explicit object parameter is how the object itself is passed, so it is not
+one of the function's arguments.  Each of the above is wrapped as an ordinary
+member function taking only the parameters declared after it, that is
+<tt>by_ref</tt>, <tt>by_value</tt>, <tt>deduced</tt> and
+<tt>deduced_trailing</tt> take no arguments and <tt>add</tt> takes two:
+</p>
+
+<div class="targetlang">
+<pre>
+c = Counter()
+print(c.by_ref())      # 11
+print(c.add(1, 2))     # 13
+</pre>
+</div>
+
+<p>
+A deduced explicit object parameter makes the member function a template in
+C++, but the object type is deduced from the object the wrapper passes, so
+there is nothing for the user to instantiate and the function is wrapped like
+any other member function.  This is unlike a C++20
+<a href="CPlusPlus20.html#CPlusPlus20_abbreviated_templates">abbreviated function template</a>,
+where the invented type template parameter has to be given a type with
+<tt>%template</tt>.
+</p>
+
+<p>
+C++ requires a member function with an explicit object parameter to be neither
+static nor virtual, and it cannot be declared with a cv-qualifier or a
+ref-qualifier.  SWIG reports an error for each of these, and for an explicit
+object parameter on a function that is not a member function:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+struct S {
+  static int stat(this S&amp; self);
+  virtual int virt(this S&amp; self);
+  int cv_qualified(this S&amp; self) const;
+  int ref_qualified(this S&amp; self) &amp;;
+};
+
+int not_a_member(this S&amp; self);
+</pre>
+</div>
+
+<div class="shell">
+<pre>
+$ swig -c++ -python example.i
+example.i:4: Error: Member function stat() with an explicit object parameter 'this' cannot be declared static or virtual.
+example.i:5: Error: Member function virt() with an explicit object parameter 'this' cannot be declared static or virtual.
+example.i:6: Error: Member function cv_qualified() const with an explicit object parameter 'this' cannot have a qualifier.
+example.i:7: Error: Member function ref_qualified() &amp; with an explicit object parameter 'this' cannot have a qualifier.
+example.i:10: Error: Function not_a_member() is not a member function so cannot have an explicit object parameter 'this'.
+</pre>
+</div>
+
+<p>
+An explicit object parameter cannot have a default argument either, and the
+parameter itself has to be declared, so <tt>int m(this S&amp; self = S());</tt>
+and <tt>int m(this);</tt> are errors too.
+</p>
+
+<p>
+A lambda can have an explicit object parameter too, which is the usual way of
+writing a recursive lambda.  It is parsed, but a lambda is still wrapped as an
+opaque object, as described in
+<a href="CPlusPlus11.html#CPlusPlus11_lambda_functions_and_expressions">Lambda functions and expressions</a>.
+</p>
+
+<div class="code">
+<pre>
+auto factorial = [](this auto&amp;&amp; self, int n) -&gt; int { return n &lt;= 1 ? 1 : n * self(n - 1); };
+</pre>
+</div>
+
+<p>
+An explicit object parameter declared as an rvalue reference to the class,
+<tt>this Counter&amp;&amp; self</tt>, can only be called on an rvalue.  SWIG calls
+the member function on the object the wrapper was passed, which is an lvalue,
+so the generated code does not compile and such a member function needs to be
+ignored with <tt>%ignore</tt>.  The deduced <tt>this auto&amp;&amp; self</tt> form
+is a forwarding reference rather than an rvalue reference and is not affected.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to support explicit
+object parameters.  Earlier versions rejected the non-deduced spelling with a
+syntax error, and wrapped the deduced <tt>this auto&amp;&amp; self</tt> spelling as
+a method taking one argument.
 </p>
 
 <H2><a name="CPlusPlus23_standard_library_changes">11.3 Standard library changes</a></H2>

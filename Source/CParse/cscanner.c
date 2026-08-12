@@ -1212,6 +1212,11 @@ int yylex(void) {
           return (EXPLICIT);
         if (strcmp(yytext, "auto") == 0)
           return (AUTO);
+        /* Mostly reached as the C++23 explicit object parameter specifier, as a 'this' expression is nearly
+           always inside a function body, which the parser skips over without tokenising.  The exception the
+           expression grammar handles is a default member initialiser, such as 'Node *parent = this;'. */
+        if (strcmp(yytext, "this") == 0)
+          return (THIS);
         if (strcmp(yytext, "export") == 0)
           return (yylex());
         if (strcmp(yytext, "typename") == 0)

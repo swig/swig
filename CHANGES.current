@@ -8,6 +8,32 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Add support for the C++23 explicit object parameter ("deducing
+            this"), where a member function declares its first parameter with
+            the 'this' specifier:
+
+              struct S {
+                int m(this S& self);
+                auto n(this auto&& self) -> int;
+              };
+
+            Both are now wrapped as member functions taking no arguments - the
+            explicit object parameter is how the object itself is passed, so it
+            is not one of the function's arguments. The deduced spelling was
+            previously wrapped as a method taking one argument and the
+            non-deduced spelling was a syntax error.
+
+            A lambda can have an explicit object parameter too, which is how a
+            recursive lambda is written, and is parsed the same way. A lambda is
+            still wrapped as an opaque object.
+
+            A member function with an explicit object parameter cannot be
+            static or virtual and cannot be declared with a cv-qualifier or a
+            ref-qualifier, and an explicit object parameter is not valid on a
+            function that is not a member function. Each of these is now an
+            error.
+
+2026-08-12: wsfulton
             Fix an 'auto' parameter pack in an abbreviated function template
             inventing a template parameter that was not a parameter pack, which
             made every %template instantiation of such a function fail with

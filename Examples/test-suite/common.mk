@@ -699,6 +699,7 @@ CPP11_TEST_CASES += \
 	cpp11_template_parameters_decltype \
 	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
+	cpp11_this_member_initializer \
 	cpp11_type_traits \
 	cpp11_type_aliasing \
 	cpp11_uniform_initialization \
@@ -770,6 +771,7 @@ CPP20_TEST_BROKEN = \
 
 # C++23 test cases.
 CPP23_TEST_CASES += \
+	cpp23_explicit_object_parameter \
 
 # Broken C++23 test cases.
 CPP23_TEST_BROKEN = \
@@ -882,6 +884,7 @@ C_TEST_CASES += \
 	bom_utf8 \
 	c_delete \
 	c_delete_function \
+	c_this_identifier \
 	char_constant \
 	charptr_fragment \
 	command_line_define \
