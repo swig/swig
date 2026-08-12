@@ -563,7 +563,13 @@ static int promote_abbreviated_template(Node *n) {
       continue;
     {
       String *invented_name = NewStringf("__dummy_auto_%d__", auto_cnt++);
-      Parm *tp = NewParmWithoutFileLineInfo(NewString("typename"), invented_name);
+      SwigType *invented_type = NewString("typename");
+      Parm *tp;
+      /* A pack expansion such as 'auto&&... args' invents a template parameter pack, exactly as the explicit
+       * 'template<typename... T> f(T&&... args)' spelling does, so the invented parameter is variadic too. */
+      if (SwigType_isvariadic(ty))
+        SwigType_add_variadic(invented_type);
+      tp = NewParmWithoutFileLineInfo(invented_type, invented_name);
       Setfile(tp, Getfile(n));
       Setline(tp, Getline(n));
       SetFlag(tp, "abbreviated_auto");
@@ -584,6 +590,7 @@ static int promote_abbreviated_template(Node *n) {
       }
       last_invented = tp;
       Delete(invented_name);
+      Delete(invented_type);
       Delete(concept_name);
     }
   }

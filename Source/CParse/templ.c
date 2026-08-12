@@ -815,15 +815,21 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
    * trailing invented parm is unreachable behind the greedy pack). */
   {
     int trailing_invented = 0;
+    int invented_pack = 0;
     Parm *p;
     for (p = templateparms; p; p = nextSibling(p)) {
-      if (GetFlag(p, "abbreviated_auto"))
+      if (GetFlag(p, "abbreviated_auto")) {
         ++trailing_invented;
-      else
+        invented_pack = SwigType_isvariadic(Getattr(p, "type"));
+      } else {
         trailing_invented = 0;
+        invented_pack = 0;
+      }
     }
     if (trailing_invented > 0) {
-      int emit_count = ParmList_len(tparms) - trailing_invented;
+      /* An invented parameter pack ('auto&&... args') absorbs every remaining template argument, so all of them
+       * are dropped rather than one per invented parameter, which is all an unexpanded invented parm takes. */
+      int emit_count = invented_pack ? ParmList_len(templateparms) - trailing_invented : ParmList_len(tparms) - trailing_invented;
       ParmList *emit_parms = CopyParmListMax(tparms, emit_count);
       SwigType_add_template(templateargs, emit_parms);
       Delete(emit_parms);

@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Fix an 'auto' parameter pack in an abbreviated function template
+            inventing a template parameter that was not a parameter pack, which
+            made every %template instantiation of such a function fail with
+            "No matching function template":
+
+              int sum(const auto&... args) { return (args + ... + 0); }
+
+              %template(sum_ii)  sum<int, int>;
+              %template(sum_iii) sum<int, int, int>;
+
+            The invented parameter is now a template parameter pack, exactly as
+            it is for the equivalent 'template<typename... T>' spelling, so the
+            number of types given to %template is the number of parameters the
+            wrapped function takes - sum_ii takes two and sum_iii takes three.
+
+2026-08-12: wsfulton
             Say what got in the way of deducing an 'auto' type in warnings 345
             and 346, which previously read the same whether the initialiser was
             one SWIG could not deduce a type from or in a form SWIG does not

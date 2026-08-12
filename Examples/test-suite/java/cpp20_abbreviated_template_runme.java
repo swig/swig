@@ -56,6 +56,37 @@ public class cpp20_abbreviated_template_runme {
     if (cpp20_abbreviated_template.twice_n_arrow_int(7) != 14)
       throw new RuntimeException("twice_n_arrow_int(7)");
 
+    // Auto parameter pack - one wrapped parameter per type given to %template.
+    if (cpp20_abbreviated_template.sum_all_ii(1, 2) != 3)
+      throw new RuntimeException("sum_all_ii(1, 2)");
+    if (cpp20_abbreviated_template.sum_all_iii(1, 2, 3) != 6)
+      throw new RuntimeException("sum_all_iii(1, 2, 3)");
+    if (cpp20_abbreviated_template.sum_numeric_ii(4, 5) != 9)
+      throw new RuntimeException("sum_numeric_ii(4, 5)");
+
+    // Ordinary parameter ahead of an auto parameter pack.
+    if (cpp20_abbreviated_template.offset_sum_ii(1, 2, 3) != 6)
+      throw new RuntimeException("offset_sum_ii(1, 2, 3)");
+
+    // The pack determines the arity of the wrapper.
+    try {
+      cpp20_abbreviated_template.class.getMethod("sum_all_ii", int.class, int.class);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("sum_all_ii should take two arguments");
+    }
+    try {
+      cpp20_abbreviated_template.class.getMethod("sum_all_ii", int.class, int.class, int.class);
+      throw new RuntimeException("sum_all_ii should take two arguments");
+    } catch (NoSuchMethodException expected) {
+    }
+
+    // An 'auto&&' pack wraps as pointer parms in Java, like any other 'auto&&' parm.
+    try {
+      cpp20_abbreviated_template.class.getMethod("sum_fwd_ii", SWIGTYPE_p_int.class, SWIGTYPE_p_int.class);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException("sum_fwd_ii should take two pointer arguments");
+    }
+
     // Constrained 'Numeric auto' return without a trailing return type - SWIG cannot deduce so the function is ignored.
     try {
       cpp20_abbreviated_template.class.getMethod("half_numeric", int.class);

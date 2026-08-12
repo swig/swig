@@ -242,6 +242,32 @@ wrapper signature <tt>f_mix(double x, int y1, std::string y2)</tt>.
 </p>
 
 <p>
+An <tt>auto</tt> parameter can itself be a pack.  The invented type template
+parameter is then a template parameter pack, just as it is for the equivalent
+explicit <tt>template&lt;typename... Ts&gt;</tt> spelling, so the number of types
+given to <tt>%template</tt> is the number of parameters the wrapped function
+takes:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+int sum(const auto&amp;... args) { return (args + ... + 0); }
+%}
+
+%template(sum_ii)  sum&lt;int, int&gt;;
+%template(sum_iii) sum&lt;int, int, int&gt;;
+</pre>
+</div>
+
+<p>
+<tt>sum_ii</tt> takes two parameters and <tt>sum_iii</tt> takes three.  A bare
+<tt>auto...</tt> pack is not parsed yet, so use one of the decorated spellings
+such as <tt>const auto&amp;...</tt>, <tt>auto&amp;&amp;...</tt> or
+<tt>auto*...</tt>.
+</p>
+
+<p>
 The <tt>auto</tt> placeholder may carry the usual parameter decorations -
 reference, pointer, forwarding reference, and CV-qualifiers.
 </p>
@@ -262,7 +288,7 @@ T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
 </div>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.  SWIG-4.6.0 is the first version to instantiate an <tt>auto</tt> parameter pack, which previously invented a template parameter that was not a pack and so could not be instantiated at all.
 </p>
 
 <H3><a name="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</a></H3>

@@ -49,6 +49,20 @@ int add_same_concept(Sized auto a, Sized auto b) { return a + b; }
 // Unnamed constrained auto - the type-constraint still applies to the invented type template parameter.
 int unnamed_constrained(Numeric auto) { return 42; }
 
+// An auto parameter pack invents a template parameter pack, just as 'template<typename... T>' does, so
+// the number of types given to %template is the number of parameters the wrapped function takes.
+int sum_all(const auto&... args) { return (args + ... + 0); }
+
+// Forwarding reference pack - the same promotion, spelled the way an abbreviated template usually is.
+int sum_fwd(auto&&... args) { return (args + ... + 0); }
+
+// Constrained auto parameter pack - the type-constraint applies to the invented template parameter pack.
+int sum_numeric(const Numeric auto&... args) { return (args + ... + 0); }
+
+// An ordinary parameter ahead of an auto parameter pack - only the pack is a template parameter, so the
+// wrapped function takes one more parameter than the number of types given to %template.
+int offset_sum(int first, const auto&... rest) { return first + (rest + ... + 0); }
+
 // Plain auto return type with an explicit trailing return type - SWIG wraps the trailing return type.
 // A type-constraint on the return ('Numeric auto fn(...) -> int') is rejected by clang and MSVC, so the
 // constrained-return case is exercised separately below without the trailing return type.
@@ -81,3 +95,8 @@ Numeric auto times3(int x);
 %template(unnamed_constrained_int) unnamed_constrained<int>;
 %template(cube_constrained_int)   cube_constrained<int>;
 %template(twice_n_arrow_int)      twice_n_arrow<int>;
+%template(sum_all_ii)             sum_all<int, int>;
+%template(sum_all_iii)            sum_all<int, int, int>;
+%template(sum_fwd_ii)             sum_fwd<int, int>;
+%template(sum_numeric_ii)         sum_numeric<int, int>;
+%template(offset_sum_ii)          offset_sum<int, int>;
