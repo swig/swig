@@ -887,6 +887,16 @@ auto sum = [](int x, int y) { return x+y; };
 auto sum = [](int x, int y) -&gt; int { return x+y; };
 </pre></div>
 
+<p>
+The explicit trailing return type can be any type, just as it can be for an
+<a href="#CPlusPlus11_alternate_function_syntax">ordinary function</a>:
+</p>
+
+<div class="code"><pre>
+auto address = [](int &amp;x) -&gt; int * { return &amp;x; };
+auto value = [](int &amp;x) -&gt; const int &amp; { return x; };
+</pre></div>
+
 <p>The lambda functions are removed from the wrappers for now, because of the lack of support
 for closures (scope of the lambda functions) in the target languages.</p>
 

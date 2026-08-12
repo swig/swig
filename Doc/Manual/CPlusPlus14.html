@@ -145,7 +145,27 @@ int run_add(int a, int b) { return add(a, b); }
 </div>
 
 <p>
+Return type deduction applies to a lambda too, so the explicit trailing return
+type of a lambda can be the <tt>auto</tt> placeholder, cv-qualified or decorated
+with a reference or a pointer:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+int thing = 7;
+
+auto negate_value = [](int x) -&gt; auto { return -x; };
+auto halve = [](int x) -&gt; const auto { return x / 2; };
+auto reference_thing = [](int) -&gt; auto&amp;&amp; { return thing; };
+auto address_of_thing = [](int) -&gt; auto* { return &amp;thing; };
+%}
+</pre>
+</div>
+
+<p>
 <b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse generic lambdas with <tt>auto</tt> parameters.
+SWIG-4.6.0 is the first version to parse a lambda whose explicit trailing return type is the <tt>auto</tt> placeholder.
 </p>
 
 

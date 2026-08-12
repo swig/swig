@@ -2156,7 +2156,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <intvalue> variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype;
+%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype lambda_rettype;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type            deleted_reason;
@@ -4493,10 +4493,11 @@ cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introdu
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW type requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW lambda_rettype requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
+                  Delete($lambda_rettype);
 		  add_symbols($$);
 		}
                 | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
@@ -4511,6 +4512,20 @@ cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introdu
    as an opaque object, so the parameters are only parsed, never used. */
 lambda_parms : LPAREN parms RPAREN
              | LPAREN THIS parms RPAREN
+             ;
+
+/* A lambda's explicit trailing return type, which C++11 allows to be the 'auto' placeholder, the return type then
+   being deduced from the body just as it is when the trailing return type is left out altogether.  A lambda is
+   wrapped as an opaque object, so the type is only parsed, never used. */
+lambda_rettype : cpp_alternate_rettype
+             | auto_type_holder {
+               $$ = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
+             }
+             | auto_type_holder abstract_declarator_no_memberpointer[abstract_declarator] {
+               $$ = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
+               SwigType_push($$, $abstract_declarator.type);
+               Delete($abstract_declarator.type);
+             }
              ;
 
 lambda_introducer : LBRACKET {

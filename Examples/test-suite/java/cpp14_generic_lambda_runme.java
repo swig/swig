@@ -19,5 +19,17 @@ public class cpp14_generic_lambda_runme {
     // Two auto parameters.
     if (cpp14_generic_lambda.run_add(3, 4) != 7)
       throw new RuntimeException("run_add(3, 4)");
+
+    // 'auto' placeholder as the explicit trailing return type.
+    if (cpp14_generic_lambda.run_negate_value(5) != -5)
+      throw new RuntimeException("run_negate_value(5)");
+    if (cpp14_generic_lambda.run_halve(9) != 4)
+      throw new RuntimeException("run_halve(9)");
+    if (cpp14_generic_lambda.run_quarter(9) != 2)
+      throw new RuntimeException("run_quarter(9)");
+    if (cpp14_generic_lambda.run_reference_thing() != 7)
+      throw new RuntimeException("run_reference_thing()");
+    if (cpp14_generic_lambda.run_address_of_thing() != 7)
+      throw new RuntimeException("run_address_of_thing()");
   }
 }

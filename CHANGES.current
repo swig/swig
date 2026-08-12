@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Accept any type as the explicit trailing return type of a lambda,
+            including the C++14 'auto' placeholder. These were previously a
+            syntax error:
+
+              auto negate_value = [](int x) -> auto { return -x; };
+              auto address = [](int &x) -> int * { return &x; };
+
+2026-08-12: wsfulton
             Accept a C++20 trailing requires-clause on a function declared with
             a trailing return type, which was previously a syntax error:
 
