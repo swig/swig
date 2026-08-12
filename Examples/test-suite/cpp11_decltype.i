@@ -28,9 +28,8 @@
 %}
 
 
-// These are ignored as unable to deduce decltype for (&i)
-%ignore B::k;
-%ignore B::get_number_address;
+// A setter for a pointer variable is not what is under test here.
+%immutable B::k;
 #pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
 
 %ignore hidden_global_char;

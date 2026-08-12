@@ -30,3 +30,7 @@ if b.negate(True) != False:
 
 if b.negate(False) != True:
     raise RuntimeError("b.negate(False) should return True")
+
+# decltype(&i) deduces 'int *', so the address is returned rather than the function being ignored.
+if b.get_number_address(None) is None:
+    raise RuntimeError("b.get_number_address should return a pointer")

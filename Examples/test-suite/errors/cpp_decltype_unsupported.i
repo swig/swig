@@ -14,9 +14,6 @@ static int global_int = 42;
 decltype(func_returning_int()) func_return;
 decltype(func_returning_int(0)) func_return2;
 
-// Address of (other than char or wchar_t)
-decltype(&global_int) address_of;
-
 // Pointer dereference (other than of char* or wchar_t*).
 #ifdef SWIG
 %ignore pointer_to_int;
