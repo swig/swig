@@ -789,9 +789,87 @@ auto** p3 = &amp;pg;         // int **
 auto const* p4 = &amp;g;     // const int * - a cv-qualifier may also follow the placeholder
 </pre></div>
 
-<p>The type still has to be deducible from the initialiser. The pointer examples above trip warning 346
-(<i>Unable to deduce auto type for variable 'p1' (ignored)</i>) and are dropped, because SWIG cannot
-deduce a type from <tt>&amp;g</tt>, the same as for any other initialiser it cannot handle.</p>
+<p>The type is deduced from the initialiser, using the declaration a name in the initialiser refers to,
+so the declarator of that declaration is part of the deduced type. Taking the address of something in
+scope deduces a pointer to it, and a named cast deduces the type it casts to:</p>
+
+<div class="code"><pre>
+int fn(int x);
+
+auto v1 = pg;                       // int *
+auto v2 = &amp;fn;                      // int (*)(int)
+auto v3 = static_cast&lt;double&gt;(g);   // double
+</pre></div>
+
+<p>As C++ requires, the top level cv-qualifiers of the initialiser are dropped unless the variable is a
+reference, so <tt>r2</tt> above is a <tt>const int &amp;</tt> while a by value <tt>auto</tt> initialised
+from a <tt>const int</tt> is a plain <tt>int</tt>.</p>
+
+<p>A braced initialiser holding a single element deduces the type of that element, which is the C++17
+rule for this form:</p>
+
+<div class="code"><pre>
+auto v4{42};   // int
+auto* v5{&amp;g};  // int *
+</pre></div>
+
+<p>A declaration declaring more than one variable is wrapped a variable at a time, each declarator keeping
+its own decoration:</p>
+
+<div class="code"><pre>
+auto v6 = 1, v7 = 2;    // two ints
+auto v8 = 3, *v9 = &amp;g;  // an int and an int *
+</pre></div>
+
+<p>C++ requires every declarator in the list to deduce to the same type, so a declarator SWIG cannot
+deduce a type from takes the type deduced for the others, whichever of them that was:</p>
+
+<div class="code"><pre>
+auto v10 = fn(1), v11 = 2;  // both int, deduced from '2'
+</pre></div>
+
+<p>Two declarators deducing different types is not valid C++, and SWIG says so while wrapping each
+variable with the type its own initialiser deduces, so that</p>
+
+<div class="code"><pre>
+auto v12 = 1, v13 = 2.5;
+</pre></div>
+
+<p>gives:</p>
+
+<div class="shell"><pre>
+example.i:28: Warning 348: Inconsistent auto type deduction for variable 'v13': initialiser '2.5' deduces 'double', not 'int'.
+</pre></div>
+
+<p>Only fundamental types are compared this way, because a typedef cannot be resolved while the
+declaration is being parsed, so a mismatch involving anything else goes unreported.</p>
+
+<p>The type still has to be deducible from the initialiser. Where no declarator of a declaration deduces
+one, the variables are dropped after issuing warning 346, and the warning says which of the two got in
+the way. An initialiser SWIG understands but cannot deduce a type from, such as a function call or the
+<a href="#CPlusPlus11_null_pointer_constant"><tt>nullptr</tt></a> literal, names the initialiser:</p>
+
+<div class="code"><pre>
+auto v14 = nullptr;
+</pre></div>
+
+<div class="shell"><pre>
+example.i:30: Warning 346: Unable to deduce auto type for variable 'v14' from initialiser 'nullptr' (ignored).
+</pre></div>
+
+<p>while an initialiser in a form SWIG does not support, such as a braced initialiser holding more than
+one element or a new expression, says so instead:</p>
+
+<div class="code"><pre>
+auto v15 = {g, 1};
+</pre></div>
+
+<div class="shell"><pre>
+example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from an unsupported initialiser (ignored).
+</pre></div>
+
+<p>The usual workaround for either is to ignore the variable, or to declare it with its actual type in
+the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
 
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
 
@@ -1031,7 +1109,16 @@ struct FinalDerivedStruct final : BaseStruct {
 <H3><a name="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</a></H3>
 
 
-<p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. In the few places it has an effect, it is treated like <tt>NULL</tt>.</p>
+<p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. Where it is the default value of a
+function parameter and the target language writes default values of its own rather than leaving them to
+the C++ layer, <tt>nullptr</tt> becomes that language's null rather than the C++ spelling, so a parameter
+defaulted to <tt>nullptr</tt> is generated as defaulted to <tt>None</tt> by Python and is documented as
+defaulted to <tt>nil</tt> by Ruby. Elsewhere it is treated like <tt>NULL</tt>.</p>
+
+<p>SWIG does not deduce a type from <tt>nullptr</tt>, so an
+<a href="#CPlusPlus11_type_inference"><tt>auto</tt></a> variable initialised with it trips warning 346
+(<i>Unable to deduce auto type for variable 'v' from initialiser 'nullptr' (ignored)</i>) and is dropped,
+the same as for any other initialiser SWIG cannot deduce a type from.</p>
 
 <H3><a name="CPlusPlus11_strongly_typed_enumerations">7.2.14 Strongly typed enumerations</a></H3>
 

@@ -1,5 +1,5 @@
-cpp_auto_variable_list.i:19: Warning 346: Unable to deduce auto type for variable 'none_deduced1' (ignored).
-cpp_auto_variable_list.i:19: Warning 346: Unable to deduce auto type for variable 'none_deduced2' (ignored).
+cpp_auto_variable_list.i:19: Warning 346: Unable to deduce auto type for variable 'none_deduced1' from initialiser 'fn(1)' (ignored).
+cpp_auto_variable_list.i:19: Warning 346: Unable to deduce auto type for variable 'none_deduced2' from initialiser 'fn(2)' (ignored).
 cpp_auto_variable_list.i:23: Warning 348: Inconsistent auto type deduction for variable 'mismatch_double': initialiser '2.5' deduces 'double', not 'int'.
 cpp_auto_variable_list.i:24: Warning 348: Inconsistent auto type deduction for variable 'mismatch_plain': initialiser '1' deduces 'int', not 'int *'.
 cpp_auto_variable_list.i:24: Warning 454: Setting a pointer/reference variable may leak memory.

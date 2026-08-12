@@ -868,13 +868,21 @@ static void add_symbols(Node *n) {
 	/* Ignore functions with an auto return type and no trailing return type
 	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
 	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
-	  SWIG_WARN_NODE_BEGIN(n);
-	  if (SwigType_isfunction(Getattr(n, "decl")))
-	    Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' (ignored).\n", Swig_name_decl(n));
-	  else
-	    Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' (ignored).\n", Swig_name_decl(n));
-	  SWIG_WARN_NODE_END(n);
-	  SetFlag(n, "feature:ignore");
+          /* Say which of the two got in the way: the form of the declaration, which is one SWIG does not
+           * support, or the initialiser, which SWIG understood but could not deduce a type from. */
+          SWIG_WARN_NODE_BEGIN(n);
+          if (SwigType_isfunction(Getattr(n, "decl"))) {
+            Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' without a trailing return type (ignored).\n",
+                Swig_name_decl(n));
+          } else if (value) {
+            Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from initialiser '%s' (ignored).\n",
+                Swig_name_decl(n), value);
+          } else {
+            Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from an unsupported initialiser (ignored).\n",
+                Swig_name_decl(n));
+          }
+          SWIG_WARN_NODE_END(n);
+          SetFlag(n, "feature:ignore");
 	}
       }
       if (Getattr(n, "autotypemismatch")) {

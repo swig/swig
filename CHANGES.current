@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Say what got in the way of deducing an 'auto' type in warnings 345
+            and 346, which previously read the same whether the initialiser was
+            one SWIG could not deduce a type from or in a form SWIG does not
+            support at all:
+
+              Warning 346: Unable to deduce auto type for variable 'v1'
+              from initialiser 'fn(1)' (ignored).
+
+              Warning 346: Unable to deduce auto type for variable 'v2'
+              from an unsupported initialiser (ignored).
+
+              Warning 345: Unable to deduce auto return type for 'f()'
+              without a trailing return type (ignored).
+
+2026-08-12: wsfulton
             Deduce the type of a named cast, both for an 'auto' variable and for
             decltype:
 

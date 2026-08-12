@@ -1,8 +1,8 @@
-cpp_auto_return_type.i:8: Warning 345: Unable to deduce auto return type for 'plain() const' (ignored).
-cpp_auto_return_type.i:12: Warning 345: Unable to deduce auto return type for 'cref() const' (ignored).
-cpp_auto_return_type.i:16: Warning 345: Unable to deduce auto return type for 'cref2() const' (ignored).
-cpp_auto_return_type.i:17: Warning 345: Unable to deduce auto return type for 'forward_decl() const' (ignored).
-cpp_auto_return_type.i:20: Warning 345: Unable to deduce auto return type for 'global_cref()' (ignored).
-cpp_auto_return_type.i:21: Warning 345: Unable to deduce auto return type for 'global_cref2()' (ignored).
+cpp_auto_return_type.i:8: Warning 345: Unable to deduce auto return type for 'plain() const' without a trailing return type (ignored).
+cpp_auto_return_type.i:12: Warning 345: Unable to deduce auto return type for 'cref() const' without a trailing return type (ignored).
+cpp_auto_return_type.i:16: Warning 345: Unable to deduce auto return type for 'cref2() const' without a trailing return type (ignored).
+cpp_auto_return_type.i:17: Warning 345: Unable to deduce auto return type for 'forward_decl() const' without a trailing return type (ignored).
+cpp_auto_return_type.i:20: Warning 345: Unable to deduce auto return type for 'global_cref()' without a trailing return type (ignored).
+cpp_auto_return_type.i:21: Warning 345: Unable to deduce auto return type for 'global_cref2()' without a trailing return type (ignored).
 cpp_auto_return_type.i:24: Error: Function bad_trailing(int) with a trailing return type cannot have a qualifier on 'auto'.
 cpp_auto_return_type.i:25: Error: Function bad_trailing2(int) with a trailing return type cannot have a qualifier on 'auto'.
