@@ -113,8 +113,30 @@ struct X {
 </pre></div>
 
 <p>
+A conversion function can have a deduced return type too, and the same
+workaround applies:
+</p>
+
+<div class="code"><pre>
+%warnfilter(SWIGWARN_CPP14_AUTO) Deduced::operator auto;
+
+%extend Deduced {
+  int toInt() const { return static_cast&lt;int&gt;(*$self); }
+}
+
+%inline %{
+struct Deduced {
+  int v;
+  Deduced(int vv) : v(vv) {}
+  operator auto() const { return v; }
+};
+%}
+</pre></div>
+
+<p>
 <b>Compatibility note:</b> SWIG-4.2.0 first introduced support for functions declared with an auto return without a trailing return type.
 SWIG 4.4.0 added support for forward declarations of such functions.
+SWIG-4.6.0 added support for a conversion function with a deduced return type.
 </p>
 
 

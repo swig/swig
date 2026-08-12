@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Add support for the C++14 conversion function with a deduced return
+            type, which was previously a syntax error:
+
+              struct S {
+                operator auto() const { return 42; }
+              };
+
+            SWIG cannot deduce the type, so the conversion function is ignored
+            with warning 345, just like any other function with an 'auto' return
+            type and no trailing return type.
+
+2026-08-12: wsfulton
             Accept any type as the explicit trailing return type of a lambda,
             including the C++14 'auto' placeholder. These were previously a
             syntax error:

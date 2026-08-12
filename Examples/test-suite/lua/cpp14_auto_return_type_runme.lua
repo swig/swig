@@ -9,3 +9,6 @@ assert(a == "a string", "x.a")
 
 local c = x:cref()
 assert(c == 42, "x.cref")
+
+local d = v.Deduced(7)
+assert(d:toInt() == 7, "Deduced.toInt")

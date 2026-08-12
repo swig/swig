@@ -6225,6 +6225,29 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		Delete($CONVERSIONOPERATOR);
 		Delete($storage_class);
               }
+              /* C++14 conversion function with a deduced return type: 'operator auto()'.  SWIG cannot deduce the
+               * type from the body, so the placeholder is kept as the type and add_symbols() then reports it the
+               * same way as any other function with an undeduced 'auto' return type. */
+              | storage_class CONVERSIONOPERATOR auto_type_holder LPAREN parms RPAREN cpp_vend {
+                SwigType *t = NewStringEmpty();
+                $$ = new_node("cdecl");
+                set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
+                Setattr($$, "name", $CONVERSIONOPERATOR);
+                Setattr($$, "storage", $storage_class);
+                SwigType_add_function(t, $parms);
+                if ($cpp_vend.qualifier)
+                  SwigType_push(t, $cpp_vend.qualifier);
+                if ($cpp_vend.val)
+                  Setattr($$, "value", $cpp_vend.val);
+                Setattr($$, "refqualifier", $cpp_vend.refqualifier);
+                Setattr($$, "decl", t);
+                Setattr($$, "parms", $parms);
+                Setattr($$, "conversion_operator", "1");
+                add_symbols($$);
+                Delete(t);
+                Delete($CONVERSIONOPERATOR);
+                Delete($storage_class);
+              }
               ;
 
 /* isolated catch clause. */

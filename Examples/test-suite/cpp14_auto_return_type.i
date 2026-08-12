@@ -75,3 +75,20 @@ const auto& global_cref();
 auto const& global_cref2();
 
 %}
+
+// A conversion function can have a deduced return type too.
+// SWIG cannot deduce it, so the same workaround applies - here %extend provides a member
+// function calling the conversion function.
+%warnfilter(SWIGWARN_CPP14_AUTO) Deduced::operator auto;
+
+%extend Deduced {
+  int toInt() const { return static_cast<int>(*$self); }
+}
+
+%inline %{
+struct Deduced {
+  int v;
+  Deduced(int vv) : v(vv) {}
+  operator auto() const { return v; }
+};
+%}

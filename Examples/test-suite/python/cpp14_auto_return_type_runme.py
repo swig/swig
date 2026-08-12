@@ -6,3 +6,5 @@ swig_check(va_static_cast(), 42)
 x = X()
 swig_check(x.a(), "a string")
 swig_check(x.cref(), 42)
+
+swig_check(Deduced(7).toInt(), 7)
