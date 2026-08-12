@@ -2376,6 +2376,17 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
   Delete(declaration_type);
 }
 
+/* The initialiser held in the braced initialiser text 'braced', that is the text between the outermost braces
+   with any surrounding whitespace removed, so '{ 42 }' gives '42' and '{}' gives an empty string. */
+static String *braced_initialiser_value(String *braced) {
+  String *value;
+  if (Len(braced) < 2)
+    return NewStringEmpty();
+  value = NewStringWithSize(Char(braced) + 1, Len(braced) - 2);
+  Swig_cparse_trim_whitespace(value);
+  return value;
+}
+
 // Append scanner_ccode to expr.  Some cleaning up of the code may be done.
 static void append_expr_from_scanner(String *expr) {
   if (Strchr(scanner_ccode, '"') == NULL) {
@@ -4043,14 +4054,36 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * can be wrapped.  This also means you can provide declaration
             * with an explicit return type in the interface file for SWIG
             * to wrap.
+            *
+            * The braces are a braced initialiser rather than a function body when the declarator is not a
+            * function declarator, as in the C++11 variable declaration 'auto v{42};'.  A single element braced
+            * initialiser deduces the type of that element from C++17 onwards, which is also what the compilers
+            * that implement N3922 do for C++11 and C++14.
             */
            | storage_class auto_type_holder declarator cpp_const LBRACE {
+              int braced_initialiser = !SwigType_isfunction($declarator.type);
 	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
-              set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
+              if (braced_initialiser) {
+                struct Define dtype = default_dtype;
+                SwigType *type;
+                dtype.val = braced_initialiser_value(scanner_ccode);
+                dtype.type = literal_type_code(dtype.val);
+                type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier);
+                if (!type)
+                  type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
+                Setattr($$, "type", type);
+                Setattr($$, "valuetype", type);
+                if (Len(dtype.val) > 0)
+                  Setattr($$, "value", dtype.val);
+                Delete(dtype.val);
+                Delete(type);
+              } else {
+                set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
+              }
 	      Setattr($$, "storage", $storage_class);
 	      Setattr($$, "name", $declarator.id);
 	      Setattr($$, "decl", $declarator.type);

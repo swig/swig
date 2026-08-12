@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Deduce the type of an 'auto' variable initialised with a braced
+            initialiser instead of discarding the initialiser:
+
+              auto v{42};   // int
+
+            The value was previously dropped and the variable ignored with
+            warning 346. A braced initialiser holding a single element deduces
+            the type of that element, which is the C++17 rule and also what
+            compilers implementing N3922 do in C++11 and C++14 mode. An empty or
+            multiple element braced initialiser is still undeducible, and is not
+            valid C++ for an 'auto' variable anyway.
+
+2026-08-12: wsfulton
             Fix an 'auto' declaration that declares more than one variable
             dropping all but the first declarator:
 
