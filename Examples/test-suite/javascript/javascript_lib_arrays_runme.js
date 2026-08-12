@@ -17,4 +17,4 @@ function check_array(a, b) {
 
 check(15, javascript_lib_arrays.sum1(arr, arr.length));
 check(6, javascript_lib_arrays.sum2(arr));
-check_array([1, 2, 3, 4], javascript_lib_arrays.data3)
+check_array([1, 2, 3, 4], javascript_lib_arrays.data3);
