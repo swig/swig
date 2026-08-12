@@ -37,6 +37,7 @@ extern void scanner_next_token(int);
 extern int skip_balanced(int startchar, int endchar);
 extern String *get_raw_text_balanced(int startchar, int endchar);
 extern String *get_raw_text_to_semicolon(void);
+extern int literal_type_code(String *text);
 extern void skip_decl(void);
 extern Node *parse_requirement_seq(String *body_text);
 extern void scanner_last_id(int);

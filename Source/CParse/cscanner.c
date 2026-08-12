@@ -191,6 +191,86 @@ String *get_raw_text_to_semicolon(void) {
   return Scanner_get_raw_text_to_semicolon(scan);
 }
 
+/* The literal tokens the scanner returns, each with the token the grammar is given for it and the T_* type code
+ * of the literal.  yylook() needs the second column, yylex() the third and literal_type_code() the third given
+ * the first, so the three are listed here once rather than as a switch statement in each of them. */
+
+static const struct literal_token {
+  int scanner_token; /* SWIG_TOKEN_* the scanner returns */
+  int parser_token;  /* token yylook() returns to the grammar for it */
+  int type_code;     /* T_* type code of the literal */
+} literal_tokens[] = {
+  {SWIG_TOKEN_INT,        NUM_INT,        T_INT       },
+  {SWIG_TOKEN_UINT,       NUM_UNSIGNED,   T_UINT      },
+  {SWIG_TOKEN_LONG,       NUM_LONG,       T_LONG      },
+  {SWIG_TOKEN_ULONG,      NUM_ULONG,      T_ULONG     },
+  {SWIG_TOKEN_LONGLONG,   NUM_LONGLONG,   T_LONGLONG  },
+  {SWIG_TOKEN_ULONGLONG,  NUM_ULONGLONG,  T_ULONGLONG },
+  {SWIG_TOKEN_FLOAT,      NUM_FLOAT,      T_FLOAT     },
+  {SWIG_TOKEN_DOUBLE,     NUM_DOUBLE,     T_DOUBLE    },
+  {SWIG_TOKEN_LONGDOUBLE, NUM_LONGDOUBLE, T_LONGDOUBLE},
+  {SWIG_TOKEN_BOOL,       NUM_BOOL,       T_BOOL      },
+  {SWIG_TOKEN_CHAR,       CHARCONST,      T_CHAR      },
+  {SWIG_TOKEN_WCHAR,      WCHARCONST,     T_WCHAR     },
+  {SWIG_TOKEN_STRING,     STRING,         T_STRING    },
+  {SWIG_TOKEN_WSTRING,    WSTRING,        T_WSTRING   }
+};
+
+/* The literal_tokens[] entry for the SWIG_TOKEN_* value 'tok', or 0 when the scanner token is not a literal. */
+
+static const struct literal_token *scanner_literal_token(int tok) {
+  size_t i;
+  for (i = 0; i < sizeof(literal_tokens) / sizeof(literal_tokens[0]); i++) {
+    if (literal_tokens[i].scanner_token == tok)
+      return &literal_tokens[i];
+  }
+  return 0;
+}
+
+/* The literal_tokens[] entry for the grammar token 'tok', or 0 when the token is not one a literal is passed to
+ * the grammar as. */
+
+static const struct literal_token *parser_literal_token(int tok) {
+  size_t i;
+  for (i = 0; i < sizeof(literal_tokens) / sizeof(literal_tokens[0]); i++) {
+    if (literal_tokens[i].parser_token == tok)
+      return &literal_tokens[i];
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * literal_type_code()
+ *
+ * Returns the T_* type code of 'text' when the text is a single literal, optionally preceded by a unary '+' or '-',
+ * such as the '42' of the braced initialiser in 'auto v{42}'.  Returns T_UNKNOWN for anything else, including an
+ * identifier, an empty text and an expression made up of more than one token.
+ *
+ * A private scanner is used so that reading the text cannot disturb the scanner the parser reads its input from.
+ * ----------------------------------------------------------------------------- */
+
+int literal_type_code(String *text) {
+  Scanner *literal = NewScanner();
+  String *copy = Copy(text);
+  const struct literal_token *entry;
+  int code = T_UNKNOWN;
+  int tok;
+
+  Seek(copy, 0, SEEK_SET);
+  Scanner_push(literal, copy);
+  tok = Scanner_token(literal);
+  if (tok == SWIG_TOKEN_PLUS || tok == SWIG_TOKEN_MINUS)
+    tok = Scanner_token(literal);
+  entry = scanner_literal_token(tok);
+  /* A token following the literal means the text is an expression rather than a text a type can be read off. */
+  if (entry && Scanner_token(literal) <= 0)
+    code = entry->type_code;
+
+  DelScanner(literal);
+  Delete(copy);
+  return code;
+}
+
 /* ----------------------------------------------------------------------------
  * void skip_decl(void)
  *
@@ -607,58 +687,31 @@ static int yylook(void) {
       /* Look for multi-character sequences */
 
     case SWIG_TOKEN_STRING:
-      yylval.str = NewString(Scanner_text(scan));
-      return STRING;
-
     case SWIG_TOKEN_WSTRING:
       yylval.str = NewString(Scanner_text(scan));
-      return WSTRING;
+      return scanner_literal_token(tok)->parser_token;
 
     case SWIG_TOKEN_CHAR:
-      yylval.str = NewString(Scanner_text(scan));
-      if (Len(yylval.str) == 0) {
-        Swig_error(cparse_file, cparse_line, "Empty character constant\n");
-      }
-      return CHARCONST;
-
     case SWIG_TOKEN_WCHAR:
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
         Swig_error(cparse_file, cparse_line, "Empty character constant\n");
       }
-      return WCHARCONST;
+      return scanner_literal_token(tok)->parser_token;
 
       /* Numbers */
 
     case SWIG_TOKEN_INT:
-      return NUM_INT;
-
     case SWIG_TOKEN_UINT:
-      return NUM_UNSIGNED;
-
     case SWIG_TOKEN_LONG:
-      return NUM_LONG;
-
     case SWIG_TOKEN_ULONG:
-      return NUM_ULONG;
-
     case SWIG_TOKEN_LONGLONG:
-      return NUM_LONGLONG;
-
     case SWIG_TOKEN_ULONGLONG:
-      return NUM_ULONGLONG;
-
     case SWIG_TOKEN_DOUBLE:
-      return NUM_DOUBLE;
-
     case SWIG_TOKEN_FLOAT:
-      return NUM_FLOAT;
-
     case SWIG_TOKEN_LONGDOUBLE:
-      return NUM_LONGDOUBLE;
-
     case SWIG_TOKEN_BOOL:
-      return NUM_BOOL;
+      return scanner_literal_token(tok)->parser_token;
 
     case SWIG_TOKEN_POUND:
       Scanner_skip_line(scan);
@@ -868,43 +921,17 @@ int yylex(void) {
   switch (l) {
 
   case NUM_INT:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_INT;
-    goto num_common;
   case NUM_DOUBLE:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_DOUBLE;
-    goto num_common;
   case NUM_FLOAT:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_FLOAT;
-    goto num_common;
   case NUM_LONGDOUBLE:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_LONGDOUBLE;
-    goto num_common;
   case NUM_ULONG:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_ULONG;
-    goto num_common;
   case NUM_LONG:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_LONG;
-    goto num_common;
   case NUM_UNSIGNED:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_UINT;
-    goto num_common;
   case NUM_LONGLONG:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_LONGLONG;
-    goto num_common;
   case NUM_ULONGLONG:
-    yylval.dtype = default_dtype;
-    yylval.dtype.type = T_ULONGLONG;
-    goto num_common;
-num_common:
     {
+      yylval.dtype = default_dtype;
+      yylval.dtype.type = parser_literal_token(l)->type_code;
       yylval.dtype.val = NewString(Scanner_text(scan));
       const char *c = Char(yylval.dtype.val);
       if (c[0] == '0') {
@@ -943,7 +970,7 @@ num_common:
     }
   case NUM_BOOL:
     yylval.dtype = default_dtype;
-    yylval.dtype.type = T_BOOL;
+    yylval.dtype.type = parser_literal_token(l)->type_code;
     yylval.dtype.val = NewString(Scanner_text(scan));
     yylval.dtype.numval = NewString(Equal(yylval.dtype.val, "false") ? "0" : "1");
     return (l);

@@ -8,6 +8,34 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Fix an 'auto' declaration that declares more than one variable
+            dropping all but the first declarator:
+
+              auto x = 1, y = 2;
+
+            Previously only 'x' reached the parse tree, and it was ignored with
+            warning 346 as the initialiser never reached the deduction. Both
+            variables are now wrapped. C++ requires every declarator in the list
+            to deduce to the same type, so a declarator SWIG cannot deduce a type
+            from takes the type deduced for the others, and each declarator keeps
+            its own decoration:
+
+              int g = 42;
+              int fn(int x);
+              auto v = 1, *p = &g;    // int v and int *p
+              auto u = fn(1), w = 2;  // both int, deduced from '2'
+
+            Only a declaration no declarator at all deduces a type from is
+            dropped, and warning 346 then names each variable's own initialiser
+            rather than blaming one declarator for another's. Two declarators
+            deducing different types is not valid C++ and is reported by the new
+            warning 348, with each variable still wrapped with the type its own
+            initialiser deduced:
+
+              Warning 348: Inconsistent auto type deduction for variable 'y':
+              initialiser '2.5' deduces 'double', not 'int'.
+
+2026-08-12: wsfulton
             Deduce the type of an 'auto' variable from the declaration its
             initialiser refers to. The declarator of that declaration is now part
             of the deduced type, and the address of something in scope deduces to

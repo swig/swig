@@ -877,6 +877,22 @@ static void add_symbols(Node *n) {
 	  SetFlag(n, "feature:ignore");
 	}
       }
+      if (Getattr(n, "autotypemismatch")) {
+        /* Two declarators of one 'auto' declaration deduced different types, which C++ does not allow, so the
+         * declaration does not compile as it stands.  Each variable is still wrapped with the type its own
+         * initialiser deduced, which is the best guess SWIG can make at what was meant. */
+        if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
+          String *deduced = SwigType_str(Getattr(n, "type"), 0);
+          String *shared = SwigType_str(Getattr(n, "autotypemismatch"), 0);
+          SWIG_WARN_NODE_BEGIN(n);
+          Swig_warning(WARN_CPP11_AUTO_INCONSISTENT_DEDUCTION, Getfile(n), Getline(n),
+              "Inconsistent auto type deduction for variable '%s': initialiser '%s' deduces '%s', not '%s'.\n", Swig_name_decl(n), value, deduced, shared);
+          SWIG_WARN_NODE_END(n);
+          Delete(shared);
+          Delete(deduced);
+        }
+        Delattr(n, "autotypemismatch");
+      }
     }
     if (only_csymbol || GetFlag(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0) {
       /* Only add to C symbol table and continue */
@@ -2091,7 +2107,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     types_directive template_directive warn_directive ;
 
 /* C declarations */
-%type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl deduction_guide;
+%type <node>     c_declaration c_decl c_decl_tail c_decl_list_tail auto_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl deduction_guide;
 %type <type>     c_enum_inherit;
 %type <node>     enumlist enumlist_item edecl_with_dox edecl;
 %type <id>       c_enum_key;
@@ -2272,6 +2288,92 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
     placeholder = 0;
   }
   return placeholder;
+}
+
+/* The type of an 'auto' variable declared with declarator 'decl' and initialised by 'dtype', which is the type
+   deduced from the initialiser with the declarator decoration removed and the placeholder's own cv-qualifier
+   added back.  Returns 0 when the initialiser is not one a type can be deduced from.  A function declarator makes
+   the placeholder a deduced return type rather than a variable type, as in 'auto f() = delete;', and there is
+   then nothing to deduce it from. */
+static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, String *qualifier) {
+  SwigType *type = 0;
+  SwigType *initialiser_type = SwigType_isfunction(decl) ? 0 : deduce_type(dtype);
+
+  if (initialiser_type) {
+    type = deduce_auto_placeholder(initialiser_type, decl);
+    Delete(initialiser_type);
+  }
+  if (type && qualifier)
+    SwigType_push(type, qualifier);
+  return type;
+}
+
+/* Whether the types deduced for two declarators of one 'auto' declaration are certainly different types, rather
+   than two spellings SWIG cannot yet tell denote the same type.  Only the fundamental types are spelled
+   canonically while a declaration is being parsed: the 'myint' of 'typedef int myint;' is a different string to
+   'int' but the same type, and the typedef is not resolvable yet, so anything not a fundamental type is left
+   alone rather than reported as a mismatch. */
+static int auto_types_differ(SwigType *type1, SwigType *type2) {
+  int code1 = SwigType_type(type1);
+  int code2 = SwigType_type(type2);
+  if (code1 == T_USER || code2 == T_USER || code1 == T_UNKNOWN || code2 == T_UNKNOWN)
+    return 0;
+  return code1 != code2;
+}
+
+/* Set the type of every variable declared by one 'auto' declaration, given the chain of declarator nodes starting
+   at 'first' and 'first_dtype', the initialiser the grammar evaluated for the first of them.
+
+   C++ deduces a single type for the whole declaration - N4861 [dcl.spec.auto] paragraph 7 makes the program
+   ill-formed when the declarators do not all deduce the same type - so a declarator whose own initialiser is not
+   one SWIG can deduce from takes the type its siblings deduced.  Only when no declarator at all deduces a type is
+   the placeholder left in place, for add_symbols() to ignore each variable with a warning naming its own
+   initialiser.  A declarator that deduces a different type to the declaration is marked so that add_symbols() can
+   report the inconsistency; it keeps the type its own initialiser deduced, which is the best guess available.
+
+   The declarators after the first are read back from the parse tree, which holds the text of the initialiser but
+   not the value the grammar evaluated for it, so a type is deduced from a name or a single literal only. */
+static void set_auto_variable_types(Node *first, const struct Define *first_dtype, String *qualifier, String *conceptid) {
+  SwigType *declaration_type = 0;
+  Node *n;
+
+  for (n = first; n; n = nextSibling(n)) {
+    struct Define dtype = default_dtype;
+    SwigType *type;
+    if (n == first) {
+      dtype = *first_dtype;
+    } else {
+      dtype.val = Getattr(n, "value");
+      if (dtype.val)
+        dtype.type = literal_type_code(dtype.val);
+    }
+    type = auto_variable_type(&dtype, Getattr(n, "decl"), qualifier);
+    if (type) {
+      Setattr(n, "autotype", type);
+      if (!declaration_type)
+        declaration_type = Copy(type);
+      Delete(type);
+    }
+  }
+
+  for (n = first; n; n = nextSibling(n)) {
+    SwigType *type = Getattr(n, "autotype");
+    if (type && declaration_type && !Equal(type, declaration_type) && auto_types_differ(type, declaration_type))
+      Setattr(n, "autotypemismatch", declaration_type);
+    if (!type)
+      type = declaration_type;
+    if (type) {
+      Setattr(n, "type", type);
+      Setattr(n, "valuetype", type);
+    } else {
+      SwigType *holder = auto_type_holder_type(qualifier, conceptid);
+      Setattr(n, "type", holder);
+      Setattr(n, "valuetype", holder);
+      Delete(holder);
+    }
+    Delattr(n, "autotype");
+  }
+  Delete(declaration_type);
 }
 
 // Append scanner_ccode to expr.  Some cleaning up of the code may be done.
@@ -4029,32 +4131,25 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
            /* C++11 auto variable declaration.  The declarator carries any '&', '&&', '*' and cv-qualifiers applied
               to the placeholder, so 'auto&& r = 42;' has type 'int' and decl 'z.'.  A cv-qualifier on the
               placeholder itself is kept on the deduced type, so 'const auto x = 42;' has type 'q(const).int'. */
-           | storage_class auto_type_holder declarator EQUAL definetype SEMI {
-              /* A function declarator makes the placeholder a deduced return type rather than a variable type,
-               * as in 'auto f() = delete;', and there is then nothing to deduce it from. */
-              SwigType *initialiser_type = SwigType_isfunction($declarator.type) ? 0 : deduce_type(&$definetype);
-              SwigType *type = 0;
-              if (initialiser_type) {
-                type = deduce_auto_placeholder(initialiser_type, $declarator.type);
-                Delete(initialiser_type);
-              }
-              if (type) {
-                if ($auto_type_holder.qualifier)
-                  SwigType_push(type, $auto_type_holder.qualifier);
-              } else {
-                type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
-	      }
+           | storage_class auto_type_holder declarator EQUAL definetype auto_decl_tail {
 	      $$ = new_node("cdecl");
-	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
               Setattr($$, "name", $declarator.id);
               Setattr($$, "decl", $declarator.type);
 	      Setattr($$, "value", $definetype.val);
 	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
 	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
-	      Setattr($$, "valuetype", type);
+              /* Each declarator of a declaration declaring more than one variable keeps its own decoration and its
+               * own initialiser, so the 'p' of 'auto x = 1, *p = &g;' is an 'int *', but they all share the one
+               * type deduced for the placeholder. */
+              if ($auto_decl_tail) {
+                Node *n;
+                for (n = $auto_decl_tail; n; n = nextSibling(n))
+                  Setattr(n, "storage", $storage_class);
+                set_nextSibling($$, $auto_decl_tail);
+              }
+              set_auto_variable_types($$, &$definetype, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      Delete($storage_class);
-	      Delete(type);
 	   }
 	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
            | storage_class auto_type_holder declarator EQUAL error SEMI {
@@ -4072,11 +4167,11 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 /* Allow lists of variables and functions to be built up */
 
-c_decl_tail    : SEMI { 
-                   $$ = 0;
-                   Clear(scanner_ccode); 
-               }
-               | COMMA declarator cpp_const initializer c_decl_tail[in] {
+/* The declarators following the first one in a declaration that declares more than one, such as the ', y = 2'
+   of 'int x = 1, y = 2;'.  Split out of c_decl_tail so that the C++11 'auto' variable declaration can reuse it
+   without also reaching c_decl_tail's error alternative, which turns an initialiser SWIG cannot parse into a
+   fatal error rather than into the ignored declaration an 'auto' variable gets. */
+c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
 		 $$ = new_node("cdecl");
 		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
 		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
@@ -4103,6 +4198,13 @@ c_decl_tail    : SEMI {
 		   set_nextSibling($$, $in);
 		 }
 	       }
+                 ;
+
+c_decl_tail    : SEMI { 
+                   $$ = 0;
+                   Clear(scanner_ccode); 
+               }
+               | c_decl_list_tail
                | LBRACE { 
                    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
                    $$ = 0;
@@ -4117,6 +4219,15 @@ c_decl_tail    : SEMI {
 		   Exit(EXIT_FAILURE);
                }
               ;
+
+/* The end of a C++11 'auto' variable declaration: the semicolon, or the remaining declarators when the
+   declaration declares more than one variable. */
+auto_decl_tail : SEMI {
+                   $$ = 0;
+                   Clear(scanner_ccode);
+               }
+               | c_decl_list_tail
+               ;
 
 initializer   : def_args
 	      | COLON expr {
