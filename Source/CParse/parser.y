@@ -3452,6 +3452,17 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
   Delete(declaration_type);
 }
 
+/* The initialiser held in the braced initialiser text 'braced', that is the text between the outermost braces
+   with any surrounding whitespace removed, so '{ 42 }' gives '42' and '{}' gives an empty string. */
+static String *braced_initialiser_value(String *braced) {
+  String *value;
+  if (Len(braced) < 2)
+    return NewStringEmpty();
+  value = NewStringWithSize(Char(braced) + 1, Len(braced) - 2);
+  Swig_cparse_trim_whitespace(value);
+  return value;
+}
+
 // Append scanner_ccode to expr.  Some cleaning up of the code may be done.
 static void append_expr_from_scanner(String *expr) {
   if (Strchr(scanner_ccode, '"') == NULL) {
