@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Accept a C++20 trailing requires-clause on a function declared with
+            a trailing return type, which was previously a syntax error:
+
+              template<typename T> auto f(T t) -> T requires Numeric<T> { return t; }
+
+2026-08-12: wsfulton
             Accept any type as the C++11 trailing return type of a function.
             Pointers, references to a primitive type, array references and
             function pointers were previously a syntax error:

@@ -4089,10 +4089,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
            /* Alternate function syntax introduced in C++11, with the C++20 constrained placeholder allowed too:
             *   auto funcName(int x, int y) -> int;
             *   Numeric auto fn(int x) -> int { return x; }
+            *   auto fn(T t) -> T requires Numeric<T> { return t; }
             * The trailing return type is what SWIG wraps; the concept-id is captured as a
             * 'concept-id' atom on the 'constraint' attribute for downstream inspection.  A cv-qualifier on the
-            * placeholder is not valid C++ here, the declared type has to be the placeholder on its own. */
-           | storage_class auto_type_holder declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
+            * placeholder is not valid C++ here, the declared type has to be the placeholder on its own.
+            * The trailing requires-clause comes after the trailing return type, that being the end of the
+            * declarator, and is conjoined with any type-constraint on the placeholder. */
+           | storage_class auto_type_holder declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt requires_clause_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
@@ -4106,6 +4109,11 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"noexcept",$cpp_const.nexcept);
 	      Setattr($$,"final",$cpp_const.final);
               set_concept_constraint($$, $auto_type_holder.conceptid);
+              if ($requires_clause_opt) {
+                Node *placeholder = Getattr($$, "constraint");
+                Node *constraint = placeholder ? Constraint_combine("and", placeholder, $requires_clause_opt) : $requires_clause_opt;
+                Setattr($$, "constraint", constraint);
+              }
               if ($auto_type_holder.qualifier)
                 Swig_error(cparse_file, cparse_line, "Function %s with a trailing return type cannot have a qualifier on 'auto'.\n", Swig_name_decl($$));
               if ($declarator.explicit_object_parm)

@@ -23,6 +23,10 @@ check_equal(half_int(-9), -4)
 check_equal(identity_int(42), 42)
 check_equal(identity_int(-1), -1)
 
+# Trailing requires-clause after a trailing return type.
+check_equal(negate_value_int(5), -5)
+check_equal(triple_int(-3), -9)
+
 # Trailing requires-clause whose constraint contains a requires-expression
 # as a primary.
 check_equal(add_int(2, 3), 5)

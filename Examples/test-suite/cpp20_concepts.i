@@ -43,6 +43,20 @@ T identity(T x) {
   return x;
 }
 
+// Trailing requires-clause after a trailing return type, the trailing return
+// type being the end of the declarator.
+template<typename T>
+auto negate_value(T x) -> T requires Numeric<T> {
+  return -x;
+}
+
+// Prefix and trailing requires-clauses on the same trailing return type.
+template<typename T>
+requires Numeric<T>
+auto triple(T x) -> T requires SmallNumeric<T> {
+  return 3 * x;
+}
+
 // Trailing requires-clause whose constraint contains a requires-expression
 // as a primary - the inner '{ t + t; }' is part of the constraint, not the
 // function body.
@@ -127,6 +141,8 @@ bool check_container(T c) requires BasicContainer<T> {
 %template(quad_double)  quad<double>;
 %template(half_int)     half<int>;
 %template(identity_int) identity<int>;
+%template(negate_value_int) negate_value<int>;
+%template(triple_int)   triple<int>;
 %template(add_int)      add<int>;
 %template(sum_pair_int) sum_pair<int>;
 %template(add_same_int) add_same<int>;

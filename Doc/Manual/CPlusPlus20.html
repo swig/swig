@@ -347,6 +347,24 @@ example <tt>requires Numeric&lt;T&gt; &amp;&amp; SmallNumeric&lt;T&gt;</tt> or
 </p>
 
 <p>
+When the function has a
+<a href="CPlusPlus11.html#CPlusPlus11_alternate_function_syntax">trailing return type</a>,
+the trailing requires-clause comes after it, the trailing return type being the
+end of the declarator:
+</p>
+
+<div class="code">
+<pre>
+template&lt;typename T&gt;
+auto negate_value(T x) -&gt; T requires Numeric&lt;T&gt; {
+  return -x;
+}
+
+%template(negate_value_int) negate_value&lt;int&gt;;
+</pre>
+</div>
+
+<p>
 The body of a <tt>concept</tt> is not restricted to concept names: any
 expression is accepted, including a bare literal and one containing a
 top level comparison operator.

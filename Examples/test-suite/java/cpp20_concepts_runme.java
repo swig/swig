@@ -43,6 +43,12 @@ public class cpp20_concepts_runme {
     if (cpp20_concepts.identity_int(-1) != -1)
       throw new RuntimeException("identity_int(-1)");
 
+    // Trailing requires-clause after a trailing return type.
+    if (cpp20_concepts.negate_value_int(5) != -5)
+      throw new RuntimeException("negate_value_int(5)");
+    if (cpp20_concepts.triple_int(-3) != -9)
+      throw new RuntimeException("triple_int(-3)");
+
     // Trailing requires-clause whose constraint contains a requires-expression
     // as a primary.
     if (cpp20_concepts.add_int(2, 3) != 5)
