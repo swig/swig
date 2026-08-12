@@ -1305,6 +1305,24 @@ SWIG handles a type alias exactly as it handles the equivalent <tt>typedef</tt>,
 treatment is required.
 </p>
 
+<p>
+A function type can also be written with the
+<a href="#CPlusPlus11_alternate_function_syntax">alternate function syntax</a>, in an alias
+declaration or an alias template:
+</p>
+
+<div class="code"><pre>
+using alt_callback_t = auto (*)(int) -&gt; int;
+using alt_function_t = auto (int) -&gt; int;
+
+template&lt;typename T&gt; using alt_fn_t = auto (*)(T) -&gt; T;
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to accept a trailing return type in an alias declaration.
+The equivalent <tt>typedef</tt> spelling was already accepted.
+</p>
+
 <H3><a name="CPlusPlus11_alias_templates">7.2.18 Alias templates</a></H3>
 
 

@@ -113,6 +113,21 @@ callback_t get_callback() { return mult2; }
 int call(callback_t funk, int param) { return funk(param); }
 %}
 
+// The same function pointer type written with the alternate function syntax
+
+%inline %{
+using alt_callback_t = auto (*)(int) -> int;
+using alt_function_t = auto (int) -> int;
+
+// Alias template - not used in a wrapped declaration as SWIG treats an alias template
+// instantiation as an opaque type, for the alternate function syntax and for any other type.
+template<typename T> using alt_fn_t = auto (*)(T) -> T;
+
+alt_callback_t get_alt_callback() { return mult2; }
+int call_alt(alt_callback_t funk, int param) { return funk(param); }
+int call_alt_fn(alt_function_t *funk, int param) { return funk(param); }
+%}
+
 
 // Template template parameters - from #1021
 %inline %{

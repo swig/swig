@@ -16,3 +16,5 @@ assert(pair.a == 3, "pair.a should be 3")
 assert(v.plus1(5) == 6, "plus1(5) should return 6")
 -- assert(v.call(v.mult2_cb, 7) == 14, "call(mult2_cb, 7) should return 14") TODO '%callback' does not work
 assert(v.call(v.get_callback(), 7) == 14, "call(get_callback(), 7) should return 14")
+assert(v.call_alt(v.get_alt_callback(), 7) == 14, "call_alt(get_alt_callback(), 7) should return 14")
+assert(v.call_alt_fn(v.get_alt_callback(), 7) == 14, "call_alt_fn(get_alt_callback(), 7) should return 14")

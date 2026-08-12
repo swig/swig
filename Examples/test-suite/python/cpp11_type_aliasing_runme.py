@@ -30,3 +30,9 @@ if call(mult2_cb, 7) != 14:
 
 if call(get_callback(), 7) != 14:
     raise RuntimeError("call(get_callback(), 7) should return 14")
+
+if call_alt(get_alt_callback(), 7) != 14:
+    raise RuntimeError("call_alt(get_alt_callback(), 7) should return 14")
+
+if call_alt_fn(get_alt_callback(), 7) != 14:
+    raise RuntimeError("call_alt_fn(get_alt_callback(), 7) should return 14")

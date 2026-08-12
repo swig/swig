@@ -3930,6 +3930,19 @@ c_declaration   : c_decl {
 		  SetFlag($$,"typealias");
 		  add_symbols($$);
 		}
+                /* Alias declaration for a function type written with the C++11 alternate function syntax, such as
+                   'using FP = auto (*)(int) -> int;'.  */
+                | USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
+                  $$ = new_node("cdecl");
+                  Setattr($$, "type", $cpp_alternate_rettype);
+                  Setattr($$, "storage", "typedef");
+                  Setattr($$, "name", $idcolon);
+                  Setattr($$, "decl", $abstract_declarator.type);
+                  SetFlag($$, "typealias");
+                  if ($auto_type_holder.qualifier)
+                    Swig_error(cparse_file, cparse_line, "Alias %s with a trailing return type cannot have a qualifier on 'auto'.\n", $idcolon);
+                  add_symbols($$);
+                }
                 | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL type plain_declarator SEMI {
 		  /* Convert alias template to a "template" typedef statement */
 		  $$ = new_node("template");
@@ -3944,6 +3957,22 @@ c_declaration   : c_decl {
 		    Setattr($$, "constraint", $requires_clause_opt);
 		  add_symbols($$);
 		}
+                /* Alias template for a function type written with the C++11 alternate function syntax. */
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
+                  $$ = new_node("template");
+                  Setattr($$, "type", $cpp_alternate_rettype);
+                  Setattr($$, "storage", "typedef");
+                  Setattr($$, "name", $idcolon);
+                  Setattr($$, "decl", $abstract_declarator.type);
+                  Setattr($$, "templateparms", $template_parms);
+                  Setattr($$, "templatetype", "cdecl");
+                  SetFlag($$, "aliastemplate");
+                  if ($requires_clause_opt)
+                    Setattr($$, "constraint", $requires_clause_opt);
+                  if ($auto_type_holder.qualifier)
+                    Swig_error(cparse_file, cparse_line, "Alias %s with a trailing return type cannot have a qualifier on 'auto'.\n", $idcolon);
+                  add_symbols($$);
+                }
                 | cpp_static_assert
                 ;
 

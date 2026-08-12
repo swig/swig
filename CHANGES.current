@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Accept a trailing return type in a C++11 alias declaration and alias
+            template, which was previously a syntax error even though the
+            equivalent typedef was accepted:
+
+              using alt_callback_t = auto (*)(int) -> int;
+              using alt_function_t = auto (int) -> int;
+              template<typename T> using alt_fn_t = auto (*)(T) -> T;
+
+2026-08-12: wsfulton
             Add support for the C++14 conversion function with a deduced return
             type, which was previously a syntax error:
 
