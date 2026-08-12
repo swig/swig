@@ -2376,6 +2376,39 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
   Delete(declaration_type);
 }
 
+/* Returns the T_* type code a named cast casts to, that is the code for the 'double' of 'static_cast<double>(y)',
+   or 0 when 't' is not one of the four named casts or the cast is to a type no T_* code describes.  A named cast
+   is spelled like a template-id, so it reaches the grammar as a template type. */
+static int named_cast_type_code(SwigType *t) {
+  int code = 0;
+  String *prefix;
+  if (!SwigType_istemplate(t))
+    return 0;
+  prefix = SwigType_templateprefix(t);
+  if (Equal(prefix, "static_cast") || Equal(prefix, "const_cast") || Equal(prefix, "dynamic_cast") || Equal(prefix, "reinterpret_cast")) {
+    List *parms = SwigType_parmlist(t);
+    if (parms && Len(parms) == 1) {
+      SwigType *cast_to = Getitem(parms, 0);
+      code = SwigType_type(cast_to);
+      if (code == T_USER)
+        code = 0;
+      if (code) {
+        /* The code is only a summary of the type, and the caller rebuilds the type from it with
+         * NewSwigType().  Both 'char *' and 'const char *' summarise to T_STRING, which rebuilds
+         * as 'const char *', so deducing from a code that does not rebuild into the type it came
+         * from would silently add a qualifier the cast never had. */
+        SwigType *rebuilt = NewSwigType(code);
+        if (!Equal(rebuilt, cast_to))
+          code = 0;
+        Delete(rebuilt);
+      }
+    }
+    Delete(parms);
+  }
+  Delete(prefix);
+  return code;
+}
+
 /* The initialiser held in the braced initialiser text 'braced', that is the text between the outermost braces
    with any surrounding whitespace removed, so '{ 42 }' gives '42' and '{}' gives an empty string. */
 static String *braced_initialiser_value(String *braced) {
@@ -7622,6 +7655,9 @@ exprmem        : idcolon ARROW ID {
 	       }
 	       | type LPAREN {
 		 $$ = default_dtype;
+                 /* One of the four named casts casts to its template argument, which is the type of the
+                  * expression, unlike the constructor cast and the function call this rule also matches. */
+                 int cast_type_code = named_cast_type_code($type);
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 
 		 String *qty = Swig_symbol_type_qualify($type, 0);
@@ -7638,7 +7674,7 @@ exprmem        : idcolon ARROW ID {
 		  * complicated because the return type can vary between
 		  * overloaded forms).
 		  */
-		 $$.type = SwigType_type(qty);
+                 $$.type = cast_type_code ? cast_type_code : SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
 

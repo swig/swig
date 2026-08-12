@@ -8,6 +8,31 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Deduce the type of a named cast, both for an 'auto' variable and for
+            decltype:
+
+              auto d = static_cast<double>(i);  // double
+
+            A cast to a type SWIG has no built in type code for, such as a cast
+            to a class or to a reference, remains undeducible.
+
+            The type a named cast casts to is now used anywhere else the type of
+            a value expression matters. A %constant with no explicit type was
+            previously always made an int:
+
+              %constant CD = static_cast<double>(3);
+
+            is a double in the target language instead of an int, and an
+            enumerator initialised with a cast to char or bool is typed the same
+            way as one initialised with a character or boolean literal.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+            An enumerator initialised with a cast to a non-integral type, such
+            as 'enum E { A = static_cast<double>(1) };', is now the error
+            "Type error. Expecting an integral type" rather than being silently
+            treated as an int. Such an enumerator is not valid C++ either.
+
+2026-08-12: wsfulton
             Deduce the type of an 'auto' variable initialised with a braced
             initialiser instead of discarding the initialiser:
 

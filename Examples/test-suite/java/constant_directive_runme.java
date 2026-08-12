@@ -22,5 +22,16 @@ public class constant_directive_runme {
       throw new RuntimeException("fail");
     if (constant_directive.TYPE1CPTR_CONSTANT1.getVal() != 1)
       throw new RuntimeException("fail");
+
+    // A %constant initialised with a named cast is generated with the type cast to.
+    double castDouble = constant_directive.cast_double_constant;
+    if (castDouble != 3.0)
+      throw new RuntimeException("fail");
+    long castUint = constant_directive.cast_uint_constant;
+    if (castUint != 3)
+      throw new RuntimeException("fail");
+    boolean castBool = constant_directive.cast_bool_constant;
+    if (!castBool)
+      throw new RuntimeException("fail");
   }
 }
