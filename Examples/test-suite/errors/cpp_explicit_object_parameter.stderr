@@ -1,0 +1,8 @@
+cpp_explicit_object_parameter.i:6: Error: Member function stat() with an explicit object parameter 'this' cannot be declared static or virtual.
+cpp_explicit_object_parameter.i:7: Error: Member function virt() with an explicit object parameter 'this' cannot be declared static or virtual.
+cpp_explicit_object_parameter.i:8: Error: Member function cv_qualified() const with an explicit object parameter 'this' cannot have a qualifier.
+cpp_explicit_object_parameter.i:9: Error: Member function ref_qualified() & with an explicit object parameter 'this' cannot have a qualifier.
+cpp_explicit_object_parameter.i:10: Error: Explicit object parameter 'this' cannot have a default argument.
+cpp_explicit_object_parameter.i:11: Error: Missing parameter declaration after 'this'.
+cpp_explicit_object_parameter.i:14: Error: Function not_a_member() is not a member function so cannot have an explicit object parameter 'this'.
+cpp_explicit_object_parameter.i:15: Error: Function not_a_member_deduced() is not a member function so cannot have an explicit object parameter 'this'.
