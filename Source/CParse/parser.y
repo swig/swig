@@ -903,7 +903,6 @@ static void add_symbols(Node *n) {
            * support, or the initialiser, which SWIG understood but could not deduce a type from. */
           SWIG_WARN_NODE_BEGIN(n);
           if (SwigType_isfunction(Getattr(n, "decl"))) {
-<<<<<<< HEAD
             if (GetFlag(n, "autodeducefrombody")) {
               Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' (ignored).\n",
                   Swig_name_decl(n));
@@ -915,10 +914,6 @@ static void add_symbols(Node *n) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n),
                 "Unable to deduce auto type for variable '%s' from a %s literal with a '%s' prefix (ignored).\n",
                 Swig_name_decl(n), Getattr(n, "autoliteralkind"), Getattr(n, "autoliteralprefix"));
-=======
-            Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' without a trailing return type (ignored).\n",
-                Swig_name_decl(n));
->>>>>>> 51984b8b6 (Say what stopped an auto type being deduced in warnings 345 and 346)
           } else if (value) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from initialiser '%s' (ignored).\n",
                 Swig_name_decl(n), value);
