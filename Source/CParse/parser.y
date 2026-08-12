@@ -4311,8 +4311,12 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   }
            /* C++11 auto variable declaration.  The declarator carries any '&', '&&', '*' and cv-qualifiers applied
               to the placeholder, so 'auto&& r = 42;' has type 'int' and decl 'z.'.  A cv-qualifier on the
-              placeholder itself is kept on the deduced type, so 'const auto x = 42;' has type 'q(const).int'. */
-           | storage_class auto_type_holder declarator EQUAL definetype auto_decl_tail {
+              placeholder itself is kept on the deduced type, so 'const auto x = 42;' has type 'q(const).int'.
+
+              The same rule takes a function declarator, which is how the C++20 defaulted comparison operator
+              'auto operator<=>(const S&) const = default;' and the deleted function 'auto m() = delete;' are
+              parsed.  A cv-qualifier or noexcept-specifier there belongs to the function, not the placeholder. */
+           | storage_class auto_type_holder declarator cpp_const EQUAL definetype auto_decl_tail {
 	      $$ = new_node("cdecl");
 	      Setattr($$, "storage", $storage_class);
               Setattr($$, "name", $declarator.id);
@@ -4320,6 +4324,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "value", $definetype.val);
 	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
 	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
+              Setattr($$, "refqualifier", $cpp_const.refqualifier);
+              Setattr($$, "throws", $cpp_const.throws);
+              Setattr($$, "throw", $cpp_const.throwf);
+              Setattr($$, "noexcept", $cpp_const.nexcept);
+              Setattr($$, "final", $cpp_const.final);
+              if ($cpp_const.constraint_node)
+                Setattr($$, "constraint", $cpp_const.constraint_node);
               /* Each declarator of a declaration declaring more than one variable keeps its own decoration and its
                * own initialiser, so the 'p' of 'auto x = 1, *p = &g;' is an 'int *', but they all share the one
                * type deduced for the placeholder. */
@@ -4330,16 +4341,23 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 set_nextSibling($$, $auto_decl_tail);
               }
               set_auto_variable_types($$, &$definetype, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
+              /* The cv-qualifier is added to the declarator only once the types have been deduced: a function
+               * declarator is what says this is a function rather than a variable, and the qualifier hides it. */
+              if ($cpp_const.qualifier)
+                SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Delete($storage_class);
 	   }
 	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
-           | storage_class auto_type_holder declarator EQUAL error SEMI {
+           | storage_class auto_type_holder declarator cpp_const EQUAL error SEMI {
               SwigType *type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
 	      $$ = new_node("cdecl");
+              if ($cpp_const.qualifier)
+                SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
               Setattr($$, "name", $declarator.id);
               Setattr($$, "decl", $declarator.type);
+              Setattr($$, "refqualifier", $cpp_const.refqualifier);
 	      Setattr($$, "valuetype", type);
 	      Delete($storage_class);
 	      Delete(type);
@@ -4514,22 +4532,25 @@ explicit_instantiation_rettype : primitive_type
    auto&& myFunc = [](int x) { return x; };
 
    The declarator is shared with the C++11 'auto' variable declaration in c_decl: both rules have the same
-   'storage_class auto_type_holder declarator EQUAL' prefix, so it has to be the same nonterminal in each.
+   'storage_class auto_type_holder declarator cpp_const EQUAL' prefix, so each part of it has to be the same
+   nonterminal in each.  The cpp_const is always empty for a lambda, a variable declarator not being able to
+   carry a cv-qualifier, but it is what the declaration of a defaulted or deleted function uses, and the two
+   cannot be told apart until the token after the '='.
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class auto_type_holder declarator cpp_const[unused] EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW lambda_rettype requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator cpp_const[unused] EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW lambda_rettype requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
                   Delete($lambda_rettype);
 		  add_symbols($$);
 		}
-                | storage_class auto_type_holder declarator EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator cpp_const[unused] EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);

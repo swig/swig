@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Accept a defaulted or deleted function that has an 'auto' return
+            type and a cv-qualifier, noexcept-specifier or ref-qualifier, such
+            as the canonical C++20 defaulted three-way comparison operator,
+            which was previously a syntax error:
+
+              struct S {
+                int v;
+                auto operator<=>(const S&) const = default;
+              };
+
+            SWIG cannot deduce the return type, so the operator is ignored with
+            warning 345.
+
+2026-08-12: wsfulton
             Accept a trailing return type in a C++11 alias declaration and alias
             template, which was previously a syntax error even though the
             equivalent typedef was accepted:

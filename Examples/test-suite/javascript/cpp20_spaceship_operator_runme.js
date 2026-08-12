@@ -19,3 +19,11 @@ check_equal(cpp20_spaceship_operator.spaceship(x, x), 0);
 check_equal(cpp20_spaceship_operator.spaceship(y, x) > 0, true);
 
 check_equal(cpp20_spaceship_operator.f(), 42);
+
+// The defaulted operator<=> has a deduced return type and is ignored, the
+// defaulted operator== returns bool and is wrapped.
+d1 = new cpp20_spaceship_operator.Defaulted(1);
+d2 = new cpp20_spaceship_operator.Defaulted(2);
+
+check_equal(d1.is_equal(d1), true);
+check_equal(d1.is_equal(d2), false);

@@ -67,6 +67,48 @@ or any attempt to automatically map it to a three-way comparison operator
 in any of the target languages.
 </p>
 
+<p>
+A comparison operator can be defaulted, which is how a class opts in to the
+compiler generated comparisons.  The canonical spelling gives the three-way
+comparison operator a deduced return type, so SWIG cannot deduce it and the
+operator is ignored with warning 345 (<i>Unable to deduce auto return type for
+'name' without a trailing return type (ignored)</i>), the same as any other
+function with an <tt>auto</tt> return type and no trailing return type.  A
+defaulted equality operator has to return <tt>bool</tt>, so it is wrapped as
+usual:
+</p>
+
+<div class="code">
+<pre>
+%warnfilter(SWIGWARN_CPP14_AUTO) Defaulted::operator&lt;=&gt;;
+%rename(is_equal) Defaulted::operator==;
+
+%inline %{
+#include &lt;compare&gt;
+
+struct Defaulted {
+  int v;
+
+  explicit Defaulted(int v_) : v(v_) { }
+
+  auto operator&lt;=&gt;(const Defaulted&amp;) const = default;
+  bool operator==(const Defaulted&amp;) const = default;
+};
+%}
+</pre>
+</div>
+
+<p>
+The deduced <tt>std::strong_ordering</tt> would not be wrappable as a three-way
+comparison in any target language anyway, so ignoring it loses nothing in
+practice.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse a defaulted or deleted function that
+is declared with a cv-qualifier and an <tt>auto</tt> return type.
+</p>
+
 <H3><a name="CPlusPlus20_lambda_templates">10.2.2 Lambda templates</a></H3>
 
 

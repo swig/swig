@@ -134,6 +134,12 @@ struct Deduced {
 </pre></div>
 
 <p>
+A deleted function can be declared with a deduced return type as well, for
+example <tt>auto m() const = delete;</tt>.  Deleted functions are never wrapped,
+so this needs no workaround and no warning is issued.
+</p>
+
+<p>
 <b>Compatibility note:</b> SWIG-4.2.0 first introduced support for functions declared with an auto return without a trailing return type.
 SWIG 4.4.0 added support for forward declarations of such functions.
 SWIG-4.6.0 added support for a conversion function with a deduced return type.
