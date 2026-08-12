@@ -944,6 +944,29 @@ auto SomeStruct::FuncName(int x, int y) -&gt; int {
 auto square(float a, float b) -&gt; decltype(a);
 </pre></div>
 
+<p>
+The trailing return type can be any type, including a pointer, a reference to a primitive type, an array reference or a function pointer:
+</p>
+
+<div class="code"><pre>
+struct MoreTrailing {
+  auto count() -&gt; const int&amp;;
+  auto data() -&gt; int *;
+  auto values() -&gt; int (&amp;)[3];
+  auto callback() -&gt; int (*)(int);
+};
+</pre></div>
+
+<p>
+SWIG has one restriction that C++ does not: a pointer to member trailing return type has to be written with parentheses, <tt>auto member() -&gt; int (MoreTrailing::*);</tt>.
+C++ accepts the unparenthesised <tt>auto member() -&gt; int MoreTrailing::*;</tt> equally well, but SWIG reports a syntax error for that spelling.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to accept a pointer or a reference to a primitive type as a trailing return type.
+Earlier versions accepted only a small set of trailing return types and reported a syntax error for the rest.
+</p>
+
 <H3><a name="CPlusPlus11_object_construction_improvement">7.2.10 Object construction improvement</a></H3>
 
 

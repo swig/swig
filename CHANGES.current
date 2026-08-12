@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-12: wsfulton
+            Accept any type as the C++11 trailing return type of a function.
+            Pointers, references to a primitive type, array references and
+            function pointers were previously a syntax error:
+
+              auto count() -> const int&;
+              auto data() -> int *;
+              auto values() -> int (&)[3];
+              auto callback() -> int (*)(int);
+
+            A pointer to member has to be written with parentheses, that is
+            "auto member() -> int (S::*);". The unparenthesised
+            "auto member() -> int S::*;" that C++ also accepts remains a syntax
+            error.
+
+2026-08-12: wsfulton
             Add support for the C++23 explicit object parameter ("deducing
             this"), where a member function declares its first parameter with
             the 'this' specifier:

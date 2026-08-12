@@ -2156,7 +2156,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <intvalue> variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype;
+%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type            deleted_reason;
@@ -2177,7 +2177,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <includetype> includetype;
 %type <type>     pointer primitive_type;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
-%type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
+%type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      using_conversion using_scope;
@@ -4411,13 +4411,40 @@ auto_type_holder : AUTO {
                  }
                  ;
 
-cpp_alternate_rettype : primitive_type
+/* The trailing return type of a function declared with the C++11 alternate function syntax is a type-id, that is any
+   type followed by an optional abstract declarator, so 'int', 'const Pt *', 'int &', 'int (*)(int)' and 'int (&)[3]'
+   are all valid here.  The abstract declarator used is the one without the pointer to member alternatives, for the
+   reason given where abstract_declarator is split below, so SWIG requires a pointer to member return type to be
+   written with parentheses, 'auto member() -> int (S::*);'.  That spelling works because the parentheses are a
+   direct_abstract_declarator, inside which the full abstract_declarator is reachable again.  C++ accepts the
+   unparenthesised 'auto member() -> int S::*;' as well, but SWIG does not. */
+cpp_alternate_rettype : type
+              | type abstract_declarator_no_memberpointer[abstract_declarator] {
+                $$ = $type;
+                SwigType_push($$, $abstract_declarator.type);
+                Delete($abstract_declarator.type);
+              }
+              ;
+
+/* The return type in an explicit instantiation of a function template, such as 'template int max<int>(int, int);',
+   matched by 'TEMPLATE explicit_instantiation_rettype idcolon LPAREN parms RPAREN' in cpp_template_decl below.
+   The types are enumerated by hand instead of using 'type' because of the neighbouring rule for an explicit
+   instantiation of a class template, 'TEMPLATE cpptype idcolon', such as 'template class Foo<int>;'.  The 'type'
+   nonterminal matches 'class Foo<int>' too, through the 'cpptype idcolon' alternative of type_right, so having read
+   'template class Foo<int>' the parser would have to choose, on one token of lookahead, between reducing a finished
+   class template instantiation and carrying on with a function template instantiation whose return type happens to
+   be 'class Foo<int>', as in 'template class Foo<int> make<int>(int);'.  Both are valid C++ and a lookahead such as
+   ID fits either, so using 'type' here gives 16 reduce/reduce conflicts, 8 in the TEMPLATE state and 8 in the
+   EXTERN TEMPLATE one.  The enumeration below therefore leaves out the elaborated 'cpptype idcolon' form, which is
+   what keeps the two TEMPLATE productions apart; the 'enum E' form stays, there being no class template
+   instantiation rule for an enum.  The type is discarded, the whole declaration being ignored with a warning. */
+explicit_instantiation_rettype : primitive_type
               | TYPE_BOOL
               | TYPE_VOID
-	      | c_enum_key idcolon {
-		$$ = $idcolon;
-		Insert($$, 0, "enum ");
-	      }
+              | c_enum_key idcolon {
+                $$ = $idcolon;
+                Insert($$, 0, "enum ");
+              }
               | idcolon { $$ = $idcolon; }
               | idcolon AND {
                 $$ = $idcolon;
@@ -5462,7 +5489,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 		}
 
 		/* Function template explicit instantiation definition */
-		| TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+                | TEMPLATE explicit_instantiation_rettype idcolon LPAREN parms RPAREN {
 			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                   $$ = 0; 
 		}
@@ -5474,7 +5501,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
                 }
 
 		/* Function template explicit instantiation declaration (extern template) */
-		| EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+                | EXTERN TEMPLATE explicit_instantiation_rettype idcolon LPAREN parms RPAREN {
 			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
 		}
@@ -7024,7 +7051,41 @@ direct_declarator : idcolon {
 		  }
                   ;
 
-abstract_declarator : pointer variadic_opt {
+/* An abstract declarator, split so that the alternatives starting with a pointer to member can be excluded where
+   they are ambiguous.  A pointer to member starts with a scope name, which can be spelt 'override' or 'final' as
+   those are contextual keywords, and that clashes with the virt-specifier ending a member function declaration. */
+abstract_declarator : abstract_declarator_no_memberpointer
+                  | idcolon DSTAR {
+                    $$ = default_decl;
+                    $$.type = NewStringEmpty();
+                    SwigType_add_memberpointer($$.type, $idcolon);
+                  }
+                  | idcolon DSTAR type_qualifier {
+                    $$ = default_decl;
+                    $$.type = NewStringEmpty();
+                    SwigType_add_memberpointer($$.type, $idcolon);
+                    SwigType_push($$.type, $type_qualifier);
+                  }
+                  | pointer idcolon DSTAR {
+                    SwigType *t = NewStringEmpty();
+                    $$ = default_decl;
+                    $$.type = $pointer;
+                    SwigType_add_memberpointer(t, $idcolon);
+                    SwigType_push($$.type, t);
+                    Delete(t);
+                  }
+                  | pointer idcolon DSTAR direct_abstract_declarator {
+                    $$ = $direct_abstract_declarator;
+                    SwigType_add_memberpointer($pointer, $idcolon);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
+                  ;
+
+abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    $$ = default_decl;
 		    $$.type = $pointer;
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
@@ -7095,34 +7156,6 @@ abstract_declarator : pointer variadic_opt {
                     $$.type = NewStringEmpty();
 		    SwigType_add_rvalue_reference($$.type);
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
-                  }
-                  | idcolon DSTAR { 
-		    $$ = default_decl;
-		    $$.type = NewStringEmpty();
-                    SwigType_add_memberpointer($$.type,$idcolon);
-      	          }
-                  | idcolon DSTAR type_qualifier {
-		    $$ = default_decl;
-		    $$.type = NewStringEmpty();
-		    SwigType_add_memberpointer($$.type, $idcolon);
-		    SwigType_push($$.type, $type_qualifier);
-		  }
-                  | pointer idcolon DSTAR { 
-		    $$ = default_decl;
-		    SwigType *t = NewStringEmpty();
-                    $$.type = $pointer;
-		    SwigType_add_memberpointer(t,$idcolon);
-		    SwigType_push($$.type,t);
-		    Delete(t);
-                  }
-                  | pointer idcolon DSTAR direct_abstract_declarator { 
-		    $$ = $direct_abstract_declarator;
-		    SwigType_add_memberpointer($pointer,$idcolon);
-		    if ($$.type) {
-		      SwigType_push($pointer,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = $pointer;
                   }
                   ;
 
