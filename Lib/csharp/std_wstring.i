@@ -31,8 +31,26 @@ static std::wstring Swig_csharp_UTF16ToWString(const unsigned short *str) {
 
     std::wstring result;
     result.reserve(ptr - pBegin);
-    while(pBegin != ptr)
-      result.push_back(*pBegin++);
+    while (pBegin != ptr) {
+      unsigned short uc = *pBegin++;
+      if (uc <= 0xD7FFu || uc >= 0xE000u) {
+        result.push_back(uc);
+      } else if (pBegin != ptr && (uc & 0xFC00u) == 0xD800u) {
+        unsigned short uc1 = *pBegin++;
+        if ((uc1 & 0xFC00u) == 0xDC00u) {
+          unsigned int u32c = uc & 0x03FFu;
+          u32c <<= 10;
+          u32c += uc1 & 0x03FFu;
+          u32c += 0x10000u;
+          result.push_back(u32c);
+        } else {
+          result.push_back(0xFFFDu);
+          pBegin--;
+        }
+      } else {
+        result.push_back(0xFFFDu);
+      }
+    }
 
     return result;
   }
