@@ -16,6 +16,7 @@
 <ul>
 <li><a href="#CPlusPlus14_binary_literals">Binary integer literals</a>
 <li><a href="#CPlusPlus14_return_type_deduction">Return type deduction</a>
+<li><a href="#CPlusPlus14_decltype_auto">decltype(auto)</a>
 <li><a href="#CPlusPlus14_generic_lambdas">Generic lambdas</a>
 <li><a href="#CPlusPlus14_variable_templates">Variable templates</a>
 </ul>
@@ -146,7 +147,57 @@ SWIG-4.6.0 added support for a conversion function with a deduced return type.
 </p>
 
 
-<H3><a name="CPlusPlus14_generic_lambdas">8.2.3 Generic lambdas</a></H3>
+<H3><a name="CPlusPlus14_decltype_auto">8.2.3 decltype(auto)</a></H3>
+
+
+<p>
+C++14 added a second placeholder type, <tt>decltype(auto)</tt>, which can be used
+anywhere <tt>auto</tt> can.  The two deduce differently: <tt>auto</tt> deduces as a
+template parameter does, dropping references and top level cv-qualifiers, while
+<tt>decltype(auto)</tt> deduces the declared type of the initialiser exactly.
+</p>
+
+<div class="code"><pre>
+%inline %{
+int global_int = 42;
+int&amp; global_ref = global_int;
+const int global_const = 7;
+
+auto           plain_var = global_ref;    // int
+decltype(auto) exact_var = global_ref;    // int &amp;
+decltype(auto) const_var = global_const;  // const int
+%}
+</pre></div>
+
+<p>
+SWIG wraps each of these variables with the type it deduces, so
+<tt>exact_var</tt> is wrapped as a reference where <tt>plain_var</tt> is wrapped as a
+plain <tt>int</tt>.
+</p>
+
+<p>
+Used as a return type, <tt>decltype(auto)</tt> has to be deduced from the function
+body, which SWIG does not analyse, so the function is ignored with warning 345,
+<em>Unable to deduce auto return type for 'name' (ignored)</em>, in the same way as
+a function returning <tt>auto</tt> with no trailing return type.  The workarounds
+shown in <a href="#CPlusPlus14_return_type_deduction">Return type deduction</a>
+apply here too.
+</p>
+
+<div class="code"><pre>
+%inline %{
+decltype(auto) deduced_from_body() { return global_int; }  // ignored, warning 345
+%}
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 added support for <tt>decltype(auto)</tt>.
+Earlier versions reported a syntax error which could not be recovered from, so the
+rest of the file was not parsed.
+</p>
+
+
+<H3><a name="CPlusPlus14_generic_lambdas">8.2.4 Generic lambdas</a></H3>
 
 
 <p>
@@ -197,7 +248,7 @@ SWIG-4.6.0 is the first version to parse a lambda whose explicit trailing return
 </p>
 
 
-<H3><a name="CPlusPlus14_variable_templates">8.2.4 Variable templates</a></H3>
+<H3><a name="CPlusPlus14_variable_templates">8.2.5 Variable templates</a></H3>
 
 
 <p>

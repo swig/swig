@@ -879,8 +879,13 @@ static void add_symbols(Node *n) {
            * support, or the initialiser, which SWIG understood but could not deduce a type from. */
           SWIG_WARN_NODE_BEGIN(n);
           if (SwigType_isfunction(Getattr(n, "decl"))) {
-            Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' without a trailing return type (ignored).\n",
-                Swig_name_decl(n));
+            if (GetFlag(n, "autodeducefrombody")) {
+              Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' (ignored).\n",
+                  Swig_name_decl(n));
+            } else {
+              Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' without a trailing return type (ignored).\n",
+                  Swig_name_decl(n));
+            }
           } else if (value) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from initialiser '%s' (ignored).\n",
                 Swig_name_decl(n), value);
@@ -2034,9 +2039,12 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String     *us;
   } ptype;
   struct {
-    /* An 'auto' placeholder, optionally cv-qualified and type-constrained, e.g. 'const Numeric auto'. */
+    /* An 'auto' placeholder, optionally cv-qualified and type-constrained, e.g. 'const Numeric auto'.
+     * 'isdecltypeauto' marks the C++14 'decltype(auto)' spelling, which takes neither a cv-qualifier
+     * nor a type-constraint. */
     String     *qualifier;
     String     *conceptid;
+    int         isdecltypeauto;
   } autotype;
   SwigType     *type;
   String       *str;
@@ -2156,7 +2164,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <intvalue> variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype lambda_rettype;
+%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
+%type <str>      decltype_prefix;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type            deleted_reason;
@@ -2313,12 +2322,19 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
    added back.  Returns 0 when the initialiser is not one a type can be deduced from.  A function declarator makes
    the placeholder a deduced return type rather than a variable type, as in 'auto f() = delete;', and there is
    then nothing to deduce it from. */
-static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, String *qualifier) {
+static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, String *qualifier, int isdecltypeauto) {
   SwigType *type = 0;
   SwigType *initialiser_type = SwigType_isfunction(decl) ? 0 : deduce_type(dtype);
 
   if (initialiser_type) {
-    type = deduce_auto_placeholder(initialiser_type, decl);
+    if (isdecltypeauto) {
+      /* 'decltype(auto)' deduces the declared type of the initialiser exactly, keeping the references and the top
+       * level cv-qualifiers that 'auto' would drop.  C++ requires the type to be 'decltype(auto)' on its own, so
+       * there is no declarator decoration or cv-qualifier of its own to account for. */
+      type = Copy(initialiser_type);
+    } else {
+      type = deduce_auto_placeholder(initialiser_type, decl);
+    }
     Delete(initialiser_type);
   }
   if (type && qualifier)
@@ -2351,7 +2367,7 @@ static int auto_types_differ(SwigType *type1, SwigType *type2) {
 
    The declarators after the first are read back from the parse tree, which holds the text of the initialiser but
    not the value the grammar evaluated for it, so a type is deduced from a name or a single literal only. */
-static void set_auto_variable_types(Node *first, const struct Define *first_dtype, String *qualifier, String *conceptid) {
+static void set_auto_variable_types(Node *first, const struct Define *first_dtype, String *qualifier, String *conceptid, int isdecltypeauto) {
   SwigType *declaration_type = 0;
   Node *n;
 
@@ -2365,7 +2381,7 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       if (dtype.val)
         dtype.type = literal_type_code(dtype.val);
     }
-    type = auto_variable_type(&dtype, Getattr(n, "decl"), qualifier);
+    type = auto_variable_type(&dtype, Getattr(n, "decl"), qualifier, isdecltypeauto);
     if (type) {
       Setattr(n, "autotype", type);
       if (!declaration_type)
@@ -4124,11 +4140,15 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * placeholder is not valid C++ here, the declared type has to be the placeholder on its own.
             * The trailing requires-clause comes after the trailing return type, that being the end of the
             * declarator, and is conjoined with any type-constraint on the placeholder. */
-           | storage_class auto_type_holder declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt requires_clause_opt initializer c_decl_tail {
+           | storage_class auto_type_holder declarator cpp_const ARROW trailing_rettype virt_specifier_seq_opt requires_clause_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
-	      Setattr($$,"type",$cpp_alternate_rettype);
+              Setattr($$,"type",$trailing_rettype);
+              /* A trailing return type that is itself a placeholder, 'auto f() -> auto' or 'auto f() -> decltype(auto)',
+               * still leaves the return type to be deduced from the body. */
+              if (SwigType_isauto($trailing_rettype))
+                SetFlag($$, "autodeducefrombody");
 	      Setattr($$,"storage",$storage_class);
 	      Setattr($$,"name",$declarator.id);
 	      Setattr($$,"decl",$declarator.type);
@@ -4156,7 +4176,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      } else {
 		Node *n = $c_decl_tail;
 		while (n) {
-		  String *type = Copy($cpp_alternate_rettype);
+                  String *type = Copy($trailing_rettype);
 		  Setattr(n,"type",type);
 		  Setattr(n,"storage",$storage_class);
 		  n = nextSibling(n);
@@ -4216,7 +4236,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 SwigType *type;
                 dtype.val = braced_initialiser_value(scanner_ccode);
                 dtype.type = literal_type_code(dtype.val);
-                type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier);
+                type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier, $auto_type_holder.isdecltypeauto);
                 if (!type)
                   type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
                 Setattr($$, "type", type);
@@ -4340,7 +4360,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                   Setattr(n, "storage", $storage_class);
                 set_nextSibling($$, $auto_decl_tail);
               }
-              set_auto_variable_types($$, &$definetype, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
+              set_auto_variable_types($$, &$definetype, $auto_type_holder.qualifier, $auto_type_holder.conceptid, $auto_type_holder.isdecltypeauto);
               /* The cv-qualifier is added to the declarator only once the types have been deduced: a function
                * declarator is what says this is a function rather than a variable, and the qualifier hides it. */
               if ($cpp_const.qualifier)
@@ -4443,26 +4463,38 @@ initializer   : def_args
 auto_type_holder : AUTO {
                    $$.qualifier = 0;
                    $$.conceptid = 0;
+                   $$.isdecltypeauto = 0;
                  }
                  | type_qualifier AUTO {
                    $$.qualifier = $type_qualifier;
                    $$.conceptid = 0;
+                   $$.isdecltypeauto = 0;
                  }
                  | AUTO type_qualifier {
                    $$.qualifier = $type_qualifier;
                    $$.conceptid = 0;
+                   $$.isdecltypeauto = 0;
                  }
                  | idcolon AUTO {
                    $$.qualifier = 0;
                    $$.conceptid = $idcolon;
+                   $$.isdecltypeauto = 0;
                  }
                  | type_qualifier idcolon AUTO {
                    $$.qualifier = $type_qualifier;
                    $$.conceptid = $idcolon;
+                   $$.isdecltypeauto = 0;
                  }
                  | idcolon AUTO type_qualifier {
                    $$.qualifier = $type_qualifier;
                    $$.conceptid = $idcolon;
+                   $$.isdecltypeauto = 0;
+                 }
+                 | decltype_prefix AUTO RPAREN {
+                   Delete($decltype_prefix);
+                   $$.qualifier = 0;
+                   $$.conceptid = 0;
+                   $$.isdecltypeauto = 1;
                  }
                  ;
 
@@ -4543,11 +4575,11 @@ cpp_lambda_decl : storage_class auto_type_holder declarator cpp_const[unused] EQ
 		  Delete($storage_class);
 		  add_symbols($$);
 	        }
-                | storage_class auto_type_holder declarator cpp_const[unused] EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW lambda_rettype requires_clause_opt lambda_body lambda_tail {
+                | storage_class auto_type_holder declarator cpp_const[unused] EQUAL lambda_introducer lambda_template requires_clause_opt lambda_parms cpp_const ARROW trailing_rettype requires_clause_opt lambda_body lambda_tail {
 		  $$ = new_node("lambda");
                   Setattr($$,"name",$declarator.id);
 		  Delete($storage_class);
-                  Delete($lambda_rettype);
+                  Delete($trailing_rettype);
 		  add_symbols($$);
 		}
                 | storage_class auto_type_holder declarator cpp_const[unused] EQUAL lambda_introducer lambda_template requires_clause_opt lambda_body lambda_tail {
@@ -4564,10 +4596,12 @@ lambda_parms : LPAREN parms RPAREN
              | LPAREN THIS parms RPAREN
              ;
 
-/* A lambda's explicit trailing return type, which C++11 allows to be the 'auto' placeholder, the return type then
-   being deduced from the body just as it is when the trailing return type is left out altogether.  A lambda is
-   wrapped as an opaque object, so the type is only parsed, never used. */
-lambda_rettype : cpp_alternate_rettype
+/* An explicit trailing return type, shared by a function and a lambda.  As well as any type-id, C++ allows it to be
+   a placeholder, either the 'auto' of C++11 or the 'decltype(auto)' of C++14, the return type then being deduced
+   from the body just as it is when the trailing return type is left out altogether.  The placeholder is not reachable
+   through cpp_alternate_rettype because a deduced return type is ill-formed in the alias declaration that also uses
+   it, so the two alternatives are kept here. */
+trailing_rettype : cpp_alternate_rettype
              | auto_type_holder {
                $$ = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
              }
@@ -6275,13 +6309,14 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		Delete($CONVERSIONOPERATOR);
 		Delete($storage_class);
               }
-              /* C++14 conversion function with a deduced return type: 'operator auto()'.  SWIG cannot deduce the
-               * type from the body, so the placeholder is kept as the type and add_symbols() then reports it the
-               * same way as any other function with an undeduced 'auto' return type. */
+              /* C++14 conversion function with a deduced return type: 'operator auto()' or 'operator decltype(auto)()'.
+               * SWIG cannot deduce the type from the body, so the placeholder is kept as the type and add_symbols()
+               * then reports it the same way as any other function with an undeduced 'auto' return type. */
               | storage_class CONVERSIONOPERATOR auto_type_holder LPAREN parms RPAREN cpp_vend {
                 SwigType *t = NewStringEmpty();
                 $$ = new_node("cdecl");
                 set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
+                SetFlag($$, "autodeducefrombody");
                 Setattr($$, "name", $CONVERSIONOPERATOR);
                 Setattr($$, "storage", $storage_class);
                 SwigType_add_function(t, $parms);
@@ -7423,9 +7458,16 @@ type_right     : primitive_type
                | decltype
                ;
 
-decltype       : DECLTYPE LPAREN <str>{
-		 $$ = get_raw_text_balanced('(', ')');
-	       }[expr] decltypeexpr {
+/* The 'decltype(' that opens both 'decltype(expr)' and the 'decltype(auto)' placeholder matched by
+   auto_type_holder.  The raw text of the operand is captured in this shared rule rather than in a mid-rule
+   action of either alternative: a mid-rule action would run only after the parser had looked ahead one token
+   to tell the two apart, and the captured text would then be missing the first token of the operand. */
+decltype_prefix : DECLTYPE LPAREN {
+                 $$ = get_raw_text_balanced('(', ')');
+               }
+               ;
+
+decltype       : decltype_prefix[expr] decltypeexpr {
 		 String *expr = $expr;
 		 if ($decltypeexpr) {
 		   $$ = $decltypeexpr;

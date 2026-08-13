@@ -1139,6 +1139,28 @@ int yylex(void) {
               if (nexttok <= 0) {
                 Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
               }
+              if (nexttok == SWIG_TOKEN_LPAREN && Len(s) >= 8 && strcmp(Char(s) + Len(s) - 8, "decltype") == 0) {
+                /* A conversion function to a type written with decltype, such as 'operator decltype(auto)()'.
+                 * This parenthesis opens the operand of decltype and belongs to the name, unlike the one that
+                 * ends the name and opens the parameter list.  Consuming it into the name keeps a declaration
+                 * and a %rename or %warnfilter naming it spelt the same way. */
+                int depth = 1;
+                Append(s, "(");
+                while (depth > 0) {
+                  nexttok = Scanner_token(scan);
+                  if (nexttok <= 0) {
+                    Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
+                    break;
+                  }
+                  if (nexttok == SWIG_TOKEN_LPAREN)
+                    depth++;
+                  else if (nexttok == SWIG_TOKEN_RPAREN)
+                    depth--;
+                  Append(s, Scanner_text(scan));
+                }
+                needspace = 0;
+                continue;
+              }
               if (nexttok == SWIG_TOKEN_LPAREN) {
                 termtoken = SWIG_TOKEN_LPAREN;
                 termvalue = "(";

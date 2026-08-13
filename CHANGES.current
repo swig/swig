@@ -8,6 +8,30 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-13: wsfulton
+            Add support for the C++14 'decltype(auto)' placeholder, which was a
+            syntax error in every position it is allowed in:
+
+              decltype(auto) v = g;
+              decltype(auto) f() { return g; }
+              auto t() -> decltype(auto);
+              struct S { decltype(auto) m() { return 1; } };
+              struct T { operator decltype(auto)() { return 1; } };
+
+            The error could not be recovered from, so the rest of the file was
+            not parsed.
+
+            A 'decltype(auto)' variable is deduced from its initialiser, keeping
+            the references and top level cv-qualifiers that 'auto' drops, so
+            'decltype(auto) r = ref;' is wrapped as a reference. Used as a return
+            type it has to be deduced from the function body, which SWIG does not
+            analyse, so the function is ignored with warning 345 as before.
+
+            Warning 345 no longer advises adding a trailing return type when
+            there could not be one that helps, that is when the trailing return
+            type is itself a placeholder, or when the declaration is a conversion
+            function, which cannot have one at all.
+
+2026-08-13: wsfulton
             Accept an undecorated C++20 'auto' parameter pack, which was
             previously a syntax error where the decorated spellings such as
             'auto&&...' and 'auto*...' were accepted:

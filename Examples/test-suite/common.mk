@@ -722,6 +722,7 @@ CPP11_TEST_BROKEN = \
 CPP14_TEST_CASES += \
 	cpp14_auto_return_type \
 	cpp14_binary_integer_literals \
+	cpp14_decltype_auto \
 	cpp14_generic_lambda \
 	cpp14_variable_templates \
 
