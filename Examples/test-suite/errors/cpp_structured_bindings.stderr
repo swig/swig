@@ -1,0 +1,6 @@
+cpp_structured_bindings.i:12: Warning 349: Structured binding 'plain_a, plain_b' is not supported (ignored).
+cpp_structured_bindings.i:13: Warning 349: Structured binding 'ref_a, ref_b' is not supported (ignored).
+cpp_structured_bindings.i:14: Warning 349: Structured binding 'cref_a, cref_b' is not supported (ignored).
+cpp_structured_bindings.i:15: Warning 349: Structured binding 'rref_a, rref_b' is not supported (ignored).
+cpp_structured_bindings.i:16: Warning 349: Structured binding 'static_a, static_b' is not supported (ignored).
+cpp_structured_bindings.i:27: Warning 349: Structured binding 't1, t2, t3' is not supported (ignored).

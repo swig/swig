@@ -110,6 +110,7 @@
 #define WARN_CPP11_AUTO                              346
 #define WARN_CPP17_CLASS_TEMPLATE_ARGUMENT_DEDUCTION 347
 #define WARN_CPP11_AUTO_INCONSISTENT_DEDUCTION       348
+#define WARN_CPP17_STRUCTURED_BINDING                349
 
 #define WARN_IGNORE_OPERATOR_NEW                     350 /* new */
 #define WARN_IGNORE_OPERATOR_DELETE                  351 /* delete */

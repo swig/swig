@@ -2166,6 +2166,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <intvalue> variadic_opt;
 %type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
 %type <str>      decltype_prefix;
+%type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type            deleted_reason;
@@ -4382,7 +4383,43 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Delete($storage_class);
 	      Delete(type);
 	   }
+           /* C++17 structured binding, such as 'auto [a, b] = pt;'.  The names are bound to the members of the
+              initialiser, which SWIG would have to know the layout of to give each name a type, so the whole
+              declaration is parsed and ignored with a warning. */
+           | storage_class auto_type_holder structured_binding_ref LBRACKET structured_binding_names RBRACKET EQUAL definetype SEMI {
+              $$ = 0;
+              Swig_warning(WARN_CPP17_STRUCTURED_BINDING, cparse_file, cparse_line, "Structured binding '%s' is not supported (ignored).\n",
+                  $structured_binding_names);
+              Delete($storage_class);
+              Delete($structured_binding_names);
+           }
+           /* A structured binding whose initialiser SWIG cannot parse, such as the 'Pt{1, 2}' of
+              'auto&& [a, b] = Pt{1, 2};'. */
+           | storage_class auto_type_holder structured_binding_ref LBRACKET structured_binding_names RBRACKET EQUAL error SEMI {
+              $$ = 0;
+              Swig_warning(WARN_CPP17_STRUCTURED_BINDING, cparse_file, cparse_line, "Structured binding '%s' is not supported (ignored).\n",
+                  $structured_binding_names);
+              Delete($storage_class);
+              Delete($structured_binding_names);
+           }
 	   ;
+
+/* The reference decoration a structured binding may carry, as in 'auto& [a, b]' and 'auto&& [a, b]'.  A cv-qualifier
+   is part of the placeholder itself and so is matched by auto_type_holder. */
+structured_binding_ref : %empty
+           | AND
+           | LAND
+           ;
+
+/* The identifier list of a structured binding, kept as written for the warning that reports it ignored. */
+structured_binding_names : ID {
+              $$ = NewString($ID);
+           }
+           | structured_binding_names[in] COMMA ID {
+              $$ = $in;
+              Printf($$, ", %s", $ID);
+           }
+           ;
 
 /* Allow lists of variables and functions to be built up */
 

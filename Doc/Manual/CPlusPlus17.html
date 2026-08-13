@@ -21,6 +21,7 @@
 <li><a href="#CPlusPlus17_using_pack_expansion">Pack expansion in using-declaration</a>
 <li><a href="#CPlusPlus17_class_template_argument_deduction">Class template argument deduction</a>
 <li><a href="#CPlusPlus17_deduction_guides">User-defined deduction guides</a>
+<li><a href="#CPlusPlus17_structured_bindings">Structured bindings</a>
 </ul>
 <li><a href="#CPlusPlus17_standard_library_changes">Standard library changes</a>
 </ul>
@@ -291,6 +292,55 @@ discards it.  A guide may carry the optional <tt>explicit</tt> specifier, which 
 <p>
 <b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse user-defined deduction guides;
 earlier versions reported a syntax error.
+</p>
+
+<H3><a name="CPlusPlus17_structured_bindings">9.2.8 Structured bindings</a></H3>
+
+
+<p>
+A structured binding declares a name for each element of the initialiser rather
+than a single variable:
+</p>
+
+<div class="code"><pre>
+%inline %{
+struct Pt {
+  int x;
+  int y;
+};
+
+Pt global_pt = {1, 2};
+
+auto [a, b] = global_pt;
+auto&amp; [c, d] = global_pt;
+const auto&amp; [e, f] = global_pt;
+%}
+</pre></div>
+
+<p>
+SWIG parses all of these, including the <tt>static</tt> and <tt>auto&amp;&amp;</tt>
+spellings, but does not wrap the names.  Giving each name a type means knowing how
+the initialiser decomposes, which for a class type depends on its members and for a
+tuple-like type on the <tt>std::tuple_size</tt> and <tt>std::tuple_element</tt>
+specialisations for it, none of which SWIG resolves.  The declaration is therefore
+ignored with warning 349, <em>Structured binding 'names' is not supported
+(ignored)</em>.
+</p>
+
+<p>
+Wrap the members directly, or add an accessor with <tt>%extend</tt>, where a name
+is needed in the target language.
+</p>
+
+<p>
+Note that a structured binding inside a function body has always been accepted,
+because SWIG skips function bodies without parsing them.  Only one at namespace or
+class scope reaches the parser.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse structured
+bindings; earlier versions reported a syntax error.
 </p>
 
 <H2><a name="CPlusPlus17_standard_library_changes">9.3 Standard library changes</a></H2>

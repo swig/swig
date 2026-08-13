@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-13: wsfulton
+            Parse a C++17 structured binding, which was previously a syntax
+            error at namespace or class scope:
+
+              auto [a, b] = pt;
+              auto& [c, d] = pt;
+              const auto& [e, f] = pt;
+              auto&& [g, h] = Pt{1, 2};
+              static auto [i, j] = pt;
+
+            Giving each name a type means knowing how the initialiser
+            decomposes, which SWIG does not work out, so the declaration is
+            ignored with the new warning 349. Parsing then carries on, where
+            before the syntax error stopped the rest of the file being parsed.
+
+2026-08-13: wsfulton
             Add support for the C++14 'decltype(auto)' placeholder, which was a
             syntax error in every position it is allowed in:
 
