@@ -340,7 +340,7 @@ takes:
 <div class="code">
 <pre>
 %inline %{
-int sum(const auto&amp;... args) { return (args + ... + 0); }
+int sum(auto... args) { return (args + ... + 0); }
 %}
 
 %template(sum_ii)  sum&lt;int, int&gt;;
@@ -349,10 +349,9 @@ int sum(const auto&amp;... args) { return (args + ... + 0); }
 </div>
 
 <p>
-<tt>sum_ii</tt> takes two parameters and <tt>sum_iii</tt> takes three.  A bare
-<tt>auto...</tt> pack is not parsed yet, so use one of the decorated spellings
-such as <tt>const auto&amp;...</tt>, <tt>auto&amp;&amp;...</tt> or
-<tt>auto*...</tt>.
+<tt>sum_ii</tt> takes two parameters and <tt>sum_iii</tt> takes three.  The
+decorated spellings <tt>const auto&amp;...</tt>, <tt>auto&amp;&amp;...</tt> and
+<tt>auto*...</tt> introduce a pack in exactly the same way.
 </p>
 
 <p>

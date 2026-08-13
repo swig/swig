@@ -43,6 +43,11 @@ swig_check(sum_numeric_ii(4, 5), 9)
 # Ordinary parameter ahead of an auto parameter pack.
 swig_check(offset_sum_ii(1, 2, 3), 6)
 
+# Undecorated auto parameter pack.
+swig_check(sum_bare_ii(1, 2), 3)
+swig_check(sum_bare_iii(1, 2, 3), 6)
+swig_check(unnamed_bare_ii(7, 8), 42)
+
 # The pack determines the arity of the wrapper.
 with swig_assert_raises(TypeError):
     sum_all_ii(1, 2, 3)

@@ -68,6 +68,14 @@ public class cpp20_abbreviated_template_runme {
     if (cpp20_abbreviated_template.offset_sum_ii(1, 2, 3) != 6)
       throw new RuntimeException("offset_sum_ii(1, 2, 3)");
 
+    // Undecorated auto parameter pack.
+    if (cpp20_abbreviated_template.sum_bare_ii(1, 2) != 3)
+      throw new RuntimeException("sum_bare_ii(1, 2)");
+    if (cpp20_abbreviated_template.sum_bare_iii(1, 2, 3) != 6)
+      throw new RuntimeException("sum_bare_iii(1, 2, 3)");
+    if (cpp20_abbreviated_template.unnamed_bare_ii(7, 8) != 42)
+      throw new RuntimeException("unnamed_bare_ii(7, 8)");
+
     // The pack determines the arity of the wrapper.
     try {
       cpp20_abbreviated_template.class.getMethod("sum_all_ii", int.class, int.class);

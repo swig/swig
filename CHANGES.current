@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-13: wsfulton
+            Accept an undecorated C++20 'auto' parameter pack, which was
+            previously a syntax error where the decorated spellings such as
+            'auto&&...' and 'auto*...' were accepted:
+
+              int sum(auto... args) { return (args + ... + 0); }
+              template<auto... Ns> struct T {};
+
 2026-08-12: wsfulton
             Accept a defaulted or deleted function that has an 'auto' return
             type and a cv-qualifier, noexcept-specifier or ref-qualifier, such

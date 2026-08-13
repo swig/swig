@@ -6536,6 +6536,20 @@ parm_no_dox	: rawtype parameter_declarator {
                    if ($parameter_declarator.numdefarg)
                      Setattr($$, "numval", $parameter_declarator.numdefarg);
                 }
+                | auto_type_holder ELLIPSIS parameter_declarator {
+                   /* C++20 abbreviated function template parameter pack written with an undecorated placeholder,
+                    * e.g. 'auto... args', 'auto...', 'Numeric auto... args'.  A decorated placeholder such as
+                    * 'auto&&... args' or 'auto*... args' is matched by the rule above instead, the ellipsis being
+                    * part of the declarator there.  The undecorated spelling needs its own rule because nothing
+                    * follows the placeholder for the declarator to start with, which makes the ellipsis look like
+                    * the one ending a C style variadic parameter list. */
+                   SwigType *t = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
+                   SwigType_add_variadic(t);
+                   SwigType_push(t, $parameter_declarator.type);
+                   $$ = NewParmWithoutFileLineInfo(t, $parameter_declarator.id);
+                   Setfile($$, cparse_file);
+                   Setline($$, cparse_line);
+                }
                 | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParmWithoutFileLineInfo(t, 0);

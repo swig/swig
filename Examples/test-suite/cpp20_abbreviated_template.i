@@ -56,6 +56,12 @@ int sum_all(const auto&... args) { return (args + ... + 0); }
 // Forwarding reference pack - the same promotion, spelled the way an abbreviated template usually is.
 int sum_fwd(auto&&... args) { return (args + ... + 0); }
 
+// Undecorated pack - the placeholder needs no reference or pointer decoration to introduce a pack.
+int sum_bare(auto... args) { return (args + ... + 0); }
+
+// Unnamed undecorated pack - the invented template parameter pack is introduced even with no parm name.
+int unnamed_bare(auto...) { return 42; }
+
 // Constrained auto parameter pack - the type-constraint applies to the invented template parameter pack.
 int sum_numeric(const Numeric auto&... args) { return (args + ... + 0); }
 
@@ -98,5 +104,8 @@ Numeric auto times3(int x);
 %template(sum_all_ii)             sum_all<int, int>;
 %template(sum_all_iii)            sum_all<int, int, int>;
 %template(sum_fwd_ii)             sum_fwd<int, int>;
+%template(sum_bare_ii)            sum_bare<int, int>;
+%template(sum_bare_iii)           sum_bare<int, int, int>;
+%template(unnamed_bare_ii)        unnamed_bare<int, int>;
 %template(sum_numeric_ii)         sum_numeric<int, int>;
 %template(offset_sum_ii)          offset_sum<int, int>;
