@@ -54,28 +54,39 @@ Work has only just begun on adding C++20 support.
 
 
 <p>
-SWIG supports the spaceship operator <tt>&lt;=&gt;</tt> in constant
-expressions.  To simplify handling of the return value type, it is currently
-treated as an integer rather than <tt>std::strong_ordering</tt>, etc.
-In practice we think that should do the right thing in most cases.
+The C++20 three-way comparison operator <tt>&lt;=&gt;</tt>, commonly called the
+spaceship operator, is parsed, but not wrapped by default.  As with most
+<a href="SWIGPlus.html#SWIGPlus_nn28">overloaded operators</a>, the C++ name
+<tt>operator&lt;=&gt;</tt> is not a valid identifier in the target languages, and
+no target language module currently supplies a default renaming for it or maps it
+onto a three-way comparison of its own.  The operator in:
 </p>
 
-<p>
-SWIG also recognises <tt>operator&lt;=&gt;</tt> which can be wrapped
-if renamed.  There is not currently any default renaming for the operator
-or any attempt to automatically map it to a three-way comparison operator
-in any of the target languages.
-</p>
+<div class="code">
+<pre>
+struct Ordered {
+  int v;
+
+  std::strong_ordering operator&lt;=&gt;(const Ordered&amp; o) const { return v &lt;=&gt; o.v; }
+};
+</pre>
+</div>
 
 <p>
-A comparison operator can be defaulted, which is how a class opts in to the
-compiler generated comparisons.  The canonical spelling gives the three-way
-comparison operator a deduced return type, so SWIG cannot deduce it and the
-operator is ignored with warning 345 (<i>Unable to deduce auto return type for
-'name' without a trailing return type (ignored)</i>), the same as any other
-function with an <tt>auto</tt> return type and no trailing return type.  A
-defaulted equality operator has to return <tt>bool</tt>, so it is wrapped as
-usual:
+is therefore ignored with warning 503 (<i>Can't wrap 'operator &lt;=&gt;' unless
+renamed to a valid identifier</i>).  Give it a name the target language can use
+and it is wrapped as an ordinary method:
+</p>
+
+<div class="code">
+<pre>
+%rename(compare) Ordered::operator&lt;=&gt;;
+</pre>
+</div>
+
+<p>
+A comparison operator can also be defaulted, which is how a C++ class opts in to
+the compiler generated comparisons:
 </p>
 
 <div class="code">
@@ -99,10 +110,45 @@ struct Defaulted {
 </div>
 
 <p>
-The deduced <tt>std::strong_ordering</tt> would not be wrappable as a three-way
-comparison in any target language anyway, so ignoring it loses nothing in
-practice.
+The canonical spelling used above gives the three-way comparison operator a
+deduced return type, which SWIG cannot deduce, so <tt>operator&lt;=&gt;</tt> is
+ignored for that reason rather than because of its name: the warning is 345
+(<i>Unable to deduce auto return type for 'name' without a trailing return type
+(ignored)</i>), the same as for any other function with an <tt>auto</tt> return
+type and no trailing return type.  Renaming makes no difference here, so the
+warning is filtered out instead.
 </p>
+
+<p>
+The example declares <tt>operator==</tt> as well because C++ declares an equality
+operator implicitly for every defaulted three-way comparison operator:
+<tt>Defaulted</tt> supports <tt>==</tt> whether or not one is written out.  SWIG
+wraps only the declarations it is given, so writing the equality operator out is
+what makes the comparison reachable from the target language.  A defaulted
+<tt>operator==</tt> has to return <tt>bool</tt>, so unlike
+<tt>operator&lt;=&gt;</tt> it has no deduced return type and is wrapped as usual.
+</p>
+
+<p>
+The <tt>std::strong_ordering</tt> that <tt>operator&lt;=&gt;</tt> deduces would
+not be wrappable as a three-way comparison in any target language anyway, so
+ignoring it loses nothing in practice.
+</p>
+
+<p>
+SWIG also supports <tt>&lt;=&gt;</tt> in constant expressions.  It does not give
+the result of the comparison a type of its own, which does not matter for the
+usual case of comparing that result against another ordering or against a literal
+<tt>0</tt>, but does mean that a constant whose value is an ordering is not
+wrapped:
+</p>
+
+<div class="code">
+<pre>
+#define SPACE (3 &lt;=&gt; 3 == 0)
+#define SHIP (1 &lt;=&gt; 2)  // Warning 304: Unsupported constant value (ignored)
+</pre>
+</div>
 
 <p>
 <b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse a defaulted or deleted function that
