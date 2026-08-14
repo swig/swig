@@ -389,6 +389,12 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolAppendThenTuple(True), ([True, 43], 42))
 
+    # the python:annotations:catchall feature supplies the type SWIG cannot work out
+    anno = get_annotations(argoutBoolTupleThenAppendTyped)
+    if anno != {"arg": "bool", "return": "typing.List[typing.Union[typing.Tuple[bool, int], int]]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolTupleThenAppendTyped(True), [(True, 42), 43])
+
     anno = get_annotations(argoutMultiarg)
     if anno != {"return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))

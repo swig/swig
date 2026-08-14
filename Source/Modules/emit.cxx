@@ -273,6 +273,11 @@ int emit_num_arguments(ParmList *parms) {
  * the parameters, such as one that has attached its own typemaps to the copy, gets
  * back parameters from that same copy.
  *
+ * 'warn_container_mismatch' says whether to warn when the 'argout' typemaps do not
+ * all build the same container. A target language passes false when the interface
+ * has supplied the type of the values returned by hand, as it then already knows
+ * what the warning would be telling it.
+ *
  * Sets the following attributes on n:
  *
  *   wrap:returnsurvives  - set when the function return value is one of the values
@@ -287,7 +292,7 @@ int emit_num_arguments(ParmList *parms) {
  *                          that is only appended into holds a single value bare.
  * ----------------------------------------------------------------------------- */
 
-void emit_output_summary(Node *n, ParmList *parms) {
+void emit_output_summary(Node *n, ParmList *parms, bool warn_container_mismatch) {
   Parm *p;
   List *outputs = NewList();
   String *container = 0;
@@ -341,15 +346,16 @@ void emit_output_summary(Node *n, ParmList *parms) {
   Delete(outputs);
 
   if (clashing_container) {
-    Swig_warning(WARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH,
-                 Getfile(n),
-                 Getline(n),
-                 "The argout typemaps for '%s' append into different containers, '%s' and '%s', so the type of the values returned cannot be worked out "
-                 "and a catch-all type is used for the return type instead. "
-                 "Check the container attribute in each argout typemap used by this function, noting that it defaults to 'list'.\n",
-                 SwigType_namestr(Getattr(n, "name")),
-                 container,
-                 clashing_container);
+    if (warn_container_mismatch)
+      Swig_warning(WARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH,
+                   Getfile(n),
+                   Getline(n),
+                   "The argout typemaps for '%s' append into different containers, '%s' and '%s', so the type of the values returned cannot be worked out "
+                   "and a catch-all type is used for the return type instead. "
+                   "Check the container attribute in each argout typemap used by this function, noting that it defaults to 'list'.\n",
+                   SwigType_namestr(Getattr(n, "name")),
+                   container,
+                   clashing_container);
     Setattr(n, "wrap:outputcontainer", "unknown");
   } else if (container) {
     Setattr(n, "wrap:outputcontainer", container);

@@ -7470,6 +7470,52 @@ bool list_then_tuple(short *OutValue, short *OutTuple);
 </div>
 
 <p>
+Both are annotated with the catch-all type:
+</p>
+
+<div class="targetlang">
+<pre>
+def tuple_then_list() -&gt; "typing.Any":
+def list_then_tuple() -&gt; "typing.Any":
+</pre>
+</div>
+
+<p>
+The warning says that SWIG cannot work the type out. The
+<tt>python:annotations:catchall</tt> feature can work around this by manually providing the
+annotation for a named function, which is used in place of <tt>typing.Any</tt>. Supplying it also
+suppresses the warning, as there is then nothing left for it to report:
+</p>
+
+<div class="code">
+<pre>
+%feature("python:annotations:catchall") tuple_then_list "typing.List[typing.Union[typing.Tuple[bool, int], int]]"
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def tuple_then_list() -&gt; "typing.List[typing.Union[typing.Tuple[bool, int], int]]":
+</pre>
+</div>
+
+<p>
+This type of workaround for a particular named function results in the type being used exactly as
+supplied and not being checked against the <tt>argout</tt> typemaps, so it is only as accurate as the
+feature makes it. Making the <tt>argout</tt> typemaps agree on the container is the better fix where
+that is possible, as the type is then worked out and stays correct should the function signature and
+types change over time; it is less maintenance as the feature does not need to be specified for each function
+that uses the <tt>argout</tt> typemaps.
+</p>
+
+<p>
+The feature supplies a PEP 484 type, so it does nothing for the
+<a href="#Python_annotations_c">C/C++ annotation types</a>, which list the C/C++ types of the
+<tt>argout</tt> parameters and describe no container at all. Warning 478 is still issued in that
+mode.
+</p>
+
+<p>
 Finally, an <a href="Typemaps.html#Typemaps_nn28">"out"</a> typemap that suppresses the function
 return value should declare <tt>numoutputs=0</tt>, so that only the <tt>argout</tt> values are
 described. This suits a C function reporting errors through its return value:

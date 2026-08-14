@@ -27,3 +27,14 @@ void overwrite_returning_nothing(int *TUPLEDROP, int *LIST);
 // Inconsistent - warning 478.
 void clash(int *LIST, int *TUPLE);
 void clash_after_overwrite(int *TUPLEREPLACE, int *LIST);
+
+// Inconsistent, but the python:annotations:catchall feature supplies the type SWIG cannot work
+// out, leaving the warning with nothing to report.
+%feature("python:annotations:catchall") clash_typed "typing.List[typing.Union[typing.Tuple[int, int], int]]"
+void clash_typed(int *LIST, int *TUPLE);
+
+// The feature supplies a PEP 484 type, which the C annotation types have no use for, so it
+// neither annotates nor silences warning 478 in that mode.
+%feature("python:annotations", "c") clash_c;
+%feature("python:annotations:catchall") clash_c "typing.List[typing.Union[typing.Tuple[int, int], int]]"
+void clash_c(int *LIST, int *TUPLE);

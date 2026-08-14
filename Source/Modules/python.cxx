@@ -2624,8 +2624,10 @@ public:
     List *types = NewList();
 
     if (anno == TYPE_ANNOTATION_C) {
-      /* C annotations use the argout parameter types and ignore the function return type. */
-      emit_output_summary(n, root);
+      /* C annotations use the argout parameter types and ignore the function return type. The
+         catchall feature supplies a PEP 484 type, which has no place in a C annotation, so it
+         neither provides the type nor suppresses the warning in this mode. */
+      emit_output_summary(n, root, true);
       for (Iterator it = First(Getattr(n, "wrap:outputparms")); it.item; it = Next(it)) {
         String *tm = SwigType_str(Getattr(it.item, "tmap:argout:match_type"), 0);
         Append(types, tm);
@@ -2634,12 +2636,16 @@ public:
       return types;
     }
 
+    /* The catchall feature supplies the type of the values returned by hand, leaving the
+       warning with nothing to report. */
+    bool warn_container_mismatch = !Getattr(n, "feature:python:annotations:catchall");
+
     /* The pytyping typemaps are attached to a copy of the parameters so that the wrapper code
        generation is not disturbed. emit_output_summary() is given the same copy so that the
        parameters it reports back are the ones carrying the pytyping typemaps. */
     ParmList *copied_parms = CopyParmList(root);
     Swig_typemap_attach_parms("pytyping", copied_parms, 0);
-    emit_output_summary(n, copied_parms);
+    emit_output_summary(n, copied_parms, warn_container_mismatch);
 
     /* The function return value, when there is one, is the first of the returned values. */
     if (GetFlag(n, "wrap:returnsurvives")) {
@@ -2727,8 +2733,9 @@ public:
       ret = NewString("typing.Tuple[");
       close = "]";
     } else if (container && !Equal(container, "list")) {
-      /* The argout typemaps disagree on the container, so the type of the values returned is unknown. */
-      return NewString("typing.Any");
+      /* The argout typemaps disagree on the container, so the type of the values returned cannot be automatically worked out. */
+      String *catchall_type = Getattr(n, "feature:python:annotations:catchall");
+      return catchall_type ? Copy(catchall_type) : NewString("typing.Any");
     } else if (num_results == 1) {
       ret = NewString("typing.List[");
       close = "]";

@@ -229,6 +229,12 @@ SWIGINTERN PyObject *AppendOutput_Tuple(PyObject *result, PyObject *obj, int isv
 %warnfilter(SWIGWARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH) argoutBoolTupleThenAppend;
 %warnfilter(SWIGWARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH) argoutBoolAppendThenTuple;
 
+/* Warning 478 says only that SWIG cannot work the type out, not that there is no type, so
+   the python:annotations:catchall feature supplies it in place of the catch-all type. The
+   feature also suppresses the warning, which the test-suite building with -Werror checks,
+   as there is nothing left for it to report. */
+%feature("python:annotations:catchall") argoutBoolTupleThenAppendTyped "typing.List[typing.Union[typing.Tuple[bool, int], int]]"
+
 %inline %{
 #include <cstddef>
 
@@ -529,6 +535,12 @@ bool argoutBoolTupleThenAppend(bool arg, short *OutTuple, short *OutAppend) {
 bool argoutBoolAppendThenTuple(bool arg, short *OutAppend, short *OutTuple) {
   *OutAppend = 43;
   *OutTuple = 42;
+  return arg;
+}
+
+bool argoutBoolTupleThenAppendTyped(bool arg, short *OutTuple, short *OutAppend) {
+  *OutTuple = 42;
+  *OutAppend = 43;
   return arg;
 }
 

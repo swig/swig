@@ -379,7 +379,7 @@ List *SWIG_output_files();
 void SWIG_library_directory(const char *);
 int emit_num_arguments(ParmList *);
 int emit_num_required(ParmList *);
-void emit_output_summary(Node *n, ParmList *parms);
+void emit_output_summary(Node *n, ParmList *parms, bool warn_container_mismatch);
 void emit_isvoid_special_variables(Node *n, String *code, bool isvoid);
 int emit_isvarargs(ParmList *p);
 bool emit_isvarargs_function(Node *n);

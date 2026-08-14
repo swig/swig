@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-08-16: wsfulton
+            [Python] #3532 New python:annotations:catchall feature supplies the PEP 484
+            annotation for everything a function returns when SWIG cannot work it out
+            and would otherwise use the catch-all type, typing.Any. This is the case
+            when the argout typemaps disagree on the container and warning 478 would
+            be issued:
+
+              %feature("python:annotations:catchall") tuple_then_list
+                "typing.List[typing.Union[typing.Tuple[bool, int], int]]"
+
+            tuple_then_list is annotated with the type given rather than typing.Any and
+            warning 478 is not issued for it, as the feature supplies what the function
+            returns. The feature supplies a PEP 484 type, so it does nothing for the
+            C/C++ annotation types and warning 478 is still issued in that mode.
+
+2026-08-16: wsfulton
             [Lua] The $isvoid special variable is now expanded in director methods, so a
             directorin, directorout or directorargout typemap can use it. It was
             previously left as $isvoid in the generated C++ code, which did not compile.
