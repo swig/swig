@@ -104,9 +104,12 @@ include_directories (
 # generate the parser source code (depends on bison)
 file (MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/Source/CParse)
 
+# Keep the flags in step with AM_YFLAGS in Source/Makefile.am so that both build systems
+# reject the same bison warnings, such as an undeclared grammar conflict
 BISON_TARGET (swig_parser
     ${SWIG_SOURCE_DIR}/CParse/parser.y
     ${PROJECT_BINARY_DIR}/Source/CParse/parser.c
+    COMPILE_FLAGS "-d -Wall -Werror"
 )
 
 # generate swigwarn.swg
