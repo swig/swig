@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-12: kwwette
+            #3531 Restore the %typemaps_string_alloc macro for string classes
+            that use custom allocation and deallocation functions. The
+            SWIG_NewCopyCharArray argument now uses the two-argument fragment
+            interface introduced for %typemaps_string in SWIG 4.5.0. Interface
+            files written for earlier SWIG versions must update custom copy
+            allocators from:
+
+              CustomCopy(ptr, size, Char)
+
+            to:
+
+              CustomCopy(ptr, size)
+
+            or write a two-argument version adapter that calls into the original
+            three-argument version.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-08-11: wsfulton
             Fix syntax error parsing a cv-qualified 'auto' placeholder. Both
             orderings of the qualifier are now accepted everywhere a placeholder

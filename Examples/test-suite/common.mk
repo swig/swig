@@ -586,6 +586,7 @@ CPP_TEST_CASES += \
 	typemap_template_typedef \
 	typemap_out_optimal \
 	typemap_qualifier_strip \
+	typemap_string_alloc \
 	typemap_variables \
 	typemap_various \
 	typename \

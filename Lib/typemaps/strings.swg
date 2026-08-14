@@ -640,3 +640,29 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		  %delete_array,
 		  FragLimits, CHAR_MIN, CHAR_MAX)
 %enddef
+
+/* ------------------------------------------------------------
+ *  String typemaps and fragments, with custom allocators
+ * ------------------------------------------------------------ */
+
+%define %typemaps_string_alloc(StringCode, CharCode,
+			       WarningLeakMsg,
+			       Char, CharName,
+			       SWIG_AsCharPtrAndSize,
+			       SWIG_FromCharPtrAndSize,
+			       SWIG_CharPtrLen,
+			       SWIG_CharBufLen,
+			       SWIG_NewCopyCharArray,
+			       SWIG_DeleteCharArray,
+			       FragLimits, CHAR_MIN, CHAR_MAX)
+%_typemap2_string(StringCode, CharCode,
+		  WarningLeakMsg,
+		  Char, CharName,
+		  SWIG_AsCharPtrAndSize,
+		  SWIG_FromCharPtrAndSize,
+		  SWIG_CharPtrLen,
+		  SWIG_CharBufLen,
+		  SWIG_NewCopyCharArray,
+		  SWIG_DeleteCharArray,
+		  FragLimits, CHAR_MIN, CHAR_MAX)
+%enddef
