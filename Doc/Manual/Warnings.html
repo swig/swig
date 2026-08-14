@@ -371,7 +371,9 @@ example.i(4) : Syntax error in input(1).
 <H3><a name="Warnings_nn10">21.9.1 Deprecated features (100-199)</a></H3>
 
 
-<p>None currently.</p>
+<ul>
+<li>127. %typedef directive is deprecated, use plain typedef instead.
+</ul>
 
 
 <H3><a name="Warnings_nn11">21.9.2 Preprocessor (200-299)</a></H3>
@@ -556,13 +558,47 @@ example.i(4) : Syntax error in input(1).
   <li>562: Expected Doxygen command: <em>command</em></li>
   <li>563: Doxygen HTML error for tag <em>tag</em>: <em>error text</em>.</li>
   <li>564: Error parsing Doxygen command <em>command</em>: <em>error text</em>. Command ignored.</li>
+  <li>565: Unknown special character in Doxygen comment: <em>character</em>.</li>
+  <li>566: Unexpected iterator value in DoxygenParser::parse</li>
 </ul>
 
 <H3><a name="Warnings_nn15">21.9.7 Language module specific (700-899) </a></H3>
 
 
 <ul>
+<li>700. No ctype typemap defined for <em>type</em>  (D).
+<li>701. No imtype typemap defined for <em>type</em>  (D).
+<li>702. No dtype typemap defined for <em>type</em>  (D).
+<li>703. Base <em>baseclass</em> of class <em>classname</em> ignored: multiple inheritance is not supported in D.  (D).
+<li>704. No dclassmodifiers typemap defined for <em>type</em>  (D).
+<li>705. No dbody typemap defined for <em>type</em>  (D).
+<li>706. No dout typemap defined for <em>type</em>  (D).
+<li>707. No din typemap defined for <em>type</em>  (D).
+<li>708. No ddirectorin typemap defined for <em>type</em> for use in <em>classname</em>::<em>name</em> (skipping director method)  (D).
+<li>709. No dconstructor typemap defined for <em>type</em>  (D).
+<li>710. D exception may not be thrown - no $excode or excode attribute in '<em>typemap</em>' typemap.  (D).
+<li>711. C code contains a call to SWIG_exception and D code does not handle pending exceptions via the canthrow attribute.  (D).
+<li>712. "directorconnect" attribute missing in <em>type</em> "dconstructor" typemap.  (D).
+<li>713. <em>classname</em>::<em>name</em> might collide with the package name, consider using %rename to resolve the ambiguity.  (D).
+</ul>
+
+<ul>
+<li>740. Whitespace indentation is inconsistent compared to earlier lines (line <em>number</em> of <em>file</em>)  (Python).
+<li>741. Missing required entry in pytyping typemap for <em>type</em>  (Python).
+</ul>
+
+<ul>
+<li>751. No rtypecheck typemap defined for <em>type</em>  (R).
+</ul>
+
+<ul>
+<li>760. No ctype typemap defined for <em>type</em>  (C).
+<li>761. Unsupported typemap "<em>typemap</em>" used for type "<em>type</em>" of "<em>name</em>"  (C).
+</ul>
+
+<ul>
 <li>801. Wrong <em>kind</em> name (corrected to '<em>name</em>').  (Ruby).
+<li>802. Warning for <em>classname</em>, base <em>baseclass</em> ignored. Multiple inheritance is not supported in Ruby.  (Ruby).
 </ul>
 
 <ul>
@@ -583,6 +619,7 @@ example.i(4) : Syntax error in input(1).
 <li>824. Missing JNI descriptor in directorin typemap defined for <em>type</em> (Java).
 <li>825. "directorconnect" attribute missing in <em>type</em> "javaconstruct" typemap. (Java).
 <li>826. The nspace feature is used on '<em>type</em>' without -package. The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package. (Java).
+<li>827. No javainterfacemodifiers typemap defined for <em>type</em>  (Java).
 </ul>
 
 <ul>
@@ -602,11 +639,17 @@ example.i(4) : Syntax error in input(1).
 <li>843. No csconstruct typemap defined for <em>type</em>  (C#).
 <li>844. C# exception may not be thrown - no $excode or excode attribute in <em>typemap</em> typemap. (C#).
 <li>845. Unmanaged code contains a call to a SWIG_CSharpSetPendingException method and C# code does not handle pending exceptions via the canthrow attribute. (C#).
+<li>846. "directorconnect" attribute missing in <em>type</em> "csconstruct" typemap.  (C#).
+<li>847. No csinterfacemodifiers typemap defined for <em>type</em>  (C#).
 </ul>
 
 <ul>
 <li>870. Warning for <em>classname</em>, base <em>baseclass</em> ignored. Multiple inheritance is not supported in PHP.   (PHP).
 <li>871. Unrecognized pragma &lt;<em>pragma</em>&gt;.   (PHP).
+</ul>
+
+<ul>
+<li>890. Ignoring '<em>name</em>' due to Go name ('<em>name</em>') conflict with '<em>name</em>'  (Go).
 </ul>
 
 <H3><a name="Warnings_nn16">21.9.8 User defined (900-999)</a></H3>
