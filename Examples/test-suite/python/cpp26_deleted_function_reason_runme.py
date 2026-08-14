@@ -10,6 +10,7 @@ swig_check(w.value(), 42)
 swig_assert(not hasattr(w, "oldValue"), "oldValue should not be wrapped")
 swig_assert("oldFreeFunction" not in globals(), "oldFreeFunction should not be wrapped")
 swig_assert(not hasattr(Widget, "oldFactory"), "oldFactory should not be wrapped")
+swig_assert(not hasattr(Widget, "oldDeduced"), "oldDeduced should not be wrapped")
 
 # Only the non deleted overload is wrapped
 w.overloaded(1)

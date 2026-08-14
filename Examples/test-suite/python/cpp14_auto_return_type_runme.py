@@ -8,3 +8,7 @@ swig_check(x.a(), "a string")
 swig_check(x.cref(), 42)
 
 swig_check(Deduced(7).toInt(), 7)
+
+# The deleted functions with a deduced return type are not wrapped.
+swig_check(hasattr(X, "deleted"), False)
+swig_check("deleted_global" in globals(), False)

@@ -17,3 +17,7 @@ check::equal($x->cref(), 42);
 
 $d = new Deduced(7);
 check::equal($d->toInt(), 7);
+
+// The deleted functions with a deduced return type are not wrapped.
+check::equal(method_exists('X', 'deleted'), false, "X::deleted should not be wrapped");
+check::equal(function_exists('deleted_global'), false, "deleted_global should not be wrapped");

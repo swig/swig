@@ -7,6 +7,12 @@
 %warnfilter(SWIGWARN_CPP14_AUTO) Defaulted::operator<=>;
 %rename(is_equal) Defaulted::operator==;
 
+// A defaulted comparison operator can also be a friend, taking both operands as parameters.
+// It is ignored for the same reason, so this rename never takes effect and the runtime tests
+// check the name is absent.
+%warnfilter(SWIGWARN_CPP14_AUTO) operator<=>(const DefaultedFriend &, const DefaultedFriend &);
+%rename(friend_spaceship) operator<=>(const DefaultedFriend &, const DefaultedFriend &);
+
 %inline %{
 #include <compare>
 
@@ -39,6 +45,15 @@ struct Defaulted {
 
   // A defaulted equality operator has to return bool, deduced or not, and is wrapped.
   bool operator==(const Defaulted&) const = default;
+};
+
+struct DefaultedFriend {
+  int v;
+
+  explicit DefaultedFriend(int v_) : v(v_) { }
+
+  // Deduced return type on a non-member defaulted comparison operator - ignored.
+  friend auto operator<=>(const DefaultedFriend&, const DefaultedFriend&) = default;
 };
 
 struct Deleted {
