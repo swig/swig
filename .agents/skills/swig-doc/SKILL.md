@@ -1,6 +1,6 @@
 ---
 name: swig-doc
-description: 'Author and edit chapters of the SWIG Users Manual under Doc/Manual: chapter conventions, manual heading anchors, the four content `<div>` styles (code / targetlang / shell / diagram), the auto generated section TOC, the `make` targets that renumber headings and validate HTML, and the rules for cross document anchored links.'
+description: 'Author and edit chapters of the SWIG Users Manual under Doc/Manual: chapter conventions, manual heading anchors, the four content `<div>` styles (code / targetlang / shell / diagram), the auto generated section TOC, the `make` targets that renumber headings and validate HTML, the warning list in Warnings.html and how to check it against the warning numbers in the source, and the rules for cross document anchored links.'
 argument-hint: 'Optionally specify the chapter file (e.g. CPlusPlus20.html) to edit'
 ---
 
@@ -128,6 +128,25 @@ template&lt;typename T&gt; struct Adder {
 </div>
 ```
 
+## The warning list in Warnings.html
+
+`Doc/Manual/Warnings.html` lists every warning number SWIG can issue. It is hand maintained and nothing in the build keeps it in step with `Source/Include/swigwarn.h`, so entries drift: numbers get added to the header and never documented, and retired numbers linger in the list.
+
+**After editing the warning list, or after any change that adds, renumbers or retires a warning, run:**
+
+```bash
+Tools/checkwarnings.py          # --help for options
+```
+
+It compares the numbers defined in `Source/Include/swigwarn.h` against the `<li>` entries here and exits non-zero if they differ.
+
+The check is presence only. The wording of each entry has to match the format string the source actually passes to `Swig_warning()` or defines in `Lib/swigwarnings.swg`, and only a human can check that - so when you touch an entry, go and read the message it documents. Write a variable part as `<em>name</em>`, and an optional or alternative part in square brackets, following the entries already there:
+
+```html
+<li>309. [private | protected] inheritance ignored.
+<li>345. Unable to deduce auto return type for '<em>name</em>' [without a trailing return type] (ignored).
+```
+
 ## Prefer ASCII
 
 Default to plain ASCII characters in prose: ` - ` rather than `&mdash;` for inline dashes, straight quotes rather than smart quotes, etc. The existing chapters are overwhelmingly ASCII (e.g. ` - ` outnumbers `&mdash;` ~10:1); new prose should match.
@@ -188,6 +207,7 @@ Before claiming the example works, also check whether an existing test under `Ex
 - [ ] `make maketoc check` clean.
 - [ ] `*.bak` files removed (`make clean-baks`) before staging.
 - [ ] `Contents.html` only changed if you intended a numbering or chapter list change.
+- [ ] `Tools/checkwarnings.py` clean, if the change touched `Warnings.html` or any warning number.
 
 ## Authoritative references
 
