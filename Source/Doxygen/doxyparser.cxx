@@ -158,7 +158,7 @@ DoxygenParser::DoxyCommandEnum DoxygenParser::commandBelongs(const std::string &
     // one given to it by SWIG itself), we may use the value in the future, but
     // for now we only use the attributes.
     if (Strcmp(ignore, "1") != 0) {
-      Swig_warning(WARN_PP_UNEXPECTED_TOKENS,
+      Swig_warning(WARN_DOXYGEN_IGNORE_VALUE,
                    m_fileName.c_str(),
                    m_fileLineNo,
                    "Feature \"doxygen:ignore\" value ignored for Doxygen command \"%s\".\n",

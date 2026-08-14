@@ -241,6 +241,7 @@
 #define WARN_DOXYGEN_COMMAND_ERROR                   564
 #define WARN_DOXYGEN_UNKNOWN_CHARACTER               565
 #define WARN_DOXYGEN_UNEXPECTED_ITERATOR_VALUE       566
+#define WARN_DOXYGEN_IGNORE_VALUE                    567
 
 /* -- Reserved (600-699) -- */
 
