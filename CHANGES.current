@@ -7,7 +7,6 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
-<<<<<<< HEAD
 2026-10-04: wsfulton
             Fix a named non-type template parameter of class type introduced with the 'struct',
             'union' or 'class' keyword, which was taken to be a type parameter constrained by a
@@ -2076,8 +2075,6 @@ Version 4.6.0 (in progress)
             The reason is parsed and discarded; the function is treated exactly
             like one declared with a plain '= delete'.
 
-=======
->>>>>>> 52555665f (Fix parsing of a cv-qualified auto placeholder)
 2026-08-11: wsfulton
             Fix syntax error parsing a cv-qualified 'auto' placeholder. Both
             orderings of the qualifier are now accepted everywhere a placeholder
