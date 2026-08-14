@@ -5126,7 +5126,7 @@ private:
     Delete(t);
 
     if (!ret) {
-      Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number, "No Go typemap defined for %s\n", SwigType_str(type, 0));
+      Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number, "No Go typemap defined for %s\n", SwigType_str(type, 0));
       ret = NewString("uintptr");
     }
 
