@@ -115,7 +115,7 @@ CPP11_TEST_CASES = \
 	cpp11_std_unordered_set \
 
 CPP17_TEST_CASES = \
-	cpp17_std_filesystem
+	cpp17_std_filesystem \
 
 C_TEST_CASES += \
 	ccomplextest \

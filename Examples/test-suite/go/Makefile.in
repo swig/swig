@@ -27,10 +27,10 @@ BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 
 CPP_TEST_CASES = \
 	go_inout \
-	go_director_inout
+	go_director_inout \
 
 MULTI_CPP_TEST_CASES = \
-	go_subdir_import
+	go_subdir_import \
 
 include $(srcdir)/../common.mk
 

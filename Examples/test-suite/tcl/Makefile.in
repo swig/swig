@@ -17,11 +17,11 @@ top_builddir = @top_builddir@
 CPP_TEST_CASES += \
 	primitive_types \
 	li_cstring \
-	li_cwstring
+	li_cwstring \
 
 C_TEST_CASES += \
 	li_cstring \
-	li_cwstring
+	li_cwstring \
 
 include $(srcdir)/../common.mk
 

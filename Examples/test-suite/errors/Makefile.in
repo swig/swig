@@ -40,7 +40,7 @@ DOXYGEN_ERROR_TEST_CASES := $(DOXYGEN_ERROR_TEST_CASES:=.cpptest)
 
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
 		    $(C_ERROR_TEST_CASES:=.ctest) \
-		    $(DOXYGEN_ERROR_TEST_CASES)
+		    $(DOXYGEN_ERROR_TEST_CASES) \
 
 include $(srcdir)/../common.mk
 

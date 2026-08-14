@@ -22,7 +22,7 @@ GUILE_RUNTIME=
 C_TEST_CASES = long_long \
 	       list_vector \
 	       multivalue \
-	       pointer_in_out
+	       pointer_in_out \
 
 
 include $(srcdir)/../common.mk

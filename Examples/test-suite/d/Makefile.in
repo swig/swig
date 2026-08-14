@@ -14,7 +14,7 @@ top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	d_nativepointers \
-	exception_partial_info
+	exception_partial_info \
 
 CPP11_TEST_CASES = \
 

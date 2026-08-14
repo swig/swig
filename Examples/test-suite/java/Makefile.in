@@ -22,7 +22,7 @@ top_builddir = ../@top_builddir@
 
 C_TEST_CASES = \
 	java_lib_arrays \
-	java_lib_various
+	java_lib_various \
 
 CPP_TEST_CASES = \
 	enum_thorough_proper \

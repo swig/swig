@@ -24,7 +24,7 @@ CPP_TEST_CASES += \
 	director_nestedmodule \
 
 CPP11_TEST_CASES += \
-	cpp11_strongly_typed_enumerations_perl_const
+	cpp11_strongly_typed_enumerations_perl_const \
 
 C_TEST_CASES += \
 	li_cstring \

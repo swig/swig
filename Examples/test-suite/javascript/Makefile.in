@@ -30,7 +30,7 @@ CPP_TEST_CASES += \
 	li_cdata_carrays_cpp \
 	li_factory \
 	li_std_containers_int \
-	li_std_map_member
+	li_std_map_member \
 
 C_TEST_CASES += \
 	javascript_uint8array_fragment \
