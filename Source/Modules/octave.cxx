@@ -515,6 +515,8 @@ public:
    * convertValue()
    *    Check if string v can be an Octave value literal,
    *    (eg. number or string), or translate it to an Octave literal.
+   *    A null pointer is written as the empty matrix '[]', which is what
+   *    the Octave runtime converts to and from a null pointer.
    * ------------------------------------------------------------ */
   String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
     if (stringval) {
@@ -539,7 +541,7 @@ public:
       if (SwigType_ispointer(unqualified_type) && Equal(numval, "0")) {
         Delete(resolved_type);
         Delete(unqualified_type);
-        return NewString("None");
+        return NewString("[]");
       }
       Delete(resolved_type);
       Delete(unqualified_type);
@@ -549,7 +551,7 @@ public:
       // nullptr is type nullptr_t which doesn't implicitly convert to 0.
       Delete(resolved_type);
       Delete(unqualified_type);
-      return NewString("None");
+      return NewString("[]");
     }
     if (Equal(v, "NULL")) {
       // The C and C++ standards both allow the implementation to define NULL
@@ -583,7 +585,7 @@ public:
       default:
         Delete(resolved_type);
         Delete(unqualified_type);
-        return NewString("None");
+        return NewString("[]");
       }
     }
     Delete(resolved_type);
