@@ -20,6 +20,23 @@ Version 4.6.0 (in progress)
 	    `std_string.i` instead) and some for std::complex which I've moved
 	    to new library files `complex.i` and `std_complex.i`.
 
+2026-09-12: wsfulton
+            Correct documentation inconsistencies in the warnings that SWIG
+            emits. The list of warnings in the Warnings chapter of the manual
+            has been checked against the messages in the source: incorrect
+            message text has been corrected, warning numbers that were never
+            documented have been added, and numbers that can no longer be
+            issued have been removed.
+
+            Two messages were themselves wrong and have been fixed. Warning
+            385 reported "operator-- ignored" for a comma operator, and the
+            D warning 710 contained a non-ASCII dash.
+
+            Two messages were issued with an unrelated warning number. A
+            missing Go typemap is now reported as warning 465 rather than
+            507, and a value given to the doxygen:ignore feature is now
+            reported as the new warning 567 rather than 206.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These
