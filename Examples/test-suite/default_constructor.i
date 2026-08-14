@@ -23,8 +23,6 @@
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) HHH; /* C#, D, Java, PHP multiple inheritance */
 
-%warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
-
 %delobject F::destroy;
 %delobject G::destroy;
 
