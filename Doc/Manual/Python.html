@@ -7430,10 +7430,44 @@ def one_tuple_value() -&gt; "typing.Tuple[int]":
 
 <p>
 All the <tt>argout</tt> typemaps for one function append into the same <tt>$result</tt>, so they
-have to agree on the container. <a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when
-they do not and the return type is then annotated <tt>typing.Any</tt>, as no single type describes
-the nested result.
+have to agree on the container.
+<a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when they do not:
 </p>
+
+<div class="shell">
+<pre>
+example.i:12: Warning 478: The argout typemaps for 'tuple_then_list' append into different
+containers, 'tuple' and 'list', so the type of the values returned cannot be worked out and a
+catch-all type is used for the return type instead. Check the container attribute in each
+argout typemap used by this function, noting that it defaults to 'list'.
+</pre>
+</div>
+
+<p>
+The catch-all type is <tt>typing.Any</tt>, as no single type describes the nested result. What is
+returned depends on the order the <tt>argout</tt> typemaps run in: the first one to run finds the
+function return value in <tt>$result</tt> and each one after it combines with whatever is there
+already, so the same two typemaps nest the returned values the opposite way round when the
+parameters are the other way round. <tt>OutTuple</tt> is the <tt>container="tuple"</tt> typemap
+above and <tt>OutValue</tt> the plain appending one from the start of this section (which appends to a "list" container - the default if <tt>container</tt> is not specified).
+Both functions below return <tt>true</tt> and set their two parameters to the same values:
+</p>
+
+<div class="code">
+<pre>
+bool tuple_then_list(short *OutTuple, short *OutValue);
+bool list_then_tuple(short *OutValue, short *OutTuple);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; tuple_then_list()
+[(True, 42), 43]
+&gt;&gt;&gt; list_then_tuple()
+([True, 43], 42)
+</pre>
+</div>
 
 <p>
 Finally, an <a href="Typemaps.html#Typemaps_nn28">"out"</a> typemap that suppresses the function

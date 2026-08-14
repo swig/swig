@@ -3049,8 +3049,8 @@ $input            - The original input object passed.
 </div>
 
 <p>
-The code supplied to the "argout" typemap is always placed after
-the "out" typemap.  If multiple return values are used, the extra
+The code in the "argout" typemap is always generated after
+the code in the "out" typemap.  If multiple return values are used, the extra
 return values are often appended to return value of the function.
 </p>
 
@@ -3109,11 +3109,19 @@ instead, using a replacement for <tt>SWIG_AppendOutput</tt>:
 
 <p>
 The container is a property of the whole wrapped function, as all the "argout" typemaps append
-into the same <tt>$result</tt>. If the "argout" typemaps matched for one function disagree,
-they cannot all be appending into the same thing, so SWIG cannot work out the type of the values
-returned and uses a catch-all type for the return type instead, <tt>typing.Any</tt> in the case
-of Python. <a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when this happens.
+into the same <tt>$result</tt>. If the "argout" typemaps used for any one function disagree on the type of container to append to,
+there is a conflict and a catch-all type is used for the return type instead (<tt>typing.Any</tt> in the case
+of Python). <a href="Warnings.html#Warnings_nn13">Warning 478</a> is issued when this happens:
 </p>
+
+<div class="shell">
+<pre>
+example.i:12: Warning 478: The argout typemaps for 'clash' append into different containers,
+'list' and 'tuple', so the type of the values returned cannot be worked out and a catch-all
+type is used for the return type instead. Check the container attribute in each argout typemap
+used by this function, noting that it defaults to 'list'.
+</pre>
+</div>
 
 <p>
 On a typemap also using <tt>overwrite=1</tt> the attribute names the container the typemap

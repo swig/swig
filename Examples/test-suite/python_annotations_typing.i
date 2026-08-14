@@ -221,6 +221,14 @@ SWIGINTERN PyObject *AppendOutput_Tuple(PyObject *result, PyObject *obj, int isv
 }
 %typemap(pytyping) short *OutListReplace "int"
 
+/* Argout typemaps naming different containers cannot agree on what $result is, so the type
+   of the values returned cannot be worked out and warning 478 is issued. What is returned
+   then depends on the order the argout typemaps run in: whichever runs first is the one
+   holding everything before it, so the two functions below return the same values nested
+   the opposite way round. The catch-all type covers both. */
+%warnfilter(SWIGWARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH) argoutBoolTupleThenAppend;
+%warnfilter(SWIGWARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH) argoutBoolAppendThenTuple;
+
 %inline %{
 #include <cstddef>
 
@@ -508,6 +516,18 @@ bool argoutBoolListReplaceOnly(bool arg, short *OutListReplace) {
 bool argoutBoolTupleReplaceThenAppend(bool arg, short *OutTupleReplace, short *OutTuple) {
   (void)arg;
   *OutTupleReplace = 41;
+  *OutTuple = 42;
+  return arg;
+}
+
+bool argoutBoolTupleThenAppend(bool arg, short *OutTuple, short *OutAppend) {
+  *OutTuple = 42;
+  *OutAppend = 43;
+  return arg;
+}
+
+bool argoutBoolAppendThenTuple(bool arg, short *OutAppend, short *OutTuple) {
+  *OutAppend = 43;
   *OutTuple = 42;
   return arg;
 }

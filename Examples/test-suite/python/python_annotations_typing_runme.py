@@ -376,6 +376,19 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolTupleReplaceThenAppend(True), (41, 42))
 
+    # argout typemaps naming different containers get the catch-all type (warning 478).
+    # Whichever typemap runs first holds everything returned before it, so the same two
+    # typemaps in the opposite order nest the returned values the opposite way round.
+    anno = get_annotations(argoutBoolTupleThenAppend)
+    if anno != {"arg": "bool", "return": "typing.Any"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolTupleThenAppend(True), [(True, 42), 43])
+
+    anno = get_annotations(argoutBoolAppendThenTuple)
+    if anno != {"arg": "bool", "return": "typing.Any"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutBoolAppendThenTuple(True), ([True, 43], 42))
+
     anno = get_annotations(argoutMultiarg)
     if anno != {"return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
