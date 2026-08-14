@@ -6,7 +6,7 @@
 #define PHPKW(x) %keywordwarn("'" `x` "' is a PHP keyword",sourcefmt="%(lower)s",rename="c_%s") `x`
 
 /* Keyword, except ok as a function */
-#define PHPKW_ok_as_function(x) %keywordwarn("'" `x` "' is a PHP keyword, renaming to 'c_" `x` "'",%$not %$isfunction,sourcefmt="%(lower)s",rename="c_%s") `x`
+#define PHPKW_ok_as_function(x) %keywordwarn("'" `x` "' is a PHP keyword",%$not %$isfunction,sourcefmt="%(lower)s",rename="c_%s") `x`
 
 /* Class (case insensitive) */
 #define PHPCN(x) %keywordwarn("'" `x` "' is a PHP reserved class name",%$isclass,sourcefmt="%(lower)s",rename="c_%s") `x`
