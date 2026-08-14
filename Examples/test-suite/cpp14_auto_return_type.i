@@ -53,7 +53,7 @@ struct X {
   static auto s() {
     return true;
   }
-  // Forward declaration (parse error with SWIG < 4.4):.
+  // Forward declaration (parse error with SWIG < 4.4).
   auto forward_decl() const;
   // Cv-qualified auto return type, either ordering.
   const auto& cref() const {
@@ -67,7 +67,7 @@ struct X {
   const auto& forward_decl_cref() const;
 };
 }
-// More forward declarations (parse error with SWIG < 4.4):.
+// More forward declarations (parse error with SWIG < 4.4).
 auto operator==(const teca_variant_array_util::X*,const teca_variant_array_util::X&);
 auto forward_decl();
 // Cv-qualified forward declarations.
