@@ -507,12 +507,14 @@ static SwigType *auto_type_holder_type(String *qualifier, String *conceptid) {
 }
 
 /* Attach a C++20 type-constraint to node 'n' as a 'concept-id' atom on the 'constraint' attribute, for downstream
- * inspection.  Does nothing when the placeholder was unconstrained. */
+ * inspection.  Does nothing when the placeholder was unconstrained.  A constraint already on the node, such as the
+ * one a requires-clause put there, is kept and the type-constraint conjoined with it. */
 static void set_concept_constraint(Node *n, String *conceptid) {
   if (conceptid) {
     Node *atom = Constraint_new_atom("concept-id");
+    Node *existing = Getattr(n, "constraint");
     Setattr(atom, "type", conceptid);
-    Setattr(n, "constraint", atom);
+    Setattr(n, "constraint", existing ? Constraint_combine("and", atom, existing) : atom);
   }
 }
 
@@ -2499,6 +2501,9 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       Setattr(n, "valuetype", holder);
       Delete(holder);
     }
+    /* The type-constraint constrains the variable whether or not the placeholder was deduced, so it is kept on
+     * every declarator of the declaration, not just on the ones left with an undeduced placeholder type. */
+    set_concept_constraint(n, conceptid);
     Delattr(n, "autotype");
   }
   Delete(declaration_type);
@@ -4311,6 +4316,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 Setattr($$, "valuetype", type);
                 if (Len(dtype.val) > 0)
                   Setattr($$, "value", dtype.val);
+                set_concept_constraint($$, $auto_type_holder.conceptid);
                 Delete(dtype.val);
                 Delete(type);
               } else {
@@ -4456,6 +4462,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      $$ = new_node("cdecl");
               if ($cpp_const.qualifier)
                 SwigType_push($declarator.type, $cpp_const.qualifier);
+              set_concept_constraint($$, $auto_type_holder.conceptid);
 	      Setattr($$, "type", type);
 	      Setattr($$, "storage", $storage_class);
               Setattr($$, "name", $declarator.id);

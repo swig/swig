@@ -45,3 +45,9 @@ check_equal(h.cube(), 64)
 
 # Concept bodies that are ordinary expressions rather than concept-id chains.
 check_equal(pass_through_int(9), 9)
+
+# A type-constraint on an 'auto' variable placeholder, in each of the three initialiser forms.
+check_equal(cvar.constrained_var, 42)
+check_equal(cvar.constrained_braced_var, 1.5)
+check_equal(cvar.constrained_multi1, 7)
+check_equal(cvar.constrained_multi2, 8)

@@ -114,6 +114,12 @@ concept NonEmpty = sizeof(T) > 0;
 
 template<typename T>
 T pass_through(T x) requires Anything<T> && NonEmpty<T> { return x; }
+
+// A type-constraint on an 'auto' variable placeholder, in each of the three initialiser forms.  The
+// constraint is kept on the variable and the type is deduced from the initialiser as for a plain 'auto'.
+Numeric auto constrained_var = 42;
+Numeric auto constrained_braced_var{1.5};
+Numeric auto constrained_multi1 = 7, constrained_multi2 = 8;
 %}
 
 %template(identity_non_numeric_tag) identity_non_numeric<Tag>;
