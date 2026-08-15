@@ -7,6 +7,15 @@
 // A setter for a pointer variable is not what is under test here.
 %immutable ptr_var;
 
+// Copy-list-initialisation keeps the C++11 rule and always deduces std::initializer_list, whatever
+// the number of elements.  SWIG has no interface for std::initializer_list, so those declarations
+// are parsed and the variables ignored with warning 346.
+#pragma SWIG nowarn=SWIGWARN_CPP11_AUTO
+
+%{
+#include <initializer_list>
+%}
+
 %inline %{
 int global_int = 11;
 
@@ -29,4 +38,17 @@ auto copy_var{global_int};
 auto* ptr_var{&global_int};
 
 static constexpr auto string_var{"braced"};
+
+// Ignored, and parsing carries on.
+auto list_var = {1, 2};
+auto single_list_var = {3};
+
+int parsing_continues() { return 42; }
+%}
+
+%{
+// Wunused-variable warning suppression for the variables SWIG drops.
+bool warning_suppression() {
+  return list_var.size() + single_list_var.size() > 0;
+}
 %}

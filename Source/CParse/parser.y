@@ -4440,6 +4440,21 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Delete($storage_class);
 	   }
+           /* C++11 copy-list-initialisation of an 'auto' variable, such as 'auto values = {1, 2};'.  Unlike the
+              direct-list-initialisation of 'auto value{1};', which deduces the type of the single element, this
+              always deduces a 'std::initializer_list' of the element type.  SWIG has no interface for
+              'std::initializer_list', so there is nothing useful to wrap the variable as and it is ignored with
+              a warning naming the type it deduces. */
+           | storage_class auto_type_holder declarator cpp_const EQUAL LBRACE {
+              if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
+             } SEMI {
+              $$ = 0;
+              Swig_warning(WARN_CPP11_AUTO, cparse_file, cparse_line,
+                  "Unable to deduce auto type for variable '%s' from a braced initialiser list which deduces std::initializer_list (ignored).\n",
+                  $declarator.id);
+              Clear(scanner_ccode);
+              Delete($storage_class);
+           }
 	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
            | storage_class auto_type_holder declarator cpp_const EQUAL error SEMI {
               SwigType *type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);

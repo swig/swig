@@ -21,6 +21,23 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            Copy-list-initialisation of an 'auto' variable is now reported for
+            what it is:
+
+              auto values = {1, 2};
+
+              Warning 346: Unable to deduce auto type for variable 'values'
+              from a braced initialiser list which deduces std::initializer_list
+              (ignored).
+
+            The type deduced is always a std::initializer_list, whatever the
+            number of elements, and SWIG has no interface for that type, so the
+            variable stays ignored. The declaration used to be reported as an
+            unsupported initialiser instead. Note that the direct-list form
+            'auto value{1};' deduces the type of the single element and is
+            wrapped as before.
+
+2026-09-12: wsfulton
             Parentheses around the initialiser of an 'auto' variable no longer
             change the type deduced for it:
 
