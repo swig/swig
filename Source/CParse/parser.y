@@ -2269,23 +2269,24 @@ static SwigType *symbol_full_type(String *name) {
   return type;
 }
 
-/* C++ decltype/auto type deduction.  Returns a new type, or 0 when the expression is not one a type can be
-   deduced from. */
-static SwigType *deduce_type(const struct Define *dtype) {
-  SwigType *deduced;
-  if (!dtype->val)
-    return 0;
-  deduced = symbol_full_type(dtype->val);
+/* The type of the expression whose text is 'val' and whose T_* summary code is 'type_code'.  Returns a new type,
+   or 0 when the expression is not one a type can be deduced from. */
+static SwigType *deduce_type_from_value(String *val, int type_code) {
+  SwigType *deduced = symbol_full_type(val);
   if (deduced) {
-    /* The name of a function is not something a variable or a decltype can be deduced from. */
-    if (!SwigType_isfunction(deduced))
-      return deduced;
-    Delete(deduced);
-  } else if (Len(dtype->val) > 1 && *Char(dtype->val) == '&') {
+    /* The name of a function is not something a variable or a decltype can be deduced from.  The summary code
+     * is the code of the function's return type, so it is not an answer here either. */
+    if (SwigType_isfunction(deduced)) {
+      Delete(deduced);
+      return 0;
+    }
+    return deduced;
+  }
+  if (Len(val) > 1 && *Char(val) == '&') {
     /* The address of something in scope, such as the '&g' in 'auto p = &g;', is a pointer to the type of that
      * something.  The unary '&' rule spells the value '&' followed by its operand.  The operand may be a
      * function here, giving a function pointer. */
-    String *operand = NewString(Char(dtype->val) + 1);
+    String *operand = NewString(Char(val) + 1);
     deduced = symbol_full_type(operand);
     Delete(operand);
     if (deduced) {
@@ -2293,14 +2294,52 @@ static SwigType *deduce_type(const struct Define *dtype) {
       return deduced;
     }
   }
-  if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
-    /* Try to deduce the type from the T_* type code. */
-    deduced = NewSwigType(dtype->type);
+  if (type_code != T_AUTO && type_code != T_UNKNOWN) {
+    /* Try to deduce the type from the T_* type code.  The code summarises a type rather than describing it, so
+     * it only answers for the types NewSwigType() rebuilds, the fundamental ones. */
+    deduced = NewSwigType(type_code);
     if (Len(deduced) > 0)
       return deduced;
     Delete(deduced);
   }
   return 0;
+}
+
+/* C++ decltype/auto type deduction.  Returns a new type, or 0 when the expression is not one a type can be
+   deduced from.  'unwrap_parentheses' says whether parentheses around the whole expression can be ignored, which
+   they can for the type an 'auto' variable deduces but not for the type a decltype names. */
+static SwigType *deduce_type(const struct Define *dtype, int unwrap_parentheses) {
+  SwigType *deduced;
+  String *unwrapped;
+  if (!dtype->val)
+    return 0;
+  if (!unwrap_parentheses)
+    return deduce_type_from_value(dtype->val, dtype->type);
+  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
+  deduced = deduce_type_from_value(unwrapped ? unwrapped : dtype->val, dtype->type);
+  Delete(unwrapped);
+  return deduced;
+}
+
+/* Whether the initialiser 'dtype' is a parenthesised name of something in scope, such as the '(object)' of
+   'decltype(auto) r = (object);'.  The decltype of a parenthesised id-expression is an lvalue reference to the
+   object the name denotes, and the reference is not part of what the name was declared with, so a type deduced
+   from the name alone would be missing it. */
+static int initialiser_is_parenthesised_name(const struct Define *dtype) {
+  int parenthesised_name = 0;
+  String *unwrapped;
+  if (!dtype->val)
+    return 0;
+  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
+  if (unwrapped) {
+    SwigType *named = symbol_full_type(unwrapped);
+    if (named) {
+      parenthesised_name = 1;
+      Delete(named);
+    }
+    Delete(unwrapped);
+  }
+  return parenthesised_name;
 }
 
 /* Deduce the type the 'auto' placeholder stands for in a variable declaration, given 'initialiser_type', the type
@@ -2379,8 +2418,13 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
      * read and the type cannot be named, and no type is deduced. */
     return 0;
   }
+  if (isdecltypeauto && initialiser_is_parenthesised_name(dtype)) {
+    /* Likewise 'decltype(auto) r = (object);' declares a reference to the object, which the name it is
+     * parenthesising was not declared with, so no type is deduced rather than the type without the reference. */
+    return 0;
+  }
 
-  initialiser_type = SwigType_isfunction(decl) ? 0 : deduce_type(dtype);
+  initialiser_type = SwigType_isfunction(decl) ? 0 : deduce_type(dtype, !isdecltypeauto);
 
   if (initialiser_type) {
     if (isdecltypeauto) {
@@ -7557,7 +7601,7 @@ decltype       : decltype_prefix[expr] decltypeexpr {
 	       ;
 
 decltypeexpr   : expr RPAREN {
-		 $$ = deduce_type(&$expr);
+                 $$ = deduce_type(&$expr, 0);
 	       }
 	       | error RPAREN {
 		 /* Avoid a parse error if we can't parse the expression

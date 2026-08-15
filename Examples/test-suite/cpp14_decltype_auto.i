@@ -29,6 +29,8 @@
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char16;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char32;
 
+%warnfilter(SWIGWARN_CPP11_AUTO) var_parenthesised;
+
 %inline %{
 int global_int = 42;
 int &global_ref = global_int;
@@ -52,6 +54,9 @@ decltype(auto) var_string_raw_wide = LR"(text)";
 decltype(auto) var_string_raw_utf8 = u8R"(text)";
 decltype(auto) var_string_raw_char16 = uR"(text)";
 decltype(auto) var_string_raw_char32 = UR"(text)";
+
+// A parenthesised name declares a reference to what it names, which the name was not declared with
+decltype(auto) var_parenthesised = (global_int);
 
 // Return types, all ignored as the type would have to come from the body.
 decltype(auto) ret_plain() { return global_int; }

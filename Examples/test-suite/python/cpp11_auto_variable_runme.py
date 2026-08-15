@@ -14,3 +14,12 @@ swig_check(cvar.cast_constcharptr, "xyz")
 # The address of a variable in scope deduces to a pointer to it.
 swig_assert(cvar.ptr_t is not None, "ptr_t")
 swig_assert(cvar.ptr_zero is not None, "ptr_zero")
+
+# Parentheses around the initialiser do not change what is deduced.
+swig_check(cvar.paren_int, 1)
+swig_assert(isinstance(cvar.paren_int, int), "paren_int should be an int")
+swig_check(cvar.paren_double, 1.0)
+swig_assert(isinstance(cvar.paren_double, float), "paren_double should be a float")
+swig_assert(cvar.paren_ptr is not None, "paren_ptr")
+swig_assert(cvar.paren_nested_ptr is not None, "paren_nested_ptr")
+swig_check(cvar.paren_nested, 1)

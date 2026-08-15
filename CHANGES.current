@@ -21,6 +21,30 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            Parentheses around the initialiser of an 'auto' variable no longer
+            change the type deduced for it:
+
+              int *pointer;
+              auto copy = (pointer);
+
+            'copy' is now an 'int *' as C++ says. It used to be wrapped as an
+            'int', with no warning and a wrapper that did not compile.
+
+            The name of a function is no longer deduced from at all:
+
+              int func();
+              auto called = func;
+
+            'called' used to be wrapped as an 'int', again with no warning. It
+            is now ignored with warning 346.
+
+            A 'decltype(auto)' variable initialised by a parenthesised name is
+            ignored with warning 346 as well, the parentheses making it a
+            reference to what the name denotes:
+
+              decltype(auto) alias = (pointer);
+
+2026-09-12: wsfulton
             A C++11 'auto' declaration declaring more than one variable now
             deduces the type from any of its declarators and not just from
             those whose initialiser is a name or a single literal:

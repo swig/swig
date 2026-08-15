@@ -59,6 +59,7 @@ extern int SWIG_cparse_template_reduce(int treduce);
 
 /* util.c */
 extern void Swig_cparse_trim_whitespace(String *s);
+extern String *Swig_cparse_trim_parenthesis(String *s);
 extern void Swig_cparse_replace_descriptor(String *s);
 extern SwigType *Swig_cparse_smartptr(Node *n);
 extern Parm *Swig_cparse_parm(String *s);

@@ -77,15 +77,33 @@ static auto cast_charptr = reinterpret_cast<char *>(bytes);
 %ignore Bad1;
 %warnfilter(SWIGWARN_CPP11_AUTO) Bad2;
 
+// The name of a function is not something a variable's type can be deduced from either.
+%warnfilter(SWIGWARN_CPP11_AUTO) Bad3;
+
 %inline %{
 static auto Bad1 = func();
 static auto Bad2 = func();
+static auto Bad3 = func;
 %}
 %{
 // Wunused-variable warning suppression
 bool warning_suppression() {
-  return Bad1 != 0 || Bad2 != 0 || cast_charptr != 0;
+  return Bad1 != 0 || Bad2 != 0 || Bad3 != 0 || cast_charptr != 0;
 }
+%}
+
+
+// Parentheses around the initialiser do not change what an 'auto' variable deduces.
+
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_nested_ptr;
+
+%inline %{
+static auto paren_int = (1);
+static auto paren_double = (da);
+static auto paren_ptr = (&zero);       // int *
+static auto paren_nested_ptr = ((ptr_zero));  // int *
+static auto paren_nested = ((one));
 %}
 
 %inline %{
