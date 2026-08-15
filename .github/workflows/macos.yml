@@ -308,6 +308,7 @@ jobs:
           set -x
 
           if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-warnings
             make $SWIGJOBS check-ccache
             make $SWIGJOBS check-errors-test-suite
           else
