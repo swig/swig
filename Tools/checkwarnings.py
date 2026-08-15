@@ -63,9 +63,12 @@ def documented_numbers(manual):
     """Warning numbers with a list entry in Warnings.html.
 
     Most entries end the number with a full stop, the Doxygen ones with a colon.
+    An entry inside an HTML comment is not part of the rendered list, so comments
+    are stripped first - a retired entry is kept commented out for reference.
     """
     with open(manual) as f:
-        return set(int(n) for n in re.findall(r"<li>(\d+)[.:]", f.read()))
+        text = re.sub(r"<!--.*?-->", "", f.read(), flags=re.DOTALL)
+    return set(int(n) for n in re.findall(r"<li>(\d+)[.:]", text))
 
 
 def parse_args():

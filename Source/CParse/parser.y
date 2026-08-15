@@ -3715,38 +3715,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  }
                           add_symbols_copy(templnode);
 
-                          /* Warning 332 (WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF) for any C++20 type-constraint in the
-                           * template whose concept-id SWIG could not resolve during earlier parsing is intentionally
-                           * disabled below.  SWIG's template substitution machinery (templ.c) is name based: a
-                           * templateparm's name is replaced throughout the body by the valparm's value/type regardless
-                           * of whether the templateparm was classified as 'typename T' or as a non-type parm.  The
-                           * 'constraint:unresolved' remap of 'Concept T' to 'typename T' therefore has no observable
-                           * effect on the generated wrapper. The warning would just result in unnecessary warnings about
-                           * any missing typedef info for NNTP parameters, that wouldn't make any difference to the generated
-                           * code if addressed.
-                           *
-                          {
-                            Parm *tp = Getattr(nn, "templateparms");
-                            SWIG_WARN_NODE_BEGIN(templnode);
-                            while (tp) {
-                              if (GetFlag(tp, "constraint:unresolved")) {
-                                Node *atom = Getattr(tp, "constraint");
-                                String *concept_name = atom ? Getattr(atom, "type") : 0;
-                                concept_name = concept_name ? Copy(concept_name) : NewString("<unknown>");
-                                Swig_warning(WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF, cparse_file, cparse_line,
-                                             "In instantiation of template '%s' with name '%s',\n",
-                                             Swig_name_str(templnode), Getattr(templnode, "sym:name"));
-                                Swig_warning(WARN_PARSE_TEMPLATE_TYPE_CONSTRAINT_UNDEF, Getfile(nn), Getline(nn),
-                                             "nothing known about type-constraint '%s' - treated as 'typename'.\n",
-                                             SwigType_str(concept_name, 0));
-                                Delete(concept_name);
-                              }
-                              tp = nextSibling(tp);
-                            }
-                            SWIG_WARN_NODE_END(templnode);
-                          }
-                          */
-
 			  if (Equal(nodeType(templnode), "classforward") && !(GetFlag(templnode, "feature:ignore") || GetFlag(templnode, "hidden"))) {
 			    SWIG_WARN_NODE_BEGIN(templnode);
 			    /* A full template class definition is required in order to wrap a template class as a proxy class so this %template is ineffective. */
