@@ -25,6 +25,21 @@
         return 0;
     }
   };
+
+  // A function parameter is in scope in the trailing return type, so a decltype there names the
+  // parameter rather than anything of the same name outside the function.
+  struct Shadowed {
+    int member;
+  };
+  Shadowed parameter_name;
+
+  auto parameter_shadows_global(int parameter_name) -> decltype(parameter_name) {
+    return parameter_name + 1;
+  }
+
+  auto parameter_only(float only_parameter) -> decltype(only_parameter) {
+    return only_parameter + 1;
+  }
 %}
 
 

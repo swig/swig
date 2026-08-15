@@ -21,6 +21,19 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A function parameter is now in scope in a trailing return type, so
+            a decltype there names the parameter rather than whatever else the
+            name denotes outside the function:
+
+              double value;
+              auto shadow(int value) -> decltype(value);   // returns int
+              auto square(float input) -> decltype(input); // returns float
+
+            The first function used to be wrapped as returning double, with no
+            warning, and the second reported warning 344 and generated a
+            wrapper that did not compile.
+
+2026-09-12: wsfulton
             Correct documentation inconsistencies in the warnings that SWIG
             emits. The list of warnings in the Warnings chapter of the manual
             has been checked against the messages in the source: incorrect

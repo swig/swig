@@ -2211,14 +2211,41 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 static const struct Decl default_decl;
 static const struct Define default_dtype;
 
-/* Look 'name' up in the symbol table and return a copy of the type it was declared with, with its declarator
-   applied, so that the 'pg' of 'int *pg;' gives 'p.int' and not just the 'int' held in the "type" attribute.
-   Returns 0 when the name is not in scope. */
+/* The parameters of the function whose trailing return type is being parsed, or 0 while no trailing return type
+   is being parsed.  The parameters are in scope in the trailing return type, so they have to be looked up before
+   the symbol table is, which is what makes 'auto f(int value) -> decltype(value)' return 'int' whatever else the
+   name 'value' denotes outside the function.  The list is owned by the declarator and only borrowed here for as
+   long as the trailing return type is being reduced. */
+static ParmList *trailing_rettype_parms = 0;
+
+/* A copy of the type of the function parameter named 'name' in the parameter list of the function whose trailing
+   return type is being parsed, or 0 when there is no such parameter.  A parameter declared with an 'auto'
+   placeholder is passed over: it is a C++20 abbreviated function template parameter, which is turned into an
+   invented template parameter only once the whole declaration has been reduced, so the placeholder is not yet
+   the name of anything a return type can be spelled with. */
+static SwigType *trailing_rettype_parm_type(String *name) {
+  Parm *p;
+  for (p = trailing_rettype_parms; p; p = nextSibling(p)) {
+    String *pname = Getattr(p, "name");
+    SwigType *ptype = Getattr(p, "type");
+    if (pname && ptype && Equal(pname, name))
+      return SwigType_isauto(ptype) ? 0 : Copy(ptype);
+  }
+  return 0;
+}
+
+/* Look 'name' up as a function parameter of a trailing return type being parsed, then in the symbol table, and
+   return a copy of the type it was declared with, with its declarator applied, so that the 'pg' of 'int *pg;'
+   gives 'p.int' and not just the 'int' held in the "type" attribute.  Returns 0 when the name is not in scope. */
 static SwigType *symbol_full_type(String *name) {
-  Node *n = Swig_symbol_clookup(name, 0);
+  Node *n;
   SwigType *type;
   SwigType *decl;
   String *storage;
+  type = trailing_rettype_parm_type(name);
+  if (type)
+    return type;
+  n = Swig_symbol_clookup(name, 0);
   if (!n)
     return 0;
   if (Equal(nodeType(n), "enumitem")) {
@@ -4109,7 +4136,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * placeholder is not valid C++ here, the declared type has to be the placeholder on its own.
             * The trailing requires-clause comes after the trailing return type, that being the end of the
             * declarator, and is conjoined with any type-constraint on the placeholder. */
-           | storage_class auto_type_holder declarator cpp_const ARROW trailing_rettype virt_specifier_seq_opt requires_clause_opt initializer c_decl_tail {
+           | storage_class auto_type_holder declarator cpp_const ARROW {
+              /* The function parameters are in scope in the trailing return type, so make them visible to any
+               * decltype in it for as long as it is being reduced. */
+              trailing_rettype_parms = $declarator.parms;
+             } trailing_rettype {
+              trailing_rettype_parms = 0;
+             } virt_specifier_seq_opt requires_clause_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);

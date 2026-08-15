@@ -34,3 +34,10 @@ if b.negate(False) != True:
 # decltype(&i) deduces 'int *', so the address is returned rather than the function being ignored.
 if b.get_number_address(None) is None:
     raise RuntimeError("b.get_number_address should return a pointer")
+
+# A parameter is in scope in the trailing return type, so these return int and float, not Shadowed.
+if cpp11_decltype.parameter_shadows_global(5) != 6:
+    raise RuntimeError("parameter_shadows_global(5) should return 6")
+
+if cpp11_decltype.parameter_only(1.5) != 2.5:
+    raise RuntimeError("parameter_only(1.5) should return 2.5")
