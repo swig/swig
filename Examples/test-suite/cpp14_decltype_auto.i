@@ -9,6 +9,8 @@
 %warnfilter(SWIGWARN_CPP14_AUTO) Klass::mem;
 %warnfilter(SWIGWARN_CPP14_AUTO) Klass::operator decltype(auto)();
 
+%rename(convert) KlassMyDecltype::operator mydecltype;
+
 %warnfilter(SWIGWARN_CPP11_LAMBDA) lambda_dauto;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_ref;
@@ -71,6 +73,16 @@ struct Klass {
   operator decltype(auto)() { return v; }
 
   int plain() const { return v; }
+};
+
+// A user defined type whose name merely ends in 'decltype' is not the keyword, so this is an ordinary
+// conversion function and the %rename above names it.
+struct mydecltype {
+  int value;
+};
+
+struct KlassMyDecltype {
+  operator mydecltype() const { mydecltype m; m.value = 13; return m; }
 };
 
 // A lambda is wrapped as an opaque object whatever its return type is spelt as.

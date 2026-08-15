@@ -31,3 +31,5 @@ swig_check(k.plain(), 11)
 
 if hasattr(Klass, "mem"):
     raise RuntimeError("Klass::mem should be ignored (deduced return type)")
+
+swig_check(KlassMyDecltype().convert().value, 13)

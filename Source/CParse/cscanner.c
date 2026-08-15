@@ -1151,6 +1151,10 @@ int yylex(void) {
             int needspace = 1;
             int termtoken = 0;
             const char *termvalue = 0;
+            /* Set while the last token read is the keyword 'decltype' itself, so that a parenthesis opening its
+             * operand is told apart from the one opening the parameter list.  A type merely ending in those eight
+             * characters, such as the user defined 'mydecltype', is not the keyword. */
+            int after_decltype = strcmp(Char(Scanner_text(scan)), "decltype") == 0;
 
             Append(s, Scanner_text(scan));
             while (1) {
@@ -1159,7 +1163,7 @@ int yylex(void) {
               if (nexttok <= 0) {
                 Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
               }
-              if (nexttok == SWIG_TOKEN_LPAREN && Len(s) >= 8 && strcmp(Char(s) + Len(s) - 8, "decltype") == 0) {
+              if (nexttok == SWIG_TOKEN_LPAREN && after_decltype) {
                 /* A conversion function to a type written with decltype, such as 'operator decltype(auto)()'.
                  * This parenthesis opens the operand of decltype and belongs to the name, unlike the one that
                  * ends the name and opens the parameter list.  Consuming it into the name keeps a declaration
@@ -1179,6 +1183,7 @@ int yylex(void) {
                   Append(s, Scanner_text(scan));
                 }
                 needspace = 0;
+                after_decltype = 0;
                 continue;
               }
               if (nexttok == SWIG_TOKEN_LPAREN) {
@@ -1205,12 +1210,14 @@ int yylex(void) {
                 if (needspace) {
                   Append(s, " ");
                 }
+                after_decltype = strcmp(Char(Scanner_text(scan)), "decltype") == 0;
                 Append(s, Scanner_text(scan));
               } else if (nexttok == SWIG_TOKEN_ENDLINE) {
               } else if (nexttok == SWIG_TOKEN_COMMENT) {
               } else {
                 Append(s, Scanner_text(scan));
                 needspace = 0;
+                after_decltype = 0;
               }
             }
             yylval.str = s;

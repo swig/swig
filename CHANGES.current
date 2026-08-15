@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            Fix parsing of a conversion function to a user defined type whose name
+            ends in "decltype":
+
+              struct mydecltype {};
+              struct S { operator mydecltype() const; };
+
+            The parenthesis after the type name was taken for the start of a
+            decltype operand and consumed into the function name, so a %rename or
+            %warnfilter naming the conversion function no longer matched it and
+            warning 503 was reported instead.
+
+2026-09-12: wsfulton
             A unary '+' or '-' in the braced initialiser of an 'auto' variable now
             applies the C++ integral promotion when deducing the type:
 
