@@ -240,11 +240,28 @@ static const struct literal_token *parser_literal_token(int tok) {
 }
 
 /* -----------------------------------------------------------------------------
+ * promote_type()
+ *
+ * The C++ integral promotion of the T_* type code 't', which is the type an operand of an arithmetic
+ * operator has after promotion.  Used by the expression grammar for its operators and by
+ * literal_type_code() for a literal written with a unary '+' or '-'.
+ * ----------------------------------------------------------------------------- */
+
+int promote_type(int t) {
+  if (t <= T_UCHAR || t == T_CHAR || t == T_WCHAR)
+    return T_INT;
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
  * literal_type_code()
  *
  * Returns the T_* type code of 'text' when the text is a single literal, optionally preceded by a unary '+' or '-',
  * such as the '42' of the braced initialiser in 'auto v{42}'.  Returns T_UNKNOWN for anything else, including an
  * identifier, an empty text and an expression made up of more than one token.
+ *
+ * A unary '+' or '-' promotes its operand, so '+'a'' is an int rather than a char, in the same way as the
+ * expression grammar's unary operators promote theirs.
  *
  * A private scanner is used so that reading the text cannot disturb the scanner the parser reads its input from.
  * ----------------------------------------------------------------------------- */
@@ -254,17 +271,20 @@ int literal_type_code(String *text) {
   String *copy = Copy(text);
   const struct literal_token *entry;
   int code = T_UNKNOWN;
+  int unary = 0;
   int tok;
 
   Seek(copy, 0, SEEK_SET);
   Scanner_push(literal, copy);
   tok = Scanner_token(literal);
-  if (tok == SWIG_TOKEN_PLUS || tok == SWIG_TOKEN_MINUS)
+  if (tok == SWIG_TOKEN_PLUS || tok == SWIG_TOKEN_MINUS) {
+    unary = 1;
     tok = Scanner_token(literal);
+  }
   entry = scanner_literal_token(tok);
   /* A token following the literal means the text is an expression rather than a text a type can be read off. */
   if (entry && Scanner_token(literal) <= 0)
-    code = entry->type_code;
+    code = unary ? promote_type(entry->type_code) : entry->type_code;
 
   DelScanner(literal);
   Delete(copy);

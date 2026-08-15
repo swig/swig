@@ -21,6 +21,15 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A unary '+' or '-' in the braced initialiser of an 'auto' variable now
+            applies the C++ integral promotion when deducing the type:
+
+              auto promoted{+'a'};
+
+            'promoted' is now an 'int' as C++ says. It used to be wrapped as a
+            'char', with no warning.
+
+2026-09-12: wsfulton
             A %template naming overloaded function templates that instantiate to
             the same function signature and are told apart only by their
             constraints is now rejected as ambiguous:

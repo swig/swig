@@ -304,11 +304,6 @@ int SWIG_cparse_template_reduce(int treduce) {
  *                           Assist functions
  * ----------------------------------------------------------------------------- */
 
-static int promote_type(int t) {
-  if (t <= T_UCHAR || t == T_CHAR || t == T_WCHAR) return T_INT;
-  return t;
-}
-
 /* Perform type-promotion for binary operators */
 static int promote(int t1, int t2) {
   t1 = promote_type(t1);

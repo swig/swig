@@ -30,6 +30,13 @@ auto bool_var{true};
 
 auto negative_var{-5};
 
+auto char_var{'a'};
+
+// A unary '+' or '-' applies the integral promotion, so these deduce int rather than char or bool.
+auto promoted_char_var{+'a'};
+auto negated_char_var{-'a'};
+auto promoted_bool_var{+true};
+
 // The cv-qualifier on the placeholder is kept on the deduced type.
 const auto const_var{7};
 
