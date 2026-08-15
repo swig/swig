@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A structured binding is now parsed and ignored whichever way its
+            initialiser is written, and an initialiser containing a semicolon of
+            its own no longer takes the rest of the file with it:
+
+              auto [a, b]{point};                    // C++17
+              auto [c, d](point);                    // C++20
+              auto [e, f] = [] { return make(); }(); // C++17
+
+            The first two were a syntax error and the third reported one after the
+            warning, losing everything up to the next semicolon.
+
+2026-09-12: wsfulton
             Fix the C++ call generated for an abbreviated function template whose
             'auto' parameter pack is followed by another 'auto' parameter:
 

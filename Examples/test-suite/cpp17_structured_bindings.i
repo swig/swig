@@ -20,6 +20,14 @@ auto& [ref_a, ref_b] = global_pt;
 const auto& [cref_a, cref_b] = global_pt;
 auto&& [rref_a, rref_b] = Pt{3, 4};
 
+// Direct-list initialisation.  The parenthesised form is C++20 grammar, so it is exercised by the
+// errors test suite rather than here.
+auto [braced_a, braced_b]{global_pt};
+
+// An initialiser holding a semicolon of its own - the declaration ends at the semicolon after the
+// call, not at the one inside the lambda body.
+auto [lambda_a, lambda_b] = [] { return Pt{5, 6}; }();
+
 // Declared after the structured bindings to show that parsing recovers and carries on.
 int parsing_continues() { return 42; }
 

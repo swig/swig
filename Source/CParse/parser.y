@@ -4477,18 +4477,20 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   }
            /* C++17 structured binding, such as 'auto [a, b] = pt;'.  The names are bound to the members of the
               initialiser, which SWIG would have to know the layout of to give each name a type, so the whole
-              declaration is parsed and ignored with a warning. */
-           | storage_class auto_type_holder structured_binding_ref LBRACKET structured_binding_names RBRACKET EQUAL definetype SEMI {
+              declaration is ignored with a warning.
+
+              The initialiser is skipped rather than parsed: nothing is wrapped whatever it says, and skipping
+              takes all three of the copy ('= pt'), direct-list ('{pt}') and parenthesised ('(pt)') forms as they
+              come, including an initialiser SWIG has no grammar for.  The skip balances brackets, so a semicolon
+              inside the initialiser - the body of a lambda, say - does not end the declaration early.
+
+              The rule ends at the ']' so that the skip starts at the first token of the initialiser.  This
+              relies on the state after the ']' reducing by default, which it does because no other rule shares
+              the prefix - adding one would make the parser read a lookahead token first and the skip would then
+              start one token late. */
+           | storage_class auto_type_holder structured_binding_ref LBRACKET structured_binding_names RBRACKET {
               $$ = 0;
-              Swig_warning(WARN_CPP17_STRUCTURED_BINDING, cparse_file, cparse_line, "Structured binding '%s' is not supported (ignored).\n",
-                  $structured_binding_names);
-              Delete($storage_class);
-              Delete($structured_binding_names);
-           }
-           /* A structured binding whose initialiser SWIG cannot parse, such as the 'Pt{1, 2}' of
-              'auto&& [a, b] = Pt{1, 2};'. */
-           | storage_class auto_type_holder structured_binding_ref LBRACKET structured_binding_names RBRACKET EQUAL error SEMI {
-              $$ = 0;
+              if (skip_balanced_to_semicolon() < 0) Exit(EXIT_FAILURE);
               Swig_warning(WARN_CPP17_STRUCTURED_BINDING, cparse_file, cparse_line, "Structured binding '%s' is not supported (ignored).\n",
                   $structured_binding_names);
               Delete($storage_class);

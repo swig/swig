@@ -23,6 +23,7 @@
 <li><a href="#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
 <li><a href="#CPlusPlus20_variable_templates">Variable templates initialised from a requires-expression</a>
 <li><a href="#CPlusPlus20_class_template_argument_deduction">Class template argument deduction</a>
+<li><a href="#CPlusPlus20_structured_bindings">Structured bindings</a>
 </ul>
 <li><a href="#CPlusPlus20_preprocessor_changes">Preprocessor changes</a>
 <ul>
@@ -1014,6 +1015,44 @@ SWIG handles aggregate CTAD exactly as it handles any other CTAD variable: it pe
 template argument deduction, so it issues Warning 347 and skips the variable.  See
 <a href="CPlusPlus17.html#CPlusPlus17_class_template_argument_deduction">Class template argument deduction</a>
 in the C++17 chapter for details.
+</p>
+
+<H3><a name="CPlusPlus20_structured_bindings">10.2.10 Structured bindings</a></H3>
+
+
+<p>
+C++20 extends the C++17 structured binding in three ways.  The initialiser may be
+written in parentheses, the declaration may carry a <tt>static</tt> or
+<tt>thread_local</tt> storage-class-specifier, and the names it introduces may be
+captured by a lambda:
+</p>
+
+<div class="code"><pre>
+%inline %{
+struct Pt {
+  int x;
+  int y;
+};
+
+Pt global_pt = {1, 2};
+
+auto [a, b](global_pt);                         // parenthesised initialiser
+static auto [c, d] = global_pt;                 // storage-class-specifier
+thread_local auto [e, f] = global_pt;
+static const auto&amp; [g, h](global_pt);           // and the two combined
+%}
+</pre></div>
+
+<p>
+SWIG parses all of these and, as in C++17, ignores each one with warning 349,
+<em>Structured binding 'names' is not supported (ignored)</em>.  See
+<a href="CPlusPlus17.html#CPlusPlus17_structured_bindings">Structured bindings</a>
+in the C++17 chapter for why the names are not wrapped and what to do instead.
+</p>
+
+<p>
+Capturing a structured binding in a lambda needs no support in SWIG, as it can only
+happen inside a function body and SWIG skips function bodies without parsing them.
 </p>
 
 <H2><a name="CPlusPlus20_preprocessor_changes">10.3 Preprocessor changes</a></H2>

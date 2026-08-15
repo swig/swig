@@ -319,6 +319,16 @@ const auto&amp; [e, f] = global_pt;
 </pre></div>
 
 <p>
+The initialiser may equally be written as a braced or a parenthesised one, the
+latter being C++20:
+</p>
+
+<div class="code"><pre>
+auto [g, h]{global_pt};
+auto [i, j](global_pt);
+</pre></div>
+
+<p>
 SWIG parses all of these, including the <tt>static</tt> and <tt>auto&amp;&amp;</tt>
 spellings, but does not wrap the names.  Giving each name a type means knowing how
 the initialiser decomposes, which for a class type depends on its members and for a
