@@ -99,7 +99,7 @@ struct BaseOverloaded {
 };
 
 struct DerivedOverloaded : public BaseOverloaded {
-  virtual void identical_overload(int i, const PTypedef &p = PTypedef()) {}
+  virtual void identical_overload(int i, const PTypedef &pp = PTypedef()) {}
 };
 %}
 

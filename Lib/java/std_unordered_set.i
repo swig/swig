@@ -28,6 +28,11 @@
   }
 }
 
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::unordered_set::add "override";
+%javamethodmodifiers std::unordered_set::empty "override";
+%javamethodmodifiers std::unordered_set::clear "override";
+#endif
 %javamethodmodifiers std::unordered_set::sizeImpl "private";
 %javamethodmodifiers std::unordered_set::containsImpl "private";
 %javamethodmodifiers std::unordered_set::removeImpl "private";
@@ -37,9 +42,15 @@
 
 %rename(Iterator) std::unordered_set::iterator;
 %nodefaultctor std::unordered_set::iterator;
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %javamethodmodifiers std::unordered_set::iterator::incrementUnchecked "private";
 %javamethodmodifiers std::unordered_set::iterator::derefUnchecked "private";
 %javamethodmodifiers std::unordered_set::iterator::isNot "private";
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::unordered_set::iterator::incrementUnchecked "internal";
+%javamethodmodifiers std::unordered_set::iterator::derefUnchecked "internal";
+%javamethodmodifiers std::unordered_set::iterator::isNot "internal";
+#endif /* SWIGJAVA_TARGET */
 
 namespace std {
 
@@ -47,6 +58,7 @@ template <class Key>
 class unordered_set {
 
 %typemap(javabase) std::unordered_set<Key> "java.util.AbstractSet<$typemap(jboxtype, Key)>"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %proxycode %{
   @SuppressWarnings("this-escape")
   public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, Key)> collection) {
@@ -135,11 +147,62 @@ class unordered_set {
     return removeImpl(($typemap(jboxtype, Key))object);
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%proxycode %{
+  constructor(collection: kotlin.collections.Set<$typemap(jboxtype, Key)>) : this() {
+    for (element in collection) {
+      add(element)
+    }
+  }
+
+  override val size: Int
+    get() = sizeImpl()
+
+  override fun iterator(): MutableIterator<$typemap(jboxtype, Key)> {
+    return object : MutableIterator<$typemap(jboxtype, Key)> {
+      private var curr = this@$javaclassname.begin()
+      private val end = this@$javaclassname.end()
+
+      override fun next(): $typemap(jboxtype, Key) {
+        if (!hasNext()) {
+          throw NoSuchElementException()
+        }
+
+        // Save the current position, increment it,
+        // then return the value at the position before the increment.
+        val currValue = curr.derefUnchecked()
+        curr.incrementUnchecked();
+        return currValue;
+      }
+
+      override fun hasNext(): Boolean {
+        return curr.isNot(end);
+      }
+
+      override fun remove() {
+        throw UnsupportedOperationException()
+      }
+    }
+  }
+
+  override fun contains(element: $typemap(jboxtype, Key)): Boolean {
+    return containsImpl(element)
+  }
+
+  override fun remove(element: $typemap(jboxtype, Key)): Boolean {
+    return removeImpl(element)
+  }
+%}
+#endif /* SWIGJAVA_TARGET */
 
   public:
 
     struct iterator {
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
       %typemap(javaclassmodifiers) iterator "public class"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+      %typemap(javaclassmodifiers) iterator "class"
+#endif
       %extend {
         void incrementUnchecked() {
           ++(*$self);
@@ -177,8 +240,8 @@ class unordered_set {
       %fragment("SWIG_UnorderedSetSize");
 
       // Returns whether item was inserted.
-      bool add(const Key& key) {
-        return self->insert(key).second;
+      bool add(const Key& element) {
+        return self->insert(element).second;
       }
 
       // Returns whether set contains key.

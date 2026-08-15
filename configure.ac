@@ -1015,8 +1015,47 @@ AC_SUBST(GUILE_CFLAGS)
 AC_SUBST(GUILE_LIBS)
 
 #----------------------------------------------------------------
+# Look for Kotlin
+#----------------------------------------------------------------
+
+dnl Kotlin/JVM usses the Java detection bellow for the JNI headers needed to
+dnl compile the C/C++ wrappers and the java executable for running tests.
+dnl Only the Kotlin compiler itself needs to be detected here.
+
+AS_UNSET([KOTLINC])
+AS_UNSET([KOTLINRUNNER])
+AS_UNSET([KOTLIN_NEED_JVM])
+
+AC_ARG_WITH(kotlin, AS_HELP_STRING([--without-kotlin], [Disable Kotlin])
+AS_HELP_STRING([--with-kotlin=path], [Set location of kotlinc executable]),[KOTLINCBIN="$withval"], [KOTLINCBIN="$alllang_default"])
+
+# First, check for "--without-kotlin" or "--with-kotlin=no".
+if test x"${KOTLINCBIN}" = xno; then
+  AC_MSG_NOTICE([Disabling Kotlin])
+else
+  AS_IF([test "x$KOTLINCBIN" = xyes],[
+     AC_CHECK_PROGS([KOTLINC], [kotlinc])
+  ],[
+     AS_VAR_SET([KOTLINC], ["$KOTLINCBIN"])
+  ])
+fi
+
+dnl The kotlin runner script ships with kotlinc and runs compiled classes
+dnl with the Kotlin runtime on the classpath.
+AS_IF([test -n "$KOTLINC"],[
+   AC_CHECK_PROGS([KOTLINRUNNER], [kotlin])
+   dnl Mark a flag we need to detect java/jvm
+   AS_VAR_SET([KOTLIN_NEED_JVM], [1])
+])
+
+AC_SUBST([KOTLINC])
+AC_SUBST([KOTLINRUNNER])
+
+#----------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
+
+AS_UNSET([JAVA_NEED_JVM])
 
 AC_ARG_WITH(java, AS_HELP_STRING([--without-java], [Disable Java])
 AS_HELP_STRING([--with-java=path], [Set location of java executable]),[JAVABIN="$withval"], [JAVABIN="$alllang_default"])
@@ -1025,8 +1064,18 @@ AC_ARG_WITH(javac, [  --with-javac=path       Set location of javac executable],
 # First, check for "--without-java" or "--with-java=no".
 if test x"${JAVABIN}" = xno; then
 AC_MSG_NOTICE([Disabling Java])
-JAVA=
+  AS_IF([test -n "$KOTLIN_NEED_JVM"],[
+    dnl Ensure we probe java properly, as we use it by kotlin.
+    dnl This does NOT mean we use java,
+    dnl only that we find the proper 'JAVA' for kotlin use!
+    AS_VAR_SET([JAVABIN], ['yes'])
+  ])
 else
+AS_VAR_SET([JAVA_NEED_JVM], [1])
+fi
+
+dnl We probe java/jdk if we use java or kotlin
+if test -n "$JAVA_NEED_JVM" || test -n "$KOTLIN_NEED_JVM"; then
 
 dnl Detect everything we need for Java: java for running Java tests, javac for
 dnl compiling them and C headers for compiling C code.
@@ -1240,6 +1289,12 @@ case $host in
     ;;
 esac
 JAVAC_OPTIONS="-Xlint"
+
+else # if test -n "$JAVA_NEED_JVM" || test -n "$KOTLIN_NEED_JVM" then
+dnl Ensure java is not used
+AS_UNSET([JAVA])
+
+dnl if test -n "$JAVA_NEED_JVM" || test -n "$KOTLIN_NEED_JVM" then
 fi
 
 # Quote for spaces in path to executables
@@ -2606,8 +2661,9 @@ if test -z "$GUILE" || test -z "$GUILE_LIBS" ; then
 fi
 AC_SUBST(SKIP_GUILE)
 
+
 SKIP_JAVA=
-if test -z "$JAVA" || test -z "$JAVAC" || test -z "$JAVAINC" ; then
+if test -z "$JAVA_NEED_JVM" || test -z "$JAVA" || test -z "$JAVAC" || test -z "$JAVAINC" ; then
     SKIP_JAVA="1"
 fi
 AC_SUBST(SKIP_JAVA)
@@ -2618,6 +2674,13 @@ if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
+
+
+SKIP_KOTLIN=
+if test -z "$KOTLINC" || test -z "$JAVA" || test -z "$JAVAINC" ; then
+    SKIP_KOTLIN="1"
+fi
+AC_SUBST(SKIP_KOTLIN)
 
 
 SKIP_LUA=
@@ -2770,6 +2833,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
+    Examples/test-suite/kotlin/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
@@ -2832,6 +2896,7 @@ test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_KOTLIN"		|| langs="${langs}kotlin "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "

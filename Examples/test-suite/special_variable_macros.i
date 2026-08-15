@@ -200,12 +200,18 @@ namespace Space {
     return new $typemap(cstype, Space::RenameMe)( new $typemap(cstype, Name)(s) ); 
   }
 %}
-#elif defined(SWIGJAVA)
+#elif defined SWIGJAVA_SOURCE
 %typemap(javacode) Space::RenameMe %{
   public static NewName factory(String s) {
   //below should expand to:
   //return new NewName( new Name(s) );
     return new $typemap(jstype, Space::RenameMe)( new $typemap(jstype, Name)(s) ); 
+  }
+%}
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javacode) Space::RenameMe %{
+  fun factory(s: String): NewName {
+    return $typemap(jstype, Space::RenameMe)( $typemap(jstype, Name)(s) )
   }
 %}
 #elif defined(SWIGD)

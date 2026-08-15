@@ -65,6 +65,27 @@ JAVAKW(while);
 %namewarn("321:clone() is a java bad method name") *::clone();
 
 
+/*
+   Additional Hard keywords from
+   https://kotlinlang.org/docs/keyword-reference.html
+*/
+
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+JAVAKW(as);
+JAVAKW(fun);
+JAVAKW(in);
+JAVAKW(is);
+JAVAKW(null);
+JAVAKW(object);
+JAVAKW(false);
+JAVAKW(true);
+JAVAKW(typealias);
+JAVAKW(typeof);
+JAVAKW(val);
+JAVAKW(var);
+JAVAKW(when);
+#endif /* SWIGJAVA_TARGET */
+
 #undef JAVAKW
 
 #endif //JAVA_JAVAKW_SWG_

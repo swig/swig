@@ -20,8 +20,13 @@
 %define %unique_ptr(TYPE)
 
 %typemap (jni) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap (jtype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "long"
 %typemap (jstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "$typemap(jstype, TYPE)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap (jtype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "Long"
+%typemap (jstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "$typemap(jstype, TYPE)?"
+#endif
 
 %typemap(in) std::unique_ptr< TYPE > (TYPE *unique_temp)
 %{ unique_temp = *(TYPE **)&$input;
@@ -48,6 +53,7 @@ $1 = &$1_ndup.uptr; %}
 %}
 
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) std::unique_ptr< TYPE > {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
@@ -56,6 +62,16 @@ $1 = &$1_ndup.uptr; %}
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, false);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) std::unique_ptr< TYPE > {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true)
+  }
+%typemap(javaout) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, false)
+  }
+#endif /* SWIGJAVA_TARGET */
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && ""
 
