@@ -21,6 +21,27 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A %template naming overloaded function templates that instantiate to
+            the same function signature and are told apart only by their
+            constraints is now rejected as ambiguous:
+
+              int classify(std::integral auto value);
+              double classify(std::floating_point auto value);
+
+              %template(classify_double) classify<double>;
+
+              Error: Ambiguous template instantiation of 'classify< double >'.
+              Overloaded declarations of 'classify' with 'std::integral' and
+              'std::floating_point' instantiate to the same function signature
+              and SWIG does not evaluate constraints to choose between them.
+
+            C++ chooses one of the overloads by constraint satisfaction, which
+            SWIG does not evaluate. SWIG used to wrap both overloads, and the
+            generated dispatcher could call one of them while converting the
+            result to the other one's return type, silently turning a returned
+            2.5 into 2.
+
+2026-09-12: wsfulton
             Copy-list-initialisation of an 'auto' variable is now reported for
             what it is:
 

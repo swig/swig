@@ -12,9 +12,10 @@
 //     body mustn't trip up that path.
 //
 // SWIG does not honour C++20 constraint subsumption: two function templates with identical signatures but disjoint
-// requires-clauses warn 302 and the later declaration is dropped, and same name overloads with disjoint constraints
-// fail to compile because SWIG instantiates every candidate rather than the most constrained one.  Tests here
-// therefore use the variant that SWIG can express: shared constraints with distinct arities.
+// requires-clauses warn 302 and the later declaration is dropped, and a %template naming overloads that instantiate
+// to the same signature but differ only by their constraints is rejected as ambiguous (see
+// errors/cpp_template_constrained_overload.i).  Tests here therefore use the variant that SWIG can express:
+// shared constraints with distinct arities.
 
 %rename(eq)   Box::operator==;
 %rename(plus) Box::operator+;

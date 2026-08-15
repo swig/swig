@@ -806,33 +806,48 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   typelist = NewList();   /* List of SwigType * types */
 
   templateargs = NewStringEmpty();
-  /* Drop invented type template parameters introduced by C++20 abbreviated 'auto'
-   * parms from the emitted C++ template-argument list.  The invented parm is
-   * always appended after the explicit parms ([dcl.fct]/19), so a trailing count
-   * suffices.  Wrapper signature has concrete types in place of 'auto', so the
-   * C++ compiler deduces the invented type from the call - emitting it
-   * explicitly would either be redundant (no pack) or invalid (with a pack the
-   * trailing invented parm is unreachable behind the greedy pack). */
+  /* Drop from the emitted C++ template-argument list every argument the compiler deduces for itself.  The
+   * invented type template parameters introduced by C++20 abbreviated 'auto' parms ([dcl.fct]/19) are appended
+   * after the explicit parms, and the wrapper signature has concrete types in place of each 'auto', so the
+   * compiler deduces an invented parm's argument from the call and emitting it explicitly is at best redundant.
+   *
+   * The one invented parm whose argument is not deduced is a parameter pack that another invented parm follows:
+   * a pack in a non-final position deduces to empty, so its arguments have to be given explicitly for the call
+   * to have the number of parameters the wrapper passes.  Everything after that pack is deduced. */
   {
     int trailing_invented = 0;
-    int invented_pack = 0;
+    int last_invented_pack = -1;
+    int index = 0;
+    int total = ParmList_len(templateparms);
     Parm *p;
-    for (p = templateparms; p; p = nextSibling(p)) {
+    for (p = templateparms; p; p = nextSibling(p), ++index) {
       if (GetFlag(p, "abbreviated_auto")) {
         ++trailing_invented;
-        invented_pack = SwigType_isvariadic(Getattr(p, "type"));
+        if (SwigType_isvariadic(Getattr(p, "type")))
+          last_invented_pack = index;
       } else {
         trailing_invented = 0;
-        invented_pack = 0;
+        last_invented_pack = -1;
       }
     }
     if (trailing_invented > 0) {
-      /* An invented parameter pack ('auto&&... args') absorbs every remaining template argument, so all of them
-       * are dropped rather than one per invented parameter, which is all an unexpanded invented parm takes. */
-      int emit_count = invented_pack ? ParmList_len(templateparms) - trailing_invented : ParmList_len(tparms) - trailing_invented;
-      ParmList *emit_parms = CopyParmListMax(tparms, emit_count);
-      SwigType_add_template(templateargs, emit_parms);
-      Delete(emit_parms);
+      int emit_count;
+      if (last_invented_pack >= 0 && last_invented_pack < total - 1) {
+        /* Emit up to and including the pack.  Each invented parm after it is not a pack, so it takes exactly one
+         * template argument, which is the count to drop from the end. */
+        emit_count = ParmList_len(tparms) - (total - 1 - last_invented_pack);
+      } else if (last_invented_pack >= 0) {
+        /* A trailing invented pack absorbs every remaining template argument, so all of them are dropped rather
+         * than one per invented parameter, which is all an unexpanded invented parm takes. */
+        emit_count = total - trailing_invented;
+      } else {
+        emit_count = ParmList_len(tparms) - trailing_invented;
+      }
+      {
+        ParmList *emit_parms = CopyParmListMax(tparms, emit_count);
+        SwigType_add_template(templateargs, emit_parms);
+        Delete(emit_parms);
+      }
     } else {
       SwigType_add_template(templateargs, tparms);
     }
@@ -1692,6 +1707,135 @@ success:
 }
 
 /* -----------------------------------------------------------------------------
+ * instantiated_function_signature()
+ *
+ * Render the function parameter types of function template 'n' with each template
+ * parameter name replaced by the matching argument from 'instantiated_parms', so
+ * that two candidate overloads can be compared by the signature they instantiate
+ * to rather than by the template parameter names they happen to have been given.
+ * ----------------------------------------------------------------------------- */
+
+static String *instantiated_function_signature(Node *n, ParmList *instantiated_parms) {
+  String *sig = NewStringEmpty();
+  Parm *p;
+  for (p = Getattr(n, "parms"); p; p = nextSibling(p)) {
+    SwigType *t = Copy(Getattr(p, "type"));
+    Parm *tp = Getattr(n, "templateparms");
+    Parm *ip = instantiated_parms;
+    while (tp && ip) {
+      String *tname = Getattr(tp, "name");
+      SwigType *value = Getattr(ip, "type");
+      if (!value)
+        value = Getattr(ip, "value");
+      if (tname && value)
+        SwigType_typename_replace(t, tname, value);
+      tp = nextSibling(tp);
+      ip = nextSibling(ip);
+    }
+    Printf(sig, "%s|", t);
+    Delete(t);
+  }
+  return sig;
+}
+
+/* -----------------------------------------------------------------------------
+ * template_constraints_str()
+ *
+ * Render every constraint attached to function template 'n' - the requires-clause on
+ * the template itself and the type-constraint on each template parameter, which is
+ * where a C++20 abbreviated 'Concept auto' parameter puts it.
+ *
+ * With display false the result is a positional key for comparing two overloads: an
+ * unconstrained template parameter contributes an empty entry, so a constrained and
+ * an unconstrained overload never compare equal, and the same concept on different
+ * parameters compares unequal too.  With display true the result is the constraint
+ * text for a diagnostic, with the empty entries left out.
+ * ----------------------------------------------------------------------------- */
+
+static String *template_constraints_str(Node *n, int display) {
+  String *out = NewStringEmpty();
+  Node *constraint = Getattr(n, "constraint");
+  Parm *tp;
+  if (constraint) {
+    String *s = Constraint_str(constraint);
+    Printf(out, "%s", s);
+    Delete(s);
+  }
+  if (!display)
+    Append(out, ";");
+  for (tp = Getattr(n, "templateparms"); tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint) {
+      String *s = Constraint_str(tconstraint);
+      if (display && Len(out) > 0)
+        Append(out, " && ");
+      Printf(out, "%s", s);
+      Delete(s);
+    }
+    if (!display)
+      Append(out, ";");
+  }
+  if (display && Len(out) == 0)
+    Append(out, "no constraint");
+  return out;
+}
+
+/* -----------------------------------------------------------------------------
+ * check_constrained_overloads()
+ *
+ * Report an error when two of the function templates matched by a %template
+ * instantiate to the same function signature and are told apart only by their
+ * constraints.  C++ picks one of them by constraint satisfaction; SWIG does not
+ * evaluate constraints, so it would otherwise wrap both, and the generated
+ * dispatcher would call one overload while converting the result to the other
+ * overload's return type.
+ *
+ * Returns 1 if an error was reported, 0 otherwise.
+ * ----------------------------------------------------------------------------- */
+
+static int check_constrained_overloads(List *matches, String *name, ParmList *instantiated_parms) {
+  int i, j;
+  int len = Len(matches);
+  int reported = 0;
+  for (i = 0; i < len && !reported; i++) {
+    Node *ni = Getitem(matches, i);
+    String *sigi = instantiated_function_signature(ni, instantiated_parms);
+    String *coni = template_constraints_str(ni, 0);
+    for (j = i + 1; j < len && !reported; j++) {
+      Node *nj = Getitem(matches, j);
+      String *sigj = instantiated_function_signature(nj, instantiated_parms);
+      String *conj = template_constraints_str(nj, 0);
+      if (Equal(sigi, sigj) && !Equal(coni, conj)) {
+        String *tname = Copy(name);
+        String *displayi = template_constraints_str(ni, 1);
+        String *displayj = template_constraints_str(nj, 1);
+        String *namestr;
+        SwigType_add_template(tname, instantiated_parms);
+        namestr = SwigType_namestr(tname);
+        Swig_error(cparse_file,
+                   cparse_line,
+                   "Ambiguous template instantiation of '%s'. Overloaded declarations of '%s' with '%s' and '%s' instantiate to the same "
+                   "function signature and SWIG does not evaluate constraints to choose between them.\n",
+                   namestr,
+                   name,
+                   displayi,
+                   displayj);
+        Delete(namestr);
+        Delete(displayi);
+        Delete(displayj);
+        Delete(tname);
+        reported = 1;
+      }
+      Delete(sigj);
+      Delete(conj);
+    }
+    Delete(sigi);
+    Delete(coni);
+  }
+  return reported;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cparse_template_locate()
  *
  * Search for a template that matches name with given parameters and mark it for instantiation.
@@ -1735,6 +1879,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
         SetFlag(n, "instantiate");
     } else {
       Node *firstn = 0;
+      List *matches = NewList();
       /* If not a class template we must have a function template.
          The template found is not necessarily the one we want when dealing with templated
          functions. We don't want any specialized function templates as they won't have
@@ -1765,6 +1910,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
                        ParmList_str_defaultargs(Getattr(n, "parms")));
               }
               SetFlag(n, "instantiate");
+              Append(matches, n);
               if (!match)
                 match = n; /* first match */
             }
@@ -1794,6 +1940,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
                          ParmList_str_defaultargs(Getattr(n, "parms")));
                 }
                 SetFlag(n, "instantiate");
+                Append(matches, n);
                 if (!match)
                   match = n; /* first match */
               }
@@ -1806,7 +1953,13 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
 
       if (!match) {
         Swig_error(cparse_file, cparse_line, "No matching function template '%s' found.\n", name);
+      } else if (Len(matches) > 1 && check_constrained_overloads(matches, name, instantiated_parms)) {
+        Iterator mi;
+        for (mi = First(matches); mi.item; mi = Next(mi))
+          Delattr(mi.item, "instantiate");
+        match = 0;
       }
+      Delete(matches);
     }
   }
 

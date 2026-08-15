@@ -675,6 +675,25 @@ template&lt;typename T&gt; requires Numeric&lt;T&gt; T process(T x, T y);
 </pre>
 </div>
 <p>
+The same overloads written as abbreviated function templates reach
+<tt>%template</tt> as separate declarations rather than tripping warning
+302, and a <tt>%template</tt> that cannot be resolved without evaluating
+the constraints is rejected as an ambiguous instantiation:
+</p>
+<div class="code">
+<pre>
+int    classify(std::integral auto value);
+double classify(std::floating_point auto value);
+
+// Error: Ambiguous template instantiation of 'classify&lt; double &gt;'. ...
+%template(classify_double) classify&lt;double&gt;;
+</pre>
+</div>
+<p>
+As above, give the overloads distinct signatures - typically a different
+arity - so that only one of them matches a given <tt>%template</tt>.
+</p>
+<p>
 A class template "partial specialization" whose structural
 template-argument pattern is identical to the primary, intended to be
 selected by a <tt>requires</tt>-clause alone, is not distinguishable
