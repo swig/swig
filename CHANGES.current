@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            Fix the C++ call generated for an abbreviated function template whose
+            'auto' parameter pack is followed by another 'auto' parameter:
+
+              int pack_then_one(auto... values, auto last);
+
+              %template(pack_then_one_iii) pack_then_one<int, int, int>;
+
+            The generated call named one template argument where it needed one
+            for each type the pack takes, and did not compile.
+
+2026-09-12: wsfulton
             A boolean literal is now accepted as a whole constraint:
 
               template<typename T> T f(T x) requires true;

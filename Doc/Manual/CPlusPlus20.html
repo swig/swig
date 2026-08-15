@@ -355,6 +355,25 @@ decorated spellings <tt>const auto&amp;...</tt>, <tt>auto&amp;&amp;...</tt> and
 </p>
 
 <p>
+An <tt>auto</tt> pack may be followed by further <tt>auto</tt> parameters, and
+there may be more than one pack.  One type is still given per wrapped
+parameter: the types the parameters after a pack need are taken from the end of
+the <tt>%template</tt> argument list, and the pack takes what is left.
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+int pack_then_one(auto... values, auto last);
+int two_packs(auto... first, auto... second);
+%}
+
+%template(pack_then_one_iii) pack_then_one&lt;int, int, int&gt;;  // three parameters
+%template(two_packs_ii)      two_packs&lt;int, int&gt;;           // two parameters
+</pre>
+</div>
+
+<p>
 The <tt>auto</tt> placeholder may carry the usual parameter decorations -
 reference, pointer, forwarding reference, and CV-qualifiers.
 </p>

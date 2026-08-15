@@ -69,6 +69,26 @@ int sum_numeric(const Numeric auto&... args) { return (args + ... + 0); }
 // wrapped function takes one more parameter than the number of types given to %template.
 int offset_sum(int first, const auto&... rest) { return first + (rest + ... + 0); }
 
+// An auto parameter pack followed by another auto parameter.  The pack takes all but the last type given to
+// %template and the last one types the trailing parameter, so the wrapper takes one parameter per type.  A
+// pack that is not the last template parameter deduces to empty, so its types are the only ones the generated
+// call has to name explicitly.
+int pack_then_one(auto... values, auto last) { return (values + ... + 0) + last; }
+
+// Two auto parameter packs - the first takes the types the second does not need.
+int two_packs(auto... first, auto... second) { return (first + ... + 0) + (second + ... + 0); }
+
+// An auto parameter pack followed by two ordinary auto parameters, so that the boundary between the
+// pack and what follows it is more than one parameter wide.
+int pack_then_two(auto... values, auto a, auto b) { return (values + ... + 0) + a + b; }
+
+// The same shapes instantiated with more than one type.  Every %template above gives the same type
+// throughout, which cannot tell a correct partition of the template arguments from one that happens
+// to put the right number of types in each position.  Doubles are halved on the way in so a type that
+// ends up in the wrong position changes the result rather than only the signature.
+int mixed_pack_then_one(auto... values, auto last) { return (int(values * 2) + ... + 0) + int(last); }
+int mixed_trailing_pack(auto first, auto... rest) { return int(first) + (int(rest * 2) + ... + 0); }
+
 // Plain auto return type with an explicit trailing return type - SWIG wraps the trailing return type.
 // A type-constraint on the return ('Numeric auto fn(...) -> int') is rejected by clang and MSVC, so the
 // constrained-return case is exercised separately below without the trailing return type.
@@ -109,3 +129,16 @@ Numeric auto times3(int x);
 %template(unnamed_bare_ii)        unnamed_bare<int, int>;
 %template(sum_numeric_ii)         sum_numeric<int, int>;
 %template(offset_sum_ii)          offset_sum<int, int>;
+%template(pack_then_one_iii)      pack_then_one<int, int, int>;
+%template(two_packs_ii)           two_packs<int, int>;
+%template(pack_then_two_iiii)     pack_then_two<int, int, int, int>;
+
+// Mixed types in each of the pack shapes.
+%template(mixed_pack_then_one_ddi) mixed_pack_then_one<double, double, int>;
+%template(mixed_pack_then_one_idd) mixed_pack_then_one<int, double, double>;
+%template(mixed_trailing_pack_idd) mixed_trailing_pack<int, double, double>;
+%template(mixed_trailing_pack_did) mixed_trailing_pack<double, int, double>;
+%template(pack_then_two_ddii)     pack_then_two<double, double, int, int>;
+%template(two_packs_id)           two_packs<int, double>;
+%template(offset_sum_id)          offset_sum<int, double>;
+%template(sum_numeric_id)         sum_numeric<int, double>;

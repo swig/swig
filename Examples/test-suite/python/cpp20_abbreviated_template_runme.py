@@ -43,6 +43,22 @@ swig_check(sum_numeric_ii(4, 5), 9)
 # Ordinary parameter ahead of an auto parameter pack.
 swig_check(offset_sum_ii(1, 2, 3), 6)
 
+# An auto parameter pack followed by another auto parameter, and two auto parameter packs.
+swig_check(pack_then_one_iii(1, 2, 3), 6)
+swig_check(two_packs_ii(4, 5), 9)
+swig_check(pack_then_two_iiii(1, 2, 3, 4), 10)
+
+# The same shapes with more than one type.  A type in the wrong position changes the result,
+# because only the pack members are doubled.
+swig_check(mixed_pack_then_one_ddi(1.5, 2.5, 3), 11)
+swig_check(mixed_pack_then_one_idd(1, 2.5, 3.5), 10)
+swig_check(mixed_trailing_pack_idd(1, 2.5, 3.5), 13)
+swig_check(mixed_trailing_pack_did(1.5, 2, 3.5), 12)
+swig_check(pack_then_two_ddii(1.5, 2.5, 3, 4), 11)
+swig_check(two_packs_id(4, 5.5), 9)
+swig_check(offset_sum_id(1, 2, 3.5), 6)
+swig_check(sum_numeric_id(1, 2.5), 3)
+
 # Undecorated auto parameter pack.
 swig_check(sum_bare_ii(1, 2), 3)
 swig_check(sum_bare_iii(1, 2, 3), 6)
