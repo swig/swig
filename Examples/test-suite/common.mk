@@ -739,6 +739,7 @@ CPP17_TEST_CASES += \
 	cpp17_inheriting_constructors_pack \
 	cpp17_map_no_default_ctor \
 	cpp17_nested_namespaces \
+	cpp17_noexcept_function_type_alias \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_structured_bindings \

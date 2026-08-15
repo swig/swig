@@ -2163,6 +2163,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <intvalue> variadic_opt;
 %type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
 %type <str>      decltype_prefix;
+%type <str>      noexcept_specifier_opt;
 %type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
@@ -4015,12 +4016,13 @@ c_declaration   : c_decl {
 		}
                 /* Alias declaration for a function type written with the C++11 alternate function syntax, such as
                    'using FP = auto (*)(int) -> int;'.  */
-                | USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
+                | USING idcolon EQUAL auto_type_holder abstract_declarator noexcept_specifier_opt ARROW cpp_alternate_rettype SEMI {
                   $$ = new_node("cdecl");
                   Setattr($$, "type", $cpp_alternate_rettype);
                   Setattr($$, "storage", "typedef");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "decl", $abstract_declarator.type);
+                  Setattr($$, "noexcept", $noexcept_specifier_opt);
                   SetFlag($$, "typealias");
                   if ($auto_type_holder.qualifier)
                     Swig_error(cparse_file, cparse_line, "Alias %s with a trailing return type cannot have a qualifier on 'auto'.\n", $idcolon);
@@ -4041,12 +4043,13 @@ c_declaration   : c_decl {
 		  add_symbols($$);
 		}
                 /* Alias template for a function type written with the C++11 alternate function syntax. */
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator noexcept_specifier_opt ARROW cpp_alternate_rettype SEMI {
                   $$ = new_node("template");
                   Setattr($$, "type", $cpp_alternate_rettype);
                   Setattr($$, "storage", "typedef");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "decl", $abstract_declarator.type);
+                  Setattr($$, "noexcept", $noexcept_specifier_opt);
                   Setattr($$, "templateparms", $template_parms);
                   Setattr($$, "templatetype", "cdecl");
                   SetFlag($$, "aliastemplate");
@@ -8828,6 +8831,17 @@ class_virt_specifier_opt : FINAL {
                }
                | %empty {
                    $$ = 0;
+               }
+               ;
+
+noexcept_specifier_opt : %empty {
+                 $$ = 0;
+               }
+               | NOEXCEPT {
+                 $$ = NewString("true");
+               }
+               | NOEXCEPT LPAREN expr RPAREN {
+                 $$ = $expr.val;
                }
                ;
 

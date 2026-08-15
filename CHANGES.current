@@ -21,6 +21,15 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            An alias declaration for a function type written with the alternate
+            function syntax now accepts a C++17 noexcept specifier:
+
+              using Function = auto() noexcept -> int;
+              using Pointer = auto (*)() noexcept(true) -> int;
+
+            These were a syntax error.
+
+2026-09-12: wsfulton
             Fix parsing of a conversion function to a user defined type whose name
             ends in "decltype":
 
