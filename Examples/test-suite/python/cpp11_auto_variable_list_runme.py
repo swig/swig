@@ -21,3 +21,9 @@ swig_check(deref(cvar.ptr_second), 11)
 # The first initialiser is not one a type can be deduced from, so the second declarator provides it.
 swig_check(cvar.late_first, 1)
 swig_check(cvar.late_second, 5)
+
+swig_check(cvar.expr_first, 1)
+swig_check(cvar.expr_second, 3)
+
+swig_check(cvar.cast_first, 1.5)
+swig_check(cvar.cast_second, 3.0)

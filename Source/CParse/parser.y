@@ -2421,8 +2421,8 @@ static int auto_types_differ(SwigType *type1, SwigType *type2) {
    initialiser.  A declarator that deduces a different type to the declaration is marked so that add_symbols() can
    report the inconsistency; it keeps the type its own initialiser deduced, which is the best guess available.
 
-   The declarators after the first are read back from the parse tree, which holds the text of the initialiser but
-   not the value the grammar evaluated for it, so a type is deduced from a name or a single literal only. */
+   The declarators after the first are read back from the parse tree, which holds the text of the initialiser and
+   the type code the grammar evaluated for it, so each initialiser deduces exactly what it would as the first. */
 static void set_auto_variable_types(Node *first, const struct Define *first_dtype, String *qualifier, String *conceptid, int isdecltypeauto) {
   SwigType *declaration_type = 0;
   Node *n;
@@ -2434,8 +2434,7 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       dtype = *first_dtype;
     } else {
       dtype.val = Getattr(n, "value");
-      if (dtype.val)
-        dtype.type = literal_type_code(dtype.val);
+      dtype.type = GetInt(n, "initialisertypecode");
     }
     type = auto_variable_type(&dtype, Getattr(n, "decl"), qualifier, isdecltypeauto);
     if (type) {
@@ -4466,6 +4465,15 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
 		 Setattr($$,"value",$initializer.val);
 		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 		 if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
+                 {
+                   /* The type code the grammar evaluated for the initialiser.  The parse tree holds the text of an
+                    * initialiser but not its value, and reading a type back out of the text recognises a single
+                    * literal only, so a C++11 'auto' declaration declaring more than one variable reads the code
+                    * from here to deduce from this declarator's own initialiser the way it deduces from the first. */
+                   String *typecode = NewStringf("%d", $initializer.type);
+                   Setattr($$, "initialisertypecode", typecode);
+                   Delete(typecode);
+                 }
 		 Setattr($$,"throws",$cpp_const.throws);
 		 Setattr($$,"throw",$cpp_const.throwf);
 		 Setattr($$,"noexcept",$cpp_const.nexcept);

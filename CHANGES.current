@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A C++11 'auto' declaration declaring more than one variable now
+            deduces the type from any of its declarators and not just from
+            those whose initialiser is a name or a single literal:
+
+              int get_int();
+              auto first = get_int(), second = 1 + 2;
+
+            C++ deduces one type for the whole declaration, so both variables
+            are int. Both used to be ignored with warning 346, while writing
+            the same declarators the other way round wrapped both.
+
+2026-09-12: wsfulton
             A 'decltype(auto)' variable initialised by a string literal is now
             ignored with warning 346 instead of being wrapped:
 
