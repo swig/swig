@@ -180,7 +180,7 @@ previous section--simply add a "+" to all warning numbers.  For example:
 
 <div class="shell">
 <pre>
-% swig -w+309,+452 example.i
+% swig -w+309,+512 example.i
 </pre>
 </div>
 
@@ -190,7 +190,7 @@ or in your interface file use either
 
 <div class="code">
 <pre>
-#pragma SWIG nowarn=+309,+452
+#pragma SWIG nowarn=+309,+512
 </pre>
 </div>
 
@@ -200,7 +200,7 @@ or
 
 <div class="code">
 <pre>
-%warnfilter(+309,+452) foo;
+%warnfilter(+309,+512) foo;
 </pre>
 </div>
 
@@ -215,12 +215,12 @@ You can of course also enable all warnings and suppress a select few, for exampl
 
 <div class="shell">
 <pre>
-% swig -Wextra -w309,452 example.i
+% swig -Wextra -w309,512 example.i
 </pre>
 </div>
 
 <p>
-The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309,452</tt> overrides this and so 452 is suppressed.
+The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 512, but then <tt>-w309,512</tt> overrides this and so 512 is suppressed.
 </p>
 
 <p>
@@ -486,9 +486,7 @@ example.i(4) : Syntax error in input(1).
 <li>404. Duplicate template instantiation of '<em>type</em>' with name '<em>name</em>' ignored, previous instantiation of '<em>type</em>' with name '<em>name</em>'.
 <li>405. Method with rvalue ref-qualifier <em>name</em> ignored.
 <li>406. Ignoring nspace setting (<em>setting</em>) for '<em>type</em>', as it conflicts with the nspace setting (<em>setting</em>) for outer class '<em>type</em>'
-<li>450. Reserved
 <li>451. Setting a const char * variable may leak memory.
-<li>452. Reserved
 <li>453. Can't apply (pattern). No typemaps are defined.
 <li>454. Setting a pointer/reference variable may leak memory
 <li>455. Setting a const wchar_t * variable may leak memory.

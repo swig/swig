@@ -37,11 +37,7 @@ UNDOCUMENTED_OK = {
 }
 
 # Numbers which are deliberately documented in Warnings.html but not defined in swigwarn.h.
-# Both are listed as reserved so that the number is not reused, and 452 is also the number
-# the manual uses throughout its -w and %warnfilter syntax examples.
 UNDEFINED_OK = {
-    450: "reserved",
-    452: "reserved, and used by the syntax examples earlier in Warnings.html",
 }
 
 
