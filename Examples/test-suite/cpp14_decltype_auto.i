@@ -16,6 +16,19 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) global_ref;
 
+// A string literal is an lvalue of array type, so this declares a reference to an array of
+// characters and not the 'const char *' that ordinary 'auto' deduces.
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_wide;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_utf8;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_char16;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_char32;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_wide;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_utf8;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char16;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char32;
+
 %inline %{
 int global_int = 42;
 int &global_ref = global_int;
@@ -28,6 +41,17 @@ decltype(auto) var_ref = global_ref;
 
 const int global_const = 7;
 decltype(auto) var_const = global_const;
+
+decltype(auto) var_string = "text";
+decltype(auto) var_string_wide = L"text";
+decltype(auto) var_string_utf8 = u8"text";
+decltype(auto) var_string_char16 = u"text";
+decltype(auto) var_string_char32 = U"text";
+decltype(auto) var_string_raw = R"(text)";
+decltype(auto) var_string_raw_wide = LR"(text)";
+decltype(auto) var_string_raw_utf8 = u8R"(text)";
+decltype(auto) var_string_raw_char16 = uR"(text)";
+decltype(auto) var_string_raw_char32 = UR"(text)";
 
 // Return types, all ignored as the type would have to come from the body.
 decltype(auto) ret_plain() { return global_int; }

@@ -2345,6 +2345,24 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
   return placeholder;
 }
 
+/* Whether the initialiser 'dtype' is a string literal, which is what the text of its value starting with a quote
+   says.  The T_STRING code on its own does not say it: a named cast to 'const char *' summarises to T_STRING too,
+   as does the address of a character. */
+static int initialiser_is_string_literal(const struct Define *dtype) {
+  const char *text;
+  if (dtype->type != T_STRING && dtype->type != T_WSTRING)
+    return 0;
+  if (!dtype->val)
+    return 0;
+  text = Char(dtype->val);
+  /* The value text of a string literal is written by the grammar as '"..."', or as 'L"..."' when the literal
+     is wide, whichever of the encoding and raw string prefixes the source spelt it with, so 'L' is the only
+     prefix that can appear here. */
+  if (*text == 'L')
+    text++;
+  return *text == '"';
+}
+
 /* The type of an 'auto' variable declared with declarator 'decl' and initialised by 'dtype', which is the type
    deduced from the initialiser with the declarator decoration removed and the placeholder's own cv-qualifier
    added back.  Returns 0 when the initialiser is not one a type can be deduced from.  A function declarator makes
@@ -2352,7 +2370,17 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
    then nothing to deduce it from. */
 static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, String *qualifier, int isdecltypeauto) {
   SwigType *type = 0;
-  SwigType *initialiser_type = SwigType_isfunction(decl) ? 0 : deduce_type(dtype);
+  SwigType *initialiser_type;
+
+  if (isdecltypeauto && initialiser_is_string_literal(dtype)) {
+    /* A string literal is an lvalue of array type, so 'decltype(auto) s = "text";' declares a reference to an
+     * array of characters and not the 'const char *' that ordinary 'auto' deduces.  The grammar writes the
+     * value text with at most an 'L' prefix, so which character type the literal has is no longer there to
+     * read and the type cannot be named, and no type is deduced. */
+    return 0;
+  }
+
+  initialiser_type = SwigType_isfunction(decl) ? 0 : deduce_type(dtype);
 
   if (initialiser_type) {
     if (isdecltypeauto) {

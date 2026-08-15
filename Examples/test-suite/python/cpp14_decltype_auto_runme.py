@@ -17,6 +17,14 @@ for ignored in ("ret_plain", "ret_trailing"):
     if hasattr(_mod, ignored):
         raise RuntimeError("%s should be ignored (deduced return type)" % ignored)
 
+# A string literal deduces a reference to an array of a character type SWIG cannot recover, so every
+# way of spelling one is ignored.
+for ignored in ("var_string", "var_string_wide", "var_string_utf8", "var_string_char16",
+                "var_string_char32", "var_string_raw", "var_string_raw_wide",
+                "var_string_raw_utf8", "var_string_raw_char16", "var_string_raw_char32"):
+    if hasattr(cvar, ignored):
+        raise RuntimeError("%s should be ignored (not wrappable as a variable)" % ignored)
+
 k = Klass(11)
 swig_check(k.plain(), 11)
 
