@@ -4216,7 +4216,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               trailing_rettype_parms = $declarator.parms;
              } trailing_rettype {
               trailing_rettype_parms = 0;
-             } virt_specifier_seq_opt requires_clause_opt initializer c_decl_tail {
+             } requires_clause_opt virt_specifier_seq_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
@@ -8080,6 +8080,13 @@ constraint_primary : idcolon {
                  }[atom] {
                     $$ = $atom;
                  }
+               | NUM_BOOL {
+                    /* A literal is a primary-expression, so 'requires true' and 'requires false' are constraints.
+                     * Only the boolean literals are useful ones - [temp.constr.atomic] requires an atomic
+                     * constraint to be of type bool, which rejects every other literal. */
+                    $$ = Constraint_new_atom("expression");
+                    Setattr($$, "value", $NUM_BOOL.val);
+                 }
                | requires_expression {
                     $$ = Constraint_new_atom("requires-expression");
                     appendChild($$, $requires_expression);
@@ -8890,14 +8897,20 @@ qualifiers_exception_specification : cv_ref_qualifier {
                }
                ;
 
+/* A virt-specifier-seq comes after the trailing requires-clause, not before it, so 'int m() requires C<T> final;'
+ * is the valid spelling and 'int m() final requires C<T>;' is not.  A virt-specifier-seq without a requires-clause
+ * arrives through qualifiers_exception_specification, which is where the older grammar has always taken it. */
 cpp_const      : qualifiers_exception_specification
-               | qualifiers_exception_specification REQUIRES constraint {
+               | qualifiers_exception_specification REQUIRES constraint virt_specifier_seq_opt {
                  $$ = $qualifiers_exception_specification;
                  $$.constraint_node = $constraint;
+                 if ($virt_specifier_seq_opt)
+                   $$.final = $virt_specifier_seq_opt;
                }
-               | REQUIRES constraint {
+               | REQUIRES constraint virt_specifier_seq_opt {
                  $$ = default_dtype;
                  $$.constraint_node = $constraint;
+                 $$.final = $virt_specifier_seq_opt;
                }
                | %empty {
                  $$ = default_dtype;

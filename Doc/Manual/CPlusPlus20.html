@@ -452,6 +452,20 @@ auto negate_value(T x) -&gt; T requires Numeric&lt;T&gt; {
 </div>
 
 <p>
+The operands of a constraint-expression are primary-expressions, so a
+literal is a constraint on its own but a unary <tt>!</tt> is not - a
+negated constraint has to be parenthesised, exactly as a C++ compiler
+requires:
+</p>
+
+<div class="code">
+<pre>
+template&lt;typename T&gt; T always(T x) requires true          { return x; }
+template&lt;typename T&gt; T other(T x) requires (!Numeric&lt;T&gt;)  { return x; }
+</pre>
+</div>
+
+<p>
 The body of a <tt>concept</tt> is not restricted to concept names: any
 expression is accepted, including a bare literal and one containing a
 top level comparison operator.
