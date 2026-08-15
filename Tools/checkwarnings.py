@@ -21,15 +21,24 @@ import os
 import re
 import sys
 
-# Numbers which are deliberately defined but not documented.
+# Exemptions, each a dictionary keyed by the warning number, an int, with the reason
+# it is exempt as the value, a string.  The reason is not printed, it is there to say
+# why the entry was added.  For example:
+#
+#   UNDOCUMENTED_OK = {
+#       720: "no longer issued but still named by -w720 in the scilab examples",
+#   }
+#
+# Add an entry only for a number that is deliberately in one file and not the other,
+# rather than to silence the check.
+
+# Numbers which are deliberately defined in swigwarn.h but not documented in Warnings.html.
 UNDOCUMENTED_OK = {
-    720: "WARN_SCILAB_TRUNCATED_NAME, no longer issued but still used by -w720 "
-         "in the scilab examples and test suite",
 }
 
-# Numbers which are deliberately documented but not defined.  Both are listed as
-# reserved so that the number is not reused, and 452 is also the number the manual
-# uses throughout its -w and %warnfilter syntax examples.
+# Numbers which are deliberately documented in Warnings.html but not defined in swigwarn.h.
+# Both are listed as reserved so that the number is not reused, and 452 is also the number
+# the manual uses throughout its -w and %warnfilter syntax examples.
 UNDEFINED_OK = {
     450: "reserved",
     452: "reserved, and used by the syntax examples earlier in Warnings.html",

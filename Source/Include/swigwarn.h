@@ -267,7 +267,7 @@
 
 /* please leave 700-719 free for D */
 
-#define WARN_SCILAB_TRUNCATED_NAME                   720
+/* Unused since 4.1.0: #define WARN_SCILAB_TRUNCATED_NAME    720 */
 
 /* please leave 720-739 free for Scilab */
 
