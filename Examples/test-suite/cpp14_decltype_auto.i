@@ -3,8 +3,7 @@
 // of the initialiser exactly, keeping any reference.
 %module cpp14_decltype_auto
 
-// A deduced return type cannot be deduced from the body, which SWIG does not analyse, so each of
-// these is ignored with warning 345.
+// A deduced return type cannot be deduced from the body, which SWIG does not analyse
 %warnfilter(SWIGWARN_CPP14_AUTO) ret_plain;
 %warnfilter(SWIGWARN_CPP14_AUTO) ret_trailing;
 %warnfilter(SWIGWARN_CPP14_AUTO) Klass::mem;
@@ -12,7 +11,6 @@
 
 %warnfilter(SWIGWARN_CPP11_LAMBDA) lambda_dauto;
 
-// The deduced reference variables are settable, which is what warning 454 is about.
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) global_ref;
 

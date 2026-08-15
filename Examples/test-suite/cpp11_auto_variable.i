@@ -37,10 +37,8 @@ static constexpr auto NOEXCEPT_FUNC = noexcept(func);
 
 %}
 
-// The address of a variable in scope deduces to a pointer to that variable's type.  A setter for a
-// pointer variable is not what is under test here, so they are read only.
-%immutable ptr_t;
-%immutable ptr_zero;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_t;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_zero;
 
 %inline %{
 static auto ptr_t = &t;                    // bool *
@@ -50,8 +48,6 @@ static constexpr auto ptr_one = &one;      // const int *
 static const auto const_ptr_zero = &zero;  // int *const
 %}
 
-// A named cast deduces the type it casts to when that is a built in type.  Setting a
-// const char * variable copies the new string and leaks the old one, hence warning 451.
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) cast_constcharptr;
 
 %{
