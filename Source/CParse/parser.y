@@ -891,6 +891,9 @@ static void add_symbols(Node *n) {
               Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' without a trailing return type (ignored).\n",
                   Swig_name_decl(n));
             }
+          } else if (GetFlag(n, "autoarrayreference")) {
+            Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to wrap variable '%s' deduced as a reference to an array of characters (ignored).\n",
+                Swig_name_decl(n));
           } else if (value) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from initialiser '%s' (ignored).\n",
                 Swig_name_decl(n), value);
@@ -2631,6 +2634,8 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       if (!declaration_type)
         declaration_type = Copy(type);
       Delete(type);
+    } else if (isdecltypeauto && initialiser_is_string_literal(&dtype)) {
+      SetFlag(n, "autoarrayreference");
     }
   }
 

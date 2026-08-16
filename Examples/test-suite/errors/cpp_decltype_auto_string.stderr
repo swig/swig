@@ -1,0 +1,3 @@
+cpp_decltype_auto_string.i:8: Warning 346: Unable to wrap variable 'dauto_string' deduced as a reference to an array of characters (ignored).
+cpp_decltype_auto_string.i:9: Warning 346: Unable to wrap variable 'dauto_string_wide' deduced as a reference to an array of characters (ignored).
+cpp_decltype_auto_string.i:12: Warning 451: Setting a const char * variable may leak memory.

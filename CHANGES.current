@@ -21,6 +21,21 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A decltype(auto) variable initialised by a string literal now says
+            what stopped it being wrapped:
+
+              decltype(auto) text = "abc";
+
+            reports warning 346, Unable to wrap variable 'text' deduced as a
+            reference to an array of characters (ignored), instead of reporting
+            that the type could not be deduced from the initialiser. A string
+            literal is an lvalue of array type, so the variable is a reference to
+            an array of characters, and only whether the literal was wide survives
+            into the parse tree, so the character type cannot be recovered. An
+            ordinary auto variable is unaffected, deducing the const char * the
+            array decays to.
+
+2026-09-12: wsfulton
             A decltype naming a parenthesised variable now uses the type that
             variable was declared with, and names a reference to it where the
             variable is wrapped through a pointer either way:
