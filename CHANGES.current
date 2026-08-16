@@ -21,6 +21,24 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A C++20 abbreviated function template that is %ignored no longer
+            hides the other overloads of the same name from %template.  The
+            type-constraint is part of the declarator for these, so it is the
+            spelling %ignore matches on:
+
+              %ignore classify(std::integral auto);
+
+              int    classify(std::integral auto value);
+              double classify(std::floating_point auto value);
+
+              %template(classify_double) classify<double>;
+
+            wraps the std::floating_point overload. An ignored overload that
+            was declared first used to hide every other overload of the same
+            name, so the %template found only the ignored one and generated
+            nothing at all.
+
+2026-09-12: wsfulton
             A C++20 abbreviated function template now instantiates into a
             concrete declarator, so two instantiations wrapped under one name
             are overloads of each other:

@@ -1974,6 +1974,43 @@ static int check_constrained_overloads(List *matches, String *name, ParmList *in
 }
 
 /* -----------------------------------------------------------------------------
+ * collect_function_template_matches()
+ *
+ * Append to 'matches' each function template declaration of 'name' in the C symbol
+ * table chain starting at 'firstn' whose template parameter list can take
+ * 'instantiated_parms', and mark it for instantiation.  Only template parameters are
+ * matched, not function parameters, as %template instantiation gives no function
+ * parameters.
+ *
+ * 'variadic' selects the templates with a parameter pack rather than those without,
+ * and 'ignored' those %ignore has kept out of the target language.  The chain walked
+ * is the C symbol table one, which holds every declaration of the name: the target
+ * language chain leaves ignored declarations out, so an ignored overload appearing
+ * first would hide the overloads that are still to be wrapped.
+ * ----------------------------------------------------------------------------- */
+
+static void collect_function_template_matches(Node *firstn, String *name, ParmList *instantiated_parms, int variadic, int ignored, List *matches) {
+  Node *n;
+  for (n = firstn; n; n = Getattr(n, "csym:nextSibling")) {
+    ParmList *tparmsfound;
+    if (!Equal(nodeType(n), "template"))
+      continue;
+    if ((GetFlag(n, "feature:ignore") != 0) != (ignored != 0))
+      continue;
+    tparmsfound = Getattr(n, "templateparms");
+    if ((ParmList_find_variadic_parm(tparmsfound, NULL) != 0) != (variadic != 0))
+      continue;
+    if (variadic ? ParmList_len(instantiated_parms) < ParmList_len(tparmsfound) - 1 : ParmList_len(instantiated_parms) != ParmList_len(tparmsfound))
+      continue;
+    if (template_debug) {
+      Printf(stdout, "    found: template <%s> '%s' (%s)\n", ParmList_str_defaultargs(tparmsfound), name, ParmList_str_defaultargs(Getattr(n, "parms")));
+    }
+    SetFlag(n, "instantiate");
+    Append(matches, n);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cparse_template_locate()
  *
  * Search for a template that matches name with given parameters and mark it for instantiation.
@@ -2030,63 +2067,20 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       }
 
       firstn = Swig_symbol_clookup_local(name, 0);
-      n = firstn;
-      /* First look for all overloaded functions (non-variadic) template matches.
-       * Looking for all template parameter matches only (not function parameter matches)
-       * as %template instantiation uses template parameters without any function parameters. */
-      while (n) {
-        if (Strcmp(nodeType(n), "template") == 0) {
-          Parm *tparmsfound = Getattr(n, "templateparms");
-          if (!ParmList_find_variadic_parm(tparmsfound, NULL)) {
-            if (ParmList_len(instantiated_parms) == ParmList_len(tparmsfound)) {
-              /* successful match */
-              if (template_debug) {
-                Printf(stdout,
-                       "    found: template <%s> '%s' (%s)\n",
-                       ParmList_str_defaultargs(Getattr(n, "templateparms")),
-                       name,
-                       ParmList_str_defaultargs(Getattr(n, "parms")));
-              }
-              SetFlag(n, "instantiate");
-              Append(matches, n);
-              if (!match)
-                match = n; /* first match */
-            }
-          }
+      /* Look for all the overloaded function template matches.  Variadic templates are only considered when
+       * there are no non-variadic matches; the variadic parm may sit anywhere in the templateparms list, as
+       * C++20 [dcl.fct]/19 appends invented type template parameters (from abbreviated 'auto' parameters)
+       * after the explicit list, which can leave the pack in the middle.  Declarations %ignore has excluded
+       * are considered last, so that ignoring one overload leaves the others instantiable. */
+      {
+        int ignored;
+        for (ignored = 0; ignored < 2 && Len(matches) == 0; ignored++) {
+          collect_function_template_matches(firstn, name, instantiated_parms, 0, ignored, matches);
+          if (Len(matches) == 0)
+            collect_function_template_matches(firstn, name, instantiated_parms, 1, ignored, matches);
         }
-        /* repeat to find all matches with correct number of templated parameters */
-        n = Getattr(n, "sym:nextSibling");
-      }
-
-      /* Only consider variadic templates if there are no non-variadic template matches.
-       * The variadic parm may sit anywhere in the templateparms list - C++20 [dcl.fct]/19
-       * appends invented type template parameters (from abbreviated 'auto' parameters)
-       * after the explicit list, which can leave the pack in the middle. */
-      if (!match) {
-        n = firstn;
-        while (n) {
-          if (Strcmp(nodeType(n), "template") == 0) {
-            Parm *tparmsfound = Getattr(n, "templateparms");
-            if (ParmList_find_variadic_parm(tparmsfound, NULL)) {
-              if (ParmList_len(instantiated_parms) >= ParmList_len(tparmsfound) - 1) {
-                /* successful variadic match */
-                if (template_debug) {
-                  Printf(stdout,
-                         "    found: template <%s> '%s' (%s)\n",
-                         ParmList_str_defaultargs(Getattr(n, "templateparms")),
-                         name,
-                         ParmList_str_defaultargs(Getattr(n, "parms")));
-                }
-                SetFlag(n, "instantiate");
-                Append(matches, n);
-                if (!match)
-                  match = n; /* first match */
-              }
-            }
-          }
-          /* repeat to find all matches with correct number of templated parameters */
-          n = Getattr(n, "sym:nextSibling");
-        }
+        if (Len(matches) > 0)
+          match = Getitem(matches, 0);
       }
 
       if (!match) {

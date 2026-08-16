@@ -17,5 +17,13 @@ public class cpp20_abbreviated_template_overloads_runme {
       throw new RuntimeException("scaled(3)");
     if (cpp20_abbreviated_template_overloads.scaled(2.5) != 25)
       throw new RuntimeException("scaled(2.5)");
+
+    // %ignore on the Integral overload leaves the FloatingPoint one, which halves rather than increments.
+    if (cpp20_abbreviated_template_overloads.classify_double(5.0) != 2.5)
+      throw new RuntimeException("classify_double(5.0)");
+
+    // %ignore on the FloatingPoint overload leaves the Integral one.
+    if (cpp20_abbreviated_template_overloads.pick_int(5) != 6)
+      throw new RuntimeException("pick_int(5)");
   }
 }

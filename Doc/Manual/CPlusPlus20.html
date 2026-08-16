@@ -744,6 +744,22 @@ As above, give the overloads distinct signatures - typically a different
 arity - so that only one of them matches a given <tt>%template</tt>.
 </p>
 <p>
+For an abbreviated function template the type-constraint is part of the
+declarator, so <tt>%ignore</tt> can name one of the overloads instead,
+leaving the other to be instantiated:
+</p>
+<div class="code">
+<pre>
+%ignore classify(std::integral auto);
+
+int    classify(std::integral auto value);
+double classify(std::floating_point auto value);
+
+// wraps the std::floating_point overload
+%template(classify_double) classify&lt;double&gt;;
+</pre>
+</div>
+<p>
 The cv-qualifier and ref-qualifier on a member function are part of its
 signature, so member function templates carrying different ones are
 distinct and are accepted:
