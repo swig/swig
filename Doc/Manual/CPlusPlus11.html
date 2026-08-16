@@ -1143,6 +1143,7 @@ struct DerivedStruct : BaseStruct {
   virtual void ab() const override;
   virtual void cd() final;
   virtual void ef() final override;
+  virtual void gh() final;
   virtual ~DerivedStruct() override;
 };
 </pre></div>
@@ -1158,7 +1159,19 @@ struct FinalDerivedStruct final : BaseStruct {
 </pre></div>
 
 <p>
+A method marked <tt>final</tt> cannot be overridden, so when
+<a href="SWIGPlus.html#SWIGPlus_director_classes_introduction">directors</a> are
+enabled no director override is generated for that method and it cannot be overridden from
+the target language either.  In the example above, a director for <tt>DerivedStruct</tt> covers
+<tt>ab</tt>, which is an ordinary override, but not <tt>cd</tt>, <tt>ef</tt> or <tt>gh</tt>.
+Where the <tt>final</tt> appears makes no difference: <tt>gh</tt> is a new virtual method that
+<tt>DerivedStruct</tt> declares and marks final, while <tt>cd</tt> and <tt>ef</tt> mark a virtual
+method inherited from <tt>BaseStruct</tt> as final.
+</p>
+
+<p>
 <b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+SWIG-4.6.0 is the first version to leave a final method out of the director vtable when the final declaration overrides an inherited virtual method; before that the generated director class overrode it and did not compile.
 </p>
 
 <H3><a name="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</a></H3>

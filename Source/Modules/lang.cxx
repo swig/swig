@@ -1917,11 +1917,29 @@ static String *vtable_method_id(Node *n) {
  * Language::unrollOneVirtualMethod()
  * ---------------------------------------------------------------------- */
 
+/* Drop the director vtable entry for the virtual method 'n', if there is one.  Used when a declaration of it is
+   final, which leaves the entry an overridden base declaration added no longer overridable. */
+static void remove_vtable_entry(List *vm, Node *n) {
+  String *method_id = vtable_method_id(n);
+  int len = Len(vm);
+  if (!method_id)
+    return;
+  for (int i = 0; i < len; i++) {
+    if (Strcmp(method_id, Getattr(Getitem(vm, i), "vmid")) == 0) {
+      Delitem(vm, i);
+      break;
+    }
+  }
+  Delete(method_id);
+}
+
 void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase) {
   if (!checkAttribute(n, "storage", "virtual"))
     return;
-  if (GetFlag(n, "final"))
+  if (GetFlag(n, "final")) {
+    remove_vtable_entry(vm, n);
     return;
+  }
 
   String *nodeType = Getattr(n, "nodeType");
 

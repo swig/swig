@@ -21,6 +21,24 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            #3484 A director no longer overrides a member function declared final
+            when the final declaration overrides a virtual member of a base class:
+
+              struct Base {
+                virtual int value(int x);
+              };
+              struct Derived : Base {
+                int value(int x) final;
+              };
+
+            The entry the base declaration added to the director vtable was left
+            in place, so the generated director class overrode a final member
+            function and did not compile. Where it did compile, the director
+            method it generated called the base's implementation rather than the
+            final one. A final member declared in a class with no base was
+            already handled.
+
+2026-09-12: wsfulton
             A declaration copy-list-initialising more than one 'auto' variable now
             reports warning 346 for a braced initialiser list instead of the
             generic unsupported-initialiser one:
