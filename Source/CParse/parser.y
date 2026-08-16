@@ -532,8 +532,10 @@ static void set_auto_type(Node *n, String *qualifier, String *conceptid) {
  * on the invented template parm. This lets the existing %template machinery work for abbreviated function templates.
  * Detection uses SwigType_isauto, which looks through any decoration prefix and recognises both the bare 'auto' base form and
  * the C++20 'auto.c(<id>)' constrained form.  The concept-id (if any) is read via SwigType_concept_name.
+ * 'rettype_parm', when not 0, names the parameter a trailing return type was deduced from, whose placeholder stands for
+ * the same invented template parameter and so is replaced with the same name.
  * Returns 1 if a transformation happened, 0 otherwise. */
-static int promote_abbreviated_template(Node *n) {
+static int promote_abbreviated_template(Node *n, String *rettype_parm) {
   ParmList *parms = Getattr(n, "parms");
   Parm *p;
   int auto_count = 0;
@@ -580,6 +582,12 @@ static int promote_abbreviated_template(Node *n) {
        * preserving outer decoration so 'r.auto' -> 'r.__dummy_auto_N__',
        * 'r.q(const).auto.c(Numeric)' -> 'r.q(const).__dummy_auto_N__', etc. */
       Setattr(p, "type", SwigType_replace_auto_base(ty, invented_name));
+      if (rettype_parm && Equal(Getattr(p, "name"), rettype_parm)) {
+        /* Decoration the return type added, such as the pointer of 'decltype(&value)', sits outside the placeholder and is preserved. */
+        SwigType *rettype = Getattr(n, "type");
+        if (rettype && SwigType_isauto(rettype))
+          Setattr(n, "type", SwigType_replace_auto_base(rettype, invented_name));
+      }
       if (last_invented) {
         set_nextSibling(last_invented, tp);
       } else {
@@ -2216,18 +2224,27 @@ static const struct Define default_dtype;
    long as the trailing return type is being reduced. */
 static ParmList *trailing_rettype_parms = 0;
 
-/* A copy of the type of the function parameter named 'name' in the parameter list of the function whose trailing
-   return type is being parsed, or 0 when there is no such parameter.  A parameter declared with an 'auto'
-   placeholder is passed over: it is a C++20 abbreviated function template parameter, which is turned into an
-   invented template parameter only once the whole declaration has been reduced, so the placeholder is not yet
-   the name of anything a return type can be spelled with. */
+/* The name of the parameter a trailing return type was deduced from, when that parameter was declared with an 'auto'
+   placeholder, or 0 otherwise.  The placeholder cannot be resolved until the whole declaration has reduced and the
+   parameter has become an invented template parameter, so it is left in the return type for
+   promote_abbreviated_template() to complete then. */
+static String *trailing_rettype_placeholder_parm = 0;
+
+/* A copy of the type of the function parameter named 'name' of the function whose trailing return type is being
+   parsed, or 0 when there is no such parameter.  Never 0 for a parameter that does exist: the caller reads 0 as
+   "not in scope" and carries on into the enclosing scope, where an unrelated declaration would shadow it. */
 static SwigType *trailing_rettype_parm_type(String *name) {
   Parm *p;
   for (p = trailing_rettype_parms; p; p = nextSibling(p)) {
     String *pname = Getattr(p, "name");
     SwigType *ptype = Getattr(p, "type");
-    if (pname && ptype && Equal(pname, name))
-      return SwigType_isauto(ptype) ? 0 : Copy(ptype);
+    if (pname && ptype && Equal(pname, name)) {
+      if (SwigType_isauto(ptype)) {
+        Delete(trailing_rettype_placeholder_parm);
+        trailing_rettype_placeholder_parm = Copy(pname);
+      }
+      return Copy(ptype);
+    }
   }
   return 0;
 }
@@ -4152,7 +4169,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
               /* C++20 abbreviated function template: any parm typed 'auto' becomes an invented type template parameter. */
-              if ($$) promote_abbreviated_template($$);
+              if ($$) promote_abbreviated_template($$, 0);
 	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
@@ -4214,6 +4231,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               /* The function parameters are in scope in the trailing return type, so make them visible to any
                * decltype in it for as long as it is being reduced. */
               trailing_rettype_parms = $declarator.parms;
+              Delete(trailing_rettype_placeholder_parm);
+              trailing_rettype_placeholder_parm = 0;
              } trailing_rettype {
               trailing_rettype_parms = 0;
              } requires_clause_opt virt_specifier_seq_opt initializer c_decl_tail {
@@ -4222,9 +4241,14 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
               Setattr($$,"type",$trailing_rettype);
               /* A trailing return type that is itself a placeholder, 'auto f() -> auto' or 'auto f() -> decltype(auto)',
-               * still leaves the return type to be deduced from the body. */
-              if (SwigType_isauto($trailing_rettype))
+               * still leaves the return type to be deduced from the body.  A placeholder from an abbreviated parameter
+               * is not one of those - promote_abbreviated_template() fills it in below. */
+              if (SwigType_isauto($trailing_rettype) && !trailing_rettype_placeholder_parm)
                 SetFlag($$, "autodeducefrombody");
+              if (trailing_rettype_placeholder_parm && !SwigType_isauto($trailing_rettype)) {
+                /* The placeholder is buried in a template argument, as in '-> std::vector<decltype(value)>', not the type's base, so cannot be replaced. */
+                Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", trailing_rettype_placeholder_parm);
+              }
 	      Setattr($$,"storage",$storage_class);
 	      Setattr($$,"name",$declarator.id);
 	      Setattr($$,"decl",$declarator.type);
@@ -4284,8 +4308,10 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
-              /* Promote any 'auto' / 'Concept auto' parm to an invented type template parameter. */
-              if ($$) promote_abbreviated_template($$);
+              /* Promote any 'auto' / 'Concept auto' parm to an invented type template parameter, completing any return type placeholder. */
+              if ($$) promote_abbreviated_template($$, trailing_rettype_placeholder_parm);
+              Delete(trailing_rettype_placeholder_parm);
+              trailing_rettype_placeholder_parm = 0;
 	      Delete($storage_class);
            }
            /* C++14 allows the trailing return type to be omitted.  It's

@@ -21,6 +21,20 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A decltype in a trailing return type naming an 'auto' parameter of an
+            abbreviated function template now gives the type the %template
+            instantiation supplies for that parameter:
+
+              int value = 2;
+              auto shadow(auto value) -> decltype(value) { return value; }
+
+              %template(shadow_double) shadow<double>;
+
+            The return type was previously taken from whatever else the name
+            denoted outside the function, with no warning, so shadow_double(2.5)
+            returned the integer 2.
+
+2026-09-12: wsfulton
             A structured binding is now parsed and ignored whichever way its
             initialiser is written, and an initialiser containing a semicolon of
             its own no longer takes the rest of the file with it:

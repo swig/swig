@@ -56,6 +56,14 @@ public class cpp20_abbreviated_template_runme {
     if (cpp20_abbreviated_template.twice_n_arrow_int(7) != 14)
       throw new RuntimeException("twice_n_arrow_int(7)");
 
+    // A decltype in the trailing return type names the parameter, so the %template argument gives the return type.
+    if (cpp20_abbreviated_template.shadow_placeholder_double(2.5) != 2.5)
+      throw new RuntimeException("shadow_placeholder_double(2.5)");
+    if (cpp20_abbreviated_template.second_placeholder_id(1, 2.5) != 2.5)
+      throw new RuntimeException("second_placeholder_id(1, 2.5)");
+    if (cpp20_abbreviated_template.constrained_arrow_double(1.25) != 2.5)
+      throw new RuntimeException("constrained_arrow_double(1.25)");
+
     // Auto parameter pack - one wrapped parameter per type given to %template.
     if (cpp20_abbreviated_template.sum_all_ii(1, 2) != 3)
       throw new RuntimeException("sum_all_ii(1, 2)");

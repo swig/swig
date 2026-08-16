@@ -100,6 +100,19 @@ auto cube_constrained(Sized auto x) -> int { return x * x * x; }
 // Plain auto return type plus a constrained auto parameter and a trailing return type - both sides wrap.
 auto twice_n_arrow(Numeric auto x) -> int { return x + x; }
 
+// A parameter is in scope in the trailing return type, so a decltype there names the parameter and not the
+// global of the same name.  The parameter is a placeholder, so its type is the invented template parameter and
+// the %template argument decides the return type.
+int placeholder_name = 2;
+
+auto shadow_placeholder(auto placeholder_name) -> decltype(placeholder_name) { return placeholder_name; }
+
+// The decltype names the parameter it is spelled with, not just any placeholder parameter.
+auto second_placeholder(auto first, auto second) -> decltype(second) { return second; }
+
+// A type-constraint on the placeholder does not stop the decltype naming it.
+auto constrained_arrow(Numeric auto value) -> decltype(value) { return value + value; }
+
 // Constrained auto return type without a trailing return type - parses but ignored with warning since SWIG cannot deduce the return type.
 Numeric auto half_numeric(int x) { return x / 2; }
 
@@ -121,6 +134,9 @@ Numeric auto times3(int x);
 %template(unnamed_constrained_int) unnamed_constrained<int>;
 %template(cube_constrained_int)   cube_constrained<int>;
 %template(twice_n_arrow_int)      twice_n_arrow<int>;
+%template(shadow_placeholder_double) shadow_placeholder<double>;
+%template(second_placeholder_id)  second_placeholder<int, double>;
+%template(constrained_arrow_double) constrained_arrow<double>;
 %template(sum_all_ii)             sum_all<int, int>;
 %template(sum_all_iii)            sum_all<int, int, int>;
 %template(sum_fwd_ii)             sum_fwd<int, int>;

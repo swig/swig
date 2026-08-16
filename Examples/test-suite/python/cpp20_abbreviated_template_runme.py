@@ -35,6 +35,11 @@ swig_check(cube_constrained_int(3), 27)
 # Plain auto return type + constrained auto parameter + trailing return type.
 swig_check(twice_n_arrow_int(7), 14)
 
+# A decltype in the trailing return type names the parameter, so the %template argument gives the return type.
+swig_check(shadow_placeholder_double(2.5), 2.5)
+swig_check(second_placeholder_id(1, 2.5), 2.5)
+swig_check(constrained_arrow_double(1.25), 2.5)
+
 # Auto parameter pack - one wrapped parameter per type given to %template.
 swig_check(sum_all_ii(1, 2), 3)
 swig_check(sum_all_iii(1, 2, 3), 6)
