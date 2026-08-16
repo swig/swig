@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            An 'auto&&' variable is now treated as a forwarding reference, so it
+            is an lvalue reference when its initialiser is an lvalue:
+
+              int g = 42;
+              auto &&r1 = 42;  // int &&
+              auto &&r2 = g;   // int &, was int &&
+
+            SWIG does not track the value category of an arbitrary expression, so
+            only an id-expression naming an object, optionally parenthesised, is
+            taken to be an lvalue.
+
+2026-09-12: wsfulton
             An 'auto' variable deduced from a reference no longer keeps the
             reference:
 

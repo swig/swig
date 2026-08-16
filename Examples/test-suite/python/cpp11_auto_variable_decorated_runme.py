@@ -48,3 +48,9 @@ swig_check(cvar.global_int, 20)
 
 # A reference to const wraps by value and is live.
 swig_check(cvar.cref_from_cref, 20)
+
+# A forwarding reference bound to an lvalue is an lvalue reference, so it wraps as a pointer
+# to the live object; bound to a literal it is an rvalue reference bound to a temporary.
+swig_check(deref(cvar.fwd_lvalue), 20)
+swig_check(deref(cvar.fwd_lvalue_ref), 20)
+swig_check(deref(cvar.fwd_rvalue), 42)

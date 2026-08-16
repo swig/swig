@@ -2377,6 +2377,34 @@ static int initialiser_is_parenthesised_name(const struct Define *dtype) {
   return parenthesised_name;
 }
 
+/* Whether the initialiser 'dtype' is an id-expression naming an object, optionally parenthesised, which makes it an
+   lvalue.  A literal and an enumerator are prvalues; the value category of any other expression is not something
+   SWIG tracks, so it is reported as not an lvalue. */
+static int initialiser_is_lvalue(const struct Define *dtype) {
+  String *unwrapped;
+  Node *n;
+  int lvalue = 0;
+  if (!dtype->val)
+    return 0;
+  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
+  n = Swig_symbol_clookup(unwrapped ? unwrapped : dtype->val, 0);
+  if (n && Equal(nodeType(n), "cdecl")) {
+    SwigType *decl = Getattr(n, "decl");
+    lvalue = !decl || !SwigType_isfunction(decl);
+  }
+  Delete(unwrapped);
+  return lvalue;
+}
+
+/* An rvalue reference declarator on an 'auto' placeholder is a forwarding reference, which collapses to an lvalue
+   reference when the initialiser is an lvalue, so 'auto&& r = g;' declares an 'int&'.  Adjusts 'decl' in place. */
+static void collapse_forwarding_reference(SwigType *decl, const struct Define *dtype) {
+  if (SwigType_isrvalue_reference(decl) && initialiser_is_lvalue(dtype)) {
+    Delete(SwigType_pop(decl));
+    SwigType_add_reference(decl);
+  }
+}
+
 /* Deduce the type the 'auto' placeholder stands for in a variable declaration, given 'initialiser_type', the type
    deduced from the initialiser, and 'decl', the declarator the placeholder carries.  The declarator decoration is
    not part of the placeholder: for 'auto* p = pg;' with 'pg' declared 'int *', the placeholder stands for 'int'
@@ -2534,6 +2562,8 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       dtype.val = Getattr(n, "value");
       dtype.type = GetInt(n, "initialisertypecode");
     }
+    if (!isdecltypeauto)
+      collapse_forwarding_reference(Getattr(n, "decl"), &dtype);
     type = auto_variable_type(&dtype, Getattr(n, "decl"), qualifier, isdecltypeauto);
     if (type) {
       Setattr(n, "autotype", type);
@@ -4378,6 +4408,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 SwigType *type;
                 dtype.val = braced_initialiser_value(scanner_ccode);
                 dtype.type = literal_type_code(dtype.val);
+                if (!$auto_type_holder.isdecltypeauto)
+                  collapse_forwarding_reference($declarator.type, &dtype);
                 type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier, $auto_type_holder.isdecltypeauto);
                 if (!type)
                   type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);

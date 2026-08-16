@@ -19,6 +19,9 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) int_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ref_from_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_from_ref;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) fwd_lvalue;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) fwd_lvalue_ref;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) fwd_rvalue;
 
 #if defined(SWIGC)
 // TODO: Fix the experimental C backend emitting 'int &&**' for an rvalue reference variable.
@@ -89,4 +92,10 @@ auto& ref_from_ref = int_ref;        // int &
 auto* ptr_from_ref = &int_ref;       // int *
 auto from_cref = cint_ref;           // int
 auto& cref_from_cref = cint_ref;     // const int &
+
+// auto&& is a forwarding reference, so it is an lvalue reference when the initialiser is an lvalue
+// and an rvalue reference when it is not.
+auto&& fwd_lvalue = global_int;      // int &
+auto&& fwd_lvalue_ref = int_ref;     // int &
+auto&& fwd_rvalue = 42;              // int &&
 %}
