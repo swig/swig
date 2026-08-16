@@ -21,6 +21,22 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            Fix the C++ call generated for an abbreviated function template whose
+            'auto' parameter pack is followed by a plain parameter, and the
+            partition of the template arguments between two 'auto' parameter
+            packs:
+
+              int pack_then_plain(auto... values, int last);
+              int two_packs(auto... first, auto... second);
+
+              %template(pack_then_plain_ii) pack_then_plain<int, int>;
+              %template(two_packs_ii) two_packs<int, int>;
+
+            The first generated a call with no template arguments at all, which
+            did not compile. The second put every argument in the second pack
+            rather than one in each.
+
+2026-09-12: wsfulton
             A decltype in a trailing return type naming a parameter declared with
             a function or an array type now gives the pointer type C++ adjusts
             that parameter to:

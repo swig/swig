@@ -82,6 +82,17 @@ int two_packs(auto... first, auto... second) { return (first + ... + 0) + (secon
 // pack and what follows it is more than one parameter wide.
 int pack_then_two(auto... values, auto a, auto b) { return (values + ... + 0) + a + b; }
 
+// An auto parameter pack followed by a plain parameter, which invents no template parameter of its own.
+int pack_then_plain(auto... values, int last) { return int(sizeof...(values)) * 100 + last; }
+
+// The same with a type-constraint on the pack.
+int pack_then_plain_numeric(Numeric auto... values, double last) { return int(sizeof...(values)) * 100 + int(last); }
+
+// The size of each pack rather than a sum over both, so that a wrong partition between them shows up.
+int count_two_packs(auto... first, auto... second) { return int(sizeof...(first)) * 100 + int(sizeof...(second)); }
+int count_pack_then_one(auto... values, auto last) { return int(sizeof...(values)) * 100 + int(last); }
+int count_trailing_pack(int first, auto... rest) { return first * 100 + int(sizeof...(rest)); }
+
 // The same shapes instantiated with more than one type.  Every %template above gives the same type
 // throughout, which cannot tell a correct partition of the template arguments from one that happens
 // to put the right number of types in each position.  Doubles are halved on the way in so a type that
@@ -148,6 +159,11 @@ Numeric auto times3(int x);
 %template(pack_then_one_iii)      pack_then_one<int, int, int>;
 %template(two_packs_ii)           two_packs<int, int>;
 %template(pack_then_two_iiii)     pack_then_two<int, int, int, int>;
+%template(pack_then_plain_ii)     pack_then_plain<int, int>;
+%template(pack_then_plain_numeric_ii) pack_then_plain_numeric<int, int>;
+%template(count_two_packs_ii)     count_two_packs<int, int>;
+%template(count_pack_then_one_iii) count_pack_then_one<int, int, int>;
+%template(count_trailing_pack_ii) count_trailing_pack<int, int>;
 
 // Mixed types in each of the pack shapes.
 %template(mixed_pack_then_one_ddi) mixed_pack_then_one<double, double, int>;

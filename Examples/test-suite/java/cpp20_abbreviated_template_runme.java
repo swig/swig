@@ -76,6 +76,20 @@ public class cpp20_abbreviated_template_runme {
     if (cpp20_abbreviated_template.offset_sum_ii(1, 2, 3) != 6)
       throw new RuntimeException("offset_sum_ii(1, 2, 3)");
 
+    // A pack followed by a plain parameter, which invents no template parameter of its own.
+    if (cpp20_abbreviated_template.pack_then_plain_ii(1, 2, 7) != 207)
+      throw new RuntimeException("pack_then_plain_ii(1, 2, 7)");
+    if (cpp20_abbreviated_template.pack_then_plain_numeric_ii(1, 2, 5.0) != 205)
+      throw new RuntimeException("pack_then_plain_numeric_ii(1, 2, 5.0)");
+
+    // The size of each pack, which a wrong partition between them changes.
+    if (cpp20_abbreviated_template.count_two_packs_ii(1, 2) != 101)
+      throw new RuntimeException("count_two_packs_ii(1, 2)");
+    if (cpp20_abbreviated_template.count_pack_then_one_iii(1, 2, 3) != 203)
+      throw new RuntimeException("count_pack_then_one_iii(1, 2, 3)");
+    if (cpp20_abbreviated_template.count_trailing_pack_ii(1, 2, 3) != 102)
+      throw new RuntimeException("count_trailing_pack_ii(1, 2, 3)");
+
     // Undecorated auto parameter pack.
     if (cpp20_abbreviated_template.sum_bare_ii(1, 2) != 3)
       throw new RuntimeException("sum_bare_ii(1, 2)");

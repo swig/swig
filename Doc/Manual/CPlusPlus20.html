@@ -356,7 +356,7 @@ decorated spellings <tt>const auto&amp;...</tt>, <tt>auto&amp;&amp;...</tt> and
 </p>
 
 <p>
-An <tt>auto</tt> pack may be followed by further <tt>auto</tt> parameters, and
+An <tt>auto</tt> pack may be followed by further parameters, of any kind, and
 there may be more than one pack.  One type is still given per wrapped
 parameter: the types the parameters after a pack need are taken from the end of
 the <tt>%template</tt> argument list, and the pack takes what is left.
@@ -366,13 +366,21 @@ the <tt>%template</tt> argument list, and the pack takes what is left.
 <pre>
 %inline %{
 int pack_then_one(auto... values, auto last);
+int pack_then_plain(auto... values, int last);
 int two_packs(auto... first, auto... second);
 %}
 
-%template(pack_then_one_iii) pack_then_one&lt;int, int, int&gt;;  // three parameters
-%template(two_packs_ii)      two_packs&lt;int, int&gt;;           // two parameters
+%template(pack_then_one_iii)  pack_then_one&lt;int, int, int&gt;;  // three parameters
+%template(pack_then_plain_ii) pack_then_plain&lt;int, int&gt;;     // three parameters
+%template(two_packs_ii)       two_packs&lt;int, int&gt;;           // two parameters
 </pre>
 </div>
+
+<p>
+Only one <tt>auto</tt> pack can be expanded per instantiation, so a second pack
+can only be given a single type.  <tt>two_packs&lt;int, int, int&gt;</tt> is not
+supported and generates a wrapper that does not compile.
+</p>
 
 <p>
 The <tt>auto</tt> placeholder may carry the usual parameter decorations -
@@ -395,7 +403,7 @@ T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
 </div>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.  SWIG-4.6.0 is the first version to instantiate an <tt>auto</tt> parameter pack, which previously invented a template parameter that was not a pack and so could not be instantiated at all.
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.  SWIG-4.6.0 is the first version to instantiate an <tt>auto</tt> parameter pack, which previously invented a template parameter that was not a pack and so could not be instantiated at all, and the first to give an <tt>auto</tt> parameter pack followed by a plain parameter the template arguments the generated call needs.
 </p>
 
 <H3><a name="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</a></H3>

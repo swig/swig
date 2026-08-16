@@ -53,6 +53,15 @@ swig_check(pack_then_one_iii(1, 2, 3), 6)
 swig_check(two_packs_ii(4, 5), 9)
 swig_check(pack_then_two_iiii(1, 2, 3, 4), 10)
 
+# A pack followed by a plain parameter, which invents no template parameter of its own.
+swig_check(pack_then_plain_ii(1, 2, 7), 207)
+swig_check(pack_then_plain_numeric_ii(1, 2, 5.0), 205)
+
+# The size of each pack, which a wrong partition between them changes.
+swig_check(count_two_packs_ii(1, 2), 101)
+swig_check(count_pack_then_one_iii(1, 2, 3), 203)
+swig_check(count_trailing_pack_ii(1, 2, 3), 102)
+
 # The same shapes with more than one type.  A type in the wrong position changes the result,
 # because only the pack members are doubled.
 swig_check(mixed_pack_then_one_ddi(1.5, 2.5, 3), 11)
