@@ -23,3 +23,9 @@ swig_assert(isinstance(cvar.paren_double, float), "paren_double should be a floa
 swig_assert(cvar.paren_ptr is not None, "paren_ptr")
 swig_assert(cvar.paren_nested_ptr is not None, "paren_nested_ptr")
 swig_check(cvar.paren_nested, 1)
+
+# A promoted narrow integral type is an int, so it holds a value the narrow type could not.
+for name in ["promoted_short", "promoted_ushort", "promoted_char", "promoted_bool"]:
+    setattr(cvar, name, 100000)
+    swig_check(getattr(cvar, name), 100000)
+swig_check(cvar.negated_short, -1)

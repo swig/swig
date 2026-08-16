@@ -110,6 +110,21 @@ static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
 %}
 
 %inline %{
+// A unary '+' or '-' applies the integral promotion, so every integral type narrower
+// than int deduces int.
+static short short_value = 1;
+static unsigned short ushort_value = 1;
+static char char_value = 1;
+static bool bool_value = true;
+
+static auto promoted_short = +short_value;
+static auto promoted_ushort = +ushort_value;
+static auto negated_short = -short_value;
+static auto promoted_char = +char_value;
+static auto promoted_bool = +bool_value;
+%}
+
+%inline %{
 
 // FIXME: Not currently handled by SWIG's parser:
 //static auto constexpr greeting = "Hello";

@@ -248,7 +248,7 @@ static const struct literal_token *parser_literal_token(int tok) {
  * ----------------------------------------------------------------------------- */
 
 int promote_type(int t) {
-  if (t <= T_UCHAR || t == T_CHAR || t == T_WCHAR)
+  if ((t >= T_BOOL && t <= T_USHORT) || t == T_CHAR || t == T_WCHAR)
     return T_INT;
   return t;
 }

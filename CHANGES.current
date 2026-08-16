@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            The C++ integral promotion is now applied to 'short' and
+            'unsigned short' as well as to the character and boolean types, so an
+            'auto' variable deduced from a promoted short is an int:
+
+              short short_value = 1;
+              auto promoted = +short_value;  // int, was short
+
+            The variable was previously wrapped as a short, so assigning a value
+            outside the range of a short through it failed.
+
+2026-09-12: wsfulton
             A %template naming member function template overloads that differ by
             their cv-qualifier or ref-qualifier is no longer rejected as an
             ambiguous instantiation:
