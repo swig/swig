@@ -735,6 +735,20 @@ decltype(i+j) k;
 <tt>i+j</tt> both have type <tt>int</tt>.
 </p>
 
+<p>A parenthesised name is an lvalue rather than the name itself, so a <tt>decltype</tt> of one gives a
+reference to the type the name was declared with:</p>
+
+<div class="code"><pre>
+int gi = 1;
+int *gp = &amp;gi;
+
+decltype(gp) plain = gp;      // int *
+decltype((gp)) lvalue = gp;   // int *&amp;
+</pre></div>
+
+<p>A scalar is wrapped by value either way, so <tt>decltype((gi))</tt> is wrapped as a plain
+<tt>int</tt>, reading and writing the object the reference refers to.</p>
+
 <p>
 Using an expression for the decltype which SWIG can't handle results in a warning:</p>
 <div class="code"><pre>
@@ -783,6 +797,7 @@ int *pg = &amp;g;
 auto&amp; r1 = g;            // int &amp;
 const auto&amp; r2 = g;      // const int &amp;
 auto&amp;&amp; r3 = 42;          // int &amp;&amp;
+auto&amp;&amp; r4 = g;           // int &amp; - a forwarding reference bound to an lvalue
 auto* p1 = &amp;g;           // int *
 auto* const p2 = &amp;g;     // int *const
 auto** p3 = &amp;pg;         // int **
@@ -803,7 +818,19 @@ auto v3 = static_cast&lt;double&gt;(g);   // double
 
 <p>As C++ requires, the top level cv-qualifiers of the initialiser are dropped unless the variable is a
 reference, so <tt>r2</tt> above is a <tt>const int &amp;</tt> while a by value <tt>auto</tt> initialised
-from a <tt>const int</tt> is a plain <tt>int</tt>.</p>
+from a <tt>const int</tt> is a plain <tt>int</tt>. A name that refers to a reference stands for the type
+the reference refers to, and an array decays to a pointer to its first element unless the variable is a
+reference:</p>
+
+<div class="code"><pre>
+int &amp;rg = g;
+int arr[4] = {1, 2, 3, 4};
+
+auto v4 = rg;    // int
+auto&amp; v5 = rg;   // int &amp;
+auto v6 = arr;   // int *
+auto&amp; v7 = arr;  // int (&amp;)[4]
+</pre></div>
 
 <p>A braced initialiser holding a single element deduces the type of that element, which is the C++17
 rule for this form:</p>

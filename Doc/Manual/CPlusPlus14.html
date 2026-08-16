@@ -176,6 +176,20 @@ plain <tt>int</tt>.
 </p>
 
 <p>
+A string literal is an lvalue of array type, so a <tt>decltype(auto)</tt> variable initialised by one
+is a reference to an array of characters rather than the <tt>const char *</tt> that <tt>auto</tt> deduces.
+SWIG cannot tell which character type the literal has, as the encoding prefix is not kept, so it cannot name the deduced type.
+The variable is ignored with warning 346, <em>Unable to wrap variable 'name' deduced as a reference to an array of characters (ignored)</em>.
+</p>
+
+<div class="code"><pre>
+%inline %{
+auto           pointer_var = "text";  // const char *, wrapped
+decltype(auto) array_var = "text";    // const char (&amp;)[5], ignored, warning 346
+%}
+</pre></div>
+
+<p>
 Used as a return type, <tt>decltype(auto)</tt> has to be deduced from the function
 body, which SWIG does not analyse, so the function is ignored with warning 345,
 <em>Unable to deduce auto return type for 'name' (ignored)</em>, in the same way as
