@@ -54,3 +54,16 @@ swig_check(cvar.cref_from_cref, 20)
 swig_check(deref(cvar.fwd_lvalue), 20)
 swig_check(deref(cvar.fwd_lvalue_ref), 20)
 swig_check(deref(cvar.fwd_rvalue), 42)
+
+# An array initialiser decays to a pointer to its first element.
+swig_check(deref(cvar.array_decay), 1)
+swig_check(deref(cvar.array_decay_ptr), 1)
+swig_check(deref(cvar.carray_decay), 5)
+
+# Being a pointer, assigning to it rebinds it and leaves the array it was initialised from alone.
+cvar.array_decay = cvar.other_array
+swig_check(deref(cvar.array_decay), 10)
+swig_check(deref(cvar.int_array), 1)
+
+# auto& binds to the array instead, so it keeps the array type.
+swig_check(array_first(cvar.array_ref), 1)

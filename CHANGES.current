@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            An array initialiser now decays to a pointer when deducing 'auto':
+
+              int arr[4] = {1, 2, 3, 4};
+              auto p = arr;   // int *, was int [4]
+              auto &r = arr;  // int (&)[4], unchanged
+
+            The variable was wrapped as an array, so its setter copied the
+            elements of the assigned array into the pointed-to array instead of
+            rebinding the pointer. An 'auto&' variable binds to the array rather
+            than deducing from it, so it keeps the array type as before.
+
+2026-09-12: wsfulton
             An 'auto&&' variable is now treated as a forwarding reference, so it
             is an lvalue reference when its initialiser is an lvalue:
 

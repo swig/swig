@@ -2429,6 +2429,12 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
      * 'auto x = cg;' with 'cg' declared 'const int' deduces 'int' while 'auto& r = cg;' deduces 'const int'. */
     while (SwigType_isqualifier(placeholder))
       Delete(SwigType_pop(placeholder));
+    /* An array decays to a pointer to its first element unless the variable is a reference, so 'auto p = arr;'
+     * with 'arr' an 'int[4]' deduces 'int *' while 'auto& r = arr;' deduces 'int (&)[4]'. */
+    if (SwigType_isarray(placeholder)) {
+      Delete(SwigType_pop(placeholder));
+      SwigType_add_pointer(placeholder);
+    }
   }
 
   while (matched && Len(remaining) > 0) {

@@ -15,6 +15,8 @@
 %immutable ptr_ptr;
 %immutable copy_ptr;
 %immutable copy_ptr_decorated;
+// An array reference cannot be assigned in C++, so only the getter is generated.
+%immutable array_ref;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) int_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ref_from_ref;
@@ -22,13 +24,21 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) fwd_lvalue;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) fwd_lvalue_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) fwd_rvalue;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) array_decay;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) array_decay_ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) carray_decay;
 
 #if defined(SWIGC)
 // TODO: Fix the experimental C backend emitting 'int &&**' for an rvalue reference variable.
 %ignore rref_var;
+%ignore fwd_rvalue;
 // TODO: Fix the experimental C backend emitting 'int (*)(int)*' for a function pointer.
 %ignore call_fn;
 %ignore fn_ptr;
+// TODO: Fix the experimental C backend emitting 'int [4]*' for an array reference variable and
+// 'int (*)[4]*' for a pointer to an array parameter.
+%ignore array_ref;
+%ignore array_first;
 #endif
 
 %inline %{
@@ -40,6 +50,7 @@ int global_fn(int x) { return x + 1; }
 int deref(int *p) { return *p; }
 int deref2(int **p) { return **p; }
 int call_fn(int (*fn)(int), int x) { return fn(x); }
+int array_first(int (*p)[4]) { return (*p)[0]; }
 
 // auto& - lvalue reference to the deduced type.
 auto& ref_var = global_int;
@@ -98,4 +109,14 @@ auto& cref_from_cref = cint_ref;     // const int &
 auto&& fwd_lvalue = global_int;      // int &
 auto&& fwd_lvalue_ref = int_ref;     // int &
 auto&& fwd_rvalue = 42;              // int &&
+
+int int_array[4] = {1, 2, 3, 4};
+int other_array[4] = {10, 20, 30, 40};
+const int cint_array[3] = {5, 6, 7};
+
+// An array initialiser decays to a pointer to its first element, unless the variable is a reference.
+auto array_decay = int_array;        // int *
+auto* array_decay_ptr = int_array;   // int *
+auto carray_decay = cint_array;      // const int *
+auto& array_ref = int_array;         // int (&)[4]
 %}
