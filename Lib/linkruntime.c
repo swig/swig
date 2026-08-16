@@ -14,9 +14,11 @@
 # endif
 #endif
 
-static void *ptr = 0;
+/* Empty type table that modules splice themselves into; compile with the 'swig -external-runtime' header included. */
+static swig_module_info swig_global_type_list = { 0, 0, &swig_global_type_list, 0, 0, 0 };
+
 SWIGEXPORT void *
 SWIG_ReturnGlobalTypeList(void *t) {
- if (!ptr && !t) ptr = t;
- return ptr;
+  (void)t;
+  return &swig_global_type_list;
 }
