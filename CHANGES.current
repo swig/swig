@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A decltype in a trailing return type naming a parameter declared with
+            a function or an array type now gives the pointer type C++ adjusts
+            that parameter to:
+
+              auto function_parameter(int fn(int)) -> decltype(fn);  // int (*)(int)
+              auto array_parameter(int values[10]) -> decltype(values);  // int *
+
+            The first reported warning 344 and generated a wrapper that did not
+            compile.
+
+2026-09-12: wsfulton
             A decltype in a trailing return type naming an 'auto' parameter of an
             abbreviated function template now gives the type the %template
             instantiation supplies for that parameter:

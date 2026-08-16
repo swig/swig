@@ -2230,20 +2230,36 @@ static ParmList *trailing_rettype_parms = 0;
    promote_abbreviated_template() to complete then. */
 static String *trailing_rettype_placeholder_parm = 0;
 
-/* A copy of the type of the function parameter named 'name' of the function whose trailing return type is being
-   parsed, or 0 when there is no such parameter.  Never 0 for a parameter that does exist: the caller reads 0 as
-   "not in scope" and carries on into the enclosing scope, where an unrelated declaration would shadow it. */
+/* Apply the parameter adjustments of C++ [dcl.fct]/5 to the copy 't': an array parameter has the type pointer to
+   element and a function parameter the type pointer to function.  normalize_parms() in typepass.cxx applies the
+   function half to the parameter itself, but that is a later pass and a decltype here is resolved while parsing. */
+static void adjust_parm_type(SwigType *t) {
+  if (SwigType_isreference(t) || SwigType_isrvalue_reference(t))
+    return;
+  if (SwigType_isarray(t)) {
+    SwigType_del_array(t);
+    SwigType_add_pointer(t);
+  } else if (SwigType_isfunction(t)) {
+    SwigType_add_pointer(t);
+  }
+}
+
+/* A copy of the adjusted type of the function parameter named 'name' of the function whose trailing return type is
+   being parsed, or 0 when there is no such parameter.  Never 0 for a parameter that does exist: the caller reads 0
+   as "not in scope" and carries on into the enclosing scope, where an unrelated declaration would shadow it. */
 static SwigType *trailing_rettype_parm_type(String *name) {
   Parm *p;
   for (p = trailing_rettype_parms; p; p = nextSibling(p)) {
     String *pname = Getattr(p, "name");
     SwigType *ptype = Getattr(p, "type");
     if (pname && ptype && Equal(pname, name)) {
-      if (SwigType_isauto(ptype)) {
+      SwigType *t = Copy(ptype);
+      if (SwigType_isauto(t)) {
         Delete(trailing_rettype_placeholder_parm);
         trailing_rettype_placeholder_parm = Copy(pname);
       }
-      return Copy(ptype);
+      adjust_parm_type(t);
+      return t;
     }
   }
   return 0;

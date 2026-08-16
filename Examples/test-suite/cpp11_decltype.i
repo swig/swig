@@ -40,6 +40,40 @@
   auto parameter_only(float only_parameter) -> decltype(only_parameter) {
     return only_parameter + 1;
   }
+
+  // A parameter declared with a function type is adjusted to a pointer to that function, and one declared
+  // with an array type to a pointer to its element, so that is the type a decltype naming it gives.
+  auto function_parameter(int fn(int)) -> decltype(fn) {
+    return fn;
+  }
+
+  auto array_parameter(int values[10]) -> decltype(values) {
+    return values;
+  }
+
+  auto const_array_parameter(const int values[10]) -> decltype(values) {
+    return values;
+  }
+
+  // The adjusted type is what the address of the parameter points at, so this is 'int **'.
+  auto array_parameter_address(int values[10]) -> decltype(&values) {
+    static int *held;
+    held = values;
+    return &held;
+  }
+
+  int increment(int x) { return x + 1; }
+  int (*increment_ptr)(int) = increment;
+
+  int *three_values() {
+    static int values[3] = { 11, 22, 33 };
+    return values;
+  }
+
+  // Helpers proving the deduced type in the target language.
+  int call_through(int (*fn)(int), int x) { return fn(x); }
+  int deref_first(int *values) { return *values; }
+  int deref_first2(int **values) { return **values; }
 %}
 
 

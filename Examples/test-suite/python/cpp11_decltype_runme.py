@@ -41,3 +41,17 @@ if cpp11_decltype.parameter_shadows_global(5) != 6:
 
 if cpp11_decltype.parameter_only(1.5) != 2.5:
     raise RuntimeError("parameter_only(1.5) should return 2.5")
+
+# A function parameter deduces to a function pointer and an array parameter to a pointer to its element,
+# so the results can be passed to functions taking those pointer types.
+if cpp11_decltype.call_through(cpp11_decltype.function_parameter(cpp11_decltype.cvar.increment_ptr), 4) != 5:
+    raise RuntimeError("function_parameter should return a callable function pointer")
+
+if cpp11_decltype.deref_first(cpp11_decltype.array_parameter(cpp11_decltype.three_values())) != 11:
+    raise RuntimeError("array_parameter should return an int pointer")
+
+if cpp11_decltype.deref_first(cpp11_decltype.const_array_parameter(cpp11_decltype.three_values())) != 11:
+    raise RuntimeError("const_array_parameter should return an int pointer")
+
+if cpp11_decltype.deref_first2(cpp11_decltype.array_parameter_address(cpp11_decltype.three_values())) != 11:
+    raise RuntimeError("array_parameter_address should return a pointer to an int pointer")
