@@ -4272,7 +4272,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"throws",$cpp_const.throws);
 	      Setattr($$,"throw",$cpp_const.throwf);
 	      Setattr($$,"noexcept",$cpp_const.nexcept);
-	      Setattr($$,"final",$cpp_const.final);
+              /* virt_specifier_seq_opt matches after the requires-clause and cpp_const before the return type, so only one can be present. */
+              Setattr($$, "final", $virt_specifier_seq_opt ? $virt_specifier_seq_opt : $cpp_const.final);
               set_concept_constraint($$, $auto_type_holder.conceptid);
               if ($requires_clause_opt) {
                 Node *placeholder = Getattr($$, "constraint");
