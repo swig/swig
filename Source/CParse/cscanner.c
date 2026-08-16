@@ -174,11 +174,15 @@ int skip_balanced(int startchar, int endchar) {
 /* -----------------------------------------------------------------------------
  * get_raw_text_balanced()
  *
- * Returns raw text between 2 braces
+ * Returns raw text between 2 braces, or NULL when the closing bracket is missing
  * ----------------------------------------------------------------------------- */
 
 String *get_raw_text_balanced(int startchar, int endchar) {
-  return Scanner_get_raw_text_balanced(scan, startchar, endchar);
+  int start_line = Scanner_line(scan);
+  String *code = Scanner_get_raw_text_balanced(scan, startchar, endchar);
+  if (!code)
+    Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
+  return code;
 }
 
 /* -----------------------------------------------------------------------------

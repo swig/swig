@@ -5299,6 +5299,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (cparse_cplusplusout) {
 		     /* save the structure declaration to declare it in global scope for C++ to see */
 		     code = get_raw_text_balanced('{', '}');
+                     if (!code) Exit(EXIT_FAILURE);
 		     Setattr($$, "code", code);
 		     Delete(code);
 		   }
@@ -5522,6 +5523,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       /* save the structure declaration to make a typedef for it later*/
 	       code = get_raw_text_balanced('{', '}');
+               if (!code) Exit(EXIT_FAILURE);
 	       Setattr($$, "code", code);
 	       Delete(code);
 	     }[node] cpp_members RBRACE cpp_opt_declarators {

@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            Fix a crash on input where a class body or a decltype operand is
+            never closed, such as:
+
+              %inline %{
+              int g = 1;
+              decltype(g x;
+              %}
+
+            The missing bracket is now reported as an error, Missing ')'.
+            Reached end of input.
+
+2026-09-12: wsfulton
             A requires-clause is now part of a function template's signature, so
             two function templates differing only by their constraint are kept
             as distinct overloads:

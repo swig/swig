@@ -1638,14 +1638,16 @@ static void lookahead_end(Scanner *s, Scanner *lookahead, long start) {
 /* -----------------------------------------------------------------------------
  * Scanner_get_raw_text_balanced()
  *
- * Returns raw text between 2 braces, does not change scanner state in any way
+ * Returns the raw text between 2 brackets, such as '{...}' or '(...)', including the brackets themselves, or NULL if
+ * the closing bracket is missing.  The state of 's' is not changed in either case, as the lookahead runs on a private
+ * scanner, see lookahead_begin().
  * ----------------------------------------------------------------------------- */
 
 String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
   String *result = NULL;
+  Scanner *lookahead;
+  long start;
   int old_line = s->line;
-  String *old_text = Copy(s->text);
-  long position = Tell(s->str);
 
   int num_levels = 1;
   int starttok = 0;
@@ -1670,34 +1672,36 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
   default:
     assert(0);
   }
+  lookahead = lookahead_begin(s, &start);
+  if (!lookahead)
+    return NULL;
 
   while (1) {
-    int tok = Scanner_token(s);
+    int tok = Scanner_token(lookahead);
     if (tok == starttok) {
       num_levels++;
     } else if (tok == endtok) {
       if (--num_levels == 0) {
-        result = NewStringWithSize(Char(s->str) + position - 1, Tell(s->str) - position + 1);
-        Char(result)[0] = startchar;
+        result = NewStringEmpty();
+        Putc(startchar, result);
+        Write(result, Char(s->str) + start, (int)(Tell(s->str) - start));
         Setfile(result, Getfile(s->str));
         Setline(result, old_line);
         break;
       }
     } else if (tok == SWIG_TOKEN_COMMENT) {
-      char *loc = Char(s->text);
-      if (strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(s->text) - 3] == '@') {
-        Scanner_locator(s, s->text);
+      String *text = Scanner_text(lookahead);
+      char *loc = Char(text);
+      if (strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(text) - 3] == '@') {
+        /* The locator applies to 's', which is where the text will be scanned for real. */
+        Scanner_locator(s, text);
       }
     } else if (tok == 0) {
       break;
     }
   }
 
-  /* Reset the scanner state. */
-  Seek(s->str, position, SEEK_SET);
-  Delete(s->text);
-  s->text = old_text;
-  s->line = old_line;
+  lookahead_end(s, lookahead, start);
 
   return result;
 }
