@@ -208,3 +208,11 @@ namespace space {
 %template(foo) B::barT<double>;
 %template(foo) B::barT<int>;
 %template(foo) B::barT<char>;
+
+// A redeclaration differing only by a top level const on a by-value parameter declares the same function template.
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) redeclared;
+%inline %{
+template <class T> T redeclared(T t);
+template <class T> T redeclared(const T t) { return t + 1; }
+%}
+%template(redeclared) redeclared<int>;

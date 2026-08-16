@@ -1,0 +1,2 @@
+cpp_template_ambiguous_signature.i:12: Error: Ambiguous template instantiation of 'classify< double >'. Overloaded declarations of 'classify' instantiate to the same function signature, which C++ makes an ambiguous call.
+cpp_template_ambiguous_signature.i:20: Error: Ambiguous template instantiation of 'qualified< int volatile >'. Overloaded declarations of 'qualified' instantiate to the same function signature, which C++ makes an ambiguous call.

@@ -21,6 +21,22 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A %template naming two function template overloads whose parameters
+            differ only by a top level cv-qualifier is now rejected as an
+            ambiguous instantiation:
+
+              int classify(const std::floating_point auto value);
+              double classify(std::floating_point auto value);
+
+              // Error: Ambiguous template instantiation of 'classify< double >'.
+              %template(classify_double) classify<double>;
+
+            Top level cv-qualification is not part of a C++ function signature,
+            so the call is ambiguous in C++ too. SWIG previously reported warning
+            509, dropped one overload and wrapped the other, so classify_double
+            returned the wrong overload's result.
+
+2026-09-12: wsfulton
             Fix the C++ call generated for an abbreviated function template whose
             'auto' parameter pack is followed by a plain parameter, and the
             partition of the template arguments between two 'auto' parameter

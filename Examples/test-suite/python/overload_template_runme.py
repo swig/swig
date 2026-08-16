@@ -143,3 +143,6 @@ if (nsoverload() != 1050):
 A.foo(1)
 b = B()
 b.foo(1)
+
+if redeclared(1) != 2:
+    raise RuntimeError("redeclared")
