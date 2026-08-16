@@ -29,9 +29,6 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) carray_decay;
 
 #if defined(SWIGC)
-// TODO: Fix the experimental C backend emitting 'int &&**' for an rvalue reference variable.
-%ignore rref_var;
-%ignore fwd_rvalue;
 // TODO: Fix the experimental C backend emitting 'int (*)(int)*' for a function pointer.
 %ignore call_fn;
 %ignore fn_ptr;
