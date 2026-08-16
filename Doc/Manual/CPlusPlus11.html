@@ -845,8 +845,8 @@ example.i:28: Warning 348: Inconsistent auto type deduction for variable 'v13': 
 declaration is being parsed, so a mismatch involving anything else goes unreported.</p>
 
 <p>The type still has to be deducible from the initialiser. Where no declarator of a declaration deduces
-one, the variables are dropped after issuing warning 346, and the warning says which of the two got in
-the way. An initialiser SWIG understands but cannot deduce a type from, such as a function call or the
+one, the variables are dropped after issuing warning 346, and the warning says what got in the way. An
+initialiser SWIG understands but cannot deduce a type from, such as a function call or the
 <a href="#CPlusPlus11_null_pointer_constant"><tt>nullptr</tt></a> literal, names the initialiser:</p>
 
 <div class="code"><pre>
@@ -857,19 +857,30 @@ auto v14 = nullptr;
 example.i:30: Warning 346: Unable to deduce auto type for variable 'v14' from initialiser 'nullptr' (ignored).
 </pre></div>
 
-<p>while an initialiser in a form SWIG does not support, such as a braced initialiser holding more than
-one element or a new expression, says so instead:</p>
+<p>A braced initialiser list is reported as one. Copy-list-initialisation deduces a
+<tt>std::initializer_list</tt>, which SWIG declares only as a stub that warns rather than
+wrapping it:</p>
 
 <div class="code"><pre>
 auto v15 = {g, 1};
 </pre></div>
 
 <div class="shell"><pre>
-example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from an unsupported initialiser (ignored).
+example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from a braced initialiser list (ignored).
 </pre></div>
 
-<p>The usual workaround for either is to ignore the variable, or to declare it with its actual type in
-the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
+<p>while an initialiser in a form SWIG has no grammar for, such as a new expression, says only that:</p>
+
+<div class="code"><pre>
+auto v16 = new int(5);
+</pre></div>
+
+<div class="shell"><pre>
+example.i:34: Warning 346: Unable to deduce auto type for variable 'v16' from an unsupported initialiser (ignored).
+</pre></div>
+
+<p>The usual workaround for any of them is to ignore the variable, or to declare it with its actual type
+in the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
 
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
 

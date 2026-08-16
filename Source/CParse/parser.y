@@ -4503,15 +4503,16 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   }
            /* C++11 copy-list-initialisation of an 'auto' variable, such as 'auto values = {1, 2};'.  Unlike the
               direct-list-initialisation of 'auto value{1};', which deduces the type of the single element, this
-              always deduces a 'std::initializer_list' of the element type.  SWIG has no interface for
-              'std::initializer_list', so there is nothing useful to wrap the variable as and it is ignored with
-              a warning naming the type it deduces. */
+              deduces a 'std::initializer_list' of the element type.  The 'std::initializer_list' in Lib/swig.swg
+              is a stub whose typemaps only emit warning 476, so there is nothing useful to wrap the variable as
+              and it is ignored with a warning.  The warning names only the braced list, since an empty list, a
+              list of differing types and a 'decltype(auto)' variable all deduce nothing, being ill-formed. */
            | storage_class auto_type_holder declarator cpp_const EQUAL LBRACE {
               if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
-             } SEMI {
+             } braced_initialiser_end {
               $$ = 0;
               Swig_warning(WARN_CPP11_AUTO, cparse_file, cparse_line,
-                  "Unable to deduce auto type for variable '%s' from a braced initialiser list which deduces std::initializer_list (ignored).\n",
+                  "Unable to deduce auto type for variable '%s' from a braced initialiser list (ignored).\n",
                   $declarator.id);
               Clear(scanner_ccode);
               Delete($storage_class);
@@ -4643,6 +4644,13 @@ auto_decl_tail : SEMI {
                    Clear(scanner_ccode);
                }
                | c_decl_list_tail
+               ;
+
+/* The end of a copy-list-initialised 'auto' declaration: the semicolon, or the declarators that follow it.  None is wrapped, so the rest is skipped. */
+braced_initialiser_end : SEMI
+               | COMMA {
+                   if (skip_balanced_to_semicolon() < 0) Exit(EXIT_FAILURE);
+               }
                ;
 
 initializer   : def_args

@@ -21,6 +21,22 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A declaration copy-list-initialising more than one 'auto' variable now
+            reports warning 346 for a braced initialiser list instead of the
+            generic unsupported-initialiser one:
+
+              auto first = {1}, second = {2};
+
+            Every declarator shares the one placeholder, so none of them is
+            wrapped.
+
+            The warning no longer names the type the list deduces, which is a
+            std::initializer_list only when the elements agree on a type and the
+            placeholder is 'auto' rather than 'decltype(auto)'. An empty list, a
+            list of differing types and a copy-list-initialised 'decltype(auto)'
+            variable deduce nothing at all, being ill-formed C++.
+
+2026-09-12: wsfulton
             A decltype(auto) variable is now recognised as initialised by a string
             literal when the whole of the initialiser is one, rather than when the
             text merely starts with one:
@@ -203,15 +219,13 @@ Version 4.6.0 (in progress)
               auto values = {1, 2};
 
               Warning 346: Unable to deduce auto type for variable 'values'
-              from a braced initialiser list which deduces std::initializer_list
-              (ignored).
+              from a braced initialiser list (ignored).
 
-            The type deduced is always a std::initializer_list, whatever the
-            number of elements, and SWIG has no interface for that type, so the
-            variable stays ignored. The declaration used to be reported as an
-            unsupported initialiser instead. Note that the direct-list form
-            'auto value{1};' deduces the type of the single element and is
-            wrapped as before.
+            The list deduces a std::initializer_list, which SWIG declares only
+            as a stub that warns rather than wrapping, so the variable stays
+            ignored. The declaration used to be reported as an unsupported
+            initialiser instead. Note that the direct-list form 'auto value{1};'
+            deduces the type of the single element and is wrapped as before.
 
 2026-09-12: wsfulton
             Parentheses around the initialiser of an 'auto' variable no longer
