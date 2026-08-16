@@ -2161,7 +2161,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
 %type <str>      storage_class;
 %type <intvalue> storage_class_raw storage_class_list;
-%type <pl>       parms rawparms varargs_parms ;
+%type <pl>       parms fn_parms rawparms varargs_parms ;
 %type <p>        parm_no_dox parm valparm valparms;
 %type <pbuilder> valparms_builder;
 %type <p>        typemap_parm tm_list;
@@ -2782,17 +2782,37 @@ static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *q
   }
 }
 
-/* Drop the C++23 explicit object parameter, that is the leading parameter declared with the 'this' specifier, from
-   the parameter list 'parms' and return the parameters that follow it.  The explicit object parameter is how the
-   object the member function is called on is passed, so it is not one of the function's arguments and must appear
-   neither in the wrapper's parameter list nor in the function's declarator. */
-static ParmList *drop_explicit_object_parameter(ParmList *parms) {
+/* Mark the C++23 explicit object parameter, that is the parameter declared with the 'this' specifier.  The parameter
+   list is parsed the same way wherever it appears, so the mark records where 'this' was written and the rules that
+   can accept one check for it. */
+static ParmList *mark_explicit_object_parameter(ParmList *parms) {
   if (!parms) {
     Swig_error(cparse_file, cparse_line, "Missing parameter declaration after 'this'.\n");
     return 0;
   }
   if (Getattr(parms, "value"))
     Swig_error(cparse_file, cparse_line, "Explicit object parameter 'this' cannot have a default argument.\n");
+  SetFlag(parms, "explicitobject");
+  return parms;
+}
+
+/* Report a 'this' specifier where C++23 does not allow an explicit object parameter, which it allows only as the
+   first parameter of a member function declarator. */
+static void reject_explicit_object_parameter(ParmList *parms) {
+  if (parms && GetFlag(parms, "explicitobject")) {
+    Swig_error(cparse_file, cparse_line, "The explicit object parameter 'this' must be the first parameter of a member function.\n");
+    Delattr(parms, "explicitobject");
+  }
+}
+
+/* Drop a leading explicit object parameter from 'parms' and return the parameters that follow it, or return 'parms'
+   unchanged when there is none.  The explicit object parameter is how the object the member function is called on is
+   passed, so it is not one of the function's arguments and must appear neither in the wrapper's parameter list nor in
+   the function's declarator. */
+static ParmList *drop_explicit_object_parameter(ParmList *parms, short *found) {
+  if (!parms || !GetFlag(parms, "explicitobject"))
+    return parms;
+  *found = 1;
   return nextSibling(parms);
 }
 
@@ -3091,8 +3111,9 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
                }
 	       /* Member function pointers with qualifiers. eg.
 	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
-	       | CONSTANT type direct_declarator LPAREN parms RPAREN cv_ref_qualifier def_args SEMI {
-		 SwigType_add_function($type, $parms);
+               | CONSTANT type direct_declarator LPAREN fn_parms RPAREN cv_ref_qualifier def_args SEMI {
+                 reject_explicit_object_parameter($fn_parms);
+                 SwigType_add_function($type, $fn_parms);
 		 SwigType_push($type, $cv_ref_qualifier.qualifier);
 		 SwigType_push($type, $direct_declarator.type);
 		 /* Sneaky callback function trick */
@@ -4904,8 +4925,7 @@ cpp_lambda_decl : storage_class auto_type_holder declarator cpp_const[unused] EQ
 
 /* A lambda's parameter list, which C++23 allows to start with an explicit object parameter.  A lambda is wrapped
    as an opaque object, so the parameters are only parsed, never used. */
-lambda_parms : LPAREN parms RPAREN
-             | LPAREN THIS parms RPAREN
+lambda_parms : LPAREN fn_parms RPAREN
              ;
 
 /* An explicit trailing return type, shared by a function and a lambda.  As well as any type-id, C++ allows it to be
@@ -6808,6 +6828,15 @@ parms          : rawparms {
                }
     	       ;
 
+/* The parameter list of a function declarator, which C++23 allows to start with an explicit object parameter.  A
+   'this' further along the list is matched by rawparms below wherever a parameter list appears, so that a misplaced
+   one is diagnosed rather than reported as a syntax error. */
+fn_parms       : parms
+               | THIS parms[in] {
+                 $$ = mark_explicit_object_parameter($in);
+               }
+               ;
+
 /* rawparms constructs parameter lists and deal with quirks of doxygen post strings (after the parameter's comma */
 rawparms	: parm { $$ = $parm; }
 		| parm DOXYGENPOSTSTRING {
@@ -6819,22 +6848,25 @@ rawparms	: parm { $$ = $parm; }
 		  set_comment($parm, $DOXYGENSTRING);
 		  $$ = $parm;
 		}
-		| parm COMMA parms {
-		  if ($parms) {
-		    set_nextSibling($parm, $parms);
+                | parm COMMA fn_parms[tail] {
+                  if ($tail) {
+                    reject_explicit_object_parameter($tail);
+                    set_nextSibling($parm, $tail);
 		  }
 		  $$ = $parm;
 		}
-		| parm DOXYGENPOSTSTRING COMMA parms {
-		  if ($parms) {
-		    set_nextSibling($parm, $parms);
+                | parm DOXYGENPOSTSTRING COMMA fn_parms[tail] {
+                  if ($tail) {
+                    reject_explicit_object_parameter($tail);
+                    set_nextSibling($parm, $tail);
 		  }
 		  set_comment($parm, $DOXYGENPOSTSTRING);
 		  $$ = $parm;
 		}
-		| parm COMMA DOXYGENPOSTSTRING parms {
-		  if ($parms) {
-		    set_nextSibling($parm, $parms);
+                | parm COMMA DOXYGENPOSTSTRING fn_parms[tail] {
+                  if ($tail) {
+                    reject_explicit_object_parameter($tail);
+                    set_nextSibling($parm, $tail);
 		  }
 		  set_comment($parm, $DOXYGENPOSTSTRING);
 		  $$ = $parm;
@@ -7008,15 +7040,16 @@ parameter_declarator : declarator def_args {
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
-	    | direct_declarator LPAREN parms RPAREN qualifiers_exception_specification {
+            | direct_declarator LPAREN fn_parms RPAREN qualifiers_exception_specification {
               SwigType *qualifier = $qualifiers_exception_specification.qualifier;
               if ($qualifiers_exception_specification.nexcept) {
                 if (!qualifier)
                   qualifier = NewStringEmpty();
                 SwigType_add_qualifier(qualifier, "noexcept");
               }
+              reject_explicit_object_parameter($fn_parms);
               $$ = $direct_declarator;
-              declarator_add_function(&$$, $parms, qualifier);
+              declarator_add_function(&$$, $fn_parms, qualifier);
 	    }
             ;
 
@@ -7056,9 +7089,10 @@ plain_declarator : declarator {
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const) */
-	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
+            | direct_declarator LPAREN fn_parms RPAREN cv_ref_qualifier {
+              reject_explicit_object_parameter($fn_parms);
               $$ = $direct_declarator;
-              declarator_add_function(&$$, $parms, $cv_ref_qualifier.qualifier);
+              declarator_add_function(&$$, $fn_parms, $cv_ref_qualifier.qualifier);
 	    }
             | %empty {
 	      $$ = default_decl;
@@ -7350,14 +7384,9 @@ notso_direct_declarator : idcolon {
 		    }
 		    $$.type = t;
                   }
-                  | notso_direct_declarator[in] LPAREN parms RPAREN {
+                  | notso_direct_declarator[in] LPAREN fn_parms RPAREN {
                     $$ = $in;
-                    declarator_add_function(&$$, $parms, 0);
-                  }
-                  | notso_direct_declarator[in] LPAREN THIS parms RPAREN {
-                    $$ = $in;
-                    declarator_add_function(&$$, drop_explicit_object_parameter($parms), 0);
-                    $$.explicit_object_parm = 1;
+                    declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_parm), 0);
                   }
                   ;
 
@@ -7470,18 +7499,13 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = t;
                   }
-                  | direct_declarator[in] LPAREN parms RPAREN {
-                    $$ = $in;
-                    declarator_add_function(&$$, $parms, 0);
-                  }
                   /* C++23 explicit object parameter: 'this' declares the first parameter of a member function to be
                    * the object the function is called on, in place of the implicit object parameter.  It is not one
                    * of the function's arguments, so it is dropped from both the parameter list and the declarator and
                    * the member function is wrapped with the arguments that follow it. */
-                  | direct_declarator[in] LPAREN THIS parms RPAREN {
+                  | direct_declarator[in] LPAREN fn_parms RPAREN {
                     $$ = $in;
-                    declarator_add_function(&$$, drop_explicit_object_parameter($parms), 0);
-                    $$.explicit_object_parm = 1;
+                    declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_parm), 0);
                   }
                  /* User-defined string literals. eg.
                     int operator""_mySuffix(const char* val, int length) {...}

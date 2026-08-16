@@ -21,6 +21,19 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A C++23 explicit object parameter written on any parameter but the
+            first is now reported for what it is:
+
+              struct S {
+                int m(int a, this S& self);
+              };
+
+              example.i:2: Error: The explicit object parameter 'this' must be
+              the first parameter of a member function.
+
+            It used to be a bare syntax error.
+
+2026-09-12: wsfulton
             [C] #3169 An rvalue reference is now wrapped like an lvalue
             reference instead of generating code that does not compile:
 
