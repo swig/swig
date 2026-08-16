@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A decltype(auto) variable is now recognised as initialised by a string
+            literal when the whole of the initialiser is one, rather than when the
+            text merely starts with one:
+
+              decltype(auto) parens = ("text");   // ignored, a reference to an array
+              decltype(auto) pointer = "text" + 1;  // wrapped as const char *
+
+            The first was wrapped as a const char * and its setter did not compile.
+            The second is an ordinary expression and is wrapped again.
+
+2026-09-12: wsfulton
             The C++ integral promotion is now applied to 'short' and
             'unsigned short' as well as to the character and boolean types, so an
             'auto' variable deduced from a promoted short is an int:

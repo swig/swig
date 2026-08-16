@@ -2415,22 +2415,36 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
   return placeholder;
 }
 
-/* Whether the initialiser 'dtype' is a string literal, which is what the text of its value starting with a quote
-   says.  The T_STRING code on its own does not say it: a named cast to 'const char *' summarises to T_STRING too,
-   as does the address of a character. */
+/* Whether the initialiser 'dtype' is a string literal, optionally parenthesised.  The T_STRING code alone does not
+   say so: a named cast to 'const char *' summarises to T_STRING too, as does the address of a character and an
+   expression such as '"text" + 1' that merely has a literal as an operand, hence the check on the whole text. */
 static int initialiser_is_string_literal(const struct Define *dtype) {
+  String *unwrapped;
   const char *text;
+  int is_literal = 0;
+
   if (dtype->type != T_STRING && dtype->type != T_WSTRING)
     return 0;
   if (!dtype->val)
     return 0;
-  text = Char(dtype->val);
-  /* The value text of a string literal is written by the grammar as '"..."', or as 'L"..."' when the literal
-     is wide, whichever of the encoding and raw string prefixes the source spelt it with, so 'L' is the only
-     prefix that can appear here. */
+  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
+  text = Char(unwrapped ? unwrapped : dtype->val);
+  /* The grammar writes the value text as '"..."', or 'L"..."' when wide, whichever of the encoding and raw string
+     prefixes the source spelt it with, so 'L' is the only prefix that can appear here.  Adjacent literals are
+     already concatenated, so one pair of quotes spans however many pairs the source wrote. */
   if (*text == 'L')
     text++;
-  return *text == '"';
+  if (*text == '"') {
+    text++;
+    while (*text && *text != '"') {
+      if (*text == '\\' && text[1])
+        text++;
+      text++;
+    }
+    is_literal = *text == '"' && text[1] == '\0';
+  }
+  Delete(unwrapped);
+  return is_literal;
 }
 
 /* The type of an 'auto' variable declared with declarator 'decl' and initialised by 'dtype', which is the type

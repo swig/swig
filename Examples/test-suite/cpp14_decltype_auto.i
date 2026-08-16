@@ -28,6 +28,11 @@
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_utf8;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char16;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char32;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_concat;
+%warnfilter(SWIGWARN_CPP11_AUTO) var_string_parens;
+
+// An operator applied to a string literal makes an expression, and this one has type 'const char *'.
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) var_string_expr;
 
 %warnfilter(SWIGWARN_CPP11_AUTO) var_parenthesised;
 
@@ -54,6 +59,14 @@ decltype(auto) var_string_raw_wide = LR"(text)";
 decltype(auto) var_string_raw_utf8 = u8R"(text)";
 decltype(auto) var_string_raw_char16 = uR"(text)";
 decltype(auto) var_string_raw_char32 = UR"(text)";
+
+// Adjacent literals concatenate into one literal, and parentheses do not change what a literal is.
+decltype(auto) var_string_concat = "te" "xt";
+decltype(auto) var_string_parens = ("text");
+
+// An operator applied to a literal makes an expression, whose type is deduced as usual.
+bool use_ext = true;
+decltype(auto) var_string_expr = use_ext ? "ext" : "none";
 
 // A parenthesised name declares a reference to what it names, which the name was not declared with
 decltype(auto) var_parenthesised = (global_int);

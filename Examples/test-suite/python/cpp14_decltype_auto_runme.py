@@ -22,9 +22,12 @@ for ignored in ("ret_plain", "ret_trailing"):
 for ignored in ("var_string", "var_string_wide", "var_string_utf8", "var_string_char16",
                 "var_string_char32", "var_string_raw", "var_string_raw_wide",
                 "var_string_raw_utf8", "var_string_raw_char16", "var_string_raw_char32",
-                "var_parenthesised"):
+                "var_string_concat", "var_string_parens", "var_parenthesised"):
     if hasattr(cvar, ignored):
         raise RuntimeError("%s should be ignored (not wrappable as a variable)" % ignored)
+
+# An expression with a literal as an operand is not a literal, so this is a plain 'const char *'.
+swig_check(cvar.var_string_expr, "ext")
 
 k = Klass(11)
 swig_check(k.plain(), 11)
