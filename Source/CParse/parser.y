@@ -2321,6 +2321,10 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
     deduced = symbol_full_type(operand);
     Delete(operand);
     if (deduced) {
+      /* Taking the address of a reference gives a pointer to the referred-to type, there being no such thing as
+       * a pointer to a reference. */
+      if (SwigType_isreference(deduced) || SwigType_isrvalue_reference(deduced))
+        Delete(SwigType_pop(deduced));
       SwigType_add_pointer(deduced);
       return deduced;
     }
@@ -2384,6 +2388,11 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
   SwigType *placeholder = Copy(initialiser_type);
   SwigType *remaining = Copy(decl);
   int matched = 1;
+
+  /* An id-expression naming a reference has the type it refers to, so 'auto x = r;' with 'r' an 'int&' deduces
+   * 'int'.  Only 'decltype(auto)' keeps the reference, and that does not come through here. */
+  if (SwigType_isreference(placeholder) || SwigType_isrvalue_reference(placeholder))
+    Delete(SwigType_pop(placeholder));
 
   if (SwigType_isreference(remaining) || SwigType_isrvalue_reference(remaining)) {
     Delete(SwigType_pop(remaining));

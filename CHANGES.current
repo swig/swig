@@ -21,6 +21,23 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            An 'auto' variable deduced from a reference no longer keeps the
+            reference:
+
+              int g = 42;
+              int &r = g;
+              auto x = r;    // int
+              auto &r2 = r;  // int &
+              auto *p = &r;  // int *
+
+            An id-expression naming a reference has the type it refers to, so the
+            reference is not part of what is deduced from it. Previously the
+            reference was kept, giving each of these a doubled reference or a
+            pointer to a reference, neither of which is a C++ type, and the
+            generated wrapper did not always compile. A decltype naming a
+            reference is unchanged, so decltype(r) is still 'int &'.
+
+2026-09-12: wsfulton
             #3484 A director no longer overrides a member function declared final
             when the final declaration overrides a virtual member of a base class:
 

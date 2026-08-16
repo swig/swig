@@ -31,3 +31,20 @@ swig_check(call_fn(cvar.fn_ptr, 4), 5)
 # An undecorated placeholder initialised from a pointer deduces the pointer type.
 swig_check(deref(cvar.copy_ptr), 20)
 swig_check(deref(cvar.copy_ptr_decorated), 20)
+
+# Deduction from a reference drops the reference, so these are copies made at static
+# initialisation time and do not follow global_int.
+swig_check(cvar.from_ref, 11)
+swig_check(cvar.from_cref, 11)
+
+# auto& and auto* applied to a reference deduce 'int &' and 'int *', both still live.
+swig_check(deref(cvar.ref_from_ref), 20)
+swig_check(deref(cvar.ptr_from_ref), 20)
+
+# The pointer is mutable, and its setter rebinds it instead of writing through it.
+cvar.ptr_from_ref = other_address()
+swig_check(deref(cvar.ptr_from_ref), 99)
+swig_check(cvar.global_int, 20)
+
+# A reference to const wraps by value and is live.
+swig_check(cvar.cref_from_cref, 20)

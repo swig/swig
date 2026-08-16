@@ -16,6 +16,10 @@
 %immutable copy_ptr;
 %immutable copy_ptr_decorated;
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) int_ref;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ref_from_ref;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_from_ref;
+
 #if defined(SWIGC)
 // TODO: Fix the experimental C backend emitting 'int &&**' for an rvalue reference variable.
 %ignore rref_var;
@@ -71,4 +75,18 @@ auto* fn_ptr = &global_fn;
 // initialised from a pointer deduces the pointer type itself.  Both of these are 'int *'.
 auto copy_ptr = global_ptr;
 auto* copy_ptr_decorated = global_ptr;
+
+int &int_ref = global_int;
+const int &cint_ref = global_int;
+
+int other_int = 99;
+int *other_address() { return &other_int; }
+
+// An id-expression naming a reference has the type it refers to, so the reference is not part of
+// what is deduced from it.
+auto from_ref = int_ref;             // int
+auto& ref_from_ref = int_ref;        // int &
+auto* ptr_from_ref = &int_ref;       // int *
+auto from_cref = cint_ref;           // int
+auto& cref_from_cref = cint_ref;     // const int &
 %}
