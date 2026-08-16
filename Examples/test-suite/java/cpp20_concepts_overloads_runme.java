@@ -28,6 +28,14 @@ public class cpp20_concepts_overloads_runme {
     if (cpp20_concepts_overloads.accumulate_double(0.5, 1.0, 2.5) != 4.0)
       throw new RuntimeException("accumulate_double(0.5, 1.0, 2.5)");
 
+    // Member function templates told apart by their ref-qualifier and cv-qualifier.
+    Holder h = new Holder();
+    h.setValue(10);
+    if (h.get_int(5) != 15)
+      throw new RuntimeException("Holder.get_int(5)");
+    if (h.get_double(2.5) != -7.5)
+      throw new RuntimeException("Holder.get_double(2.5)");
+
     // Member operator overloads with trailing requires-clauses.
     BoxInt a = new BoxInt(7);
     BoxInt b = new BoxInt(7);

@@ -21,6 +21,22 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A %template naming member function template overloads that differ by
+            their cv-qualifier or ref-qualifier is no longer rejected as an
+            ambiguous instantiation:
+
+              struct Holder {
+                template<typename T> T get(T x) & requires std::integral<T>;
+                template<typename T> T get(T x) const & requires std::floating_point<T>;
+              };
+
+              %template(get_int) Holder::get<int>;
+
+            Those qualifiers are part of the C++ function signature, so the
+            overloads are distinct and no constraint has to be evaluated to
+            choose between them.
+
+2026-09-12: wsfulton
             A %template naming two function template overloads whose parameters
             differ only by a top level cv-qualifier is now rejected as an
             ambiguous instantiation:

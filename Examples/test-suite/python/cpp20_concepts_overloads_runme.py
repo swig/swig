@@ -11,6 +11,12 @@ swig_check(accumulate_double(2.5),           3.5)
 swig_check(accumulate_double(1.5, 2.5),      4.0)
 swig_check(accumulate_double(0.5, 1.0, 2.5), 4.0)
 
+# Member function templates told apart by their ref-qualifier and cv-qualifier.
+h = Holder()
+h.value = 10
+swig_check(h.get_int(5),      15)
+swig_check(h.get_double(2.5), -7.5)
+
 # Member operator overloads with trailing requires-clauses.
 a = BoxInt(7)
 b = BoxInt(7)

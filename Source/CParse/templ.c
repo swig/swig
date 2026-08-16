@@ -1773,10 +1773,14 @@ static void replace_template_parms(SwigType *t, Node *n, ParmList *instantiated_
  * top level is part of the type and is kept either way.  With it false the
  * parameters are rendered as written, which tells two overloads that only C++
  * considers the same apart from a plain redeclaration.
+ *
+ * The member cv-qualifier and ref-qualifier are part of the signature too, so
+ * 'T get(T) &' and 'T get(T) const &' are distinct member functions.
  * ----------------------------------------------------------------------------- */
 
 static String *instantiated_function_signature(Node *n, ParmList *instantiated_parms, int normalised) {
   String *sig = NewStringEmpty();
+  SwigType *decl = Getattr(n, "decl");
   Parm *p;
   for (p = Getattr(n, "parms"); p; p = nextSibling(p)) {
     SwigType *t = Copy(Getattr(p, "type"));
@@ -1785,6 +1789,14 @@ static String *instantiated_function_signature(Node *n, ParmList *instantiated_p
       Delete(SwigType_pop(t));
     Printf(sig, "%s|", t);
     Delete(t);
+  }
+  if (decl && SwigType_isfunction(decl)) {
+    SwigType *rest = Copy(decl);
+    SwigType *qualifiers = SwigType_pop_function_qualifiers(rest);
+    if (qualifiers)
+      Printf(sig, "%s", qualifiers);
+    Delete(qualifiers);
+    Delete(rest);
   }
   return sig;
 }

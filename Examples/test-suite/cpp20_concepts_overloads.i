@@ -20,6 +20,9 @@
 %rename(eq)   Box::operator==;
 %rename(plus) Box::operator+;
 
+// A target language that has no ref-qualifiers keeps one of Holder::get and drops the other.
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) Holder::get;
+
 %inline %{
 #include <concepts>
 
@@ -35,6 +38,16 @@ T accumulate(T a, T b) { return a + b; }
 
 template<typename T> requires Numeric<T>
 T accumulate(T a, T b, T c) { return a + b + c; }
+
+// Member function templates told apart by their ref-qualifier and cv-qualifier rather than by arity.
+// Those are part of the function signature, so the constraints do not have to be evaluated to choose.
+struct Holder {
+  int value;
+  Holder() : value(0) {}
+
+  template<typename T> T get(T x) & requires std::integral<T> { return x + value; }
+  template<typename T> T get(T x) const & requires std::floating_point<T> { return x - value; }
+};
 
 // Class template with member operator overloads, each carrying its own trailing requires-clause.
 template<typename T>
@@ -55,6 +68,9 @@ struct Box {
 
 %template(accumulate_int)    accumulate<int>;
 %template(accumulate_double) accumulate<double>;
+
+%template(get_int)    Holder::get<int>;
+%template(get_double) Holder::get<double>;
 
 %template(BoxInt)    Box<int>;
 %template(BoxDouble) Box<double>;

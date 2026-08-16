@@ -736,6 +736,25 @@ As above, give the overloads distinct signatures - typically a different
 arity - so that only one of them matches a given <tt>%template</tt>.
 </p>
 <p>
+The cv-qualifier and ref-qualifier on a member function are part of its
+signature, so member function templates carrying different ones are
+distinct and are accepted:
+</p>
+<div class="code">
+<pre>
+struct Holder {
+  template&lt;typename T&gt; T get(T x) &amp; requires std::integral&lt;T&gt;;
+  template&lt;typename T&gt; T get(T x) const &amp; requires std::floating_point&lt;T&gt;;
+};
+
+%template(get_int) Holder::get&lt;int&gt;;
+</pre>
+</div>
+<p>
+A target language with no ref-qualifiers keeps one of the two and reports
+warning 516.
+</p>
+<p>
 A class template "partial specialization" whose structural
 template-argument pattern is identical to the primary, intended to be
 selected by a <tt>requires</tt>-clause alone, is not distinguishable
