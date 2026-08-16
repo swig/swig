@@ -21,6 +21,21 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A C++20 abbreviated function template now instantiates into a
+            concrete declarator, so two instantiations wrapped under one name
+            are overloads of each other:
+
+              int scaled(auto x) { return int(x * 10); }
+
+              %template(scaled) scaled<int>;
+              %template(scaled) scaled<double>;
+
+            wraps both. The declarator kept the 'auto' placeholder through
+            instantiation, so the two instantiations had the same signature and
+            the second was dropped with warning 302, Redefinition of identifier
+            'scaled' ignored.
+
+2026-09-12: wsfulton
             A decltype(auto) variable initialised by a string literal now says
             what stopped it being wrapped:
 

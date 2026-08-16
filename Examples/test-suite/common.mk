@@ -756,6 +756,7 @@ CPP20_TEST_CASES += \
 	cpp20_abbreviated_template \
 	cpp20_abbreviated_template_decorated \
 	cpp20_abbreviated_template_mixed \
+	cpp20_abbreviated_template_overloads \
 	cpp20_alias_template \
 	cpp20_concepts \
 	cpp20_concepts_class_methods \

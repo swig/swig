@@ -820,6 +820,40 @@ static int abbreviated_pack_is_not_last(Node *n, String *name) {
 }
 
 /* -----------------------------------------------------------------------------
+ * rebuild_abbreviated_decl()
+ *
+ * A C++20 abbreviated function template is written with 'auto' where an explicitly
+ * written template names a template parameter, so its declarator holds the placeholder
+ * while its parms hold the invented type template parameters.  Rebuild the declarator's
+ * parameter list from the parms so that template expansion has something to substitute
+ * in it, as it does for an explicitly written template: 'f(auto).' becomes
+ * 'f(__dummy_auto_0__).' and expands to 'f(int).' rather than staying 'f(auto).'.
+ *
+ * Only the node being instantiated is rebuilt.  The template declaration keeps the
+ * declarator as written, which is what a %rename, %ignore or %feature declarator spelt
+ * with 'auto' matches - the invented name is not something a user can write.
+ * ----------------------------------------------------------------------------- */
+
+static void rebuild_abbreviated_decl(Node *n) {
+  ParmList *parms = Getattr(n, "parms");
+  SwigType *decl = Getattr(n, "decl");
+  Parm *tp;
+  int abbreviated = 0;
+  for (tp = Getattr(n, "templateparms"); tp && !abbreviated; tp = nextSibling(tp))
+    abbreviated = GetFlag(tp, "abbreviated_auto");
+  if (abbreviated && parms && SwigType_isfunction(decl)) {
+    SwigType *newdecl = Copy(decl);
+    SwigType *qualifiers = SwigType_pop_function_qualifiers(newdecl);
+    Delete(SwigType_pop(newdecl));
+    SwigType_add_function(newdecl, parms);
+    SwigType_push(newdecl, qualifiers);
+    Setattr(n, "decl", newdecl);
+    Delete(qualifiers);
+    Delete(newdecl);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cparse_template_expand()
  * ----------------------------------------------------------------------------- */
 
@@ -836,6 +870,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   patchlist = NewList();  /* List of String * ("name" and "value" attributes) */
   cpatchlist = NewList(); /* List of String * (code) */
   typelist = NewList();   /* List of SwigType * types */
+
+  rebuild_abbreviated_decl(n);
 
   templateargs = NewStringEmpty();
   /* Drop from the emitted C++ template-argument list every argument the compiler deduces for itself.  The

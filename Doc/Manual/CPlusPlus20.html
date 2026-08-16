@@ -403,7 +403,15 @@ T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
 </div>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.  SWIG-4.6.0 is the first version to instantiate an <tt>auto</tt> parameter pack, which previously invented a template parameter that was not a pack and so could not be instantiated at all, and the first to give an <tt>auto</tt> parameter pack followed by a plain parameter the template arguments the generated call needs.
+<b>Compatibility note:</b>
+SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the
+constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and
+CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.
+SWIG-4.6.0 is the first version to instantiate an <tt>auto</tt> parameter pack, which previously invented a template parameter
+that was not a pack and so could not be instantiated at all, and the first to give an <tt>auto</tt> parameter pack followed by
+a plain parameter the template arguments the generated call needs.
+SWIG-4.6.0 is also the first version to instantiate an abbreviated function template into a concrete declarator, so that two
+instantiations under one target language name are overloads rather than a redefinition.
 </p>
 
 <H3><a name="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</a></H3>
