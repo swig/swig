@@ -21,6 +21,26 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A decltype naming a parenthesised variable now uses the type that
+            variable was declared with, and names a reference to it where the
+            variable is wrapped through a pointer either way:
+
+              int gi = 1;
+              int *gp = &gi;
+              decltype((gp)) p = gp;  // int *&, was int
+              decltype((gi)) i = gi;  // int, unchanged
+
+            The type used to come from the type code of the expression, which
+            ignores the declarator, so a variable declared as a pointer, an
+            array, a pointer to member or a class type was given the wrong type
+            and the generated wrapper did not compile.
+
+            A 'decltype(auto)' variable initialised by a parenthesised variable
+            deduces the same type:
+
+              decltype(auto) q = (gp);  // int *&, was int
+
+2026-09-12: wsfulton
             An array initialiser now decays to a pointer when deducing 'auto':
 
               int arr[4] = {1, 2, 3, 4};
@@ -303,12 +323,6 @@ Version 4.6.0 (in progress)
 
             'called' used to be wrapped as an 'int', again with no warning. It
             is now ignored with warning 346.
-
-            A 'decltype(auto)' variable initialised by a parenthesised name is
-            ignored with warning 346 as well, the parentheses making it a
-            reference to what the name denotes:
-
-              decltype(auto) alias = (pointer);
 
 2026-09-12: wsfulton
             A C++11 'auto' declaration declaring more than one variable now

@@ -1,7 +1,7 @@
 from cpp14_decltype_auto import *
 import cpp14_decltype_auto as _mod
 
-from swig_test_utils import swig_check
+from swig_test_utils import swig_check, swig_assert
 
 # 'decltype(auto)' deduces from the initialiser, as 'auto' does.
 swig_check(cvar.var_int, 42)
@@ -11,6 +11,18 @@ swig_check(cvar.var_const, 7)
 # reaches Python as a pointer object rather than as the plain int that var_int gives.
 swig_check(isinstance(cvar.var_int, int), True)
 swig_check(isinstance(cvar.var_ref, int), False)
+
+# A parenthesised name deduces a reference to what it names, so each of these reads and writes the original.
+cvar.var_paren_int = 10
+swig_check(cvar.paren_int, 10)
+cvar.var_paren_nested = 11
+swig_check(cvar.paren_int, 11)
+swig_check(paren_deref(cvar.var_paren_ptr), 11)
+cvar.var_paren_class.member = 12
+swig_check(cvar.paren_class.member, 12)
+swig_assert(cvar.var_paren_array is not None, "var_paren_array")
+cvar.var_paren_static = 13
+swig_check(cvar.Paren_count, 13)
 
 # A deduced return type cannot be deduced from the body, so these are all ignored.
 for ignored in ("ret_plain", "ret_trailing"):

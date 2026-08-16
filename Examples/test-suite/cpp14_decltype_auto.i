@@ -34,7 +34,9 @@
 // An operator applied to a string literal makes an expression, and this one has type 'const char *'.
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) var_string_expr;
 
-%warnfilter(SWIGWARN_CPP11_AUTO) var_parenthesised;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_class;
 
 %inline %{
 int global_int = 42;
@@ -68,8 +70,24 @@ decltype(auto) var_string_parens = ("text");
 bool use_ext = true;
 decltype(auto) var_string_expr = use_ext ? "ext" : "none";
 
-// A parenthesised name declares a reference to what it names, which the name was not declared with
-decltype(auto) var_parenthesised = (global_int);
+// A parenthesised name is an lvalue, so each of these deduces what 'decltype((name))' names, a reference to it.
+struct Paren {
+  int member;
+  static int count;
+};
+int Paren::count = 3;
+int paren_int = 1;
+int *paren_ptr = &paren_int;
+Paren paren_class = { 2 };
+int paren_array[2] = { 4, 5 };
+int paren_deref(int **pp) { return **pp; }
+
+decltype(auto) var_paren_int = (paren_int);        // int &
+decltype(auto) var_paren_nested = ((paren_int));   // int &
+decltype(auto) var_paren_ptr = (paren_ptr);        // int *&
+decltype(auto) var_paren_class = (paren_class);    // Paren &
+decltype(auto) var_paren_array = (paren_array);    // int (&)[2]
+decltype(auto) var_paren_static = (Paren::count);  // int &
 
 // Return types, all ignored as the type would have to come from the body.
 decltype(auto) ret_plain() { return global_int; }
