@@ -520,7 +520,7 @@ public:
    * ------------------------------------------------------------ */
   String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
     if (stringval) {
-      return stringval;
+      return NewStringf("\"%(escape)s\"", stringval);
     }
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
     SwigType *unqualified_type = NIL;
