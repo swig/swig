@@ -306,3 +306,50 @@ String *Constraint_str(Node *n) {
   render_node(out, n);
   return out;
 }
+
+/* Append constraint 'c' to the signature 'out' without the whitespace between its tokens and with the names of
+ * 'templateparms' replaced by their positions, as C++ compares two declarations' constraints token by token after
+ * renaming their template parameters ([temp.over.link]). */
+static void append_signature_constraint(String *out, Node *c, ParmList *templateparms) {
+  String *rendered = Constraint_str(c);
+  String *normalised = Swig_squeeze_c_whitespace(rendered);
+  ParmList_replace_names_positional(normalised, templateparms, 0);
+  Append(out, normalised);
+  Delete(normalised);
+  Delete(rendered);
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_signature_str()
+ *
+ * Render every constraint that is part of the signature of declaration 'n': the
+ * requires-clause on the declaration itself, then the type-constraint on each of its
+ * template parameters, which is where a C++20 abbreviated 'Concept auto' parameter puts
+ * it.  Each is followed by a semicolon, so the position of an entry says which slot it
+ * came from:
+ *
+ *   template<typename T> requires std::integral<T> T f(T);   std::integral< T >;;
+ *   template<std::integral T> T f(T);                        ;std::integral;
+ *
+ * The result is a comparison key rather than readable text.  An unconstrained slot
+ * contributes an empty entry, so a constrained and an unconstrained declaration never
+ * compare equal, and the same concept on different parameters compares unequal too.
+ * The returned String must be freed by the caller.
+ * ----------------------------------------------------------------------------- */
+
+String *Constraint_signature_str(Node *n) {
+  String *out = NewStringEmpty();
+  Node *constraint = Getattr(n, "constraint");
+  ParmList *templateparms = Getattr(n, "templateparms");
+  Parm *tp;
+  if (constraint)
+    append_signature_constraint(out, constraint, templateparms);
+  Append(out, ";");
+  for (tp = templateparms; tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint)
+      append_signature_constraint(out, tconstraint, templateparms);
+    Append(out, ";");
+  }
+  return out;
+}

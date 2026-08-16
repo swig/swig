@@ -21,6 +21,22 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A requires-clause is now part of a function template's signature, so
+            two function templates differing only by their constraint are kept
+            as distinct overloads:
+
+              template<typename T> requires std::integral<T>       T process(T x);
+              template<typename T> requires std::floating_point<T> T process(T x);
+
+            The second declaration used to be dropped with warning 302,
+            Redefinition of identifier 'process' ignored, which then let a
+            %template instantiate the surviving one whatever type it was given,
+            generating a call whose constraint the argument does not satisfy.
+            A %template matching both overloads is reported as an ambiguous
+            instantiation, SWIG not evaluating constraints. Constructors are
+            unaffected and are still collapsed with warning 302.
+
+2026-09-12: wsfulton
             A C++20 abbreviated function template that is %ignored no longer
             hides the other overloads of the same name from %template.  The
             type-constraint is part of the declarator for these, so it is the

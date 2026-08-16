@@ -702,33 +702,25 @@ Limitations:
 <ul>
 <li>
 <p>
-SWIG does not model C++20 constraint subsumption, so two declarations
-that share a name and signature and differ only by their
-<tt>requires</tt>-clause cannot be distinguished.  This affects two
-common patterns:
-</p>
-<p>
-Function templates that share a name and signature, differing only by
-constraint, trip warning 302 (<i>Redefinition of identifier 'X'
-ignored</i>) and the later declaration is dropped.  Differentiate
-constrained overloads by signature - typically a different arity:
+SWIG does not evaluate constraints, so it cannot pick between two function
+templates that share a name and signature and differ only by their
+constraint.  A <tt>requires</tt>-clause and a type-constraint are both part
+of a function template's signature, so both declarations are kept, but a
+<tt>%template</tt> that matches both is rejected as an ambiguous
+instantiation:
 </p>
 <div class="code">
 <pre>
-// warning 302 - SWIG cannot pick by constraint, the second declaration is dropped
 template&lt;typename T&gt; requires std::integral&lt;T&gt;       T process(T x);
 template&lt;typename T&gt; requires std::floating_point&lt;T&gt; T process(T x);
 
-// accepted - SWIG dispatches by argument count
-template&lt;typename T&gt; requires Numeric&lt;T&gt; T process(T x);
-template&lt;typename T&gt; requires Numeric&lt;T&gt; T process(T x, T y);
+// Error: Ambiguous template instantiation of 'process&lt; double &gt;'. ...
+%template(process_double) process&lt;double&gt;;
 </pre>
 </div>
 <p>
-The same overloads written as abbreviated function templates reach
-<tt>%template</tt> as separate declarations rather than tripping warning
-302, and a <tt>%template</tt> that cannot be resolved without evaluating
-the constraints is rejected as an ambiguous instantiation:
+Abbreviated function templates told apart only by their type-constraint
+are rejected the same way:
 </p>
 <div class="code">
 <pre>
@@ -740,9 +732,20 @@ double classify(std::floating_point auto value);
 </pre>
 </div>
 <p>
-As above, give the overloads distinct signatures - typically a different
-arity - so that only one of them matches a given <tt>%template</tt>.
+Give the overloads distinct signatures - typically a different arity - so
+that only one of them matches a given <tt>%template</tt>:
 </p>
+<div class="code">
+<pre>
+// accepted - SWIG dispatches by argument count
+template&lt;typename T&gt; requires Numeric&lt;T&gt; T process(T x);
+template&lt;typename T&gt; requires Numeric&lt;T&gt; T process(T x, T y);
+
+// accepted - the same remedy written as abbreviated function templates
+int classify(std::integral auto value);
+int classify(std::integral auto value, std::integral auto other);
+</pre>
+</div>
 <p>
 For an abbreviated function template the type-constraint is part of the
 declarator, so <tt>%ignore</tt> can name one of the overloads instead,
@@ -757,6 +760,20 @@ double classify(std::floating_point auto value);
 
 // wraps the std::floating_point overload
 %template(classify_double) classify&lt;double&gt;;
+</pre>
+</div>
+<p>
+Constructors are not function templates and are still collapsed when they share a
+signature and differ only by a trailing <tt>requires</tt>-clause, tripping warning 302
+(<i>Redefinition of identifier 'X' ignored</i>) with the later declaration dropped:
+</p>
+<div class="code">
+<pre>
+template&lt;typename T&gt;
+struct Box {
+  Box(T v) requires std::integral&lt;T&gt;;
+  Box(T v) requires std::floating_point&lt;T&gt;;   // warning 302, dropped
+};
 </pre>
 </div>
 <p>
@@ -775,8 +792,8 @@ struct Holder {
 </pre>
 </div>
 <p>
-A target language with no ref-qualifiers keeps one of the two and reports
-warning 516.
+A target language with no ref-qualifiers keeps one of the two and reports warning 516
+(<i>Overloaded method 'declaration' ignored, using 'declaration' instead</i>).
 </p>
 <p>
 A class template "partial specialization" whose structural
@@ -807,7 +824,11 @@ underlying C++ compiler accepts.
 </p>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.5.0 is the first version to support C++20 concepts.
+<b>Compatibility note:</b>
+SWIG-4.5.0 is the first version to support C++20 concepts.
+SWIG-4.6.0 is the first version to treat a <tt>requires</tt>-clause as part of a function template's signature, so that two
+function templates differing only by their constraint are kept as distinct overloads instead of the second being dropped with
+warning 302 (<i>Redefinition of identifier 'X' ignored</i>).
 </p>
 
 <H3><a name="CPlusPlus20_type_constrained_template_parameters">10.2.6 Type constrained template parameters</a></H3>

@@ -762,6 +762,17 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
   }
 }
 
+/* Compare the constraints of two function templates for identity.  SWIG does not evaluate constraints, so
+ * two constraint expressions written differently are taken to be different even if they mean the same. */
+static int function_template_constraints_equal(Node *a, Node *b) {
+  String *ca = Constraint_signature_str(a);
+  String *cb = Constraint_signature_str(b);
+  int equal = Equal(ca, cb);
+  Delete(ca);
+  Delete(cb);
+  return equal;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_symbol_add()
  *
@@ -968,7 +979,11 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
             String *cnt = Getattr(cn, "nodeType");
             int cn_template = Equal(cnt, "template") && Checkattr(cn, "templatetype", "cdecl");
             int cn_plain_cdecl = Equal(cnt, "cdecl");
-            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl))) {
+            /* A requires-clause and a template parameter's type-constraint are part of a function
+             * template's signature ([temp.over.link]), so two function templates whose constraints
+             * are written differently are distinct overloads rather than a redeclaration. */
+            int constraints_differ = n_template && cn_template && !function_template_constraints_equal(n, cn);
+            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl)) && !constraints_differ) {
               /* found a conflict */
               return cn;
             }

@@ -5699,7 +5699,25 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 			}
 
 			if ($$) tname = Getattr($$,"name");
-			
+
+                        /* Attach prefix requires-clause subtree (e.g. 'template<T> requires C<T>') to the
+                           inner template node's "constraint" attribute.  If a trailing requires-clause is
+                           already present on the cdecl (set by c_decl), conjoin the two structurally into
+                           a single op="and" constraint subtree per [temp.constr.decl].  This has to happen
+                           before the node reaches the symbol table, which tells two function templates that
+                           differ only by their constraints apart. */
+                        if (ni && $requires_clause_opt) {
+                          Node *trailing = Getattr(ni, "constraint");
+                          Node *combined;
+                          if (trailing) {
+                            Delattr(ni, "constraint");
+                            combined = Constraint_combine("and", $requires_clause_opt, trailing);
+                          } else {
+                            combined = $requires_clause_opt;
+                          }
+                          Setattr(ni, "constraint", combined);
+                        }
+
 			/* Check if the class is a template specialization */
 			if (($$) && (Strchr(tname,'<')) && (!is_operator(tname))) {
 			  /* If a specialization.  Check if defined. */
@@ -5855,21 +5873,6 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 			    Swig_symbol_cadd(fname,$$);
 			  }
 			}
-                        /* Attach prefix requires-clause subtree (e.g. 'template<T> requires C<T>') to the
-                           inner template node's "constraint" attribute.  If a trailing requires-clause is
-                           already present on the cdecl (set by c_decl), conjoin the two structurally into
-                           a single op="and" constraint subtree per [temp.constr.decl]. */
-                        if (ni && $requires_clause_opt) {
-                          Node *trailing = Getattr(ni, "constraint");
-                          Node *combined;
-                          if (trailing) {
-                            Delattr(ni, "constraint");
-                            combined = Constraint_combine("and", $requires_clause_opt, trailing);
-                          } else {
-                            combined = $requires_clause_opt;
-                          }
-                          Setattr(ni, "constraint", combined);
-                        }
 			$$ = ntop;
 			Swig_symbol_setscope(cscope);
 			Delete(Namespaceprefix);
