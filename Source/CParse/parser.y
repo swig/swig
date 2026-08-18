@@ -2583,8 +2583,12 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
     }
     Delete(initialiser_type);
   }
-  if (type && qualifier)
+  if (type && qualifier) {
+    /* A cv-qualifier on the declaration replaces the deduced top level cv-qualifiers, so 'const auto &x = cg;' with 'cg' a 'const int' is 'const int &'. */
+    while (SwigType_isqualifier(type))
+      Delete(SwigType_pop(type));
     SwigType_push(type, qualifier);
+  }
   return type;
 }
 

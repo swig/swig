@@ -27,6 +27,7 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) array_decay;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) array_decay_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) carray_decay;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cptr_from_cint;
 
 #if defined(SWIGC)
 // TODO: Fix the experimental C backend emitting 'int (*)(int)*' for a function pointer.
@@ -100,6 +101,13 @@ auto& ref_from_ref = int_ref;        // int &
 auto* ptr_from_ref = &int_ref;       // int *
 auto from_cref = cint_ref;           // int
 auto& cref_from_cref = cint_ref;     // const int &
+
+const int cint = 7;
+
+// A cv-qualifier on the declaration is the deduced type's own cv-qualifier rather than an addition to one
+// deduced from a const initialiser.
+const auto& cref_from_cint = cint;   // const int &
+const auto* cptr_from_cint = &cint;  // const int *
 
 // auto&& is a forwarding reference, so it is an lvalue reference when the initialiser is an lvalue
 // and an rvalue reference when it is not.

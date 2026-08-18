@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            A cv-qualifier written on an auto declaration is no longer added to
+            one already deduced from the initialiser:
+
+              const int cint = 7;
+              const auto &cref = cint;   // const int &
+              const auto *cptr = &cint;  // const int *
+
+            The deduced types used to carry the qualifier twice, which showed up
+            in the type names quoted by the generated runtime messages, such as
+            "in variable 'cptr' of type 'int const const *'".
+
+2026-09-12: wsfulton
             A C++23 explicit object parameter written on any parameter but the
             first is now reported for what it is:
 
