@@ -2640,12 +2640,8 @@ public:
        warning with nothing to report. */
     bool warn_container_mismatch = !Getattr(n, "feature:python:annotations:catchall");
 
-    /* The pytyping typemaps are attached to a copy of the parameters so that the wrapper code
-       generation is not disturbed. emit_output_summary() is given the same copy so that the
-       parameters it reports back are the ones carrying the pytyping typemaps. */
-    ParmList *copied_parms = CopyParmList(root);
-    Swig_typemap_attach_parms("pytyping", copied_parms, 0);
-    emit_output_summary(n, copied_parms, warn_container_mismatch);
+    Swig_typemap_attach_parms("pytyping", root, 0);
+    emit_output_summary(n, root, warn_container_mismatch);
 
     /* The function return value, when there is one, is the first of the returned values. */
     if (GetFlag(n, "wrap:returnsurvives")) {
@@ -2670,9 +2666,6 @@ public:
       Delete(tm);
     }
 
-    /* Do not leave the copied parameters attached to the node. */
-    Delattr(n, "wrap:outputparms");
-    Delete(copied_parms);
     return types;
   }
 
