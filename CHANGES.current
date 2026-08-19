@@ -21,6 +21,20 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            %template now instantiates every overload of a function template it
+            matches, including one whose declaration was renamed:
+
+              %rename(spinner_two) spinner(T, T);
+
+              template<typename T> int spinner(T a);
+              template<typename T> int spinner(T a, T b);
+
+              %template(spinner) spinner<int>;
+
+            The renamed declaration used to be skipped, quietly leaving the two
+            argument overload unwrapped.
+
+2026-09-12: wsfulton
             A cv-qualifier written on an auto declaration is no longer added to
             one already deduced from the initialiser:
 

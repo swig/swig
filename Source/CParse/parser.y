@@ -4103,7 +4103,8 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           linklistend = templnode;
                         }
                       }
-                      nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded function templates. If a class template there will never be a sibling. */
+                      /* Repeat for overloaded function templates, a class template never has a sibling */
+                      nn = Getattr(nn, "csym:nextSibling");
                     }
                     update_defaultargs(linkliststart);
                     update_abstracts(linkliststart);

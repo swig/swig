@@ -1987,6 +1987,20 @@ static int check_constrained_overloads(List *matches, String *name, ParmList *in
  * first would hide the overloads that are still to be wrapped.
  * ----------------------------------------------------------------------------- */
 
+static int already_matched(List *matches, Node *n) {
+  String *decl = Getattr(n, "decl");
+  String *constraints = Constraint_signature_str(n);
+  int matched = 0;
+  Iterator mi;
+  for (mi = First(matches); mi.item && !matched; mi = Next(mi)) {
+    String *mconstraints = Constraint_signature_str(mi.item);
+    matched = Equal(decl, Getattr(mi.item, "decl")) && Equal(constraints, mconstraints);
+    Delete(mconstraints);
+  }
+  Delete(constraints);
+  return matched;
+}
+
 static void collect_function_template_matches(Node *firstn, String *name, ParmList *instantiated_parms, int variadic, int ignored, List *matches) {
   Node *n;
   for (n = firstn; n; n = Getattr(n, "csym:nextSibling")) {
@@ -1999,6 +2013,10 @@ static void collect_function_template_matches(Node *firstn, String *name, ParmLi
     if ((ParmList_find_variadic_parm(tparmsfound, NULL) != 0) != (variadic != 0))
       continue;
     if (variadic ? ParmList_len(instantiated_parms) < ParmList_len(tparmsfound) - 1 : ParmList_len(instantiated_parms) != ParmList_len(tparmsfound))
+      continue;
+    /* A friend declaration and the definition it refers to are the same function template, so the chain
+     * holds two nodes for it and only the first is instantiated. */
+    if (already_matched(matches, n))
       continue;
     if (template_debug) {
       Printf(stdout, "    found: template <%s> '%s' (%s)\n", ParmList_str_defaultargs(tparmsfound), name, ParmList_str_defaultargs(Getattr(n, "parms")));
