@@ -456,6 +456,8 @@ extern Node *Constraint_new_requirement(const_String_or_char_ptr kind);
 extern Node *Constraint_combine(const_String_or_char_ptr op, Node *lhs, Node *rhs);
 extern String *Constraint_str(Node *n);
 extern String *Constraint_signature_str(Node *n);
+extern int Constraint_signatures_equal(Node *a, Node *b);
+extern int Constraint_differently_constrained(Node *a, Node *b);
 
 /* hacks defined in C++ ! */
 extern int Swig_director_mode(void);

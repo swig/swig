@@ -1,5 +1,8 @@
 %module cpp20_concepts_classes
 
+%warnfilter(SWIGWARN_PARSE_CONSTRAINED_REDECLARATION) SelectBox;
+%warnfilter(SWIGWARN_PARSE_CONSTRAINED_REDECLARATION) SelectBox::kind;
+
 // C++20 concepts applied to class templates: prefix requires-clause, trailing requires on ordinary methods, compound '&&', constrained constructor.
 
 %inline %{
@@ -59,6 +62,21 @@ class CheckedBox {
 public:
   CheckedBox() : value(T()) {}
   CheckedBox(T v) requires Numeric<T> : value(v) {}
+  T get() const { return value; }
+};
+
+// Members of a class template that differ only by a trailing requires-clause are ignored with warning 333
+// and only the first is wrapped, but the wrapper names the member rather than one of the two declarations, so
+// the C++ compiler still selects the overload each instantiation satisfies.  A %template naming a type that
+// satisfies neither constraint is a C++ compiler error on the generated wrapper, not something SWIG reports.
+template<typename T>
+class SelectBox {
+  T value;
+public:
+  SelectBox(T v) requires std::integral<T> : value(v + 1) {}
+  SelectBox(T v) requires std::floating_point<T> : value(v + 2) {}
+  int kind() const requires std::integral<T> { return 1; }
+  int kind() const requires std::floating_point<T> { return 2; }
   T get() const { return value; }
 };
 
@@ -133,6 +151,9 @@ public:
 
 %template(CheckedBoxInt)    CheckedBox<int>;
 %template(CheckedBoxDouble) CheckedBox<double>;
+
+%template(SelectBoxInt)     SelectBox<int>;
+%template(SelectBoxDouble)  SelectBox<double>;
 
 %template(OutOfLineBoxInt)  OutOfLineBox<int>;
 

@@ -35,6 +35,13 @@
  * the rendered constraint text in C++20 syntax.  The renderer is the only
  * supported path for materialising constraint text: the structured tree is
  * the source of truth.
+ *
+ * Constraints also decide whether two declarations are the same declaration,
+ * as two function templates alike in all else are different templates when
+ * their constraints differ.  A declaration's constraint signature, built by
+ * Constraint_signature_str, is the rendered text of every constraint that is
+ * part of its signature, normalised and arranged so that two of them can be
+ * compared.  It is never shown to a user.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -297,8 +304,7 @@ static void render_node(String *out, Node *n) {
  * Constraint_str()
  *
  * Render a constraint subtree (constraint, requires-expression, or requirement
- * node) as the C++20 source text it represents.  The returned String must be
- * freed by the caller.
+ * node) as the C++20 source text it represents.
  * ----------------------------------------------------------------------------- */
 
 String *Constraint_str(Node *n) {
@@ -322,19 +328,33 @@ static void append_signature_constraint(String *out, Node *c, ParmList *template
 /* -----------------------------------------------------------------------------
  * Constraint_signature_str()
  *
- * Render every constraint that is part of the signature of declaration 'n': the
- * requires-clause on the declaration itself, then the type-constraint on each of its
- * template parameters, which is where a C++20 abbreviated 'Concept auto' parameter puts
- * it.  Each is followed by a semicolon, so the position of an entry says which slot it
- * came from:
+ * Render every constraint that is part of the signature of declaration 'n' into a slot for
+ * each place a constraint can be written: first the requires-clause on the declaration
+ * itself, then the type-constraint on each template parameter, which is where a C++20
+ * abbreviated 'Concept auto' parameter puts it.
  *
- *   template<typename T> requires std::integral<T> T f(T);   std::integral< T >;;
- *   template<std::integral T> T f(T);                        ;std::integral;
+ * Each constraint is rendered without the whitespace between its tokens and with every template
+ * parameter name replaced by its position, $1 for the first, so a declaration and a definition
+ * spelling a constraint differently only in these ways compare equal, as they do in C++
+ * ([temp.over.link]).  'requires (sizeof(T) > 4)' after 'template<class T>' and
+ * 'requires (sizeof(U)>4)' after 'template<class U>' both render as '(sizeof($1)>4)'.
  *
- * The result is a comparison key rather than readable text.  An unconstrained slot
- * contributes an empty entry, so a constrained and an unconstrained declaration never
- * compare equal, and the same concept on different parameters compares unequal too.
- * The returned String must be freed by the caller.
+ * Every slot is terminated by a semicolon whether or not a constraint went into it, so the
+ * position of an entry says which slot it came from:
+ *
+ *   template<typename T> requires std::integral<T> T f(T);            std::integral<$1>;;
+ *   template<std::integral T> T f(T);                                 ;std::integral;
+ *   template<typename T, std::integral U> T f(T, U);                  ;;std::integral;
+ *   template<std::integral T, typename U, typename V> T f(T, U, V);   ;std::integral;;;
+ *
+ * A semicolon therefore terminates a slot rather than separating one from the next, and ";;"
+ * is two empty slots rather than a doubled separator.  A declaration with no constraint in
+ * any slot renders as nothing but terminators, one for itself and one for each template
+ * parameter, so ";" is a plain declaration, ";;" a template taking one parameter and ";;;;"
+ * one taking three.
+ *
+ * A constrained and an unconstrained declaration never compare equal, and the same concept
+ * on different parameters compares unequal too.
  * ----------------------------------------------------------------------------- */
 
 String *Constraint_signature_str(Node *n) {
@@ -352,4 +372,46 @@ String *Constraint_signature_str(Node *n) {
     Append(out, ";");
   }
   return out;
+}
+
+/* A signature with no constraint in it is nothing but its slot terminators. */
+static int signature_is_empty(const String *sig) {
+  const char *c = Char(sig);
+  while (*c == ';')
+    c++;
+  return *c == '\0';
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_signatures_equal()
+ *
+ * Whether two declarations carry identical constraints.  SWIG does not evaluate a constraint, so two
+ * written differently, other than in whitespace or template parameter names, are taken to be different
+ * even where they mean the same thing.
+ * ----------------------------------------------------------------------------- */
+
+int Constraint_signatures_equal(Node *a, Node *b) {
+  String *ca = Constraint_signature_str(a);
+  String *cb = Constraint_signature_str(b);
+  int equal = Equal(ca, cb);
+  Delete(ca);
+  Delete(cb);
+  return equal;
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_differently_constrained()
+ *
+ * Whether a constraint is what tells two declarations apart, which needs one of them to carry a
+ * constraint as well as the signatures to differ.  Two unconstrained declarations can have different
+ * signatures simply by having different numbers of template parameters, as ";" against ";;".
+ * ----------------------------------------------------------------------------- */
+
+int Constraint_differently_constrained(Node *a, Node *b) {
+  String *ca = Constraint_signature_str(a);
+  String *cb = Constraint_signature_str(b);
+  int differently_constrained = !Equal(ca, cb) && !(signature_is_empty(ca) && signature_is_empty(cb));
+  Delete(ca);
+  Delete(cb);
+  return differently_constrained;
 }

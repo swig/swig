@@ -763,19 +763,28 @@ double classify(std::floating_point auto value);
 </pre>
 </div>
 <p>
-Constructors are not function templates and are still collapsed when they share a
-signature and differ only by a trailing <tt>requires</tt>-clause, tripping warning 302
-(<i>Redefinition of identifier 'X' ignored</i>) with the later declaration dropped:
+Constructors and other members of a class template are not function templates,
+and the later declaration is still ignored when they share a signature and differ only by a trailing <tt>requires</tt>-clause.
+It is reported with warning 333
+(<i>Declaration of 'X' as decl differing only by a constraint is ignored</i>).
 </p>
 <div class="code">
 <pre>
 template&lt;typename T&gt;
 struct Box {
   Box(T v) requires std::integral&lt;T&gt;;
-  Box(T v) requires std::floating_point&lt;T&gt;;   // warning 302, dropped
+  Box(T v) requires std::floating_point&lt;T&gt;;   // warning 333, ignored
+
+  int kind() requires std::integral&lt;T&gt;;
+  int kind() requires std::floating_point&lt;T&gt;; // warning 333, ignored
 };
 </pre>
 </div>
+<p>
+The wrapper generated from the declaration that is kept names the member rather than one of the two declarations,
+so the C++ compiler still selects the overload the instantiation satisfies.
+The wrapper is only wrong where the ignored declaration differs in something the wrapper does depend on, such as its return type.
+</p>
 <p>
 The cv-qualifier and ref-qualifier on a member function are part of its
 signature, so member function templates carrying different ones are

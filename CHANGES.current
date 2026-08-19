@@ -21,6 +21,28 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-12: wsfulton
+            New warning 333 replaces warning 302 for two declarations that
+            differ only by a constraint:
+
+              template<typename T>
+              struct Box {
+                Box(T v) requires std::integral<T>;
+                Box(T v) requires std::floating_point<T>;
+              };
+
+              example.i:4: Warning 333: Declaration of 'Box' as Box::Box(T)
+              differing only by a constraint is ignored,
+              example.i:3: Warning 333: previous declaration of 'Box' as
+              Box::Box(T) is used instead.
+
+            These are distinct C++ overloads rather than a redefinition, so
+            warning 302 (Redefinition of identifier 'Box' ignored) was
+            misleading. SWIG does not evaluate a constraint, so it still keeps
+            only the first declaration; the generated wrapper names the member,
+            leaving the C++ compiler to select the overload each instantiation
+            satisfies.
+
+2026-09-12: wsfulton
             %template now instantiates every overload of a function template it
             matches, including one whose declaration was renamed:
 
@@ -108,7 +130,7 @@ Version 4.6.0 (in progress)
             generating a call whose constraint the argument does not satisfy.
             A %template matching both overloads is reported as an ambiguous
             instantiation, SWIG not evaluating constraints. Constructors are
-            unaffected and are still collapsed with warning 302.
+            unaffected and only the first is kept, reported with warning 333.
 
 2026-09-12: wsfulton
             A C++20 abbreviated function template that is %ignored no longer
