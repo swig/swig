@@ -496,6 +496,7 @@ public:
             value = Getattr(lookup, "sym:name");
         }
         Printf(decl_str, " = %s", value);
+        Delete(new_value);
       }
 
       Node *nn = classLookup(Getattr(p, "type"));
@@ -545,7 +546,7 @@ public:
       }
       Delete(resolved_type);
       Delete(unqualified_type);
-      return numval;
+      return Copy(numval);
     }
     if (Equal(v, "nullptr")) {
       // nullptr is type nullptr_t which doesn't implicitly convert to 0.
