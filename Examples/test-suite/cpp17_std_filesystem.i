@@ -5,6 +5,7 @@
 
 %{
 #include <filesystem>
+#include <type_traits>
 %}
 
 %inline %{
@@ -61,5 +62,10 @@ std::string pathPtrToStr(const std::filesystem::path * p) {
 namespace stdfs = std::filesystem;
 std::filesystem::path roundTrip(const stdfs::path& p) {
     return p;
+}
+
+/* std::filesystem::path stores wchar_t on Windows and char elsewhere */
+bool pathUsesWideChars() {
+    return std::is_same_v<std::filesystem::path::value_type, wchar_t>;
 }
 %}

@@ -63,3 +63,33 @@ if roundTripped != roundTrippedSquared:
 if specialPath != roundTrippedSquared:
     lines.append("specialPath, roundTrippedSquared: " + format_msg(specialPath, roundTrippedSquared))
 swig_assert(not lines, "\n".join(lines))
+
+# A str that cannot be encoded as UTF-8 must raise an error instead of crashing. Such strings turn
+# up in practice as filenames that are not valid UTF-8, decoded with 'surrogateescape'. Skipped
+# where std::filesystem::path holds wchar_t, as on Windows, as the string converts to a path
+# successfully there and converting that path back to a narrow string, which the functions below
+# do, would then throw std::filesystem::filesystem_error.
+if not pathUsesWideChars():
+    undecodable = "caf\udce9.txt"
+    try:
+        pathToStr(undecodable)
+    except UnicodeEncodeError:
+        pass
+    try:
+        pathConstRefToStr(undecodable)
+    except UnicodeEncodeError:
+        pass
+
+# An error raised while converting a pathlib.Path to a str must be propagated, not ignored.
+# PosixPath or WindowsPath is subclassed as plain Path cannot be subclassed before Python 3.12.
+class RaisingPath(type(pathlib.Path("."))):
+    def __str__(self):
+        raise ValueError("__str__ raised")
+
+raisingPath = RaisingPath("foo")
+for fn in (pathToStr, pathConstRefToStr):
+    try:
+        fn(raisingPath)
+        raise RuntimeError("ValueError expected from " + fn.__name__)
+    except ValueError:
+        pass
