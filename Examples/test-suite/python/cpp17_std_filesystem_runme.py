@@ -1,4 +1,5 @@
 import pathlib
+import sys
 
 from cpp17_std_filesystem import *
 from swig_test_utils import swig_assert, swig_check
@@ -63,3 +64,31 @@ if roundTripped != roundTrippedSquared:
 if specialPath != roundTrippedSquared:
     lines.append("specialPath, roundTrippedSquared: " + format_msg(specialPath, roundTrippedSquared))
 swig_assert(not lines, "\n".join(lines))
+
+# A str that cannot be encoded as UTF-8 must raise an error instead of crashing. Such strings
+# turn up in practice as filenames that are not valid UTF-8, decoded with 'surrogateescape'.
+# Note that no error occurs on platforms using wchar_t paths, such as Windows, as the
+# conversion succeeds there.
+undecodable = "caf\udce9.txt"
+try:
+    pathToStr(undecodable)
+except UnicodeEncodeError:
+    pass
+try:
+    pathConstRefToStr(undecodable)
+except UnicodeEncodeError:
+    pass
+
+# An error raised while converting a pathlib.Path to a str must be propagated, not ignored.
+if sys.version_info >= (3, 12):
+    class RaisingPath(pathlib.Path):
+        def __str__(self):
+            raise ValueError("__str__ raised")
+
+    raisingPath = RaisingPath("foo")
+    for fn in (pathToStr, pathConstRefToStr):
+        try:
+            fn(raisingPath)
+            raise RuntimeError("ValueError expected from " + fn.__name__)
+        except ValueError:
+            pass

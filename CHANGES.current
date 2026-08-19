@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-19: alonfaraj
+            [Python] #3541 Fix crashes in the std::filesystem::path typemaps
+            in std_filesystem.i. A str that cannot be encoded as UTF-8 no longer
+            crashes the wrapper and raises UnicodeEncodeError instead:
+
+              pathToStr("caf\udce9.txt")
+
+            An error raised while converting a pathlib.Path to a str, such as
+            from a subclass overriding __str__, is now propagated rather than
+            crashing too. A reference leak on the error path and missing error
+            checks when importing pathlib.Path have also been fixed.
+
 2026-08-14: wsfulton
             [Javascript, PHP] Warning 314 no longer repeats the new name when
             renaming a Javascript keyword or the PHP 'readonly' keyword:
