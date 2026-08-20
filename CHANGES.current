@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-14: sparcyu
+            [C#] Add support for setting the C# namespace via the 'csnamespace' option of
+            the %module directive, as an alternative to the -namespace command line
+            option. This is convenient for build system integration where the interface
+            file is the natural place to keep the module settings, eg:
+
+              %module(csnamespace="Example.Net") example
+
+            The -namespace command line option takes precedence over the csnamespace
+            module option when both are specified.
+
+            Fixes #3495.
+
 2026-08-14: wsfulton
             [Javascript, PHP] Warning 314 no longer repeats the new name when
             renaming a Javascript keyword or the PHP 'readonly' keyword:
