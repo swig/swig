@@ -7307,10 +7307,12 @@ def two_values(arg: "bool") -&gt; "typing.List[typing.Union[bool, int]]":
 </div>
 
 <p>
-An <tt>argout</tt> parameter is a returned value, so the <tt>out</tt> attribute of its
-<tt>pytyping</tt> typemap is used in preference to the typemap body, just as it is for a function
-return type. The typemap above annotates the returned value with <tt>int</tt> from its body and
-this one annotates it with <tt>int</tt> from its <tt>out</tt> attribute, leaving the
+The <tt>pytyping</tt> typemap also supports asymmetric types, that is, enabling a different type
+for an input parameter and an output returned type. The input type is always specified by the
+<tt>pytyping</tt> typemap body. The output returned type also comes from the typemap body
+unless an <tt>out</tt> attribute is provided, in which case the attribute is used instead.
+The <tt>pytyping</tt> typemap above annotates the returned value with <tt>int</tt> from its body and
+the one below annotates it with <tt>int</tt> from its <tt>out</tt> attribute, leaving the
 <tt>bool</tt> unused:
 </p>
 
@@ -7321,9 +7323,8 @@ this one annotates it with <tt>int</tt> from its <tt>out</tt> attribute, leaving
 </div>
 
 <p>
-The body annotates the parameter, which <tt>short *OutValue</tt> never is, as its <tt>in</tt>
-typemap declares <tt>numinputs=0</tt>. The <tt>out</tt> attribute matters for a <tt>pytyping</tt>
-typemap shared with an input parameter, where the two are annotated differently.
+In this particular case, the <tt>"bool"</tt> in the body, for input types, is not used as
+<tt>short *OutValue</tt> has its <tt>in</tt> typemap declared <tt>numinputs=0</tt>.
 </p>
 
 <p>
@@ -7405,8 +7406,9 @@ Use <tt>container="tuple"</tt> for a typemap appending into a tuple, using a rep
 <div class="code">
 <pre>
 %typemap(in, numinputs=0) short *OutTuple (short temp) { $1 = &amp;temp; }
-%typemap(argout, container="tuple", fragment="MyTupleAppend") short *OutTuple {
-  $result = MyTupleAppend($result, PyLong_FromLong(*$1), $isvoidresult);
+// AppendOutput_Tuple not shown, but simply appends the argout value to the result tuple
+%typemap(argout, container="tuple", fragment="AppendOutput_Tuple") short *OutTuple {
+  $result = AppendOutput_Tuple($result, PyLong_FromLong(*$1), $isvoidresult);
 }
 %typemap(pytyping) short *OutTuple "int"
 %apply short *OutTuple { short *OutTuple2 };
@@ -7526,6 +7528,40 @@ feature makes it. Making the <tt>argout</tt> typemaps agree on the container is 
 that is possible, as the type is then worked out and stays correct should the function signature and
 types change over time; it is less maintenance as the feature does not need to be specified for each function
 that uses the <tt>argout</tt> typemaps.
+</p>
+
+<p>
+The Python SWIG module recognises only the <tt>list</tt> and <tt>tuple</tt> values for the <tt>container</tt> attribute.
+The <tt>container</tt> attribute names any container though, and one that Python does not know how to describe is annotated with
+the catch-all type. A typemap appending characters to a string builds such a container of sorts:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) char *OutChar (char temp) { $1 = &amp;temp; }
+// AppendOutput_Str not shown, but simply appends the argout string to the result string
+%typemap(argout, container="str", fragment="AppendOutput_Str") char *OutChar {
+  $result = AppendOutput_Str($result, PyUnicode_FromStringAndSize($1, 1), $isvoidresult);
+}
+%typemap(pytyping) char *OutChar "str"
+%apply char *OutChar { char *OutChar2 };
+
+void one_char(char *OutChar);
+void two_chars(char *OutChar, char *OutChar2);
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+def one_char() -&gt; "str":
+def two_chars() -&gt; "typing.Any":
+</pre>
+</div>
+
+<p>
+A single value is not put in a container, so <tt>one_char</tt> keeps the type from its
+<tt>pytyping</tt> typemap. The <tt>python:annotations:catchall</tt> feature could
+be used to override the type for <tt>two_chars</tt>.
 </p>
 
 <p>

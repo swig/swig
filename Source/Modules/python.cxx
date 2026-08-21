@@ -2726,7 +2726,8 @@ public:
       ret = NewString("typing.Tuple[");
       close = "]";
     } else if (container && !Equal(container, "list")) {
-      /* The argout typemaps disagree on the container, so the type of the values returned cannot be automatically worked out. */
+      /* Either the argout typemaps disagree on the container, which emit_output_summary() reports as "unknown", or they agree
+         on one that has no typing equivalent. The type of the values returned cannot be worked out either way. */
       String *catchall_type = Getattr(n, "feature:python:annotations:catchall");
       return catchall_type ? Copy(catchall_type) : NewString("typing.Any");
     } else if (num_results == 1) {

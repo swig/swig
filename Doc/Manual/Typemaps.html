@@ -3108,6 +3108,13 @@ instead, using a replacement for <tt>SWIG_AppendOutput</tt>:
 </div>
 
 <p>
+The attribute names the container, it does not have to be one the target language knows about.
+A target language annotates the containers it understands and uses its catch-all type for any
+other container named, so <tt>container="str"</tt> for a typemap appending characters to a string is
+accepted but will result in the catch-all type being used.
+</p>
+
+<p>
 The container is a property of the whole wrapped function, as all the "argout" typemaps append
 into the same <tt>$result</tt>. If the "argout" typemaps used for any one function disagree on the type of container to append to,
 there is a conflict and a catch-all type is used for the return type instead (<tt>typing.Any</tt> in the case

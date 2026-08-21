@@ -395,6 +395,29 @@ if annotations_supported:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(argoutBoolTupleThenAppendTyped(True), [(True, 42), 43])
 
+    # a container Python does not know how to annotate gets the catch-all type, without any
+    # warning as the argout typemaps agree on it. One value is not in a container at all.
+    anno = get_annotations(argoutStrOneChar)
+    if anno != {"return": "str"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutStrOneChar(), "a")
+
+    anno = get_annotations(argoutStrTwoChars)
+    if anno != {"return": "typing.Any"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutStrTwoChars(), "ab")
+
+    anno = get_annotations(argoutStrResultAndTwoChars)
+    if anno != {"return": "typing.Any"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutStrResultAndTwoChars(), "Zab")
+
+    # the python:annotations:catchall feature supplies the type for it too
+    anno = get_annotations(argoutStrTwoCharsTyped)
+    if anno != {"return": "str"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(argoutStrTwoCharsTyped(), "ab")
+
     anno = get_annotations(argoutMultiarg)
     if anno != {"return": "typing.List[int]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))

@@ -221,6 +221,37 @@ SWIGINTERN PyObject *AppendOutput_Tuple(PyObject *result, PyObject *obj, int isv
 }
 %typemap(pytyping) short *OutListReplace "int"
 
+/* The container attribute names the container the typemap appends into and is not restricted
+   to the list and tuple that Python knows how to annotate. This one builds a string. */
+%fragment("AppendOutput_Str", "header") %{
+SWIGINTERN PyObject *AppendOutput_Str(PyObject *result, PyObject *obj, int isvoidresult) {
+  PyObject *joined;
+  if (!result)
+    return obj;
+  if (result == Py_None && isvoidresult) {
+    Py_DECREF(result);
+    return obj;
+  }
+  joined = PyUnicode_Concat(result, obj);
+  Py_DECREF(result);
+  Py_DECREF(obj);
+  return joined;
+}
+%}
+
+%typemap(in, numinputs=0) char *OutChar (char temp) { $1 = &temp; }
+%typemap(argout, container="str", fragment="AppendOutput_Str") char *OutChar {
+  $result = AppendOutput_Str($result, PyUnicode_FromStringAndSize($1, 1), $isvoidresult);
+}
+%typemap(pytyping) char *OutChar "str"
+%apply char *OutChar { char *OutChar2 };
+
+/* Python annotates the list and tuple containers and uses the catch-all type for any other,
+   as it cannot work out what a container it does not know about holds. There is no clash and
+   so no warning 478, and the python:annotations:catchall feature supplies the type just as it
+   does for a clash. */
+%feature("python:annotations:catchall") argoutStrTwoCharsTyped "str"
+
 /* Argout typemaps naming different containers cannot agree on what $result is, so the type
    of the values returned cannot be worked out and warning 478 is issued. What is returned
    then depends on the order the argout typemaps run in: whichever runs first is the one
@@ -542,6 +573,26 @@ bool argoutBoolTupleThenAppendTyped(bool arg, short *OutTuple, short *OutAppend)
   *OutTuple = 42;
   *OutAppend = 43;
   return arg;
+}
+
+void argoutStrOneChar(char *OutChar) {
+  *OutChar = 'a';
+}
+
+void argoutStrTwoChars(char *OutChar, char *OutChar2) {
+  *OutChar = 'a';
+  *OutChar2 = 'b';
+}
+
+void argoutStrTwoCharsTyped(char *OutChar, char *OutChar2) {
+  *OutChar = 'a';
+  *OutChar2 = 'b';
+}
+
+const char *argoutStrResultAndTwoChars(char *OutChar, char *OutChar2) {
+  *OutChar = 'a';
+  *OutChar2 = 'b';
+  return "Z";
 }
 
 void argoutMultiarg(short **short_list, size_t *short_list_len) {
