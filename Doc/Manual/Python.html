@@ -7307,6 +7307,26 @@ def two_values(arg: "bool") -&gt; "typing.List[typing.Union[bool, int]]":
 </div>
 
 <p>
+An <tt>argout</tt> parameter is a returned value, so the <tt>out</tt> attribute of its
+<tt>pytyping</tt> typemap is used in preference to the typemap body, just as it is for a function
+return type. The typemap above annotates the returned value with <tt>int</tt> from its body and
+this one annotates it with <tt>int</tt> from its <tt>out</tt> attribute, leaving the
+<tt>bool</tt> unused:
+</p>
+
+<div class="code">
+<pre>
+%typemap(pytyping, out="int") short *OutValue "bool"
+</pre>
+</div>
+
+<p>
+The body annotates the parameter, which <tt>short *OutValue</tt> never is, as its <tt>in</tt>
+typemap declares <tt>numinputs=0</tt>. The <tt>out</tt> attribute matters for a <tt>pytyping</tt>
+typemap shared with an input parameter, where the two are annotated differently.
+</p>
+
+<p>
 Each <tt>argout</tt> typemap is assumed to append exactly one value, which is what the
 <tt>typemaps.i</tt> <tt>OUTPUT</tt> family does. A typemap doing anything else must say so with the
 <tt>numoutputs</tt>, <tt>overwrite</tt> and <tt>container</tt> attributes, otherwise the annotation
