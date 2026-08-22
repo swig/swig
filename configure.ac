@@ -2735,8 +2735,7 @@ AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent librari
 
 case $build in
   # Windows does not understand unix directories. Convert into a windows directory with drive letter.
-  *-*-mingw*) SWIG_LIB_WIN_UNIX=`${srcdir}/Tools/convertpath -m $SWIG_LIB`;;
-  *-*-cygwin*) SWIG_LIB_WIN_UNIX=`cygpath --mixed "$SWIG_LIB"`;;
+  *-*-cygwin* | *-*-mingw*) SWIG_LIB_WIN_UNIX=`$CYGPATH -m $SWIG_LIB`;;
   *) SWIG_LIB_WIN_UNIX="";;
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
