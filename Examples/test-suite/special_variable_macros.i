@@ -189,6 +189,16 @@ namespace Space {
 %}
 %template(PairIntBool) Space::Pair<int, bool>;
 
+// Test $targ special variable template arg substitution.
+// This will fail to compile if they refer to the incorrect values.
+%typemap(arginit) Space::Pair<int, double> {
+  $1 = Space::Pair<$targ1, $targ2>(Space::Pair<$1_targ1, $1_targ2>(1, 1.0));
+}
+%template(PairIntDouble) Space::Pair<int, double>;
+%inline %{
+Space::Pair<int, double> testTargs(Space::Pair<int, double> p) { return p; }
+%}
+
 //////////////////////////////////////////////////////////////////////////////////////
 // A real use case for $typemap()
 
@@ -331,4 +341,34 @@ short shortFunction(short x, short y) {
 %apply int MYINT { int myint1, int myint2 }
 %inline %{
 void intFunction(int myint1, int myint2) {}
+%}
+
+// Test $typemap(method:attribute?, typepattern) - optional typemap attribute fallback
+#if defined(SWIGCSHARP)
+%typemap(cstype, out="int") IntAttrType "IntAttrType"
+%typemap(cstype) NoAttrType "NoAttrType"
+%typemap(cscode) OptionalAttrTest %{
+  public const string OptionalAttrResult = "$typemap(cstype:out?, IntAttrType)";
+  public const string OptionalAttrFallback = "$typemap(cstype:out?, NoAttrType)";
+%}
+#elif defined(SWIGJAVA)
+%typemap(jstype, out="int") IntAttrType "IntAttrType"
+%typemap(jstype) NoAttrType "NoAttrType"
+%typemap(javacode) OptionalAttrTest %{
+  public static final String OptionalAttrResult = "$typemap(jstype:out?, IntAttrType)";
+  public static final String OptionalAttrFallback = "$typemap(jstype:out?, NoAttrType)";
+%}
+#elif defined(SWIGD)
+%typemap(dtype, out="int") IntAttrType "IntAttrType"
+%typemap(dtype) NoAttrType "NoAttrType"
+%typemap(dcode) OptionalAttrTest %{
+  static string OptionalAttrResult = "$typemap(dtype:out?, IntAttrType)";
+  static string OptionalAttrFallback = "$typemap(dtype:out?, NoAttrType)";
+%}
+#endif
+
+%inline %{
+struct IntAttrType { int val; };
+struct NoAttrType { float val; };
+struct OptionalAttrTest {};
 %}

@@ -53,6 +53,7 @@
 <li><a href="#Typemaps_special_macro_descriptor">$descriptor(type)</a>
 <li><a href="#Typemaps_special_macro_typemap">$typemap(method, typepattern)</a>
 <li><a href="#Typemaps_special_macro_typemap_attribute">$typemap(method:attribute, typepattern)</a>
+<li><a href="#Typemaps_special_macro_typemap_attribute_optional">$typemap(method:attribute?, typepattern)</a>
 </ul>
 <li><a href="#Typemaps_special_variable_attributes">Special variables and typemap attributes</a>
 <li><a href="#Typemaps_special_variables_and_macros">Special variables combined with special variable macros</a>
@@ -2263,6 +2264,14 @@ run-time type checker (described later).</td>
 </td>
 </tr>
 
+<tr>
+<td>$<em>n</em>_targ<em>m</em></td>
+<td>Typename of the <em>m</em>th C++ template argument on the <em>n</em>th type.
+For example in <tt>%typemap(foo) Bar &lt; T &gt; "$1_targ1"</tt>,
+the <tt>$1_targ1</tt> would refer to the type of <tt>T</tt>. For a <tt>Bar&lt;int&gt;</tt>, it would be <tt>int</tt>.
+</td>
+</tr>
+
 </table>
 </center>
 
@@ -2573,6 +2582,48 @@ which expands to
 <p>
 <b>Compatibility note: </b> Support for typemap attributes in <tt>$typemap</tt>
 was introduced in SWIG-4.1.0.
+</p>
+
+<H4><a name="Typemaps_special_macro_typemap_attribute_optional">14.4.4.4 $typemap(method:attribute?, typepattern)</a></H4>
+
+
+<p>
+This version of <tt>$typemap</tt> provides access to typemap attributes like
+<a href="#Typemaps_special_macro_typemap_attribute"><tt>$typemap(method:attribute, typepattern)</tt></a>
+but it falls back to <a href="#Typemaps_special_macro_typemap"><tt>$typemap(method, typepattern)</tt></a>
+if there's no entry with an attribute. Below is a slightly modified example from above.
+</p>
+
+<div class="code">
+<pre>
+%typemap(cstype, out="object") XClass "XClass"
+%typemap(cstype) YClass "YClass"
+%typemap(cscode) BarClass %{
+  $typemap(cstype:out?, XClass) baz()
+  {
+    return new $typemap(cstype:out?, YClass);
+  }
+</pre>
+</div>
+<p>
+which expands to
+</p>
+<div class="code">
+<pre>
+  object baz()
+  {
+    return new YClass;
+  }
+</pre>
+</div>
+
+<p>
+Without the fallback, <tt>$typemap(cstype:out, YClass)</tt> would fail, because the typemap entry for <tt>YClass</tt> has no <tt>out</tt> attribute.
+</p>
+
+<p>
+<b>Compatibility note: </b> Support for optional typemap attributes in <tt>$typemap</tt>
+was introduced in SWIG-UNRELEASED.
 </p>
 
 
