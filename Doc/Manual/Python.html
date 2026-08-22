@@ -7026,6 +7026,13 @@ those options though - it works alongside the default proxy mode too. See
 <a href="#Python_annotations_pyi">Generating .pyi stub files</a> below.
 </p>
 
+<p>
+Function and method overloads are annotated with <tt>@typing.overload</tt>.
+Overloaded functions only take positional arguments. By default, the annotations will not reflect that.
+Since <a href="https://peps.python.org/pep-0570/">PEP 570</a> (Python 3.8), positional only parameters can be indicated.
+Swig will generate these indicators in overloads if the <tt>python:annotations:positional-only-overloads</tt> feature is enabled.
+</p>
+
 <H4><a name="Python_annotations_c">35.12.1.1 C/C++ annotation types</a></H4>
 
 

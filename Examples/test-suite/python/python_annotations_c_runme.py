@@ -1,5 +1,10 @@
-from swig_test_utils import swig_annotations_in_stub, swig_check, swig_get_annotations
-
+from swig_test_utils import (
+    swig_annotations_in_stub,
+    swig_can_get_overloads,
+    swig_check,
+    swig_get_annotations,
+    swig_get_overload_annotations,
+)
 from python_annotations_c import *
 
 # Annotations are only added to the runtime objects for the default proxy classes,
@@ -9,6 +14,17 @@ annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or
 
 def get_annotations(obj):
     return swig_get_annotations(obj, "python_annotations_c", is_python_fastproxy())
+
+def check_overloads(fn, expected):
+    if not swig_can_get_overloads():
+        return
+    swig_check(
+        swig_get_overload_annotations(
+            fn, "python_annotations_c", is_python_fastproxy()
+        ),
+        expected,
+    )
+
 
 if annotations_supported:
     anno = get_annotations(MakeShort)
@@ -28,6 +44,18 @@ if annotations_supported:
     anno = get_annotations(ts.mymethod)
     if anno != {'arg2': 'int', 'tt': 'TemplateShort', 'return': 'void'}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    swig_check(get_annotations(global_overloaded), {})
+    check_overloads(
+        global_overloaded,
+        [
+            {
+                "ri": "int &",
+                "return": "int *",
+            },
+            {"return": "int *"},
+        ],
+    )
 
     # No annotations
     anno = get_annotations(no_annotations)

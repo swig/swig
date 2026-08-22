@@ -6,6 +6,8 @@ import random
 import string
 import sys
 
+import typing
+
 
 def swig_assert(condition, msg="Assertion failed"):
     """Variant of `assert` that is not disabled by the -O flag"""
@@ -36,7 +38,7 @@ def _swig_stub_annotation_text(annotation):
     raise RuntimeError("unexpected annotation in generated stub: {}".format(ast.dump(annotation)))
 
 
-def _swig_stub_lookup(tree, names):
+def _swig_stub_lookup(tree: ast.Module, names: typing.List[str]):
     """Find the AST declaration for a list of nested names, or None if absent."""
     node = tree
     for name in names:
@@ -51,6 +53,36 @@ def _swig_stub_lookup(tree, names):
     return node
 
 
+def _swig_stub_is_overload(node: ast.FunctionDef):
+    return any(
+        isinstance(attr, ast.Attribute)
+        and isinstance(attr.value, ast.Name)
+        and attr.value.id == "typing"
+        and attr.attr == "overload"
+        for attr in node.decorator_list
+    )
+
+
+def _swig_stub_lookup_overloads(tree: ast.Module, names: typing.List[str]):
+    """Find the AST declaration for a list of nested names, or None if absent."""
+    node = tree
+    for name in names[:-1]:
+        matches = [
+            child
+            for child in node.body
+            if isinstance(child, ast.ClassDef) and child.name == name
+        ]
+        if not matches:
+            return []
+        node = matches[-1]
+    return [
+        child
+        for child in node.body
+        if isinstance(child, ast.FunctionDef)
+        if child.name == names[-1] and _swig_stub_is_overload(child)
+    ]
+
+
 def _swig_split_flat_name(tree, names):
     """Split a flat -fastproxy method name, Class_method, into its stub class and method names."""
     for child in tree.body:
@@ -59,7 +91,7 @@ def _swig_split_flat_name(tree, names):
     return names
 
 
-def _swig_stub_node(tree, qualified_name, fastproxy):
+def _swig_stub_node(tree: ast.Module, qualified_name: str, fastproxy: bool):
     """Find the AST declaration for a qualified name in a generated stub."""
     names = qualified_name.split(".")
     if fastproxy:
@@ -72,6 +104,51 @@ def _swig_stub_node(tree, qualified_name, fastproxy):
     if node is None:
         raise RuntimeError("{} is missing from generated stub".format(qualified_name))
     return node
+
+
+def _swig_stub_overloads(tree: ast.Module, qualified_name: str, fastproxy: bool):
+    names = qualified_name.split(".")
+    overloads = _swig_stub_lookup_overloads(tree, names)
+    if fastproxy and overloads == []:
+        names = _swig_split_flat_name(tree, names)
+        overloads = _swig_stub_lookup_overloads(tree, names)
+    return overloads
+
+
+def _swig_get_ast_node_annotations(
+    node: typing.Union[ast.Module, ast.ClassDef, ast.FunctionDef],
+):
+    annotations = {}
+    for child in node.body:
+        if isinstance(child, ast.AnnAssign) and isinstance(child.target, ast.Name):
+            value = getattr(child.annotation, "value", None)
+            is_string = isinstance(value, str)
+            if child.annotation.__class__.__name__ == "Str":
+                is_string = isinstance(getattr(child.annotation, "s", None), str)
+            if is_string:
+                annotations[child.target.id] = _swig_stub_annotation_text(
+                    child.annotation
+                )
+
+    if isinstance(node, ast.FunctionDef):
+        arguments = (
+            getattr(node.args, "posonlyargs", [])
+            + node.args.args
+            + node.args.kwonlyargs
+        )
+        if node.args.vararg:
+            arguments.append(node.args.vararg)
+        if node.args.kwarg:
+            arguments.append(node.args.kwarg)
+        for argument in arguments:
+            if argument.annotation:
+                annotations[argument.arg] = _swig_stub_annotation_text(
+                    argument.annotation
+                )
+        if node.returns:
+            annotations["return"] = _swig_stub_annotation_text(node.returns)
+
+    return annotations
 
 
 def swig_get_annotations(obj, module_name, fastproxy=False):
@@ -101,29 +178,25 @@ def swig_get_annotations(obj, module_name, fastproxy=False):
         tree = ast.parse(stub_file.read(), filename=stub_file.name)
 
     node = tree if inspect.ismodule(obj) else _swig_stub_node(tree, obj.__qualname__, fastproxy)
-    annotations = {}
-    for child in node.body:
-        if isinstance(child, ast.AnnAssign) and isinstance(child.target, ast.Name):
-            value = getattr(child.annotation, "value", None)
-            is_string = isinstance(value, str)
-            if child.annotation.__class__.__name__ == "Str":
-                is_string = isinstance(getattr(child.annotation, "s", None), str)
-            if is_string:
-                annotations[child.target.id] = _swig_stub_annotation_text(child.annotation)
+    return _swig_get_ast_node_annotations(node)
 
-    if isinstance(node, ast.FunctionDef):
-        arguments = getattr(node.args, "posonlyargs", []) + node.args.args + node.args.kwonlyargs
-        if node.args.vararg:
-            arguments.append(node.args.vararg)
-        if node.args.kwarg:
-            arguments.append(node.args.kwarg)
-        for argument in arguments:
-            if argument.annotation:
-                annotations[argument.arg] = _swig_stub_annotation_text(argument.annotation)
-        if node.returns:
-            annotations["return"] = _swig_stub_annotation_text(node.returns)
 
-    return annotations
+def swig_can_get_overloads():
+    return swig_annotations_in_stub() or hasattr(typing, "get_overloads")
+
+
+def swig_get_overload_annotations(obj, module_name, fastproxy=False):
+    if not swig_annotations_in_stub():
+        # typing.get_overloads() was added in Python 3.11.
+        if not hasattr(typing, "get_overloads"):
+            raise RuntimeError("Missing typing.get_overloads")
+        return [inspect.get_annotations(i) for i in typing.get_overloads(obj)]
+
+    with open(module_name + ".pyi") as stub_file:
+        tree = ast.parse(stub_file.read(), filename=stub_file.name)
+
+    overloads = _swig_stub_overloads(tree, obj.__qualname__, fastproxy)
+    return [_swig_get_ast_node_annotations(i) for i in overloads]
 
 
 @contextlib.contextmanager

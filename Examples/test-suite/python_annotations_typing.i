@@ -686,6 +686,25 @@ bool argoutBoolMultiargReplaceBetweenFirstLast(int first, short **short_list_rep
   *short_list_len = 0;
   return first != 0 && last != 0.0;
 }
+
+struct Overloader {
+    Overloader() {}
+    Overloader(int) {}
+    Overloader(void*) {}
+
+    size_t inside(int before, int argc, char **argv, int foo, int bar) { return 0; }
+    bool inside(char *str) { return true; }
+
+    void withDefaults1(int foo, int bar = 123) {}
+    void withDefaults2(int foo, Overloader bar = Overloader(1)) {}
+
+    void withDefaultsOverload(MyStruct ms, int bar = 123) {}
+    void withDefaultsOverload(int bar = 123) {}
+
+    static void staticOverload(int) {}
+    static bool staticOverload(char, int*) { return true; }
+};
+
 %}
 
 // A class-typed %constant is annotated at module level.
