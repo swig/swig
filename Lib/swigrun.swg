@@ -511,6 +511,8 @@ SWIG_MangledTypeQueryModule(swig_module_info *start,
                             swig_module_info *end,
 		            const char *name) {
   swig_module_info *iter = start;
+  if (!iter)
+    return 0;
   do {
     if (iter->size) {
       size_t l = 0;
@@ -563,6 +565,8 @@ SWIG_TypeQueryModule(swig_module_info *start,
     /* STEP 2: If the type hasn't been found, do a complete search
        of the str field (the human readable name) */
     swig_module_info *iter = start;
+    if (!iter)
+      return 0;
     do {
       size_t i = 0;
       for (; i < iter->size; ++i) {
