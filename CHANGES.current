@@ -1609,6 +1609,32 @@ Version 4.6.0 (in progress)
             pointer.
 
 2026-08-23: wsfulton
+            [Python] #3518 The pytyping typemaps added for the INPUT, INOUT and OUTPUT
+            typemaps in typemaps.i are no longer all the same, as the typemaps do not all
+            accept or return None. The pointer forms of INPUT and INOUT accept a null
+            pointer, which is None, so they are now annotated with typing.Optional:
+
+              %apply int *INPUT { int *value };
+              void take_value(int *value);
+
+            is now annotated:
+
+              def take_value(value: "typing.Optional[int]") -> "None":
+
+            INOUT returns what it was given, so its return type is annotated with
+            typing.Optional as well:
+
+              %apply int *INOUT { int *io };
+              void modify_value(int *io);
+
+            is now annotated:
+
+              def modify_value(io: "typing.Optional[int]") -> "typing.Optional[int]":
+
+            The reference forms, such as int &INPUT, are unchanged, as they reject a null
+            pointer.
+
+2026-08-23: wsfulton
             [JavaScript, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
             Fix a crash when a null pointer is passed to a parameter using the INPUT or
             INOUT typemaps in typemaps.i for a reference, such as int &INPUT. A reference
