@@ -182,15 +182,15 @@ public:
   static Napi::Function GetClass(Napi::Env);
   static void GetMembers(
     Napi::Env,
-    std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &,
-    std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &
+    std::map<std::string, napi_property_descriptor> &,
+    std::map<std::string, napi_property_descriptor> &
   );
 };
 
 void SWIG_NAPI_ObjectWrap_inst::GetMembers(
         Napi::Env env,
-        std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &members,
-        std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &
+        std::map<std::string, napi_property_descriptor> &members,
+        std::map<std::string, napi_property_descriptor> &
 ) {
   members.erase("toString");
   members.insert({"toString", SWIG_NAPI_ObjectWrap_templ::InstanceMethod("toString", &SWIG_NAPI_ObjectWrap_templ::ToString)});

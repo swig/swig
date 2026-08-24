@@ -673,8 +673,8 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
       virtual ~$jsmangledname_inst() {}
       static void GetMembers(
         Napi::Env,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &
+        std::map<std::string, napi_property_descriptor> &,
+        std::map<std::string, napi_property_descriptor> &
       );
       static Napi::Function GetClass(Napi::Env);
   };
@@ -714,10 +714,11 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
   /* Class: $jsname ($jsmangledname) */
   // jsnapi_getclass
 Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
-  std::map<std::string, $jsmangledname_templ::PropertyDescriptor> members, staticMembers;
+  std::map<std::string, napi_property_descriptor> members, staticMembers;
   GetMembers(env, members, staticMembers);
 
   std::vector<$jsmangledname_inst::PropertyDescriptor> symbolTable;
+  symbolTable.reserve(members.size() + staticMembers.size());
   for (auto it = members.begin(); it != members.end(); it++)
     symbolTable.push_back(it->second);
   for (auto it = staticMembers.begin(); it != staticMembers.end(); it++)
@@ -728,10 +729,10 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 
 void $jsmangledname_inst::GetMembers(
         Napi::Env env,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &members,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &staticMembers
+        std::map<std::string, napi_property_descriptor> &members,
+        std::map<std::string, napi_property_descriptor> &staticMembers
 ) {
-    std::map<std::string, $jsparent_templ<$jsparent_inst>::PropertyDescriptor> baseMembers, baseStaticMembers;
+    std::map<std::string, napi_property_descriptor> baseMembers, baseStaticMembers;
     $jsparent_inst::GetMembers(env, baseMembers, baseStaticMembers);
     members.insert(baseMembers.begin(), baseMembers.end());
     staticMembers.insert(staticMembers.begin(), staticMembers.end());
