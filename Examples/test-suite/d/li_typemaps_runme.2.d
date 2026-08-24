@@ -88,4 +88,20 @@ void main() {
     inoutr_bool(var);
     enforce(var == false, "inoutr_bool");
   }
+
+  // Two parameters using the same typemap
+  enforce(in_int_multi(3, 4) == 7, "in_int_multi");
+
+  {
+    int var1;
+    int var2;
+    out_int_multi(5, 6, var1, var2);
+    enforce(var1 == 5 && var2 == 6, "out_int_multi");
+  }
+  {
+    int var1 = 7;
+    int var2 = 8;
+    inout_int_multi(var1, var2);
+    enforce(var1 == 14 && var2 == 24, "inout_int_multi");
+  }
 }

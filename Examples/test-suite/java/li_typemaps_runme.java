@@ -103,6 +103,28 @@ public class li_typemaps_runme {
         li_typemaps.inoutr_ulonglong(var);
         if (!var[0].equals(forty)) exit_test("inoutr_ulonglong");
     }
+
+    // Two parameters using the same typemap
+    {
+      int var1 = 3;
+      int var2 = 4;
+      if (li_typemaps.in_int_multi(var1, var2) != 7) exit_test("in_int_multi");
+    }
+    {
+      int var1 = 5;
+      int var2 = 6;
+      int[] var3 = {0};
+      int[] var4 = {0};
+      li_typemaps.out_int_multi(var1, var2, var3, var4);
+      if (var3[0] != 5 || var4[0] != 6) exit_test("out_int_multi");
+    }
+    {
+      int[] var1 = {7};
+      int[] var2 = {8};
+      li_typemaps.inout_int_multi(var1, var2);
+      if (var1[0] != 14 || var2[0] != 24) exit_test("inout_int_multi");
+    }
+
     try {
         BigInteger[] var = null;
         li_typemaps.inout_ulonglong(var);
