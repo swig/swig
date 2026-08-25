@@ -1547,8 +1547,14 @@ static String *apply_rename(Node *n, String *newname, int fullname, String *pref
         String *fmt = newname;
         /* use name as a fmt, but avoid C++ "%" and "%=" operators */
         if (Len(newname) > 1 && strchr(cnewname, '%') && !(strcmp(cnewname, "%=") == 0)) {
-          /* Strip template parameters incase a template is used with %s, such as: %rename("myprefix_%s") func<int>; */
-          String *template_name = SwigType_istemplate_templateprefix(name);
+          /* Strip template parameters incase a template is used with %s, such as: %rename("myprefix_%s") func<int>;
+             Don't do this for a class (including a class template or one of its partial specializations, such as
+             std::vector's bool/pointer specializations in std_vector.i), only for functions/variables/etc. A class
+             template's parameters distinguish otherwise identically-named specializations, so stripping them for
+             a wildcard/format rename - such as Ruby's -autorename applying %rename("%(camelcase)s", %$isclass) -
+             collapses distinct specializations to the same name and only one survives (Github issue #3546). */
+          int is_class = n && Equal(nodeType(n), "class");
+          String *template_name = is_class ? 0 : SwigType_istemplate_templateprefix(name);
           String *name_simple = template_name ? template_name : name;
           if (fullname && prefix) {
             result = NewStringf(fmt, prefix, name_simple);

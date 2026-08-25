@@ -105,3 +105,13 @@ public:
 }
 
 %template(A_i) A<int>;
+
+/* ============  Test std::vector<bool> under -autorename (Github issue #3546) ==============
+ * Under -autorename, std::vector's bool/pointer partial specializations previously collided
+ * with the primary template's default name and were silently dropped, so %template(VectorBool)
+ * produced no wrapper at all. */
+%include <std_vector.i>
+namespace std {
+  %template(VectorBool) vector<bool>;
+}
+

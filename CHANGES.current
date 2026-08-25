@@ -7,6 +7,24 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-25: blowekamp
+            [Ruby] #3546 Fix -autorename dropping std::vector's bool and pointer partial
+            specializations as duplicate identifiers (Warning 302), a regression since
+            4.5.0. A class's parameters are no longer stripped when substituting %s into
+            a wildcard/format rename, such as the one -autorename applies to every class
+            ("%(camelcase)s"), so a class template's specializations no longer collide
+            under a shared default name:
+
+              %include <std_vector.i>
+              namespace std {
+                %template(VectorBool) vector<bool>;
+              }
+
+            Previously compiled with swig -ruby -autorename without error, but produced
+            no wrapper at all for VectorBool. Function/variable templates named with a
+            format rename, the feature's original use case, are unaffected as their
+            template arguments are still stripped.
+
 2026-08-24: wsfulton
             [Python] #3537 Fix "'SWIGPY_SLICEOBJECT' was not declared in this scope" when
             compiling the wrappers for a module that %imports another module which has
