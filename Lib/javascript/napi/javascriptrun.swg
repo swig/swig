@@ -123,212 +123,46 @@ struct EnvInstanceData {
 
 typedef size_t SWIG_NAPI_ClientData;
 
-// Base class for all wrapped objects,
-// used mostly when unwrapping unknown objects
-template <typename SWIG_OBJ_WRAP>
-class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
+// The data describing a wrapped object, common to all of them.
+//
+// This is a class of its own, and not just a part of the class template below,
+// because the generated wrapper methods use it too and they are members of a
+// single non-template class, SWIG_NAPI_Wrappers, to avoid instantiating them
+// once per wrapped class: this is what the virtual inheritance is for, as both
+// this class template and SWIG_NAPI_Wrappers are bases of every wrapper class
+// and they must share the same data.
+class SWIG_NAPI_ObjectWrapBase {
   public:
-    void *self;
-    bool owned;
-    size_t size;
-    swig_type_info *info;
-    SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info);
-    SWIG_NAPI_ObjectWrap_templ(bool, const Napi::CallbackInfo &info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
-        self(nullptr),
-        owned(true),
-        size(0),
-        info(nullptr)
-        {}
-    virtual ~SWIG_NAPI_ObjectWrap_templ() {}
+    void *self = nullptr;
+    bool owned = true;
+    size_t size = 0;
+    swig_type_info *info = nullptr;
 
-    Napi::Value ToString(const Napi::CallbackInfo &info);
+    // Note that this class is deliberately not polymorphic: the objects are
+    // only ever destroyed via SWIG_NAPI_ObjectWrap_inst, which does have a
+    // virtual destructor, and making this a second polymorphic base of it
+    // would just make the wrappers use an adjusted "this" for nothing.
 };
 
-template <typename SWIG_OBJ_WRAP>
-SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(nullptr) { 
-  Napi::Env env = info.Env();
-  if (info.Length() == 1 && info[0].IsExternal()) {
-    // This constructor has been called internally from C++/SWIG
-    // to wrap an already existing C++ object of unknown type in JS
-    this->self = info[0].As<Napi::External<void>>().Data();
-    this->owned = false;
-  } else {
-    SWIG_Error(SWIG_ERROR, "This constructor is not accessible from JS");
-  }
-  return;
-  goto fail;
-fail:
-  return;
-}
-
-template <typename SWIG_OBJ_WRAP>
-Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::ToString(const Napi::CallbackInfo &info) {
-  Napi::Env env = info.Env();
-  static char repr[128];
-  const char *name = SWIG_TypePrettyName(this->info);
-  snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
-    this->info ? this->info->name : "unknown",
-    name ? name : "unknown",
-    this->self,
-    this->owned ? "[owned]" : "[copy]");
-  return Napi::String::New(env, repr);
-}
-
-class SWIG_NAPI_ObjectWrap_inst : public SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_ObjectWrap_inst> {
-public:
-  using SWIG_NAPI_ObjectWrap_templ::SWIG_NAPI_ObjectWrap_templ;
-  static Napi::Function GetClass(Napi::Env);
-  static void GetMembers(
-    Napi::Env,
-    std::map<std::string, napi_property_descriptor> &,
-    std::map<std::string, napi_property_descriptor> &
-  );
+// The data of each wrapped class, given to DefineClass() as its data and used
+// by the single wrapper class to construct and destroy the wrapped objects.
+struct SWIG_NAPI_ClassData {
+  swig_type_info *type;
+  void (*construct)(SWIG_NAPI_ObjectWrapBase *, const Napi::CallbackInfo &);
+  void (*destruct)(SWIG_NAPI_ObjectWrapBase *);
 };
 
-void SWIG_NAPI_ObjectWrap_inst::GetMembers(
-        Napi::Env env,
-        std::map<std::string, napi_property_descriptor> &members,
-        std::map<std::string, napi_property_descriptor> &
-) {
-  members.erase("toString");
-  members.insert({"toString", SWIG_NAPI_ObjectWrap_templ::InstanceMethod("toString", &SWIG_NAPI_ObjectWrap_templ::ToString)});
-}
+// The single class wrapping all the objects: it is defined together with the
+// wrappers it inherits from, which are only known after processing all the
+// classes, and so are these functions using it.
+template <typename SWIG_NAPI_Tag> class SWIG_NAPI_ObjectWrap_templ;
+using SWIG_NAPI_ObjectWrap_inst = SWIG_NAPI_ObjectWrap_templ<void>;
 
-Napi::Function SWIG_NAPI_ObjectWrap_inst::GetClass(Napi::Env env) {
-  return Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::DefineClass(env, "SwigObject", {});
-}
-
-SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
-  SWIG_NAPI_ObjectWrap_inst *ow;
-  Napi::Env env = objRef.Env();
-  if(!objRef.IsObject()) return SWIG_ERROR;
-
-  // Check if this is a SWIG wrapper
-  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
-  bool instanceOf;
-  NAPI_CHECK_RESULT(objRef.InstanceOf(ctor->Value()), instanceOf);
-  if (!instanceOf) {
-    return SWIG_TypeError;
-  }
-
-  ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
-
-  // Now check if the SWIG type is compatible unless the types match exactly or the type is unknown
-  if(info && ow->info != info && ow->info != nullptr) {
-    swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
-    if (!tc && ow->info->name) {
-      tc = SWIG_TypeCheck(ow->info->name, info);
-    }
-    bool type_valid = tc != 0;
-    if(!type_valid) {
-      return SWIG_TypeError;
-    }
-    int newmemory = 0;
-    *ptr = SWIG_TypeCast(tc, ow->self, &newmemory);
-    assert(!newmemory); /* newmemory handling not yet implemented */
-  } else {
-    *ptr = ow->self;
-  }
-
-  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !ow->owned) {
-    return SWIG_ERROR_RELEASE_NOT_OWNED;
-  } else {
-    if (flags & SWIG_POINTER_DISOWN) {
-      ow->owned = false;
-    }
-    if (flags & SWIG_POINTER_CLEAR) {
-      ow->self = nullptr;
-    }
-  }
-  return SWIG_OK;
-  goto fail;
-fail:
-  return SWIG_ERROR;
-}
-
-
-SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr) {
-  SWIG_NAPI_ObjectWrap_inst *ow;
-  if(!valRef.IsObject()) {
-    return SWIG_TypeError;
-  }
-  Napi::Object objRef;
-  NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
-  ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
-
-  if(ow->self == nullptr) {
-    return SWIG_ERROR;
-  }
-
-  *ptr = ow->self;
-  return SWIG_OK;
-  goto fail;
-fail:
-  return SWIG_ERROR;
-}
-
-
-SWIGRUNTIME int SWIG_NAPI_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_info *info, int flags) {
-  // special case: JavaScript null => C NULL pointer
-  if (valRef.IsNull()) {
-    *ptr=0;
-    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
-  }
-
-  if (!valRef.IsObject()) {
-    return SWIG_TypeError;
-  }
-
-  Napi::Object objRef;
-  NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
-  return SWIG_NAPI_ConvertInstancePtr(objRef, ptr, info, flags);
-  goto fail;
-fail:
-  return SWIG_ERROR;
-}
-
-SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
-  Napi::External<void> native;
-  Napi::FunctionReference *ctor;
-
-  if (ptr == nullptr) {
-    return env.Null();
-  }
-  native = Napi::External<void>::New(env, ptr);
-
-  size_t *idx = info != nullptr ?
-        reinterpret_cast<SWIG_NAPI_ClientData *>(info->clientdata) :
-        nullptr;
-  if (idx == nullptr) {
-    // This type does not have a dedicated wrapper
-    ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
-  } else {
-    ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
-  }
-
-  Napi::Value wrapped;
-  NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
-
-  // Preserve the type even if using the generic wrapper
-  if (idx == nullptr && info != nullptr) {
-    Napi::Object obj;
-    NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
-    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->info = info;
-  }
-
-  if ((flags & SWIG_POINTER_OWN) == SWIG_POINTER_OWN) {
-    Napi::Object obj;
-    NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
-    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->owned = true;
-  }
-
-  return wrapped;
-  goto fail;
-fail:
-  return Napi::Value();
-}
+SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags);
+SWIGRUNTIME void SWIG_NAPI_SetPackedSize(Napi::Object objRef, size_t size);
+SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr);
+SWIGRUNTIME int SWIG_NAPI_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_info *info, int flags);
+SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags);
 
 #define SWIG_ConvertPtr(obj, ptr, info, flags)          SWIG_NAPI_ConvertPtr(obj, ptr, info, flags)
 #define SWIG_NewPointerObj(ptr, info, flags)            SWIG_NAPI_NewPointerObj(env, ptr, info, flags)
@@ -406,7 +240,7 @@ Napi::Value SWIG_NAPI_NewPackedObj(Napi::Env env, void *data, size_t size, swig_
   if (val.IsEmpty()) goto fail;
 
   NAPI_CHECK_RESULT(val.ToObject(), obj);
-  Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->size = size;
+  SWIG_NAPI_SetPackedSize(obj, size);
 
 fail:
   return val;
