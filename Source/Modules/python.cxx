@@ -102,6 +102,7 @@ static int nortti = 0;
 static int relativeimport = 0;
 static int flat_static_method = 0;
 static int nogil = 0;
+static int abi3t = 0;
 static int pyi_stub = 0;
 static String *pyi_filename = 0;
 static int typehints = 0;
@@ -115,6 +116,8 @@ enum type_annotation_t { TYPE_ANNOTATION_NONE = 0, TYPE_ANNOTATION_C, TYPE_ANNOT
 
 static const char *usage1 = "\
 Python Options (available with -python)\n\
+     -abi3t          - Target the free-threaded stable ABI (abi3t, requires Python >= 3.15).\n\
+                       Combine with -nogil to also declare the module GIL-free\n\
      -builtin        - Create Python built-in types rather than proxy classes, for better performance\n\
      -castmode       - Enable the casting mode, which allows implicit cast between types in Python\n\
      -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
@@ -447,6 +450,14 @@ public:
           nogil = 1;
           Preprocessor_define("SWIGPYTHON_NOGIL", 0);
           Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-abi3t") == 0) {
+          // abi3t only selects the free-threaded stable ABI (module export shape
+          // and opaque object layout); it makes no claim about the thread-safety
+          // of the wrapped library, so it does not imply -nogil. Combine with
+          // -nogil to also declare the module GIL-free (PEP 703/803).
+          abi3t = 1;
+          Preprocessor_define("SWIGPYTHON_ABI3T", 0);
+          Swig_mark_arg(i);
         } else if (strcmp(argv[i], "-relativeimport") == 0) {
           relativeimport = 1;
           Swig_mark_arg(i);
@@ -517,6 +528,16 @@ public:
 
     if (builtin && !shadow) {
       Printf(stderr, "Incompatible options -builtin and -noproxy specified.\n");
+      Exit(EXIT_FAILURE);
+    }
+
+    if (builtin && abi3t) {
+      Printf(stderr, "Incompatible options -builtin and -abi3t specified. -builtin does not support the stable ABI (abi3t or otherwise).\n");
+      Exit(EXIT_FAILURE);
+    }
+
+    if (fastproxy && abi3t) {
+      Printf(stderr, "Incompatible options -fastproxy/-O and -abi3t specified. -fastproxy is not supported under the limited API used by -abi3t.\n");
       Exit(EXIT_FAILURE);
     }
 
@@ -596,6 +617,11 @@ public:
           moduleimport = Getattr(options, "moduleimport");
         }
       }
+    }
+
+    if (abi3t && Swig_directors_enabled()) {
+      Printf(stderr, "Incompatible options -abi3t and directors specified. Directors are not supported under the limited API used by -abi3t.\n");
+      Exit(EXIT_FAILURE);
     }
 
     /* Set comparison with none for ConstructorToFunction */
@@ -701,6 +727,10 @@ public:
 
     if (nogil) {
       Printf(f_runtime, "#define SWIGPYTHON_NOGIL\n");
+    }
+
+    if (abi3t) {
+      Printf(f_runtime, "#define SWIGPYTHON_ABI3T\n");
     }
 
     Printf(f_runtime, "\n");
@@ -877,6 +907,10 @@ public:
            module);
 
     Printf(f_header, "#define SWIG_init    PyInit_%s\n\n", module);
+    // Used only under -abi3t: the module's PyModExport_<name> entry point (PEP 803),
+    // needed because PyModuleDef (and hence PyInit_<name>/PyModuleDef_Init) is
+    // unavailable when PyObject is opaque.
+    Printf(f_header, "#define SWIG_init_export    PyModExport_%s\n\n", module);
     Printf(f_runtime, "#define SWIG_name    \"%s\"\n", module);
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");

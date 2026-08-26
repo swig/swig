@@ -24,6 +24,16 @@ Version 4.6.0 (in progress)
 
             This is a regression fix to restore the behaviour of 4.4.1 and earlier.
 
+2026-08-26: blowekamp
+            [Python] Add the -abi3t command line option to generate wrapper code
+            targeting the free-threaded stable ABI added in Python 3.15 (PEP 803).
+            -abi3t only selects the ABI (module export shape and opaque object
+            layout); it does not by itself declare the module GIL-free, since
+            that is a separate thread-safety claim about the wrapped library
+            that SWIG cannot infer. Combine with -nogil to also declare the
+            module GIL-free. Not supported together with -builtin, -fastproxy/-O,
+            or directors, all of which are rejected on the command line.
+
 2026-08-24: wsfulton
             [Python] #3537 Fix "'SWIGPY_SLICEOBJECT' was not declared in this scope" when
             compiling the wrappers for a module that %imports another module which has
