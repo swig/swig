@@ -840,6 +840,25 @@ void $jsmangledname_GetMembers(
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_wrappers_class", "templates")
 %{
+  // The compilers using the MSVC ABI need to know the inheritance used by a
+  // class to represent the pointers to its members and clang-cl chooses this
+  // representation when instantiating a class template, i.e. while the class
+  // is still incomplete, and then fails with "inheritance model does not
+  // match definition" when it turns out to use multiple inheritance, as the
+  // class below does.
+  //
+  // Just use the most general representation for the pointers to the members
+  // of the classes defined from now on to avoid this. Note that this must be
+  // done here, and not before the headers used by this module are included,
+  // as it changes the size of the pointers to members and so would change the
+  // layout of the classes using them in these headers too.
+  //
+  // Also note that this is only needed for clang-cl, as MSVC itself only
+  // chooses the representation after seeing the definition of the class.
+#if defined(_MSC_VER) && defined(__clang__)
+  #pragma pointers_to_members(full_generality, virtual_inheritance)
+#endif
+
   // jsnapi_wrappers_class
   //
   // The single class wrapping the objects of all the wrapped classes: which
