@@ -19,12 +19,20 @@
 
 static bool interface_feature_enabled = false;
 
+/* Whether member variables should be propagated to derived classes alongside methods. This is only
+ * wanted for languages whose interfaces can declare instance variables (e.g. C# properties), so it
+ * is enabled separately from the interface feature itself. */
+static bool interface_variables_enabled = false;
+
 /* -----------------------------------------------------------------------------
  * collect_interface_methods()
  *
  * Create a list of all the methods from the base classes of class n that are
  * marked as an interface. The resulting list is thus the list of methods that
  * need to be implemented in order for n to be non-abstract.
+ *
+ * When variable propagation is enabled, non-static member variables are
+ * collected too, so that derived classes can implement the interface property.
  * ----------------------------------------------------------------------------- */
 
 static List *collect_interface_methods(Node *n) {
@@ -38,7 +46,9 @@ static List *collect_interface_methods(Node *n) {
         if (Cmp(nodeType(child), "cdecl") == 0) {
           if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
             continue;  // skip methods propagated to bases
-          if (!checkAttribute(child, "kind", "function"))
+          bool is_function = checkAttribute(child, "kind", "function");
+          bool is_variable = interface_variables_enabled && checkAttribute(child, "kind", "variable");
+          if (!is_function && !is_variable)
             continue;
           if (checkAttribute(child, "storage", "static"))
             continue;  // accept virtual methods, non-virtual methods too... mmm??. Warn that the interface class has something that is not a virtual method?
@@ -211,4 +221,16 @@ void Swig_interface_propagate_methods(Node *n) {
 
 void Swig_interface_feature_enable() {
   interface_feature_enabled = true;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_interface_propagate_variables_enable()
+ *
+ * Turn on propagation of member variables to derived classes so that they can
+ * be exposed as part of the interface. Only meaningful when the interface
+ * feature is also enabled.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_interface_propagate_variables_enable() {
+  interface_variables_enabled = true;
 }

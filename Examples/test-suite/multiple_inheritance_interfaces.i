@@ -66,7 +66,9 @@ struct V3 : IV1, IV2 {};
 #endif
 
 %inline %{
-// Don't put variables and enums into interface
+// Non-static member variables are exposed in the interface (as properties for C# and as accessor
+// methods for Java), but static members, enums and constants are not and remain available only via
+// the proxy class.
 class Undesirables
 {
 public:
@@ -176,3 +178,24 @@ struct IAdditional2 { virtual ~IAdditional2() {} };
 struct IAdditional3 : IAdditional1, IAdditional2 {};
 struct AdditionalConcrete : IAdditional1, IAdditional2 {};
 %}
+
+// A class nested in a class wrapped as an interface is emitted into the interface itself for Java, so
+// that it can be used through any class implementing the interface, e.g. WithNestedDerived.Nested.
+#if defined(SWIGJAVA)
+%interface_impl(WithNested);
+
+%inline %{
+struct WithNested {
+  struct Nested {
+    int getValue() { return 42; }
+  };
+  virtual ~WithNested() {}
+  virtual void withNestedMethod() {}
+};
+
+struct WithNestedDerived : WithNested {
+  virtual void withNestedMethod() {}
+};
+%}
+
+#endif

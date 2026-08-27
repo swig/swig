@@ -625,6 +625,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   SWIG_config_file("javascript.swg");
 
   allow_overloading();
+  Swig_interface_feature_enable();
+  // JavaScript objects can declare properties, so expose member variables in them too.
+  Swig_interface_propagate_variables_enable();
 }
 
 /* -----------------------------------------------------------------------------
