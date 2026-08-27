@@ -11,39 +11,21 @@
  * ----------------------------------------------------------------------------- */
 
 %fragment("js_ctor", "templates") %{
-template <typename SWIG_OBJ_WRAP>
 // js_ctor
-// This is the main constructor
-$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
+void $jsmangledname_construct(SWIG_NAPI_ObjectWrapBase *swig_this, const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-
-  this->info = SWIGTYPE_$jsmangledtype;
-  if (info.Length() == 1 && info[0].IsExternal()) {
-    // This constructor has been called internally from C++/SWIG
-    // to wrap an already existing C++ object in JS
-    this->self = info[0].As<Napi::External<void>>().Data();
-    this->owned = false;
-    return;
-  }
-  this->owned = true;
 
   $jslocals
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
   $jscode
-  this->self = result;
+  swig_this->self = result;
   return;
   goto fail;
 fail:
   return;
 }
-
-// This is the bypass constructor to be used from child classes
-template <typename SWIG_OBJ_WRAP>
-$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {}
 %}
 
 
@@ -55,29 +37,8 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
 %fragment ("js_veto_ctor", "templates")
 %{
 // js_veto_ctor
-template <typename SWIG_OBJ_WRAP>
-$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
-  Napi::Env env = info.Env();
-  if (info.Length() == 1 && info[0].IsExternal()) {
-    // This constructor has been called internally from C++/SWIG
-    // to wrap an already existing C++ object in JS as its
-    // base abstract class
-    this->self = info[0].As<Napi::External<void>>().Data();
-    this->owned = false;
-    return;
-  }
-  SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
-  return;
-  goto fail;
-fail:
-  return;
-}
-
-// This is the extendable constructor to be used from child classes
-template <typename SWIG_OBJ_WRAP>
-$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
+void $jsmangledname_construct(SWIG_NAPI_ObjectWrapBase *, const Napi::CallbackInfo &info) {
+  SWIG_NAPI_Raise(info.Env(), "Class $jsname can not be instantiated");
 }
 %}
 
@@ -92,20 +53,10 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
 %fragment ("js_ctor_dispatcher", "templates")
 %{
 // js_ctor_dispatcher
-template <typename SWIG_OBJ_WRAP>
-$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
+void $jsmangledname_construct(SWIG_NAPI_ObjectWrapBase *swig_this, const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Object self;
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
-  this->info = SWIGTYPE_$jsmangledtype;
-  if (info.Length() == 1 && info[0].IsExternal()) {
-    // This constructor has been called internally from C++/SWIG
-    // to wrap an already existing C++ object in JS
-    this->self = info[0].As<Napi::External<void>>().Data();
-    this->owned = false;
-    return;
-  }
 
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
@@ -116,12 +67,6 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
   goto fail;
 fail:
   return;
-}
-
-// This is the extendable constructor to be used from child classes
-template <typename SWIG_OBJ_WRAP>
-$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
 }
 %}
 
@@ -137,22 +82,21 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
 // js_overloaded_ctor
-template <typename SWIG_OBJ_WRAP>
-Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+void $jswrapper(SWIG_NAPI_ObjectWrapBase *swig_this, const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Object self;
   $jslocals
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
-  this->owned = true;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
   $jscode
-  this->self = result;
+  swig_this->self = result;
+  return;
 
   goto fail;
 fail:
-  return Napi::Value();
+  return;
 }
 %}
 
@@ -172,7 +116,7 @@ fail:
 #ifdef NAPI_CPP_EXCEPTIONS
     bool tryNext = false;
     try {
-      $jswrapper(info);
+      $jswrapper(swig_this, info);
     } catch (const Napi::TypeError &) {
       tryNext = true;
     } catch (const Napi::Error &e) {
@@ -181,7 +125,7 @@ fail:
     if (!tryNext)
       return;
 #else
-    $jswrapper(info);
+    $jswrapper(swig_this, info);
     if (env.IsExceptionPending()) {
       Napi::Error e = env.GetAndClearPendingException();
       Napi::Value typeErrorValue;
@@ -221,8 +165,7 @@ fail:
 %fragment ("js_dtor", "templates")
 %{
 // js_dtor
-template <typename SWIG_OBJ_WRAP>
-$jsmangledname_templ<SWIG_OBJ_WRAP>::~$jsmangledname_templ() {
+void $jsmangledname_destruct(SWIG_NAPI_ObjectWrapBase *) {
 }
 %}
 
@@ -236,12 +179,11 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::~$jsmangledname_templ() {
 %fragment ("js_dtoroverride", "templates")
 %{
 // js_dtoroverride
-template <typename SWIG_OBJ_WRAP>
-${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
-  auto arg1 = reinterpret_cast<$jstype>(this->self);
-  if (this->owned && arg1) {
+void ${classname_mangled}_destruct(SWIG_NAPI_ObjectWrapBase *swig_this) {
+  auto arg1 = reinterpret_cast<$jstype>(swig_this->self);
+  if (swig_this->owned && arg1) {
     ${destructor_action}
-    this->self = nullptr;
+    swig_this->self = nullptr;
   }
 }
 %}
@@ -394,8 +336,8 @@ fail:
 %fragment("js_getter", "templates")
 %{
 // js_getter
-template <typename SWIG_OBJ_WRAP>
-Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_NAPI_Tag>
+Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -419,8 +361,8 @@ fail:
 %fragment("js_setter", "templates")
 %{
 // js_setter
-template <typename SWIG_OBJ_WRAP>
-void $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info, const Napi::Value &value) {
+template <typename SWIG_NAPI_Tag>
+void SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::$jswrapper(const Napi::CallbackInfo &info, const Napi::Value &value) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -446,8 +388,8 @@ fail:
 %fragment("js_function", "templates")
 %{
 // js_function
-template <typename SWIG_OBJ_WRAP>
-Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_NAPI_Tag>
+Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -476,8 +418,8 @@ fail:
 %fragment("js_function_dispatcher", "templates")
 %{
 // js_function_dispatcher
-template <typename SWIG_OBJ_WRAP>
-Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_NAPI_Tag>
+Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jscode
@@ -500,8 +442,8 @@ fail:
 %fragment ("js_overloaded_function", "templates")
 %{
 // js_overloaded_function
-template <typename SWIG_OBJ_WRAP>
-Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_NAPI_Tag>
+Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -592,11 +534,14 @@ fail:
 %fragment("jsnapi_class_prologue_template", "templates")
 %{
   // jsnapi_class_prologue_template
-  template <typename SWIG_OBJ_WRAP>
-  class $jsmangledname_templ : public $jsparent_templ<SWIG_OBJ_WRAP> {
-    public:
-      $jsmangledname_templ(const Napi::CallbackInfo &);
-      $jsmangledname_templ(bool, const Napi::CallbackInfo &);
+  void $jsmangledname_construct(SWIG_NAPI_ObjectWrapBase *, const Napi::CallbackInfo &);
+  void $jsmangledname_destruct(SWIG_NAPI_ObjectWrapBase *);
+  void $jsmangledname_GetMembers(
+    Napi::Env,
+    std::map<std::string, napi_property_descriptor> &,
+    std::map<std::string, napi_property_descriptor> &
+  );
+  Napi::Function $jsmangledname_GetClass(Napi::Env);
 %}
 
 
@@ -606,7 +551,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_dtor_declaration", "templates")
 %{
-    virtual ~$jsmangledname_templ();
+    // jsnapi_class_dtor_declaration
 %}
 
 
@@ -618,8 +563,21 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_method_declaration", "templates")
 %{
-    // jsnapi_class_method_declaration
-    $jsstatic Napi::Value $jswrapper(const Napi::CallbackInfo &);
+  // jsnapi_class_method_declaration
+  $jsstatic Napi::Value $jswrapper(const Napi::CallbackInfo &);
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_class_setter_declaration:  template for a class method declaration
+ *   - $jsmangledname:  mangled class name
+ *   - $jswrapper:      method name
+ *   - $jsstatic:       static modifier
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_class_ctor_declaration", "templates")
+%{
+  // jsnapi_class_ctor_declaration
+  void $jswrapper(SWIG_NAPI_ObjectWrapBase *, const Napi::CallbackInfo &);
 %}
 
 
@@ -644,19 +602,6 @@ fail:
 %fragment("jsnapi_class_epilogue_template", "templates")
 %{
   // jsnapi_class_epilogue_template
-  static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
-  void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
-};
-
-template <typename SWIG_OBJ_WRAP>
-void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
-  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
-}
-
-template <typename SWIG_OBJ_WRAP>
-void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
-  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
-}
 %}
 
 
@@ -667,17 +612,6 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
 %fragment("jsnapi_declare_class_instance", "templates")
 %{
   // jsnapi_class_instance
-  class $jsmangledname_inst : public $jsmangledname_templ<$jsmangledname_inst> {
-    public:
-      using $jsmangledname_templ::$jsmangledname_templ;
-      virtual ~$jsmangledname_inst() {}
-      static void GetMembers(
-        Napi::Env,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &
-      );
-      static Napi::Function GetClass(Napi::Env);
-  };
 %}
 
 
@@ -696,10 +630,14 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
 %{
   // jsnapi_inherited_class_prologue_template
   SWIG_NAPI_ClientData $jsmangledname_clientData;
-  template <typename SWIG_OBJ_WRAP>
-  class $jsmangledname_templ : public $jsparent_templ<SWIG_OBJ_WRAP> {
-    public:
-      $jsmangledname_templ(const Napi::CallbackInfo& info);
+  void $jsmangledname_construct(SWIG_NAPI_ObjectWrapBase *, const Napi::CallbackInfo &);
+  void $jsmangledname_destruct(SWIG_NAPI_ObjectWrapBase *);
+  void $jsmangledname_GetMembers(
+    Napi::Env,
+    std::map<std::string, napi_property_descriptor> &,
+    std::map<std::string, napi_property_descriptor> &
+  );
+  Napi::Function $jsmangledname_GetClass(Napi::Env);
 %}
 
 
@@ -713,26 +651,33 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
 %{
   /* Class: $jsname ($jsmangledname) */
   // jsnapi_getclass
-Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
-  std::map<std::string, $jsmangledname_templ::PropertyDescriptor> members, staticMembers;
-  GetMembers(env, members, staticMembers);
+Napi::Function $jsmangledname_GetClass(Napi::Env env) {
+  std::map<std::string, napi_property_descriptor> members, staticMembers;
+  $jsmangledname_GetMembers(env, members, staticMembers);
 
-  std::vector<$jsmangledname_inst::PropertyDescriptor> symbolTable;
+  std::vector<SWIG_NAPI_ObjectWrap_inst::PropertyDescriptor> symbolTable;
+  symbolTable.reserve(members.size() + staticMembers.size());
   for (auto it = members.begin(); it != members.end(); it++)
     symbolTable.push_back(it->second);
   for (auto it = staticMembers.begin(); it != staticMembers.end(); it++)
     symbolTable.push_back(it->second);
 
-  return Napi::ObjectWrap<$jsmangledname_inst>::DefineClass(env, "$jsname", symbolTable);
+  static SWIG_NAPI_ClassData klass{
+    SWIGTYPE_$jsmangledtype,
+    &$jsmangledname_construct,
+    $jsdestruct
+  };
+
+  return SWIG_NAPI_ObjectWrap_inst::DefineClass(env, "$jsname", symbolTable, &klass);
 }
 
-void $jsmangledname_inst::GetMembers(
+void $jsmangledname_GetMembers(
         Napi::Env env,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &members,
-        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &staticMembers
+        std::map<std::string, napi_property_descriptor> &members,
+        std::map<std::string, napi_property_descriptor> &staticMembers
 ) {
-    std::map<std::string, $jsparent_templ<$jsparent_inst>::PropertyDescriptor> baseMembers, baseStaticMembers;
-    $jsparent_inst::GetMembers(env, baseMembers, baseStaticMembers);
+    std::map<std::string, napi_property_descriptor> baseMembers, baseStaticMembers;
+    $jsparent_GetMembers(env, baseMembers, baseStaticMembers);
     members.insert(baseMembers.begin(), baseMembers.end());
     staticMembers.insert(staticMembers.begin(), staticMembers.end());
 
@@ -756,7 +701,7 @@ void $jsmangledname_inst::GetMembers(
 
   /* Class: $jsname ($jsmangledname) */
   // jsnapi_registerclass
-  Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
+  Napi::Function $jsmangledname_ctor = $jsmangledname_GetClass(env);
   $jsparent.Set("$jsname", $jsmangledname_ctor);
   if (SWIGTYPE_$jsmangledtype->clientdata == nullptr) {
     SWIGTYPE_$jsmangledtype->clientdata = new size_t($jsclassidx);
@@ -818,8 +763,8 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_member_function_descriptor
   members.erase("$jsname");
   members.insert({"$jsname",
-        $jsmangledname_templ::InstanceMethod("$jsname",
-                &$jsmangledname_templ::$jswrapper,
+        SWIG_NAPI_ObjectWrap_inst::InstanceMethod("$jsname",
+                &SWIG_NAPI_ObjectWrap_inst::$jswrapper,
                 static_cast<napi_property_attributes>(napi_writable | napi_configurable))
         });
 %}
@@ -836,9 +781,9 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_register_member_variable
   members.erase("$jsname");
   members.insert({"$jsname",
-        $jsmangledname_templ::InstanceAccessor("$jsname",
-                &$jsmangledname_templ::$jsgetter,
-                &$jsmangledname_templ::$jssetter,
+        SWIG_NAPI_ObjectWrap_inst::InstanceAccessor("$jsname",
+                &SWIG_NAPI_ObjectWrap_inst::$jsgetter,
+                &SWIG_NAPI_ObjectWrap_inst::$jssetter,
                 static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable))
         });
 %}
@@ -854,8 +799,8 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_register_static_function
   staticMembers.erase("$jsname");
   staticMembers.insert({"$jsname",
-        StaticMethod("$jsname",
-                &$jsmangledname_templ::$jswrapper,
+        SWIG_NAPI_ObjectWrap_inst::StaticMethod("$jsname",
+                &SWIG_NAPI_ObjectWrap_inst::$jswrapper,
                 static_cast<napi_property_attributes>(napi_writable | napi_configurable))
         });
 %}
@@ -872,9 +817,275 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_register_static_variable
   staticMembers.erase("$jsname");
   staticMembers.insert({"$jsname",
-        StaticAccessor("$jsname",
-                &$jsmangledname_templ::$jsgetter,
-                &$jsmangledname_templ::$jssetter,
+        SWIG_NAPI_ObjectWrap_inst::StaticAccessor("$jsname",
+                &SWIG_NAPI_ObjectWrap_inst::$jsgetter,
+                &SWIG_NAPI_ObjectWrap_inst::$jssetter,
                 static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable))
         });
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_wrappers_class:  the class containing all the generated wrappers
+ *   - $jswrapperdeclarations:  declarations of all the wrapper functions
+ *
+ * The wrappers don't use anything from the object they're called on, taking
+ * everything they need from the Napi::CallbackInfo, so they are all members of
+ * this single class instead of being instantiated once per wrapped class,
+ * which would take a lot of time and memory to compile for the bigger modules.
+ *
+ * The wrapped object data is inherited virtually because the class templates
+ * used for the wrapper classes inherit it too and both of them are bases of
+ * every wrapper class.
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_wrappers_class", "templates")
+%{
+  // The compilers using the MSVC ABI need to know the inheritance used by a
+  // class to represent the pointers to its members and clang-cl chooses this
+  // representation when instantiating a class template, i.e. while the class
+  // is still incomplete, and then fails with "inheritance model does not
+  // match definition" when it turns out to use multiple inheritance, as the
+  // class below does.
+  //
+  // Just use the most general representation for the pointers to the members
+  // of the classes defined from now on to avoid this. Note that this must be
+  // done here, and not before the headers used by this module are included,
+  // as it changes the size of the pointers to members and so would change the
+  // layout of the classes using them in these headers too.
+  //
+  // Also note that this is only needed for clang-cl, as MSVC itself only
+  // chooses the representation after seeing the definition of the class.
+#if defined(_MSC_VER) && defined(__clang__)
+  #pragma pointers_to_members(full_generality, virtual_inheritance)
+#endif
+
+  // jsnapi_wrappers_class
+  //
+  // The single class wrapping the objects of all the wrapped classes: which
+  // one it is is determined by the data DefineClass() was called with.
+  //
+  // It is a template only in order to make its Napi::ObjectWrap<> base
+  // dependent: the names of the members of the latter, such as Value(), would
+  // otherwise hide the global names of the same name used in the bodies of the
+  // wrappers, which are generated without knowing anything about the class
+  // containing them. It is instantiated exactly once, so this doesn't cost
+  // anything, and keeping the wrappers members of this class, rather than of a
+  // base of it, avoids adjusting the object pointer at every call.
+  template <typename SWIG_NAPI_Tag>
+  class SWIG_NAPI_ObjectWrap_templ
+    : public Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>>,
+      public SWIG_NAPI_ObjectWrapBase {
+    public:
+      SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info);
+      virtual ~SWIG_NAPI_ObjectWrap_templ();
+
+      Napi::Value ToString(const Napi::CallbackInfo &info);
+
+      static Napi::Function GetClass(Napi::Env);
+
+      static void JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &) {
+        SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+      }
+      void JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &) {
+        SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+      }
+
+$jswrapperdeclarations
+
+    private:
+      const SWIG_NAPI_ClassData *klass;
+  };
+
+  template <typename SWIG_NAPI_Tag>
+  SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info) :
+        Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>>(info),
+        klass(static_cast<const SWIG_NAPI_ClassData *>(info.Data())) {
+    Napi::Env env = info.Env();
+
+    if (klass != nullptr)
+      this->info = klass->type;
+
+    if (info.Length() == 1 && info[0].IsExternal()) {
+      // This constructor has been called internally from C++/SWIG
+      // to wrap an already existing C++ object in JS
+      this->self = info[0].As<Napi::External<void>>().Data();
+      this->owned = false;
+      return;
+    }
+
+    if (klass == nullptr || klass->construct == nullptr) {
+      SWIG_NAPI_Raise(env, "This constructor is not accessible from JS");
+      return;
+    }
+
+    klass->construct(this, info);
+  }
+
+  template <typename SWIG_NAPI_Tag>
+  SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::~SWIG_NAPI_ObjectWrap_templ() {
+    if (klass != nullptr && klass->destruct != nullptr)
+      klass->destruct(this);
+  }
+
+  template <typename SWIG_NAPI_Tag>
+  Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::ToString(const Napi::CallbackInfo &info) {
+    Napi::Env env = info.Env();
+    static char repr[128];
+    const char *name = SWIG_TypePrettyName(this->info);
+    snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
+      this->info ? this->info->name : "unknown",
+      name ? name : "unknown",
+      this->self,
+      this->owned ? "[owned]" : "[copy]");
+    return Napi::String::New(env, repr);
+  }
+
+  void SWIG_NAPI_ObjectWrap_GetMembers(
+          Napi::Env env,
+          std::map<std::string, napi_property_descriptor> &members,
+          std::map<std::string, napi_property_descriptor> &
+  ) {
+    members.erase("toString");
+    members.insert({"toString", SWIG_NAPI_ObjectWrap_inst::InstanceMethod("toString", &SWIG_NAPI_ObjectWrap_inst::ToString)});
+  }
+
+  template <typename SWIG_NAPI_Tag>
+  Napi::Function SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::GetClass(Napi::Env env) {
+    return SWIG_NAPI_ObjectWrap_inst::DefineClass(env, "SwigObject", {});
+  }
+
+  SWIGRUNTIME void SWIG_NAPI_SetPackedSize(Napi::Object objRef, size_t size) {
+    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef)->size = size;
+  }
+
+SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
+  SWIG_NAPI_ObjectWrap_inst *ow;
+  Napi::Env env = objRef.Env();
+  if(!objRef.IsObject()) return SWIG_ERROR;
+
+  // Check if this is a SWIG wrapper
+  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
+  bool instanceOf;
+  NAPI_CHECK_RESULT(objRef.InstanceOf(ctor->Value()), instanceOf);
+  if (!instanceOf) {
+    return SWIG_TypeError;
+  }
+
+  ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
+
+  // Now check if the SWIG type is compatible unless the types match exactly or the type is unknown
+  if(info && ow->info != info && ow->info != nullptr) {
+    swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
+    if (!tc && ow->info->name) {
+      tc = SWIG_TypeCheck(ow->info->name, info);
+    }
+    bool type_valid = tc != 0;
+    if(!type_valid) {
+      return SWIG_TypeError;
+    }
+    int newmemory = 0;
+    *ptr = SWIG_TypeCast(tc, ow->self, &newmemory);
+    assert(!newmemory); /* newmemory handling not yet implemented */
+  } else {
+    *ptr = ow->self;
+  }
+
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !ow->owned) {
+    return SWIG_ERROR_RELEASE_NOT_OWNED;
+  } else {
+    if (flags & SWIG_POINTER_DISOWN) {
+      ow->owned = false;
+    }
+    if (flags & SWIG_POINTER_CLEAR) {
+      ow->self = nullptr;
+    }
+  }
+  return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+
+
+SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr) {
+  SWIG_NAPI_ObjectWrap_inst *ow;
+  if(!valRef.IsObject()) {
+    return SWIG_TypeError;
+  }
+  Napi::Object objRef;
+  NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
+  ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
+
+  if(ow->self == nullptr) {
+    return SWIG_ERROR;
+  }
+
+  *ptr = ow->self;
+  return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+
+
+SWIGRUNTIME int SWIG_NAPI_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_info *info, int flags) {
+  // special case: JavaScript null => C NULL pointer
+  if (valRef.IsNull()) {
+    *ptr=0;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
+
+  if (!valRef.IsObject()) {
+    return SWIG_TypeError;
+  }
+
+  Napi::Object objRef;
+  NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
+  return SWIG_NAPI_ConvertInstancePtr(objRef, ptr, info, flags);
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+
+SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
+  Napi::External<void> native;
+  Napi::FunctionReference *ctor;
+
+  if (ptr == nullptr) {
+    return env.Null();
+  }
+  native = Napi::External<void>::New(env, ptr);
+
+  size_t *idx = info != nullptr ?
+        reinterpret_cast<SWIG_NAPI_ClientData *>(info->clientdata) :
+        nullptr;
+  if (idx == nullptr) {
+    // This type does not have a dedicated wrapper
+    ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
+  } else {
+    ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
+  }
+
+  Napi::Value wrapped;
+  NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
+
+  // Preserve the type even if using the generic wrapper
+  if (idx == nullptr && info != nullptr) {
+    Napi::Object obj;
+    NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
+    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->info = info;
+  }
+
+  if ((flags & SWIG_POINTER_OWN) == SWIG_POINTER_OWN) {
+    Napi::Object obj;
+    NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
+    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->owned = true;
+  }
+
+  return wrapped;
+  goto fail;
+fail:
+  return Napi::Value();
+}
+
 %}

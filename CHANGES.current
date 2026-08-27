@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-08-26: wangito33
+            [JavaScript] Generated NAPI wrappers now use much less time and
+            memory to compile: for a module wrapping 400 classes, compiling the
+            generated code takes 2.6GB and 81s instead of 9.0GB and 244s with
+            GCC 15 under Linux.
+
+            This also fixes the undefined behaviour reported by the UBSAN
+            "vptr" checks for every conversion of a wrapped object from
+            JavaScript.
+
 2026-08-24: wsfulton
             [Python] #3537 Fix "'SWIGPY_SLICEOBJECT' was not declared in this scope" when
             compiling the wrappers for a module that %imports another module which has
