@@ -72,7 +72,7 @@ endif ()
 
 option (WITH_PCRE "Enable PCRE" ON)
 if (WITH_PCRE)
-  find_package (PCRE2 10.39 REQUIRED COMPONENTS 8BIT)
+  find_package (PCRE2 10.32 REQUIRED COMPONENTS 8BIT)
   set (HAVE_PCRE 1)
 endif()
 
