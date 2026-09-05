@@ -53,7 +53,7 @@ bool bo_const_ref(const bool& b) {
 }
 
 // helper function
-bool bool_value(bool* b) {
+bool bool_value(const bool* b) {
     return *b;
 }
 
