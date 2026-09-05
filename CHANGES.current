@@ -1885,6 +1885,10 @@ Version 4.6.0 (in progress)
             type checker has no purpose in them. A stub with no annotations at all, from -pyi
             used without -typehints, still declares all three.
 
+2026-09-05: vadz
+            [C] #3552 Fix wrapping functions taking or returning bool by const reference.
+            This parameter type wasn't handled correctly before and resulted in a crash.
+
 2026-08-31: wsfulton
             [Python] #3528 A .pyi stub file is now generated for the low-level C/C++ module when
             -typehints or -pyi is used. Wrapping example.i now also generates _example.pyi

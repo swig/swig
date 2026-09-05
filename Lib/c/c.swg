@@ -142,8 +142,8 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
 
 %typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool * "$1 = ($1_ltype) $input;"
-%typemap(in, fragment="stdbool_inc") bool & "$1 = ($1_basetype *) $input;"
-%typemap(in, fragment="stdbool_inc") const bool &, const bool * "$1 = ($1_basetype *) $input;"
+%typemap(in, fragment="stdbool_inc") bool &, const bool * "$1 = ($1_basetype *) $input;"
+%typemap(in, fragment="stdbool_inc") const bool & "$1 = &$input;"
 
 %typemap(in) enum SWIGTYPE "$1 = ($1_ltype) $input;"
 %typemap(in) enum SWIGTYPE &,enum SWIGTYPE * "$1 = ($1_ltype) $input;"
@@ -206,7 +206,8 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 %typemap(out) void ""
 
 %typemap(out, fragment="stdbool_inc") bool, bool *, const bool, const bool * "$result = ($1_ltype) $1;"
-%typemap(out, fragment="stdbool_inc") bool &, const bool & "$result = $1;"
+%typemap(out, fragment="stdbool_inc") bool & "$result = $1;"
+%typemap(out, fragment="stdbool_inc") const bool & "$result = *$1;"
 
 %typemap(out) enum SWIGTYPE "$result = (int) $1;"
 %typemap(out) enum SWIGTYPE &, enum SWIGTYPE * "$result = $1;"
