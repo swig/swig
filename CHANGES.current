@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-05: vadz
+            [C] #3552 Fix wrapping functions taking or returning bool by const reference.
+            This parameter type wasn't handled correctly before and resulted in a crash.
+            bool now uses the same typemaps as the other primitive types, which also fixes
+            the invalid declarations generated for bool arrays and maps "const bool *" to
+            "const bool *", and not "bool *", in the wrappers, as for the other types.
+
 2026-09-03: larskanis, wsfulton
             #3534 Fix configure error "Tools/convertpath: No such file or directory" on
             MinGW. The removed convertpath tool was still used to compute the SWIG library

@@ -37,7 +37,6 @@ FAILING_CPP_TESTS := \
     array_member \
     array_typedef_memberin \
     arrayref \
-    arrays_dimensionless \
     arrays_global \
     arrays_global_twodim \
     assign_const \
