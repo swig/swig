@@ -903,7 +903,7 @@ $jswrapperdeclarations
     Napi::Env env = info.Env();
 
     if (klass != nullptr)
-      this->info = klass->type;
+      this->type = klass->type;
 
     if (info.Length() == 1 && info[0].IsExternal()) {
       // This constructor has been called internally from C++/SWIG
@@ -931,9 +931,9 @@ $jswrapperdeclarations
   Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_Tag>::ToString(const Napi::CallbackInfo &info) {
     Napi::Env env = info.Env();
     static char repr[128];
-    const char *name = SWIG_TypePrettyName(this->info);
+    const char *name = SWIG_TypePrettyName(this->type);
     snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
-      this->info ? this->info->name : "unknown",
+      this->type ? this->type->name : "unknown",
       name ? name : "unknown",
       this->self,
       this->owned ? "[owned]" : "[copy]");
@@ -974,10 +974,10 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
 
   // Now check if the SWIG type is compatible unless the types match exactly or the type is unknown
-  if(info && ow->info != info && ow->info != nullptr) {
-    swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
-    if (!tc && ow->info->name) {
-      tc = SWIG_TypeCheck(ow->info->name, info);
+  if(info && ow->type != info && ow->type != nullptr) {
+    swig_cast_info *tc = SWIG_TypeCheckStruct(ow->type, info);
+    if (!tc && ow->type->name) {
+      tc = SWIG_TypeCheck(ow->type->name, info);
     }
     bool type_valid = tc != 0;
     if(!type_valid) {
@@ -1073,7 +1073,7 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   if (idx == nullptr && info != nullptr) {
     Napi::Object obj;
     NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
-    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->info = info;
+    Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->type = info;
   }
 
   if ((flags & SWIG_POINTER_OWN) == SWIG_POINTER_OWN) {

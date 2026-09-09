@@ -136,7 +136,7 @@ class SWIG_NAPI_ObjectWrapBase {
     void *self = nullptr;
     bool owned = true;
     size_t size = 0;
-    swig_type_info *info = nullptr;
+    swig_type_info *type = nullptr;
 
     // Note that this class is deliberately not polymorphic: the objects are
     // only ever destroyed via SWIG_NAPI_ObjectWrap_inst, which does have a
