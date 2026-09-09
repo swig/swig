@@ -46,6 +46,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/javadoc.h		\
 		Doxygen/pydoc.cxx		\
 		Doxygen/pydoc.h			\
+		Doxygen/swiftdoc.cxx		\
+		Doxygen/swiftdoc.h		\
 		Modules/allocate.cxx		\
 		Modules/contract.cxx		\
 		Modules/c.cxx			\
@@ -71,6 +73,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/r.cxx			\
 		Modules/ruby.cxx		\
 		Modules/scilab.cxx		\
+		Modules/swift.cxx		\
 		Modules/swigmain.cxx		\
 		Modules/tcl8.cxx		\
 		Modules/typepass.cxx		\
