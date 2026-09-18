@@ -10,6 +10,11 @@
 #define Py_READONLY READONLY
 #define Py_T_PYSSIZET T_PYSSIZET
 #endif
+#if PY_VERSION_HEX >= 0x030a0000
+#define SWIGPY_TPFLAGS_IMMUTABLETYPE Py_TPFLAGS_IMMUTABLETYPE
+#else
+#define SWIGPY_TPFLAGS_IMMUTABLETYPE 0
+#endif
 #endif
 
 #include <stddef.h> /* For offsetof */

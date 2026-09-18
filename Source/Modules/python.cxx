@@ -5401,7 +5401,7 @@ public:
     Printf(f, "    %s,\n", quoted_symname);
     Printf(f, "    sizeof(SwigPyObject),\n");
     Printf(f, "    0,\n");
-    Printf(f, "    %s,\n", getHeapTypesSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
+    Printf(f, "    %s|SWIGPY_TPFLAGS_IMMUTABLETYPE,\n", getHeapTypesSlot(n, "feature:python:tp_flags", tp_flags_py3));
     Printf(f, "    slots\n");
     Printf(f, "  };\n");
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);

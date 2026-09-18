@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-17: kel-mo
+            [Python] #3567 Mark the SWIG runtime types (SwigPyObject, SwigPyPacked, SwigVarLink,
+            SwigPyObjectType and SwigPyStaticVar) and the -builtin wrapped classes
+            Py_TPFLAGS_IMMUTABLETYPE when created as heap types (the default), as PyType_Ready
+            already does for the static types. Python 3.12+ gives an immutable type a
+            process-wide method cache version tag instead of one from the current
+            sub-interpreter, so a type shared between sub-interpreters no longer collides with
+            an unrelated class in another sub-interpreter, which could fail with:
+
+              TypeError: descriptor '__init__' requires a 'type' object but received a 'MyClass'
+
+            Setting an attribute on one of the runtime types now raises TypeError.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These

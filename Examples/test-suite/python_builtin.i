@@ -265,3 +265,9 @@ public:
   }
 };
 %}
+
+%feature("python:tp_flags") CustomFlagsBase "Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE";
+%inline %{
+struct CustomFlagsBase {};
+struct CustomFlagsDerived : CustomFlagsBase {};
+%}

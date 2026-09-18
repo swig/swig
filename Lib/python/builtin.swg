@@ -296,7 +296,7 @@ SwigPyStaticVar_TypeOnce(void) {
     SWIG_RUNTIME_MODULE ".SwigPyStaticVar",
     sizeof(PyGetSetDescrObject),
     0,
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_BASETYPE|SWIGPY_TPFLAGS_IMMUTABLETYPE,
     slots
   };
   PyObject *runtime_data_module = SWIG_runtime_data_module();
@@ -419,7 +419,7 @@ SwigPyObjectType_TypeOnce(void) {
     SWIG_RUNTIME_MODULE ".SwigPyObjectType",
     (int)PyType_Type.tp_basicsize,
     0,
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|SWIGPY_TPFLAGS_IMMUTABLETYPE,
     slots
   };
   PyObject *runtime_data_module = SWIG_runtime_data_module();

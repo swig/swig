@@ -419,7 +419,7 @@ SwigVarLink_TypeOnce(void) {
     SWIG_RUNTIME_MODULE ".SwigVarLink",
     sizeof(swig_varlinkobject),
     0,
-    Py_TPFLAGS_DEFAULT,
+    Py_TPFLAGS_DEFAULT|SWIGPY_TPFLAGS_IMMUTABLETYPE,
     slots
   };
   PyObject *pytype = PyType_FromSpec(&spec);
@@ -1035,7 +1035,7 @@ SwigPyObject_TypeOnce(void) {
     SWIG_RUNTIME_MODULE ".SwigPyObject",
     sizeof(SwigPyObject),
     0,
-    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE|SWIGPY_TPFLAGS_IMMUTABLETYPE,
     slots
   };
   PyObject *pytype = PyType_FromSpec(&spec);
@@ -1259,7 +1259,7 @@ SwigPyPacked_TypeOnce(void) {
     SWIG_RUNTIME_MODULE ".SwigPyPacked",
     sizeof(SwigPyPacked),
     0,
-    Py_TPFLAGS_DEFAULT,
+    Py_TPFLAGS_DEFAULT|SWIGPY_TPFLAGS_IMMUTABLETYPE,
     slots
   };
   PyObject *pytype = PyType_FromSpec(&spec);

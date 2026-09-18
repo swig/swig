@@ -1,3 +1,4 @@
+import sys
 from python_builtin import *
 
 if is_python_builtin():
@@ -134,3 +135,26 @@ if is_python_builtin():
   check_gsi(gsi, -100, -100, 1, 2)
   gsi(333)
   check_gsi(gsi, -100, -100, 1, -11)
+
+# Test 9
+if sys.version_info[0:2] >= (3, 10):
+  Py_TPFLAGS_IMMUTABLETYPE = 1 << 8
+  def check_immutable(t):
+    if not t.__flags__ & Py_TPFLAGS_IMMUTABLETYPE:
+      raise RuntimeError("{} is not immutable".format(t))
+    try:
+      t.new_attribute = 1
+      raise RuntimeError("setting an attribute on {} should fail".format(t))
+    except (TypeError, AttributeError):
+      pass
+
+  check_immutable(type(cvar))
+  if is_python_builtin():
+    check_immutable(ValueStruct)
+    check_immutable(type(ValueStruct))
+    check_immutable(ValueStruct.__mro__[1])
+    check_immutable(type(MyClass.__dict__["less_than_counts"]))
+    check_immutable(CustomFlagsBase)
+    check_immutable(CustomFlagsDerived)
+  else:
+    check_immutable(type(ValueStruct(1).this))
