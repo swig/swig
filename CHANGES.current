@@ -20,6 +20,19 @@ Version 4.6.0 (in progress)
 	    `std_string.i` instead) and some for std::complex which I've moved
 	    to new library files `complex.i` and `std_complex.i`.
 
+2026-09-19: wsfulton
+            A typemap written with an [ANY] array dimension is now matched
+            behind a reference to an array as well as on an array:
+
+              %typemap(in) int (&)[ANY] { ... }
+
+              void grid(int (&x)[10]);   // now uses the typemap above
+
+            The dimensions substituted into $1_dim0 and $1_size are those of
+            the array the reference refers to. Such a typemap was previously
+            never matched, the search going from the type as written straight
+            to the SWIGTYPE defaults.
+
 2026-09-12: wsfulton
             New warning 333 replaces warning 302 for two declarations that
             differ only by a constraint:

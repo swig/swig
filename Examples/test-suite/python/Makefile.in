@@ -81,6 +81,7 @@ CPP_TEST_CASES += \
 	python_typehints \
 	python_typemap_macro \
 	python_typemap_numoutputs \
+	python_typemap_ref_array \
 	python_various \
 	simutry \
 	std_containers \
