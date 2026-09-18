@@ -1383,6 +1383,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
 
   ty = Swig_wrapped_member_var_type(type, varcref);
   p = NewParm(ty, name, n);
+  Setattr(p, "sym:symtab", Getattr(n, "sym:symtab"));
   Setattr(parms, "hidden", "1");
   set_nextSibling(parms, p);
 
