@@ -1,8 +1,9 @@
 import python_typemap_ref_array as t
 from swig_test_utils import swig_check
 
-# A reference to a typedef'd array keeps its declared $1_type and $1_ltype, with $1_dim0 and $1_basetype from the array.
+# A pointer or reference to a typedef'd array keeps its declared $1_type and $1_ltype, with $1_dim0 and $1_basetype from the array.
 swig_check(t.cvar.const_sevens_ref, ("ConstSeven &", "ConstSeven *", "long", 7))
+swig_check(t.cvar.const_sevens_ptr, ("ConstSeven *", "ConstSeven *", "long", 7))
 
 # The [ANY] typemaps are matched behind the reference, with the dimension of the array referred to.
 if t.cvar.numbers_ref != 4:
@@ -15,6 +16,12 @@ if t.first_of(None) != 42:
 # The same, for a typemap whose pattern is followed by a locals list.
 if t.first_double(None) != 3:
     raise RuntimeError("first_double %s" % t.first_double(None))
+
+# A pointer to an array carries its dimensions in the same way.
+if t.first_short(None) != 5:
+    raise RuntimeError("first_short %s" % t.first_short(None))
+if t.cvar.shorts_ptr != 9:
+    raise RuntimeError("shorts_ptr dimension %s" % t.cvar.shorts_ptr)
 
 # A typemap for a reference to a function does not apply to a plain int.
 if t.doubled(21) != 42:

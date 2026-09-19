@@ -621,10 +621,10 @@ void Swig_typemap_clear_apply(Parm *parms) {
   Delete(tsig);
 }
 
-/* The type the array dimensions come from, which is the array a reference is to.  A type with no
-   array behind it is returned as it is, so the result is only an array when the type has one. */
+/* The type the array dimensions come from, which is the array a pointer or reference is to.  A type
+   with no array behind it is returned as it is, so the result is only an array when the type has one. */
 static SwigType *array_dimensions_type(SwigType *type) {
-  if (SwigType_isreference(type) || SwigType_isrvalue_reference(type)) {
+  if (SwigType_ispointer(type) || SwigType_isreference(type) || SwigType_isrvalue_reference(type)) {
     SwigType *t = Copy(type);
     Delete(SwigType_pop(t));
     if (SwigType_isarray(t))
@@ -634,7 +634,7 @@ static SwigType *array_dimensions_type(SwigType *type) {
   return Copy(type);
 }
 
-/* Whether a type is an array or a reference to one. */
+/* Whether a type is an array, or a pointer or reference to one. */
 static int has_array_dimensions(SwigType *type) {
   SwigType *t = array_dimensions_type(type);
   int isarray = SwigType_isarray(t);
@@ -642,14 +642,14 @@ static int has_array_dimensions(SwigType *type) {
   return isarray;
 }
 
-/* Replace every array dimension with ANY, including behind a reference. */
+/* Replace every array dimension with ANY, including behind a pointer or a reference. */
 static SwigType *strip_arrays(SwigType *type) {
   SwigType *t;
   SwigType *prefix = 0;
   int ndim;
   int i;
   t = Copy(type);
-  if (SwigType_isreference(t) || SwigType_isrvalue_reference(t))
+  if (SwigType_ispointer(t) || SwigType_isreference(t) || SwigType_isrvalue_reference(t))
     prefix = SwigType_pop(t);
   ndim = SwigType_array_ndim(t);
   for (i = 0; i < ndim; i++) {
@@ -988,7 +988,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     afdims = array_dimensions_type(ftype);
     if (SwigType_array_ndim(adims) != SwigType_array_ndim(afdims)) {
       /* A typedef hides some of the dimensions, so take them, and the element type for $1_basetype, from the resolved type.
-         An array uses it for $1_type, $1_ltype and the rest as well, but a reference to one keeps its declared type. */
+         An array uses it for $1_type, $1_ltype and the rest as well, but a pointer or reference to one keeps its declared type. */
       if (SwigType_isarray(ftype))
         type = ftype;
       basetype_source = ftype;

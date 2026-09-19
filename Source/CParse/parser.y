@@ -2802,15 +2802,15 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
 
 /* The parenthesised list after a typemap pattern declares the typemap's local variables, which the declarator grammar
    has already made a function of, so take that function back off the type and keep its parameters as the locals.  The
-   function is built underneath an array and underneath a reference to an array, so both are looked through. */
+   function is built underneath an array and underneath a pointer or reference to an array, so all are looked through. */
 static void declarator_remove_locals_function(struct Decl *d) {
-  SwigType *reference = 0;
+  SwigType *ptr_or_ref = 0;
   SwigType *arrays = 0;
-  if (SwigType_isreference(d->type) || SwigType_isrvalue_reference(d->type)) {
-    reference = SwigType_pop(d->type);
+  if (SwigType_ispointer(d->type) || SwigType_isreference(d->type) || SwigType_isrvalue_reference(d->type)) {
+    ptr_or_ref = SwigType_pop(d->type);
     if (!SwigType_isarray(d->type)) {
-      SwigType_push(d->type, reference);
-      Delete(reference);
+      SwigType_push(d->type, ptr_or_ref);
+      Delete(ptr_or_ref);
       d->parms = 0;
       return;
     }
@@ -2825,9 +2825,9 @@ static void declarator_remove_locals_function(struct Decl *d) {
     SwigType_push(d->type, arrays);
     Delete(arrays);
   }
-  if (reference) {
-    SwigType_push(d->type, reference);
-    Delete(reference);
+  if (ptr_or_ref) {
+    SwigType_push(d->type, ptr_or_ref);
+    Delete(ptr_or_ref);
   }
 }
 
