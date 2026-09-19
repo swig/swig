@@ -11,3 +11,15 @@ if t.cvar.wide_ref != 7:
     raise RuntimeError("wide_ref dimension %s" % t.cvar.wide_ref)
 if t.first_of(None) != 42:
     raise RuntimeError("first_of %s" % t.first_of(None))
+
+# The same, for a typemap whose pattern is followed by a locals list.
+if t.first_double(None) != 3:
+    raise RuntimeError("first_double %s" % t.first_double(None))
+
+# A typemap for a reference to a function does not apply to a plain int.
+if t.doubled(21) != 42:
+    raise RuntimeError("doubled %s" % t.doubled(21))
+
+# The library typemap for a reference to an array of char converts a string into the array.
+if t.length_of("hello") != 5:
+    raise RuntimeError("length_of %s" % t.length_of("hello"))

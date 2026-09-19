@@ -12,7 +12,17 @@
   }
 %}
 
+// A locals list on such a pattern used to be parsed as part of the type, registering the typemap
+// under a type that is never searched for.
+%typemap(in) double (&)[ANY] (double temp[$1_dim0]) "temp[0] = $1_dim0; $1 = ($1_ltype)&temp;"
+
+// A reference to a function used to be registered as the return type alone, so this applied to every
+// int rather than to nothing here, and doubled() below returned zero.
+%typemap(in) int (&)(int) "$1 = 0;"
+
 %inline %{
+#include <cstring>
+
 int numbers[4] = {1, 2, 3, 4};
 int (&numbers_ref)[4] = numbers;
 
@@ -21,8 +31,14 @@ int (&wide_ref)[7] = wide;
 
 int ten[10] = {42, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-// The in typemap above supplies the array, so the argument passed in is ignored.
+// The in typemaps above supply the array, so the argument passed in is ignored.
 int first_of(int (&x)[10]) { return x[0]; }
+double first_double(double (&x)[3]) { return x[0]; }
+
+int doubled(int x) { return x * 2; }
+
+// Lib/typemaps/strings.swg declares a const Char (&)[ANY] typemap, with locals, that this reaches.
+int length_of(const char (&x)[6]) { return (int)strlen(x); }
 %}
 
 // A reference to a typedef'd array keeps its declared $1_type and $1_ltype, with $1_dim0 and $1_basetype from the array.

@@ -2800,6 +2800,37 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
   return parms;
 }
 
+/* The parenthesised list after a typemap pattern declares the typemap's local variables, which the declarator grammar
+   has already made a function of, so take that function back off the type and keep its parameters as the locals.  The
+   function is built underneath an array and underneath a reference to an array, so both are looked through. */
+static void declarator_remove_locals_function(struct Decl *d) {
+  SwigType *reference = 0;
+  SwigType *arrays = 0;
+  if (SwigType_isreference(d->type) || SwigType_isrvalue_reference(d->type)) {
+    reference = SwigType_pop(d->type);
+    if (!SwigType_isarray(d->type)) {
+      SwigType_push(d->type, reference);
+      Delete(reference);
+      d->parms = 0;
+      return;
+    }
+  }
+  if (SwigType_isarray(d->type))
+    arrays = SwigType_pop_arrays(d->type);
+  if (SwigType_isfunction(d->type))
+    Delete(SwigType_pop_function(d->type));
+  else
+    d->parms = 0;
+  if (arrays) {
+    SwigType_push(d->type, arrays);
+    Delete(arrays);
+  }
+  if (reference) {
+    SwigType_push(d->type, reference);
+    Delete(reference);
+  }
+}
+
 /* Report a 'this' specifier where C++23 does not allow an explicit object parameter, which it allows only as the
    first parameter of a member function declarator. */
 static void reject_explicit_object_parameter(ParmList *parms) {
@@ -7060,37 +7091,11 @@ parameter_declarator : declarator def_args {
 
 plain_declarator : declarator {
                  $$ = $declarator;
-		 if (SwigType_isfunction($declarator.type)) {
-		   Delete(SwigType_pop_function($declarator.type));
-		 } else if (SwigType_isarray($declarator.type)) {
-		   SwigType *ta = SwigType_pop_arrays($declarator.type);
-		   if (SwigType_isfunction($declarator.type)) {
-		     Delete(SwigType_pop_function($declarator.type));
-		   } else {
-		     $$.parms = 0;
-		   }
-		   SwigType_push($declarator.type,ta);
-		   Delete(ta);
-		 } else {
-		   $$.parms = 0;
-		 }
+                 declarator_remove_locals_function(&$$);
             }
             | abstract_declarator {
               $$ = $abstract_declarator;
-	      if (SwigType_isfunction($abstract_declarator.type)) {
-		Delete(SwigType_pop_function($abstract_declarator.type));
-	      } else if (SwigType_isarray($abstract_declarator.type)) {
-		SwigType *ta = SwigType_pop_arrays($abstract_declarator.type);
-		if (SwigType_isfunction($abstract_declarator.type)) {
-		  Delete(SwigType_pop_function($abstract_declarator.type));
-		} else {
-		  $$.parms = 0;
-		}
-		SwigType_push($abstract_declarator.type,ta);
-		Delete(ta);
-	      } else {
-		$$.parms = 0;
-	      }
+              declarator_remove_locals_function(&$$);
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const) */

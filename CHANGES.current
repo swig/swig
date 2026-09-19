@@ -21,6 +21,27 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-19: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] A function
+            parameter of type 'const char (&)[N]' now requires a string and no
+            longer accepts the pointer to the array it used to take, as the
+            typemaps for it in Lib/typemaps/strings.swg are now used:
+
+              int count(const char (&text)[8]);   // count("abc")
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-09-19: wsfulton
+            A typemap for a reference to an array can now declare local
+            variables:
+
+              %typemap(in) const char (&)[ANY] (char temp[$1_dim0]) { ... }
+
+            The locals used to be parsed as part of the pattern, registering
+            the typemap as a reference to an array of functions, so it was
+            silently never used. The typemaps of this shape in
+            Lib/typemaps/strings.swg have therefore never been used until now.
+
+2026-09-19: wsfulton
             A typemap written with an [ANY] array dimension is now matched
             behind a reference to an array as well as on an array:
 
