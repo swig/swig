@@ -1203,6 +1203,13 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     if (SwigType_isarray(basetype_source)) {
       base_type = Copy(basetype_source);
       Delete(SwigType_pop_arrays(base_type));
+    } else if ((SwigType_isreference(basetype_source) || SwigType_isrvalue_reference(basetype_source)) && has_array_dimensions(basetype_source)) {
+      /* The element type of the array referred to, keeping any pointers in it, such as the 'int *' of a 'T (&)[4]' with
+         T an 'int *', but without its top-level qualifiers, which SwigType_base() also strips */
+      base_type = array_dimensions_type(basetype_source);
+      Delete(SwigType_pop_arrays(base_type));
+      while (SwigType_isqualifier(base_type))
+        Delete(SwigType_pop(base_type));
     } else {
       base_type = SwigType_base(basetype_source);
     }

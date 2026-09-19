@@ -21,6 +21,35 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-19: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] A variable
+            or member that is a reference to an array now reads as the array it
+            refers to, so a reference to an array of char reads as a string
+            instead of as an opaque pointer. A function parameter of type
+            'char (&)[N]' now requires a string, as one of type
+            'const char (&)[N]' does, and no longer accepts a pointer to the
+            array:
+
+              char letters[4] = "abc";
+              char (&letters_ref)[4] = letters;   // reads as "abc"
+              int count(char (&text)[8]);         // count("abc")
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-09-19: wsfulton
+            A variable or member that is a reference to an array is now set by
+            copying the elements of the array it refers to, as the array itself
+            is:
+
+              int numbers[4] = {1, 2, 3, 4};
+              int (&numbers_ref)[4] = numbers;
+              const char letters[4] = "abc";
+              const char (&letters_ref)[4] = letters;
+
+            The setter used to assign to the array, which does not compile. A
+            reference to an array of const, such as letters_ref, is read only in
+            the same way the array itself is.
+
+2026-09-19: wsfulton
             [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] A function
             parameter of type 'const char (&)[N]' now requires a string and no
             longer accepts the pointer to the array it used to take, as the

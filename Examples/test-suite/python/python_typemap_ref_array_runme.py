@@ -23,3 +23,6 @@ if t.doubled(21) != 42:
 # The library typemap for a reference to an array of char converts a string into the array.
 if t.length_of("hello") != 5:
     raise RuntimeError("length_of %s" % t.length_of("hello"))
+
+# $1_basetype leaves out every cv-qualifier of the element type, here one from each typedef.
+swig_check(t.cvar.const_volatile_sevens_ref, ("ConstVolatileSeven &", "ConstVolatileSeven *", "long", 7))

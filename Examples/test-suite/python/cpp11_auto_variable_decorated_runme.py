@@ -75,5 +75,10 @@ cvar.array_decay = cvar.other_array
 swig_check(deref(cvar.array_decay), 10)
 swig_check(deref(cvar.int_array), 1)
 
-# auto& binds to the array instead, so it keeps the array type.
-swig_check(array_first(cvar.array_ref), 1)
+# auto& binds to the array instead, so it keeps the array type, wrapped as the array itself.
+swig_check(array_first(int_array_address()), 1)
+swig_check(deref(cvar.array_ref), 1)
+
+# Writing through the reference writes the array it is bound to.
+cvar.array_ref = cvar.other_array
+swig_check(deref(cvar.int_array), 10)

@@ -15,8 +15,6 @@
 %immutable ptr_ptr;
 %immutable copy_ptr;
 %immutable copy_ptr_decorated;
-// An array reference cannot be assigned in C++, so only the getter is generated.
-%immutable array_ref;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) int_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ref_from_ref;
@@ -33,10 +31,11 @@
 // TODO: Fix the experimental C backend emitting 'int (*)(int)*' for a function pointer.
 %ignore call_fn;
 %ignore fn_ptr;
-// TODO: Fix the experimental C backend emitting 'int [4]*' for an array reference variable and
-// 'int (*)[4]*' for a pointer to an array parameter.
+// TODO: Fix the experimental C backend emitting 'int [4]*' for an array variable and 'int (*)[4]*'
+// for a pointer to an array.
 %ignore array_ref;
 %ignore array_first;
+%ignore int_array_address;
 #endif
 
 %inline %{
@@ -119,9 +118,11 @@ int int_array[4] = {1, 2, 3, 4};
 int other_array[4] = {10, 20, 30, 40};
 const int cint_array[3] = {5, 6, 7};
 
+int (*int_array_address())[4] { return &int_array; }
+
 // An array initialiser decays to a pointer to its first element, unless the variable is a reference.
 auto array_decay = int_array;        // int *
 auto* array_decay_ptr = int_array;   // int *
 auto carray_decay = cint_array;      // const int *
-auto& array_ref = int_array;         // int (&)[4]
+auto& array_ref = int_array;         // int (&)[4], wrapped as int [4]
 %}

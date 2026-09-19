@@ -46,6 +46,12 @@ int length_of(const char (&x)[6]) { return (int)strlen(x); }
 %typemap(varin)  long (&)[ANY] %{ SWIG_Error(SWIG_AttributeError, "read-only $name"); SWIG_fail; %}
 
 %inline %{
+// $1_basetype leaves out every cv-qualifier of the element type, here one from each typedef.
+typedef volatile long VolatileLong;
+typedef const VolatileLong ConstVolatileSeven[7];
+long other_sevens[7] = {0, 0, 0, 0, 0, 0, 0};
+ConstVolatileSeven &const_volatile_sevens_ref = other_sevens;
+
 typedef const long ConstSeven[7];
 long sevens[7] = {0, 0, 0, 0, 0, 0, 0};
 ConstSeven &const_sevens_ref = sevens;
