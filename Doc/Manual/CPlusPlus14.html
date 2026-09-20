@@ -178,16 +178,35 @@ plain <tt>int</tt>.
 <p>
 A string literal is an lvalue of array type, so a <tt>decltype(auto)</tt> variable initialised by one
 is a reference to an array of characters rather than the <tt>const char *</tt> that <tt>auto</tt> deduces.
-SWIG cannot tell which character type the literal has, as the encoding prefix is not kept, so it cannot name the deduced type.
-The variable is ignored with warning 346, <em>Unable to wrap variable 'name' deduced as a reference to an array of characters (ignored)</em>.
+The variable is wrapped as the array it refers to is, which for an array of <tt>char</tt> is a string.
 </p>
 
 <div class="code"><pre>
 %inline %{
-auto           pointer_var = "text";  // const char *, wrapped
-decltype(auto) array_var = "text";    // const char (&amp;)[5], ignored, warning 346
+auto           pointer_var = "text";  // const char *
+decltype(auto) array_var = "text";    // const char (&amp;)[5]
 %}
 </pre></div>
+
+<p>
+The <tt>u8</tt>, <tt>u</tt> and <tt>U</tt> encoding prefixes give a literal one of the <tt>char8_t</tt>,
+<tt>char16_t</tt> and <tt>char32_t</tt> character types, none of which SWIG has a type for, so a variable
+deduced from such a literal is dropped after issuing warning 346, which names the prefix:
+</p>
+
+<div class="code"><pre>
+%inline %{
+decltype(auto) utf16_var = u"text";
+%}
+</pre></div>
+
+<div class="shell"><pre>
+example.i:15: Warning 346: Unable to deduce auto type for variable 'utf16_var' from a string literal with a 'u' prefix (ignored).
+</pre></div>
+
+<p>
+The workaround is to ignore the variable, or to declare it with its actual type in the interface file.
+</p>
 
 <p>
 Used as a return type, <tt>decltype(auto)</tt> has to be deduced from the function

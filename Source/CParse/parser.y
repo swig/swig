@@ -891,9 +891,10 @@ static void add_symbols(Node *n) {
               Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' without a trailing return type (ignored).\n",
                   Swig_name_decl(n));
             }
-          } else if (GetFlag(n, "autoarrayreference")) {
-            Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to wrap variable '%s' deduced as a reference to an array of characters (ignored).\n",
-                Swig_name_decl(n));
+          } else if (Getattr(n, "autoliteralprefix")) {
+            Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n),
+                "Unable to deduce auto type for variable '%s' from a string literal with a '%s' prefix (ignored).\n",
+                Swig_name_decl(n), Getattr(n, "autoliteralprefix"));
           } else if (value) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from initialiser '%s' (ignored).\n",
                 Swig_name_decl(n), value);
@@ -2518,7 +2519,8 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
 
 /* Whether the initialiser 'dtype' is a string literal, optionally parenthesised.  The T_STRING code alone does not
    say so: a named cast to 'const char *' summarises to T_STRING too, as does the address of a character and an
-   expression such as '"text" + 1' that merely has a literal as an operand, hence the check on the whole text. */
+   expression such as '"text" + 1' that merely has a literal as an operand, hence the check on the whole text.
+   The decoded text is required as well, that being where the length of the literal is read from. */
 static int initialiser_is_string_literal(const struct Define *dtype) {
   String *unwrapped;
   const char *text;
@@ -2526,7 +2528,7 @@ static int initialiser_is_string_literal(const struct Define *dtype) {
 
   if (dtype->type != T_STRING && dtype->type != T_WSTRING)
     return 0;
-  if (!dtype->val)
+  if (!dtype->val || !dtype->stringval)
     return 0;
   unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
   text = Char(unwrapped ? unwrapped : dtype->val);
@@ -2548,6 +2550,46 @@ static int initialiser_is_string_literal(const struct Define *dtype) {
   return is_literal;
 }
 
+/* Carry the encoding prefix of the string literal 'piece' onto 'literal', the run of adjacent literals it is
+   being concatenated onto.  The run makes one literal of the character type a u8, u or U prefix gives it, else an L
+   prefix, so it keeps the first such prefix, the 'u8' of both u8"a" u8"b" and R"(a)" u8"b". */
+static void append_literal_prefix(String *literal, String *piece) {
+  String *prefix = Getmeta(piece, "encodingprefix");
+  String *kept = Getmeta(literal, "encodingprefix");
+  if (!prefix || (kept && (Strchr(kept, 'u') || Strchr(kept, 'U'))))
+    return;
+  if (Strchr(prefix, 'u') || Strchr(prefix, 'U') || (Strchr(prefix, 'L') && !(kept && Strchr(kept, 'L'))))
+    Setmeta(literal, "encodingprefix", prefix);
+}
+
+/* The encoding prefix of the string literal 'stringval' when that prefix gives the literal one of the char8_t,
+   char16_t and char32_t character types, which SWIG has no type for, and 0 when the literal is of char or
+   wchar_t.  Returns the prefix of whichever of a concatenated run of literals carries one. */
+static String *unsupported_literal_prefix(String *stringval) {
+  String *prefix = Getmeta(stringval, "encodingprefix");
+  return prefix && (Strchr(prefix, 'u') || Strchr(prefix, 'U')) ? prefix : 0;
+}
+
+/* The type of the string literal initialiser 'dtype', which is the array of characters the literal is, so
+   'const char [5]' for "text".  The bound counts the characters of the decoded text and the terminating null.
+   Returns 0 for a literal whose character type SWIG has no type for. */
+static SwigType *string_literal_type(const struct Define *dtype) {
+  String *prefix;
+  SwigType *type;
+  String *bound;
+
+  if (unsupported_literal_prefix(dtype->stringval))
+    return 0;
+  /* A wide literal reaches the grammar as T_WSTRING, except for a raw one, whose L is only in the prefix. */
+  prefix = Getmeta(dtype->stringval, "encodingprefix");
+  type = NewString(dtype->type == T_WSTRING || (prefix && Strchr(prefix, 'L')) ? "wchar_t" : "char");
+  bound = NewStringf("%d", Len(dtype->stringval) + 1);
+  SwigType_add_qualifier(type, "const");
+  SwigType_add_array(type, bound);
+  Delete(bound);
+  return type;
+}
+
 /* The type of an 'auto' variable declared with declarator 'decl' and initialised by 'dtype', which is the type
    deduced from the initialiser with the declarator decoration removed and the placeholder's own cv-qualifier
    added back.  Returns 0 when the initialiser is not one a type can be deduced from.  A function declarator makes
@@ -2558,11 +2600,13 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
   SwigType *initialiser_type;
 
   if (isdecltypeauto && initialiser_is_string_literal(dtype)) {
-    /* A string literal is an lvalue of array type, so 'decltype(auto) s = "text";' declares a reference to an
-     * array of characters and not the 'const char *' that ordinary 'auto' deduces.  The grammar writes the
-     * value text with at most an 'L' prefix, so which character type the literal has is no longer there to
-     * read and the type cannot be named, and no type is deduced. */
-    return 0;
+    /* A string literal is an lvalue ([expr.prim.literal]/1) of array type ([lex.string]/5), and decltype of an
+     * lvalue of type T is T reference ([dcl.type.decltype]/1.5), so 'decltype(auto) s = "text";' declares a
+     * reference to an array of characters and not the 'const char *' that ordinary 'auto' deduces. */
+    type = string_literal_type(dtype);
+    if (type)
+      SwigType_add_reference(type);
+    return type;
   }
   if (isdecltypeauto && initialiser_is_parenthesised_name(dtype)) {
     /* Likewise 'decltype(auto) r = (object);' declares a reference to the object, which is the type that
@@ -2628,6 +2672,7 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       dtype = *first_dtype;
     } else {
       dtype.val = Getattr(n, "value");
+      dtype.stringval = Getattr(n, "stringval");
       dtype.type = GetInt(n, "initialisertypecode");
     }
     if (!isdecltypeauto)
@@ -2639,7 +2684,9 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
         declaration_type = Copy(type);
       Delete(type);
     } else if (isdecltypeauto && initialiser_is_string_literal(&dtype)) {
-      SetFlag(n, "autoarrayreference");
+      String *prefix = unsupported_literal_prefix(dtype.stringval);
+      if (prefix)
+        Setattr(n, "autoliteralprefix", prefix);
     }
   }
 
@@ -9322,29 +9369,33 @@ idcolontailnt   : DCOLON identifier idcolontailnt[in] {
                ;
 
 /* Concatenated strings */
-string	       : string[in] STRING { 
+string	       : string[in] STRING {
 		   $$ = $in;
 		   Append($$, $STRING);
+		   append_literal_prefix($$, $STRING);
 		   Delete($STRING);
 	       }
 	       | STRING
-	       ; 
+	       ;
 wstring	       : wstring[in] WSTRING {
 		   // Concatenated wide strings: L"str1" L"str2"
 		   $$ = $in;
 		   Append($$, $WSTRING);
+		   append_literal_prefix($$, $WSTRING);
 		   Delete($WSTRING);
 	       }
 	       | wstring[in] STRING {
 		   // Concatenated wide string and normal string literal: L"str1" "str2" (C++11).
 		   $$ = $in;
 		   Append($$, $STRING);
+		   append_literal_prefix($$, $STRING);
 		   Delete($STRING);
 	       }
 	       | string[in] WSTRING {
 		   // Concatenated normal string and wide string literal: "str1" L"str2" (C++11).
 		   $$ = $in;
 		   Append($$, $WSTRING);
+		   append_literal_prefix($$, $WSTRING);
 		   Delete($WSTRING);
 	       }
 	       | WSTRING

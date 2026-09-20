@@ -38,6 +38,26 @@ public class cpp14_decltype_auto_runme {
       throw new RuntimeException("missing variable accessor", e);
     }
 
+    // A string literal deduces a reference to the array of characters it is, which is wrapped as
+    // the string that array is wrapped as.  A wide literal has no string wrapping.
+    if (!cpp14_decltype_auto.getVar_string().equals("text"))
+      throw new RuntimeException("var_string");
+    if (!cpp14_decltype_auto.getVar_string_raw().equals("text"))
+      throw new RuntimeException("var_string_raw");
+    if (!cpp14_decltype_auto.getVar_string_concat().equals("text"))
+      throw new RuntimeException("var_string_concat");
+    if (!cpp14_decltype_auto.getVar_string_parens().equals("text"))
+      throw new RuntimeException("var_string_parens");
+    if (cpp14_decltype_auto.getVar_string_wide() == null)
+      throw new RuntimeException("var_string_wide");
+
+    // A u8, u or U literal is of a character type SWIG has no type for, so it is ignored.
+    try {
+      cpp14_decltype_auto.class.getMethod("getVar_string_char16");
+      throw new RuntimeException("var_string_char16 should be ignored (unsupported character type)");
+    } catch (NoSuchMethodException expected) {
+    }
+
     Klass k = new Klass(11);
     if (k.plain() != 11)
       throw new RuntimeException("plain()");

@@ -29,12 +29,20 @@ for ignored in ("ret_plain", "ret_trailing"):
     if hasattr(_mod, ignored):
         raise RuntimeError("%s should be ignored (deduced return type)" % ignored)
 
-# A string literal deduces a reference to an array of a character type SWIG cannot recover, and a
-# parenthesised name deduces a reference the name was not declared with, so both are ignored.
-for ignored in ("var_string", "var_string_wide", "var_string_utf8", "var_string_char16",
-                "var_string_char32", "var_string_raw", "var_string_raw_wide",
-                "var_string_raw_utf8", "var_string_raw_char16", "var_string_raw_char32",
-                "var_string_concat", "var_string_parens", "var_parenthesised"):
+# A string literal deduces a reference to the array of characters it is, which is wrapped as the
+# string that array is wrapped as.
+swig_check(cvar.var_string, "text")
+swig_check(cvar.var_string_raw, "text")
+swig_check(cvar.var_string_concat, "text")
+swig_check(cvar.var_string_parens, "text")
+
+# A wide literal deduces a reference to an array of wchar_t, which has no string wrapping.
+swig_check(isinstance(cvar.var_string_wide, str), False)
+swig_check(isinstance(cvar.var_string_raw_wide, str), False)
+
+# A u8, u or U literal is of a character type SWIG has no type for, so these are ignored.
+for ignored in ("var_string_utf8", "var_string_char16", "var_string_char32",
+                "var_string_raw_utf8", "var_string_raw_char16", "var_string_raw_char32"):
     if hasattr(cvar, ignored):
         raise RuntimeError("%s should be ignored (not wrappable as a variable)" % ignored)
 

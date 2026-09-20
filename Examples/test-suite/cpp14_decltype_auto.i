@@ -16,20 +16,14 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_ref;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) global_ref;
 
-// A string literal is an lvalue of array type, so this declares a reference to an array of
-// characters and not the 'const char *' that ordinary 'auto' deduces.
-%warnfilter(SWIGWARN_CPP11_AUTO) var_string;
-%warnfilter(SWIGWARN_CPP11_AUTO) var_string_wide;
+// The u8, u and U encoding prefixes give a literal one of the char8_t, char16_t and char32_t
+// character types, none of which SWIG has a type for, so these are ignored.
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_utf8;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_char16;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_char32;
-%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw;
-%warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_wide;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_utf8;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char16;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char32;
-%warnfilter(SWIGWARN_CPP11_AUTO) var_string_concat;
-%warnfilter(SWIGWARN_CPP11_AUTO) var_string_parens;
 
 // An operator applied to a string literal makes an expression, and this one has type 'const char *'.
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) var_string_expr;
@@ -51,6 +45,8 @@ decltype(auto) var_ref = global_ref;
 const int global_const = 7;
 decltype(auto) var_const = global_const;
 
+// A string literal is an lvalue of array type, so these declare a reference to an array of
+// characters and not the 'const char *' that ordinary 'auto' deduces.
 decltype(auto) var_string = "text";
 decltype(auto) var_string_wide = L"text";
 decltype(auto) var_string_utf8 = u8"text";

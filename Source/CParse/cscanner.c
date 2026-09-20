@@ -745,8 +745,15 @@ static int yylook(void) {
 
     case SWIG_TOKEN_STRING:
     case SWIG_TOKEN_WSTRING:
-      yylval.str = NewString(Scanner_text(scan));
-      return scanner_literal_token(tok)->parser_token;
+      {
+        String *prefix = Scanner_literal_prefix(scan);
+        yylval.str = NewString(Scanner_text(scan));
+        /* The literal's own text says nothing about which character type it has, so keep the encoding prefix that
+           does with the value, for the parser to read where the character type matters. */
+        if (Len(prefix) > 0)
+          Setmeta(yylval.str, "encodingprefix", NewString(prefix));
+        return scanner_literal_token(tok)->parser_token;
+      }
 
     case SWIG_TOKEN_CHAR:
     case SWIG_TOKEN_WCHAR:

@@ -24,6 +24,7 @@ extern int cparse_start_line;
 
 struct Scanner {
   String *text;   /* Current token value */
+  String *prefix; /* Encoding prefix of the string or character literal just scanned, empty when it had none */
   List *scanobjs; /* Objects being scanned */
   String *str;    /* Current object being scanned */
   char *idstart;  /* Optional identifier start characters */
@@ -63,6 +64,7 @@ Scanner *NewScanner(void) {
   s->idstart = NULL;
   s->scanobjs = NewList();
   s->text = NewStringEmpty();
+  s->prefix = NewStringEmpty();
   s->str = 0;
   s->error = 0;
   s->error_line = 0;
@@ -83,6 +85,7 @@ void DelScanner(Scanner *s) {
   Delete(s->scanobjs);
   Delete(s->brackets);
   Delete(s->text);
+  Delete(s->prefix);
   Delete(s->error);
   Delete(s->str);
   Free(s->idstart);
@@ -508,6 +511,14 @@ static void get_escape(Scanner *s) {
   return;
 }
 
+/* Record the encoding prefix of the string or character literal whose opening quote has just been read, which is
+   whatever of the token text comes before that quote: empty for "text", L for L"text", u8R for u8R"(text)". */
+static void save_literal_prefix(Scanner *s) {
+  Clear(s->prefix);
+  Append(s->prefix, s->text);
+  Delitem(s->prefix, DOH_END);
+}
+
 /* -----------------------------------------------------------------------------
  * look()
  *
@@ -618,9 +629,11 @@ static int look(Scanner *s) {
       else if (c == '\"') {
         state = 2; /* A string constant */
         s->start_line = s->line;
+        save_literal_prefix(s);
         Clear(s->text);
       } else if (c == '\'') {
         s->start_line = s->line;
+        save_literal_prefix(s);
         Clear(s->text);
         state = 9; /* A character constant */
       }
@@ -1043,10 +1056,12 @@ static int look(Scanner *s) {
         return SWIG_TOKEN_ID;
       else if (c == '\"') {
         s->start_line = s->line;
+        save_literal_prefix(s);
         Clear(s->text);
         state = 78;
       } else if (c == '\'') {
         s->start_line = s->line;
+        save_literal_prefix(s);
         Clear(s->text);
         state = 79;
       } else if (isalnum(c) || (c == '_') || (c == '$'))
@@ -1504,6 +1519,16 @@ int Scanner_token(Scanner *s) {
 
 String *Scanner_text(Scanner *s) {
   return s->text;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_literal_prefix()
+ *
+ * Return the encoding prefix of the string or character literal last returned.
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_literal_prefix(Scanner *s) {
+  return s->prefix;
 }
 
 /* -----------------------------------------------------------------------------

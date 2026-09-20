@@ -21,6 +21,19 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-20: wsfulton
+            A 'decltype(auto)' variable initialised by a string literal is now
+            wrapped rather than ignored.  A string literal is an lvalue of array
+            type, so such a variable is a reference to the array of characters
+            the literal is, which is wrapped as the array itself is:
+
+              decltype(auto) text = "abc";    // const char (&)[4]
+
+            The u8, u and U encoding prefixes give a literal one of the char8_t,
+            char16_t and char32_t character types, none of which SWIG has a type
+            for, so a variable initialised by one of those is still ignored, now
+            with a warning naming the prefix.
+
+2026-09-20: wsfulton
             [C#, D, Go, Guile, Java, Lua, OCaml, PHP] A variable or member that
             is a reference to an array of char is now wrapped as the string the
             array itself is wrapped as, rather than as an opaque pointer:

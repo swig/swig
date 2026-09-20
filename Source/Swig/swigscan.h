@@ -20,6 +20,7 @@ extern void Scanner_push(Scanner *, String *);
 extern void Scanner_pushtoken(Scanner *, int, const_String_or_char_ptr value);
 extern int Scanner_token(Scanner *);
 extern String *Scanner_text(Scanner *);
+extern String *Scanner_literal_prefix(Scanner *);
 extern void Scanner_skip_line(Scanner *);
 extern int Scanner_skip_balanced(Scanner *, int startchar, int endchar);
 extern String *Scanner_get_raw_text_balanced(Scanner *, int startchar, int endchar);
