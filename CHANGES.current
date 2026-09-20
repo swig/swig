@@ -20,6 +20,17 @@ Version 4.6.0 (in progress)
 	    `std_string.i` instead) and some for std::complex which I've moved
 	    to new library files `complex.i` and `std_complex.i`.
 
+2026-09-20: wsfulton
+            [Guile] An array of char is now wrapped as a string, as it is in
+            every other target language, rather than as an opaque pointer:
+
+              char letters[4] = "abc";
+
+            A function parameter of type 'char [N]' or 'char []' now likewise
+            requires a string and no longer accepts a pointer.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-09-19: wsfulton
             A typemap written with an [ANY] array dimension is now matched
             behind a pointer to an array, and can declare local variables, in
