@@ -3852,3 +3852,345 @@ Language *Language::instance() {
 Hash *Language::getClassHash() const {
   return classhash;
 }
+
+/* -----------------------------------------------------------------------------
+ * customdoc_feature()
+ *
+ * Copy a format template, preferring a direction and style specific override.
+ * ----------------------------------------------------------------------------- */
+
+static String *customdoc_feature(Node *n, const char *name, const char *direction, const char *style, const char *fallback) {
+  String *value = 0;
+  String *key = NewStringEmpty();
+  if (direction && style) {
+    Printf(key, "feature:customdoc:%s:%s:%s", name, direction, style);
+    value = Getattr(n, key);
+    Clear(key);
+  }
+  if (!value && direction) {
+    Printf(key, "feature:customdoc:%s:%s", name, direction);
+    value = Getattr(n, key);
+    Clear(key);
+  }
+  if (!value && style) {
+    Printf(key, "feature:customdoc:%s:%s", name, style);
+    value = Getattr(n, key);
+    Clear(key);
+  }
+  if (!value) {
+    Printf(key, "feature:customdoc:%s", name);
+    value = Getattr(n, key);
+  }
+  Delete(key);
+  return value ? Copy(value) : NewString(fallback);
+}
+
+/* Substitute only in the template, never in inserted documentation or type labels. */
+static void customdoc_expand(String *format, Hash *values) {
+  String *expanded = NewStringEmpty();
+  const char *text = Char(format);
+  int length = Len(format);
+  for (int offset = 0; offset < length;) {
+    int matched = 0;
+    String *value = 0;
+    if (text[offset] == '$') {
+      for (Iterator it = First(values); it.key; it = Next(it)) {
+        int size = Len(it.key);
+        if (size > matched && size <= length - offset && strncmp(text + offset, Char(it.key), size) == 0) {
+          matched = size;
+          value = it.item;
+        }
+      }
+    }
+    if (matched) {
+      Append(expanded, value);
+      offset += matched;
+    } else {
+      Putc(text[offset++], expanded);
+    }
+  }
+  Clear(format);
+  Append(format, expanded);
+  Delete(expanded);
+}
+
+static String *customdoc_name(Node *n) {
+  const char *saved_names[] = {"memberfunctionHandler:sym:name",
+                               "staticmemberfunctionHandler:sym:name",
+                               "constructorHandler:sym:name",
+                               "copyconstructorHandler:sym:name",
+                               "destructorHandler:sym:name",
+                               "sym:name"};
+  for (unsigned i = 0; i < sizeof(saved_names) / sizeof(saved_names[0]); ++i) {
+    String *name = Getattr(n, saved_names[i]);
+    if (name)
+      return name;
+  }
+  return Getattr(n, "name");
+}
+
+static List *customdoc_overloads(Node *n) {
+  List *overloads = Swig_overload_rank(n, true);
+  if (!overloads || !Len(overloads)) {
+    Delete(overloads);
+    overloads = NewList();
+    Append(overloads, n);
+  }
+  return overloads;
+}
+
+static void customdoc_split(String *text, String *brief, String *body) {
+  if (!text)
+    return;
+  List *lines = SplitLines(text);
+  bool found = false;
+  for (int i = 0; i < Len(lines); ++i) {
+    String *line = Getitem(lines, i);
+    if (!found) {
+      String *trimmed = Copy(line);
+      Chop(trimmed);
+      if (Len(trimmed)) {
+        Append(brief, line);
+        found = true;
+      }
+      Delete(trimmed);
+    } else if (body) {
+      Printf(body, "%s\n", line);
+    }
+  }
+  Delete(lines);
+}
+
+static void customdoc_add_parameter(List *parameters, String *type, String *name, bool self = false) {
+  Hash *parameter = NewHash();
+  Setattr(parameter, "type", type);
+  Setattr(parameter, "name", name);
+  if (self)
+    SetFlag(parameter, "self");
+  Append(parameters, parameter);
+  Delete(parameter);
+}
+
+static String *customdoc_parameter_type(Node *n, const char *attribute) {
+  String *type = Getattr(n, attribute);
+  if (type)
+    return Copy(type);
+  type = Getattr(n, "type");
+  Node *cls = type ? Language::classLookup(type) : 0;
+  return cls ? Copy(Getattr(cls, "sym:name")) : type ? SwigType_str(type, 0) : NewStringEmpty();
+}
+
+static String *customdoc_parameters(Node *n, List *parameters, const char *direction, const char *style) {
+  String *result = NewStringEmpty();
+  String *separator = customdoc_feature(n, "arg:separator", direction, style, ", ");
+  for (int i = 0; i < Len(parameters); ++i) {
+    Hash *parameter = Getitem(parameters, i);
+    String *entry;
+    if (GetFlag(parameter, "self")) {
+      entry = customdoc_feature(n, "arg:self", 0, style, "self");
+    } else {
+      entry = customdoc_feature(n, "arg:normal", direction, style, strcmp(direction, "out") == 0 ? "$type" : "$type $name");
+      if (Len(parameters) == 1) {
+        String *single = customdoc_feature(n, "arg:only", direction, style, Char(entry));
+        Delete(entry);
+        entry = single;
+      }
+      String *name = Getattr(parameter, "name");
+      String *generated_name = 0;
+      if (!name) {
+        generated_name = customdoc_feature(n, "arg:noname", direction, style, "arg$ip");
+        name = generated_name;
+      }
+      String *index = NewStringf("%d", i);
+      String *position = NewStringf("%d", i + 1);
+      Hash *values = NewHash();
+      Setattr(values, "$i", index);
+      Setattr(values, "$ip", position);
+      if (generated_name)
+        customdoc_expand(generated_name, values);
+      Setattr(values, "$type", Getattr(parameter, "type"));
+      Setattr(values, "$name", name);
+      customdoc_expand(entry, values);
+      Delete(values);
+      Delete(index);
+      Delete(position);
+      Delete(generated_name);
+    }
+    if (Len(entry)) {
+      if (Len(result))
+        Append(result, separator);
+      Append(result, entry);
+    }
+    Delete(entry);
+  }
+  Delete(separator);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::customdocPrototype()
+ *
+ * Format a target language prototype using typemap documentation attributes.
+ * ----------------------------------------------------------------------------- */
+
+String *Language::customdocPrototype(Node *n, const char *style) {
+  List *inputs = NewList();
+  List *outputs = NewList();
+  ParmList *parms = Getattr(n, "wrap:parms");
+  if (!parms)
+    parms = Getattr(n, "parms");
+  for (Parm *p = parms; p;) {
+    Parm *next = Getattr(p, "tmap:in:next");
+    if (!next)
+      next = nextSibling(p);
+    if (!GetFlag(p, "customdoc:ignore") && !checkAttribute(p, "tmap:in:numinputs", "0") && !checkAttribute(p, "type", "void")) {
+      String *type = customdoc_parameter_type(p, "tmap:in:doc");
+      String *name = Getattr(p, "tmap:doc:name");
+      if (!name)
+        name = Getattr(p, "name");
+      customdoc_add_parameter(inputs, type, name, GetFlag(p, "self"));
+      Delete(type);
+    }
+    p = next;
+  }
+  emit_output_summary(n, parms, false);
+  if (GetFlag(n, "wrap:returnsurvives")) {
+    String *type = customdoc_parameter_type(n, "tmap:out:doc");
+    customdoc_add_parameter(outputs, type, 0);
+    Delete(type);
+  }
+  List *output_parameters = Getattr(n, "wrap:outputparms");
+  for (int i = 0; i < Len(output_parameters); ++i) {
+    Parm *p = Getitem(output_parameters, i);
+    String *type = customdoc_parameter_type(p, "tmap:argout:doc");
+    customdoc_add_parameter(outputs, type, Getattr(p, "name"));
+    Delete(type);
+  }
+  const char *kind = Equal(nodeType(n), "constructor") ? "constructor" : !Len(outputs) ? "void" : Len(outputs) == 1 ? "single_out" : "normal";
+  String *prototype = customdoc_feature(n, "proto", kind, style, !Len(outputs) || Equal(nodeType(n), "constructor") ? "$name($in)" : "$name($in) -> $out");
+  String *name = customdoc_name(n);
+  String *upper = Swig_string_upper(name);
+  String *in = customdoc_parameters(n, inputs, "in", style);
+  String *out = customdoc_parameters(n, outputs, "out", style);
+  Hash *values = NewHash();
+  Setattr(values, "$name", name);
+  Setattr(values, "$NAME", upper);
+  Setattr(values, "$in", in);
+  Setattr(values, "$out", out);
+  customdoc_expand(prototype, values);
+  Delete(values);
+  Delete(upper);
+  Delete(in);
+  Delete(out);
+  Delete(inputs);
+  Delete(outputs);
+  return prototype;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::customdocDocumentation()
+ *
+ * Format an overview and overload groups in deterministic dispatch order.
+ * ----------------------------------------------------------------------------- */
+
+String *Language::customdocDocumentation(Node *n) {
+  bool is_class = Equal(nodeType(n), "class");
+  List *overloads = is_class ? NewList() : customdoc_overloads(n);
+  String *brief = NewStringEmpty();
+  String *body = NewStringEmpty();
+  customdoc_split(Getattr(n, "feature:docstring"), brief, body);
+  String *result = customdoc_feature(n, "main", 0, 0, "$brief\n\n$overview\n$main");
+  String *overview = NewStringEmpty();
+  List *documents = NewList();
+  Hash *groups = NewHash();
+  for (int i = 0; i < Len(overloads); ++i) {
+    Node *overload = Getitem(overloads, i);
+    String *doc = Getattr(overload, "feature:docstring");
+    String *key = doc ? Copy(doc) : NewStringEmpty();
+    List *group = Getattr(groups, key);
+    if (!group) {
+      group = NewList();
+      Append(documents, key);
+      Setattr(groups, key, group);
+      Delete(group);
+    }
+    Append(group, overload);
+    String *local_brief = NewStringEmpty();
+    customdoc_split(doc, local_brief, 0);
+    String *line = customdoc_feature(n, "protoline", Equal(brief, local_brief) ? "nobrief" : 0, "style_overview", "$proto");
+    String *prototype = customdocPrototype(overload, "style_overview");
+    Hash *values = NewHash();
+    Setattr(values, "$proto", prototype);
+    Setattr(values, "$brief", local_brief);
+    customdoc_expand(line, values);
+    Delete(values);
+    Printf(overview, "%s\n", line);
+    Delete(line);
+    Delete(prototype);
+    Delete(local_brief);
+    Delete(key);
+  }
+  String *name = customdoc_name(n);
+  String *upper = Swig_string_upper(name);
+  Hash *values = NewHash();
+  Setattr(values, "$name", name);
+  Setattr(values, "$NAME", upper);
+  Setattr(values, "$brief", brief);
+  Setattr(values, "$overview", overview);
+  Setattr(values, "$main", body);
+  customdoc_expand(result, values);
+  Delete(values);
+  if (Len(documents) > 1) {
+    for (int i = 0; i < Len(documents); ++i) {
+      String *doc = Getitem(documents, i);
+      List *group = Getattr(groups, doc);
+      String *lines = NewStringEmpty();
+      for (int j = 0; j < Len(group); ++j) {
+        String *prototype = customdocPrototype(Getitem(group, j), "style_group");
+        String *line = customdoc_feature(n, "protoline", 0, "style_group", "$proto");
+        Replaceall(line, "$proto", prototype);
+        Printf(lines, "%s\n", line);
+        Delete(prototype);
+        Delete(line);
+      }
+      String *section = customdoc_feature(n, "group", 0, 0, "\n$group\n$main\n");
+      Hash *values = NewHash();
+      Setattr(values, "$group", lines);
+      Setattr(values, "$main", doc);
+      customdoc_expand(section, values);
+      Delete(values);
+      Append(result, section);
+      Delete(section);
+      Delete(lines);
+    }
+  }
+  Delete(upper);
+  Delete(brief);
+  Delete(body);
+  Delete(overview);
+  Delete(documents);
+  Delete(groups);
+  Delete(overloads);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Language::customdocPrototypes()
+ *
+ * Format the prototypes used in an overload dispatch diagnostic.
+ * ----------------------------------------------------------------------------- */
+
+String *Language::customdocPrototypes(Node *n) {
+  List *overloads = customdoc_overloads(n);
+  String *result = NewStringEmpty();
+  for (int i = 0; i < Len(overloads); ++i) {
+    String *prototype = customdocPrototype(Getitem(overloads, i), "style_error");
+    String *line = customdoc_feature(n, "protoline", 0, "style_error", "    $proto");
+    Replaceall(line, "$proto", prototype);
+    Printf(result, "%s\n", line);
+    Delete(line);
+    Delete(prototype);
+  }
+  Delete(overloads);
+  return result;
+}

@@ -221,6 +221,11 @@ public:
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm); /* Language specific special variable substitutions for $typemap() */
   virtual String *composeOutputType(Node *n, List *types);                      /* Language specific type describing all the values a function returns */
 
+  /* Custom documentation templates. */
+  String *customdocPrototype(Node *n, const char *style);
+  String *customdocDocumentation(Node *n);
+  String *customdocPrototypes(Node *n);
+
   /* Runtime is C++ based, so extern "C" header section */
   void enable_cplus_runtime_mode();
 

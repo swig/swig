@@ -117,6 +117,7 @@
 <li><a href="#Python_nn70">%feature("autodoc", "docstring")</a>
 </ul>
 <li><a href="#Python_nn71">%feature("docstring")</a>
+<li><a href="#Python_customdoc">Custom documentation templates</a>
 <li><a href="#Python_doxygen_docstrings">Doxygen comments</a>
 </ul>
 <li><a href="#Python_nn72">Python Packages</a>
@@ -6192,7 +6193,123 @@ with more than one line.
 </pre>
 </div>
 
-<H3><a name="Python_doxygen_docstrings">35.10.4 Doxygen comments</a></H3>
+<H3><a name="Python_customdoc">35.10.4 Custom documentation templates</a></H3>
+
+
+<p>
+The <tt>customdoc</tt> feature replaces the usual combined autodoc and docstring
+with a template. It also uses the formatted prototypes in argument conversion and
+overload dispatch errors. Enable it for selected declarations or globally:
+</p>
+
+<div class="code"><pre>
+%feature("customdoc", "1");
+%feature("customdoc:main", "$brief\n\n$overview\n$main");
+%feature("customdoc:arg:normal", "$type $name");
+%feature("customdoc:arg:only:out", "$type");
+%feature("customdoc:proto:single_out", "$name($in) -&gt; $out");
+%feature("docstring", "Add two integers.\nBoth arguments are required.") add;
+int add(int left, int right);
+</pre></div>
+
+<p>
+The generated documentation includes <tt>add(int left, int right) -&gt; int</tt>.
+Templates have defaults, so <tt>%feature("customdoc", "1")</tt> alone is sufficient.
+Use <tt>%feature("customdoc", "0")</tt> to disable it for a declaration.
+It works with ordinary proxies, <tt>-fastproxy</tt> and <tt>-builtin</tt>.
+</p>
+
+<p>
+The first nonempty line of <tt>%feature("docstring")</tt> supplies <tt>$brief</tt>;
+subsequent lines supply <tt>$main</tt>. The overview lists overloads in dispatch
+order. When overloads have different docstrings, a separate group is appended for
+each distinct docstring, preserving the same order. Classes have no prototype overview.
+The <tt>customdoc</tt> feature takes precedence over autodoc and Doxygen conversion.
+</p>
+
+<div class="table"><table summary="Custom documentation templates" border="1">
+<tr><th>Feature suffix after customdoc:</th><th>Purpose and substitutions</th></tr>
+<tr><td>main</td><td>Overall document: $name, $NAME, $brief, $overview, $main</td></tr>
+<tr><td>group</td><td>Overload group: $group (prototypes), $main (complete docstring)</td></tr>
+<tr><td>protoline</td><td>One prototype line: $proto, and $brief in an overview</td></tr>
+<tr><td>proto</td><td>Prototype: $name, $NAME, $in, $out</td></tr>
+<tr><td>arg:normal</td><td>Argument: $type, $name, $i (zero based), $ip (one based)</td></tr>
+<tr><td>arg:only</td><td>Override arg:normal for a single argument</td></tr>
+<tr><td>arg:noname</td><td>Name for an unnamed argument: $i, $ip; default arg$ip</td></tr>
+<tr><td>arg:self</td><td>Instance receiver; default self</td></tr>
+<tr><td>arg:separator</td><td>Separator between arguments; default comma and space</td></tr>
+</table></div>
+
+<p>
+Append <tt>:in</tt> or <tt>:out</tt> to argument templates to override one direction.
+Append <tt>:constructor</tt>, <tt>:void</tt>, <tt>:single_out</tt> or <tt>:normal</tt>
+to <tt>proto</tt> to select the return shape. Append <tt>:style_overview</tt>,
+<tt>:style_group</tt> or <tt>:style_error</tt> to any applicable template to select
+its use. Lookup prefers both direction/shape and style, then direction/shape alone,
+then style alone, then the base template. For example:
+</p>
+
+<div class="code"><pre>
+%feature("customdoc:arg:normal:in:style_error", "$type");
+%feature("customdoc:proto:void:style_error", "$name($in)");
+%feature("customdoc:protoline:nobrief:style_overview", "  $proto");
+</pre></div>
+
+<p>
+The <tt>nobrief</tt> prototype line applies when an overload's brief matches the
+main brief. <tt>$NAME</tt> is the uppercase wrapped name. Templates are copied
+before substitution, so global formats can be reused across declarations.
+Substitution is performed only on the template: dollar-prefixed text in
+docstrings and typemap documentation labels is preserved literally.
+</p>
+
+<p>
+A <tt>doc</tt> attribute on an <tt>in</tt>, <tt>out</tt> or <tt>argout</tt> typemap
+provides its displayed type. Otherwise the wrapped class name or C/C++ type is used.
+Input typemaps consuming no arguments are omitted from the input list; INOUT
+arguments appear in both lists. The returned values respect the
+<a href="Typemaps.html#Typemaps_nn32">argout</a> attributes <tt>numoutputs</tt> and
+<tt>overwrite</tt>. Documentation labels do not change runtime conversion or
+<a href="#Python_annotations">type annotations</a>.
+</p>
+
+<p>
+Error templates are escaped for the generated C/C++ source. They add information
+to a <tt>TypeError</tt> without replacing other exceptions raised by user code.
+Operators using <tt>python:maybecall</tt> retain their <tt>NotImplemented</tt> behavior.
+</p>
+
+<p>
+To append application-specific descriptions of rejected arguments, set a qualified
+Python callback name alongside <tt>customdoc</tt>:
+</p>
+
+<div class="code"><pre>
+%feature("python:customdoc:argtypes", "example.describe_arguments");
+</pre></div>
+
+<div class="targetlang"><pre>
+def describe_arguments(*args):
+    return tuple(type(arg).__name__ for arg in args)
+</pre></div>
+
+<p>
+The callback is looked up in the named, already loaded module; SWIG does not import it.
+It receives the positional arguments and the representation of its return value is
+appended to the <tt>TypeError</tt> as <tt>You have: ...</tt>. Proxy methods include
+<tt>self</tt> among these arguments; builtin bound methods pass <tt>self</tt> separately
+and omit it from the callback arguments. Proxy director constructors include their
+internal instance argument (<tt>None</tt> for direct construction), while builtin
+constructors omit it. This internal argument is omitted from generated constructor
+prototypes in either mode. Keyword arguments are not included.
+A missing or noncallable callback, or an exception while calling it or formatting its
+result, leaves the original diagnostic unchanged. Other exception types are preserved
+without calling the callback. This feature is disabled by default; use <tt>"0"</tt>
+to disable an inherited setting for a declaration. An empty value clears a local
+setting, restoring any inherited callback.
+</p>
+
+<H3><a name="Python_doxygen_docstrings">35.10.5 Doxygen comments</a></H3>
 
 
 <p>

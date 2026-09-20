@@ -1700,7 +1700,7 @@ public:
 
   bool have_docstring(Node *n) {
     String *str = Getattr(n, "feature:docstring");
-    return ((str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) ||
+    return (GetFlag(n, "feature:customdoc") || (str && Len(str) > 0) || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) ||
             (doxygen && doxygenTranslator->hasDocumentation(n)));
   }
 
@@ -1738,6 +1738,12 @@ public:
    * ------------------------------------------------------------ */
 
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const char *indent = "", bool low_level = false) {
+    if (GetFlag(n, "feature:customdoc")) {
+      String *text = customdocDocumentation(n);
+      String *indented = indent_docstring(text, indent);
+      Delete(text);
+      return indented;
+    }
     bool add_autodoc = true;
     String *docstr = Getattr(n, "feature:docstring");
     if (docstr) {
@@ -1843,42 +1849,21 @@ public:
     if (!len)
       return docstr;
 
-    // Notice that all comments are created as raw strings (prefix "r"),
-    // because '\' is used often in comments, but may break Python module from
-    // loading. For example, in doxy comment one may write path in quotes:
-    //
-    //     This is path to file "C:\x\file.txt"
-    //
-    // Python will not load the module with such comment because of illegal
-    // escape '\x'. '\' may additionally appear in verbatim or htmlonly sections
-    // of doxygen doc, Latex expressions, ...
-    String *doc = NewString("");
-
-    // Determine which kind of quotes to use as delimiters: for single line
-    // strings we can avoid problems with having a quote as the last character
-    // of the docstring by using different kind of quotes as delimiters. For
-    // multi-line strings this problem doesn't arise, as we always have a new
-    // line or spaces at the end of it, but it still does no harm to do it for
-    // them too.
-    //
-    // Note: we use double quotes by default, i.e. if there is no reason to
-    // prefer using single ones, for consistency with the older SWIG versions.
-    const bool useSingleQuotes = (Char(docstr))[len - 1] == '"';
-
-    Append(doc, useSingleQuotes ? "r'''" : "r\"\"\"");
-
-    // We also need to avoid having triple quotes of whichever type we use, as
-    // this would break Python doc string syntax too. Unfortunately there is no
-    // way to have triple quotes inside of raw-triple-quoted string, so we have
-    // to break the string in parts and rely on concatenation of the adjacent
-    // string literals.
-    if (useSingleQuotes)
-      Replaceall(docstr, "'''", "''' \"'''\" '''");
-    else
-      Replaceall(docstr, "\"\"\"", "\"\"\" '\"\"\"' \"\"\"");
-
-    Append(doc, docstr);
-    Append(doc, useSingleQuotes ? "'''" : "\"\"\"");
+    /* Ordinary triple-quoted strings preserve documentation after escaping backslashes and quotes,
+       including a backslash immediately before triple quotes. Keep UTF-8 bytes unchanged. */
+    String *doc = NewString("\"\"\"");
+    for (int i = 0; i < len; ++i) {
+      unsigned char c = Char(docstr)[i];
+      if (c == '\\' || c == '"') {
+        Putc('\\', doc);
+        Putc(c, doc);
+      } else if ((c < 32 && c != '\n' && c != '\t') || c == 127) {
+        Printf(doc, "\\x%02x", c);
+      } else {
+        Putc(c, doc);
+      }
+    }
+    Append(doc, "\"\"\"");
     Delete(docstr);
 
     return doc;
@@ -3399,6 +3384,29 @@ public:
     }
   }
 
+  /* Emit the optional Python callback used to describe rejected arguments. */
+  void customdocArgumentDescription(Node *n, Wrapper *f, bool single_argument = false) {
+    String *callback = Getattr(n, "feature:python:customdoc:argtypes");
+    if (!callback || Len(callback) == 0 || Equal(callback, "0"))
+      return;
+    const char *separator = strrchr(Char(callback), '.');
+    if (!separator || separator == Char(callback) || !separator[1]) {
+      Swig_error(input_file, line_number, "The 'python:customdoc:argtypes' feature requires a qualified module.callback name.\n");
+      return;
+    }
+    String *module_name = NewStringWithSize(Char(callback), separator - Char(callback));
+    Seek(module_name, 0, SEEK_SET);
+    String *escaped_module = Swig_string_escape(module_name);
+    String *callback_name = NewString(separator + 1);
+    Seek(callback_name, 0, SEEK_SET);
+    String *escaped_callback = Swig_string_escape(callback_name);
+    Printf(f->code, "  SWIG_Python_AddArgumentDescription(\"%s\", \"%s\", args, %d);\n", escaped_module, escaped_callback, single_argument ? 1 : 0);
+    Delete(escaped_callback);
+    Delete(callback_name);
+    Delete(escaped_module);
+    Delete(module_name);
+  }
+
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
@@ -3489,6 +3497,19 @@ public:
       Append(f->code, "fail:\n");
       Append(f->code, "  SWIG_Py_INCREF(Py_NotImplemented);\n");
       Append(f->code, "  return Py_NotImplemented;\n");
+    } else if (GetFlag(n, "feature:customdoc")) {
+      String *prototypes = customdocPrototypes(n);
+      Seek(prototypes, 0, SEEK_SET);
+      String *escaped = Swig_string_escape(prototypes);
+      Append(f->code, "fail:\n");
+      Printf(f->code,
+             "  if (!PyErr_Occurred() || PyErr_ExceptionMatches(PyExc_TypeError))\n"
+             "    SWIG_Python_RaiseOrModifyTypeError(\"Possible prototypes are:\\n%s\");\n",
+             escaped);
+      customdocArgumentDescription(n, f);
+      Printf(f->code, "return %s;\n", builtin_ctor ? "-1" : "0");
+      Delete(escaped);
+      Delete(prototypes);
     } else {
       Node *sibl = n;
       while (Getattr(sibl, "sym:previousSibling"))
@@ -4122,6 +4143,18 @@ public:
     Append(f->code, "fail:\n");
     if (need_cleanup) {
       Printv(f->code, cleanup, NIL);
+    }
+    if (GetFlag(n, "feature:customdoc") && !Getattr(n, "sym:overloaded") && !GetFlag(n, "feature:python:maybecall")) {
+      String *prototype = customdocPrototype(n, "style_error");
+      Seek(prototype, 0, SEEK_SET);
+      String *escaped = Swig_string_escape(prototype);
+      Printf(f->code,
+             "  if (!PyErr_Occurred() || PyErr_ExceptionMatches(PyExc_TypeError))\n"
+             "    SWIG_Python_RaiseOrModifyTypeError(\"Prototype: %s\");\n",
+             escaped);
+      customdocArgumentDescription(n, f, funpack && onearg && !builtin_ctor && !Equal(Getattr(n, "feature:python:slot"), "tp_call"));
+      Delete(escaped);
+      Delete(prototype);
     }
     if (builtin_ctor) {
       Printv(f->code, "  return -1;\n", NIL);
@@ -5952,6 +5985,7 @@ public:
       Delete(type);
       Delete(name);
       Setattr(self, "lname", "O");
+      SetFlag(self, "customdoc:ignore");
       if (parms)
         set_nextSibling(self, parms);
       Setattr(n, "parms", self);

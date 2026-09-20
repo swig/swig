@@ -106,3 +106,48 @@ SWIG_Python_RaiseOrModifyTypeError(const char *message)
     PyErr_SetString(PyExc_TypeError, message);
   }
 }
+
+/* Append an optional argument description without allowing diagnostic callbacks
+   to replace the original exception. All objects retained across Python calls
+   own their references, including the tuple built for METH_O wrappers. */
+SWIGRUNTIME void
+SWIG_Python_AddArgumentDescription(const char *module_name, const char *callback_name, PyObject *args, int single_argument)
+{
+  PyObject *type = NULL, *value = NULL, *traceback = NULL;
+  PyObject *module, *callback = NULL, *arguments = NULL, *result = NULL, *description = NULL, *bytes = NULL;
+  const char *text = NULL;
+  if (!PyErr_ExceptionMatches(PyExc_TypeError))
+    return;
+  PyErr_Fetch(&type, &value, &traceback);
+  module = PyDict_GetItemString(PyImport_GetModuleDict(), module_name);
+  if (module && PyModule_Check(module)) {
+    callback = PyDict_GetItemString(PyModule_GetDict(module), callback_name);
+    SWIG_Py_XINCREF(callback);
+    if (callback && PyCallable_Check(callback)) {
+      if (single_argument)
+        arguments = args ? PyTuple_Pack(1, args) : PyTuple_New(0);
+      else if (args && PyTuple_Check(args)) {
+        arguments = args;
+        SWIG_Py_INCREF(arguments);
+      } else if (!args)
+        arguments = PyTuple_New(0);
+      if (arguments)
+        result = PyObject_CallObject(callback, arguments);
+      if (result)
+        description = PyUnicode_FromFormat("You have: %R", result);
+      if (description)
+        bytes = PyUnicode_AsUTF8String(description);
+      if (bytes)
+        text = PyBytes_AsString(bytes);
+    }
+  }
+  SWIG_Py_XDECREF(description);
+  SWIG_Py_XDECREF(result);
+  SWIG_Py_XDECREF(arguments);
+  SWIG_Py_XDECREF(callback);
+  PyErr_Clear();
+  PyErr_Restore(type, value, traceback);
+  if (text)
+    SWIG_Python_RaiseOrModifyTypeError(text);
+  SWIG_Py_XDECREF(bytes);
+}

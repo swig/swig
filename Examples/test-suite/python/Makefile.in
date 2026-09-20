@@ -61,6 +61,8 @@ CPP_TEST_CASES += \
 	python_annotations_variable_typing \
 	python_append \
 	python_builtin \
+	python_customdoc \
+	python_customdoc_director \
 	python_destructor_exception \
 	python_director \
 	python_director_pyobject \
@@ -127,6 +129,7 @@ C_TEST_CASES += \
 	file_test \
 	li_cstring \
 	li_cwstring \
+	python_customdoc_c \
 	python_nondynamic \
 	python_varargs_typemap \
 	python_weakref \
