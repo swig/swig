@@ -4495,6 +4495,79 @@ public:
     return result;
   }
 
+  /* Resolve integer tokens without evaluating C expressions or assuming the target's integer widths. */
+  static bool stubEnumLiteral(String *expression, int64_t &value) {
+    const char *text = Char(expression);
+    while (isspace((unsigned char)*text))
+      ++text;
+    bool negative = *text == '-';
+    if (*text == '-' || *text == '+')
+      ++text;
+    while (isspace((unsigned char)*text))
+      ++text;
+    if (!isdigit((unsigned char)*text))
+      return false;
+    bool nondecimal = text[0] == '0' && text[1] && !isspace((unsigned char)text[1]);
+    char *end;
+    errno = 0;
+    uint64_t magnitude = strtoull(text, &end, 0);
+    if (errno == ERANGE || magnitude > (uint64_t)INT64_MAX)
+      return false;
+    char suffix[4];
+    int length = 0;
+    while (*end && !isspace((unsigned char)*end)) {
+      if (length == 3)
+        return false;
+      suffix[length++] = (char)tolower((unsigned char)*end++);
+    }
+    suffix[length] = 0;
+    while (isspace((unsigned char)*end))
+      ++end;
+    if (*end || (strcmp(suffix, "") && strcmp(suffix, "u") && strcmp(suffix, "l") && strcmp(suffix, "ll") && strcmp(suffix, "ul") && strcmp(suffix, "lu") &&
+                 strcmp(suffix, "ull") && strcmp(suffix, "llu")))
+      return false;
+    /* Unary minus on unsigned literals wraps at a target-dependent width. Hexadecimal and octal
+       literals can also have unsigned type without an explicit 'u' suffix. */
+    if (negative && (strchr(suffix, 'u') || (nondecimal && magnitude > PYTHON_INT_MAX && strcmp(suffix, "ll"))))
+      return false;
+    value = negative ? -(int64_t)magnitude : (int64_t)magnitude;
+    return true;
+  }
+
+  /* ------------------------------------------------------------
+   * enumDeclaration()
+   *
+   * Resolve each enum independently, including ignored members and
+   * explicit resets after unknown expressions.
+   * ------------------------------------------------------------ */
+  virtual int enumDeclaration(Node *n) {
+    if (pyi_stub) {
+      int64_t value = 0;
+      bool known = true;
+      for (Node *item = firstChild(n); item; item = nextSibling(item)) {
+        Delattr(item, "python:stub:enumvalue");
+        String *expression = Getattr(item, "enumvalue");
+        if (expression && !GetFlag(item, "virtenumvalue"))
+          known = stubEnumLiteral(expression, value);
+        bool enabled =
+          Getattr(item, "feature:python:stub:enumvalues") ? GetFlag(item, "feature:python:stub:enumvalues") : GetFlag(n, "feature:python:stub:enumvalues");
+        /* The default Python enum constant typemap converts through C int. */
+        if (known && enabled && value >= PYTHON_INT_MIN && value <= PYTHON_INT_MAX) {
+          String *literal = NewStringf("%d", (int)value);
+          Setattr(item, "python:stub:enumvalue", literal);
+          Delete(literal);
+        }
+        if (known) {
+          if (value == INT64_MAX)
+            known = false;
+          else
+            ++value;
+        }
+      }
+    }
+    return Language::enumDeclaration(n);
+  }
+
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
@@ -4596,7 +4669,10 @@ public:
 
     if (pyi_stub && !in_class) {
       String *annotation = variableAnnotationForStub(n);
-      Printv(stub, iname, annotation, "\n", NIL);
+      Printv(stub, iname, annotation, NIL);
+      if (String *literal = Getattr(n, "python:stub:enumvalue"))
+        Printv(stub, " = ", literal, NIL);
+      Printv(stub, "\n", NIL);
       if (have_docstring(n))
         Printv(stub, docstring(n, AUTODOC_CONST, tab4), "\n", NIL);
       Delete(annotation);
@@ -6303,7 +6379,10 @@ public:
     }
     if (pyi_stub) {
       String *annotation = variableAnnotationForStub(n);
-      Printv(stub, tab4, symname, annotation, "\n", NIL);
+      Printv(stub, tab4, symname, annotation, NIL);
+      if (String *literal = Getattr(n, "python:stub:enumvalue"))
+        Printv(stub, " = ", literal, NIL);
+      Printv(stub, "\n", NIL);
       Delete(annotation);
     }
     return SWIG_OK;

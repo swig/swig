@@ -114,6 +114,7 @@ endif
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
 	cpp11_python_abstractbase \
+	cpp11_python_pyi_enumvalues \
 	cpp11_std_unordered_map \
 	cpp11_std_unordered_multimap \
 	cpp11_std_unordered_multiset \
@@ -151,6 +152,7 @@ SWIGOPT += -Werror
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 python_typehints.cpptest: SWIGOPT += -typehints
+cpp11_python_pyi_enumvalues.cpptest: SWIGOPT += -pyi
 python_pyi.cpptest: SWIGOPT += -pyi
 python_pyi_untyped.cpptest: SWIGOPT += -pyi
 
