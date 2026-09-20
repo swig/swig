@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-20: jgillis
+            [Python] Add the optional python:stub:parameters feature to preserve
+            typed parameters in .pyi files for functions with one signature using
+            compactdefaultargs or nonliteral defaults. Default values are written
+            as ..., and the generated runtime wrappers are unchanged.
+            Director constructor stubs omit the internal Python instance argument.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These
