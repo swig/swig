@@ -3032,8 +3032,21 @@ public:
     String *tm = Getattr(n, "tmap:pytyping");
     if (tm)
       tm = Copy(tm);
-    else
+    else {
+      /* Wrapper generation may replace an extended member's name with the C++
+         helper name. Named pytyping typemaps refer to the original member. */
+      String *membername = Getattr(n, "memberfunctionHandler:name");
+      if (!membername)
+        membername = Getattr(n, "staticmemberfunctionHandler:name");
+      String *wrappername = membername ? Copy(Getattr(n, "name")) : 0;
+      if (membername)
+        Setattr(n, "name", membername);
       tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
+      if (membername) {
+        Setattr(n, "name", wrappername);
+        Delete(wrappername);
+      }
+    }
     if (tm && out) {
       String *outty = Getattr(n, "tmap:pytyping:out");
       if (outty) {
@@ -3248,6 +3261,140 @@ public:
     }
   }
 
+  /* Cache an overload while its wrapped parameter and return types are available. */
+  void cacheOverloadStub(Node *n) {
+    if (!pyi_stub || !GetFlag(n, "feature:python:stub:overloads") || getTypeAnnotationMode(n) != TYPE_ANNOTATION_TYPING)
+      return;
+
+    Node *rank_source = Getattr(n, "defaultargs");
+    if (!rank_source)
+      rank_source = n;
+    String *rank = Getattr(rank_source, "feature:python:stub:overloads:rank");
+    int priority = 0;
+    if (rank) {
+      const char *value = Char(rank);
+      const char *digits = value;
+      if (*digits == '+' || *digits == '-')
+        ++digits;
+      const char *end_digits = digits;
+      while (*end_digits >= '0' && *end_digits <= '9')
+        ++end_digits;
+      errno = 0;
+      char *end;
+      long parsed = strtol(value, &end, 10);
+      if (digits == end_digits || *end_digits || *end || errno == ERANGE || parsed < INT_MIN || parsed > INT_MAX) {
+        Swig_error(Getfile(n), Getline(n), "python:stub:overloads rank must be a signed integer between %d and %d, got '%s'.\n", INT_MIN, INT_MAX, rank);
+        return;
+      }
+      priority = (int)parsed;
+    }
+    SetInt(n, "python:stub:overload:rank", priority);
+    if (!Getattr(n, "sym:overloaded"))
+      return;
+
+    ParmList *parms = Getattr(n, "wrap:parms");
+    /* constructorHandler prepends the Python instance for director construction. */
+    if (Equal(nodeType(n), "constructor") && Swig_directorclass(n))
+      parms = nextSibling(parms);
+    Swig_typemap_attach_parms("pytyping", parms, 0);
+    String *signature = NewStringEmpty();
+    int index = 0;
+    for (Parm *p = parms; p;) {
+      Parm *next = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+      if (!Getattr(p, "self") && !checkAttribute(p, "tmap:in:numinputs", "0") && !Equal(Getattr(p, "type"), "void")) {
+        if (SwigType_isvarargs(Getattr(p, "type"))) {
+          Delete(signature);
+          return;
+        }
+        String *type = lookupPytyping(p);
+        if (index)
+          Append(signature, ", ");
+        Printf(signature, "__arg%d: \"%s\"", ++index, type ? type : "typing.Any");
+        if (Getattr(p, "value") || Getattr(p, "tmap:default"))
+          Append(signature, " = ...");
+        Delete(type);
+      }
+      p = next;
+    }
+    Setattr(n, "python:stub:overload:parms", signature);
+    Delete(signature);
+    String *result = rawReturnAnnotation(n, TYPE_ANNOTATION_TYPING);
+    Setattr(n, "python:stub:overload:return", result ? result : "typing.Any");
+    Delete(result);
+  }
+
+  /* Emit opt-in overload declarations, preserving runtime order within each explicit rank. */
+  bool emitOverloadStubs(Node *n, File *destination, const String *name, const String *indent, bool instance, bool is_static, bool constructor) {
+    if (!GetFlag(n, "feature:python:stub:overloads") || getTypeAnnotationMode(n) != TYPE_ANNOTATION_TYPING || !is_real_overloaded(n))
+      return false;
+    List *ranked = Swig_overload_rank(n, true);
+    if (!ranked)
+      return false;
+    List *ordered = NewList();
+    for (Iterator it = First(ranked); it.item; it = Next(it)) {
+      int position = 0;
+      int rank = GetInt(it.item, "python:stub:overload:rank");
+      while (position < Len(ordered) && GetInt(Getitem(ordered, position), "python:stub:overload:rank") <= rank)
+        ++position;
+      Insert(ordered, position, it.item);
+    }
+    Delete(ranked);
+    ranked = ordered;
+    List *signatures = NewList();
+    Hash *returns = NewHash();
+    bool complete = true;
+    /* Default argument copies have their own dispatch rank and must remain in the signature list. */
+    for (Iterator it = First(ranked); it.item; it = Next(it)) {
+      Node *overload = it.item;
+      String *params = Getattr(overload, "python:stub:overload:parms");
+      String *result = constructor ? NewString("None") : Copy(Getattr(overload, "python:stub:overload:return"));
+      if (!params || !result) {
+        Delete(result);
+        complete = false;
+        break;
+      }
+      List *types = Getattr(returns, params);
+      if (!types) {
+        types = NewList();
+        Setattr(returns, params, types);
+        Append(signatures, params);
+        Delete(types);
+      }
+      bool duplicate = false;
+      for (Iterator rt = First(types); rt.item; rt = Next(rt))
+        if (Equal(rt.item, result))
+          duplicate = true;
+      if (!duplicate)
+        Append(types, result);
+      Delete(result);
+    }
+    if (complete && Len(signatures)) {
+      for (Iterator it = First(signatures); it.item; it = Next(it)) {
+        String *params = it.item;
+        List *types = Getattr(returns, params);
+        Printf(destination, "\n%s", indent);
+        if (Len(signatures) > 1)
+          Printf(destination, "@typing.overload\n%s", indent);
+        if (is_static)
+          Printf(destination, "@staticmethod\n%s", indent);
+        Printf(destination, "def %s(%s%s%s) -> \"", name, instance ? "self" : "", instance && Len(params) ? ", " : "", params);
+        if (Len(types) > 1)
+          Append(destination, "typing.Union[");
+        for (int i = 0; i < Len(types); ++i)
+          Printf(destination, "%s%s", i ? ", " : "", Getitem(types, i));
+        if (Len(types) > 1)
+          Append(destination, "]");
+        Printf(destination, "\":\n%s    ...\n", indent);
+      }
+    } else {
+      complete = false;
+    }
+    Delete(signatures);
+    Delete(returns);
+    Delete(ranked);
+    return complete;
+  }
+
   /* ------------------------------------------------------------
    * emitFunctionStubHelper()
    *
@@ -3256,6 +3403,8 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionStubHelper(Node *n, File *f_dest, String *name, int kw) {
+    if (emitOverloadStubs(n, f_dest, name, "", false, false, false))
+      return;
     emitFunctionHeaderHelper(n, f_dest, name, kw, true);
     Printv(f_dest, tab4, "...\n", NIL);
   }
@@ -3270,6 +3419,10 @@ public:
    * ------------------------------------------------------------ */
 
   void emitStaticMethodStubHelper(Node *n, String *symname, int kw) {
+    if (GetFlag(n, "feature:python:stub:overloads") && Getattr(n, "sym:nextSibling"))
+      return;
+    if (emitOverloadStubs(n, stub, symname, tab4, false, true, false))
+      return;
     String *parms = make_pyParmList(n, false, false, kw, false, true);
     Printv(stub, "\n", tab4, "@staticmethod", NIL);
     Printv(stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
@@ -4157,6 +4310,8 @@ public:
     } else {
       Replaceall(f->code, "$self", "obj0");
     }
+
+    cacheOverloadStub(n);
 
     /* Dump the function out */
     Wrapper_print(f, f_wrappers);
@@ -5822,7 +5977,7 @@ public:
         Delete(fullname);
       }
 
-      if (pyi_stub) {
+      if (pyi_stub && !emitOverloadStubs(n, stub, symname, tab4, true, false, false)) {
         String *stub_parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
         Printv(stub, "\n", tab4, "def ", symname, "(", stub_parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
@@ -6059,7 +6214,7 @@ public:
         Delete(subfunc);
       }
 
-      if (pyi_stub && add_init) {
+      if (pyi_stub && add_init && !emitOverloadStubs(n, stub, "__init__", tab4, true, false, true)) {
         String *parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
         /* __init__ always returns None in Python, so it never carries a return annotation. */
         Printv(stub, "\n", tab4, "def __init__(", parms, "):\n", NIL);

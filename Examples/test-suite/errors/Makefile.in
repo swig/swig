@@ -53,6 +53,7 @@ $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
 
 # The argout container consistency check only runs when the return type is being described.
 swig_argout_container.ctest: SWIGOPT += -typehints
+cpp_python_stub_rank.cpptest: SWIGOPT += -pyi
 
 # Unique module names are obtained from the .i file name (required for parallel make).
 # Note: -module overrides %module in the .i file.

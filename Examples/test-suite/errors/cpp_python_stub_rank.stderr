@@ -1,0 +1,9 @@
+cpp_python_stub_rank.i:5: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got ''.
+cpp_python_stub_rank.i:8: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '+'.
+cpp_python_stub_rank.i:11: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '1x'.
+cpp_python_stub_rank.i:14: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got ' 1'.
+cpp_python_stub_rank.i:17: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '1 '.
+cpp_python_stub_rank.i:20: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '2147483648'.
+cpp_python_stub_rank.i:23: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '-2147483649'.
+cpp_python_stub_rank.i:26: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '9999999999999999999999999999999999999999'.
+cpp_python_stub_rank.i:29: Error: python:stub:overloads rank must be a signed integer between -2147483648 and 2147483647, got '1.5'.
