@@ -2963,7 +2963,7 @@ public:
    * Helper function for constructing a variable annotation
    * ------------------------------------------------------------ */
 
-  String *variableAnnotationForStubFile(Node *n) {
+  String *variableAnnotationForStubFile(Node *n, bool out = false) {
     type_annotation_t anno = getTypeAnnotationMode(n);
     if (anno == TYPE_ANNOTATION_NONE || GetFlag(n, "feature:python:annotations:novar"))
       return NewStringEmpty();
@@ -2975,7 +2975,7 @@ public:
         type = SwigType_str(type, 0);
         break;
       case TYPE_ANNOTATION_TYPING:
-        type = lookupPytyping(n);
+        type = lookupPytyping(n, out);
         break;
       case TYPE_ANNOTATION_NONE:
         break;  // unreachable
@@ -3011,8 +3011,8 @@ public:
    * annotation is harmless.
    * ------------------------------------------------------------ */
 
-  String *variableAnnotationForStub(Node *n) {
-    String *annotation = variableAnnotationForStubFile(n);
+  String *variableAnnotationForStub(Node *n, bool out = false) {
+    String *annotation = variableAnnotationForStubFile(n, out);
     if (Len(annotation) == 0) {
       Delete(annotation);
       annotation = NewString(": typing.Any");
@@ -6173,13 +6173,20 @@ public:
     }
 
     if (pyi_stub) {
-      String *variable_annotation = variableAnnotationForStub(n);
-      Printv(stub, tab4, symname, variable_annotation, "\n", NIL);
+      bool readonly = is_immutable(n);
+      String *variable_annotation = variableAnnotationForStub(n, readonly);
+      if (readonly)
+        Printv(stub, tab4, "@property\n", tab4, "def ", symname, "(self) ->", Char(variable_annotation) + 1, ":\n", NIL);
+      else
+        Printv(stub, tab4, symname, variable_annotation, "\n", NIL);
       if (have_docstring(n)) {
-        String *s = docstring(n, AUTODOC_VAR, tab4);
+        const char *indent = readonly ? tab8 : tab4;
+        String *s = docstring(n, AUTODOC_VAR, indent);
         if (Len(s))
-          Printv(stub, tab4, s, "\n", NIL);
+          Printv(stub, indent, s, "\n", NIL);
       }
+      if (readonly)
+        Printv(stub, tab8, "...\n", NIL);
       Delete(variable_annotation);
     }
 

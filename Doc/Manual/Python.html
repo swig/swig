@@ -7906,6 +7906,13 @@ that the stub file needs.  The stub file is generated independently of the <tt>.
 code added with <tt>%pythoncode</tt> or <tt>%pythonbegin</tt> does not appear in it.
 </p>
 
+<p>
+Read only instance members, including <tt>const</tt> members and members marked
+with <tt>%immutable</tt>, are declared as properties without setters in the stub.
+This lets type checkers reject assignments that the wrapper would reject at runtime.
+Writable instance members are declared as annotated variables.
+</p>
+
 <H4><a name="Python_annotations_lowlevel_pyi">35.12.1.6 The low-level module stub file</a></H4>
 
 

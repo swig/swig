@@ -73,6 +73,7 @@ CPP_TEST_CASES += \
 	python_overload_simple_cast \
 	python_pickle \
 	python_pyi \
+	python_pyi_readonly \
 	python_pyi_untyped \
 	python_pythoncode \
 	python_richcompare \
@@ -152,6 +153,7 @@ python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 python_typehints.cpptest: SWIGOPT += -typehints
 python_pyi.cpptest: SWIGOPT += -pyi
+python_pyi_readonly.cpptest: SWIGOPT += -pyi
 python_pyi_untyped.cpptest: SWIGOPT += -pyi
 
 # A stub with no annotations in it, so -typehints and Pyrefly do not apply to this test either.
