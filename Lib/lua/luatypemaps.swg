@@ -396,6 +396,9 @@ parameters match which function
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%apply char[ANY] { char (&)[ANY] }
+/* Unlike the string typemaps, nil is not accepted, as a reference cannot be bound to null */
+%typemap(in,checkfn="lua_isstring") char (&)[ANY] %{$1 = ($ltype)lua_tostring(L, $input);%}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

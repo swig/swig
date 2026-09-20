@@ -551,6 +551,7 @@ typedef unsigned long SCM;
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%apply char[ANY] { char (&)[ANY] }
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

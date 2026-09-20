@@ -348,6 +348,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [];
+%apply char[ANY] { char (&)[ANY] }
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

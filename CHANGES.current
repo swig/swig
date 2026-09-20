@@ -21,6 +21,21 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-20: wsfulton
+            [C#, D, Go, Guile, Java, Lua, OCaml, PHP] A variable or member that
+            is a reference to an array of char is now wrapped as the string the
+            array itself is wrapped as, rather than as an opaque pointer:
+
+              char letters[4] = "abc";
+              char (&letters_ref)[4] = letters;
+
+            The other target languages already wrapped one as a string. A
+            function parameter of type 'char (&)[N]' or 'const char (&)[N]' now
+            likewise requires a string and no longer accepts a pointer to the
+            array.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-09-20: wsfulton
             [Guile] An array of char is now wrapped as a string, as it is in
             every other target language, rather than as an opaque pointer:
 

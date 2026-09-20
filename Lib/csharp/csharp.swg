@@ -1078,6 +1078,13 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%apply char[ANY] { char (&)[ANY] }
+/* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
+%typemap(in, canthrow=1) char (&)[ANY] %{ $1 = ($1_ltype)$input;
+  if (!$1) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
+    return $null;
+  } %}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

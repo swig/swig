@@ -467,6 +467,8 @@ rvrdeleter.reset($1); %}
 %typemap(goout,fragment="CopyString") char *, char *&, char[ANY], char[]
 %{ $result = swigCopyString($1) %}
 
+%apply char[ANY] { char (&)[ANY] }
+
 %typemap(directorin,fragment="AllocateString") char *, char *&, char[ANY], char[]
 %{
   $input = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0);

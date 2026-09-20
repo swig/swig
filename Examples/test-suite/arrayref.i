@@ -21,14 +21,14 @@ int others[4] = {10, 20, 30, 40};
 // to, as the array itself is, rather than by an array assignment, which does not compile.
 int (&numbers_ref)[4] = numbers;
 
-// An array of char is wrapped as a string rather than as its elements, and so is a reference to one.
+// A language that wraps an array of char as a string wraps a reference to one the same way.
 char letters[4] = "abc";
 char (&letters_ref)[4] = letters;
 
 // A reference to an array of const cannot be written through, so the variable is read only, in the
 // same way the array it refers to is.
-const char fixed[4] = "xyz";
-const char (&fixed_ref)[4] = fixed;
+const char frozen[4] = "xyz";
+const char (&frozen_ref)[4] = frozen;
 
 int (*others_address())[4] { return &others; }
 
@@ -37,6 +37,10 @@ int numbers_sum() {
 }
 
 const char *letters_are() { return letters; }
+
+// An argument that is a reference to an array of char is a string too, but never null, as a reference cannot be.
+int length_of(const char (&text)[8]) { return (int)strlen(text); }
+int length_of_writable(char (&text)[8]) { return (int)strlen(text); }
 
 struct ArrayRefMember {
   int backing[4];

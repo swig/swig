@@ -37,10 +37,40 @@ public class arrayref_runme {
     check(10, member.sum());
     member.setMember_ref(arrayref.others_address());
     check(100, member.sum());
+
+    // An array of char is a string here, and so is a reference to one.
+    check("abc", arrayref.getLetters());
+    check("abc", arrayref.getLetters_ref());
+    arrayref.setLetters_ref("xy");
+    check("xy", arrayref.letters_are());
+    check("xyz", arrayref.getFrozen_ref());
+
+    // A reference to an array of char cannot be null.
+    check(3, arrayref.length_of("abc"));
+    check(2, arrayref.length_of_writable("xy"));
+    try {
+      arrayref.length_of(null);
+      throw new RuntimeException("length_of(null) did not throw");
+    } catch (NullPointerException e) {
+    }
+    try {
+      arrayref.length_of_writable(null);
+      throw new RuntimeException("length_of_writable(null) did not throw");
+    } catch (NullPointerException e) {
+    }
+
+    check("hi", member.getText_ref());
+    member.setText_ref("bye");
+    check("bye", member.text_is());
   }
 
   static void check(int expected, int actual) {
     if (expected != actual)
+      throw new RuntimeException("expected " + expected + " but got " + actual);
+  }
+
+  static void check(String expected, String actual) {
+    if (!expected.equals(actual))
       throw new RuntimeException("expected " + expected + " but got " + actual);
   }
 }
