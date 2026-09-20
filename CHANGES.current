@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-20: jgillis
+            [Python] Add python:stub:skip to suppress automatic .pyi declarations
+            for selected functions, methods and constructors while retaining their
+            runtime wrappers. Custom declarations supplied with %pythonstubcode
+            are preserved.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These

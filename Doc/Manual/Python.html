@@ -143,6 +143,9 @@
 <li><a href="#Python_annotations_argout">Annotations for argout typemaps</a>
 <li><a href="#Python_annotations_typehints">Type hints for the whole interface</a>
 <li><a href="#Python_annotations_pyi">Generating .pyi stub files</a>
+<ul>
+<li><a href="#Python_annotations_pyi_skip">Replacing automatically generated declarations</a>
+</ul>
 <li><a href="#Python_annotations_lowlevel_pyi">The low-level module stub file</a>
 </ul>
 <li><a href="#Python_nn75">Buffer interface</a>
@@ -7904,6 +7907,42 @@ Use the <tt>%pythonstubcode</tt> and <tt>%pythonstubbegin</tt> directives descri
 <a href="#Python_nn42">Adding additional Python code</a> to add imports or extra declarations
 that the stub file needs.  The stub file is generated independently of the <tt>.py</tt> file, so
 code added with <tt>%pythoncode</tt> or <tt>%pythonbegin</tt> does not appear in it.
+</p>
+
+<H5><a name="Python_annotations_pyi_skip">35.12.1.5.1 Replacing automatically generated declarations</a></H5>
+
+
+<p>
+Use <tt>%feature("python:stub:skip")</tt> to suppress the automatic stub
+declaration for a function, method, static method or constructor. The wrapped
+function remains available at runtime. This is useful when custom Python code
+changes the calling convention and its declaration is supplied separately with
+<tt>%pythonstubcode</tt>:
+</p>
+
+<div class="code"><pre>
+%feature("python:stub:skip") Widget::call;
+
+class Widget {
+public:
+  int call(int value);
+  int call(int value, int extra);
+};
+
+%extend Widget {
+  %pythonstubcode %{
+    def call(self, __value: int, __extra: int = ...) -&gt; int: ...
+  %}
+}
+</pre></div>
+
+<p>
+Only automatic declarations in the high-level <tt>.pyi</tt> file are suppressed.
+The feature leaves <tt>%pythonstubcode</tt> insertions and generated runtime
+wrappers unchanged. Apply it to the callable's name to suppress the declaration
+of an overloaded function as a whole. Use
+<tt>%feature("python:stub:skip", "0")</tt> to re-enable automatic generation.
+The feature has no effect when a stub file is not being generated.
 </p>
 
 <H4><a name="Python_annotations_lowlevel_pyi">35.12.1.6 The low-level module stub file</a></H4>

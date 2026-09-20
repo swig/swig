@@ -3256,6 +3256,8 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionStubHelper(Node *n, File *f_dest, String *name, int kw) {
+    if (GetFlag(n, "feature:python:stub:skip"))
+      return;
     emitFunctionHeaderHelper(n, f_dest, name, kw, true);
     Printv(f_dest, tab4, "...\n", NIL);
   }
@@ -3270,6 +3272,8 @@ public:
    * ------------------------------------------------------------ */
 
   void emitStaticMethodStubHelper(Node *n, String *symname, int kw) {
+    if (GetFlag(n, "feature:python:stub:skip"))
+      return;
     String *parms = make_pyParmList(n, false, false, kw, false, true);
     Printv(stub, "\n", tab4, "@staticmethod", NIL);
     Printv(stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
@@ -5822,7 +5826,7 @@ public:
         Delete(fullname);
       }
 
-      if (pyi_stub) {
+      if (pyi_stub && !GetFlag(n, "feature:python:stub:skip")) {
         String *stub_parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
         Printv(stub, "\n", tab4, "def ", symname, "(", stub_parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
@@ -6059,7 +6063,7 @@ public:
         Delete(subfunc);
       }
 
-      if (pyi_stub && add_init) {
+      if (pyi_stub && add_init && !GetFlag(n, "feature:python:stub:skip")) {
         String *parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
         /* __init__ always returns None in Python, so it never carries a return annotation. */
         Printv(stub, "\n", tab4, "def __init__(", parms, "):\n", NIL);
