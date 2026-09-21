@@ -21,6 +21,20 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            Fix decltype in a trailing return type naming a function or array
+            parameter declared with a typedef:
+
+              typedef int FunctionAlias(int);
+              typedef int ArrayAlias[3];
+              auto f(FunctionAlias fn) -> decltype(fn);
+              auto g(ArrayAlias values) -> decltype(&values);
+
+            Such a parameter is a pointer, so the return types are
+            'int (*)(int)' and 'int **', as they already were without the
+            typedef.  The wrapper for f did not compile and g had the wrong
+            return type.
+
+2026-09-21: wsfulton
             A C++23 explicit object parameter declared as an rvalue reference to
             the class is now ignored with warning 405, where it generated a call
             that did not compile:

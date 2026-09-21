@@ -62,6 +62,24 @@
     return &held;
   }
 
+  // The same adjustments apply where a typedef hides the array or function the parameter is.
+  typedef int FunctionAlias(int);
+  typedef int ArrayAlias[10];
+
+  auto function_alias_parameter(FunctionAlias fn) -> decltype(fn) {
+    return fn;
+  }
+
+  auto array_alias_parameter(ArrayAlias values) -> decltype(values) {
+    return values;
+  }
+
+  auto array_alias_parameter_address(ArrayAlias values) -> decltype(&values) {
+    static int *held;
+    held = values;
+    return &held;
+  }
+
   int increment(int x) { return x + 1; }
   int (*increment_ptr)(int) = increment;
 

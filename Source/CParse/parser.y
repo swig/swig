@@ -2239,14 +2239,22 @@ static String *trailing_rettype_placeholder_parm = 0;
    element and a function parameter the type pointer to function.  normalize_parms() in typepass.cxx applies the
    function half to the parameter itself, but that is a later pass and a decltype here is resolved while parsing. */
 static void adjust_parm_type(SwigType *t) {
+  SwigType *resolved;
   if (SwigType_isreference(t) || SwigType_isrvalue_reference(t))
     return;
-  if (SwigType_isarray(t)) {
+  /* A typedef or alias hides the array or function the parameter is, and SwigType_typedef_resolve() cannot look
+   * through it here because the typedef tables are not built until typepass.  The symbol table is populated as the
+   * file is parsed, so reduce through that instead; a name it does not know or has missing type info is left alone. */
+  resolved = Swig_symbol_typedef_reduce(t, Swig_symbol_current());
+  if (SwigType_isarray(resolved)) {
+    Clear(t);
+    Append(t, resolved);
     SwigType_del_array(t);
     SwigType_add_pointer(t);
-  } else if (SwigType_isfunction(t)) {
+  } else if (SwigType_isfunction(resolved)) {
     SwigType_add_pointer(t);
   }
+  Delete(resolved);
 }
 
 /* A copy of the adjusted type of the function parameter named 'name' of the function whose trailing return type is
