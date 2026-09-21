@@ -21,6 +21,9 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            [Go] Fix -debug-tmused aborting on an assertion.
+
+2026-09-21: wsfulton
             [Issue #3041] A decltype of an operand SWIG cannot parse no longer
             swallows the rest of the file:
 

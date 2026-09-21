@@ -624,7 +624,8 @@ private:
 
     Printv(f_go_wrappers, "\n", NULL);
     for (Iterator p = First(undefined_types); p.key; p = Next(p)) {
-      String *ty = goType(NULL, p.key);
+      /* The module node stands in for the undefined type, the top node having no file or line. */
+      String *ty = goType(Getattr(n, "module"), p.key);
       if (!Getattr(defined_types, ty)) {
         String *cp = goCPointerType(p.key, false);
         if (!Getattr(defined_types, cp)) {
@@ -3882,7 +3883,7 @@ private:
         bool result_is_interface = false;
         String *goout = NULL;
         if (!is_void) {
-          result_is_interface = goTypeIsInterface(NULL, returntype);
+          result_is_interface = goTypeIsInterface(n, returntype);
           Printv(f_go_wrappers, "\tvar swig_r ", NULL);
           if (!result_is_interface) {
             Printv(f_go_wrappers, goType(n, returntype), NULL);
