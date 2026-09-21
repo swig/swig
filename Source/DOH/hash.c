@@ -223,9 +223,11 @@ static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
         /* Whoa. Same object.  Do nothing */
         return 1;
       }
+      /* Take the reference before releasing the old object: the new one is sometimes reachable only through the
+       * old, as when a parameter list has its head removed and the tail becomes the list. */
+      Incref(obj);
       Delete(n->object);
       n->object = obj;
-      Incref(obj);
       return 1; /* Return 1 to indicate a replacement */
     } else {
       prev = n;
