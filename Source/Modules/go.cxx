@@ -4933,7 +4933,7 @@ private:
     String *ret = NULL;
     if (use_imtype) {
       if (n && Cmp(type, Getattr(n, "type")) == 0) {
-        if (Strcmp(Getattr(n, "nodeType"), "parm") == 0) {
+        if (Equal(Getattr(n, "nodeType"), "parm")) {
           ret = Getattr(n, "tmap:imtype");
         }
         if (!ret) {
@@ -4947,7 +4947,7 @@ private:
     }
     if (!ret) {
       if (n && Cmp(type, Getattr(n, "type")) == 0) {
-        if (Strcmp(Getattr(n, "nodeType"), "parm") == 0) {
+        if (Equal(Getattr(n, "nodeType"), "parm")) {
           ret = Getattr(n, "tmap:gotype");
         }
         if (!ret) {
