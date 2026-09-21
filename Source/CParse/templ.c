@@ -88,6 +88,10 @@ static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpand
         Replaceid(newtype, unexpanded_name, Getattr(ep, "type"));
         Setattr(ep, "type", newtype);
         Setattr(ep, "name", name ? NewStringf("%s%d", name, ++i) : 0);
+        /* The expanded parms are copies of the template arguments, which carry no file or line of their own,
+         * so take the declaration's - a diagnostic issued for one of these parms has nowhere else to point. */
+        Setfile(ep, Getfile(n));
+        Setline(ep, Getline(n));
         ep = nextSibling(ep);
       }
       /* Splice the expanded list into p in place of the variadic parm.  Function parameter
