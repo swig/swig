@@ -68,17 +68,30 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
  * that is, template is expanded as: struct XABC : { X(A&,B&,C&); }
  * Note that there are no parameter names are in the expanded parameter list.
  * Nothing happens if the parameter list has no variadic parameters.
+ *
+ * A function template may declare more than one pack.  Explicitly written template arguments fill the first one
+ * entirely ([temp.arg.explicit]/9), leaving every later pack empty, so the parameter expanded from a later pack
+ * is dropped.  Those later packs are the variadic entries that follow 'unexpanded_variadic_parm' in the template
+ * parameter list it points into.
  * ----------------------------------------------------------------------------- */
 
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
-  ParmList *p = Getattr(n, attribute);
-  if (unexpanded_variadic_parm) {
+  Parm *pack;
+  for (pack = unexpanded_variadic_parm; pack; pack = nextSibling(pack)) {
+    ParmList *p = Getattr(n, attribute);
     int variadic_pos = 0;
-    Parm *variadic = ParmList_find_variadic_parm(p, &variadic_pos);
-    if (variadic) {
+    Parm *variadic;
+    if (!SwigType_isvariadic(Getattr(pack, "type")))
+      continue;
+    variadic = ParmList_find_variadic_parm(p, &variadic_pos);
+    if (!variadic)
+      break;
+    if (pack != unexpanded_variadic_parm) {
+      Setattr(n, attribute, ParmList_replace_at(p, variadic_pos, 0));
+    } else {
       SwigType *type = Getattr(variadic, "type");
       String *name = Getattr(variadic, "name");
-      String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
+      String *unexpanded_name = Getattr(pack, "name");
       ParmList *expanded = CopyParmList(expanded_variadic_parms);
       Parm *ep = expanded;
       int i = 0;
@@ -918,8 +931,17 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     if (trailing_invented > 0) {
       int emit_count;
       if (last_undeduced_pack >= 0) {
-        /* Emit up to and including the arguments the pack absorbs.  Each later template parameter takes one argument, the count to drop from the end. */
-        emit_count = ParmList_len(tparms) - (total - 1 - last_undeduced_pack);
+        /* Emit up to and including the arguments the pack absorbs.  Each later template parameter takes one
+         * argument, the count to drop from the end - except a later pack, which takes none, every explicitly
+         * written argument having gone to the first pack ([temp.arg.explicit]/9). */
+        int later_singles = 0;
+        int j = 0;
+        Parm *lp;
+        for (lp = templateparms; lp; lp = nextSibling(lp), ++j) {
+          if (j > last_undeduced_pack && !SwigType_isvariadic(Getattr(lp, "type")))
+            ++later_singles;
+        }
+        emit_count = ParmList_len(tparms) - later_singles;
       } else if (last_invented_pack >= 0) {
         /* A deduced invented pack absorbs every remaining template argument, so all of them are dropped rather
          * than one per invented parameter, which is all an unexpanded invented parm takes. */
@@ -981,7 +1003,18 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     int variadic_pos = 0;
     unexpanded_variadic_parm = ParmList_find_variadic_parm(templateparmsraw, &variadic_pos);
     if (unexpanded_variadic_parm) {
-      int absorbed = ParmList_len(templateparms) - ParmList_len(templateparmsraw) + 1;
+      /* Explicitly written template arguments fill the first pack entirely ([temp.arg.explicit]/9) and leave
+       * every later pack empty, so what the first absorbs is whatever the parms taking one argument each do not.
+       * Counting those rather than subtracting the length of the list is what makes a second pack come out empty
+       * instead of one argument short. */
+      int fixed_parms = 0;
+      int absorbed;
+      Parm *rp;
+      for (rp = templateparmsraw; rp; rp = nextSibling(rp)) {
+        if (!SwigType_isvariadic(Getattr(rp, "type")))
+          ++fixed_parms;
+      }
+      absorbed = ParmList_len(templateparms) - fixed_parms;
       Parm *slice = ParmList_nth_parm(templateparms, variadic_pos);
       expanded_variadic_parms = CopyParmListMax(slice, absorbed);
     }

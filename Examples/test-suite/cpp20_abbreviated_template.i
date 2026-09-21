@@ -75,7 +75,8 @@ int offset_sum(int first, const auto&... rest) { return first + (rest + ... + 0)
 // call has to name explicitly.
 int pack_then_one(auto... values, auto last) { return (values + ... + 0) + last; }
 
-// Two auto parameter packs - the first takes the types the second does not need.
+// Two auto parameter packs - explicitly written template arguments all go to the first, leaving the
+// second empty, so there is no limit on how many the instantiation may give.
 int two_packs(auto... first, auto... second) { return (first + ... + 0) + (second + ... + 0); }
 
 // An auto parameter pack followed by two ordinary auto parameters, so that the boundary between the
@@ -162,6 +163,7 @@ Numeric auto times3(int x);
 %template(pack_then_plain_ii)     pack_then_plain<int, int>;
 %template(pack_then_plain_numeric_ii) pack_then_plain_numeric<int, int>;
 %template(count_two_packs_ii)     count_two_packs<int, int>;
+%template(count_two_packs_iii)    count_two_packs<int, int, int>;
 %template(count_pack_then_one_iii) count_pack_then_one<int, int, int>;
 %template(count_trailing_pack_ii) count_trailing_pack<int, int>;
 

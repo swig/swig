@@ -21,6 +21,24 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            More than one template parameter pack is now substituted when a
+            template is instantiated:
+
+              int two_packs(auto... first, auto... second);
+              %template(two_packs_iii) two_packs<int, int, int>;
+
+            Only the first pack used to be substituted, which left the second
+            pack's invented template parameter name in the declaration, and
+            SWIG divided the template arguments between the packs.  Every
+            explicitly written template argument goes to the first pack now,
+            as it does in C++, leaving the later packs empty; a pack that is
+            not the last function parameter is a non-deduced context, so there
+            is nothing left for a later one to take.
+
+            Note this changes which pack a wrapped parameter belongs to for an
+            instantiation of a function with two packs.
+
+2026-09-21: wsfulton
             [PHP] Fix assertion failure wrapping a %callback on a member function.
 
 2026-09-21: wsfulton

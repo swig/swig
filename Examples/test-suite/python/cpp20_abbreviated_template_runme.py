@@ -57,8 +57,10 @@ swig_check(pack_then_two_iiii(1, 2, 3, 4), 10)
 swig_check(pack_then_plain_ii(1, 2, 7), 207)
 swig_check(pack_then_plain_numeric_ii(1, 2, 5.0), 205)
 
-# The size of each pack, which a wrong partition between them changes.
-swig_check(count_two_packs_ii(1, 2), 101)
+# The size of each pack, which a wrong partition between them changes.  Explicitly written template
+# arguments all go to the first pack, so the second is empty however many arguments are given.
+swig_check(count_two_packs_ii(1, 2), 200)
+swig_check(count_two_packs_iii(1, 2, 3), 300)
 swig_check(count_pack_then_one_iii(1, 2, 3), 203)
 swig_check(count_trailing_pack_ii(1, 2, 3), 102)
 
