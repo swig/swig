@@ -157,6 +157,7 @@ SwigType *NewSwigType(int t) {
   case T_WSTRING:
     {
       SwigType *t = NewString("wchar_t");
+      SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
       return t;
     }
