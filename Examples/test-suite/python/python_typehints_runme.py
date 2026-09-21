@@ -13,6 +13,10 @@ def check(anno, expected):
         raise RuntimeError("annotations mismatch: {} (expected {})".format(anno, expected))
 
 
+# Runtime annotations still need typing; stub annotations must not export it.
+if ("typing" in vars(python_typehints)) == swig_annotations_in_stub():
+    raise RuntimeError("typing import does not match the annotation destination")
+
 # -typehints defines SWIGPYTHON_TYPEHINTS
 if is_typehints() != 1:
     raise RuntimeError("SWIGPYTHON_TYPEHINTS is not defined")

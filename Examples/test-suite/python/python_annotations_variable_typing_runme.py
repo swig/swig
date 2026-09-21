@@ -54,7 +54,7 @@ if sys.version_info[0:2] >= (3, 6):
         return None
 
     if declares_this("StructWithVar") is not None:
-        if not declares_this("StructWithVar"):
-            raise RuntimeError("StructWithVar should declare 'this'")
+        if declares_this("StructWithVar") == swig_annotations_in_stub():
+            raise RuntimeError("StructWithVar should declare 'this' only with runtime annotations")
         if declares_this("StructNovar"):
             raise RuntimeError("StructNovar is novar so it should not declare 'this'")

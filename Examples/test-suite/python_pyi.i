@@ -1,4 +1,5 @@
-%module python_pyi
+%module(directors="1") python_pyi
+%feature("director") DirectorWidget;
 
 // Tests the -pyi command line option, which generates a .pyi PEP 484
 // stub file. This is primarily meant for -builtin/-fastproxy, where the
@@ -37,10 +38,16 @@ private:
   Empty();
 };
 
+// An enclosing-scope function is not an inherited method.
+int independent(int value) { return value; }
+
 class Widget {
 public:
   Widget(int id): id(id) {}
   int getId() const { return id; }
+  int count(int value) const { return value; }
+  int count(int value, int extra) const { return value + extra; }
+  int evaluate(int value) const { return id + value; }
   static Widget *create(int id) { return new Widget(id); }
   int id;
 };
@@ -51,7 +58,20 @@ public:
   OverloadedWidget(int id): Widget(id) {}
   static Widget *create(int id) { return new Widget(id); }
   static Widget *create(int id, int extra) { return new Widget(id + extra); }
+  int evaluate(int value) const { return id + value; }
+  int evaluate(int value, int extra) const { return id + value + extra; }
+  int count() const { return id; }
+  int independent(int value) const { return value; }
+  int independent(int value, int extra) const { return value + extra; }
 };
+
+class DirectorWidget {
+public:
+  virtual ~DirectorWidget() {}
+  virtual int value() const { return 7; }
+};
+int call_director(DirectorWidget *value) { return value->value(); }
+void delete_director(DirectorWidget *value) { delete value; }
 
 Unwrapped *make_unwrapped() { return 0; }
 %}
