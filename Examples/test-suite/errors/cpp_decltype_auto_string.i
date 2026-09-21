@@ -19,3 +19,10 @@ decltype(auto) dauto_string_wide = L"text";
 // alike - warning 451 names 'const char *' and warning 455 'const wchar_t *'.
 auto auto_string = "text";
 auto auto_string_wide = L"text";
+
+// A prefixed literal is ignored for ordinary 'auto' too, the pointer it decays to being one to a character
+// type SWIG has no type for.  Adjacent literals concatenate into one literal carrying the prefix.
+auto auto_string_utf8 = u8"text";
+auto auto_string_char16 = u"text";
+auto auto_string_char32 = U"text";
+auto auto_string_joined = "text" u8"more";

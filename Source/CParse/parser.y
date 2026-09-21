@@ -2599,6 +2599,10 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
   SwigType *type = 0;
   SwigType *initialiser_type;
 
+  if (initialiser_is_string_literal(dtype) && unsupported_literal_prefix(dtype->stringval)) {
+    /* The u8, u and U prefixes give a literal one of the char8_t, char16_t and char32_t character types. */
+    return 0;
+  }
   if (isdecltypeauto && initialiser_is_string_literal(dtype)) {
     /* A string literal is an lvalue ([expr.prim.literal]/1) of array type ([lex.string]/5), and decltype of an
      * lvalue of type T is T reference ([dcl.type.decltype]/1.5), so 'decltype(auto) s = "text";' declares a
@@ -2683,7 +2687,7 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       if (!declaration_type)
         declaration_type = Copy(type);
       Delete(type);
-    } else if (isdecltypeauto && initialiser_is_string_literal(&dtype)) {
+    } else if (initialiser_is_string_literal(&dtype)) {
       String *prefix = unsupported_literal_prefix(dtype.stringval);
       if (prefix)
         Setattr(n, "autoliteralprefix", prefix);

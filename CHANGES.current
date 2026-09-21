@@ -21,6 +21,19 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            An 'auto' variable initialised by a string literal with a u8, u or U
+            encoding prefix is now ignored with a warning naming the prefix, where
+            it was wrapped as a 'const char *':
+
+              auto text = u8"text";    // const char8_t *, not const char *
+
+            The generated wrapper read and wrote the variable as a 'const char *'
+            and did not compile.  A 'decltype(auto)' variable initialised by one of
+            these was already ignored; ordinary 'auto' deduces the pointer the
+            array decays to and so is of a character type SWIG has no type for in
+            just the same way.
+
+2026-09-21: wsfulton
             A wide string literal is now of 'const wchar_t *' where it was of
             'wchar_t *', matching the 'const char *' a narrow one has always been:
 
