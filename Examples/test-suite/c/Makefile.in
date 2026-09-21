@@ -23,11 +23,9 @@ FAILING_C_TESTS := \
     function_typedef \
     lextype \
     li_carrays \
-    li_cdata_bytes \
     nested \
     nested_extend_c \
     nested_structs \
-    register_par \
     typedef_struct \
     union_parameter \
     unions \
@@ -92,9 +90,7 @@ FAILING_CPP_TESTS := \
     cpp11_ref_qualifiers \
     cpp11_ref_qualifiers_typemaps \
     cpp11_result_of \
-    cpp11_rvalue_reference \
     cpp11_rvalue_reference2 \
-    cpp11_rvalue_reference3 \
     cpp11_template_pack \
     cpp11_type_aliasing \
 
