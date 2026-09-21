@@ -35,6 +35,7 @@ extern void Swig_cparse_cplusplusout(int);
 extern void scanner_file(File *);
 extern void scanner_next_token(int);
 extern int skip_balanced(int startchar, int endchar);
+extern int balanced_group_is_open(int startchar, int endchar);
 extern String *get_raw_text_balanced(int startchar, int endchar);
 extern String *get_raw_text_to_semicolon(void);
 extern int promote_type(int t);

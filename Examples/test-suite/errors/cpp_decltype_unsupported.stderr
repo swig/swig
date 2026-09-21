@@ -6,7 +6,10 @@ cpp_decltype_unsupported.i:32: Warning 344: Unable to deduce decltype for 'A()'.
 cpp_decltype_unsupported.i:36: Warning 344: Unable to deduce decltype for '1 <=> 2'.
 cpp_decltype_unsupported.i:39: Warning 344: Unable to deduce decltype for '("abc"[1])'.
 cpp_decltype_unsupported.i:40: Warning 346: Unable to deduce auto type for variable 'array_deref2' from initialiser '"abc"[1]' (ignored).
-cpp_decltype_unsupported.i:41: Warning 346: Unable to deduce auto type for variable 'array_deref4' from an unsupported initialiser (ignored).
-cpp_decltype_unsupported.i:52: Warning 346: Unable to deduce auto type for variable 'lt_test2' from an unsupported initialiser (ignored).
-cpp_decltype_unsupported.i:53: Warning 346: Unable to deduce auto type for variable 'gt_test2' from an unsupported initialiser (ignored).
-cpp_decltype_unsupported.i:57: Warning 344: Unable to deduce decltype for '(a = true) + 1'.
+cpp_decltype_unsupported.i:41: Warning 344: Unable to deduce decltype for '"abc"[1]'.
+cpp_decltype_unsupported.i:42: Warning 346: Unable to deduce auto type for variable 'array_deref4' from an unsupported initialiser (ignored).
+cpp_decltype_unsupported.i:49: Warning 344: Unable to deduce decltype for '1 < 2'.
+cpp_decltype_unsupported.i:50: Warning 344: Unable to deduce decltype for '1 > 2'.
+cpp_decltype_unsupported.i:51: Warning 346: Unable to deduce auto type for variable 'lt_test2' from an unsupported initialiser (ignored).
+cpp_decltype_unsupported.i:52: Warning 346: Unable to deduce auto type for variable 'gt_test2' from an unsupported initialiser (ignored).
+cpp_decltype_unsupported.i:56: Warning 344: Unable to deduce decltype for '(a = true) + 1'.

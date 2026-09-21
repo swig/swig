@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            [Issue #3041] A decltype of an operand SWIG cannot parse no longer
+            swallows the rest of the file:
+
+              decltype(1 < 2) lt_test = 0;
+              decltype("abc"[1]) array_deref = 0;
+
+            reported "Missing ')'. Reached end of input." and nothing after the
+            declaration was wrapped.  Warning 344 is issued for the operand and
+            parsing carries on, which is what already happened when the operand had
+            parentheses of its own.
+
+2026-09-21: wsfulton
             An 'auto' variable initialised by a string literal with a u8, u or U
             encoding prefix is now ignored with a warning naming the prefix, where
             it was wrapped as a 'const char *':
