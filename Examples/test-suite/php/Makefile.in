@@ -30,6 +30,9 @@ C_TEST_CASES += \
 	li_cdata_carrays \
 	multivalue \
 
+MULTI_CPP_TEST_CASES += \
+	import_callback \
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -108,6 +111,7 @@ run_multi_testcase = \
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' php_clean
 	rm -f clientdata_prop_a.php clientdata_prop_b.php php_clientdata_prop_a.h php_clientdata_prop_b.h
+	rm -f php_import_callback_x.h php_import_callback_y.h
 	rm -f import_share_a.php import_share_b.php import_share_c.php php_import_share_a.h php_import_share_b.h php_import_share_c.h
 	rm -f import_stl_a.php import_stl_b.php import_stl_c.php php_import_stl_a.h php_import_stl_b.h php_import_stl_c.h
 	rm -f imports_a.php imports_b.php php_imports_a.h php_imports_b.h

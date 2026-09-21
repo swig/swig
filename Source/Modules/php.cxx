@@ -1750,7 +1750,6 @@ public:
       }
     }
 
-    wrapperType = standard;
     return SWIG_OK;
   }
 
