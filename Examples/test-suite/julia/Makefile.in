@@ -1,0 +1,50 @@
+#######################################################################
+# Makefile for the experimental Julia test suite
+#######################################################################
+
+LANGUAGE = julia
+SCRIPTSUFFIX = _runme.jl
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+top_builddir = @top_builddir@
+CXX = @CXX@
+CXXFLAGS = @CXXFLAGS@
+JULIA = @JULIA@
+JULIAINCLUDE = @JULIAINCLUDE@
+JULIALIBDIR = @JULIALIBDIR@
+JULIAEXT = @JULIAEXT@
+
+# The experimental target currently exercises this initial supported subset.
+override CPP_TEST_CASES = \
+	abstract_access \
+	constructor_copy \
+	cpp11_julia_enum_widths \
+	inherit \
+	julia_basic \
+	julia_containers \
+	julia_director \
+	julia_inheritance \
+	julia_numeric \
+	julia_overload_ambig \
+	julia_ownership \
+	julia_typemaps \
+	newobject1 \
+	overload_simple \
+	rename1 \
+	struct_value \
+	typedef_class
+
+override C_TEST_CASES =
+override MULTI_CPP_TEST_CASES =
+
+include $(srcdir)/../common.mk
+
+SWIGOPT += -w524 -Werror
+
+%.cpptest:
+	$(setup)
+	+$(swig_and_compile_cpp)
+	@if test -f $(srcdir)/$*$(SCRIPTSUFFIX); then $(RUNTOOL) $(JULIA) --startup-file=no $(srcdir)/$*$(SCRIPTSUFFIX); else $(RUNTOOL) $(JULIA) --startup-file=no -e 'include("$*.jl")'; fi
+
+%.clean:
+	rm -f $*_wrap.cxx $*_wrap.o lib$*_wrap.* $*.jl

@@ -44,6 +44,7 @@ FAILING_CPP_TESTS := \
     assign_reference \
     cpp_enum \
     constant_pointers \
+    cpp11_julia_enum_widths \
     director_unwrap \
     director_unwrap_result \
     enum_thorough \

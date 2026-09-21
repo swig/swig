@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-20: jgillis
+            [Julia] Add an experimental -julia target generating C++ wrappers and
+            Julia modules with class proxies, overloaded functions, ownership
+            handling, exception translation, initial STL conversions and directors.
+            Director callbacks retain shared callback objects independently, check
+            integer return ranges and preserve embedded zeros in strings.
+            Enums preserve the compiler's underlying integer representation and
+            reject arguments outside its range, including const-qualified enum typedef
+            parameters and results. Unsigned tuple elements retain
+            their full value range. Primitive const reference results return
+            their values instead of treating wrapper pointers as values.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These

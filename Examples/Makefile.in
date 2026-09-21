@@ -1645,3 +1645,26 @@ tcl_clean:
 	rm -f *_wrap* *~ .~* mytclsh@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(TCL_SO)
+
+##################################################################
+# Julia (experimental, C++11 wrapper)
+##################################################################
+
+JULIA = @JULIA@
+JULIAINCLUDE = @JULIAINCLUDE@
+JULIALIBDIR = @JULIALIBDIR@
+JULIAEXT = @JULIAEXT@
+
+julia_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -julia -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) -std=c++11 $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I"$(JULIAINCLUDE)"
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -L"$(JULIALIBDIR)" -ljulia -o lib$(TARGET)_wrap.$(JULIAEXT)
+
+julia_run:
+	$(RUNTOOL) $(JULIA) --startup-file=no $(SRCDIR)runme.jl
+
+julia_clean:
+	rm -f *_wrap.* *.o *.so *.dylib *.dll example.jl
+
+julia_version:
+	$(JULIA) --version

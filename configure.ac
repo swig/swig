@@ -1015,6 +1015,38 @@ AC_SUBST(GUILE_CFLAGS)
 AC_SUBST(GUILE_LIBS)
 
 #----------------------------------------------------------------
+# Look for Julia (the experimental wrapper requires C++11 and Julia headers).
+AC_ARG_WITH(julia, AS_HELP_STRING([--without-julia], [Disable Julia])
+AS_HELP_STRING([--with-julia=path], [Set location of Julia executable]),
+  [JULIABIN="$withval"], [JULIABIN="$alllang_default"])
+SKIP_JULIA=
+if test "$JULIABIN" = no; then
+  SKIP_JULIA=1
+else
+  if test -n "$JULIABIN" -a "$JULIABIN" != yes; then
+    JULIA="$JULIABIN"
+  else
+    AC_PATH_PROG(JULIA, julia)
+  fi
+  if test -n "$JULIA"; then
+    JULIAINCLUDE=`"$JULIA" --startup-file=no -e 'print(abspath(Sys.BINDIR, "..", "include", "julia"))'`
+    JULIALIBDIR=`"$JULIA" --startup-file=no -e 'print(abspath(Sys.BINDIR, "..", "lib"))'`
+    JULIAEXT=`"$JULIA" --startup-file=no -e 'using Libdl; print(Libdl.dlext)'`
+    if test ! -f "$JULIAINCLUDE/julia.h"; then
+      AC_MSG_WARN([Julia headers not found; disabling Julia tests])
+      SKIP_JULIA=1
+    fi
+  else
+    SKIP_JULIA=1
+  fi
+fi
+AC_SUBST(JULIA)
+AC_SUBST(JULIAINCLUDE)
+AC_SUBST(JULIALIBDIR)
+AC_SUBST(JULIAEXT)
+AC_SUBST(SKIP_JULIA)
+
+#--------------------------------------------------------------------
 # Look for java
 #----------------------------------------------------------------
 
@@ -2769,6 +2801,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
+    Examples/test-suite/julia/Makefile
     Examples/test-suite/lua/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
@@ -2831,6 +2864,7 @@ test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
+test -n "$SKIP_JULIA"		|| langs="${langs}julia "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "

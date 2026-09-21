@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SWIG and Julia</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body bgcolor="#ffffff">
+<H1><a name="Julia">43 SWIG and Julia</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Julia_introduction">Introduction</a>
+<li><a href="#Julia_building">Building a module</a>
+<li><a href="#Julia_interface">Generated interface</a>
+<li><a href="#Julia_lifetime">Ownership and inheritance</a>
+<li><a href="#Julia_exceptions">Exceptions and directors</a>
+<li><a href="#Julia_typemaps">Typemaps and limitations</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<H2><a name="Julia_introduction">43.1 Introduction</a></H2>
+
+
+<p>
+The experimental <tt>-julia</tt> target generates a C++ wrapper with a C calling
+interface and a Julia module that calls it using <tt>ccall</tt>.
+It requires a C++11 compiler and Julia development headers. The initial runtime
+tests run on Julia 1.6.2 and 1.13.0; Julia 1.12.6 has also been validated locally.
+Build the wrapper against the Julia installation that will
+load it; compatibility of a compiled wrapper across Julia versions is not promised.
+</p>
+
+<H2><a name="Julia_building">43.2 Building a module</a></H2>
+
+
+<p>For example, save this interface as <tt>example.i</tt>:</p>
+
+<div class="code"><pre>
+%module example
+%inline %{
+class Counter {
+public:
+  Counter(int value = 0) : value_(value) {}
+  int increment(int amount = 1) { return value_ += amount; }
+private:
+  int value_;
+};
+%}
+</pre></div>
+
+<p>
+Generate the wrapper with <tt>swig -c++ -julia example.i</tt>.
+This writes <tt>example_wrap.cxx</tt> and <tt>example.jl</tt>.
+Build a shared library named <tt>libexample_wrap</tt>, with the platform's
+shared library extension, in the same directory as <tt>example.jl</tt>.
+A typical Linux build, where <tt>JULIA_HOME</tt> is the Julia installation
+prefix, is:
+</p>
+
+<div class="shell"><pre>
+swig -c++ -julia example.i
+c++ -std=c++11 -fPIC -shared -I"$JULIA_HOME/include/julia" \
+    example_wrap.cxx -L"$JULIA_HOME/lib" -ljulia -o libexample_wrap.so
+</pre></div>
+
+<p>Load and use the generated module:</p>
+
+<div class="targetlang"><pre>
+include("example.jl")
+using .example
+counter = Counter(10)
+counter.increment()      # 11
+counter.increment(4)     # 15
+</pre></div>
+
+<p>
+The generated file obtains its library extension from <tt>Libdl.dlext</tt>.
+The C++ runtime used by the wrapper must be compatible with the runtime loaded
+by Julia. In particular, an older Julia distribution may bundle an older C++
+runtime than the compiler used to build the wrapper.
+</p>
+
+<p>
+To configure SWIG's Julia examples and tests, use
+<tt>./configure --with-julia=/path/to/julia</tt>, then
+<tt>make check-julia-test-suite</tt>. The executable's installation must contain
+<tt>include/julia/julia.h</tt> and <tt>lib/libjulia</tt>.
+An example is provided in <tt>Examples/julia/simple</tt>.
+</p>
+
+<H2><a name="Julia_interface">43.3 Generated interface</a></H2>
+
+
+<p>
+Functions become Julia functions. C++ overloads use Julia dispatch; overloads
+whose signatures would be ambiguous are combined using conversion probes.
+Default arguments produce methods for the corresponding argument counts.
+Instance methods support both <tt>example.increment(counter, 4)</tt> and
+<tt>counter.increment(4)</tt>. Static methods support
+<tt>ClassName.method(arguments...)</tt>.
+</p>
+
+<p>
+Public member variables have accessors named <tt>ClassName_member_get</tt> and
+<tt>ClassName_member_set</tt>. These are functions in the generated module,
+not Julia struct fields. Global variables similarly have <tt>name_get</tt>
+and <tt>name_set</tt> accessors. Use
+<a href="SWIG.html#SWIG_rename_ignore">%rename</a> for names that conflict
+with Julia keywords, <tt>Base</tt>, <tt>Core</tt>, or names used by the generated
+runtime. Julia names are case sensitive.
+</p>
+
+<p>
+Integer arguments accept Julia integers and use the corresponding C ABI width.
+Out-of-range arguments fail Julia's conversion to that ABI type.
+Floating point arguments accept <tt>Real</tt>; Boolean arguments accept
+<tt>Bool</tt>. <tt>std::string</tt> arguments and results use Julia
+<tt>String</tt>, preserving embedded zero bytes. C string arguments use
+<tt>Cstring</tt> conversion and must not contain embedded zero bytes.
+Primitive pointers use Julia <tt>Ptr</tt> values and do not acquire a finalizer.
+</p>
+
+<p>
+Named enums use Julia enum types with the signedness and integer width selected
+by the C++ compiler. Enum values, including aliases and compound expressions,
+are evaluated in C++ rather than parsed as integer literals by SWIG. Scoped
+enum constants retain their Julia enum type; unscoped bare constants are
+integers. Integer arguments must fit the enum's underlying type. Enum return
+values preserve that type's full range.
+</p>
+
+<p>
+<tt>std_vector.i</tt>, <tt>std_pair.i</tt>, and <tt>std_string.i</tt> supply
+initial STL support. Vectors of <tt>double</tt>, <tt>long long</tt>, and
+<tt>std::string</tt> can be copied to and from native Julia vectors.
+Double vectors accept <tt>Vector{Float64}</tt> and <tt>Vector{Int64}</tt>;
+integer vectors accept <tt>Vector{Int64}</tt>; string vectors accept
+<tt>Vector{String}</tt>. Pair results can become Julia tuples; unsigned integer elements use
+<tt>UInt64</tt> so values above the signed integer range are preserved. These are
+copies; modifying a returned Julia array does not modify the C++ container.
+<tt>std_map.i</tt> only supplies declarations for interfaces that provide their
+own map conversion typemaps.
+</p>
+
+<H2><a name="Julia_lifetime">43.4 Ownership and inheritance</a></H2>
+
+
+<p>
+Class proxies contain a pointer to a C++ object. Constructor results and
+class values returned by value are owned and deleted by Julia finalizers.
+Pointer and reference results are borrowed unless the function has
+<a href="Customization.html#Customization_ownership">%newobject</a>.
+Borrowed results retain their argument proxies so a method's receiver remains
+alive while a returned subobject is in use. A null class pointer result becomes
+<tt>nothing</tt>. Calling a method on a finalized proxy raises an error.
+Do not explicitly finalize an owner while borrowed references are still in use.
+</p>
+
+<p>
+Julia structs do not reproduce C++ inheritance. The generator forwards inherited
+methods and accepts derived proxies in base-class arguments. Conversions use
+SWIG's type table, including pointer adjustment for multiple inheritance.
+Types are currently registered separately for each generated module; importing
+wrapped classes from another module is not supported.
+</p>
+
+<H2><a name="Julia_exceptions">43.5 Exceptions and directors</a></H2>
+
+
+<p>
+C++ exceptions are caught inside the wrapper. The Julia side raises the module's
+<tt>SwigError</tt>; <tt>std::exception::what()</tt> is retained. Other C++
+exceptions receive a generic message. Error state is local to the calling
+thread and cleared by the next wrapper call.
+</p>
+
+<p>
+Initial director support is available with <tt>%module(directors="1")</tt>
+and <tt>%feature("director") ClassName</tt>. For a class with a public default
+constructor, <tt>ClassName(julia_object)</tt> constructs a director whose virtual
+methods call Julia methods named <tt>ClassName_method</tt>. Define an overload
+of this function for the type of <tt>julia_object</tt>. Missing overrides call
+the C++ implementation, or raise an error for a pure virtual function.
+Director objects retain their Julia callback object until destroyed.
+Callback code must run on a thread already supported by the Julia runtime.
+</p>
+
+<p>
+The initial director typemaps cover scalar and string arguments and returns.
+Integer overrides return <tt>Int64</tt>, floating point overrides return
+<tt>Float64</tt>, and Boolean overrides return <tt>Bool</tt>.
+An exception, a wrong return type, or an integer return value outside the native
+type's range becomes <tt>SwigError</tt>. Integer callback arguments use
+<tt>Int64</tt>; unsigned native arguments larger than <tt>typemax(Int64)</tt>
+are rejected.
+Parameterized director constructors and general container director typemaps
+are not implemented.
+</p>
+
+<H2><a name="Julia_typemaps">43.6 Typemaps and limitations</a></H2>
+
+
+<p>
+The <tt>ctype</tt>, <tt>in</tt>, <tt>out</tt>, <tt>freearg</tt>, and
+<tt>typecheck</tt> typemaps describe the C wrapper boundary.
+<tt>jltype</tt> supplies the Julia <tt>ccall</tt> type, <tt>jlparam</tt> supplies
+the public argument annotation, and <tt>jlout</tt> supplies the result expression;
+<tt>$call</tt> in <tt>jlout</tt> is replaced by the generated call.
+The <tt>out</tt> attribute on <tt>ctype</tt> and <tt>jltype</tt> can specify a
+separate result type. Hidden <tt>numinputs=0</tt> arguments with <tt>argout</tt>
+typemaps can return multiple results from a C++ <tt>void</tt> function.
+<tt>%insert("julia")</tt> inserts code into the generated Julia module.
+</p>
+
+<p>
+This is an experimental target with a selected initial test suite, not the full
+SWIG language test suite. Nested classes, cross-module imports, general operator
+mapping, complete STL support, arbitrary pointer/reference combinations, and
+arbitrary multi-argument typemaps are not supported. Unsupported callable types
+produce a SWIG warning. The initial runtime validation is on Linux; other
+platforms have not yet received equivalent validation.
+</p>
+</body>
+</html>

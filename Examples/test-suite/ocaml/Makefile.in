@@ -24,6 +24,7 @@ allprotected \
 apply_strings \
 cpp11_decltype \
 cpp11_director_enums \
+cpp11_julia_enum_widths \
 cpp11_strongly_typed_enumerations \
 cpp_enum \
 default_constructor \

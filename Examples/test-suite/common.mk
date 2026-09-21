@@ -664,6 +664,7 @@ CPP11_TEST_CASES += \
 	cpp11_inheriting_constructors_typedef \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
+	cpp11_julia_enum_widths \
 	cpp11_lambda_functions \
         cpp11_move_only \
         cpp11_move_typemaps \

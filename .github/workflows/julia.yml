@@ -1,0 +1,75 @@
+name: julia
+
+on:
+  push:
+    paths:
+      - '.github/workflows/julia.yml'
+      - 'Source/**'
+      - 'Lib/**'
+      - 'Examples/**'
+      - 'Tools/testflags.py'
+      - 'configure.ac'
+      - 'Makefile.in'
+  pull_request:
+    branches: master
+    paths:
+      - '.github/workflows/julia.yml'
+      - 'Source/**'
+      - 'Lib/**'
+      - 'Examples/**'
+      - 'Tools/testflags.py'
+      - 'configure.ac'
+      - 'Makefile.in'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runtime:
+    name: Julia ${{ matrix.julia-version }} runtime tests
+    strategy:
+      fail-fast: false
+      matrix:
+        julia-version: ['1.6.2', '1.13.0']
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          show-progress: false
+          persist-credentials: false
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: ${{ matrix.julia-version }}
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake bison g++ libpcre2-dev
+      - name: Build SWIG
+        run: |
+          ./autogen.sh
+          ./configure --without-alllang --without-ccache --with-julia=yes
+          make -j2
+      - name: Check C++ runtime compatibility
+        shell: bash
+        run: |
+          make -C Examples/test-suite/julia julia_containers.cpptest RUNTOOL=true \
+            CXXFLAGS='-O2 -Wall -Wextra -Werror -Wno-unused-parameter -std=c++17'
+          wrapper="$PWD/Examples/test-suite/julia/libjulia_containers_wrap.so"
+          if ! julia --startup-file=no -e 'using Libdl; dlopen(ARGS[1])' "$wrapper" > julia-runtime.log 2>&1; then
+            cat julia-runtime.log
+            # Older Julia archives can bundle an older C++ runtime than the runner compiler.
+            # Retry only this specific loader failure, and verify the replacement works.
+            grep -q 'GLIBCXX_' julia-runtime.log
+            cxx_runtime="$(g++ -print-file-name=libstdc++.so.6)"
+            LD_PRELOAD="$cxx_runtime" julia --startup-file=no -e 'using Libdl; dlopen(ARGS[1])' "$wrapper"
+            echo "SWIG_JULIA_RUNTOOL=env LD_PRELOAD=$cxx_runtime" >> "$GITHUB_ENV"
+          fi
+      - name: Run Julia regression suite and example
+        shell: bash
+        run: |
+          make -j2 check-julia-test-suite RUNTOOL="${SWIG_JULIA_RUNTOOL:-}" \
+            CXXFLAGS='-O2 -Wall -Wextra -Werror -Wno-unused-parameter -std=c++17'
+          make -C Examples/julia/simple check RUNTOOL="${SWIG_JULIA_RUNTOOL:-}" \
+            CXXFLAGS='-O2 -Wall -Wextra -Werror -Wno-unused-parameter -std=c++17'
