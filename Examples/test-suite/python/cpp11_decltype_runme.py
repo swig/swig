@@ -66,6 +66,12 @@ if cpp11_decltype.deref_first(cpp11_decltype.array_alias_parameter(cpp11_decltyp
 if cpp11_decltype.deref_first2(cpp11_decltype.array_alias_parameter_address(cpp11_decltype.three_values())) != 11:
     raise RuntimeError("array_alias_parameter_address should return a pointer to an int pointer")
 
+if cpp11_decltype.call_through(cpp11_decltype.function_using_parameter(cpp11_decltype.cvar.increment_ptr), 4) != 5:
+    raise RuntimeError("function_using_parameter should return a callable function pointer")
+
+if cpp11_decltype.call_through(cpp11_decltype.function_template_using_parameter(cpp11_decltype.cvar.increment_ptr), 4) != 5:
+    raise RuntimeError("function_template_using_parameter should return a callable function pointer")
+
 # A decltype of a parenthesised name is a reference to what the name was declared with, so this one
 # is an 'int *&' and the getter hands back its address, while the unparenthesised name is an 'int *'.
 if cpp11_decltype.deref_first2(cpp11_decltype.cvar.ptr_lvalue) != 1:

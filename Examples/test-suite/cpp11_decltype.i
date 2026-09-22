@@ -80,6 +80,20 @@
     return &held;
   }
 
+  using FunctionUsing = int(int);
+  template<typename T> using FunctionTemplateUsing = T(T);
+%}
+%template() FunctionTemplateUsing<int>;
+%inline %{
+
+  auto function_using_parameter(FunctionUsing fn) -> decltype(fn) {
+    return fn;
+  }
+
+  auto function_template_using_parameter(FunctionTemplateUsing<int> fn) -> decltype(fn) {
+    return fn;
+  }
+
   int increment(int x) { return x + 1; }
   int (*increment_ptr)(int) = increment;
 

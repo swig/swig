@@ -3957,6 +3957,7 @@ tm_list_builder: typemap_parm {
 
 typemap_parm   : type plain_declarator {
                   Parm *parm;
+                  declarator_remove_locals_function(&$plain_declarator);
 		  SwigType_push($type,$plain_declarator.type);
 		  $$ = new_node("typemapitem");
 		  parm = NewParmWithoutFileLineInfo($type,$plain_declarator.id);
@@ -7197,11 +7198,9 @@ parameter_declarator : declarator def_args {
 
 plain_declarator : declarator {
                  $$ = $declarator;
-                 declarator_remove_locals_function(&$$);
             }
             | abstract_declarator {
               $$ = $abstract_declarator;
-              declarator_remove_locals_function(&$$);
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const) */
