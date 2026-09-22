@@ -8,6 +8,10 @@
 // A lambda can have an explicit object parameter too, but a lambda is wrapped as an opaque object.
 %warnfilter(SWIGWARN_CPP11_LAMBDA) recurse;
 
+// An rvalue reference to the class can only be called on an rvalue, so it is ignored as the
+// equivalent 'void method() &&' spelling of it is.
+%warnfilter(SWIGWARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED) Counter::by_rvalue_ref;
+
 %inline %{
 struct Counter {
   int value;
@@ -29,6 +33,10 @@ struct Counter {
 
   // Deduced explicit object parameter with a trailing return type.
   auto deduced_trailing(this auto &&self) -> int { return self.value + 5; }
+
+  // An rvalue reference to the class, which binds no lvalue and so is ignored.  The deduced forms
+  // above are forwarding references rather than rvalue references and are wrapped as usual.
+  int by_rvalue_ref(this Counter &&self) { return self.value + 6; }
 
   // Ordinary parameters follow the explicit object parameter and are the only arguments wrapped.
   int add(this Counter &self, int a, int b) { return self.value + a + b; }

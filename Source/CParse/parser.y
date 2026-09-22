@@ -2029,8 +2029,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String    *numdefarg;
     ParmList  *parms;
     short      have_parms;
-    /* C++23 explicit object parameter, that is a leading 'this' parameter on the function declarator. */
-    short      explicit_object_parm;
+    /* The type of the C++23 explicit object parameter, that is a leading 'this' parameter on the function declarator,
+     * or 0 when there is none.  The type is what carries the value category of the object. */
+    SwigType  *explicit_object_type;
     ParmList  *throws;
     String    *throwf;
     String    *nexcept;
@@ -2894,18 +2895,48 @@ static void reject_explicit_object_parameter(ParmList *parms) {
 /* Drop a leading explicit object parameter from 'parms' and return the parameters that follow it, or return 'parms'
    unchanged when there is none.  The explicit object parameter is how the object the member function is called on is
    passed, so it is not one of the function's arguments and must appear neither in the wrapper's parameter list nor in
-   the function's declarator. */
-static ParmList *drop_explicit_object_parameter(ParmList *parms, short *found) {
+   the function's declarator.  Its type is returned in 'type'. */
+static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type) {
   if (!parms || !GetFlag(parms, "explicitobject"))
     return parms;
-  *found = 1;
+  *type = Getattr(parms, "type");
   return nextSibling(parms);
+}
+
+/* Whether the explicit object parameter declared with 'type' is an rvalue reference to the class itself, which is
+   the C++23 way of writing an '&&' ref-qualifier.  A forwarding reference is written with a deduced type instead -
+   'this auto&&', or a template parameter as in 'template<typename Self> f(this Self&&)' - and binds an lvalue just
+   as well, so it is not one of these.  The class is named by Classprefix within a class body and by the qualifier
+   on the name for a member defined outside one; when neither identifies it the parameter is left alone. */
+static int explicit_object_parameter_is_rvalue(Node *n, SwigType *type) {
+  String *classname = Classprefix;
+  String *qualified = 0;
+  SwigType *base;
+  int isrvalue;
+  if (!type || !SwigType_isrvalue_reference(type))
+    return 0;
+  if (!classname) {
+    String *name = Getattr(n, "name");
+    if (name && Swig_scopename_check(name)) {
+      String *prefix = Swig_scopename_prefix(name);
+      qualified = Swig_scopename_last(prefix);
+      classname = qualified;
+      Delete(prefix);
+    }
+  }
+  base = SwigType_base(type);
+  isrvalue = classname && Len(classname) > 0 && Equal(base, classname);
+  Delete(base);
+  Delete(qualified);
+  return isrvalue;
 }
 
 /* Diagnose the restrictions C++23 places on a function declared with an explicit object parameter: it has to be a
    non-static, non-virtual member function and cannot be declared with a cv-qualifier or a ref-qualifier, as the
-   explicit object parameter itself is what carries the value category and constness of the object. */
-static void check_explicit_object_parameter(Node *n, String *storage, String *qualifier, String *refqualifier) {
+   explicit object parameter itself is what carries the value category and constness of the object.  An explicit
+   object parameter declared as an rvalue reference to the class carries the value category of an rvalue
+   ref-qualifier, so that ref-qualifier is added to the declaration. */
+static void check_explicit_object_parameter(Node *n, String *storage, String *qualifier, String *refqualifier, SwigType *explicit_object_type) {
   String *name = Getattr(n, "name");
   /* A member function defined outside its class is written at namespace scope, so a qualified name is a member too. */
   int ismember = inclass || extendmode || (name && Swig_scopename_check(name));
@@ -2915,6 +2946,12 @@ static void check_explicit_object_parameter(Node *n, String *storage, String *qu
     Swig_error(cparse_file, cparse_line, "Member function %s with an explicit object parameter 'this' cannot be declared static or virtual.\n", Swig_name_decl(n));
   } else if (qualifier || refqualifier) {
     Swig_error(cparse_file, cparse_line, "Member function %s with an explicit object parameter 'this' cannot have a qualifier.\n", Swig_name_decl(n));
+  } else if (explicit_object_parameter_is_rvalue(n, explicit_object_type)) {
+    /* 'int f(this S &&self)' is the C++23 way of writing the rvalue ref-qualifier in 'int f() &&': either way the
+     * function can only be called on an rvalue.  Add the ref-qualifier to the declaration so the two spellings are
+     * handled alike, which by default means ignoring the function, as a wrapper calls it on an lvalue - the object
+     * the wrapper holds a pointer to. */
+    Setattr(n, "refqualifier", "z.");
   }
 }
 
@@ -4338,8 +4375,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"decl",decl);
 	      Setattr($$,"parms",$declarator.parms);
 	      Setattr($$,"value",$initializer.val);
-              if ($declarator.explicit_object_parm)
-                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
+              if ($declarator.explicit_object_type)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier, $declarator.explicit_object_type);
 	      if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 	      if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
 	      Setattr($$,"throws",$cpp_const.throws);
@@ -4509,8 +4546,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               }
               if ($auto_type_holder.qualifier)
                 Swig_error(cparse_file, cparse_line, "Function %s with a trailing return type cannot have a qualifier on 'auto'.\n", Swig_name_decl($$));
-              if ($declarator.explicit_object_parm)
-                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
+              if ($declarator.explicit_object_type)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier, $declarator.explicit_object_type);
 	      if (!$c_decl_tail) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
@@ -4605,8 +4642,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "throw", $cpp_const.throwf);
 	      Setattr($$, "noexcept", $cpp_const.nexcept);
 	      Setattr($$, "final", $cpp_const.final);
-              if ($declarator.explicit_object_parm)
-                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
+              if ($declarator.explicit_object_type)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier, $declarator.explicit_object_type);
 
 	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
@@ -4650,8 +4687,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "throw", $cpp_const.throwf);
 	      Setattr($$, "noexcept", $cpp_const.nexcept);
 	      Setattr($$, "final", $cpp_const.final);
-              if ($declarator.explicit_object_parm)
-                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier);
+              if ($declarator.explicit_object_type)
+                check_explicit_object_parameter($$, $storage_class, $cpp_const.qualifier, $cpp_const.refqualifier, $declarator.explicit_object_type);
 
 	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
@@ -7447,7 +7484,7 @@ notso_direct_declarator : idcolon {
                   }
                   | notso_direct_declarator[in] LPAREN fn_parms RPAREN {
                     $$ = $in;
-                    declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_parm), 0);
+                    declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_type), 0);
                   }
                   ;
 
@@ -7566,7 +7603,7 @@ direct_declarator : idcolon {
                    * the member function is wrapped with the arguments that follow it. */
                   | direct_declarator[in] LPAREN fn_parms RPAREN {
                     $$ = $in;
-                    declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_parm), 0);
+                    declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_type), 0);
                   }
                  /* User-defined string literals. eg.
                     int operator""_mySuffix(const char* val, int length) {...}

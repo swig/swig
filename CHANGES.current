@@ -21,6 +21,24 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            A C++23 explicit object parameter declared as an rvalue reference to
+            the class is now ignored with warning 405, where it generated a call
+            that did not compile:
+
+              struct S {
+                int m(this S &&self);
+              };
+
+            Such a member function can only be called on an rvalue and the
+            object a wrapper is given is an lvalue, so the generated call was
+            rejected by the C++ compiler with no warning from SWIG.  It is the
+            C++23 way of writing 'int m() &&', which was already ignored with
+            that warning.  The deduced 'this auto &&self' form, and a template
+            parameter as in 'template<typename Self> int m(this Self &&self)',
+            are forwarding references rather than rvalue references and are
+            wrapped as before.
+
+2026-09-21: wsfulton
             More than one template parameter pack is now substituted when a
             template is instantiated:
 
