@@ -1,6 +1,6 @@
 ---
 name: swig-doc
-description: 'Author and edit chapters of the SWIG Users Manual under Doc/Manual: chapter conventions, manual heading anchors, the four content `<div>` styles (code / targetlang / shell / diagram), the auto generated section TOC, the `make` targets that renumber headings and validate HTML, the warning list in Warnings.html and how to check it against the warning numbers in the source, and the rules for cross document anchored links.'
+description: 'Author and edit chapters of the SWIG Users Manual under Doc/Manual: chapter conventions, manual heading anchors, the four content `<div>` styles (code / targetlang / shell / diagram), how to show a warning or error message, the auto generated section TOC, the `make` targets that renumber headings and validate HTML, the warning list in Warnings.html and how to check it against the warning numbers in the source, and the rules for cross document anchored links.'
 argument-hint: 'Optionally specify the chapter file (e.g. CPlusPlus20.html) to edit'
 ---
 
@@ -114,6 +114,8 @@ $ python -c "import example; print(example.gcd(12, 18))"
 
 Always wrap the snippet in `<pre>` inside the `<div>`. Tabs inside the `<pre>` will fail `make check`; expand to spaces.
 
+A whole statement, declaration or directive goes in a block too, even a single line - never inline in a paragraph. Write "Adding the following renames it:" followed by a `code` block holding `%rename(funky_other) Quirky::funky<int>;`, not the directive in `<tt>` mid sentence. Inline `<tt>` is for names, types and fragments, such as `%template`, `funky<int>` or `requires Numeric<T>`.
+
 Inside `<pre>` blocks, the C++ angle brackets and ampersands must be escaped (`&lt;`, `&gt;`, `&amp;`). HTML tidy in `make check` will catch most violations but not all.
 
 Do not collapse a class or struct definition onto a single line in a code example. Put the body members on their own lines as you would in real source, so the example reads as idiomatic C++:
@@ -124,6 +126,28 @@ Do not collapse a class or struct definition onto a single line in a code exampl
 template&lt;typename T&gt; struct Adder {
   T add(T a, T b) { return a + b; }
 };
+</pre>
+</div>
+```
+
+## Showing a warning or error message
+
+Never put a warning or error message inline in a paragraph.  Show the input that causes it in a `code` block, then the message exactly as SWIG prints it in a `shell` block of its own, and let the prose around them refer to the warning by number.  Get the text by running SWIG on the example rather than writing it from memory, so the file name, line number and wording are what a user sees.  If the warning is hidden by default, say which option shows it, such as `-Wextra`.
+
+```html
+<div class="code">
+<pre>
+%module example
+
+struct Counter {
+  int by_rvalue_ref(this Counter&amp;&amp; self);
+};
+</pre>
+</div>
+
+<div class="shell">
+<pre>
+example.i:4: Warning 405: Method with rvalue ref-qualifier by_rvalue_ref() ignored.
 </pre>
 </div>
 ```
@@ -200,7 +224,9 @@ Before claiming the example works, also check whether an existing test under `Ex
 - [ ] Anchors prefixed with the chapter base name (`<filebase>_topic`).
 - [ ] Cross document links include `#anchor`, not bare `Foo.html`.
 - [ ] Snippets wrapped in the right `<div class="...">` — `code` for C/C++/SWIG input, `targetlang` for the wrapped language, `shell` for command lines, `diagram` for ASCII art.
+- [ ] No whole statement, declaration or directive inline in a paragraph; each is in a block, however short.
 - [ ] Angle brackets and `&` in `<pre>` blocks escaped as `&lt;`, `&gt;`, `&amp;`.
+- [ ] Warning and error messages shown in a `shell` block after the code that causes them, copied from a real run, never inline in a paragraph.
 - [ ] ASCII characters preferred in prose (no `&mdash;` etc.).
 - [ ] Compatibility note (if any) version verified via `git tag --sort=-v:refname` and styled to match neighbours.
 - [ ] No tabs in the file (spaces only).
