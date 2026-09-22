@@ -179,6 +179,7 @@ CPP_TEST_CASES += \
 	cpp_basic \
 	cpp_enum \
 	cpp_namespace \
+	cpp_new_expression \
 	cpp_nodefault \
 	cpp_parameters \
 	cpp_static \

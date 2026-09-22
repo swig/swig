@@ -54,6 +54,9 @@ static int scan_init = 0;
 static int num_brace = 0;
 static int last_id = 0;
 static int rename_active = 0;
+/* Set while the last tokens yylex() returned are an '=', optionally followed by the '::' of '::new', as the grammar
+ * only parses a new-expression as the whole of an initialiser or a default argument. */
+static int new_expression_can_start = 0;
 
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
@@ -208,6 +211,26 @@ String *get_raw_text_balanced(int startchar, int endchar) {
 
 String *get_raw_text_to_semicolon(void) {
   return Scanner_get_raw_text_to_semicolon(scan);
+}
+
+/* -----------------------------------------------------------------------------
+ * skip_to_initializer_end()
+ *
+ * Skips the rest of an initializer or default argument, up to but not including
+ * the ',', ';' or ')' that ends it, and returns its raw text, or NULL after
+ * reporting an error if the end of input is reached first.
+ * ----------------------------------------------------------------------------- */
+
+String *skip_to_initializer_end(void) {
+  int start_line = Scanner_line(scan);
+  String *code = Scanner_skip_to_initializer_end(scan);
+  if (!code) {
+    Swig_error(cparse_file, start_line, "Missing ';' or ')'. Reached end of input.\n");
+    return NULL;
+  }
+  cparse_line = Scanner_line(scan);
+  cparse_file = Scanner_file(scan);
+  return code;
 }
 
 /* The literal tokens the scanner returns, each with the token the grammar is given for it and the T_* type code
@@ -955,12 +978,12 @@ String *scanner_get_main_input_file(void) {
 }
 
 /* ----------------------------------------------------------------------------
- * int yylex()
+ * int scan_token()
  *
  * Gets the lexene and returns tokens.
  * ------------------------------------------------------------------------- */
 
-int yylex(void) {
+static int scan_token(void) {
 
   int l;
   char *yytext;
@@ -1335,6 +1358,12 @@ int yylex(void) {
         }
         if (strcmp(yytext, "delete") == 0)
           return (DELETE_KW);
+        /* 'new' is a keyword in C++ only, being an ordinary identifier in C.  Even in C++ it is only a keyword where
+           a new-expression can start, so that it can still be a name elsewhere, as in '%rename(new) create;' or
+           '%constant int new = 5;'.  The 'operator new' path above reads the word straight from the scanner rather
+           than through yylex(), so it never sees this token. */
+        if (strcmp(yytext, "new") == 0 && new_expression_can_start)
+          return (NEW_KW);
         if (strcmp(yytext, "default") == 0)
           return (DEFAULT);
         if (strcmp(yytext, "using") == 0)
@@ -1500,4 +1529,16 @@ int yylex(void) {
   default:
     return (l);
   }
+}
+
+/* ----------------------------------------------------------------------------
+ * int yylex()
+ *
+ * Returns the next token to the parser, noting whether a new-expression can start after it.
+ * ------------------------------------------------------------------------- */
+
+int yylex(void) {
+  int tok = scan_token();
+  new_expression_can_start = tok == EQUAL || (new_expression_can_start && (tok == NONID || tok == DCOLON));
+  return tok;
 }

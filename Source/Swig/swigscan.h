@@ -25,6 +25,7 @@ extern void Scanner_skip_line(Scanner *);
 extern int Scanner_skip_balanced(Scanner *, int startchar, int endchar);
 extern String *Scanner_get_raw_text_balanced(Scanner *, int startchar, int endchar);
 extern String *Scanner_get_raw_text_to_semicolon(Scanner *);
+extern String *Scanner_skip_to_initializer_end(Scanner *);
 extern void Scanner_set_location(Scanner *, String *file, int line);
 extern String *Scanner_file(Scanner *);
 extern int Scanner_line(Scanner *);

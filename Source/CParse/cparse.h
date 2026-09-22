@@ -38,6 +38,7 @@ extern int skip_balanced(int startchar, int endchar);
 extern int balanced_group_is_open(int startchar, int endchar);
 extern String *get_raw_text_balanced(int startchar, int endchar);
 extern String *get_raw_text_to_semicolon(void);
+extern String *skip_to_initializer_end(void);
 extern int promote_type(int t);
 extern int literal_type_code(String *text);
 extern int skip_balanced_to_semicolon(void);

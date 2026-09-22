@@ -1772,6 +1772,72 @@ String *Scanner_get_raw_text_to_semicolon(Scanner *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Scanner_skip_to_initializer_end()
+ *
+ * Skips the rest of an initializer or default argument, up to but not including the ',' or ';' that ends it or the
+ * ')' that closes the parameter list, and returns the raw text skipped.  One nested inside '(...)', '[...]' or '{...}'
+ * does not count, and nor does a ',' between the '<' and '>' of a template argument list.  The '<' and '>' are only
+ * counted outside the other brackets, where they cannot be comparison operators within the type of a new-expression,
+ * which is what this is for.  Each comment is replaced by a space in the text returned, and a locator comment the
+ * preprocessor put round a macro expansion is passed to Scanner_locator(), as it is when the text is parsed, so that
+ * line numbering resumes after the macro.  The token that ends the text is pushed back so that it is the next token.
+ * Returns NULL if the end of the text is reached first.
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_skip_to_initializer_end(Scanner *s) {
+  String *result;
+  long position; /* the start of the text not yet copied to 'result' */
+  int num_levels = 0;
+  int num_angles = 0;
+  int tok;
+
+  if (!s->str)
+    return NULL;
+  position = Tell(s->str);
+  result = NewStringEmpty();
+
+  while (1) {
+    long previous_end = Tell(s->str);
+    int delta;
+    tok = Scanner_token(s);
+    delta = Scanner_bracket_depth_delta(tok);
+    if (tok <= 0) {
+      Delete(result);
+      return NULL;
+    } else if (tok == SWIG_TOKEN_COMMENT) {
+      String *text = Scanner_text(s);
+      char *loc = Char(text);
+      Write(result, Char(s->str) + position, (int)(previous_end - position));
+      Putc(' ', result);
+      position = Tell(s->str);
+      if (strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(text) - 3] == '@')
+        Scanner_locator(s, text);
+    } else if (tok == SWIG_TOKEN_RPAREN && num_levels == 0) {
+      break;
+    } else if (delta) {
+      num_levels += delta;
+    } else if (num_levels == 0 && tok == SWIG_TOKEN_LESSTHAN) {
+      num_angles++;
+    } else if (num_levels == 0 && tok == SWIG_TOKEN_GREATERTHAN && num_angles > 0) {
+      num_angles--;
+    } else if (num_levels == 0 && tok == SWIG_TOKEN_RSHIFT && num_angles > 0) {
+      num_angles = num_angles > 1 ? num_angles - 2 : 0;
+    } else if (tok == SWIG_TOKEN_SEMI && num_levels == 0) {
+      break;
+    } else if (tok == SWIG_TOKEN_COMMA && num_levels == 0 && num_angles == 0) {
+      break;
+    }
+  }
+
+  /* The token ending the text is one character and Tell() is just past it, so it is left out of the text. */
+  Write(result, Char(s->str) + position, (int)(Tell(s->str) - 1 - position));
+  Setfile(result, Getfile(s->str));
+  Setline(result, s->line);
+  Scanner_pushtoken(s, tok, Scanner_text(s));
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
  * Scanner_isoperator()
  *
  * Returns 0 or 1 depending on whether or not a token corresponds to a C/C++

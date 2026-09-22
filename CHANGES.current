@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-21: wsfulton
+            A new-expression is now parsed as a variable initialiser and as a
+            default argument, where it was a syntax error that ended parsing:
+
+              int *made = new int(5);
+              int take(int *p = new int(5));
+
+            'new' was not recognised as a keyword, so SWIG exited at the first
+            new-expression and nothing after it was wrapped.  An 'auto' variable
+            initialised by a new-expression is still ignored with warning 346, as
+            SWIG does not deduce a type from one.
+
+2026-09-21: wsfulton
             Fix decltype in a trailing return type naming a function or array
             parameter declared with a typedef:
 

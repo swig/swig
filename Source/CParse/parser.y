@@ -2101,7 +2101,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token NATIVE INLINE
 %token TYPEMAP ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
-%token LESSTHAN GREATERTHAN DELETE_KW DEFAULT
+%token LESSTHAN GREATERTHAN DELETE_KW NEW_KW DEFAULT
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO LESSEQUALGREATER
 %token ARROW
 %token QUESTIONMARK
@@ -7146,6 +7146,16 @@ def_args       : EQUAL definetype {
 		 $$.val = NewString(scanner_ccode);
 		 $$.type = T_UNKNOWN;
 	       }
+               /* A new-expression, which the expression grammar does not parse, so its text is kept as it is. */
+               | EQUAL NEW_KW {
+                 String *code = skip_to_initializer_end();
+                 if (!code) Exit(EXIT_FAILURE);
+                 Swig_cparse_trim_whitespace(code);
+                 $$ = default_dtype;
+                 $$.val = NewStringf("new %s", code);
+                 $$.type = T_UNKNOWN;
+                 Delete(code);
+               }
                | %empty {
 		 $$ = default_dtype;
                  $$.type = T_UNKNOWN;
