@@ -811,38 +811,6 @@ static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, Parm
 }
 
 /* -----------------------------------------------------------------------------
- * abbreviated_pack_is_not_last()
- *
- * An abbreviated function template spells its template parameters as 'auto' in
- * the function parameter list, and SWIG invents a named template parameter for
- * each of them.  'name' is one of those invented names; this reports whether the
- * function parameter it was invented for is a pack with another parameter after
- * it, as in 'f(auto... values, int last)'.
- *
- * Such a pack is a non-deduced context, so the compiler cannot work out what it
- * holds from the call arguments: 'f(1, 2, 7)' leaves the pack empty, resolves
- * against 'f(int last)' and fails.  The generated call has to spell the pack's
- * template arguments out, as 'f<int, int>(1, 2, 7)', for the pack to hold them.
- * ----------------------------------------------------------------------------- */
-
-static int abbreviated_pack_is_not_last(Node *n, String *name) {
-  Parm *p;
-  if (!name)
-    return 0;
-  for (p = Getattr(n, "parms"); p; p = nextSibling(p)) {
-    SwigType *t = Getattr(p, "type");
-    if (t && SwigType_isvariadic(t)) {
-      String *base = SwigType_base(t);
-      int found = base && Equal(base, name);
-      Delete(base);
-      if (found)
-        return nextSibling(p) != 0;
-    }
-  }
-  return 0;
-}
-
-/* -----------------------------------------------------------------------------
  * rebuild_abbreviated_decl()
  *
  * A C++20 abbreviated function template is written with 'auto' where an explicitly
@@ -882,6 +850,11 @@ static void rebuild_abbreviated_decl(Node *n) {
  * The number of a function template instantiation's template arguments that a call can write explicitly.
  * Explicit arguments fill the template parameters in order and a parameter pack takes every one left, so a
  * template parameter after the first pack can only be deduced from the call and its argument is left off.
+ *
+ * These make up the instantiation's name, which a directive matches, and the generated call.  The arguments
+ * of an abbreviated function template's invented parameters are written too, although they could be deduced,
+ * so that a directive names the instantiation as an explicitly written template's is named and the call
+ * reaches the specialization instantiated rather than one deduction picks, such as 'f<const int>'.
  * ----------------------------------------------------------------------------- */
 
 static int explicit_template_argument_count(ParmList *templateparms, ParmList *tparms) {
@@ -918,70 +891,12 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   rebuild_abbreviated_decl(n);
 
   templateargs = NewStringEmpty();
-  /* Drop from the emitted C++ template-argument list every argument the compiler deduces for itself.  The
-   * invented type template parameters introduced by C++20 abbreviated 'auto' parms ([dcl.fct]/19) are appended
-   * after the explicit parms, and the wrapper signature has concrete types in place of each 'auto', so the
-   * compiler deduces an invented parm's argument from the call and emitting it explicitly is at best redundant.
-   *
-   * The one invented parm whose argument is not deduced is a parameter pack that another function parameter
-   * follows: such a pack is a non-deduced context and would be left empty, so its arguments have to be spelt out
-   * for the call to have the number of parameters the wrapper passes.  Everything after that pack is deduced.
-   * Note this is decided from the function parameter list, not the template parameter list: a plain parameter
-   * after the pack, as in 'f(auto... values, int last)', invents no template parameter and is invisible there. */
-  {
-    int trailing_invented = 0;
-    int last_invented_pack = -1;
-    int last_undeduced_pack = -1;
-    int index = 0;
-    int total = ParmList_len(templateparms);
-    Parm *p;
-    for (p = templateparms; p; p = nextSibling(p), ++index) {
-      if (GetFlag(p, "abbreviated_auto")) {
-        ++trailing_invented;
-        if (SwigType_isvariadic(Getattr(p, "type"))) {
-          last_invented_pack = index;
-          if (abbreviated_pack_is_not_last(n, Getattr(p, "name")))
-            last_undeduced_pack = index;
-        }
-      } else {
-        trailing_invented = 0;
-        last_invented_pack = -1;
-        last_undeduced_pack = -1;
-      }
-    }
-    if (trailing_invented > 0) {
-      int emit_count;
-      if (last_undeduced_pack >= 0) {
-        /* Emit up to and including the arguments the pack absorbs.  Each later template parameter takes one
-         * argument, the count to drop from the end - except a later pack, which takes none, every explicitly
-         * written argument having gone to the first pack ([temp.arg.explicit]/9). */
-        int later_singles = 0;
-        int j = 0;
-        Parm *lp;
-        for (lp = templateparms; lp; lp = nextSibling(lp), ++j) {
-          if (j > last_undeduced_pack && !SwigType_isvariadic(Getattr(lp, "type")))
-            ++later_singles;
-        }
-        emit_count = ParmList_len(tparms) - later_singles;
-      } else if (last_invented_pack >= 0) {
-        /* A deduced invented pack absorbs every remaining template argument, so all of them are dropped rather
-         * than one per invented parameter, which is all an unexpanded invented parm takes. */
-        emit_count = total - trailing_invented;
-      } else {
-        emit_count = ParmList_len(tparms) - trailing_invented;
-      }
-      {
-        ParmList *emit_parms = CopyParmListMax(tparms, emit_count);
-        SwigType_add_template(templateargs, emit_parms);
-        Delete(emit_parms);
-      }
-    } else if (Equal(Getattr(n, "templatetype"), "cdecl") && SwigType_isfunction(Getattr(n, "decl"))) {
-      ParmList *emit_parms = CopyParmListMax(tparms, explicit_template_argument_count(templateparms, tparms));
-      SwigType_add_template(templateargs, emit_parms);
-      Delete(emit_parms);
-    } else {
-      SwigType_add_template(templateargs, tparms);
-    }
+  if (Equal(Getattr(n, "templatetype"), "cdecl") && SwigType_isfunction(Getattr(n, "decl"))) {
+    ParmList *emit_parms = CopyParmListMax(tparms, explicit_template_argument_count(templateparms, tparms));
+    SwigType_add_template(templateargs, emit_parms);
+    Delete(emit_parms);
+  } else {
+    SwigType_add_template(templateargs, tparms);
   }
 
   tname = Copy(Getattr(n, "name"));

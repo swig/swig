@@ -383,6 +383,75 @@ That is what C++ itself does with an explicit template argument list: a pack tha
 </p>
 
 <p>
+A <tt>%rename</tt>, <tt>%ignore</tt> or <tt>%feature</tt> can single out one instantiation by naming it with
+the <tt>%template</tt> arguments, as for an explicitly written template:
+</p>
+
+<div class="code">
+<pre>
+%ignore picked&lt;int&gt;(int);
+%rename(picked_renamed) picked&lt;double&gt;(double);
+
+%inline %{
+int picked(auto x) { return int(x) * 2; }
+%}
+
+%template(picked_int)    picked&lt;int&gt;;     // ignored
+%template(picked_double) picked&lt;double&gt;;  // wrapped as picked_renamed
+%template(picked_short)  picked&lt;short&gt;;
+</pre>
+</div>
+
+<p>
+The parameter list can be left out, which matches every function instantiated by <tt>picked&lt;double&gt;</tt>:
+</p>
+
+<div class="code">
+<pre>
+%rename(picked_renamed) picked&lt;double&gt;;
+</pre>
+</div>
+
+<p>
+The parameter list is only needed when there is more than one, as when the template is overloaded.  If both forms are given,
+the one with the parameter list takes precedence, whichever comes first:
+</p>
+
+<div class="code">
+<pre>
+%rename(bumped_one) bumped&lt;int&gt;(int);  // bumped(auto x) only
+%rename(bumped_all) bumped&lt;int&gt;;       // every other bumped&lt;int&gt;, here bumped(auto x, int step)
+
+%inline %{
+int bumped(auto x) { return x + 1; }
+int bumped(auto x, int step) { return x + step; }
+%}
+
+%template(bumped) bumped&lt;int&gt;;
+</pre>
+</div>
+
+<p>
+This is the same as for an explicitly written template, see <a href="SWIGPlus.html#SWIGPlus_template_renaming">Template renaming</a>.
+</p>
+
+<p>
+The exception is a template parameter pack followed by another template parameter, as in <tt>pack_then_one</tt> and
+<tt>f_mix</tt> above.  Every explicitly written template argument goes to the pack, so a call cannot name the arguments of the
+template parameters after it and they are deduced instead.  SWIG names such an instantiation the way C++ names it in a call or
+an explicit specialization, with the pack's template arguments only.  As instantiations that differ only in the deduced
+template arguments then share a name, give the parameter list to select one of them:
+</p>
+
+<div class="code">
+<pre>
+%rename(pack_then_one_renamed) pack_then_one&lt;int, int&gt;(int, int, double);
+
+%template(pack_then_one_iid) pack_then_one&lt;int, int, double&gt;;
+</pre>
+</div>
+
+<p>
 The <tt>auto</tt> placeholder may carry the usual parameter decorations -
 reference, pointer, forwarding reference, and CV-qualifiers.
 </p>
@@ -407,14 +476,9 @@ T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
 SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the
 constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and
 CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.
-SWIG-4.6.0 is the first version to instantiate an <tt>auto</tt> parameter pack, which previously invented a template parameter
-that was not a pack and so could not be instantiated at all, and the first to give an <tt>auto</tt> parameter pack followed by
-a plain parameter the template arguments the generated call needs.
-SWIG-4.6.0 is also the first version to instantiate an abbreviated function template into a concrete declarator, so that two
-instantiations under one target language name are overloads rather than a redefinition.
-SWIG-4.6.0 is the first version to substitute more than one parameter pack in an instantiation.
-Earlier versions substituted only the first, which left the invented name of a second pack in the declaration, and divided the
-explicitly written template arguments between the packs rather than giving them all to the first as C++ does.
+SWIG-4.6.0 adds support for <tt>auto</tt> parameter packs, including more than one pack and a pack followed by other
+parameters, wraps two instantiations given the same target language name as overloads, and lets <tt>%rename</tt>,
+<tt>%ignore</tt> and <tt>%feature</tt> select a single instantiation.
 </p>
 
 <H3><a name="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</a></H3>

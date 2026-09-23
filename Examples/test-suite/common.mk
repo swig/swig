@@ -756,6 +756,7 @@ CPP17_TEST_BROKEN = \
 CPP20_TEST_CASES += \
 	cpp20_abbreviated_template \
 	cpp20_abbreviated_template_decorated \
+	cpp20_abbreviated_template_directives \
 	cpp20_abbreviated_template_mixed \
 	cpp20_abbreviated_template_overloads \
 	cpp20_alias_template \
