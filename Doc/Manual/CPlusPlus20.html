@@ -18,7 +18,21 @@
 <li><a href="#CPlusPlus20_lambda_templates">Lambda templates</a>
 <li><a href="#CPlusPlus20_constexpr_destructors">Constexpr destructors</a>
 <li><a href="#CPlusPlus20_abbreviated_templates">Abbreviated function templates</a>
+<ul>
+<li><a href="#CPlusPlus20_abbreviated_constrained_auto">Constrained auto parameters and return types</a>
+<li><a href="#CPlusPlus20_abbreviated_decorated_auto">Decorated auto parameters</a>
+<li><a href="#CPlusPlus20_abbreviated_explicit_template_parameters">Mixing with an explicit template parameter list</a>
+<li><a href="#CPlusPlus20_abbreviated_parameter_packs">auto parameter packs</a>
+<li><a href="#CPlusPlus20_abbreviated_directives">Naming an instantiation in a directive</a>
+</ul>
 <li><a href="#CPlusPlus20_concepts">Concepts and requires-clauses</a>
+<ul>
+<li><a href="#CPlusPlus20_requires_clause_positions">Where a requires-clause can be written</a>
+<li><a href="#CPlusPlus20_concept_definitions">Concept definitions and requires-expressions</a>
+<li><a href="#CPlusPlus20_constrained_class_templates">Constrained class templates and member function templates</a>
+<li><a href="#CPlusPlus20_constrained_overloads">Overloads differing only by their constraint</a>
+<li><a href="#CPlusPlus20_constrained_overload_directives">Naming a constrained overload in a directive</a>
+</ul>
 <li><a href="#CPlusPlus20_type_constrained_template_parameters">Type constrained template parameters</a>
 <li><a href="#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
 <li><a href="#CPlusPlus20_variable_templates">Variable templates initialised from a requires-expression</a>
@@ -220,6 +234,19 @@ double scale(auto x, auto factor) { return x * factor; }
 </div>
 
 <p>
+<b>Compatibility note:</b>
+SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the
+constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and
+CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.
+SWIG-4.6.0 adds support for <tt>auto</tt> parameter packs, including more than one pack and a pack followed by other
+parameters, wraps two instantiations given the same target language name as overloads, and lets <tt>%rename</tt>,
+<tt>%ignore</tt> and <tt>%feature</tt> select a single instantiation.
+</p>
+
+<H4><a name="CPlusPlus20_abbreviated_constrained_auto">10.2.4.1 Constrained auto parameters and return types</a></H4>
+
+
+<p>
 In C++20 a concept type-constraint can qualify the <tt>auto</tt>, equivalent to
 declaring the invented type template parameter with a
 <a href="#CPlusPlus20_concepts"><tt>requires</tt>-clause</a>.
@@ -259,6 +286,32 @@ Numeric auto times2(int x) { return x * 2; }                         // ignored 
 Numeric auto times3(int x);                                          // ignored with warning
 </pre>
 </div>
+
+<H4><a name="CPlusPlus20_abbreviated_decorated_auto">10.2.4.2 Decorated auto parameters</a></H4>
+
+
+<p>
+The <tt>auto</tt> placeholder may carry the usual parameter decorations -
+reference, pointer, forwarding reference, and CV-qualifiers.
+</p>
+
+<div class="code">
+<pre>
+int h(auto&amp; x);                   // reference to invented type
+int i(auto* x);                   // pointer to invented type
+int j(auto&amp;&amp; x);                  // forwarding reference
+int k(const auto x);              // const-qualified by value
+int l(const auto&amp; x);             // const reference
+int m(Numeric auto&amp; x);           // constrained reference
+int n(const Numeric auto&amp; x);     // const-qualified constrained reference
+
+template&lt;typename T&gt;
+T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
+</pre>
+</div>
+
+<H4><a name="CPlusPlus20_abbreviated_explicit_template_parameters">10.2.4.3 Mixing with an explicit template parameter list</a></H4>
+
 
 <p>
 The <tt>auto</tt> parameter form combines freely with an explicit
@@ -330,6 +383,9 @@ appended after <tt>Ts...</tt>.  The three <tt>%template</tt> arguments bind as
 wrapper signature <tt>f_mix(double x, int y1, std::string y2)</tt>.
 </p>
 
+<H4><a name="CPlusPlus20_abbreviated_parameter_packs">10.2.4.4 auto parameter packs</a></H4>
+
+
 <p>
 An <tt>auto</tt> parameter can itself be a pack.  The invented type template
 parameter is then a template parameter pack, just as it is for the equivalent
@@ -381,6 +437,9 @@ Where there is more than one pack, every explicitly written template argument go
 That is what C++ itself does with an explicit template argument list: a pack that is not the last function parameter is a non-deduced context, so nothing is left for a later pack to take.
 <tt>two_packs&lt;int, int, int&gt;</tt> therefore wraps three parameters, all of them in <tt>first</tt>, with <tt>second</tt> empty.
 </p>
+
+<H4><a name="CPlusPlus20_abbreviated_directives">10.2.4.5 Naming an instantiation in a directive</a></H4>
+
 
 <p>
 A <tt>%rename</tt>, <tt>%ignore</tt> or <tt>%feature</tt> can single out one instantiation by naming it with
@@ -436,8 +495,9 @@ This is the same as for an explicitly written template, see <a href="SWIGPlus.ht
 </p>
 
 <p>
-The exception is a template parameter pack followed by another template parameter, as in <tt>pack_then_one</tt> and
-<tt>f_mix</tt> above.  Every explicitly written template argument goes to the pack, so a call cannot name the arguments of the
+The exception is a template parameter pack followed by another template parameter, as in <tt>f_mix</tt> in
+<a href="#CPlusPlus20_abbreviated_explicit_template_parameters">Mixing with an explicit template parameter list</a> and
+<tt>pack_then_one</tt> in <a href="#CPlusPlus20_abbreviated_parameter_packs">auto parameter packs</a>.  Every explicitly written template argument goes to the pack, so a call cannot name the arguments of the
 template parameters after it and they are deduced instead.  SWIG names such an instantiation the way C++ names it in a call or
 an explicit specialization, with the pack's template arguments only.  As instantiations that differ only in the deduced
 template arguments then share a name, give the parameter list to select one of them:
@@ -450,36 +510,6 @@ template arguments then share a name, give the parameter list to select one of t
 %template(pack_then_one_iid) pack_then_one&lt;int, int, double&gt;;
 </pre>
 </div>
-
-<p>
-The <tt>auto</tt> placeholder may carry the usual parameter decorations -
-reference, pointer, forwarding reference, and CV-qualifiers.
-</p>
-
-<div class="code">
-<pre>
-int h(auto&amp; x);                   // reference to invented type
-int i(auto* x);                   // pointer to invented type
-int j(auto&amp;&amp; x);                  // forwarding reference
-int k(const auto x);              // const-qualified by value
-int l(const auto&amp; x);             // const reference
-int m(Numeric auto&amp; x);           // constrained reference
-int n(const Numeric auto&amp; x);     // const-qualified constrained reference
-
-template&lt;typename T&gt;
-T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
-</pre>
-</div>
-
-<p>
-<b>Compatibility note:</b>
-SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the
-constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and
-CV-qualifier / reference / pointer decorations on the <tt>auto</tt> placeholder.
-SWIG-4.6.0 adds support for <tt>auto</tt> parameter packs, including more than one pack and a pack followed by other
-parameters, wraps two instantiations given the same target language name as overloads, and lets <tt>%rename</tt>,
-<tt>%ignore</tt> and <tt>%feature</tt> select a single instantiation.
-</p>
 
 <H3><a name="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</a></H3>
 
@@ -530,6 +560,25 @@ T quad(T x) {
 </div>
 
 <p>
+The captured constraint does not drive wrapper code generation: overload
+resolution still happens at C++ compile time, by which point SWIG has
+already produced the wrapper.  The generated bindings are therefore the
+same as for an unconstrained template, for any constraint that the
+underlying C++ compiler accepts.
+</p>
+
+<p>
+<b>Compatibility note:</b>
+SWIG-4.5.0 is the first version to support C++20 concepts.
+SWIG-4.6.0 is the first version to treat a <tt>requires</tt>-clause as part of a function template's signature, so that two
+function templates differing only by their constraint are kept as distinct overloads instead of the second being dropped with
+warning 302 (<i>Redefinition of identifier 'X' ignored</i>).
+</p>
+
+<H4><a name="CPlusPlus20_requires_clause_positions">10.2.5.1 Where a requires-clause can be written</a></H4>
+
+
+<p>
 Compound prefix constraints joined by <tt>&amp;&amp;</tt> or <tt>||</tt>
 and parenthesised constraint subexpressions are also accepted - for
 example <tt>requires Numeric&lt;T&gt; &amp;&amp; SmallNumeric&lt;T&gt;</tt> or
@@ -567,6 +616,20 @@ template&lt;typename T&gt; T always(T x) requires true          { return x; }
 template&lt;typename T&gt; T other(T x) requires (!Numeric&lt;T&gt;)  { return x; }
 </pre>
 </div>
+
+<p>
+Templated lambdas accept <tt>requires</tt>-clause in all positions, such as:
+</p>
+
+<div class="code">
+<pre>
+auto prefix = []&lt;typename T&gt; requires Numeric&lt;T&gt; (T x) { return x + x; };
+auto with_ret = []&lt;typename T&gt;(T x) -&gt; T requires Numeric&lt;T&gt; { return x + x; };
+</pre>
+</div>
+
+<H4><a name="CPlusPlus20_concept_definitions">10.2.5.2 Concept definitions and requires-expressions</a></H4>
+
 
 <p>
 The body of a <tt>concept</tt> is not restricted to concept names: any
@@ -644,6 +707,9 @@ T add_same(T a, T b) requires AddableSame&lt;T&gt; {
 </pre>
 </div>
 
+<H4><a name="CPlusPlus20_constrained_class_templates">10.2.5.3 Constrained class templates and member function templates</a></H4>
+
+
 <p>
 A class template can carry a prefix <tt>requires</tt>-clause on its
 template parameter list; the constraint propagates to every instantiation:
@@ -710,22 +776,6 @@ public:
 </div>
 
 <p>
-Function templates that share a name and differ in arity may each carry
-their own <tt>requires</tt>-clause; SWIG dispatches by argument count at
-runtime and the constraints do not affect that path:
-</p>
-
-<div class="code">
-<pre>
-template&lt;typename T&gt; requires Numeric&lt;T&gt;
-T accumulate(T a) { return a + 1; }
-
-template&lt;typename T&gt; requires Numeric&lt;T&gt;
-T accumulate(T a, T b) { return a + b; }
-</pre>
-</div>
-
-<p>
 A class template can have a structural partial specialization (such as
 <tt>T</tt> against <tt>T*</tt>) whose template parameter list additionally
 carries a <tt>requires</tt>-clause.  SWIG selects between primary and partial
@@ -752,22 +802,42 @@ struct Storage&lt;T*&gt; {
 </div>
 
 <p>
-Templated lambdas accept <tt>requires</tt>-clause in all positions, such as:
+A class template "partial specialization" whose structural
+template-argument pattern is identical to the primary, intended to be
+selected by a <tt>requires</tt>-clause alone, is not distinguishable
+from the primary.  The last declared candidate wins for every
+instantiation:
+</p>
+<div class="code">
+<pre>
+template&lt;typename T&gt;                     struct S { /* primary */ };
+template&lt;typename T&gt; requires Numeric&lt;T&gt; struct S&lt;T&gt; { /* not selected by SWIG */ };
+</pre>
+</div>
+<p>
+Use a structural pattern (such as <tt>T*</tt>, <tt>T const&amp;</tt>,
+etc.) to differentiate partial specs that need to wrap distinctly.
+</p>
+
+<H4><a name="CPlusPlus20_constrained_overloads">10.2.5.4 Overloads differing only by their constraint</a></H4>
+
+
+<p>
+Function templates that share a name and differ in arity may each carry
+their own <tt>requires</tt>-clause; SWIG dispatches by argument count at
+runtime and the constraints do not affect that path:
 </p>
 
 <div class="code">
 <pre>
-auto prefix = []&lt;typename T&gt; requires Numeric&lt;T&gt; (T x) { return x + x; };
-auto with_ret = []&lt;typename T&gt;(T x) -&gt; T requires Numeric&lt;T&gt; { return x + x; };
+template&lt;typename T&gt; requires Numeric&lt;T&gt;
+T accumulate(T a) { return a + 1; }
+
+template&lt;typename T&gt; requires Numeric&lt;T&gt;
+T accumulate(T a, T b) { return a + b; }
 </pre>
 </div>
 
-<p>
-Limitations:
-</p>
-
-<ul>
-<li>
 <p>
 SWIG does not evaluate constraints, so it cannot pick between two function
 templates that share a name and signature and differ only by their
@@ -814,9 +884,60 @@ int classify(std::integral auto value, std::integral auto other);
 </pre>
 </div>
 <p>
-For an abbreviated function template the type-constraint is part of the
-declarator, so <tt>%ignore</tt> can name one of the overloads instead,
-leaving the other to be instantiated:
+Otherwise a directive can name one of the overloads, as described in
+<a href="#CPlusPlus20_constrained_overload_directives">Naming a constrained overload in a directive</a>.
+</p>
+
+<p>
+Constructors and other members of a class template are not function templates,
+and the later declaration is still ignored when they share a signature and differ only by a trailing <tt>requires</tt>-clause.
+It is reported with warning 333
+(<i>Declaration of 'X' as decl differing only by a constraint is ignored</i>).
+</p>
+<div class="code">
+<pre>
+template&lt;typename T&gt;
+struct Box {
+  Box(T v) requires std::integral&lt;T&gt;;
+  Box(T v) requires std::floating_point&lt;T&gt;;   // warning 333, ignored
+
+  int kind() requires std::integral&lt;T&gt;;
+  int kind() requires std::floating_point&lt;T&gt;; // warning 333, ignored
+};
+</pre>
+</div>
+<p>
+The wrapper generated from the declaration that is kept names the member rather than one of the two declarations,
+so the C++ compiler still selects the overload the instantiation satisfies.
+The wrapper is only wrong where the ignored declaration differs in something the wrapper does depend on, such as its return type.
+</p>
+<p>
+The cv-qualifier and ref-qualifier on a member function are part of its
+signature, so member function templates carrying different ones are
+distinct and are accepted:
+</p>
+<div class="code">
+<pre>
+struct Holder {
+  template&lt;typename T&gt; T get(T x) &amp; requires std::integral&lt;T&gt;;
+  template&lt;typename T&gt; T get(T x) const &amp; requires std::floating_point&lt;T&gt;;
+};
+
+%template(get_int) Holder::get&lt;int&gt;;
+</pre>
+</div>
+<p>
+A target language with no ref-qualifiers keeps one of the two and reports warning 516
+(<i>Overloaded method 'declaration' ignored, using 'declaration' instead</i>).
+</p>
+
+<H4><a name="CPlusPlus20_constrained_overload_directives">10.2.5.5 Naming a constrained overload in a directive</a></H4>
+
+
+<p>
+Where the overloads cannot be given distinct signatures, a directive can name one of them, leaving the other to be
+instantiated.  For an abbreviated function template the type-constraint is part of the declarator, so <tt>%ignore</tt>
+can name the overload as it is declared:
 </p>
 <div class="code">
 <pre>
@@ -882,83 +1003,6 @@ and a directive with a constraint takes precedence over it whatever the order:
 %feature("docstring") process(T) "Processes x";                                // every other overload
 </pre>
 </div>
-<p>
-Constructors and other members of a class template are not function templates,
-and the later declaration is still ignored when they share a signature and differ only by a trailing <tt>requires</tt>-clause.
-It is reported with warning 333
-(<i>Declaration of 'X' as decl differing only by a constraint is ignored</i>).
-</p>
-<div class="code">
-<pre>
-template&lt;typename T&gt;
-struct Box {
-  Box(T v) requires std::integral&lt;T&gt;;
-  Box(T v) requires std::floating_point&lt;T&gt;;   // warning 333, ignored
-
-  int kind() requires std::integral&lt;T&gt;;
-  int kind() requires std::floating_point&lt;T&gt;; // warning 333, ignored
-};
-</pre>
-</div>
-<p>
-The wrapper generated from the declaration that is kept names the member rather than one of the two declarations,
-so the C++ compiler still selects the overload the instantiation satisfies.
-The wrapper is only wrong where the ignored declaration differs in something the wrapper does depend on, such as its return type.
-</p>
-<p>
-The cv-qualifier and ref-qualifier on a member function are part of its
-signature, so member function templates carrying different ones are
-distinct and are accepted:
-</p>
-<div class="code">
-<pre>
-struct Holder {
-  template&lt;typename T&gt; T get(T x) &amp; requires std::integral&lt;T&gt;;
-  template&lt;typename T&gt; T get(T x) const &amp; requires std::floating_point&lt;T&gt;;
-};
-
-%template(get_int) Holder::get&lt;int&gt;;
-</pre>
-</div>
-<p>
-A target language with no ref-qualifiers keeps one of the two and reports warning 516
-(<i>Overloaded method 'declaration' ignored, using 'declaration' instead</i>).
-</p>
-<p>
-A class template "partial specialization" whose structural
-template-argument pattern is identical to the primary, intended to be
-selected by a <tt>requires</tt>-clause alone, is not distinguishable
-from the primary.  The last declared candidate wins for every
-instantiation:
-</p>
-<div class="code">
-<pre>
-template&lt;typename T&gt;                     struct S { /* primary */ };
-template&lt;typename T&gt; requires Numeric&lt;T&gt; struct S&lt;T&gt; { /* not selected by SWIG */ };
-</pre>
-</div>
-<p>
-Use a structural pattern (such as <tt>T*</tt>, <tt>T const&amp;</tt>,
-etc.) to differentiate partial specs that need to wrap distinctly.
-</p>
-</li>
-</ul>
-
-<p>
-The captured constraint does not drive wrapper code generation: overload
-resolution still happens at C++ compile time, by which point SWIG has
-already produced the wrapper.  The generated bindings are therefore the
-same as for an unconstrained template, for any constraint that the
-underlying C++ compiler accepts.
-</p>
-
-<p>
-<b>Compatibility note:</b>
-SWIG-4.5.0 is the first version to support C++20 concepts.
-SWIG-4.6.0 is the first version to treat a <tt>requires</tt>-clause as part of a function template's signature, so that two
-function templates differing only by their constraint are kept as distinct overloads instead of the second being dropped with
-warning 302 (<i>Redefinition of identifier 'X' ignored</i>).
-</p>
 
 <H3><a name="CPlusPlus20_type_constrained_template_parameters">10.2.6 Type constrained template parameters</a></H3>
 
