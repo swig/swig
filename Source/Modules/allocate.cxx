@@ -351,6 +351,8 @@ class Allocate : public Dispatcher {
           continue;
         if (Strchr(name, '~'))
           continue; /* Don't care about destructors */
+        if (Getattr(nn, "defaultargs"))
+          continue; /* Overriding the function with all the parameters also overrides the overloads generated to handle its default arguments */
         String *base_decl = Getattr(nn, "decl");
         if (base_decl)
           base_decl = SwigType_typedef_resolve_all(base_decl);

@@ -112,6 +112,7 @@ CPP_TEST_CASES += \
 	abstract_access \
 	abstract_basecast \
 	abstract_inherit \
+	abstract_inherit_default_args \
 	abstract_inherit_ok \
 	abstract_inherit_using \
 	abstract_signature \
