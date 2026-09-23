@@ -4207,6 +4207,17 @@ public static void funky_void() { ... }
 </pre></div>
 
 <p>
+A <tt>%rename</tt> with a parameter list takes precedence over one without, whichever comes first, following the usual
+<a href="#SWIGPlus_ambiguity_resolution_renaming">name matching rules</a>.
+Adding the following to the example above renames the other two functions to <tt>funky_other</tt> and leaves
+<tt>funky_void</tt> as it is:
+</p>
+
+<div class="code"><pre>
+%rename(funky_other) Quirky::funky&lt;int&gt;;
+</pre></div>
+
+<p>
 <a href="SWIG.html#SWIG_advanced_renaming">Advanced renaming support</a> can be used to modify the C++ symbol for the target language by using format specifiers and special functions/regular expression with <tt>%rename</tt>.
 This type of advanced renaming is not possible solely with the name given to <tt>%template</tt>.
 However, <tt>%rename</tt> can be used to get the same effect.
