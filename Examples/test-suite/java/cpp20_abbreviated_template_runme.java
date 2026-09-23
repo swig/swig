@@ -88,6 +88,8 @@ public class cpp20_abbreviated_template_runme {
 
     if (cpp20_abbreviated_template.count_two_packs_iii(1, 2, 3) != 300)
       throw new RuntimeException("count_two_packs_iii(1, 2, 3)");
+    if (cpp20_abbreviated_template.count_two_packs_renamed(1, 2, 3, 4) != 400)
+      throw new RuntimeException("count_two_packs_renamed(1, 2, 3, 4)");
     if (cpp20_abbreviated_template.count_pack_then_one_iii(1, 2, 3) != 203)
       throw new RuntimeException("count_pack_then_one_iii(1, 2, 3)");
     if (cpp20_abbreviated_template.count_trailing_pack_ii(1, 2, 3) != 102)

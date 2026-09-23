@@ -61,6 +61,7 @@ swig_check(pack_then_plain_numeric_ii(1, 2, 5.0), 205)
 # arguments all go to the first pack, so the second is empty however many arguments are given.
 swig_check(count_two_packs_ii(1, 2), 200)
 swig_check(count_two_packs_iii(1, 2, 3), 300)
+swig_check(count_two_packs_renamed(1, 2, 3, 4), 400)
 swig_check(count_pack_then_one_iii(1, 2, 3), 203)
 swig_check(count_trailing_pack_ii(1, 2, 3), 102)
 

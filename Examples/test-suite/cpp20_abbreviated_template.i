@@ -164,6 +164,9 @@ Numeric auto times3(int x);
 %template(pack_then_plain_numeric_ii) pack_then_plain_numeric<int, int>;
 %template(count_two_packs_ii)     count_two_packs<int, int>;
 %template(count_two_packs_iii)    count_two_packs<int, int, int>;
+// The empty second pack contributes no parameters to the declarator a directive matches.
+%rename(count_two_packs_renamed) count_two_packs<int, int, int, int>(int, int, int, int);
+%template(count_two_packs_iiii)   count_two_packs<int, int, int, int>;
 %template(count_pack_then_one_iii) count_pack_then_one<int, int, int>;
 %template(count_trailing_pack_ii) count_trailing_pack<int, int>;
 
