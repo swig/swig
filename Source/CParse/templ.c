@@ -877,6 +877,27 @@ static void rebuild_abbreviated_decl(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * explicit_template_argument_count()
+ *
+ * The number of a function template instantiation's template arguments that a call can write explicitly.
+ * Explicit arguments fill the template parameters in order and a parameter pack takes every one left, so a
+ * template parameter after the first pack can only be deduced from the call and its argument is left off.
+ * ----------------------------------------------------------------------------- */
+
+static int explicit_template_argument_count(ParmList *templateparms, ParmList *tparms) {
+  int later_singles = 0;
+  int seen_pack = 0;
+  Parm *p;
+  for (p = templateparms; p; p = nextSibling(p)) {
+    if (SwigType_isvariadic(Getattr(p, "type")))
+      seen_pack = 1;
+    else if (seen_pack)
+      ++later_singles;
+  }
+  return ParmList_len(tparms) - later_singles;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cparse_template_expand()
  * ----------------------------------------------------------------------------- */
 
@@ -954,6 +975,10 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
         SwigType_add_template(templateargs, emit_parms);
         Delete(emit_parms);
       }
+    } else if (Equal(Getattr(n, "templatetype"), "cdecl") && SwigType_isfunction(Getattr(n, "decl"))) {
+      ParmList *emit_parms = CopyParmListMax(tparms, explicit_template_argument_count(templateparms, tparms));
+      SwigType_add_template(templateargs, emit_parms);
+      Delete(emit_parms);
     } else {
       SwigType_add_template(templateargs, tparms);
     }

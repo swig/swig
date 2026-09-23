@@ -94,3 +94,11 @@ template<typename... T> int variadicmix1(T... t) { return 20; }
 %template(variadicmix1) variadicmix1<A,B>;
 %template(variadicmix1) variadicmix1<A,B,C>;
 %template(variadicmix1) variadicmix1<int, int>;
+
+// A pack followed by another template parameter, which the call can only deduce
+%inline %{
+template<typename... T, typename U> int pack_then_deduced(T... t, U u) { return int(sizeof...(T)) * 10 + int(sizeof(U) == sizeof(double)); }
+%}
+
+%template(pack_then_deduced) pack_then_deduced<int, int, double>;
+%template(pack_then_deduced) pack_then_deduced<double>;

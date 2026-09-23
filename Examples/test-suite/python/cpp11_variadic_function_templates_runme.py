@@ -18,3 +18,6 @@ check(variadicmix1(a), 20)
 check(variadicmix1(a, b), 10)
 check(variadicmix1(a, b, c), 20)
 check(variadicmix1(11, 22), 10)
+
+check(pack_then_deduced(1, 2, 3.5), 21)
+check(pack_then_deduced(4.5), 1)
