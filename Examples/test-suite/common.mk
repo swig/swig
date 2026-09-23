@@ -769,6 +769,7 @@ CPP20_TEST_CASES += \
 	cpp20_concepts_lambda \
 	cpp20_concepts_overloads \
 	cpp20_constexpr_destructor \
+	cpp20_constrained_template_directives \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
 	cpp20_structured_bindings \

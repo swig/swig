@@ -1,0 +1,2 @@
+cpp_directive_requires_clause.i:3: Error: A requires-clause in a directive must follow a function declarator.
+cpp_directive_requires_clause.i:4: Error: A requires-clause in a directive must follow a function declarator.

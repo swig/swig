@@ -313,6 +313,7 @@ extern String *Swig_name_fulldecl(Node *n);
 
 extern void Swig_name_object_set(Hash *namehash, String *name, SwigType *decl, DOH *object);
 extern DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl);
+extern SwigType *Swig_name_constrained_decl(const SwigType *decl, Node *constraint, ParmList *templateparms);
 extern void Swig_name_object_inherit(Hash *namehash, String *base, String *derived);
 extern void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *n);
 extern void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *decl, const_String_or_char_ptr featurename,
@@ -459,6 +460,7 @@ extern String *Constraint_str(Node *n);
 extern String *Constraint_signature_str(Node *n);
 extern int Constraint_signatures_equal(Node *a, Node *b);
 extern int Constraint_differently_constrained(Node *a, Node *b);
+extern String *Constraint_match_str(Node *constraint, ParmList *templateparms);
 
 /* hacks defined in C++ ! */
 extern int Swig_director_mode(void);

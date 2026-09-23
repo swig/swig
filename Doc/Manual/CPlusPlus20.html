@@ -830,6 +830,59 @@ double classify(std::floating_point auto value);
 </pre>
 </div>
 <p>
+Otherwise add the constraint to the directive as a trailing <tt>requires</tt>-clause,
+and <tt>%ignore</tt>, <tt>%rename</tt> and <tt>%feature</tt> then name only the overload with that constraint:
+</p>
+<div class="code">
+<pre>
+%ignore process(T) requires std::integral&lt;T&gt;;
+
+template&lt;typename T&gt; requires std::integral&lt;T&gt;       T process(T x);
+template&lt;typename T&gt; requires std::floating_point&lt;T&gt; T process(T x);
+
+// wraps the std::floating_point overload
+%template(process_double) process&lt;double&gt;;
+</pre>
+</div>
+<p>
+The declaration can write the constraint in any of the equivalent ways C++ allows and one directive still matches it.
+The directive below matches a declaration written in any one of the first six ways shown,
+with the constraint before the declarator, after it, split across the two, or as a type-constraint,
+and with the operands of <tt>&amp;&amp;</tt> in either order:
+</p>
+<div class="code">
+<pre>
+%ignore process(T) requires std::integral&lt;T&gt; &amp;&amp; std::copyable&lt;T&gt;;
+
+// matched
+template&lt;typename T&gt; requires std::integral&lt;T&gt; &amp;&amp; std::copyable&lt;T&gt; T process(T x);
+template&lt;typename T&gt; requires std::copyable&lt;T&gt; &amp;&amp; std::integral&lt;T&gt; T process(T x);
+template&lt;typename T&gt; T process(T x) requires std::integral&lt;T&gt; &amp;&amp; std::copyable&lt;T&gt;;
+template&lt;typename T&gt; requires std::integral&lt;T&gt; T process(T x) requires std::copyable&lt;T&gt;;
+template&lt;std::integral T&gt; requires std::copyable&lt;T&gt; T process(T x);
+template&lt;std::integral T&gt; T process(T x) requires std::copyable&lt;T&gt;;
+
+// not matched
+template&lt;typename T&gt; requires std::integral&lt;T&gt; T process(T x);
+template&lt;typename T&gt; requires integral&lt;T&gt; &amp;&amp; std::copyable&lt;T&gt; T process(T x);
+</pre>
+</div>
+<p>
+Each operand is otherwise compared as written, as SWIG does not evaluate constraints.
+So the directive does not match a declaration with a different constraint, such as only <tt>std::integral&lt;T&gt;</tt>,
+nor one naming the same concept differently, such as <tt>integral&lt;T&gt;</tt> after a <tt>using namespace std</tt> declaration.
+</p>
+<p>
+A directive without a constraint still names every overload with that declarator,
+and a directive with a constraint takes precedence over it whatever the order:
+</p>
+<div class="code">
+<pre>
+%feature("docstring") process(T) requires std::floating_point&lt;T&gt; "Rounds x";   // this overload
+%feature("docstring") process(T) "Processes x";                                // every other overload
+</pre>
+</div>
+<p>
 Constructors and other members of a class template are not function templates,
 and the later declaration is still ignored when they share a signature and differ only by a trailing <tt>requires</tt>-clause.
 It is reported with warning 333

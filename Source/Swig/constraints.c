@@ -415,3 +415,91 @@ int Constraint_differently_constrained(Node *a, Node *b) {
   Delete(cb);
   return differently_constrained;
 }
+
+/* Append 's' to 'conjuncts' without the whitespace between its tokens, as a parenthesised primary keeps the text as written. */
+static void add_conjunct(List *conjuncts, String *s) {
+  String *squeezed = Swig_squeeze_c_whitespace(s);
+  Append(conjuncts, squeezed);
+  Delete(squeezed);
+}
+
+/* Append each operand of constraint 'n' that a top level '&&' joins to the others to 'conjuncts'. */
+static void add_conjuncts(List *conjuncts, Node *n) {
+  if (Equal(Getattr(n, "op"), "and")) {
+    Node *c;
+    for (c = firstChild(n); c; c = nextSibling(c))
+      add_conjuncts(conjuncts, c);
+  } else {
+    String *s = NewStringEmpty();
+    render_node(s, n);
+    add_conjunct(conjuncts, s);
+    Delete(s);
+  }
+}
+
+static int compare_conjuncts(const DOH *a, const DOH *b) {
+  return Cmp((DOH *)a, (DOH *)b);
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_match_str()
+ *
+ * Render requires-clause 'constraint' and the type-constraints on 'templateparms', either of
+ * which may be 0, as the requires-clause that %rename, %ignore and %feature match them with.
+ * Returns 0 when there is no constraint.
+ *
+ * A type-constraint is written as the concept-id it stands for, 'IsInt T' as 'IsInt<T>' and
+ * 'IsInt... Ts' as '(IsInt<Ts> && ...)', and the operands of a top level '&&' are sorted and
+ * lose the whitespace between their tokens, so each of these is 'IsInt<T>&&Small<T>':
+ *
+ *   template<typename T> requires IsInt<T> && Small<T> void f(T);
+ *   template<typename T> requires Small<T> void f(T) requires IsInt<T>;
+ *   template<IsInt T> requires Small<T> void f(T);
+ *
+ * The type-constraint on a parameter invented for an abbreviated 'Concept auto' parameter is
+ * left out, as it is written in the declarator that a directive already names.
+ * ----------------------------------------------------------------------------- */
+
+String *Constraint_match_str(Node *constraint, ParmList *templateparms) {
+  List *conjuncts = NewList();
+  String *out = 0;
+  Parm *tp;
+  Iterator ci;
+  if (constraint)
+    add_conjuncts(conjuncts, constraint);
+  for (tp = templateparms; tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint && Equal(Getattr(tconstraint, "kind"), "concept-id") && !GetFlag(tp, "abbreviated_auto")) {
+      SwigType *id = Copy(Getattr(tconstraint, "type"));
+      String *s;
+      if (SwigType_istemplate(id)) {
+        String *first = NewStringf("<(%s,", Getattr(tp, "name"));
+        Replace(id, "<(", first, DOH_REPLACE_FIRST);
+        Delete(first);
+      } else {
+        Printf(id, "<(%s)>", Getattr(tp, "name"));
+      }
+      s = SwigType_str(id, 0);
+      if (SwigType_isvariadic(Getattr(tp, "type"))) {
+        String *fold = NewStringf("(%s && ...)", s);
+        add_conjunct(conjuncts, fold);
+        Delete(fold);
+      } else {
+        add_conjunct(conjuncts, s);
+      }
+      Delete(s);
+      Delete(id);
+    }
+  }
+  if (Len(conjuncts) > 0) {
+    SortList(conjuncts, compare_conjuncts);
+    out = NewStringEmpty();
+    for (ci = First(conjuncts); ci.item; ci = Next(ci)) {
+      if (Len(out) > 0)
+        Append(out, "&&");
+      Append(out, ci.item);
+    }
+  }
+  Delete(conjuncts);
+  return out;
+}

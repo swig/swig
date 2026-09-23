@@ -1611,7 +1611,23 @@ Node *Swig_cparse(File *f) {
   return (Node *)top;
 }
 
-static void single_new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
+/* The declarator that a %rename, %ignore or %feature matches: 'decl', keyed on the directive's requires-clause
+ * 'constraint' as well if it has one, so that it names only the function template with that constraint. */
+static SwigType *directive_decl(SwigType *decl, Node *constraint) {
+  SwigType *constrained = constraint ? Swig_name_constrained_decl(decl, constraint, 0) : 0;
+  if (!constrained)
+    return decl;
+  Delete(decl);
+  return constrained;
+}
+
+/* A requires-clause in a directive can only follow a function declarator, 'type' being the declarator's type. */
+static void directive_constraint_check(SwigType *type, Node *constraint) {
+  if (constraint && !(type && SwigType_isfunction(type)))
+    Swig_error(cparse_file, cparse_line, "A requires-clause in a directive must follow a function declarator.\n");
+}
+
+static void single_new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier, Node *constraint) {
   String *fname;
   String *name;
   String *fixname;
@@ -1636,7 +1652,7 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
   if (t) {
     if (qualifier) SwigType_push(t,qualifier);
     if (SwigType_isfunction(t)) {
-      SwigType *decl = SwigType_pop_function(t);
+      SwigType *decl = directive_decl(SwigType_pop_function(t), constraint);
       if (SwigType_ispointer(t)) {
 	String *nname = NewStringf("*%s",name);
 	Swig_feature_set(Swig_cparse_features(), nname, decl, fname, val, featureattribs);
@@ -1661,7 +1677,7 @@ static void single_new_feature(const char *featurename, String *val, Hash *featu
 /* Add a new feature to the Hash. Additional features are added if the feature has a parameter list (declaratorparms)
  * and one or more of the parameters have a default argument. An extra feature is added for each defaulted parameter,
  * simulating the equivalent overloaded method. */
-static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
+static void new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier, Node *constraint) {
 
   ParmList *declparms = declaratorparms;
 
@@ -1669,8 +1685,10 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
   String *newval = remove_block(featureattribs, val);
   val = newval ? newval : val;
 
+  directive_constraint_check(type, constraint);
+
   /* Add the feature */
-  single_new_feature(featurename, val, featureattribs, declaratorid, type, declaratorparms, qualifier);
+  single_new_feature(featurename, val, featureattribs, declaratorid, type, declaratorparms, qualifier, constraint);
 
   /* Add extra features if there are default parameters in the parameter list */
   if (type) {
@@ -1686,7 +1704,7 @@ static void new_feature(const char *featurename, String *val, Hash *featureattri
         Delete(SwigType_pop_function(newtype)); /* remove the old parameter list from newtype */
         SwigType_add_function(newtype,newparms);
 
-        single_new_feature(featurename, Copy(val), featureattribs, declaratorid, newtype, newparms, qualifier);
+        single_new_feature(featurename, Copy(val), featureattribs, declaratorid, newtype, newparms, qualifier, constraint);
         declparms = newparms;
       } else {
         declparms = 0;
@@ -3672,11 +3690,12 @@ rename_directive : rename_namewarn declarator idstring SEMI {
 		SwigType *t = $declarator.type;
 		fixname = feature_identifier_fix($declarator.id);
 		if (!Len(t)) t = 0;
+                directive_constraint_check(t, $cpp_const.constraint_node);
 		/* Special declarator check */
 		if (t) {
 		  if ($cpp_const.qualifier) SwigType_push(t,$cpp_const.qualifier);
 		  if (SwigType_isfunction(t)) {
-		    SwigType *decl = SwigType_pop_function(t);
+                    SwigType *decl = directive_decl(SwigType_pop_function(t), $cpp_const.constraint_node);
 		    if (SwigType_ispointer(t)) {
 		      String *nname = NewStringf("*%s",fixname);
 		      if ($rename_namewarn) {
@@ -3755,13 +3774,13 @@ rename_namewarn : RENAME {
                   /* Non-global feature */
 feature_directive : FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
                     String *val = $stringbracesemi ? NewString($stringbracesemi) : NewString("1");
-                    new_feature($idstring, val, $featattr, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier);
+                    new_feature($idstring, val, $featattr, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier, $cpp_const.constraint_node);
                     $$ = 0;
                     scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN declarator cpp_const SEMI {
                     String *val = Len($stringnum) ? $stringnum : 0;
-                    new_feature($idstring, val, $featattr, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier);
+                    new_feature($idstring, val, $featattr, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier, $cpp_const.constraint_node);
                     $$ = 0;
                     scanner_clear_rename();
                   }
@@ -3769,13 +3788,13 @@ feature_directive : FEATURE LPAREN idstring featattr RPAREN declarator cpp_const
                   /* Global feature */
                   | FEATURE LPAREN idstring featattr RPAREN stringbracesemi {
                     String *val = $stringbracesemi ? NewString($stringbracesemi) : NewString("1");
-                    new_feature($idstring, val, $featattr, 0, 0, 0, 0);
+                    new_feature($idstring, val, $featattr, 0, 0, 0, 0, 0);
                     $$ = 0;
                     scanner_clear_rename();
                   }
                   | FEATURE LPAREN idstring COMMA stringnum featattr RPAREN SEMI {
                     String *val = Len($stringnum) ? $stringnum : 0;
-                    new_feature($idstring, val, $featattr, 0, 0, 0, 0);
+                    new_feature($idstring, val, $featattr, 0, 0, 0, 0, 0);
                     $$ = 0;
                     scanner_clear_rename();
                   }
