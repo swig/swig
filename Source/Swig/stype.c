@@ -1432,6 +1432,23 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_variadic_expands()
+ *
+ * Whether the variadic type 't' is an expansion of the pack named 'pack_name', such as 'v.r.Ts' of 'Ts'.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_variadic_expands(const SwigType *t, const String *pack_name) {
+  String *copy;
+  int found;
+  if (!SwigType_isvariadic(t) || !pack_name)
+    return 0;
+  copy = Copy(t);
+  found = Replace(copy, pack_name, "", DOH_REPLACE_ID) > 0;
+  Delete(copy);
+  return found;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_variadic_replace()
  *
  * Replaces variadic parameter with a list of (zero or more) parameters.
@@ -1439,18 +1456,14 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
  *
  * Explicitly written template arguments all go to the first pack, so a pack declared after it in the same
  * template parameter list, the variadic entries following 'unexpanded_variadic_parm', is replaced by none.
+ * A pack of any other template, such as a member template's own, is left for that template's instantiation.
  * ----------------------------------------------------------------------------- */
 
 static int variadic_names_later_pack(SwigType *t, Parm *unexpanded_variadic_parm) {
   Parm *pack;
   for (pack = nextSibling(unexpanded_variadic_parm); pack; pack = nextSibling(pack)) {
-    if (SwigType_isvariadic(Getattr(pack, "type"))) {
-      String *copy = Copy(t);
-      int found = Replace(copy, Getattr(pack, "name"), "", DOH_REPLACE_ID) > 0;
-      Delete(copy);
-      if (found)
-        return 1;
-    }
+    if (SwigType_isvariadic(Getattr(pack, "type")) && SwigType_variadic_expands(t, Getattr(pack, "name")))
+      return 1;
   }
   return 0;
 }
@@ -1466,6 +1479,8 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
     Clear(t);
     return;
   }
+  if (SwigType_isvariadic(t) && !SwigType_variadic_expands(t, Getattr(unexpanded_variadic_parm, "name")))
+    return;
 
   if (SwigType_isvariadic(t)) {
     /* Based on expand_variadic_parms() but input is single SwigType (t) instead of ParmList */

@@ -72,7 +72,8 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
  * A function template may declare more than one pack.  Explicitly written template arguments fill the first one
  * entirely ([temp.arg.explicit]/9), leaving every later pack empty, so the parameter expanded from a later pack
  * is dropped.  Those later packs are the variadic entries that follow 'unexpanded_variadic_parm' in the template
- * parameter list it points into.
+ * parameter list it points into.  A pack of another template, such as a member template's own
+ * inside a class template, is left alone.
  * ----------------------------------------------------------------------------- */
 
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
@@ -83,9 +84,13 @@ static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpand
     Parm *variadic;
     if (!SwigType_isvariadic(Getattr(pack, "type")))
       continue;
-    variadic = ParmList_find_variadic_parm(p, &variadic_pos);
+    /* The parm expanding this pack, not just the first variadic one, which may belong to a member template */
+    for (variadic = p; variadic; variadic = nextSibling(variadic), ++variadic_pos) {
+      if (SwigType_variadic_expands(Getattr(variadic, "type"), Getattr(pack, "name")))
+        break;
+    }
     if (!variadic)
-      break;
+      continue;
     if (pack != unexpanded_variadic_parm) {
       Setattr(n, attribute, ParmList_replace_at(p, variadic_pos, 0));
     } else {
