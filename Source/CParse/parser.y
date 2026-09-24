@@ -2381,6 +2381,19 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
       Delete(operand);
       return deduced;
     }
+    {
+      /* The address of an overloaded function has no type until it is converted to a particular function pointer
+       * type, so there is nothing to deduce, and the first overload found is no more the answer than any other.
+       * A parameter of the same name hides the overloads. */
+      Parm *p = trailing_rettype_parms;
+      while (p && !Equal(Getattr(p, "name"), operand))
+        p = nextSibling(p);
+      n = p ? 0 : Swig_symbol_clookup(operand, 0);
+      if (n && Getattr(n, "sym:overloaded")) {
+        Delete(operand);
+        return 0;
+      }
+    }
     deduced = symbol_full_type(operand);
     Delete(operand);
     if (deduced) {

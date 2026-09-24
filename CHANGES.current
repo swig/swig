@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-24: wsfulton
+            The address of an overloaded function is no longer deduced as a pointer
+            to the first overload:
+
+              int ov(int);
+              double ov(double);
+              auto p = &ov;            // Warning 346 (ignored)
+              decltype(&ov) d;         // Warning 344
+
+            The overload cannot be known without a target type.
+
+2026-09-24: wsfulton
             An 'auto' reference bound to a string literal is now wrapped as a
             reference to the array of characters, as for decltype(auto):
 
