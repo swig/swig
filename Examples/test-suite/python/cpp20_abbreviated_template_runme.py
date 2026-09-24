@@ -92,3 +92,12 @@ swig_assert(sum_fwd_ii is not None, "sum_fwd_ii")
 
 # Constrained 'Numeric auto' return without a trailing return type - SWIG cannot deduce so the function is ignored.
 swig_assert(not hasattr(_mod, "half_numeric"), "half_numeric should be ignored (deduced return type)")
+
+# An abbreviated constructor template, instantiated in %extend.
+swig_check(AbbrevCtor(5).value, 5)
+swig_check(AbbrevCtor(AbbrevTag()).value, 3)
+swig_check(AbbrevCtorExplicit(2.5).value, 2)
+swig_check(AbbrevCtorConstrained(7).value, 7)
+# -builtin raises TypeError rather than AttributeError for a class with no constructor.
+with swig_assert_raises((AttributeError, TypeError)):
+    AbbrevCtorNone(1)

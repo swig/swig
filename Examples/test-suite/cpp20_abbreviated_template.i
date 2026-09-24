@@ -133,7 +133,43 @@ Numeric auto times2(int x) { return x * 2; }
 
 // Constrained auto return type, declaration form - same ignored with warning fate.
 Numeric auto times3(int x);
+
+// An auto parameter makes a constructor a constructor template, instantiated with %template.
+struct AbbrevTag {
+  int id;
+  AbbrevTag() : id(3) {}
+};
+inline int abbrev_value(double x) { return int(x); }
+inline int abbrev_value(const AbbrevTag &t) { return t.id; }
+
+struct AbbrevCtor {
+  int value;
+  AbbrevCtor(auto x) : value(abbrev_value(x)) {}
+};
+
+struct AbbrevCtorExplicit {
+  int value;
+  explicit AbbrevCtorExplicit(auto x) : value(abbrev_value(x)) {}
+};
+
+struct AbbrevCtorConstrained {
+  int value;
+  AbbrevCtorConstrained(Numeric auto x) : value(abbrev_value(x)) {}
+};
+
+// Not instantiated, so there is no constructor to wrap, the same as for 'template<class T> AbbrevCtorNone(T)'.
+struct AbbrevCtorNone {
+  int value;
+  AbbrevCtorNone(auto x) : value(abbrev_value(x)) {}
+};
 %}
+
+%template(AbbrevCtor) AbbrevCtor::AbbrevCtor<int>;
+%template(AbbrevCtor) AbbrevCtor::AbbrevCtor<AbbrevTag>;
+%extend AbbrevCtorExplicit {
+  %template(AbbrevCtorExplicit) AbbrevCtorExplicit<double>;
+}
+%template(AbbrevCtorConstrained) AbbrevCtorConstrained::AbbrevCtorConstrained<short>;
 
 %template(twice_int)              twice<int>;
 %template(twice_short)            twice<short>;

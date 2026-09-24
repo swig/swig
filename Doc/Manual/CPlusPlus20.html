@@ -234,6 +234,36 @@ double scale(auto x, auto factor) { return x * factor; }
 </div>
 
 <p>
+A constructor with an <tt>auto</tt> parameter is a constructor template and, like any
+other constructor template, is only wrapped once instantiated with <tt>%template</tt>,
+using the class name:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+struct Box {
+  Box(auto x) { ... }
+};
+%}
+
+%template(Box) Box::Box&lt;int&gt;;
+</pre>
+</div>
+
+<p>
+The instantiation can equally be placed inside <tt>%extend</tt>:
+</p>
+
+<div class="code">
+<pre>
+%extend Box {
+  %template(Box) Box&lt;int&gt;;
+}
+</pre>
+</div>
+
+<p>
 <b>Compatibility note:</b>
 SWIG-4.5.0 is the first version to parse and support abbreviated function templates with <tt>auto</tt> parameters, including the
 constrained auto form in both parameter and return type positions, mixing with an explicit template parameter list, and

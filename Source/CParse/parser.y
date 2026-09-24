@@ -6739,6 +6739,8 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		  Setattr($$, "stringval", $ctor_end.stringdefarg);
 		if ($ctor_end.numdefarg)
 		  Setattr($$, "numval", $ctor_end.numdefarg);
+                /* C++20 abbreviated constructor template: any parm typed 'auto' becomes an invented type template parameter. */
+                promote_abbreviated_template($$, 0);
 	      } else {
 		$$ = 0;
               }

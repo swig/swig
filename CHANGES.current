@@ -21,6 +21,16 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-24: wsfulton
+            A constructor with an 'auto' parameter is now a constructor template,
+            wrapped once instantiated with %template:
+
+              struct Box { Box(auto x); };
+              %template(Box) Box::Box<int>;
+
+            It was previously wrapped as an ordinary constructor, giving a wrapper
+            that did not compile.
+
+2026-09-24: wsfulton
             Fix a function with a trailing return type that is pure virtual,
             deleted or defaulted.  The '= 0', '= delete' or '= default' was
             discarded, so an abstract class was given a constructor and a
