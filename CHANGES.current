@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-24: wsfulton
+            An 'auto' reference bound to a string literal is now wrapped as a
+            reference to the array of characters, as for decltype(auto):
+
+              auto& s = "abc";          // const char (&)[4]
+              auto&& f = "abc";         // const char (&)[4]
+              const auto& c = "abc";    // const char (&)[4]
+
+            It was previously wrapped as a reference to 'const char *', which did
+            not compile.
+
+2026-09-24: wsfulton
             A constructor with an 'auto' parameter is now a constructor template,
             wrapped once instantiated with %template:
 

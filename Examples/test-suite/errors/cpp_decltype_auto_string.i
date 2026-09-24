@@ -26,3 +26,14 @@ auto auto_string_utf8 = u8"text";
 auto auto_string_char16 = u"text";
 auto auto_string_char32 = U"text";
 auto auto_string_joined = "text" u8"more";
+
+// A reference binds to the array of characters itself, so these are wrapped as references to arrays.
+auto& ref_string = "text";
+auto&& fwd_string = "text";
+const auto& cref_string = "text";
+auto& ref_string_wide = L"text";
+
+// A prefixed literal is ignored, as is a braced literal, whose length is not known, and a volatile reference.
+auto& ref_string_utf8 = u8"text";
+auto&& braced_string{"text"};
+volatile auto& vref_string = "text";

@@ -35,6 +35,11 @@
 // TODO: Fix the experimental C backend emitting 'int [4]*' for an array variable and 'int (*)[4]*'
 // for a pointer to an array.
 %ignore array_ref;
+%ignore ref_string;
+%ignore fwd_string;
+%ignore cref_string;
+%ignore cref_post_string;
+%ignore ref_string_wide;
 %ignore array_first;
 %ignore int_array_address;
 // TODO: Fix the experimental C backend's member pointer support (see member_pointer in FAILING_CPP_TESTS).
@@ -154,4 +159,11 @@ auto member_fn_ptr = &Pt::m;                     // int (Pt::*)() const
 decltype(&Pt::a) member_ptr_decltype = &Pt::a;   // int Pt::*
 auto static_fn_ptr = &Pt::sm;                    // int (*)()
 auto static_var_ptr = &Pt::sv;                   // int *
+
+// A reference binds to the array of characters a string literal is, not to the pointer it decays to.
+auto& ref_string = "text";              // const char (&)[5]
+auto&& fwd_string = "text";             // const char (&)[5]
+const auto& cref_string = "text";       // const char (&)[5]
+auto const& cref_post_string = "te" "xt";  // const char (&)[5]
+auto& ref_string_wide = L"text";        // const wchar_t (&)[5]
 %}

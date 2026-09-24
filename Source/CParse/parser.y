@@ -2497,15 +2497,50 @@ static int initialiser_is_parenthesised_name(const struct Define *dtype) {
   return parenthesised_name;
 }
 
-/* Whether the initialiser 'dtype' is an id-expression naming an object, optionally parenthesised, which makes it an
-   lvalue.  A literal and an enumerator are prvalues; the value category of any other expression is not something
-   SWIG tracks, so it is reported as not an lvalue. */
+/* Whether the initialiser 'dtype' is a string literal, optionally parenthesised.  The T_STRING code alone does not
+   say so: a named cast to 'const char *' summarises to T_STRING too, as does the address of a character and an
+   expression such as '"text" + 1' that merely has a literal as an operand, hence the check on the whole text.
+   The decoded text is required as well, that being where the length of the literal is read from. */
+static int initialiser_is_string_literal(const struct Define *dtype) {
+  String *unwrapped;
+  const char *text;
+  int is_literal = 0;
+
+  if (dtype->type != T_STRING && dtype->type != T_WSTRING)
+    return 0;
+  if (!dtype->val || !dtype->stringval)
+    return 0;
+  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
+  text = Char(unwrapped ? unwrapped : dtype->val);
+  /* The grammar writes the value text as '"..."', or 'L"..."' when wide, whichever of the encoding and raw string
+     prefixes the source spelt it with, so 'L' is the only prefix that can appear here.  Adjacent literals are
+     already concatenated, so one pair of quotes spans however many pairs the source wrote. */
+  if (*text == 'L')
+    text++;
+  if (*text == '"') {
+    text++;
+    while (*text && *text != '"') {
+      if (*text == '\\' && text[1])
+        text++;
+      text++;
+    }
+    is_literal = *text == '"' && text[1] == '\0';
+  }
+  Delete(unwrapped);
+  return is_literal;
+}
+
+/* Whether the initialiser 'dtype' is an id-expression naming an object, optionally parenthesised, or a string literal,
+   either of which makes it an lvalue.  Any other literal and an enumerator are prvalues; the value category of any
+   other expression is not something SWIG tracks, so it is reported as not an lvalue. */
 static int initialiser_is_lvalue(const struct Define *dtype) {
   String *unwrapped;
   Node *n;
   int lvalue = 0;
   if (!dtype->val)
     return 0;
+  if (initialiser_is_string_literal(dtype))
+    return 1;
   unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
   n = Swig_symbol_clookup(unwrapped ? unwrapped : dtype->val, 0);
   if (n && Equal(nodeType(n), "cdecl")) {
@@ -2578,39 +2613,6 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
   return placeholder;
 }
 
-/* Whether the initialiser 'dtype' is a string literal, optionally parenthesised.  The T_STRING code alone does not
-   say so: a named cast to 'const char *' summarises to T_STRING too, as does the address of a character and an
-   expression such as '"text" + 1' that merely has a literal as an operand, hence the check on the whole text.
-   The decoded text is required as well, that being where the length of the literal is read from. */
-static int initialiser_is_string_literal(const struct Define *dtype) {
-  String *unwrapped;
-  const char *text;
-  int is_literal = 0;
-
-  if (dtype->type != T_STRING && dtype->type != T_WSTRING)
-    return 0;
-  if (!dtype->val || !dtype->stringval)
-    return 0;
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  text = Char(unwrapped ? unwrapped : dtype->val);
-  /* The grammar writes the value text as '"..."', or 'L"..."' when wide, whichever of the encoding and raw string
-     prefixes the source spelt it with, so 'L' is the only prefix that can appear here.  Adjacent literals are
-     already concatenated, so one pair of quotes spans however many pairs the source wrote. */
-  if (*text == 'L')
-    text++;
-  if (*text == '"') {
-    text++;
-    while (*text && *text != '"') {
-      if (*text == '\\' && text[1])
-        text++;
-      text++;
-    }
-    is_literal = *text == '"' && text[1] == '\0';
-  }
-  Delete(unwrapped);
-  return is_literal;
-}
-
 /* Carry the encoding prefix of the string literal 'piece' onto 'literal', the run of adjacent literals it is
    being concatenated onto.  The run makes one literal of the character type a u8, u or U prefix gives it, else an L
    prefix, so it keeps the first such prefix, the 'u8' of both u8"a" u8"b" and R"(a)" u8"b". */
@@ -2672,6 +2674,14 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
     if (type)
       SwigType_add_reference(type);
     return type;
+  }
+  if (!isdecltypeauto && Equal(decl, "r.") && initialiser_is_string_literal(dtype)) {
+    /* A reference binds to the array of characters a string literal is rather than to a pointer it decays to, so
+     * 'auto& s = "text";' declares a 'const char (&)[5]'.  The characters are already const, so a 'const' on the
+     * placeholder adds nothing; a 'volatile' one would qualify them further, which is left undeduced. */
+    if (qualifier && Strstr(qualifier, "volatile"))
+      return 0;
+    return string_literal_type(dtype);
   }
   if (isdecltypeauto && initialiser_is_parenthesised_name(dtype)) {
     /* Likewise 'decltype(auto) r = (object);' declares a reference to the object, which is the type that
@@ -4767,7 +4777,12 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 dtype.type = literal_type_code(dtype.val);
                 if (!$auto_type_holder.isdecltypeauto)
                   collapse_forwarding_reference($declarator.type, &dtype);
-                type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier, $auto_type_holder.isdecltypeauto);
+                /* A reference binds to the array a string literal is, whose length is not known from the undecoded
+                 * text here, so it is left undeduced rather than deduced as a reference to a pointer. */
+                if ((SwigType_isreference($declarator.type) || SwigType_isrvalue_reference($declarator.type)) && (dtype.type == T_STRING || dtype.type == T_WSTRING))
+                  type = 0;
+                else
+                  type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier, $auto_type_holder.isdecltypeauto);
                 if (!type)
                   type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
                 Setattr($$, "type", type);
