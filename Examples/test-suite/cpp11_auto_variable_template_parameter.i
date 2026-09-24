@@ -14,6 +14,7 @@ template<const short N> struct ConstShortParm {
 template<typename T> struct TypeParm {
   static constexpr auto zero = T();
   static constexpr auto three = T(3);
+  static constexpr auto four = T{4};
   auto made() const -> decltype(T()) { return T(); }
 };
 %}

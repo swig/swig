@@ -27,10 +27,6 @@ static int undeclared_variable = 1;
 #endif
 decltype(undeclared_variable) unknown_to_swig;
 
-// Constructed object.
-struct A {};
-decltype(A()) constructed_object;
-
 // Spaceship operator.
 #include <compare>
 decltype(1 <=> 2) spaceship = (1 <=> 2);

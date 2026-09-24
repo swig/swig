@@ -143,6 +143,31 @@ static auto promoted_char = +char_value;
 static auto promoted_bool = +bool_value;
 %}
 
+// A functional cast to a class, or a typedef of one, deduces the class.
+%{
+struct AutoForward { int f; };
+%}
+struct AutoForward;
+%inline %{
+struct AutoPoint { int x; int y; };
+struct AutoConv { AutoConv(int v) : v(v) {} int v; };
+typedef AutoPoint AutoPointAlias;
+namespace AutoSpace { struct Inner { int i; }; }
+template<class T> struct AutoBox { T t; };
+%}
+%template(AutoBoxInt) AutoBox<int>;
+%inline %{
+static auto class_brace = AutoPoint{1, 2};              // AutoPoint
+static auto class_paren = AutoConv(3);                  // AutoConv
+static auto class_empty = AutoPoint();                  // AutoPoint
+static auto class_alias = AutoPointAlias{4, 5};         // AutoPointAlias
+static auto class_qualified = AutoSpace::Inner{6};      // AutoSpace::Inner
+static auto class_template = AutoBox<int>{7};           // AutoBox<int>
+static auto class_forward = AutoForward{8};             // AutoForward
+static auto long_brace = long{9};                       // long
+static int point_x(AutoPoint p = AutoPoint{10, 11}) { return p.x; }
+%}
+
 %inline %{
 
 // FIXME: Not currently handled by SWIG's parser:

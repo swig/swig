@@ -214,4 +214,8 @@
   decltype((paren_enum)) enum_lvalue = paren_enum;                         // Enumerated &
   decltype((paren_scoped_enum)) scoped_enum_lvalue = paren_scoped_enum;    // ScopedEnumerated &
   decltype((paren_typedef_enum)) typedef_enum_lvalue = paren_typedef_enum; // TypedefEnumerated &
+
+  // A functional cast to a class names the class.
+  decltype(Held()) constructed_held = { 7 };
+  decltype(Held{8}) braced_held = { 9 };
 %}

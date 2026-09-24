@@ -33,6 +33,26 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            #2798 A C++11 functional cast with a braced initialiser, such as
+            'long{3}' or 'Pt{1, 2}', is now parsed in an expression, so it is no
+            longer a syntax error as a default argument or an enum value.
+
+            An auto variable or decltype of a functional cast to a class, a class
+            template SWIG knows or a typedef of either is now deduced as that
+            class, rather than being ignored with warning 346 or 344:
+
+              struct Pt { int a; int b; };
+              auto p1 = Pt{1, 2};                 // Pt
+              auto p2 = Pt();                     // Pt
+              auto s = std::string("a");          // std::string
+              auto v = std::vector<int>{1, 2};    // std::vector<int>
+              auto l = long{3};                   // long
+              decltype(Pt()) p3;                  // Pt
+
+            A call to a function or function template, and a template SWIG has
+            not seen, are still not deduced.
+
+2026-09-25: wsfulton
             A C++20 type-constraint on a 'decltype(auto)' placeholder is no longer
             a syntax error, and is handled like an unconstrained 'decltype(auto)':
 

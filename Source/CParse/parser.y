@@ -2154,6 +2154,10 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 /* A '{' after the type-id of a new-expression is its braced initialiser, as in 'new int{5}', rather than a '{' after
    the declaration the new-expression initialises, so the empty initialiser gives way to it. */
 %precedence NO_NEW_INITIALIZER
+/* A '{' after a type in an expression is a functional cast such as 'Pt{1, 2}', so the type gives way to it.  The
+   one place the '{' could be something else is after the width of a bit-field, as in the C++20 'int x : W {5};',
+   where the initialiser is then read as part of the width, which SWIG keeps only as text. */
+%precedence EXPR_TYPE
 %precedence LBRACE
 %token DCOLON
 
@@ -2924,6 +2928,44 @@ static int named_cast_type_code(SwigType *t) {
   }
   Delete(prefix);
   return code;
+}
+
+/* The type of the functional cast 't(...)' or 't{...}' when the qualified type 't' names a class, a class template
+   specialisation or a typedef of either, such as the 'Pt' of 'Pt{1, 2}' or the 'std::vector<int>' of
+   'std::vector<int>{1, 2}'.  Returns 0 for anything else, notably a function, as 't(...)' is then a call, and a
+   template SWIG has not seen, which could be a function template. */
+static SwigType *functional_cast_class_type(SwigType *t) {
+  SwigType *reduced;
+  SwigType *prefix;
+  int names_class = 0;
+  if (SwigType_type(t) != T_USER)
+    return 0;
+  reduced = Swig_symbol_typedef_reduce(t, Swig_symbol_current());
+  prefix = SwigType_prefix(reduced);
+  if (Len(prefix) == 0) {
+    Node *n;
+    if (SwigType_istemplate(reduced)) {
+      String *tprefix = SwigType_templateprefix(reduced);
+      n = Swig_symbol_clookup(tprefix, 0);
+      names_class = n && Equal(nodeType(n), "template") && Equal(Getattr(n, "templatetype"), "class");
+      Delete(tprefix);
+    } else {
+      n = Swig_symbol_clookup(reduced, 0);
+      /* A class SWIG has seen only a forward declaration of, such as the 'std::string' of the library's
+       * std_string.i, is complete wherever the cast compiles. */
+      names_class = n && (Equal(nodeType(n), "class") || Equal(nodeType(n), "classforward"));
+    }
+  }
+  Delete(prefix);
+  Delete(reduced);
+  return names_class ? Copy(t) : 0;
+}
+
+/* The type of the functional cast 'type(...)' or 'type{...}', 'qty' being 'type' qualified.  That is 'type' itself
+   for a type template parameter, the 'T(3)' of 'template<class T>', and otherwise the class it names, see
+   functional_cast_class_type().  Returns 0 when there is no such type. */
+static SwigType *functional_cast_type(SwigType *type, SwigType *qty) {
+  return names_type_template_parameter(type) ? Copy(type) : functional_cast_class_type(qty);
 }
 
 /* The initialiser held in the braced initialiser text 'braced', that is the text between the outermost braces
@@ -8644,7 +8686,7 @@ etype            : expr {
 /* Arithmetic expressions.  Used for constants, C++ templates, and other cool stuff. */
 
 expr           : valexpr
-               | type {
+               | type %prec EXPR_TYPE {
 		 Node *n;
 		 $$ = default_dtype;
 		 $$.val = $type;
@@ -8681,6 +8723,7 @@ exprmem        : idcolon ARROW ID {
                }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
+		 $$.newtype = 0;
 		 Printf($$.val, "->%s", $ID);
 	       }
 	       | idcolon PERIOD ID {
@@ -8689,11 +8732,13 @@ exprmem        : idcolon ARROW ID {
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
+		 $$.newtype = 0;
 		 Printf($$.val, ".%s", $ID);
 	       }
 	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
+		 $$.newtype = 0;
 		 append_expr_from_scanner($$.val);
 	       }
 	       | type LPAREN {
@@ -8704,6 +8749,8 @@ exprmem        : idcolon ARROW ID {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 
 		 String *qty = Swig_symbol_type_qualify($type, 0);
+		 if (!cast_type_code)
+		   $$.newtype = functional_cast_type($type, qty);
 		 if (SwigType_istemplate(qty)) {
 		   String *nstr = SwigType_namestr(qty);
 		   Delete(qty);
@@ -8720,10 +8767,25 @@ exprmem        : idcolon ARROW ID {
                  $$.type = cast_type_code ? cast_type_code : SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
-                 /* A conversion to a type template parameter, the 'T(3)' of 'template<class T>', is a value of type 'T'. */
-                 if (names_type_template_parameter($type))
-                   $$.newtype = Copy($type);
 
+		 $$.val = qty;
+		 append_expr_from_scanner($$.val);
+	       }
+	       /* The C++11 functional cast with a braced initialiser, such as 'long{3}' or 'Pt{1, 2}'.  Unlike the
+		* parenthesised form it is never a function call. */
+	       | type LBRACE {
+		 String *qty;
+		 if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
+		 $$ = default_dtype;
+		 qty = Swig_symbol_type_qualify($type, 0);
+		 $$.newtype = functional_cast_type($type, qty);
+		 if (SwigType_istemplate(qty)) {
+		   String *nstr = SwigType_namestr(qty);
+		   Delete(qty);
+		   qty = nstr;
+		 }
+		 $$.type = SwigType_type(qty);
+		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.val = qty;
 		 append_expr_from_scanner($$.val);
 	       }

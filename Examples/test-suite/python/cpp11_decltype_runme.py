@@ -1,4 +1,5 @@
 import cpp11_decltype
+from swig_test_utils import swig_check
 
 a = cpp11_decltype.A()
 a.i = 5
@@ -112,3 +113,6 @@ if cpp11_decltype.cvar.scoped_enum_lvalue != cpp11_decltype.ScopedEnumerated_sco
 
 if cpp11_decltype.cvar.typedef_enum_lvalue != cpp11_decltype.typedefed_a:
     raise RuntimeError("typedef_enum_lvalue should be typedefed_a")
+
+swig_check(cpp11_decltype.cvar.constructed_held.member, 7)
+swig_check(cpp11_decltype.cvar.braced_held.member, 9)
