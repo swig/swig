@@ -54,6 +54,14 @@ template A my_templated_function<A>(int, double);
 extern template Temper<int> my_templated_function<Temper<int>>(int, double);
 template Temper<int> my_templated_function<Temper<int>>(int, double);
 
+/* Explicit function template instantiation with a trailing return type */
+template <typename T>
+auto trailing_function(T t) -> T { return t; }
+extern template auto trailing_function<int>(int) -> int;
+template auto trailing_function<int>(int) -> int;
+extern template auto trailing_function<const A *>(const A *) -> const A *;
+template auto trailing_function<const A *>(const A *) -> const A *;
+
 %}
 
 %template(TemperInt) Temper<int>;
@@ -62,3 +70,4 @@ template Temper<int> my_templated_function<Temper<int>>(int, double);
 %template(my_templated_function_int      ) my_templated_function<int>;
 %template(my_templated_function_A        ) my_templated_function<A>;
 %template(my_templated_function_TemperInt) my_templated_function<Temper<int>>;
+%template(trailing_function_int) trailing_function<int>;

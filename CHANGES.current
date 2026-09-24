@@ -33,6 +33,16 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            An explicit instantiation or extern template of a function template
+            written with a trailing return type is no longer a syntax error and
+            is ignored with warning 320 or 327, as when the return type is
+            written first:
+
+              template<class T> auto f(T t) -> T { return t; }
+              template auto f<int>(int) -> int;
+              extern template auto f<int>(int) -> int;
+
+2026-09-25: wsfulton
             A conversion function with a deduced return type followed by a
             pointer or reference is no longer a syntax error:
 

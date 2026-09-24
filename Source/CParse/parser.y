@@ -6315,6 +6315,13 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
                   $$ = 0; 
 		}
 
+                /* Function template explicit instantiation definition with a trailing return type */
+                | TEMPLATE AUTO idcolon LPAREN parms RPAREN ARROW cpp_alternate_rettype SEMI {
+                  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+                  Delete($cpp_alternate_rettype);
+                  $$ = 0;
+                }
+
 		/* Class template explicit instantiation declaration (extern template) */
 		| EXTERN TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
@@ -6326,6 +6333,13 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
 		}
+
+                /* Function template explicit instantiation declaration with a trailing return type */
+                | EXTERN TEMPLATE AUTO idcolon LPAREN parms RPAREN ARROW cpp_alternate_rettype SEMI {
+                  Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
+                  Delete($cpp_alternate_rettype);
+                  $$ = 0;
+                }
 		;
 
 cpp_template_possible:  c_decl
