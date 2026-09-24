@@ -176,6 +176,14 @@ static auto namespace_enumerator = AutoSpace::auto_dark;        // AutoSpace::Au
 static auto class_enumerator = AutoHolder::auto_big;            // AutoHolder::AutoSize
 %}
 
+// An enumerator of an unscoped enumeration qualified by the enumeration's name, as C++11 allows.
+%inline %{
+enum AutoColour { auto_red, auto_green };
+static auto qualified_enumerator = AutoColour::auto_green;                   // AutoColour
+static auto nested_qualified_enumerator = AutoSpace::AutoShade::auto_dark;   // AutoSpace::AutoShade
+static auto class_qualified_enumerator = AutoHolder::AutoSize::auto_big;     // AutoHolder::AutoSize
+%}
+
 %inline %{
 
 // FIXME: Not currently handled by SWIG's parser:

@@ -33,6 +33,14 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            An auto variable or decltype of an enumerator of an unscoped
+            enumeration qualified by the enumeration's name is now deduced, rather
+            than being ignored with warning 346 or 344:
+
+              enum E { EA, EB };
+              auto e = E::EB;   // E
+
+2026-09-25: wsfulton
             An auto variable or decltype of an enumerator of an enumeration in a
             namespace or a class is now deduced as the enumeration named with its
             scope, fixing a wrapper that did not compile for target languages

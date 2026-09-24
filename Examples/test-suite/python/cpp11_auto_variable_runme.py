@@ -52,3 +52,8 @@ swig_check(point_x(), 10)
 # An enumerator in a namespace or a class deduces the qualified enumeration.
 swig_check(cvar.namespace_enumerator, auto_dark)
 swig_check(cvar.class_enumerator, AutoHolder.auto_big)
+
+# An unscoped enumerator qualified by its enumeration deduces the enumeration.
+swig_check(cvar.qualified_enumerator, auto_green)
+swig_check(cvar.nested_qualified_enumerator, auto_dark)
+swig_check(cvar.class_qualified_enumerator, AutoHolder.auto_big)

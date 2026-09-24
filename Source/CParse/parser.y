@@ -2348,6 +2348,25 @@ static SwigType *nontype_template_parameter_type(String *name) {
   return SwigType_isauto(type) ? SwigType_new_decltype(name) : SwigType_remove_qualifier(Copy(type));
 }
 
+/* The enumerator named by the qualified 'name' when it is 'E::X' for an unscoped enumeration 'E', whose enumerators
+   are in the enclosing scope and so are not found by looking 'name' up, or 0 if 'name' is not such a name. */
+static Node *qualified_unscoped_enumerator(String *name) {
+  String *prefix = Swig_scopename_prefix(name);
+  Node *item = 0;
+  if (prefix) {
+    Node *e = Swig_symbol_clookup(prefix, 0);
+    if (e && Equal(nodeType(e), "enum") && !GetFlag(e, "scopedenum")) {
+      String *last = Swig_scopename_last(name);
+      item = Swig_symbol_clookup(last, Getattr(e, "sym:symtab"));
+      if (!item || !Equal(nodeType(item), "enumitem") || parentNode(item) != e)
+        item = 0;
+      Delete(last);
+    }
+    Delete(prefix);
+  }
+  return item;
+}
+
 /* Look 'name' up as a function parameter of a trailing return type being parsed, then as a non-type template
    parameter, then in the symbol table, and return a copy of the type it was declared with, with its declarator
    applied, so that the 'pg' of 'int *pg;' gives 'p.int' and not just the 'int' held in the "type" attribute.
@@ -2363,6 +2382,8 @@ static SwigType *symbol_full_type(String *name) {
   if (type)
     return type;
   n = Swig_symbol_clookup(name, 0);
+  if (!n)
+    n = qualified_unscoped_enumerator(name);
   if (!n)
     return 0;
   if (Equal(nodeType(n), "enumitem")) {
