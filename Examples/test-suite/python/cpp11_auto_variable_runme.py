@@ -29,3 +29,11 @@ for name in ["promoted_short", "promoted_ushort", "promoted_char", "promoted_boo
     setattr(cvar, name, 100000)
     swig_check(getattr(cvar, name), 100000)
 swig_check(cvar.negated_short, -1)
+
+# A typedef hiding const or an array does not stop deduction dropping or decaying it.
+swig_check(cvar.typedef_const, 4)
+cvar.typedef_const = 40
+swig_check(cvar.typedef_const, 40)
+swig_check(int_ptr_second(cvar.typedef_array), 6)
+swig_check(int_ptr_second(cvar.typedef_array_ptr), 6)
+swig_check(cvar.typedef_alias, 8)

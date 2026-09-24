@@ -33,6 +33,18 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-24: wsfulton
+            An auto variable now drops a top level const and decays an array that
+            a typedef hides, as it does for the spelled out type:
+
+              typedef const int CInt; CInt ci = 1;
+              typedef int Arr3[3]; Arr3 a3;
+              auto v = ci;    // int, was CInt so read only
+              auto w = a3;    // int *, was Arr3
+              auto *p = a3;   // int *, was ignored with warning 346
+
+            A typedef hiding neither is kept as the deduced type.
+
+2026-09-24: wsfulton
             An auto variable initialised by a character literal with a u8, u or U
             encoding prefix is now ignored with a warning naming the prefix, where
             it was wrapped as a wchar_t:

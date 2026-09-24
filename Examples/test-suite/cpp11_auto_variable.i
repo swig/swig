@@ -102,6 +102,25 @@ static auto paren_nested_ptr = ((ptr_zero));  // int *
 static auto paren_nested = ((one));
 %}
 
+// A typedef does not stop the top level const being dropped or an array decaying, and is kept when it hides neither.
+
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) typedef_array;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) typedef_array_ptr;
+
+%inline %{
+typedef const int ConstInt;
+typedef int IntArray3[3];
+typedef int IntAlias;
+static ConstInt const_int_value = 4;
+static IntArray3 int_array3 = {5, 6, 7};
+static IntAlias int_alias_value = 8;
+static auto typedef_const = const_int_value;  // int
+static auto typedef_array = int_array3;       // int *
+static auto *typedef_array_ptr = int_array3;  // int *
+static auto typedef_alias = int_alias_value;  // IntAlias
+static int int_ptr_second(const int *p) { return p[1]; }
+%}
+
 %inline %{
 // Concatenation of a literal with an encoding prefix and one without
 // was added in C++11.

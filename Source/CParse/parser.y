@@ -2637,15 +2637,28 @@ static void collapse_forwarding_reference(SwigType *decl, const struct Define *d
 static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *decl) {
   SwigType *placeholder = Copy(initialiser_type);
   SwigType *remaining = Copy(decl);
+  SwigType *resolved;
   int matched = 1;
+  int reference;
 
   /* An id-expression naming a reference has the type it refers to, so 'auto x = r;' with 'r' an 'int&' deduces
    * 'int'.  Only 'decltype(auto)' keeps the reference, and that does not come through here. */
   SwigType_remove_reference(placeholder);
 
-  if (SwigType_isreference(remaining) || SwigType_isrvalue_reference(remaining)) {
+  reference = SwigType_isreference(remaining) || SwigType_isrvalue_reference(remaining);
+  if (reference)
     Delete(SwigType_pop(remaining));
+
+  resolved = Swig_symbol_typedef_reduce(placeholder, Swig_symbol_current());
+  if (!Equal(resolved, placeholder) &&
+      (Len(remaining) > 0 || (!reference && (SwigType_isqualifier(resolved) || SwigType_isarray(resolved) || SwigType_isfunction(resolved))))) {
+    Delete(placeholder);
+    placeholder = resolved;
   } else {
+    Delete(resolved);
+  }
+
+  if (!reference) {
     /* Deduction drops the top level cv-qualifiers of the initialiser unless the variable is a reference, so
      * 'auto x = cg;' with 'cg' declared 'const int' deduces 'int' while 'auto& r = cg;' deduces 'const int'. */
     SwigType_remove_qualifier(placeholder);
@@ -2655,6 +2668,10 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
       Delete(SwigType_pop(placeholder));
       SwigType_add_pointer(placeholder);
     }
+    /* A function decays to a function pointer, but the name of a function is not deduced from, see
+     * deduce_type_from_value(), and the one declared with a function typedef is no different. */
+    if (SwigType_isfunction(placeholder))
+      matched = 0;
   }
 
   while (matched && Len(remaining) > 0) {
