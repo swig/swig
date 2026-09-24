@@ -1772,19 +1772,20 @@ String *Scanner_get_raw_text_to_semicolon(Scanner *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_skip_to_initializer_end()
+ * skip_to_initializer_end()
  *
  * Skips the rest of an initializer or default argument, up to but not including the ',' or ';' that ends it or the
  * ')' that closes the parameter list, and returns the raw text skipped.  One nested inside '(...)', '[...]' or '{...}'
  * does not count, and nor does a ',' between the '<' and '>' of a template argument list.  The '<' and '>' are only
  * counted outside the other brackets, where they cannot be comparison operators within the type of a new-expression,
- * which is what this is for.  Each comment is replaced by a space in the text returned, and a locator comment the
- * preprocessor put round a macro expansion is passed to Scanner_locator(), as it is when the text is parsed, so that
- * line numbering resumes after the macro.  The token that ends the text is pushed back so that it is the next token.
+ * which is what this is for.  Each comment is replaced by a space in the text returned.  If 'locators' is set, a
+ * locator comment the preprocessor put round a macro expansion is passed to Scanner_locator(), as it is when the text
+ * is parsed, so that line numbering resumes after the macro.  A lookahead must not do that, as the scanner reading the
+ * text for real sees the locators again.  The token that ends the text is pushed back so that it is the next token.
  * Returns NULL if the end of the text is reached first.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_skip_to_initializer_end(Scanner *s) {
+static String *skip_to_initializer_end(Scanner *s, int locators) {
   String *result;
   long position; /* the start of the text not yet copied to 'result' */
   int num_levels = 0;
@@ -1810,7 +1811,7 @@ String *Scanner_skip_to_initializer_end(Scanner *s) {
       Write(result, Char(s->str) + position, (int)(previous_end - position));
       Putc(' ', result);
       position = Tell(s->str);
-      if (strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(text) - 3] == '@')
+      if (locators && strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(text) - 3] == '@')
         Scanner_locator(s, text);
     } else if (tok == SWIG_TOKEN_RPAREN && num_levels == 0) {
       break;
@@ -1834,6 +1835,35 @@ String *Scanner_skip_to_initializer_end(Scanner *s) {
   Setfile(result, Getfile(s->str));
   Setline(result, s->line);
   Scanner_pushtoken(s, tok, Scanner_text(s));
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_skip_to_initializer_end()
+ *
+ * Skips the rest of an initializer or default argument, acting on locator comments, see skip_to_initializer_end().
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_skip_to_initializer_end(Scanner *s) {
+  return skip_to_initializer_end(s, 1);
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_get_raw_text_to_initializer_end()
+ *
+ * Returns the raw text Scanner_skip_to_initializer_end() would skip, without changing the state of the scanner, or
+ * NULL if the end of the text is reached first.  It runs on a private scanner, see lookahead_begin().
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_get_raw_text_to_initializer_end(Scanner *s) {
+  String *result;
+  long start;
+  Scanner *lookahead = lookahead_begin(s, &start);
+
+  if (!lookahead)
+    return NULL;
+  result = skip_to_initializer_end(lookahead, 0);
+  lookahead_end(s, lookahead, start);
   return result;
 }
 

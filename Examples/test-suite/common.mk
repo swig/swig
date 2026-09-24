@@ -646,6 +646,7 @@ CPP11_TEST_CASES += \
 	cpp11_auto_variable \
 	cpp11_auto_variable_decorated \
 	cpp11_auto_variable_list \
+	cpp11_auto_variable_new_expression \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
 	cpp11_constexpr_friend \
@@ -760,6 +761,7 @@ CPP20_TEST_CASES += \
 	cpp20_abbreviated_template_mixed \
 	cpp20_abbreviated_template_overloads \
 	cpp20_alias_template \
+	cpp20_auto_variable_new_expression \
 	cpp20_concepts \
 	cpp20_concepts_class_methods \
 	cpp20_concepts_classes \

@@ -816,6 +816,22 @@ auto v2 = &amp;fn;                      // int (*)(int)
 auto v3 = static_cast&lt;double&gt;(g);   // double
 </pre></div>
 
+<p>A new-expression deduces a pointer to the type it allocates, or for an array to its first element,
+whatever the placement and initialiser. The allocated type can itself be the <tt>auto</tt> placeholder,
+which is deduced from the initialiser:</p>
+
+<div class="code"><pre>
+struct Widget { Widget(int a, int b); };
+char buffer[64];
+
+auto n1 = new int(5);                  // int *
+auto n2 = new Widget{1, 2};            // Widget *
+auto n3 = new double[g];               // double *
+auto n4 = new int[2][3];               // int (*)[3]
+auto n5 = new (buffer) Widget(1, 2);   // Widget *
+auto n6 = new auto(2.5);               // double *
+</pre></div>
+
 <p>As C++ requires, the top level cv-qualifiers of the initialiser are dropped unless the variable is a
 reference, so <tt>r2</tt> above is a <tt>const int &amp;</tt> while a by value <tt>auto</tt> initialised
 from a <tt>const int</tt> is a plain <tt>int</tt>. A name that refers to a reference stands for the type
@@ -896,14 +912,30 @@ auto v15 = {g, 1};
 example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from a braced initialiser list (ignored).
 </pre></div>
 
-<p>while an initialiser in a form SWIG has no grammar for, such as a new expression, says only that:</p>
+<p>while an initialiser in a form SWIG has no grammar for, such as a throw-expression, says only that:</p>
 
 <div class="code"><pre>
-auto v16 = new int(5);
+auto v16 = throw 1;
 </pre></div>
 
 <div class="shell"><pre>
 example.i:34: Warning 346: Unable to deduce auto type for variable 'v16' from an unsupported initialiser (ignored).
+</pre></div>
+
+<p>A new-expression is reported naming the initialiser where it is only part of the initialiser, or where
+SWIG does not parse its type-id, which is the case for a parenthesised type-id and for a placeholder other
+than a plain or cv-qualified <tt>auto</tt>:</p>
+
+<div class="code"><pre>
+auto v17 = new int[3] + 1;
+auto v18 = new (int *[3]);
+auto v19 = new std::integral auto(5);
+</pre></div>
+
+<div class="shell"><pre>
+example.i:36: Warning 346: Unable to deduce auto type for variable 'v17' from initialiser 'new int[3] + 1' (ignored).
+example.i:37: Warning 346: Unable to deduce auto type for variable 'v18' from initialiser 'new (int *[3])' (ignored).
+example.i:38: Warning 346: Unable to deduce auto type for variable 'v19' from initialiser 'new std::integral auto(5)' (ignored).
 </pre></div>
 
 <p>The usual workaround for any of them is to ignore the variable, or to declare it with its actual type

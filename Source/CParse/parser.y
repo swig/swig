@@ -2034,6 +2034,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *final;
     /* C++20 trailing requires-clause attached to this declaration's qualifiers, as a structured constraint subtree. */
     Node *constraint_node;
+    /* The pointer type of a new-expression, which the T_* code in 'type' cannot describe. */
+    SwigType *newtype;
   } dtype;
   struct {
     String *filename;
@@ -2149,6 +2151,10 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %left  PLUS MINUS
 %left  STAR SLASH MODULO
 %precedence UMINUS NOT LNOT CAST
+/* A '{' after the type-id of a new-expression is its braced initialiser, as in 'new int{5}', rather than a '{' after
+   the declaration the new-expression initialises, so the empty initialiser gives way to it. */
+%precedence NO_NEW_INITIALIZER
+%precedence LBRACE
 %token DCOLON
 
 %type <node>     program interface declaration swig_directive ;
@@ -2198,6 +2204,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
+%type <dtype>    new_expression auto_initializer;
+%type <type>     new_type_id new_array_declarator;
+%type <str>      new_keyword new_initializer_opt;
 %type            deleted_reason;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
@@ -2377,6 +2386,8 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
 static SwigType *deduce_type(const struct Define *dtype, int unwrap_parentheses) {
   SwigType *deduced;
   String *unwrapped;
+  if (dtype->newtype)
+    return Copy(dtype->newtype);
   if (!dtype->val)
     return 0;
   if (!unwrap_parentheses)
@@ -2705,6 +2716,7 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       dtype.val = Getattr(n, "value");
       dtype.stringval = Getattr(n, "stringval");
       dtype.type = GetInt(n, "initialisertypecode");
+      dtype.newtype = Getattr(n, "initialisernewtype");
     }
     if (!isdecltypeauto)
       collapse_forwarding_reference(Getattr(n, "decl"), &dtype);
@@ -2786,6 +2798,87 @@ static String *braced_initialiser_value(String *braced) {
   value = NewStringWithSize(Char(braced) + 1, Len(braced) - 2);
   Swig_cparse_trim_whitespace(value);
   return value;
+}
+
+/* The type of a new-expression allocating 'type_id', which is a pointer to it, or for an array to its first element,
+   so 'new int' and 'new int[n]' are both 'int *' and 'new int[n][3]' is 'int (*)[3]'.  Returns 0 for a type-id SWIG
+   cannot build a pointer to, such as one naming a decltype it could not deduce, which is the one way to name the
+   'decltype(auto)' placeholder in a type-id, as in 'new decltype(auto)(x)'. */
+static SwigType *new_expression_type(SwigType *type_id) {
+  SwigType *type;
+  if (SwigType_isvariadic(type_id) || Strstr(type_id, "decltype("))
+    return 0;
+  type = Copy(type_id);
+  if (SwigType_isarray(type))
+    Delete(SwigType_pop(type));
+  SwigType_add_pointer(type);
+  return type;
+}
+
+/* The type of the new-expression 'new auto(x)', optionally cv-qualified by 'qualifier', which deduces the type it
+   allocates from the one expression in 'initializer', the parenthesised or braced text that follows the placeholder,
+   as an 'auto' variable does.  Returns 0 when there is no initialiser or no type can be deduced from it. */
+static SwigType *new_auto_expression_type(String *qualifier, String *initializer) {
+  struct Define dtype = default_dtype;
+  SwigType *decl;
+  SwigType *type;
+  if (!initializer)
+    return 0;
+  dtype.val = braced_initialiser_value(initializer);
+  dtype.type = literal_type_code(dtype.val);
+  decl = NewStringEmpty();
+  type = auto_variable_type(&dtype, decl, qualifier, 0);
+  if (type)
+    SwigType_add_pointer(type);
+  Delete(decl);
+  Delete(dtype.val);
+  return type;
+}
+
+/* The raw text of a new-expression that begins with 'keyword', which is 'new' or '::new', read up to the end of the
+   initialiser the new-expression is, before the parser reads any of it. */
+static String *new_expression_text(const char *keyword) {
+  String *rest = get_raw_text_to_initializer_end();
+  String *text;
+  if (!rest)
+    Exit(EXIT_FAILURE);
+  Swig_cparse_trim_whitespace(rest);
+  text = NewStringf("%s %s", keyword, rest);
+  Delete(rest);
+  return text;
+}
+
+/* The value of a new-expression, 'text' being its raw text and 'newtype' the type parsed for it, or 0 if there is none.
+   'lookahead' is the parser's lookahead token, the token after the new-expression if it has been read, else YYEMPTY.
+
+   The grammar parses only the type-id, reading the placement and the initialiser as raw text, so the rest of the
+   new-expression is checked here.  After an initialiser no token has been read ahead, and anything up to the end of
+   the initialiser, as in 'new int(5) + 1', is skipped.  Without one the token after the type-id has been read ahead,
+   and one that cannot end an initialiser, such as the '+' of 'new int[3] + 1' or the 'auto' of 'new Numeric auto(5)',
+   is dropped and the rest skipped the same way.  Either way the new-expression is only part of the initialiser, or a
+   form the grammar does not parse, and no type is deduced from it. */
+static struct Define new_expression_dtype(String *text, SwigType *newtype, int *lookahead) {
+  struct Define dtype = default_dtype;
+  int dropped = 0;
+  if (*lookahead != YYEMPTY && *lookahead != SEMI && *lookahead != COMMA && *lookahead != RPAREN) {
+    *lookahead = YYEMPTY;
+    dropped = 1;
+  }
+  if (*lookahead == YYEMPTY) {
+    String *rest = skip_to_initializer_end();
+    if (!rest)
+      Exit(EXIT_FAILURE);
+    Swig_cparse_trim_whitespace(rest);
+    if (dropped || Len(rest) > 0) {
+      Delete(newtype);
+      newtype = 0;
+    }
+    Delete(rest);
+  }
+  dtype.type = T_UNKNOWN;
+  dtype.val = text;
+  dtype.newtype = newtype;
+  return dtype;
 }
 
 // Append scanner_ccode to expr.  Some cleaning up of the code may be done.
@@ -4750,14 +4843,16 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               The same rule takes a function declarator, which is how the C++20 defaulted comparison operator
               'auto operator<=>(const S&) const = default;' and the deleted function 'auto m() = delete;' are
               parsed.  A cv-qualifier or noexcept-specifier there belongs to the function, not the placeholder. */
-           | storage_class auto_type_holder declarator cpp_const EQUAL definetype auto_decl_tail {
+           | storage_class auto_type_holder declarator cpp_const EQUAL auto_initializer auto_decl_tail {
 	      $$ = new_node("cdecl");
 	      Setattr($$, "storage", $storage_class);
               Setattr($$, "name", $declarator.id);
               Setattr($$, "decl", $declarator.type);
-	      Setattr($$, "value", $definetype.val);
-	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
-	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
+              Setattr($$, "value", $auto_initializer.val);
+              if ($auto_initializer.stringval)
+                Setattr($$, "stringval", $auto_initializer.stringval);
+              if ($auto_initializer.numval)
+                Setattr($$, "numval", $auto_initializer.numval);
               Setattr($$, "refqualifier", $cpp_const.refqualifier);
               Setattr($$, "throws", $cpp_const.throws);
               Setattr($$, "throw", $cpp_const.throwf);
@@ -4774,7 +4869,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                   Setattr(n, "storage", $storage_class);
                 set_nextSibling($$, $auto_decl_tail);
               }
-              set_auto_variable_types($$, &$definetype, $auto_type_holder.qualifier, $auto_type_holder.conceptid, $auto_type_holder.isdecltypeauto);
+              set_auto_variable_types($$, &$auto_initializer, $auto_type_holder.qualifier, $auto_type_holder.conceptid, $auto_type_holder.isdecltypeauto);
               /* The cv-qualifier is added to the declarator only once the types have been deduced: a function
                * declarator is what says this is a function rather than a variable, and the qualifier hides it. */
               if ($cpp_const.qualifier)
@@ -4877,6 +4972,8 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
                    String *typecode = NewStringf("%d", $initializer.type);
                    Setattr($$, "initialisertypecode", typecode);
                    Delete(typecode);
+                   if ($initializer.newtype)
+                     Setattr($$, "initialisernewtype", $initializer.newtype);
                  }
 		 Setattr($$,"throws",$cpp_const.throws);
 		 Setattr($$,"throw",$cpp_const.throwf);
@@ -7166,20 +7263,113 @@ def_args       : EQUAL definetype {
 		 $$.val = NewString(scanner_ccode);
 		 $$.type = T_UNKNOWN;
 	       }
-               /* A new-expression, which the expression grammar does not parse, so its text is kept as it is. */
-               | EQUAL NEW_KW {
-                 String *code = skip_to_initializer_end();
-                 if (!code) Exit(EXIT_FAILURE);
-                 Swig_cparse_trim_whitespace(code);
-                 $$ = default_dtype;
-                 $$.val = NewStringf("new %s", code);
-                 $$.type = T_UNKNOWN;
-                 Delete(code);
+               | EQUAL new_expression {
+                 $$ = $new_expression;
                }
                | %empty {
 		 $$ = default_dtype;
                  $$.type = T_UNKNOWN;
                }
+               ;
+
+/* A new-expression, 'new' followed by an optional placement, the type-id and an optional initialiser, such as
+   'new int(5)', 'new (buffer) Widget{1, 2}' or 'new double[n]', which gives the type of the pointer it creates.  It is
+   only parsed as the whole of an initialiser or a default argument, and never as an operand within an expression, as
+   in 'new int(5) + 1'.  The type-id is the only part the grammar parses: the placement and the initialiser are skipped
+   over as balanced raw text, and the value is the raw text of the whole new-expression.  A parenthesised type-id, as in
+   'new (int *[3])', reads as a placement with no type-id after it and has no type. */
+new_expression : new_keyword new_type_id new_initializer_opt {
+                   $$ = new_expression_dtype($new_keyword, new_expression_type($new_type_id), &yychar);
+                 }
+               | new_keyword new_placement new_type_id new_initializer_opt {
+                   $$ = new_expression_dtype($new_keyword, new_expression_type($new_type_id), &yychar);
+                 }
+               | new_keyword new_placement new_initializer_opt {
+                   $$ = new_expression_dtype($new_keyword, 0, &yychar);
+                 }
+               /* The C++11 'auto' placeholder, which deduces the type allocated from the initialiser. */
+               | new_keyword AUTO new_initializer_opt {
+                   $$ = new_expression_dtype($new_keyword, new_auto_expression_type(0, $new_initializer_opt), &yychar);
+                 }
+               | new_keyword type_qualifier AUTO new_initializer_opt {
+                   $$ = new_expression_dtype($new_keyword, new_auto_expression_type($type_qualifier, $new_initializer_opt), &yychar);
+                 }
+               ;
+
+/* The 'new' or '::new' that starts a new-expression.  Its value is the raw text of the whole new-expression, read
+   before the parser reads any further. */
+new_keyword    : NEW_KW {
+                   $$ = new_expression_text("new");
+                 }
+               /* The scanner gives a '::' that does not follow a name as NONID DCOLON. */
+               | NONID DCOLON NEW_KW {
+                   $$ = new_expression_text("::new");
+                 }
+               ;
+
+/* The type-id of a new-expression, which is a type followed by any pointer and array declarators but not the
+   parentheses of a function declarator, those being the initialiser. */
+new_type_id    : type
+               | type pointer {
+                   $$ = $type;
+                   SwigType_push($$, $pointer);
+                 }
+               | type new_array_declarator {
+                   $$ = $type;
+                   SwigType_push($$, $new_array_declarator);
+                 }
+               | type pointer new_array_declarator {
+                   $$ = $type;
+                   SwigType_push($$, $pointer);
+                   SwigType_push($$, $new_array_declarator);
+                 }
+               ;
+
+/* The array bounds of a new-expression type-id, the first of which can be any expression, as in 'new int[n][3]'. */
+new_array_declarator : LBRACKET expr RBRACKET {
+                   $$ = NewStringEmpty();
+                   SwigType_add_array($$, $expr.val);
+                 }
+               | LBRACKET RBRACKET {
+                   $$ = NewStringEmpty();
+                   SwigType_add_array($$, "");
+                 }
+               | new_array_declarator[in] LBRACKET expr RBRACKET {
+                   SwigType *bound = NewStringEmpty();
+                   SwigType_add_array(bound, $expr.val);
+                   $$ = $in;
+                   Append($$, bound);
+                   Delete(bound);
+                 }
+               ;
+
+new_placement  : LPAREN {
+                   if (skip_balanced('(', ')') < 0)
+                     Exit(EXIT_FAILURE);
+                   Clear(scanner_ccode);
+                 }
+               ;
+
+new_initializer_opt : LPAREN {
+                   if (skip_balanced('(', ')') < 0)
+                     Exit(EXIT_FAILURE);
+                   $$ = Copy(scanner_ccode);
+                   Clear(scanner_ccode);
+                 }
+               | LBRACE {
+                   if (skip_balanced('{', '}') < 0)
+                     Exit(EXIT_FAILURE);
+                   $$ = Copy(scanner_ccode);
+                   Clear(scanner_ccode);
+                 }
+               | %empty %prec NO_NEW_INITIALIZER {
+                   $$ = 0;
+                 }
+               ;
+
+/* The initialiser of the first variable an 'auto' declaration declares. */
+auto_initializer : definetype
+               | new_expression
                ;
 
 parameter_declarator : declarator def_args {
@@ -8395,7 +8585,8 @@ constraint_primary : idcolon {
                      * 'LPAREN constraint RPAREN' and an expression alternative.
                      * The captured text retains its surrounding parens. */
                     String *captured;
-                    if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+                    if (skip_balanced('(', ')') < 0)
+                     Exit(EXIT_FAILURE);
                     captured = Copy(scanner_ccode);
                     $$ = Constraint_new_atom("expression");
                     Setattr($$, "value", captured);
@@ -8442,7 +8633,8 @@ requirement_parameter_list_opt : LPAREN parms RPAREN {
                ;
 
 requirement_body : LBRACE {
-                    if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
+                    if (skip_balanced('{', '}') < 0)
+                     Exit(EXIT_FAILURE);
                     $$ = parse_requirement_seq(scanner_ccode);
                  }
                ;

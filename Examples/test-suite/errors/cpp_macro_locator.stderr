@@ -21,3 +21,5 @@ cpp_macro_locator.i:101: Warning 509: Overloaded method overload5(int const *) e
 cpp_macro_locator.i:100: Warning 509: as it is shadowed by overload5(int *).
 cpp_macro_locator.i:117: Warning 509: Overloaded method overload6(int const *) effectively ignored,
 cpp_macro_locator.i:116: Warning 509: as it is shadowed by overload6(int *).
+cpp_macro_locator.i:127: Warning 509: Overloaded method overload7(int const *) effectively ignored,
+cpp_macro_locator.i:126: Warning 509: as it is shadowed by overload7(int *).

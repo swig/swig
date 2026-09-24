@@ -13,12 +13,16 @@ swig_check(cpp_new_expression.cvar.after_bare, 2)
 swig_check(cpp_new_expression.cvar.after_array, 3)
 swig_check(cpp_new_expression.cvar.after_empty_parens, 5)
 swig_check(cpp_new_expression.cvar.after_multi, 6)
+swig_check(cpp_new_expression.cvar.after_global, 9)
+swig_check(cpp_new_expression.cvar.after_offset, 10)
 
 # A new-expression as a default argument is used when the argument is omitted.
 swig_check(cpp_new_expression.default_with_parens(), 5)
 swig_check(cpp_new_expression.default_bare(), 7)
 swig_check(cpp_new_expression.default_args(), 3)
 swig_check(cpp_new_expression.default_array(), 0)
+swig_check(cpp_new_expression.default_global(), 6)
+swig_check(cpp_new_expression.default_offset(), 0)
 swig_check(cpp_new_expression.default_template(), 17)
 
 # A new-expression in a function body is unaffected.

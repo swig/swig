@@ -6,6 +6,8 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) new_empty_parens;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) new_multi_a;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) new_multi_b;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) new_global;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) new_offset;
 
 %inline %{
 #include <utility>
@@ -32,11 +34,20 @@ int after_empty_parens = 5;
 int *new_multi_a = new int(1), *new_multi_b = new int(2);
 int after_multi = 6;
 
+int *new_global = ::new int(8);
+int after_global = 9;
+
+// A new-expression that is only part of the initialiser.
+int *new_offset = new int[3] + 1;
+int after_offset = 10;
+
 // A new-expression as a default argument, including a template argument list and a parameter after it.
 int default_with_parens(int *p = new int(5)) { int v = *p; delete p; return v; }
 int default_bare(Widget *w = new Widget) { int v = w->w; delete w; return v; }
 int default_args(Widget *w = new Widget(1, 2)) { int v = w->w; delete w; return v; }
 int default_array(int *a = new int[3]()) { int v = a[0] + a[2]; delete[] a; return v; }
+int default_global(int *p = ::new int(6)) { int v = *p; delete p; return v; }
+int default_offset(int *p = new int[3]() + 1) { int v = *p; delete[] (p - 1); return v; }
 int default_template(std::pair<int, int> *p = new std::pair<int, int>(3, 4), int q = 10) {
   int v = p->first + p->second + q;
   delete p;

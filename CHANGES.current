@@ -20,6 +20,17 @@ Version 4.6.0 (in progress)
 	    `std_string.i` instead) and some for std::complex which I've moved
 	    to new library files `complex.i` and `std_complex.i`.
 
+2026-09-24: wsfulton
+            An 'auto' variable initialised by a new-expression is now wrapped as a
+            pointer to the type allocated, where it was ignored with warning 346:
+
+              auto p = new int(5);                  // int *
+              auto w = new (buffer) Widget{1, 2};   // Widget *
+              auto a = new int[2][3];               // int (*)[3]
+              auto d = new auto(2.5);               // double *
+
+            A new-expression starting with '::new' is also parsed now.
+
 2026-09-23: wsfulton
             %rename, %ignore and %feature now accept a trailing requires-clause to select
             one of the function templates that differ only by their constraint:

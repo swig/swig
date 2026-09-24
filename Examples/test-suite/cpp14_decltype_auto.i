@@ -32,6 +32,9 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_class;
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_new;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_new_klass;
+
 %inline %{
 int global_int = 42;
 int &global_ref = global_int;
@@ -111,6 +114,13 @@ struct mydecltype {
 struct KlassMyDecltype {
   operator mydecltype() const { mydecltype m; m.value = 13; return m; }
 };
+
+// A new-expression is a prvalue, so the pointer it gives is deduced as it is for 'auto'.
+decltype(auto) var_new = new int(5);
+decltype(auto) var_new_klass = new Klass(3);
+
+int new_int_value(int *p) { return *p; }
+int new_klass_value(Klass *k) { return k->v; }
 
 // A lambda is wrapped as an opaque object whatever its return type is spelt as.
 auto lambda_dauto = [](int x) -> decltype(auto) { return x; };

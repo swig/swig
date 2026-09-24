@@ -73,5 +73,11 @@ public class cpp14_decltype_auto_runme {
       throw new RuntimeException("Klass::mem should be ignored (deduced return type)");
     } catch (NoSuchMethodException expected) {
     }
+
+    // A new-expression deduces the pointer it gives.
+    if (cpp14_decltype_auto.new_int_value(cpp14_decltype_auto.getVar_new()) != 5)
+      throw new RuntimeException("var_new");
+    if (cpp14_decltype_auto.new_klass_value(cpp14_decltype_auto.getVar_new_klass()) != 3)
+      throw new RuntimeException("var_new_klass");
   }
 }

@@ -233,6 +233,20 @@ String *skip_to_initializer_end(void) {
   return code;
 }
 
+/* -----------------------------------------------------------------------------
+ * get_raw_text_to_initializer_end()
+ *
+ * Returns the raw text skip_to_initializer_end() would skip without skipping it,
+ * or NULL after reporting an error if the end of input is reached first.
+ * ----------------------------------------------------------------------------- */
+
+String *get_raw_text_to_initializer_end(void) {
+  String *code = Scanner_get_raw_text_to_initializer_end(scan);
+  if (!code)
+    Swig_error(cparse_file, Scanner_line(scan), "Missing ';' or ')'. Reached end of input.\n");
+  return code;
+}
+
 /* The literal tokens the scanner returns, each with the token the grammar is given for it and the T_* type code
  * of the literal.  yylook() needs the second column, yylex() the third and literal_type_code() the third given
  * the first, so the three are listed here once rather than as a switch statement in each of them. */

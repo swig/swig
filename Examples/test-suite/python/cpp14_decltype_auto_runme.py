@@ -56,3 +56,7 @@ if hasattr(Klass, "mem"):
     raise RuntimeError("Klass::mem should be ignored (deduced return type)")
 
 swig_check(KlassMyDecltype().convert().value, 13)
+
+# A new-expression deduces the pointer it gives.
+swig_check(new_int_value(cvar.var_new), 5)
+swig_check(new_klass_value(cvar.var_new_klass), 3)
