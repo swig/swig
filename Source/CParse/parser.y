@@ -2358,6 +2358,29 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
      * something.  The unary '&' rule spells the value '&' followed by its operand.  The operand may be a
      * function here, giving a function pointer. */
     String *operand = NewString(Char(val) + 1);
+    Node *n = Strstr(operand, "::") ? Swig_symbol_clookup(operand, 0) : 0;
+    if (n && GetFlag(n, "ismember") && !Strstr(Getattr(n, "storage"), "static")) {
+      /* The address of a qualified non-static member, such as '&Pt::a', is a pointer to member of the class the
+       * member is declared in, 'int Pt::*'.  An overloaded member function, a reference member or anything that
+       * is not a plain data member or member function (or is only an %extend member) has no such type to give. */
+      String *cls = Swig_symbol_qualifiedscopename(Getattr(n, "sym:symtab"));
+      deduced = 0;
+      if (cls && Equal(nodeType(n), "cdecl") && !Getattr(n, "sym:overloaded") && !GetFlag(n, "isextendmember"))
+        deduced = symbol_full_type(operand);
+      if (deduced && (SwigType_isreference(deduced) || SwigType_isrvalue_reference(deduced))) {
+        Delete(deduced);
+        deduced = 0;
+      }
+      if (deduced) {
+        SwigType *mp = NewStringEmpty();
+        SwigType_add_memberpointer(mp, cls);
+        SwigType_push(deduced, mp);
+        Delete(mp);
+      }
+      Delete(cls);
+      Delete(operand);
+      return deduced;
+    }
     deduced = symbol_full_type(operand);
     Delete(operand);
     if (deduced) {

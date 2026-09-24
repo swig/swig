@@ -21,6 +21,17 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-24: wsfulton
+            An 'auto' variable or a decltype initialised by the address of a
+            non-static class member is now wrapped as a pointer to member:
+
+              struct Pt { int a; int m() const; };
+              auto pm = &Pt::a;                // int Pt::*
+              auto pmf = &Pt::m;               // int (Pt::*)() const
+              decltype(&Pt::a) pd = &Pt::a;    // int Pt::*
+
+            The address of a static member is still a plain pointer.
+
+2026-09-24: wsfulton
             An 'auto' variable initialised by a new-expression is now wrapped as a
             pointer to the type allocated, where it was ignored with warning 346:
 
