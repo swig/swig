@@ -33,6 +33,16 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-24: wsfulton
+            An auto variable initialised by a character literal with a u8, u or U
+            encoding prefix is now ignored with a warning naming the prefix, where
+            it was wrapped as a wchar_t:
+
+              auto c = u'c';    // char16_t, not wchar_t
+
+            SWIG has no type for char8_t, char16_t or char32_t, as for the string
+            literals with these prefixes.  An L prefix still deduces wchar_t.
+
+2026-09-24: wsfulton
             An auto variable or decltype of an explicit conversion to a type template
             parameter, such as 'T()' or 'T(3)', now has that type.  An auto variable
             deduces the %template argument without its reference and top level

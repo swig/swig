@@ -893,8 +893,8 @@ static void add_symbols(Node *n) {
             }
           } else if (Getattr(n, "autoliteralprefix")) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n),
-                "Unable to deduce auto type for variable '%s' from a string literal with a '%s' prefix (ignored).\n",
-                Swig_name_decl(n), Getattr(n, "autoliteralprefix"));
+                "Unable to deduce auto type for variable '%s' from a %s literal with a '%s' prefix (ignored).\n",
+                Swig_name_decl(n), Getattr(n, "autoliteralkind"), Getattr(n, "autoliteralprefix"));
           } else if (value) {
             Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' from initialiser '%s' (ignored).\n",
                 Swig_name_decl(n), value);
@@ -2678,6 +2678,22 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
   return placeholder;
 }
 
+/* Whether the initialiser 'dtype' is a wide character literal, optionally parenthesised.  Every prefixed character
+   literal reaches the grammar as a wide one, whose value text the grammar writes as 'L'...'' whichever prefix the
+   source spelt it with. */
+static int initialiser_is_wide_character_literal(const struct Define *dtype) {
+  String *unwrapped;
+  const char *text;
+  int is_literal;
+  if (dtype->type != T_WCHAR || !dtype->val || !dtype->stringval)
+    return 0;
+  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
+  text = Char(unwrapped ? unwrapped : dtype->val);
+  is_literal = text[0] == 'L' && text[1] == '\'' && text[strlen(text) - 1] == '\'';
+  Delete(unwrapped);
+  return is_literal;
+}
+
 /* Carry the encoding prefix of the string literal 'piece' onto 'literal', the run of adjacent literals it is
    being concatenated onto.  The run makes one literal of the character type a u8, u or U prefix gives it, else an L
    prefix, so it keeps the first such prefix, the 'u8' of both u8"a" u8"b" and R"(a)" u8"b". */
@@ -2690,9 +2706,9 @@ static void append_literal_prefix(String *literal, String *piece) {
     Setmeta(literal, "encodingprefix", prefix);
 }
 
-/* The encoding prefix of the string literal 'stringval' when that prefix gives the literal one of the char8_t,
-   char16_t and char32_t character types, which SWIG has no type for, and 0 when the literal is of char or
-   wchar_t.  Returns the prefix of whichever of a concatenated run of literals carries one. */
+/* The encoding prefix of the string or character literal 'stringval' when that prefix gives the literal one of the
+   char8_t, char16_t and char32_t character types, which SWIG has no type for, and 0 when the literal is of char or
+   wchar_t.  Returns the prefix of whichever of a concatenated run of string literals carries one. */
 static String *unsupported_literal_prefix(String *stringval) {
   String *prefix = Getmeta(stringval, "encodingprefix");
   return prefix && (Strchr(prefix, 'u') || Strchr(prefix, 'U')) ? prefix : 0;
@@ -2727,7 +2743,7 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
   SwigType *type = 0;
   SwigType *initialiser_type;
 
-  if (initialiser_is_string_literal(dtype) && unsupported_literal_prefix(dtype->stringval)) {
+  if ((initialiser_is_string_literal(dtype) || initialiser_is_wide_character_literal(dtype)) && unsupported_literal_prefix(dtype->stringval)) {
     /* The u8, u and U prefixes give a literal one of the char8_t, char16_t and char32_t character types. */
     return 0;
   }
@@ -2827,10 +2843,12 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       if (!declaration_type)
         declaration_type = Copy(type);
       Delete(type);
-    } else if (initialiser_is_string_literal(&dtype)) {
+    } else if (initialiser_is_string_literal(&dtype) || initialiser_is_wide_character_literal(&dtype)) {
       String *prefix = unsupported_literal_prefix(dtype.stringval);
-      if (prefix)
+      if (prefix) {
         Setattr(n, "autoliteralprefix", prefix);
+        Setattr(n, "autoliteralkind", dtype.type == T_WCHAR ? "character" : "string");
+      }
     }
   }
 

@@ -809,11 +809,17 @@ static int yylook(void) {
 
     case SWIG_TOKEN_CHAR:
     case SWIG_TOKEN_WCHAR:
-      yylval.str = NewString(Scanner_text(scan));
-      if (Len(yylval.str) == 0) {
-        Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+      {
+        String *prefix = Scanner_literal_prefix(scan);
+        yylval.str = NewString(Scanner_text(scan));
+        if (Len(yylval.str) == 0) {
+          Swig_error(cparse_file, cparse_line, "Empty character constant\n");
+        }
+        /* Every prefixed character literal is scanned as a wide one, so keep the prefix that says which it is. */
+        if (Len(prefix) > 0)
+          Setmeta(yylval.str, "encodingprefix", NewString(prefix));
+        return scanner_literal_token(tok)->parser_token;
       }
-      return scanner_literal_token(tok)->parser_token;
 
       /* Numbers */
 
