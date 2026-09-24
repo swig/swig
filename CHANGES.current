@@ -33,6 +33,15 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            An auto variable or decltype of an enumerator of an enumeration in a
+            namespace or a class is now deduced as the enumeration named with its
+            scope, fixing a wrapper that did not compile for target languages
+            such as C# and Java:
+
+              namespace N { enum NE { NA, NB }; }
+              auto x = N::NB;   // enum N::NE, was enum NE
+
+2026-09-25: wsfulton
             #2798 A C++11 functional cast with a braced initialiser, such as
             'long{3}' or 'Pt{1, 2}', is now parsed in an expression, so it is no
             longer a syntax error as a default argument or an enum value.

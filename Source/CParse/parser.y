@@ -2373,7 +2373,15 @@ static SwigType *symbol_full_type(String *name) {
   type = Getattr(n, "type");
   if (!type)
     return 0;
-  type = Copy(type);
+  if (Equal(nodeType(n), "enum") && Getattr(n, "name") && Strncmp(type, "enum ", 5) == 0) {
+    /* The "type" of an enum names it unqualified, as in 'enum NE' for the enum 'NE' of namespace 'N', which does not
+     * name it outside of its scope. */
+    String *scope = Swig_symbol_qualifiedscopename(Getattr(n, "sym:symtab"));
+    type = scope ? NewStringf("enum %s::%s", scope, Getattr(n, "name")) : Copy(type);
+    Delete(scope);
+  } else {
+    type = Copy(type);
+  }
   decl = Getattr(n, "decl");
   if (decl)
     SwigType_push(type, decl);

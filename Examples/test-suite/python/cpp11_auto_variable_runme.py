@@ -48,3 +48,7 @@ swig_check(cvar.class_template.t, 7)
 swig_assert(cvar.class_forward is not None, "class_forward")
 swig_check(cvar.long_brace, 9)
 swig_check(point_x(), 10)
+
+# An enumerator in a namespace or a class deduces the qualified enumeration.
+swig_check(cvar.namespace_enumerator, auto_dark)
+swig_check(cvar.class_enumerator, AutoHolder.auto_big)

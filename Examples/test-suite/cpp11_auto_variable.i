@@ -168,6 +168,14 @@ static auto long_brace = long{9};                       // long
 static int point_x(AutoPoint p = AutoPoint{10, 11}) { return p.x; }
 %}
 
+// An enumerator of an enumeration in a namespace or a class deduces the qualified enumeration.
+%inline %{
+namespace AutoSpace { enum AutoShade { auto_light, auto_dark }; }
+struct AutoHolder { enum AutoSize { auto_small, auto_big }; };
+static auto namespace_enumerator = AutoSpace::auto_dark;        // AutoSpace::AutoShade
+static auto class_enumerator = AutoHolder::auto_big;            // AutoHolder::AutoSize
+%}
+
 %inline %{
 
 // FIXME: Not currently handled by SWIG's parser:
