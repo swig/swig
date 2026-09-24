@@ -7,3 +7,8 @@ cpp_auto_return_type.i:21: Warning 345: Unable to deduce auto return type for 'g
 cpp_auto_return_type.i:28: Warning 345: Unable to deduce auto return type for 'defaulted_fn()' without a trailing return type (ignored).
 cpp_auto_return_type.i:32: Error: Function bad_trailing(int) with a trailing return type cannot have a qualifier on 'auto'.
 cpp_auto_return_type.i:33: Error: Function bad_trailing2(int) with a trailing return type cannot have a qualifier on 'auto'.
+cpp_auto_return_type.i:37: Warning 345: Unable to deduce auto return type for 'operator auto&()' (ignored).
+cpp_auto_return_type.i:38: Warning 345: Unable to deduce auto return type for 'operator const auto&() const' (ignored).
+cpp_auto_return_type.i:39: Warning 345: Unable to deduce auto return type for 'operator auto*()' (ignored).
+cpp_auto_return_type.i:40: Warning 345: Unable to deduce auto return type for 'operator auto&&()' (ignored).
+cpp_auto_return_type.i:41: Warning 345: Unable to deduce auto return type for 'operator auto const*&()' (ignored).

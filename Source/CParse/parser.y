@@ -2200,6 +2200,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <intvalue> variadic_opt;
 %type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
 %type <str>      decltype_prefix;
+%type <type>     conversion_declarator;
 %type <str>      noexcept_specifier_opt;
 %type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
@@ -7024,11 +7025,12 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		Delete($CONVERSIONOPERATOR);
 		Delete($storage_class);
               }
-              /* C++14 conversion function with a deduced return type: 'operator auto()' or 'operator decltype(auto)()'.
-               * SWIG cannot deduce the type from the body, so the placeholder is kept as the type and add_symbols()
-               * then reports it the same way as any other function with an undeduced 'auto' return type. */
-              | storage_class CONVERSIONOPERATOR auto_type_holder LPAREN parms RPAREN cpp_vend {
-                SwigType *t = NewStringEmpty();
+              /* C++14 conversion function with a deduced return type: 'operator auto()', 'operator decltype(auto)()',
+               * 'operator const auto&()' or 'operator auto*()'.  SWIG cannot deduce the type from the body, so the
+               * placeholder is kept as the type and add_symbols() then reports it the same way as any other function
+               * with an undeduced 'auto' return type. */
+              | storage_class CONVERSIONOPERATOR auto_type_holder conversion_declarator LPAREN parms RPAREN cpp_vend {
+                SwigType *t = $conversion_declarator;
                 $$ = new_node("cdecl");
                 set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
                 SetFlag($$, "autodeducefrombody");
@@ -7047,6 +7049,29 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
                 Delete(t);
                 Delete($CONVERSIONOPERATOR);
                 Delete($storage_class);
+              }
+              ;
+
+/* The optional ptr-operators following the placeholder in a conversion function with a deduced return type. */
+conversion_declarator : %empty {
+                $$ = NewStringEmpty();
+              }
+              | pointer
+              | AND {
+                $$ = NewStringEmpty();
+                SwigType_add_reference($$);
+              }
+              | LAND {
+                $$ = NewStringEmpty();
+                SwigType_add_rvalue_reference($$);
+              }
+              | pointer AND {
+                $$ = $pointer;
+                SwigType_add_reference($$);
+              }
+              | pointer LAND {
+                $$ = $pointer;
+                SwigType_add_rvalue_reference($$);
               }
               ;
 

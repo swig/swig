@@ -97,3 +97,21 @@ struct Deduced {
   operator auto() const { return v; }
 };
 %}
+
+// Likewise with a conversion-declarator after the placeholder.
+%warnfilter(SWIGWARN_CPP14_AUTO) DeducedPtr::operator auto*;
+%warnfilter(SWIGWARN_CPP14_AUTO) DeducedPtr::operator const auto&;
+
+%extend DeducedPtr {
+  int deref() { return *static_cast<int *>(*$self); }
+  int cref() const { return static_cast<const int &>(*$self); }
+}
+
+%inline %{
+struct DeducedPtr {
+  int v;
+  DeducedPtr(int vv) : v(vv) {}
+  operator auto*() { return &v; }
+  operator const auto&() const { return v; }
+};
+%}

@@ -32,6 +32,20 @@ Version 4.6.0 (in progress)
             The OCaml wrapper of a static member constant did not compile and
             the R wrapper of the class did not load.
 
+2026-09-25: wsfulton
+            A conversion function with a deduced return type followed by a
+            pointer or reference is no longer a syntax error:
+
+              struct S {
+                operator auto&();
+                operator const auto&() const;
+                operator auto*();
+                operator auto&&();
+              };
+
+            As with 'operator auto()', SWIG cannot deduce the type, so each is
+            ignored with warning 345.
+
 2026-09-24: wsfulton
             An auto variable now drops a top level const and decays an array that
             a typedef hides, as it does for the spelled out type:

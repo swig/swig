@@ -31,3 +31,12 @@ struct B {
 // A trailing return type requires the placeholder on its own, so these are not valid C++.
 const auto& bad_trailing(int x) -> int;
 Numeric auto const& bad_trailing2(int x) -> int;
+
+// A conversion function with a deduced type and a conversion-declarator.
+struct C {
+  operator auto&();
+  operator const auto&() const;
+  operator auto*();
+  operator auto&&();
+  operator auto const*&();
+};
