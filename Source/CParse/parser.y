@@ -4677,6 +4677,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"name",$declarator.id);
 	      Setattr($$,"decl",$declarator.type);
 	      Setattr($$,"parms",$declarator.parms);
+              /* A pure specifier, '= delete' or '= default', as for any other function declaration. */
+              Setattr($$, "value", $initializer.val);
 	      Setattr($$,"throws",$cpp_const.throws);
 	      Setattr($$,"throw",$cpp_const.throwf);
 	      Setattr($$,"noexcept",$cpp_const.nexcept);

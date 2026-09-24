@@ -6,6 +6,7 @@
 // cannot deduce, so it is ignored with warning 345.
 %warnfilter(SWIGWARN_CPP14_AUTO) Defaulted::operator<=>;
 %rename(is_equal) Defaulted::operator==;
+%rename(is_equal) DefaultedTrailing::operator==;
 
 // A defaulted comparison operator can also be a friend, taking both operands as parameters.
 // It is ignored for the same reason, so this rename never takes effect and the runtime tests
@@ -45,6 +46,15 @@ struct Defaulted {
 
   // A defaulted equality operator has to return bool, deduced or not, and is wrapped.
   bool operator==(const Defaulted&) const = default;
+};
+
+struct DefaultedTrailing {
+  int v;
+
+  explicit DefaultedTrailing(int val) : v(val) { }
+
+  // A trailing return type spelling of the defaulted equality operator, wrapped the same way.
+  auto operator==(const DefaultedTrailing&) const -> bool = default;
 };
 
 struct DefaultedFriend {

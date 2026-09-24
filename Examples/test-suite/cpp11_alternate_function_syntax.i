@@ -83,4 +83,26 @@ auto SomeStruct::array_ref() -> int(&)[3] { return global_array; }
 auto SomeStruct::fn_ptr() -> int(*)(int) { return doubler; }
 auto SomeStruct::member_ptr() -> int (SomeStruct::*)(int, int) { return &SomeStruct::addNormal; }
 
+// A pure specifier, virt-specifier and '= delete' after a trailing return type.
+struct AbstractTrailing {
+  virtual auto pure_fn() const -> int = 0;
+  virtual ~AbstractTrailing() {}
+};
+
+struct ConcreteTrailing : AbstractTrailing {
+  auto pure_fn() const -> int override { return 42; }
+};
+
+struct AbstractFinalTrailing {
+  virtual auto pure_final() const -> int final = 0;
+  virtual ~AbstractFinalTrailing() {}
+};
+auto AbstractFinalTrailing::pure_final() const -> int { return 0; }
+
+auto deleted_free(int x) -> int = delete;
+
+struct DeletedTrailing {
+  DeletedTrailing() {}
+  auto deleted_member() -> int = delete;
+};
 %}
