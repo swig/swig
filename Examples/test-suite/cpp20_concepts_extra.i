@@ -149,11 +149,12 @@ struct VirtDerived : VirtBase<T> {
   auto both_reversed(T x) -> T REQUIRES_NUMERIC(T) override final { return x + 6; }
 };
 
-// A type-constraint on an 'auto' variable placeholder, in each of the three initialiser forms.  The
+// A type-constraint on an 'auto' variable placeholder, in each of the three initialiser forms, and on 'decltype(auto)'.  The
 // constraint is kept on the variable and the type is deduced from the initialiser as for a plain 'auto'.
 Numeric auto constrained_var = 42;
 Numeric auto constrained_braced_var{1.5};
 Numeric auto constrained_multi1 = 7, constrained_multi2 = 8;
+Numeric decltype(auto) constrained_decltype_auto_var = constrained_var;
 %}
 
 %template(identity_non_numeric_tag) identity_non_numeric<Tag>;

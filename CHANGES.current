@@ -33,6 +33,14 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            A C++20 type-constraint on a 'decltype(auto)' placeholder is no longer
+            a syntax error, and is handled like an unconstrained 'decltype(auto)':
+
+              template<typename T> concept Numeric = std::is_arithmetic_v<T>;
+              int g = 5;
+              Numeric decltype(auto) v = g;  // int
+
+2026-09-25: wsfulton
             An explicit instantiation or extern template of a function template
             written with a trailing return type is no longer a syntax error and
             is ignored with warning 320 or 327, as when the return type is

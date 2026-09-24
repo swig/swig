@@ -5186,7 +5186,7 @@ initializer   : def_args
    e.g. 'auto', 'const auto', 'auto const', 'Numeric auto', 'const Numeric auto', 'Numeric auto const'.  AUTO is
    deliberately not an alternative of type_right as it would collide with the declarator that follows the placeholder,
    so the placeholder gets a rule of its own which every use site shares.  The cv-qualifier orderings are equivalent
-   and produce the same type. */
+   and produce the same type.  The C++14 'decltype(auto)' takes a type-constraint too, 'Numeric decltype(auto)'. */
 auto_type_holder : AUTO {
                    $$.qualifier = 0;
                    $$.conceptid = 0;
@@ -5221,6 +5221,12 @@ auto_type_holder : AUTO {
                    Delete($decltype_prefix);
                    $$.qualifier = 0;
                    $$.conceptid = 0;
+                   $$.isdecltypeauto = 1;
+                 }
+                 | idcolon decltype_prefix AUTO RPAREN {
+                   Delete($decltype_prefix);
+                   $$.qualifier = 0;
+                   $$.conceptid = $idcolon;
                    $$.isdecltypeauto = 1;
                  }
                  ;
