@@ -284,13 +284,7 @@ class Allocate : public Dispatcher {
      If resolve is true the fully returned type is fully resolved.
      Caller is responsible for deleting returned string. */
   String *function_return_type(Node *n, bool resolve = true) {
-    String *decl = Getattr(n, "decl");
-    SwigType *type = Getattr(n, "type");
-    String *ty = NewString(type);
-    SwigType_push(ty, decl);
-    if (SwigType_isqualifier(ty))
-      Delete(SwigType_pop(ty));
-    Delete(SwigType_pop_function(ty));
+    String *ty = Swig_function_return_type(n);
     if (resolve) {
       String *unresolved = ty;
       ty = SwigType_typedef_resolve_all(unresolved);

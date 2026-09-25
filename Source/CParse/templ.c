@@ -1891,9 +1891,7 @@ static String *template_constraints_display_str(Node *n) {
 
 /* The return type function template 'n' instantiates to with 'instantiated_parms'. */
 static SwigType *instantiated_return_type(Node *n, ParmList *instantiated_parms) {
-  SwigType *type = Copy(Getattr(n, "type"));
-  SwigType_push(type, Getattr(n, "decl"));
-  Delete(SwigType_pop_function(type));
+  SwigType *type = Swig_function_return_type(n);
   replace_template_parms(type, n, instantiated_parms);
   return type;
 }

@@ -1971,12 +1971,7 @@ void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, 
       Node *m = Copy(n);
 
       /* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
-      SwigType *ty = NewString(Getattr(m, "type"));
-      SwigType_push(ty, decl);
-      if (SwigType_isqualifier(ty)) {
-        Delete(SwigType_pop(ty));
-      }
-      Delete(SwigType_pop_function(ty));
+      SwigType *ty = Swig_function_return_type(m);
       Setattr(m, "returntype", ty);
 
       String *mname = NewStringf("%s::%s", Getattr(parent, "name"), name);

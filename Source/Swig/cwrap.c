@@ -126,6 +126,22 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_function_return_type()
+ *
+ * Returns a newly allocated SwigType holding the full return type of the
+ * function node n, that is its "type" with the declarator in its "decl" applied
+ * but for the function itself and any cv or ref-qualifier on a member function,
+ * so 'p.int' for 'int *f(int) const'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *Swig_function_return_type(Node *n) {
+  SwigType *type = NewString(Getattr(n, "type"));
+  SwigType_push(type, Getattr(n, "decl"));
+  Delete(SwigType_pop_function(type));
+  return type;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_wrapped_var_convert()
  *
  * Converts a member variable for use in the get and set wrapper methods.

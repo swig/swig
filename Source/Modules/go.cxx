@@ -2372,12 +2372,7 @@ private:
     }
     Append(wname, unique_id);
 
-    String *result = NewString(Getattr(method, "type"));
-    SwigType_push(result, Getattr(method, "decl"));
-    if (SwigType_isqualifier(result)) {
-      Delete(SwigType_pop(result));
-    }
-    Delete(SwigType_pop_function(result));
+    String *result = Swig_function_return_type(method);
 
     // If the base method is imported, wrap:action may not be set.
     Swig_save("goBaseMethod", method, "wrap:name", "wrap:action", "parms", NULL);
