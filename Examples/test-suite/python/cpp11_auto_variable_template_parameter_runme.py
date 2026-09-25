@@ -3,3 +3,8 @@ from swig_test_utils import swig_check
 
 swig_check(IntParm3.value, 3)
 swig_check(ConstShortParm4.value, 4)
+swig_check(TypeParmDouble.zero, 0.0)
+swig_check(TypeParmDouble.three, 3.0)
+swig_check(TypeParmDouble().made(), 0.0)
+swig_check(TypeParmConstShort.zero, 0)
+swig_check(TypeParmConstShort.three, 3)

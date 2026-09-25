@@ -1,0 +1,1 @@
+cpp_auto_variable_template_parameter.i:5: Warning 346: Unable to deduce auto type for variable 'sum' from initialiser 'T(3)+1' (ignored).

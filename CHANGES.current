@@ -33,6 +33,16 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-24: wsfulton
+            An auto variable or decltype of an explicit conversion to a type template
+            parameter, such as 'T()' or 'T(3)', now has that type.  An auto variable
+            deduces the %template argument without its reference and top level
+            cv-qualifiers.  The auto variable was previously ignored with warning 346
+            and the decltype was left in the wrapper:
+
+              template<class T> struct B { static constexpr auto zero = T(); };
+              %template(Bd) B<const double>; // zero is a double
+
+2026-09-24: wsfulton
             A decltype or an auto variable naming a non-type template parameter now
             has the type the parameter is declared with, or for 'template<auto N>'
             the type of the %template argument.  The decltype was previously left in

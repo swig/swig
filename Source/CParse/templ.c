@@ -563,6 +563,11 @@ static void cparse_postprocess_expanded_template(Node *n) {
   if (Equal(nodeType, "cdecl")) {
     /* A simple C declaration */
     SwigType *d = Getattr(n, "decl");
+    if (GetFlag(n, "autodependent") && Getattr(n, "type")) {
+      /* An auto variable deduced as a type template parameter, such as from 'T()', deduces the argument without
+       * its reference and top level cv-qualifiers. */
+      SwigType_remove_qualifier_reference(Getattr(n, "type"));
+    }
     if (d && SwigType_isfunction(d)) {
       /* A function node */
       SwigType *t = Getattr(n, "type");

@@ -2316,6 +2316,12 @@ static int template_parm_is_type(Parm *p) {
   return Equal(type, "typename") || Equal(type, "class");
 }
 
+/* Whether 'name' is a type template parameter of the template declaration being parsed. */
+static int names_type_template_parameter(String *name) {
+  Parm *p = template_parameter_named(name);
+  return p && template_parm_is_type(p);
+}
+
 /* Whether the template parameter 'p' is a non-type template parameter, the 'N' of 'template<int N>' or
    'template<auto N>'.  A template template parameter has the 'template< ... > class' type the template_parm rule
    gives it, and a pack is neither. */
@@ -2811,6 +2817,11 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
     if (!isdecltypeauto)
       collapse_forwarding_reference(Getattr(n, "decl"), &dtype);
     type = auto_variable_type(&dtype, Getattr(n, "decl"), qualifier, isdecltypeauto);
+    if (type && names_type_template_parameter(type)) {
+      /* The argument given for 'T' can have a reference or cv-qualifiers that the variable does not deduce, so
+       * these are removed once instantiated, see cparse_postprocess_expanded_template(). */
+      SetFlag(n, "autodependent");
+    }
     if (type) {
       Setattr(n, "autotype", type);
       if (!declaration_type)
@@ -8629,6 +8640,9 @@ exprmem        : idcolon ARROW ID {
                  $$.type = cast_type_code ? cast_type_code : SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
+                 /* A conversion to a type template parameter, the 'T(3)' of 'template<class T>', is a value of type 'T'. */
+                 if (names_type_template_parameter($type))
+                   $$.newtype = Copy($type);
 
 		 $$.val = qty;
 		 append_expr_from_scanner($$.val);
