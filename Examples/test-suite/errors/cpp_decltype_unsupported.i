@@ -14,13 +14,6 @@ static int global_int = 42;
 decltype(func_returning_int()) func_return;
 decltype(func_returning_int(0)) func_return2;
 
-// Pointer dereference (other than of char* or wchar_t*).
-#ifdef SWIG
-%ignore pointer_to_int;
-#endif
-int* pointer_to_int;
-decltype(*pointer_to_int) pointer_dereference = *pointer_to_int;
-
 // Variable SWIG doesn't know about.
 #ifndef SWIG
 static int undeclared_variable = 1;

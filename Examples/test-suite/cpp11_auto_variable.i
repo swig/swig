@@ -102,6 +102,24 @@ static auto paren_nested_ptr = ((ptr_zero));  // int *
 static auto paren_nested = ((one));
 %}
 
+// A C-style cast deduces the type it casts to, and a dereference the type pointed to.
+
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) zero_ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cstyle_cast_ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cstyle_cast_null;
+
+%inline %{
+static int *zero_ptr = &zero;
+static auto cstyle_cast_ptr = (const int *)zero_ptr;  // const int *
+static auto cstyle_cast_null = ((int *)0);            // int *
+static auto cstyle_cast_double = (double)zero;        // double
+static auto pointer_condition = zero_ptr ? 2 : 3;     // int
+static auto pointer_compare = zero_ptr != 0;          // bool
+static auto dereferenced = *zero_ptr;                 // int
+static auto dereferenced_cast = *(int *)zero_ptr + 1; // int
+static int deref_const_int_ptr(const int *p) { return *p; }
+%}
+
 // A typedef does not stop the top level const being dropped or an array decaying, and is kept when it hides neither.
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) typedef_array;

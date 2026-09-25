@@ -33,6 +33,19 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            An auto variable or decltype of an expression over a pointer is no longer
+            deduced as the type pointed to, which gave a wrapper that did not compile.
+            Pointer arithmetic is now ignored with warning 346, or 344 for decltype,
+            while a C-style cast deduces the type cast to and a dereference the type
+            pointed to, as a reference for decltype:
+
+              int *pg;
+              auto p = pg + 1;            // Warning 346 (ignored), was int
+              auto c = (const int *)pg;   // const int *, was int
+              auto d = *pg;               // int, was ignored
+              auto f() -> decltype(*pg);  // int &, was left in the wrapper
+
+2026-09-25: wsfulton
             A trailing return type decltype of 'this->member', or of a call to a
             member function that is not overloaded, is now deduced, and a member
             function takes precedence over a global function of the same name:

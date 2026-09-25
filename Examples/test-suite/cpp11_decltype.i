@@ -215,6 +215,17 @@
 %}
 %template(TemplateTrailingInt) TemplateTrailing<int>;
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) lvalue_ptr;
+
+%inline %{
+  // A dereference is an lvalue, so these return 'int &'.
+  int lvalue_values[3] = { 4, 5, 6 };
+  int *lvalue_ptr = lvalue_values;
+  auto deref_lvalue() -> decltype(*lvalue_ptr) { return *lvalue_ptr; }
+  auto parameter_deref(int *p) -> decltype(*p) { return *p; }
+  auto deref_sum(int *p) -> decltype(*p + 1) { return *p + 1; }
+%}
+
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_lvalue;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) held_lvalue;

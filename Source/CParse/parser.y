@@ -2328,12 +2328,13 @@ static SwigType *trailing_rettype_parm_type(String *name) {
 }
 
 /* The T_* type code the expression grammar gives a value of type 'type'.  Only an arithmetic or character type is
-   described by its code.  Any other type is T_UNKNOWN, so that a pointer is not taken for the type it points to. */
+   described by its code.  Any other type is T_USER, which no type is deduced from and which is not wrapped as a
+   constant, so that a pointer is not taken for the type it points to. */
 static int value_type_code(SwigType *type) {
   SwigType *t = SwigType_remove_qualifier_reference(Copy(type));
   int code = SwigType_type(t);
   Delete(t);
-  return code < T_AUTO || code == T_CHAR || code == T_WCHAR ? code : T_UNKNOWN;
+  return code < T_AUTO || code == T_CHAR || code == T_WCHAR ? code : T_USER;
 }
 
 /* The T_* type code of the parameter named 'name' of the function whose trailing return type is being parsed, for the
@@ -2493,6 +2494,40 @@ static SwigType *member_call_type(const_String_or_char_ptr name) {
   if (!n || !Equal(nodeType(n), "cdecl") || !SwigType_isfunction(Getattr(n, "decl")) || Getattr(n, "sym:overloaded"))
     return 0;
   return Swig_function_return_type(n);
+}
+
+/* The type of the C-style cast '(t) e', which is 't' qualified, without its top level cv-qualifiers unless it is a
+   reference, a cast to a non-reference type giving a prvalue. */
+static SwigType *c_style_cast_type(SwigType *t) {
+  SwigType *type = Swig_symbol_type_qualify(t, 0);
+  if (!SwigType_isreference(type) && !SwigType_isrvalue_reference(type))
+    SwigType_remove_qualifier(type);
+  return type;
+}
+
+/* The type of '*e', where 'type' is the type of 'e': an lvalue of the type pointed to, and so a reference to it,
+   which decltype keeps and auto drops.  Returns 0 if 'type' is not a pointer to an object type, or is 0. */
+static SwigType *dereference_type(SwigType *type) {
+  SwigType *element;
+  SwigType *resolved;
+  if (!type)
+    return 0;
+  element = SwigType_remove_qualifier_reference(Copy(type));
+  /* A typedef can hide the pointer or array, as in adjust_parm_type(). */
+  resolved = Swig_symbol_typedef_reduce(element, Swig_symbol_current());
+  Delete(element);
+  if (SwigType_ispointer(resolved)) {
+    Delete(SwigType_pop(resolved));
+    if (!SwigType_isfunction(resolved) && SwigType_type(resolved) != T_VOID)
+      return SwigType_add_reference(resolved);
+  }
+  Delete(resolved);
+  return 0;
+}
+
+/* The type of '&e', where 'type' is the type of 'e', which is a pointer to it, or 0 when 'type' is 0. */
+static SwigType *address_type(SwigType *type) {
+  return type ? SwigType_add_pointer(SwigType_remove_reference(Copy(type))) : 0;
 }
 
 /* The type of the expression whose text is 'val' and whose T_* summary code is 'type_code'.  Returns a new type,
@@ -8836,9 +8871,11 @@ expr           : valexpr
                        Delete(q);
                      }
 		   } else {
-		     SwigType *type = Getattr(n, "type");
+		     /* The declarator is part of the type, so a pointer is not taken for the type it points to. */
+		     SwigType *type = node_full_type(n);
 		     if (type) {
-		       $$.type = SwigType_type(type);
+		       $$.type = value_type_code(type);
+		       Delete(type);
 		     }
 		   }
 		 }
@@ -9158,6 +9195,7 @@ valexpr        : exprsimple
 		    $$.stringval = Copy($expr.stringval);
 		    $$.numval = Copy($expr.numval);
 		    $$.type = $expr.type;
+		    $$.newtype = $expr.newtype;
 	       }
 
 /* A few common casting operations */
@@ -9194,11 +9232,14 @@ valexpr        : exprsimple
 		 if (cast_type_code != T_USER && cast_type_code != T_UNKNOWN) {
 		   /* $lhs is definitely a type so we know this is a cast. */
 		   $$.type = cast_type_code;
+		   $$.newtype = c_style_cast_type($lhs.val);
 		 } else if ($rhs.type == 0 || $rhs.unary_arg_type == 0) {
 		   /* Not one of the cases above, so we know this is a cast. */
 		   $$.type = cast_type_code;
+		   $$.newtype = c_style_cast_type($lhs.val);
 		 } else {
 		   $$.type = promote($lhs.type, $rhs.unary_arg_type);
+		   $$.newtype = 0;
 		 }
  	       }
                | LPAREN expr[lhs] pointer RPAREN expr[rhs] %prec CAST {
@@ -9206,6 +9247,8 @@ valexpr        : exprsimple
 		 $$.unary_arg_type = 0;
 		 if ($rhs.type != T_STRING) {
 		   SwigType_push($lhs.val,$pointer);
+		   $$.newtype = c_style_cast_type($lhs.val);
+		   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
@@ -9216,6 +9259,8 @@ valexpr        : exprsimple
 		 $$.unary_arg_type = 0;
 		 if ($rhs.type != T_STRING) {
 		   SwigType_add_reference($lhs.val);
+		   $$.newtype = c_style_cast_type($lhs.val);
+		   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
@@ -9226,6 +9271,8 @@ valexpr        : exprsimple
 		 $$.unary_arg_type = 0;
 		 if ($rhs.type != T_STRING) {
 		   SwigType_add_rvalue_reference($lhs.val);
+		   $$.newtype = c_style_cast_type($lhs.val);
+		   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
@@ -9237,6 +9284,8 @@ valexpr        : exprsimple
 		 if ($rhs.type != T_STRING) {
 		   SwigType_push($lhs.val,$pointer);
 		   SwigType_add_reference($lhs.val);
+		   $$.newtype = c_style_cast_type($lhs.val);
+		   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
@@ -9248,6 +9297,8 @@ valexpr        : exprsimple
 		 if ($rhs.type != T_STRING) {
 		   SwigType_push($lhs.val,$pointer);
 		   SwigType_add_rvalue_reference($lhs.val);
+		   $$.newtype = c_style_cast_type($lhs.val);
+		   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
@@ -9255,6 +9306,8 @@ valexpr        : exprsimple
  	       }
                | AND expr {
 		 $$ = $expr;
+		 /* A name is left to deduce_type_from_value(), which also knows a pointer to member. */
+		 $$.newtype = address_type($expr.newtype);
 		 $$.val = NewStringf("&%s", $expr.val);
 		 $$.stringval = 0;
 		 $$.numval = 0;
@@ -9275,7 +9328,12 @@ valexpr        : exprsimple
 		 }
 	       }
                | STAR expr {
+		 /* A string literal keeps the character type code handled below. */
+		 int literal = $expr.type == T_STRING || $expr.type == T_WSTRING;
+		 SwigType *operand_type = literal ? 0 : deduce_type(&$expr, 1);
 		 $$ = $expr;
+		 $$.newtype = dereference_type(operand_type);
+		 Delete(operand_type);
 		 $$.val = NewStringf("*%s", $expr.val);
 		 $$.stringval = 0;
 		 $$.numval = 0;
@@ -9292,7 +9350,7 @@ valexpr        : exprsimple
 		     $$.type = T_WCHAR;
 		     break;
 		   default:
-		     $$.type = T_UNKNOWN;
+		     $$.type = $$.newtype ? value_type_code($$.newtype) : T_UNKNOWN;
 		 }
 	       }
 	       ;

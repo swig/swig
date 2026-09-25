@@ -38,6 +38,16 @@ swig_check(int_ptr_second(cvar.typedef_array), 6)
 swig_check(int_ptr_second(cvar.typedef_array_ptr), 6)
 swig_check(cvar.typedef_alias, 8)
 
+# A C-style cast deduces the type it casts to, and a dereference the type pointed to.
+swig_check(deref_const_int_ptr(cvar.cstyle_cast_ptr), 0)
+swig_assert(cvar.cstyle_cast_null is None, "cstyle_cast_null")
+swig_check(cvar.cstyle_cast_double, 0.0)
+swig_assert(isinstance(cvar.cstyle_cast_double, float), "cstyle_cast_double should be a float")
+swig_check(cvar.pointer_condition, 2)
+swig_check(cvar.pointer_compare, True)
+swig_check(cvar.dereferenced, 0)
+swig_check(cvar.dereferenced_cast, 1)
+
 # A functional cast to a class deduces the class.
 swig_check(cvar.class_brace.y, 2)
 swig_check(cvar.class_paren.v, 3)
