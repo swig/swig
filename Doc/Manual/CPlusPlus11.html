@@ -1045,6 +1045,20 @@ template&lt;class T, class U&gt; auto add(T t, U u) -&gt; decltype(t + u);  // W
 </pre></div>
 
 <p>
+Class members are handled in the same way.
+A data member, <tt>this-&gt;member</tt> and a call to a member function that is not overloaded are deduced,
+and any other expression over members or <tt>this</tt> that cannot be deduced makes the function ignored with a warning:
+</p>
+<div class="code"><pre>
+struct S {
+  int d;
+  int h();
+  auto a() -&gt; decltype(this-&gt;d + 1);  // int
+  auto b() -&gt; decltype(h());          // int
+};
+</pre></div>
+
+<p>
 The trailing return type can be any type, including a pointer, a reference to a primitive type, an array reference or a function pointer:
 </p>
 

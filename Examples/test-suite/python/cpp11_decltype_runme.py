@@ -39,6 +39,22 @@ swig_check(cpp11_decltype.shadowed_sum(7, 8), 15)
 swig_assert(isinstance(cpp11_decltype.shadowed_sum(7, 8), int), "shadowed_sum should return an int")
 swig_check(cpp11_decltype.shadowed_negate(4), -4)
 
+m = cpp11_decltype.MemberTrailing()
+m.d = 3
+swig_check(m.via_this(), 3)
+swig_check(m.this_sum(), 4)
+swig_check(m.call(), 7)
+swig_check(m.call_sum(), 14)
+swig_assert(not hasattr(m, "self_ptr"), "self_ptr should be ignored")
+swig_assert(not hasattr(m, "self_deref"), "self_deref should be ignored")
+t = cpp11_decltype.TemplateTrailingInt()
+t.v = 5
+swig_check(t.via_this(), 5)
+swig_assert(not hasattr(t, "self_ptr"), "TemplateTrailingInt.self_ptr should be ignored")
+# The member function returning an int, not the global one returning a double.
+swig_check(m.shadowed_call(), 8)
+swig_assert(isinstance(m.shadowed_call(), int), "shadowed_call should return an int")
+
 # decltype(&i) deduces 'int *', so the address is returned rather than the function being ignored.
 if b.get_number_address(None) is None:
     raise RuntimeError("b.get_number_address should return a pointer")

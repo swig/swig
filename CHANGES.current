@@ -33,6 +33,23 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            A trailing return type decltype of 'this->member', or of a call to a
+            member function that is not overloaded, is now deduced, and a member
+            function takes precedence over a global function of the same name:
+
+              double mf(int);
+              struct S {
+                int d;
+                int mf();
+                auto a() -> decltype(this->d + 1);  // int
+                auto b() -> decltype(mf());         // int, was double
+              };
+
+            Any other decltype over members or 'this' that cannot be deduced now
+            makes the function ignored with warning 344.  It was previously left in
+            the wrapper, which then did not compile.
+
+2026-09-25: wsfulton
             A trailing return type decltype of an expression over function
             parameters now takes the types of the parameters.  It previously took
             the types of any globals of the same names, or was left in the wrapper,

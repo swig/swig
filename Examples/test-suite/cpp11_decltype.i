@@ -190,7 +190,30 @@
   auto shadowed_negate(const short &shadow_x) -> decltype(-shadow_x) {
     return -shadow_x;
   }
+
+  // Members named in a trailing return type are looked up in the class, not outside it where the wrapper is.
+  double shadow_mf(int) { return 0.5; }
+  struct MemberTrailing {
+    int d;
+    int h() const { return 7; }
+    int shadow_mf() const { return 8; }
+    auto via_this() const -> decltype(this->d) { return d; }
+    auto this_sum() const -> decltype(this->d + 1) { return d + 1; }
+    auto call() const -> decltype(h()) { return h(); }
+    auto call_sum() const -> decltype(h() * 2) { return h() * 2; }
+    auto shadowed_call() const -> decltype(shadow_mf()) { return shadow_mf(); }
+    // Ignored with warning 344 as 'this' is not in scope in the wrapper.
+    auto self_ptr() -> decltype(this) { return this; }
+    auto self_deref() const -> decltype(*this) { return *this; }
+  };
+
+  template<class T> struct TemplateTrailing {
+    T v;
+    auto self_ptr() -> decltype(this) { return this; }
+    auto via_this() const -> decltype(this->v) { return v; }
+  };
 %}
+%template(TemplateTrailingInt) TemplateTrailing<int>;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_lvalue;

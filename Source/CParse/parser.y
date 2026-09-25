@@ -2278,11 +2278,14 @@ static ParmList *trailing_rettype_parms = 0;
    promote_abbreviated_template() to complete then. */
 static String *trailing_rettype_placeholder_parm = 0;
 
-/* Set when the expression grammar meets the name of a parameter of the trailing return type being parsed, and cleared
-   at the start of each decltype.  A decltype over a parameter that no type is deduced for cannot be left in the
-   wrapper, where the parameter is not in scope, so its operand is kept in 'trailing_rettype_unusable' for the
-   declaration to be ignored. */
-static int decltype_mentions_parm = 0;
+/* Whether a trailing return type is being parsed. */
+static int parsing_trailing_rettype = 0;
+
+/* Set when the expression grammar meets, in a trailing return type being parsed, a name that is not in scope in the
+   wrapper: a parameter of the function, 'this' or a member of its class.  Cleared at the start of each decltype.  A
+   decltype over such a name that no type is deduced for cannot be left in the wrapper, so its operand is kept in
+   'trailing_rettype_unusable' for the declaration to be ignored. */
+static int decltype_mentions_local = 0;
 static String *trailing_rettype_unusable = 0;
 
 /* Apply the parameter adjustments of C++ [dcl.fct]/5 to the copy 't': an array parameter has the type pointer to
@@ -2324,21 +2327,41 @@ static SwigType *trailing_rettype_parm_type(String *name) {
   return t;
 }
 
+/* The T_* type code the expression grammar gives a value of type 'type'.  Only an arithmetic or character type is
+   described by its code.  Any other type is T_UNKNOWN, so that a pointer is not taken for the type it points to. */
+static int value_type_code(SwigType *type) {
+  SwigType *t = SwigType_remove_qualifier_reference(Copy(type));
+  int code = SwigType_type(t);
+  Delete(t);
+  return code < T_AUTO || code == T_CHAR || code == T_WCHAR ? code : T_UNKNOWN;
+}
+
 /* The T_* type code of the parameter named 'name' of the function whose trailing return type is being parsed, for the
-   expression grammar, which otherwise finds only what the symbol table has under that name.  Only an arithmetic or
-   character type is described by its code.  Any other type is T_UNKNOWN, so that a pointer parameter is not taken
-   for the type it points to.  Returns 0 when 'name' is not such a parameter. */
+   expression grammar, which otherwise finds only what the symbol table has under that name.  Returns 0 when 'name' is
+   not such a parameter. */
 static int trailing_rettype_parm_type_code(String *name) {
   Parm *p = ParmList_find_name(trailing_rettype_parms, name);
-  SwigType *type;
-  int code;
-  if (!p || !Getattr(p, "type"))
-    return 0;
-  decltype_mentions_parm = 1;
-  type = SwigType_remove_qualifier_reference(Copy(Getattr(p, "type")));
-  code = SwigType_type(type);
-  Delete(type);
-  return code < T_AUTO || code == T_CHAR || code == T_WCHAR ? code : T_UNKNOWN;
+  return p && Getattr(p, "type") ? value_type_code(Getattr(p, "type")) : 0;
+}
+
+/* The member named 'name' of the class being parsed, or 0 if 'name' is not one. */
+static Node *class_member_named(const_String_or_char_ptr name) {
+  Node *n = inclass ? Swig_symbol_clookup(name, 0) : 0;
+  return n && GetFlag(n, "ismember") ? n : 0;
+}
+
+/* Note that the expression being parsed names 'name', which is not in scope in the wrapper if the expression is in a
+   trailing return type and 'name' is a parameter of the function or a member of its class. */
+static void note_name_in_trailing_rettype(const_String_or_char_ptr name) {
+  if (parsing_trailing_rettype && (ParmList_find_name(trailing_rettype_parms, name) || class_member_named(name)))
+    decltype_mentions_local = 1;
+}
+
+/* Note that the expression being parsed uses 'this', which is not in scope in the wrapper if the expression is in a
+   trailing return type. */
+static void note_this_in_trailing_rettype(void) {
+  if (parsing_trailing_rettype)
+    decltype_mentions_local = 1;
 }
 
 /* The template parameter named 'name' of the template declaration being parsed, or of the class template it is a
@@ -2402,25 +2425,12 @@ static Node *qualified_unscoped_enumerator(String *name) {
   return item;
 }
 
-/* Look 'name' up as a function parameter of a trailing return type being parsed, then as a non-type template
-   parameter, then in the symbol table, and return a copy of the type it was declared with, with its declarator
-   applied, so that the 'pg' of 'int *pg;' gives 'p.int' and not just the 'int' held in the "type" attribute.
-   Returns 0 when the name is not in scope. */
-static SwigType *symbol_full_type(String *name) {
-  Node *n;
+/* A copy of the type the declaration 'n' was declared with, with its declarator applied, see symbol_full_type().
+   Returns 0 when 'n' has no type. */
+static SwigType *node_full_type(Node *n) {
   SwigType *type;
   SwigType *decl;
   String *storage;
-  type = trailing_rettype_parm_type(name);
-  if (!type)
-    type = nontype_template_parameter_type(name);
-  if (type)
-    return type;
-  n = Swig_symbol_clookup(name, 0);
-  if (!n)
-    n = qualified_unscoped_enumerator(name);
-  if (!n)
-    return 0;
   if (Equal(nodeType(n), "enumitem")) {
     /* For an enumitem, the "type" attribute gives us the underlying integer type - we want the "type"
      * attribute from the enum itself, which is "parentNode". */
@@ -2448,6 +2458,41 @@ static SwigType *symbol_full_type(String *name) {
     SwigType_add_qualifier(type, "const");
   }
   return type;
+}
+
+/* Look 'name' up as a function parameter of a trailing return type being parsed, then as a non-type template
+   parameter, then in the symbol table, and return a copy of the type it was declared with, with its declarator
+   applied, so that the 'pg' of 'int *pg;' gives 'p.int' and not just the 'int' held in the "type" attribute.
+   Returns 0 when the name is not in scope. */
+static SwigType *symbol_full_type(String *name) {
+  Node *n;
+  SwigType *type = trailing_rettype_parm_type(name);
+  if (!type)
+    type = nontype_template_parameter_type(name);
+  if (type)
+    return type;
+  n = Swig_symbol_clookup(name, 0);
+  if (!n)
+    n = qualified_unscoped_enumerator(name);
+  return n ? node_full_type(n) : 0;
+}
+
+/* The type of 'this->name' in the class being parsed, which is the type the data member 'name' is declared with, or 0
+   if 'name' is not a data member. */
+static SwigType *this_member_type(const_String_or_char_ptr name) {
+  Node *n = class_member_named(name);
+  if (!n || !Equal(nodeType(n), "cdecl") || SwigType_isfunction(Getattr(n, "decl")))
+    return 0;
+  return node_full_type(n);
+}
+
+/* The type of a call to the member function 'name' of the class being parsed, which is its return type, or 0 if
+   'name' is not a member function or is overloaded, as the call is not resolved. */
+static SwigType *member_call_type(const_String_or_char_ptr name) {
+  Node *n = class_member_named(name);
+  if (!n || !Equal(nodeType(n), "cdecl") || !SwigType_isfunction(Getattr(n, "decl")) || Getattr(n, "sym:overloaded"))
+    return 0;
+  return Swig_function_return_type(n);
 }
 
 /* The type of the expression whose text is 'val' and whose T_* summary code is 'type_code'.  Returns a new type,
@@ -4881,12 +4926,14 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               /* The function parameters are in scope in the trailing return type, so make them visible to any
                * decltype in it for as long as it is being reduced. */
               trailing_rettype_parms = $declarator.parms;
+              parsing_trailing_rettype = 1;
               Delete(trailing_rettype_placeholder_parm);
               trailing_rettype_placeholder_parm = 0;
               Delete(trailing_rettype_unusable);
               trailing_rettype_unusable = 0;
              } trailing_rettype {
               trailing_rettype_parms = 0;
+              parsing_trailing_rettype = 0;
              } requires_clause_opt virt_specifier_seq_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
@@ -8422,7 +8469,7 @@ type_right     : primitive_type
    to tell the two apart, and the captured text would then be missing the first token of the operand. */
 decltype_prefix : DECLTYPE LPAREN {
                  $$ = get_raw_text_balanced('(', ')');
-                 decltype_mentions_parm = 0;
+                 decltype_mentions_local = 0;
                }
                ;
 
@@ -8435,7 +8482,7 @@ decltype       : decltype_prefix[expr] decltypeexpr {
 		   Delitem(expr, 0);
 		   Delitem(expr, DOH_END);
 		   $$ = SwigType_new_decltype(expr);
-		   if (decltype_mentions_parm) {
+		   if (decltype_mentions_local) {
 		     /* The declaration is ignored with a warning instead, see trailing_rettype_unusable. */
 		     Delete(trailing_rettype_unusable);
 		     trailing_rettype_unusable = Copy(expr);
@@ -8773,6 +8820,7 @@ expr           : valexpr
 		 Node *n;
 		 /* A parameter of a trailing return type being parsed hides anything of the same name outside the function. */
 		 int parm_type_code = trailing_rettype_parm_type_code($type);
+		 note_name_in_trailing_rettype($type);
 		 $$ = default_dtype;
 		 $$.val = $type;
 		 $$.type = parm_type_code ? parm_type_code : T_UNKNOWN;
@@ -8801,12 +8849,15 @@ expr           : valexpr
 exprmem        : idcolon ARROW ID {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s", $idcolon, $ID);
-                 /* No type is deduced for a member, but one of a parameter still has to be noted as mentioning it. */
-                 (void)trailing_rettype_parm_type_code($idcolon);
+                 note_name_in_trailing_rettype($idcolon);
 	       }
                | THIS ARROW ID {
                  $$ = default_dtype;
                  $$.val = NewStringf("this->%s", $ID);
+                 note_this_in_trailing_rettype();
+                 $$.newtype = this_member_type($ID);
+                 if ($$.newtype)
+                   $$.type = value_type_code($$.newtype);
                }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
@@ -8816,8 +8867,7 @@ exprmem        : idcolon ARROW ID {
 	       | idcolon PERIOD ID {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s.%s", $idcolon, $ID);
-                 /* No type is deduced for a member, but one of a parameter still has to be noted as mentioning it. */
-                 (void)trailing_rettype_parm_type_code($idcolon);
+                 note_name_in_trailing_rettype($idcolon);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
@@ -8838,8 +8888,12 @@ exprmem        : idcolon ARROW ID {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 
 		 String *qty = Swig_symbol_type_qualify($type, 0);
+		 SwigType *call_type = 0;
 		 if (!cast_type_code)
 		   $$.newtype = functional_cast_type($type, qty);
+		 note_name_in_trailing_rettype($type);
+		 if (!cast_type_code && !$$.newtype)
+		   call_type = member_call_type($type);
 		 if (SwigType_istemplate(qty)) {
 		   String *nstr = SwigType_namestr(qty);
 		   Delete(qty);
@@ -8856,6 +8910,10 @@ exprmem        : idcolon ARROW ID {
                  $$.type = cast_type_code ? cast_type_code : SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
+		 if (call_type) {
+		   $$.newtype = call_type;
+		   $$.type = value_type_code(call_type);
+		 }
 
 		 $$.val = qty;
 		 append_expr_from_scanner($$.val);
@@ -8996,6 +9054,7 @@ exprsimple     : exprnum
                  $$ = default_dtype;
                  $$.val = NewString("this");
                  $$.type = T_UNKNOWN;
+                 note_this_in_trailing_rettype();
                }
                | string {
 		  $$ = default_dtype;

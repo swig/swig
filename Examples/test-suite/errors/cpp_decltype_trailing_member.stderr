@@ -1,0 +1,7 @@
+cpp_decltype_trailing_member.i:10: Warning 344: Unable to deduce decltype for 'ov(1)' in the trailing return type of 'overloaded()' (ignored).
+cpp_decltype_trailing_member.i:11: Warning 344: Unable to deduce decltype for 'inner.x' in the trailing return type of 'member_access()' (ignored).
+cpp_decltype_trailing_member.i:12: Warning 344: Unable to deduce decltype for 'this->inner.x' in the trailing return type of 'this_access()' (ignored).
+cpp_decltype_trailing_member.i:22: Warning 344: Unable to deduce decltype for 'this' in the trailing return type of 'self_ptr()' (ignored).
+cpp_decltype_trailing_member.i:23: Warning 344: Unable to deduce decltype for '*this' in the trailing return type of 'self_deref() const' (ignored).
+cpp_decltype_trailing_member.i:24: Warning 344: Unable to deduce decltype for '(this)' in the trailing return type of 'paren_self()' (ignored).
+cpp_decltype_trailing_member.i:28: Warning 344: Unable to deduce decltype for 'this' in the trailing return type of 'self_ptr()' (ignored).
