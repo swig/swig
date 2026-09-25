@@ -24,6 +24,7 @@ extern ParmList *CopyParmListMax(ParmList *p, int count);
 extern ParmList *ParmList_join(ParmList *p, ParmList *p2);
 extern ParmList *ParmList_replace_at(ParmList *p, int position, ParmList *p2);
 extern Parm *ParmList_nth_parm(ParmList *p, unsigned int n);
+extern Parm *ParmList_find_name(ParmList *p, const_String_or_char_ptr name);
 extern Parm *ParmList_variadic_parm(ParmList *p);
 extern Parm *ParmList_find_variadic_parm(ParmList *p, int *position);
 extern Parm *ParmList_add_parm(ParmList *p, Parm *newparm);

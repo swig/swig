@@ -2288,21 +2288,17 @@ static void adjust_parm_type(SwigType *t) {
    being parsed, or 0 when there is no such parameter.  Never 0 for a parameter that does exist: the caller reads 0
    as "not in scope" and carries on into the enclosing scope, where an unrelated declaration would shadow it. */
 static SwigType *trailing_rettype_parm_type(String *name) {
-  Parm *p;
-  for (p = trailing_rettype_parms; p; p = nextSibling(p)) {
-    String *pname = Getattr(p, "name");
-    SwigType *ptype = Getattr(p, "type");
-    if (pname && ptype && Equal(pname, name)) {
-      SwigType *t = Copy(ptype);
-      if (SwigType_isauto(t)) {
-        Delete(trailing_rettype_placeholder_parm);
-        trailing_rettype_placeholder_parm = Copy(pname);
-      }
-      adjust_parm_type(t);
-      return t;
-    }
+  Parm *p = ParmList_find_name(trailing_rettype_parms, name);
+  SwigType *t;
+  if (!p || !Getattr(p, "type"))
+    return 0;
+  t = Copy(Getattr(p, "type"));
+  if (SwigType_isauto(t)) {
+    Delete(trailing_rettype_placeholder_parm);
+    trailing_rettype_placeholder_parm = Copy(name);
   }
-  return 0;
+  adjust_parm_type(t);
+  return t;
 }
 
 /* Look 'name' up as a function parameter of a trailing return type being parsed, then in the symbol table, and
@@ -2381,18 +2377,13 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
       Delete(operand);
       return deduced;
     }
-    {
-      /* The address of an overloaded function has no type until it is converted to a particular function pointer
-       * type, so there is nothing to deduce, and the first overload found is no more the answer than any other.
-       * A parameter of the same name hides the overloads. */
-      Parm *p = trailing_rettype_parms;
-      while (p && !Equal(Getattr(p, "name"), operand))
-        p = nextSibling(p);
-      n = p ? 0 : Swig_symbol_clookup(operand, 0);
-      if (n && Getattr(n, "sym:overloaded")) {
-        Delete(operand);
-        return 0;
-      }
+    /* The address of an overloaded function has no type until it is converted to a particular function pointer
+     * type, so there is nothing to deduce, and the first overload found is no more the answer than any other.
+     * A parameter of the same name hides the overloads. */
+    n = ParmList_find_name(trailing_rettype_parms, operand) ? 0 : Swig_symbol_clookup(operand, 0);
+    if (n && Getattr(n, "sym:overloaded")) {
+      Delete(operand);
+      return 0;
     }
     deduced = symbol_full_type(operand);
     Delete(operand);

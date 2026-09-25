@@ -174,6 +174,22 @@ Parm *ParmList_nth_parm(ParmList *p, unsigned int n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_find_name()
+ *
+ * Return the first parameter in the list named name, NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_name(ParmList *p, const_String_or_char_ptr name) {
+  while (p) {
+    String *pname = Getattr(p, "name");
+    if (pname && Equal(pname, name))
+      break;
+    p = nextSibling(p);
+  }
+  return p;
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_variadic_parm()
  *
  * Return the variadic parm (last in list if it is variadic), NULL otherwise
