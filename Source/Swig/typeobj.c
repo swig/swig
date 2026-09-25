@@ -622,6 +622,54 @@ int SwigType_isqualifier(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ *                    Top level reference and cv-qualifiers
+ *
+ * SwigType_remove_reference()
+ * SwigType_remove_qualifier()
+ * SwigType_remove_qualifier_reference()
+ *
+ * Counterparts of std::remove_reference, std::remove_cv and std::remove_cvref.
+ * Each modifies t in place and returns it.  Unlike SwigType_del_reference() and
+ * SwigType_del_qualifier(), t need not have the element being removed.
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_reference()
+ *
+ * Removes a top level lvalue or rvalue reference from t, if it has one.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_reference(SwigType *t) {
+  if (SwigType_isreference(t) || SwigType_isrvalue_reference(t))
+    Delete(SwigType_pop(t));
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_qualifier()
+ *
+ * Removes all top level cv-qualifiers from t, so 'q(const).q(volatile).int'
+ * becomes 'int'.  Qualifiers under a pointer or reference are kept.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_qualifier(SwigType *t) {
+  while (SwigType_isqualifier(t))
+    Delete(SwigType_pop(t));
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_qualifier_reference()
+ *
+ * Removes a top level reference from t and then the top level cv-qualifiers of
+ * the type referred to, so 'r.q(const).int' becomes 'int'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_qualifier_reference(SwigType *t) {
+  return SwigType_remove_qualifier(SwigType_remove_reference(t));
+}
+
+/* -----------------------------------------------------------------------------
  *                                Function Pointers
  * ----------------------------------------------------------------------------- */
 

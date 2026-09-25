@@ -2399,8 +2399,7 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
     if (deduced) {
       /* Taking the address of a reference gives a pointer to the referred-to type, there being no such thing as
        * a pointer to a reference. */
-      if (SwigType_isreference(deduced) || SwigType_isrvalue_reference(deduced))
-        Delete(SwigType_pop(deduced));
+      SwigType_remove_reference(deduced);
       SwigType_add_pointer(deduced);
       return deduced;
     }
@@ -2470,8 +2469,7 @@ static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
 
   /* A name declared with a reference already denotes an lvalue of the referred-to type, so the reference the
    * parentheses call for is the one it has. */
-  if (SwigType_isreference(type) || SwigType_isrvalue_reference(type))
-    Delete(SwigType_pop(type));
+  SwigType_remove_reference(type);
 
   /* The reference is only added where the variable is wrapped through a pointer either way.  A scalar, an array,
    * a character string and an enumeration are wrapped by value, and wrapping the reference instead would make
@@ -2587,16 +2585,14 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
 
   /* An id-expression naming a reference has the type it refers to, so 'auto x = r;' with 'r' an 'int&' deduces
    * 'int'.  Only 'decltype(auto)' keeps the reference, and that does not come through here. */
-  if (SwigType_isreference(placeholder) || SwigType_isrvalue_reference(placeholder))
-    Delete(SwigType_pop(placeholder));
+  SwigType_remove_reference(placeholder);
 
   if (SwigType_isreference(remaining) || SwigType_isrvalue_reference(remaining)) {
     Delete(SwigType_pop(remaining));
   } else {
     /* Deduction drops the top level cv-qualifiers of the initialiser unless the variable is a reference, so
      * 'auto x = cg;' with 'cg' declared 'const int' deduces 'int' while 'auto& r = cg;' deduces 'const int'. */
-    while (SwigType_isqualifier(placeholder))
-      Delete(SwigType_pop(placeholder));
+    SwigType_remove_qualifier(placeholder);
     /* An array decays to a pointer to its first element unless the variable is a reference, so 'auto p = arr;'
      * with 'arr' an 'int[4]' deduces 'int *' while 'auto& r = arr;' deduces 'int (&)[4]'. */
     if (SwigType_isarray(placeholder)) {
@@ -2717,9 +2713,7 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
   }
   if (type && qualifier) {
     /* A cv-qualifier on the declaration replaces the deduced top level cv-qualifiers, so 'const auto &x = cg;' with 'cg' a 'const int' is 'const int &'. */
-    while (SwigType_isqualifier(type))
-      Delete(SwigType_pop(type));
-    SwigType_push(type, qualifier);
+    SwigType_push(SwigType_remove_qualifier(type), qualifier);
   }
   return type;
 }
