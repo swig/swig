@@ -33,6 +33,23 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-24: wsfulton
+            A decltype or an auto variable naming a non-type template parameter now
+            has the type the parameter is declared with, or for 'template<auto N>'
+            the type of the %template argument.  The decltype was previously left in
+            the wrapper, which then did not compile, and the auto variable was
+            ignored with warning 346:
+
+              template<int N> struct I { auto get() const -> decltype(N); };
+              template<auto N> struct A { static constexpr auto value = N; };
+              %template(I3) I<3>;     // get returns int
+              %template(Ac) A<'c'>;   // value is a char
+
+            A decltype of any other expression mentioning a template parameter,
+            such as 'decltype(N + 1)', still gives warning 344 and now has the
+            template argument substituted into it, 'decltype(3 + 1)' for I<3>, so the
+            wrapper compiles.
+
+2026-09-24: wsfulton
             The address of an overloaded function is no longer deduced as a pointer
             to the first overload:
 

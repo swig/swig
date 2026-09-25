@@ -2301,15 +2301,54 @@ static SwigType *trailing_rettype_parm_type(String *name) {
   return t;
 }
 
-/* Look 'name' up as a function parameter of a trailing return type being parsed, then in the symbol table, and
-   return a copy of the type it was declared with, with its declarator applied, so that the 'pg' of 'int *pg;'
-   gives 'p.int' and not just the 'int' held in the "type" attribute.  Returns 0 when the name is not in scope. */
+/* The template parameter named 'name' of the template declaration being parsed, or of the class template it is a
+   member of, or 0 if there is none. */
+static Parm *template_parameter_named(String *name) {
+  Parm *p = ParmList_find_name(template_parameters, name);
+  if (!p && currentOuterClass)
+    p = ParmList_find_name(Getattr(currentOuterClass, "template_parameters"), name);
+  return p;
+}
+
+/* Whether the template parameter 'p' is a type template parameter, the 'T' of 'template<class T>'. */
+static int template_parm_is_type(Parm *p) {
+  SwigType *type = Getattr(p, "type");
+  return Equal(type, "typename") || Equal(type, "class");
+}
+
+/* Whether the template parameter 'p' is a non-type template parameter, the 'N' of 'template<int N>' or
+   'template<auto N>'.  A template template parameter has the 'template< ... > class' type the template_parm rule
+   gives it, and a pack is neither. */
+static int template_parm_is_nontype(Parm *p) {
+  SwigType *type = Getattr(p, "type");
+  return type && !template_parm_is_type(p) && !SwigType_isvariadic(type) && Strncmp(type, "template< ", 10) != 0;
+}
+
+/* The type of an id-expression naming the non-type template parameter 'name', which is the type the parameter is
+   declared with, without its top level cv-qualifiers.  For a placeholder, the 'N' of 'template<auto N>', that is the
+   type of the template argument, which is left as 'decltype(N)' for the instantiation to resolve.  Returns 0 when
+   'name' is not a non-type template parameter. */
+static SwigType *nontype_template_parameter_type(String *name) {
+  Parm *p = template_parameter_named(name);
+  SwigType *type;
+  if (!p || !template_parm_is_nontype(p))
+    return 0;
+  type = Getattr(p, "type");
+  return SwigType_isauto(type) ? SwigType_new_decltype(name) : SwigType_remove_qualifier(Copy(type));
+}
+
+/* Look 'name' up as a function parameter of a trailing return type being parsed, then as a non-type template
+   parameter, then in the symbol table, and return a copy of the type it was declared with, with its declarator
+   applied, so that the 'pg' of 'int *pg;' gives 'p.int' and not just the 'int' held in the "type" attribute.
+   Returns 0 when the name is not in scope. */
 static SwigType *symbol_full_type(String *name) {
   Node *n;
   SwigType *type;
   SwigType *decl;
   String *storage;
   type = trailing_rettype_parm_type(name);
+  if (!type)
+    type = nontype_template_parameter_type(name);
   if (type)
     return type;
   n = Swig_symbol_clookup(name, 0);
@@ -2422,6 +2461,26 @@ static SwigType *deduce_type(const struct Define *dtype, int unwrap_parentheses)
   deduced = deduce_type_from_value(unwrapped ? unwrapped : dtype->val, dtype->type);
   Delete(unwrapped);
   return deduced;
+}
+
+/* Set "argtype" on each %template argument in 'args' given for a placeholder non-type template parameter in
+   'tparms', the 'N' of 'template<auto N>', to the type of the argument.  That is the type 'decltype(N)' names in the
+   instantiated template.  A default argument has no type code to deduce a type from and is left without. */
+static void set_placeholder_template_argument_types(ParmList *args, ParmList *tparms) {
+  Parm *p;
+  for (p = args; p; p = nextSibling(p)) {
+    Parm *tp = ParmList_find_name(tparms, Getattr(p, "name"));
+    if (tp && SwigType_isauto(Getattr(tp, "type")) && Getattr(p, "valuetypecode")) {
+      struct Define dtype = default_dtype;
+      SwigType *type;
+      dtype.val = Getattr(p, "value");
+      dtype.type = GetInt(p, "valuetypecode");
+      type = deduce_type(&dtype, 1);
+      if (type)
+        Setattr(p, "argtype", SwigType_remove_qualifier(type));
+      Delete(type);
+    }
+  }
 }
 
 /* Whether 'type' names an enumeration */
@@ -4215,6 +4274,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 			  /* Expand the template */
 			  ParmList *temparms = Swig_cparse_template_parms_expand($valparms, primary_template, nn);
+                          set_placeholder_template_argument_types(temparms, Getattr(nnisclass && primary_template ? primary_template : nn, "templateparms"));
 
                           templnode = copy_node(nn);
 			  update_nested_classes(templnode); /* update classes nested within template */
@@ -7283,6 +7343,7 @@ valparm        : parm {
 		  Setattr($$,"value",$valexpr.val);
 		  if ($valexpr.stringval) Setattr($$, "stringval", $valexpr.stringval);
 		  if ($valexpr.numval) Setattr($$, "numval", $valexpr.numval);
+                  SetInt($$, "valuetypecode", $valexpr.type);
                }
                ;
 

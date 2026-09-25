@@ -115,6 +115,7 @@ contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with mul
 conversion.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
 conversion_namespace.cpptest: SWIG_NOCXX = -nocxx # Conversion operator name not handled correctly.
 conversion_ns_template.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return not handled specially.
+cpp11_decltype_nontype_template_parameter.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
 cpp11_explicit_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
 cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.

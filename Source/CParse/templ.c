@@ -582,6 +582,28 @@ static void cparse_postprocess_expanded_template(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * replace_placeholder_decltype()
+ *
+ * Replace a 'decltype(name)' base of the type t, where name is a placeholder
+ * non-type template parameter such as the 'N' of 'template<auto N>', with
+ * argtype, the type of the template argument given for it.  Any other decltype
+ * mentioning name has the argument substituted into its expression later, by
+ * SwigType_typename_replace().
+ * ----------------------------------------------------------------------------- */
+
+static void replace_placeholder_decltype(SwigType *t, String *name, SwigType *argtype) {
+  String *expr = SwigType_decltype_expr(t);
+  if (expr && Equal(expr, name)) {
+    SwigType *prefix = SwigType_prefix(t);
+    Clear(t);
+    Append(t, prefix);
+    Append(t, argtype);
+    Delete(prefix);
+  }
+  Delete(expr);
+}
+
+/* -----------------------------------------------------------------------------
  * splice_partial_slot()
  *
  * Bind a single $N substitution: at the given 0-based index in *templateparms_p,
@@ -995,6 +1017,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
         int sz, i;
         String *dvalue = 0;
         String *qvalue = 0;
+        SwigType *argtype = Getattr(tp, "argtype");
 
         name = Getattr(tp, "name");
         value = Getattr(tp, "value");
@@ -1031,6 +1054,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
             String *tyname;
 
             SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
+            if (argtype)
+              replace_placeholder_decltype(s, name, argtype);
 
             /*
               The approach of 'trivially' replacing template arguments is kind of fragile.
