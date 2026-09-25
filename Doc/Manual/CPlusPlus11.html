@@ -1035,6 +1035,16 @@ auto function_parameter(int fn(int)) -&gt; decltype(fn);      // int (*)(int)
 </pre></div>
 
 <p>
+An arithmetic expression over parameters of arithmetic types is deduced from the parameter types.
+A decltype of any other expression over parameters, such as the common <tt>decltype(t + u)</tt> in a function template,
+cannot be deduced and would not compile in a wrapper, where the parameters are not in scope, so the function is ignored with a warning:
+</p>
+<div class="code"><pre>
+auto sum(int a, double b) -&gt; decltype(a + b);                      // double
+template&lt;class T, class U&gt; auto add(T t, U u) -&gt; decltype(t + u);  // Warning 344: ... (ignored).
+</pre></div>
+
+<p>
 The trailing return type can be any type, including a pointer, a reference to a primitive type, an array reference or a function pointer:
 </p>
 

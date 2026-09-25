@@ -33,6 +33,20 @@ Version 4.6.0 (in progress)
             the R wrapper of the class did not load.
 
 2026-09-25: wsfulton
+            A trailing return type decltype of an expression over function
+            parameters now takes the types of the parameters.  It previously took
+            the types of any globals of the same names, or was left in the wrapper,
+            which then did not compile:
+
+              double a, b;
+              auto sum(int a, int b) -> decltype(a + b);                     // int, was double
+              template<class T, class U> auto add(T t, U u) -> decltype(t + u);
+
+            A decltype over parameters that cannot be deduced, such as the one of
+            'add' or one over a pointer or class parameter, now makes the function
+            ignored with warning 344.
+
+2026-09-25: wsfulton
             An auto variable or decltype of an enumerator of an unscoped
             enumeration qualified by the enumeration's name is now deduced, rather
             than being ignored with warning 346 or 344:

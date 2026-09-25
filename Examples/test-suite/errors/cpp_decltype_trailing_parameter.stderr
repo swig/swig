@@ -1,0 +1,4 @@
+cpp_decltype_trailing_parameter.i:5: Warning 344: Unable to deduce decltype for 'p + 1' in the trailing return type of 'parm_pointer(int *)' (ignored).
+cpp_decltype_trailing_parameter.i:6: Warning 344: Unable to deduce decltype for 'p.x' in the trailing return type of 'parm_member(Pt)' (ignored).
+cpp_decltype_trailing_parameter.i:8: Warning 344: Unable to deduce decltype for 't + u' in the trailing return type of 'tmpl_add' (ignored).
+cpp_decltype_trailing_parameter.i:11: Warning 344: Unable to deduce decltype for 'x * y' in the trailing return type of 'abbrev_mul' (ignored).

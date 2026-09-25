@@ -176,7 +176,20 @@
     auto negate(decltype(true) b) -> decltype(b) {
       return !b;
     }
+
+    auto scaled(int v, double factor) -> decltype(v * factor) {
+      return v * factor;
+    }
   };
+
+  // An expression over parameters takes their types, not those of globals of the same names.
+  double shadow_x = 1.5, shadow_y = 2.5;
+  auto shadowed_sum(int shadow_x, int shadow_y) -> decltype(shadow_x + shadow_y) {
+    return shadow_x + shadow_y;
+  }
+  auto shadowed_negate(const short &shadow_x) -> decltype(-shadow_x) {
+    return -shadow_x;
+  }
 %}
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;

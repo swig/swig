@@ -1,5 +1,5 @@
 import cpp11_decltype
-from swig_test_utils import swig_check
+from swig_test_utils import swig_assert, swig_check
 
 a = cpp11_decltype.A()
 a.i = 5
@@ -31,6 +31,13 @@ if b.negate(True) != False:
 
 if b.negate(False) != True:
     raise RuntimeError("b.negate(False) should return True")
+
+swig_check(b.scaled(3, 1.5), 4.5)
+
+# The parameter types, int, not the double globals of the same names.
+swig_check(cpp11_decltype.shadowed_sum(7, 8), 15)
+swig_assert(isinstance(cpp11_decltype.shadowed_sum(7, 8), int), "shadowed_sum should return an int")
+swig_check(cpp11_decltype.shadowed_negate(4), -4)
 
 # decltype(&i) deduces 'int *', so the address is returned rather than the function being ignored.
 if b.get_number_address(None) is None:
