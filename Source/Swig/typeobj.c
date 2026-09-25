@@ -1457,6 +1457,65 @@ SwigType *SwigType_replace_auto_base(const SwigType *t, const String *new_base) 
 }
 
 /* -----------------------------------------------------------------------------
+ *                                  Decltype
+ *
+ * SwigType_new_decltype()
+ * SwigType_isdecltype()
+ * SwigType_decltype_expr()
+ *
+ * A decltype SWIG has not deduced a type for is stored as the base element
+ * 'decltype(<expr>)', holding the text of the expression, so 'decltype(x + 1) *'
+ * is 'p.decltype(x + 1)'.  The parentheses are balanced, so the element is
+ * always kept whole by SwigType_split() and friends.
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_new_decltype()
+ *
+ * Creates the SwigType for 'decltype(expr)'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_new_decltype(const_String_or_char_ptr expr) {
+  return NewStringf("decltype(%s)", expr);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_isdecltype()
+ *
+ * Tests whether the base of t is a decltype, as in 'q(const).decltype(x)'.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isdecltype(const SwigType *t) {
+  SwigType *base;
+  int isdecltype;
+  if (!t)
+    return 0;
+  base = SwigType_base(t);
+  isdecltype = Strncmp(base, "decltype(", 9) == 0;
+  Delete(base);
+  return isdecltype;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_decltype_expr()
+ *
+ * Returns a newly allocated String holding the expression of the decltype that
+ * is the base of t, so 'x + 1' for 'p.decltype(x + 1)'.  Returns NULL if the
+ * base of t is not a decltype.
+ * ----------------------------------------------------------------------------- */
+
+String *SwigType_decltype_expr(const SwigType *t) {
+  SwigType *base;
+  String *expr;
+  if (!SwigType_isdecltype(t))
+    return 0;
+  base = SwigType_base(t);
+  expr = SwigType_parm(base);
+  Delete(base);
+  return expr;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_base()
  *
  * This function returns the base of a type.  For example, if you have a

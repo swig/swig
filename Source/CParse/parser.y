@@ -2846,7 +2846,7 @@ static String *braced_initialiser_value(String *braced) {
    'decltype(auto)' placeholder in a type-id, as in 'new decltype(auto)(x)'. */
 static SwigType *new_expression_type(SwigType *type_id) {
   SwigType *type;
-  if (SwigType_isvariadic(type_id) || Strstr(type_id, "decltype("))
+  if (SwigType_isvariadic(type_id) || SwigType_isdecltype(type_id))
     return 0;
   type = Copy(type_id);
   if (SwigType_isarray(type))
@@ -8169,10 +8169,10 @@ decltype       : decltype_prefix[expr] decltypeexpr {
 		 if ($decltypeexpr) {
 		   $$ = $decltypeexpr;
 		 } else {
-		   $$ = NewStringf("decltype%s", expr);
-		   /* expr includes parentheses but don't include them in the warning message. */
+		   /* expr includes parentheses, which are not part of the expression. */
 		   Delitem(expr, 0);
 		   Delitem(expr, DOH_END);
+		   $$ = SwigType_new_decltype(expr);
 		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", expr);
 		 }
 		 Delete(expr);
