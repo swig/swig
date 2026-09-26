@@ -6,6 +6,8 @@
 
 // A setter for a pointer variable is not what is under test here.
 %immutable ptr_var;
+%immutable paren_ptr_var;
+%immutable spaced_ptr_var;
 
 // Copy-list-initialisation keeps the C++11 rule and deduces std::initializer_list, whatever the
 // number of elements.  SWIG declares std::initializer_list only as a stub that warns rather than
@@ -43,6 +45,10 @@ const auto const_var{7};
 // Deduction from a variable in scope, and from its address.
 auto copy_var{global_int};
 auto* ptr_var{&global_int};
+
+// The operand of '&' can be parenthesised or spaced out.
+auto* paren_ptr_var{&(global_int)};
+auto* spaced_ptr_var{& global_int};
 
 static constexpr auto string_var{"braced"};
 

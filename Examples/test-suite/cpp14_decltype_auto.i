@@ -33,6 +33,7 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_class;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_paren_function;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_address;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_new;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_new_klass;
@@ -103,6 +104,10 @@ decltype(auto) var_paren_enumerator = (ParenSpace::paren_dark);  // ParenSpace::
 #if defined(SWIG) || !defined(_MSC_VER)
 decltype(auto) var_paren_function = (paren_function);            // int (&)(), not deduced
 #endif
+
+// A parenthesised address is not a name, so this is the pointer and not a reference to one.
+decltype(auto) var_paren_address = (&paren_int);  // int *
+int paren_address_value(int *p) { return *p; }
 
 // Return types, all ignored as the type would have to come from the body.
 decltype(auto) ret_plain() { return global_int; }

@@ -90,6 +90,14 @@ swig_check(use_member_fn_ptr(cvar.pt_instance, cvar.member_fn_ptr), 6)
 swig_check(call_fn0(cvar.static_fn_ptr), 2)
 swig_check(deref(cvar.static_var_ptr), 3)
 
+# Parentheses around the operand of '&', or around the whole address, leave it the address of what is named.
+swig_check(deref(cvar.paren_ptr), 20)
+swig_check(deref(cvar.paren_paren_ptr), 20)
+swig_check(call_fn(cvar.paren_fn_ptr, 4), 5)
+swig_check(deref(cvar.paren_static_var_ptr), 3)
+swig_check(deref(cvar.paren_ptr_decltype), 20)
+swig_check(deref(cvar.paren_address_decltype), 20)
+
 # A reference bound to a string literal is a reference to the array, wrapped as the string it holds.
 swig_check(cvar.ref_string, "text")
 swig_check(cvar.fwd_string, "text")

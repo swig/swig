@@ -25,6 +25,10 @@ public class cpp14_decltype_auto_runme {
     if (cpp14_decltype_auto.paren_deref(cpp14_decltype_auto.getVar_paren_ptr()) != 10)
       throw new RuntimeException("var_paren_ptr should refer to paren_ptr");
 
+    // A parenthesised address is the pointer itself.
+    if (cpp14_decltype_auto.paren_address_value(cpp14_decltype_auto.getVar_paren_address()) != 10)
+      throw new RuntimeException("var_paren_address should point to paren_int");
+
     // A parenthesised enumerator deduces its enumeration.
     if (cpp14_decltype_auto.getVar_paren_scoped() != ParenScoped.scoped_dark)
       throw new RuntimeException("var_paren_scoped");

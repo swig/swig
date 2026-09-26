@@ -49,6 +49,7 @@ template<typename T> struct Box {
 int global_count = 3;
 
 int int_value(int *p) { return *p; }
+int pointed_int_value(int **p) { return **p; }
 int const_int_value(const int *p) { return *p; }
 unsigned int unsigned_value(unsigned int *p) { return *p; }
 unsigned int const_unsigned_value(const unsigned int *p) { return *p; }
@@ -117,6 +118,7 @@ auto auto_int = new auto(15);
 auto auto_double = new auto(3.5);
 auto const_auto_int = new const auto(16);
 auto auto_braced = new auto{global_count};
+auto auto_paren_address = new auto(&(global_count));
 auto auto_unsigned = new auto(32u);
 auto decltype_int = new decltype(global_count)(17);
 

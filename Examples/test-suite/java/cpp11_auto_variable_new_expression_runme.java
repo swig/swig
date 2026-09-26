@@ -66,6 +66,7 @@ public class cpp11_auto_variable_new_expression_runme {
       throw new RuntimeException("auto_double");
     check(cpp11_auto_variable_new_expression.const_int_value(cpp11_auto_variable_new_expression.getConst_auto_int()), 16, "const_auto_int");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getAuto_braced()), 3, "auto_braced");
+    check(cpp11_auto_variable_new_expression.pointed_int_value(cpp11_auto_variable_new_expression.getAuto_paren_address()), 3, "auto_paren_address");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getDecltype_int()), 17, "decltype_int");
 
     check(cpp11_auto_variable_new_expression.widget_value(cpp11_auto_variable_new_expression.getDecorated_widget()), 18, "decorated_widget");

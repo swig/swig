@@ -16,3 +16,5 @@ swig_check(string_var, "braced")
 
 # The braced initialiser deduces a pointer the same way an '=' initialiser does.
 swig_check(deref(cvar.ptr_var), 11)
+swig_check(deref(cvar.paren_ptr_var), 11)
+swig_check(deref(cvar.spaced_ptr_var), 11)

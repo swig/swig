@@ -27,6 +27,9 @@ swig_check(cvar.var_paren_enumerator, paren_dark)
 swig_check(cvar.var_paren_scoped, ParenScoped_scoped_dark)
 swig_check(hasattr(cvar, "var_paren_function"), False)
 
+# A parenthesised address is the pointer itself.
+swig_check(paren_address_value(cvar.var_paren_address), 11)
+
 # A deduced return type cannot be deduced from the body, so these are all ignored.
 for ignored in ("ret_plain", "ret_trailing"):
     if hasattr(_mod, ignored):
