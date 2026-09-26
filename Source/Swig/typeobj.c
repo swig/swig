@@ -624,14 +624,27 @@ int SwigType_isqualifier(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  *                    Top level reference and cv-qualifiers
  *
+ * SwigType_isanyreference()
  * SwigType_remove_reference()
  * SwigType_remove_qualifier()
  * SwigType_remove_qualifier_reference()
  *
- * Counterparts of std::remove_reference, std::remove_cv and std::remove_cvref.
- * Each modifies t in place and returns it.  Unlike SwigType_del_reference() and
- * SwigType_del_qualifier(), t need not have the element being removed.
+ * Counterparts of std::is_reference, std::remove_reference, std::remove_cv and
+ * std::remove_cvref.  Each remove function modifies t in place and returns it.
+ * Unlike SwigType_del_reference() and SwigType_del_qualifier(), t need not have
+ * the element being removed.
  * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_isanyreference()
+ *
+ * Returns 1 if t is an lvalue or an rvalue reference, which SwigType_isreference()
+ * and SwigType_isrvalue_reference() each test for one of.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isanyreference(const SwigType *t) {
+  return SwigType_isreference(t) || SwigType_isrvalue_reference(t);
+}
 
 /* -----------------------------------------------------------------------------
  * SwigType_remove_reference()
@@ -640,7 +653,7 @@ int SwigType_isqualifier(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_remove_reference(SwigType *t) {
-  if (SwigType_isreference(t) || SwigType_isrvalue_reference(t))
+  if (SwigType_isanyreference(t))
     Delete(SwigType_pop(t));
   return t;
 }
@@ -819,7 +832,7 @@ SwigType *SwigType_pop_arrays(SwigType *t) {
  * A pointer that is itself qualified, as in 'q(const).p.a(4).int', is not looked through. */
 SwigType *SwigType_pop_to_array(SwigType *t) {
   SwigType *ptr_or_ref;
-  if (!SwigType_ispointer(t) && !SwigType_isreference(t) && !SwigType_isrvalue_reference(t))
+  if (!SwigType_ispointer(t) && !SwigType_isanyreference(t))
     return 0;
   ptr_or_ref = SwigType_pop(t);
   if (!SwigType_isarray(t)) {

@@ -2325,7 +2325,7 @@ static Parm *trailing_rettype_parm(const_String_or_char_ptr name) {
    function half to the parameter itself, but that is a later pass and a decltype here is resolved while parsing. */
 static void adjust_parm_type(SwigType *t) {
   SwigType *resolved;
-  if (SwigType_isreference(t) || SwigType_isrvalue_reference(t))
+  if (SwigType_isanyreference(t))
     return;
   /* A typedef or alias hides the array or function the parameter is, and SwigType_typedef_resolve() cannot look
    * through it here because the typedef tables are not built until typepass.  The symbol table is populated as the
@@ -2528,7 +2528,7 @@ static SwigType *member_call_type(const_String_or_char_ptr name) {
    reference, a cast to a non-reference type giving a prvalue. */
 static SwigType *c_style_cast_type(SwigType *t) {
   SwigType *type = Swig_symbol_type_qualify(t, 0);
-  if (!SwigType_isreference(type) && !SwigType_isrvalue_reference(type))
+  if (!SwigType_isanyreference(type))
     SwigType_remove_qualifier(type);
   return type;
 }
@@ -2572,7 +2572,7 @@ static SwigType *address_of_name_type(String *name, int parenthesised) {
     type = 0;
     if (Len(cls) > 0 && Equal(nodeType(n), "cdecl") && !Getattr(n, "sym:overloaded") && !GetFlag(n, "isextendmember"))
       type = symbol_full_type(name);
-    if (type && (SwigType_isreference(type) || SwigType_isrvalue_reference(type))) {
+    if (type && SwigType_isanyreference(type)) {
       Delete(type);
       type = 0;
     }
@@ -2813,9 +2813,8 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
    * 'int'.  Only 'decltype(auto)' keeps the reference, and that does not come through here. */
   SwigType_remove_reference(placeholder);
 
-  reference = SwigType_isreference(remaining) || SwigType_isrvalue_reference(remaining);
-  if (reference)
-    Delete(SwigType_pop(remaining));
+  reference = SwigType_isanyreference(remaining);
+  SwigType_remove_reference(remaining);
 
   resolved = Swig_symbol_typedef_reduce(placeholder, Swig_symbol_current());
   if (!Equal(resolved, placeholder) &&
@@ -3348,7 +3347,7 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
 static void declarator_remove_locals_function(struct Decl *d) {
   SwigType *ptr_or_ref = SwigType_pop_to_array(d->type);
   SwigType *arrays = 0;
-  if (!ptr_or_ref && (SwigType_ispointer(d->type) || SwigType_isreference(d->type) || SwigType_isrvalue_reference(d->type))) {
+  if (!ptr_or_ref && (SwigType_ispointer(d->type) || SwigType_isanyreference(d->type))) {
     /* A pointer or reference to anything else has no locals under it.  SwigType_isfunction() would take the reference
      * to a function of 'int (&)(int)' for a function with a ref-qualifier. */
     d->parms = 0;
@@ -5113,7 +5112,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                   collapse_forwarding_reference($declarator.type, &dtype);
                 /* A reference binds to the array a string literal is, whose length is not known from the undecoded
                  * text here, so it is left undeduced rather than deduced as a reference to a pointer. */
-                if ((SwigType_isreference($declarator.type) || SwigType_isrvalue_reference($declarator.type)) && (dtype.type == T_STRING || dtype.type == T_WSTRING))
+                if (SwigType_isanyreference($declarator.type) && (dtype.type == T_STRING || dtype.type == T_WSTRING))
                   type = 0;
                 else
                   type = auto_variable_type(&dtype, $declarator.type, $auto_type_holder.qualifier, $auto_type_holder.isdecltypeauto);
