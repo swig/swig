@@ -19,6 +19,7 @@ CPP11_TEST_CASES := \
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
+    arrays_dimension_expression \
     funcptr \
     function_typedef \
     lextype \

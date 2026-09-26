@@ -21,6 +21,19 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-26: wsfulton
+            An array dimension that is an expression, rather than a number or a
+            name, is now parenthesised where a typemap uses it through $1_dim0,
+            $1_dim1 and so on, or through $1_size, so that the expression keeps
+            its meaning next to the operators the typemap puts round it:
+
+              #define FLAGS 3
+              int flags[FLAGS | 4];  // $1_dim0 is (3|4)
+
+            Setting a global or member array of such a size could loop past its
+            end, and setting a char array of such a size could cut the string
+            short.
+
+2026-09-26: wsfulton
             An auto variable or decltype of the address of a parenthesised name, or
             of a parenthesised address, is now deduced as the pointer it is:
 

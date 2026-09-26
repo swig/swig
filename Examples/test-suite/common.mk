@@ -895,6 +895,7 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	arrays_dimension_expression \
 	bom_utf8 \
 	c_delete \
 	c_delete_function \

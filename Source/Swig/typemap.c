@@ -642,6 +642,24 @@ static int has_array_dimensions(SwigType *type) {
   return isarray;
 }
 
+/* Array dimension n of an array type, as substituted for $1_dimN and multiplied into $1_size.  It is parenthesised
+   unless it is a number, a name or parenthesised already, so that a dimension such as 'LEN << 1' keeps its meaning
+   inside the expression a typemap uses it in. */
+static String *array_dimension_operand(SwigType *type, int n) {
+  String *dim = SwigType_array_getdim(type, n);
+  String *trimmed = Swig_cparse_trim_parenthesis(dim);
+  const char *c = Char(dim);
+  while (*c && (isalnum((int)*c) || *c == '_' || *c == ':'))
+    c++;
+  if (*c && !trimmed) {
+    String *operand = NewStringf("(%s)", dim);
+    Delete(dim);
+    dim = operand;
+  }
+  Delete(trimmed);
+  return dim;
+}
+
 /* Replace every array dimension with ANY, including behind a pointer or a reference. */
 static SwigType *strip_arrays(SwigType *type) {
   SwigType *t;
@@ -998,7 +1016,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     ndim = SwigType_array_ndim(adims);
     size = NewStringEmpty();
     for (i = 0; i < ndim; i++) {
-      String *dim = SwigType_array_getdim(adims, i);
+      String *dim = array_dimension_operand(adims, i);
       if (index == 1) {
         char t[32];
         snprintf(t, sizeof(t), "$dim%d", i);
