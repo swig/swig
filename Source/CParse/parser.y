@@ -412,7 +412,7 @@ static int is_operator(String *name) {
 /* Classifier for the 'type' attribute of a parm reaching the templateparameter
  * 'parm' fallback with a name set.  Distinguishes a C++20 type-constraint
  * ('template<Numeric T>' / 'template<Printable... Ts>' / 'template<Pair<int> T>')
- * from a real non-type template parameter and from an undeclared identifier.
+ * from a real non-type template parameter.
  * The "candidate concept-id" test (below) accepts a possibly variadic prefixed
  * scope qualified identifier (with or without template arguments) that names
  * neither a built in primitive nor an enum and carries no SwigType decoration (where
@@ -420,7 +420,9 @@ static int is_operator(String *name) {
  *
  *   TPC_REMAP    candidate and the symbol resolves to a concept (for a
  *                template-id like 'Pair<int>' the bare prefix 'Pair' is the
- *                symbol that must resolve to a concept)
+ *                symbol that must resolve to a concept), or is not declared
+ *                in the current scope, being almost certainly a concept that
+ *                has not been made visible to SWIG
  *                -> rewrite the parm to 'typename T' (or 'v.typename Ts...')
  *                   and attach a concept-id constraint atom carrying the full
  *                   (possibly template-id) concept-id string
@@ -428,8 +430,10 @@ static int is_operator(String *name) {
  *                  template<Numeric T>                  T cube(T x);
  *                  template<nest::Integral T>           T half(T x);
  *                  template<Numeric... Ts>              int count(Ts...);
- *                  template<std::convertible_to<int> T> T as_int(T x);    // template-id is a concept (and SWIG has parsed the concept definition)
+ *                  template<std::convertible_to<int> T> T as_int(T x);    // template-id is a concept, whether or not SWIG has parsed its definition
  *                  template<Pair<int> T>                T first_int(T x); // template-id is a concept (not a class)
+ *                  template<MisspeltConcept T>          T f(T);           // not declared, such as a typo
+ *                  template<UndeclaredConcept<int> T>   T g(T);           // template-id, prefix not declared
  *   TPC_KEEP     not a candidate, or the symbol resolves to a type (non-concept)
  *                (typedef, class, enum) -> leave as a non-type parameter
  *                Examples:
@@ -438,20 +442,11 @@ static int is_operator(String *name) {
  *                  template<size_t N>              int times_n(int x);  // typedef'd alias
  *                  template<Color C>               int as_int();        // enum
  *                  template<MyClass *P>            void deref();        // decorated
- *                  template<std::convertible_to<int> T> T as_int(T x);  // template-id is a concept (and SWIG has NOT parsed the concept definition)
  *                  template<std::array<int,4> A>   int sum_array();     // template-id naming a class (not a concept)
- *   TPC_UNKNOWN  candidate but the symbol is not declared in the current
- *                scope -> the user almost certainly meant a concept that
- *                hasn't been made visible to SWIG - the action remaps anyway but should warn later.
- *                Examples:
- *                  template<Numeric T>                  T cube(T x);   // 'Numeric' not declared
- *                  template<MisspeltConcept T>          T f(T);        // typo
- *                  template<UndeclaredConcept<int> T>   T g(T);        // template-id, prefix unknown
  */
 enum {
   TPC_KEEP = 0,
-  TPC_REMAP = 1,
-  TPC_UNKNOWN = 2
+  TPC_REMAP = 1
 };
 static int classify_template_param_type(const SwigType *type) {
   SwigType *probe;
@@ -485,10 +480,8 @@ static int classify_template_param_type(const SwigType *type) {
     n = Swig_symbol_clookup(probe, 0);
   }
   templatetype = n ? Getattr(n, "templatetype") : 0;
-  if (templatetype && Equal(templatetype, "concept")) {
+  if (!n || (templatetype && Equal(templatetype, "concept"))) {
     verdict = TPC_REMAP;
-  } else if (!n) {
-    verdict = TPC_UNKNOWN;
   } else {
     verdict = TPC_KEEP;
   }
@@ -6659,15 +6652,15 @@ templateparameter : templcpptype def_args {
                        * whether to remap to 'typename T' (or 'v.typename Ts...') plus a
                        * concept-id constraint atom on the parm's "constraint" attribute
                        * (the same parm representation promote_abbreviated_template() builds
-                       * for 'Concept auto x'), to leave the parm as a non-type template
-                       * parameter, or to flag the identifier as undeclared. */
+                       * for 'Concept auto x') or to leave the parm as a non-type template
+                       * parameter. */
                       SwigType *t = Getattr(p, "type");
                       int verdict = t ? classify_template_param_type(t) : TPC_KEEP;
-                      if (verdict == TPC_REMAP || verdict == TPC_UNKNOWN) {
+                      if (verdict == TPC_REMAP) {
                         /* In keeping with SWIG's "best effort wrap on partial type information" policy,
-                         * the unresolved (TPC_UNKNOWN) case is handled the same way as a confirmed concept
-                         * (TPC_REMAP): rewrite the parm to 'typename T' and attach the captured concept-id
-                         * as a constraint atom on the "constraint" attribute.  Reasoning:
+                         * an identifier that is not declared is handled the same way as a confirmed concept:
+                         * rewrite the parm to 'typename T' and attach the captured concept-id as a constraint
+                         * atom on the "constraint" attribute.  Reasoning:
                          *   - The wrapper SWIG eventually emits invokes the user's templated function
                          *     literally (e.g. 'cube< int >(arg1)') - whether SWIG saw the concept declaration
                          *     plays no part in that emission.  If the user's C++ build environment has the
@@ -6677,10 +6670,7 @@ templateparameter : templcpptype def_args {
                          *     more likely a concept-id than a non-type template parameter type (NTTP) which
                          *     are almost always primitives or registered typedefs and reach TPC_KEEP via
                          *     SwigType_type / typedef resolution.  Defaulting to remap therefore has a
-                         *     strictly smaller failure surface than rejecting outright.
-                         * For TPC_UNKNOWN we additionally flag the parm with 'constraint:unresolved' so
-                         * the %template instantiation path can warn about a missing concept-id, noting
-                         * that an unused declaration that happens to reference an unparsed concept is silent. */
+                         *     strictly smaller failure surface than rejecting outright. */
                         SwigType *new_type = NewString("typename");
                         String *concept_name = Copy(t);
                         Node *atom = Constraint_new_atom("concept-id");
@@ -6691,8 +6681,6 @@ templateparameter : templcpptype def_args {
                         Setattr(atom, "type", concept_name);
                         Setattr(p, "constraint", atom);
                         Setattr(p, "type", new_type);
-                        if (verdict == TPC_UNKNOWN)
-                          SetFlag(p, "constraint:unresolved");
                         Delete(new_type);
                         Delete(concept_name);
                       }
