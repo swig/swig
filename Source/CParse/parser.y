@@ -500,8 +500,7 @@ static SwigType *auto_type_holder_type(String *qualifier, String *conceptid) {
 }
 
 /* Attach a C++20 type-constraint to node 'n' as a 'concept-id' atom on the 'constraint' attribute, for downstream
- * inspection.  Does nothing when the placeholder was unconstrained.  A constraint already on the node, such as the
- * one a requires-clause put there, is kept and the type-constraint conjoined with it. */
+ * inspection, conjoined with any constraint already there, such as a requires-clause's.  Nothing if unconstrained. */
 static void set_concept_constraint(Node *n, String *conceptid) {
   if (conceptid) {
     Node *atom = Constraint_new_atom("concept-id");
@@ -2033,16 +2032,13 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *final;
     /* C++20 trailing requires-clause attached to this declaration's qualifiers, as a structured constraint subtree. */
     Node *constraint_node;
-    /* The type of the expression where the grammar works it out, such as the pointer type of a new-expression, which the
-     * T_* code in 'type' cannot describe.  'untyped' says instead that there is no type to deduce, whatever 'type' says,
-     * as for the address of an overloaded function. */
+    /* The expression's type where the grammar works out one the T_* code in 'type' cannot describe, such as a
+     * new-expression's pointer type; 'untyped' says there is none to deduce, as for the address of an overloaded function. */
     SwigType *newtype;
     short untyped;
-    /* The form of the expression, which its value text does not reliably show: 'idexpr' is the name when it is an
-     * id-expression, 'unparenthesised' the value text inside the parentheses when the whole of it is parenthesised,
-     * and 'literal' says whether it is a string or character literal, with 'literalprefix' its encoding prefix, a
-     * SWIG_LITERAL_* value.  Parentheses keep an id-expression and a literal what they are, so '(x)' and '((x))' both
-     * have the 'idexpr' 'x'.  See also clear_expression_form(). */
+    /* The expression's form, which its value text does not reliably show: 'idexpr' is the name of an id-expression and
+     * 'literal' the kind of a string or character literal, parenthesised or not, with 'literalprefix' its SWIG_LITERAL_*
+     * prefix, and 'unparenthesised' is the text inside parentheses enclosing all of it.  See clear_expression_form(). */
     String *idexpr;
     String *unparenthesised;
     enum { LITERAL_NONE, LITERAL_STRING, LITERAL_CHARACTER } literal;
@@ -2170,9 +2166,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 /* A '{' after the type-id of a new-expression is its braced initialiser, as in 'new int{5}', rather than a '{' after
    the declaration the new-expression initialises, so the empty initialiser gives way to it. */
 %precedence NO_NEW_INITIALIZER
-/* A '{' after a type in an expression is a functional cast such as 'Pt{1, 2}', so the type gives way to it.  The
-   one place the '{' could be something else is after the width of a bit-field, as in the C++20 'int x : W {5};',
-   where the initialiser is then read as part of the width, which SWIG keeps only as text. */
+/* A '{' after a type in an expression is a functional cast such as 'Pt{1, 2}', so the type gives way to it.  After a
+   C++20 bit-field width, as in 'int x : W {5};', the initialiser is then read into the width, which SWIG keeps as text. */
 %precedence EXPR_TYPE
 %precedence LBRACE
 %token DCOLON
@@ -2271,29 +2266,17 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 static const struct Decl default_decl;
 static const struct Define default_dtype;
 
-/* The state of the trailing return type being parsed, as in 'auto f(int value) -> decltype(value)'.
-   trailing_rettype_begin() resets all of it at the '->' and trailing_rettype_end() ends the parse after the type, leaving
-   'placeholder_parm' and 'unusable' for the rule completing the declaration to read. */
+/* The trailing return type being parsed, as in 'auto f(int value) -> decltype(value)'.  trailing_rettype_begin() resets
+   it at the '->'; 'placeholder_parm' and 'unusable' are left for the rule completing the declaration to read. */
 static struct {
-  /* Whether a trailing return type is being parsed. */
   int parsing;
-
-  /* The parameters of the function, 0 while no trailing return type is being parsed.  The parameters are in scope in
-     the trailing return type, so they have to be looked up before the symbol table is, which is what makes the
-     example return 'int' whatever else the name 'value' denotes outside the function.  The list is owned by the
-     declarator and only borrowed here for as long as the trailing return type is being reduced. */
+  /* The function's parameters, borrowed from the declarator, which are in scope and so looked up before the symbol table. */
   ParmList *parms;
-
-  /* The name of the parameter the trailing return type was deduced from, when that parameter was declared with an
-     'auto' placeholder, or 0 otherwise.  The placeholder cannot be resolved until the whole declaration has reduced and
-     the parameter has become an invented template parameter, so it is left in the return type for
-     promote_abbreviated_template() to complete then. */
+  /* The 'auto' parameter the return type was deduced from, or 0, left for promote_abbreviated_template() to resolve once
+     the parameter is an invented template parameter. */
   String *placeholder_parm;
-
-  /* Set when the expression grammar meets, in the trailing return type, a name that is not in scope in the wrapper: a
-     parameter of the function, 'this' or a member of its class.  Cleared at the start of each decltype.  A decltype over
-     such a name that no type is deduced for cannot be left in the wrapper, so its operand is kept in 'unusable' for the
-     declaration to be ignored. */
+  /* Set, per decltype, on a name not in scope in the wrapper: a parameter, 'this' or a class member.  'unusable' keeps
+     the operand of such a decltype that no type was deduced for, so that the declaration is ignored. */
   int decltype_mentions_local;
   String *unusable;
 } trailing_rettype_state;
@@ -2320,16 +2303,14 @@ static Parm *trailing_rettype_parm(const_String_or_char_ptr name) {
   return ParmList_find_name(trailing_rettype_state.parms, name);
 }
 
-/* Apply the parameter adjustments of C++ [dcl.fct]/5 to the copy 't': an array parameter has the type pointer to
-   element and a function parameter the type pointer to function.  normalize_parms() in typepass.cxx applies the
-   function half to the parameter itself, but that is a later pass and a decltype here is resolved while parsing. */
+/* Apply C++ [dcl.fct]/5 to the parameter type 't': an array becomes a pointer to its element, a function a pointer to
+   it.  typepass.cxx normalize_parms() does the latter as well, but too late for a decltype resolved while parsing. */
 static void adjust_parm_type(SwigType *t) {
   SwigType *resolved;
   if (SwigType_isanyreference(t))
     return;
-  /* A typedef or alias hides the array or function the parameter is, and SwigType_typedef_resolve() cannot look
-   * through it here because the typedef tables are not built until typepass.  The symbol table is populated as the
-   * file is parsed, so reduce through that instead; a name it does not know or has missing type info is left alone. */
+  /* A typedef can hide the array or function, and SwigType_typedef_resolve() has no tables until typepass, so reduce
+   * through the symbol table, which is filled while parsing; a name it cannot reduce is left alone. */
   resolved = Swig_symbol_typedef_reduce(t, Swig_symbol_current());
   if (SwigType_isarray(resolved)) {
     Clear(t);
@@ -2342,9 +2323,8 @@ static void adjust_parm_type(SwigType *t) {
   Delete(resolved);
 }
 
-/* A copy of the adjusted type of the function parameter named 'name' of the function whose trailing return type is
-   being parsed, or 0 when there is no such parameter.  Never 0 for a parameter that does exist: the caller reads 0
-   as "not in scope" and carries on into the enclosing scope, where an unrelated declaration would shadow it. */
+/* A copy of the adjusted type of parameter 'name' of the function whose trailing return type is being parsed, or 0 if
+   there is none.  Never 0 for a parameter, as the caller then looks 'name' up in the enclosing scope instead. */
 static SwigType *trailing_rettype_parm_type(String *name) {
   Parm *p = trailing_rettype_parm(name);
   SwigType *t;
@@ -2359,9 +2339,8 @@ static SwigType *trailing_rettype_parm_type(String *name) {
   return t;
 }
 
-/* The T_* type code the expression grammar gives a value of type 'type'.  Only an arithmetic or character type is
-   described by its code.  Any other type is T_USER, which no type is deduced from and which is not wrapped as a
-   constant, so that a pointer is not taken for the type it points to. */
+/* The T_* code the expression grammar gives a value of type 'type': its own for an arithmetic or character type, else
+   T_USER, which deduces no type and is not wrapped as a constant, so a pointer is not taken for the type it points to. */
 static int value_type_code(SwigType *type) {
   SwigType *t = SwigType_remove_qualifier_reference(Copy(type));
   int code = SwigType_type(t);
@@ -2369,9 +2348,8 @@ static int value_type_code(SwigType *type) {
   return code < T_AUTO || code == T_CHAR || code == T_WCHAR ? code : T_USER;
 }
 
-/* The T_* type code of the parameter named 'name' of the function whose trailing return type is being parsed, for the
-   expression grammar, which otherwise finds only what the symbol table has under that name.  Returns 0 when 'name' is
-   not such a parameter. */
+/* The T_* code of parameter 'name' of the function whose trailing return type is being parsed, which the expression
+   grammar would otherwise look up in the symbol table, or 0 when 'name' is not such a parameter. */
 static int trailing_rettype_parm_type_code(String *name) {
   Parm *p = trailing_rettype_parm(name);
   return p && Getattr(p, "type") ? value_type_code(Getattr(p, "type")) : 0;
@@ -2425,10 +2403,8 @@ static int template_parm_is_nontype(Parm *p) {
   return type && !template_parm_is_type(p) && !SwigType_isvariadic(type) && !GetFlag(p, "templatetemplate");
 }
 
-/* The type of an id-expression naming the non-type template parameter 'name', which is the type the parameter is
-   declared with, without its top level cv-qualifiers.  For a placeholder, the 'N' of 'template<auto N>', that is the
-   type of the template argument, which is left as 'decltype(N)' for the instantiation to resolve.  Returns 0 when
-   'name' is not a non-type template parameter. */
+/* The type of an id-expression naming non-type template parameter 'name': its declared type without top level
+   cv-qualifiers, 'decltype(name)' for 'template<auto N>' for the instantiation to resolve, or 0 for any other name. */
 static SwigType *nontype_template_parameter_type(String *name) {
   Parm *p = template_parameter_named(name);
   SwigType *type;
@@ -2558,12 +2534,8 @@ static SwigType *address_type(SwigType *type) {
   return type ? SwigType_add_pointer(SwigType_remove_reference(Copy(type))) : 0;
 }
 
-/* The type of '&name', where 'name' is an id-expression and 'parenthesised' says whether it is written in parentheses.
-   That is a pointer to what 'name' refers to, so 'int *' for the '&g' of 'auto p = &g;' with 'g' an 'int' or an 'int &',
-   or for a qualified non-static member not in parentheses a pointer to member of its class, 'int Pt::*' for '&Pt::a'.
-   Returns 0 when the address has no type to give: 'name' is not in scope, it is an overloaded function, whose address
-   has no type until converted to a particular function pointer type, or it is a member with no pointer to member type,
-   being overloaded, a reference, only an %extend member or not a plain data member or member function. */
+/* The type of '&name' for id-expression 'name', 'parenthesised' or not: 'int *' for '&g' with 'g' an 'int' or 'int &',
+   'int Pt::*' for '&Pt::a' but not '&(Pt::a)', or 0 when 'name' is out of scope, overloaded or has no member pointer type. */
 static SwigType *address_of_name_type(String *name, int parenthesised) {
   SwigType *type;
   Node *n = !parenthesised && Swig_scopename_check(name) ? Swig_symbol_clookup(name, 0) : 0;
@@ -2640,12 +2612,9 @@ static void clear_expression_form(struct Define *dtype) {
   dtype->literalprefix = SWIG_LITERAL_ORDINARY;
 }
 
-/* The expression whose value text is 'text' and whose T_* code is 'type_code', when there is no parse of the text to
-   go by, as for the '(x)' of the braced initialiser in 'auto v{(x)};', which the grammar skips as raw text.  The form
-   of the expression is read off the text instead: the text inside any parentheses enclosing the whole of it is taken
-   to be an id-expression, to be looked up as a name, or when it starts with '&' the address of one, as for the unary
-   '&' rule.  The text is never taken to be a literal, its decoded value not being known.  The caller deletes the
-   'unparenthesised' text and the 'newtype'. */
+/* The expression with value 'text' and T_* code 'type_code' when the grammar skipped it as raw text, as in 'auto v{(x)};'.
+   The text inside any enclosing parentheses is taken to be an id-expression, or with a leading '&' the address of one,
+   never a literal, whose decoded value is unknown.  The caller deletes 'unparenthesised' and 'newtype'. */
 static struct Define expression_dtype_from_text(String *text, int type_code) {
   struct Define dtype = default_dtype;
   String *expr;
@@ -2668,9 +2637,8 @@ static struct Define expression_dtype_from_text(String *text, int type_code) {
   return dtype;
 }
 
-/* Set "argtype" on each %template argument in 'args' given for a placeholder non-type template parameter in
-   'tparms', the 'N' of 'template<auto N>', to the type of the argument.  That is the type 'decltype(N)' names in the
-   instantiated template.  A default argument has no type code to deduce a type from and is left without. */
+/* Set "argtype", the type 'decltype(N)' names, on each %template argument in 'args' for a placeholder non-type template
+   parameter 'N' of 'template<auto N>' in 'tparms'.  A default argument has no type code to deduce it from, so gets none. */
 static void set_placeholder_template_argument_types(ParmList *args, ParmList *tparms) {
   Parm *p;
   for (p = args; p; p = nextSibling(p)) {
@@ -2697,11 +2665,8 @@ static int type_names_enum(const SwigType *type) {
   return names_enum;
 }
 
-/* The type 'decltype' names for a parenthesised id-expression such as the '(gp)' of 'decltype((gp))'.  Being an
-   lvalue it names an lvalue reference to the type the name was declared with, where the unparenthesised name
-   names that type on its own.  An enumerator is a prvalue, so it names its enumeration either way.  Returns 0 when
-   the expression is not the name of a variable or an enumerator, leaving the caller to work the type out from the
-   type code of the expression instead. */
+/* The type 'decltype' names for a parenthesised id-expression such as 'decltype((gp))': an lvalue reference to the name's
+   declared type, or an enumerator's enumeration.  0 if not a variable or enumerator, for the caller to use the type code. */
 static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
   String *name = dtype->idexpr;
   SwigType *type;
@@ -2732,9 +2697,8 @@ static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
    * parentheses call for is the one it has. */
   SwigType_remove_reference(type);
 
-  /* The reference is only added where the variable is wrapped through a pointer either way.  A scalar, an array,
-   * a character string and an enumeration are wrapped by value, and wrapping the reference instead would make
-   * each of them an opaque SWIGTYPE for no gain, an 'int&' variable behaving as an 'int' for both get and set. */
+  /* Added only where the variable is wrapped through a pointer anyway: a scalar, array, string or enumeration is wrapped
+   * by value, and the reference would make it an opaque SWIGTYPE for no gain, as an 'int&' behaves as an 'int'. */
   code = SwigType_type(type);
   if (code == T_POINTER || code == T_MPOINTER || (code == T_USER && !type_names_enum(type)))
     SwigType_add_reference(type);
@@ -2748,10 +2712,8 @@ static SwigType *decltype_type(const struct Define *dtype) {
   return type ? type : deduce_type(dtype, 0);
 }
 
-/* Whether the initialiser 'dtype' is a parenthesised name of something in scope, such as the '(object)' of
-   'decltype(auto) r = (object);'.  The decltype of a parenthesised id-expression is an lvalue reference to the
-   object the name denotes, and the reference is not part of what the name was declared with, so a type deduced
-   from the name alone would be missing it. */
+/* Whether the initialiser 'dtype' is a parenthesised name of something in scope, as in 'decltype(auto) r = (object);',
+   whose decltype is an lvalue reference that a type deduced from the name alone would be missing. */
 static int initialiser_is_parenthesised_name(const struct Define *dtype) {
   SwigType *named;
   int parenthesised_name;
@@ -2763,17 +2725,14 @@ static int initialiser_is_parenthesised_name(const struct Define *dtype) {
   return parenthesised_name;
 }
 
-/* Whether the initialiser 'dtype' is a string literal, optionally parenthesised.  The T_STRING code alone does not
-   say so: a named cast to 'const char *' summarises to T_STRING too, as does the address of a character and an
-   expression such as '"text" + 1' that merely has a literal as an operand.  The decoded text is required as well,
-   that being where the length of the literal is read from. */
+/* Whether the initialiser 'dtype' is a string literal, optionally parenthesised, with the decoded text giving its length.
+   T_STRING alone does not say so, as a cast to 'const char *', '&c' and '"text" + 1' summarise to it too. */
 static int initialiser_is_string_literal(const struct Define *dtype) {
   return dtype->literal == LITERAL_STRING && (dtype->type == T_STRING || dtype->type == T_WSTRING) && dtype->stringval;
 }
 
-/* Whether the initialiser 'dtype' is an id-expression naming an object, optionally parenthesised, or a string literal,
-   either of which makes it an lvalue.  Any other literal and an enumerator are prvalues; the value category of any
-   other expression is not something SWIG tracks, so it is reported as not an lvalue. */
+/* Whether the initialiser 'dtype' is an lvalue: an id-expression naming an object, optionally parenthesised, or a string
+   literal.  Other literals and enumerators are prvalues, and SWIG does not track any other expression's value category. */
 static int initialiser_is_lvalue(const struct Define *dtype) {
   Node *n;
   if (initialiser_is_string_literal(dtype))
@@ -2918,9 +2877,8 @@ static void append_string_literal(struct Literal *run, struct Literal piece) {
   Delete(piece.text);
 }
 
-/* The type of the string literal initialiser 'dtype', which is the array of characters the literal is, so
-   'const char [5]' for "text".  The bound counts the characters of the decoded text and the terminating null.
-   Returns 0 for a literal whose character type SWIG has no type for. */
+/* The array type of the string literal initialiser 'dtype', such as 'const char [5]' for "text", the bound counting the
+   decoded characters and the null, or 0 for a literal whose character type SWIG has no type for. */
 static SwigType *string_literal_type(const struct Define *dtype) {
   SwigType *type;
   String *bound;
@@ -2950,18 +2908,16 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
     return 0;
   }
   if (isdecltypeauto && initialiser_is_string_literal(dtype)) {
-    /* A string literal is an lvalue ([expr.prim.literal]/1) of array type ([lex.string]/5), and decltype of an
-     * lvalue of type T is T reference ([dcl.type.decltype]/1.5), so 'decltype(auto) s = "text";' declares a
-     * reference to an array of characters and not the 'const char *' that ordinary 'auto' deduces. */
+    /* A string literal is an lvalue of array type ([expr.prim.literal]/1, [lex.string]/5), so 'decltype(auto) s = "text";'
+     * declares a reference to the array ([dcl.type.decltype]/1.5), not the 'const char *' that 'auto' deduces. */
     type = string_literal_type(dtype);
     if (type)
       SwigType_add_reference(type);
     return type;
   }
   if (!isdecltypeauto && Equal(decl, "r.") && initialiser_is_string_literal(dtype)) {
-    /* A reference binds to the array of characters a string literal is rather than to a pointer it decays to, so
-     * 'auto& s = "text";' declares a 'const char (&)[5]'.  The characters are already const, so a 'const' on the
-     * placeholder adds nothing; a 'volatile' one would qualify them further, which is left undeduced. */
+    /* A reference binds to the literal's array, so 'auto& s = "text";' declares a 'const char (&)[5]'.  A 'const' on the
+     * placeholder adds nothing to the const characters; a 'volatile' one is left undeduced. */
     if (qualifier && Strstr(qualifier, "volatile"))
       return 0;
     return string_literal_type(dtype);
@@ -3114,10 +3070,8 @@ static int named_cast_type_code(SwigType *t) {
   return code;
 }
 
-/* The type of the functional cast 't(...)' or 't{...}' when the qualified type 't' names a class, a class template
-   specialisation or a typedef of either, such as the 'Pt' of 'Pt{1, 2}' or the 'std::vector<int>' of
-   'std::vector<int>{1, 2}'.  Returns 0 for anything else, notably a function, as 't(...)' is then a call, and a
-   template SWIG has not seen, which could be a function template. */
+/* The type of the functional cast 't(...)' or 't{...}' when the qualified 't' names a class, class template specialisation
+   or a typedef of either, as in 'Pt{1, 2}', else 0, as 't(...)' may call a function or a template SWIG has not seen. */
 static SwigType *functional_cast_class_type(SwigType *t) {
   SwigType *reduced;
   int names_class = 0;
@@ -3142,9 +3096,8 @@ static SwigType *functional_cast_class_type(SwigType *t) {
   return names_class ? Copy(t) : 0;
 }
 
-/* The type of the functional cast 'type(...)' or 'type{...}', 'qty' being 'type' qualified.  That is 'type' itself
-   for a type template parameter, the 'T(3)' of 'template<class T>', and otherwise the class it names, see
-   functional_cast_class_type().  Returns 0 when there is no such type. */
+/* The type of the functional cast 'type(...)' or 'type{...}', 'qty' being 'type' qualified: 'type' itself for a type
+   template parameter, as in 'T(3)', else the class it names, see functional_cast_class_type(), or 0. */
 static SwigType *functional_cast_type(SwigType *type, SwigType *qty) {
   return names_type_template_parameter(type) ? Copy(type) : functional_cast_class_type(qty);
 }
@@ -3160,10 +3113,8 @@ static String *braced_initialiser_value(String *braced) {
   return value;
 }
 
-/* The type of a new-expression allocating 'type_id', which is a pointer to it, or for an array to its first element,
-   so 'new int' and 'new int[n]' are both 'int *' and 'new int[n][3]' is 'int (*)[3]'.  Returns 0 for a type-id SWIG
-   cannot build a pointer to, such as one naming a decltype it could not deduce, which is the one way to name the
-   'decltype(auto)' placeholder in a type-id, as in 'new decltype(auto)(x)'. */
+/* The type of a new-expression allocating 'type_id', a pointer to it or to an array's first element, as in 'int *' for
+   'new int[n]'.  0 when SWIG cannot build the pointer, as for an undeduced decltype such as 'new decltype(auto)(x)'. */
 static SwigType *new_expression_type(SwigType *type_id) {
   SwigType *type;
   if (SwigType_isvariadic(type_id) || SwigType_isdecltype(type_id))
@@ -3175,9 +3126,8 @@ static SwigType *new_expression_type(SwigType *type_id) {
   return type;
 }
 
-/* The value of the new-expression made of 'keyword', which is 'new' or '::new', the texts of the optional 'placement'
-   and 'initializer', and the optional 'type_id', whose text is as SwigType_str() writes it.  'newtype' is the type of
-   the pointer it creates, or 0 if that is not known. */
+/* The value of the new-expression of 'keyword' ('new' or '::new'), the optional 'placement' text, 'type_id' as written by
+   SwigType_str() and 'initializer' text, whose pointer type is 'newtype' or 0 if unknown. */
 static struct Define new_expression_head_dtype(String *keyword, String *placement, SwigType *type_id, String *initializer, SwigType *newtype) {
   struct Define dtype = default_dtype;
   String *text = NewStringf("%s ", keyword);
@@ -3199,9 +3149,8 @@ static struct Define new_expression_head_dtype(String *keyword, String *placemen
   return dtype;
 }
 
-/* The value of the new-expression 'new auto(e)', or 'new auto{e}' when 'braced', made of 'keyword', the cv-qualifier
-   'qualifier' of the placeholder, or 0, and the expression 'e' that 'initializer' describes.  The type allocated is
-   deduced from the expression as for an 'auto' variable, and the new-expression is a pointer to it. */
+/* The value of 'new auto(e)', or 'new auto{e}' when 'braced', 'qualifier' being the placeholder's cv-qualifier or 0 and
+   'initializer' describing 'e', from which the type allocated is deduced as for an 'auto' variable. */
 static struct Define new_auto_expression_head_dtype(String *keyword, String *qualifier, const struct Define *initializer, int braced) {
   SwigType *placeholder = NewString("auto");
   String *text = NewStringf(braced ? "{%s}" : "(%s)", initializer->val);
@@ -3218,22 +3167,15 @@ static struct Define new_auto_expression_head_dtype(String *keyword, String *qua
   return dtype;
 }
 
-/* Whether 'lookahead', the parser's lookahead token after a new-expression, is a token read ahead that cannot end an
-   initialiser, such as the '+' of 'new int[3] + 1' or the 'auto' of 'new Numeric auto(5)', and so starts the rest of
-   the initialiser the new-expression is only part of.  The parser must then discard it. */
+/* Whether 'lookahead', read ahead after a new-expression, cannot end an initialiser and so starts the rest of it, as the
+   '+' of 'new int[3] + 1' or the 'auto' of 'new Numeric auto(5)' does.  The parser must then discard it. */
 static int new_expression_lookahead_continues(int lookahead) {
   return lookahead != YYEMPTY && lookahead != SEMI && lookahead != COMMA && lookahead != RPAREN;
 }
 
-/* The value of an initialiser or default argument that starts with the new-expression 'head', 'lookahead' being the
-   parser's lookahead token, the token after the new-expression if it has been read, else YYEMPTY.
-
-   The grammar parses only the new-expression, so the rest of the initialiser is checked here.  After a new-initializer
-   no token has been read ahead, and anything up to the end of the initialiser, as in 'new int(5) + 1', is skipped.
-   Without one the token after the type-id has been read ahead, and one that continues the initialiser, see
-   new_expression_lookahead_continues(), is discarded by the caller and starts the rest, skipped the same way.  The text
-   of any rest is appended to the value, as the new-expression is then only part of the initialiser, or a form the
-   grammar does not parse, and no type is deduced. */
+/* The value of an initialiser or default argument starting with the new-expression 'head', 'lookahead' being the token
+   read ahead after it or YYEMPTY.  Any rest the grammar does not parse, as in 'new int(5) + 1', is skipped and appended
+   to the value, which then deduces no type; a continuing lookahead, which the caller discards, is where the rest starts. */
 static struct Define new_expression_dtype(struct Define head, int lookahead) {
   int continues = new_expression_lookahead_continues(lookahead);
   if (lookahead == YYEMPTY || continues) {
@@ -3327,9 +3269,8 @@ static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *q
   }
 }
 
-/* Mark the C++23 explicit object parameter, that is the parameter declared with the 'this' specifier.  The parameter
-   list is parsed the same way wherever it appears, so the mark records where 'this' was written and the rules that
-   can accept one check for it. */
+/* Mark the C++23 explicit object parameter, declared with 'this'.  Every parameter list is parsed alike, so the mark
+   records where 'this' was written for the rules that can accept one to check. */
 static ParmList *mark_explicit_object_parameter(ParmList *parms) {
   if (!parms) {
     Swig_error(cparse_file, cparse_line, "Missing parameter declaration after 'this'.\n");
@@ -3341,9 +3282,8 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
   return parms;
 }
 
-/* The parenthesised list after a typemap pattern declares the typemap's local variables, which the declarator grammar
-   has already made a function of, so take that function back off the type and keep its parameters as the locals.  The
-   function is built underneath an array and underneath a pointer or reference to an array, so all are looked through. */
+/* The declarator grammar made a function of the list of locals after a typemap pattern: take it back off the type, from
+   under any array or pointer or reference to an array, and keep its parameters as the locals. */
 static void declarator_remove_locals_function(struct Decl *d) {
   SwigType *ptr_or_ref = SwigType_pop_to_array(d->type);
   SwigType *arrays = 0;
@@ -3378,10 +3318,8 @@ static void reject_explicit_object_parameter(ParmList *parms) {
   }
 }
 
-/* Drop a leading explicit object parameter from 'parms' and return the parameters that follow it, or return 'parms'
-   unchanged when there is none.  The explicit object parameter is how the object the member function is called on is
-   passed, so it is not one of the function's arguments and must appear neither in the wrapper's parameter list nor in
-   the function's declarator.  Its type is returned in 'type'. */
+/* The parameters after a leading explicit object parameter, whose type is returned in 'type', or 'parms' if there is none.
+   It passes the object called on, so is in neither the wrapper's parameter list nor the function's declarator. */
 static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type) {
   if (!parms || !GetFlag(parms, "explicitobject"))
     return parms;
@@ -3389,11 +3327,9 @@ static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type
   return nextSibling(parms);
 }
 
-/* Whether the explicit object parameter declared with 'type' is an rvalue reference to the class itself, which is
-   the C++23 way of writing an '&&' ref-qualifier.  A forwarding reference is written with a deduced type instead -
-   'this auto&&', or a template parameter as in 'template<typename Self> f(this Self&&)' - and binds an lvalue just
-   as well, so it is not one of these.  The class is named by Classprefix within a class body and by the qualifier
-   on the name for a member defined outside one; when neither identifies it the parameter is left alone. */
+/* Whether explicit object parameter type 'type' is an rvalue reference to the class, the C++23 spelling of an '&&'
+   ref-qualifier; a forwarding reference such as 'this auto&&' or 'this Self&&' binds lvalues too, so is not.  The class
+   is Classprefix in a class body, else the qualifier on the member's name; with neither, the answer is no. */
 static int explicit_object_parameter_is_rvalue(Node *n, SwigType *type) {
   String *classname = Classprefix;
   String *qualified = 0;
@@ -3419,9 +3355,8 @@ static int explicit_object_parameter_is_rvalue(Node *n, SwigType *type) {
 
 /* Diagnose the restrictions C++23 places on a function declared with an explicit object parameter: it has to be a
    non-static, non-virtual member function and cannot be declared with a cv-qualifier or a ref-qualifier, as the
-   explicit object parameter itself is what carries the value category and constness of the object.  An explicit
-   object parameter declared as an rvalue reference to the class carries the value category of an rvalue
-   ref-qualifier, so that ref-qualifier is added to the declaration. */
+   explicit object parameter itself is what carries the value category and constness of the object.  One that is an
+   rvalue reference to the class adds the '&&' ref-qualifier it stands for. */
 static void check_explicit_object_parameter(Node *n, String *storage, String *qualifier, String *refqualifier, SwigType *explicit_object_type) {
   String *name = Getattr(n, "name");
   /* A member function defined outside its class is written at namespace scope, so a qualified name is a member too. */
@@ -3433,10 +3368,7 @@ static void check_explicit_object_parameter(Node *n, String *storage, String *qu
   } else if (qualifier || refqualifier) {
     Swig_error(cparse_file, cparse_line, "Member function %s with an explicit object parameter 'this' cannot have a qualifier.\n", Swig_name_decl(n));
   } else if (explicit_object_parameter_is_rvalue(n, explicit_object_type)) {
-    /* 'int f(this S &&self)' is the C++23 way of writing the rvalue ref-qualifier in 'int f() &&': either way the
-     * function can only be called on an rvalue.  Add the ref-qualifier to the declaration so the two spellings are
-     * handled alike, which by default means ignoring the function, as a wrapper calls it on an lvalue - the object
-     * the wrapper holds a pointer to. */
+    /* 'f(this S &&self)' is 'f() &&', ignored by default as a wrapper calls it on an lvalue. */
     Setattr(n, "refqualifier", "z.");
   }
 }
@@ -5251,12 +5183,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                 SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Delete($storage_class);
 	   }
-           /* C++11 copy-list-initialisation of an 'auto' variable, such as 'auto values = {1, 2};'.  Unlike the
-              direct-list-initialisation of 'auto value{1};', which deduces the type of the single element, this
-              deduces a 'std::initializer_list' of the element type.  The 'std::initializer_list' in Lib/swig.swg
-              is a stub whose typemaps only emit warning 476, so there is nothing useful to wrap the variable as
-              and it is ignored with a warning.  The warning names only the braced list, since an empty list, a
-              list of differing types and a 'decltype(auto)' variable all deduce nothing, being ill-formed. */
+           /* C++11 copy-list-initialisation, as in 'auto values = {1, 2};', deduces a 'std::initializer_list', which is only a
+              stub in Lib/swig.swg, so the variable is ignored.  The warning names no element type, as an empty or mixed list
+              and a 'decltype(auto)' variable, being ill-formed, deduce none. */
            | storage_class auto_type_holder declarator cpp_const EQUAL LBRACE {
               if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
              } braced_initialiser_end {
@@ -5285,17 +5214,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   }
            /* C++17 structured binding, such as 'auto [a, b] = pt;'.  The names are bound to the members of the
               initialiser, which SWIG would have to know the layout of to give each name a type, so the whole
-              declaration is ignored with a warning.
-
-              The initialiser is skipped rather than parsed: nothing is wrapped whatever it says, and skipping
-              takes all three of the copy ('= pt'), direct-list ('{pt}') and parenthesised ('(pt)') forms as they
-              come, including an initialiser SWIG has no grammar for.  The skip balances brackets, so a semicolon
-              inside the initialiser - the body of a lambda, say - does not end the declaration early.
-
-              The rule ends at the ']' so that the skip starts at the first token of the initialiser.  This
-              relies on the state after the ']' reducing by default, which it does because no other rule shares
-              the prefix - adding one would make the parser read a lookahead token first and the skip would then
-              start one token late. */
+              declaration is ignored with a warning.  The initialiser, in any form, is skipped balancing brackets, so a
+              ';' in a lambda body does not end it.  The skip starts after the ']', which relies on no other rule sharing
+              this prefix: one would make the parser read a lookahead token first and the skip start a token late. */
            | storage_class auto_type_holder structured_binding_ref LBRACKET structured_binding_names RBRACKET {
               $$ = 0;
               if (skip_balanced_to_semicolon() < 0) Exit(EXIT_FAILURE);
@@ -5340,11 +5261,8 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
 		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 		 if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
                  {
-                   /* The type code the grammar evaluated for the initialiser, and what it knows of the form of the
-                    * initialiser.  The parse tree holds the text of an initialiser but not its value, and reading a
-                    * type back out of the text recognises a single literal only, so a C++11 'auto' declaration
-                    * declaring more than one variable reads these from here to deduce from this declarator's own
-                    * initialiser the way it deduces from the first. */
+                   /* What the grammar evaluated for the initialiser, which its text in the parse tree does not give back, for
+                    * an 'auto' declaration of several variables to deduce from, see set_auto_variable_types(). */
                    SetInt($$, "initialisertypecode", $initializer.type);
                    if ($initializer.newtype)
                      Setattr($$, "initialisernewtype", $initializer.newtype);
@@ -7281,10 +7199,8 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		Delete($CONVERSIONOPERATOR);
 		Delete($storage_class);
               }
-              /* C++14 conversion function with a deduced return type: 'operator auto()', 'operator decltype(auto)()',
-               * 'operator const auto&()' or 'operator auto*()'.  SWIG cannot deduce the type from the body, so the
-               * placeholder is kept as the type and add_symbols() then reports it the same way as any other function
-               * with an undeduced 'auto' return type. */
+              /* C++14 conversion function with a deduced return type, such as 'operator auto()' or 'operator const auto&()',
+               * which add_symbols() reports as it does any other 'auto' return type that cannot be deduced from the body. */
               | storage_class CONVERSIONOPERATOR auto_type_holder conversion_declarator LPAREN parms RPAREN cpp_vend {
                 SwigType *t = $conversion_declarator;
                 $$ = new_node("cdecl");
@@ -7504,9 +7420,8 @@ parms          : rawparms {
                }
     	       ;
 
-/* The parameter list of a function declarator, which C++23 allows to start with an explicit object parameter.  A
-   'this' further along the list is matched by rawparms below wherever a parameter list appears, so that a misplaced
-   one is diagnosed rather than reported as a syntax error. */
+/* A function declarator's parameter list, which C++23 allows to start with an explicit object parameter.  rawparms
+   accepts 'this' elsewhere in any parameter list, so that a misplaced one is diagnosed rather than a syntax error. */
 fn_parms       : parms
                | THIS parms[in] {
                  $$ = mark_explicit_object_parameter($in);
@@ -7700,10 +7615,8 @@ def_args       : EQUAL definetype {
                }
                ;
 
-/* A new-expression, 'new' followed by an optional placement, the type-id and an optional initialiser, such as
-   'new int(5)', 'new (buffer) Widget{1, 2}' or 'new double[n]', which gives the type of the pointer it creates.  It is
-   only parsed as the whole of an initialiser or a default argument, and never as an operand within an expression, as
-   in 'new int(5) + 1', whose rest is skipped, see new_expression_dtype(). */
+/* A new-expression such as 'new int(5)', 'new (buffer) Widget{1, 2}' or 'new double[n]', typed as the pointer it creates.
+   Parsed only at the start of an initialiser or default argument, see new_expression_dtype() for the rest. */
 new_expression : new_expression_head {
                    $$ = new_expression_dtype($new_expression_head, yychar);
                    if (new_expression_lookahead_continues(yychar))
@@ -7711,10 +7624,8 @@ new_expression : new_expression_head {
                  }
                ;
 
-/* The new-expression itself.  The type-id is the only part the grammar parses, apart from the expression initialising
-   the 'auto' placeholder: the placement and the initialiser are skipped over as balanced raw text, and the value is
-   built from the parts, see new_expression_head_dtype().  A parenthesised type-id, as in 'new (int *[3])', reads as a
-   placement with no type-id after it and has no type. */
+/* The new-expression itself, of which the grammar parses only the type-id and an 'auto' initialiser, skipping the placement
+   and other initialisers as raw text.  A parenthesised type-id, 'new (int *[3])', reads as a placement and has no type. */
 new_expression_head : new_keyword new_type_id new_initializer_opt {
                    $$ = new_expression_head_dtype($new_keyword, 0, $new_type_id, $new_initializer_opt, new_expression_type($new_type_id));
                  }
@@ -7724,10 +7635,8 @@ new_expression_head : new_keyword new_type_id new_initializer_opt {
                | new_keyword new_placement new_initializer_opt {
                    $$ = new_expression_head_dtype($new_keyword, $new_placement, 0, $new_initializer_opt, 0);
                  }
-               /* The C++11 'auto' placeholder, which deduces the type allocated from the one expression initialising it,
-                  as an 'auto' variable does.  An expression the grammar cannot parse is a syntax error, which a variable
-                  declaration recovers from as it does for any initialiser it cannot parse, unless the expression has a
-                  ';' in it, as a lambda body can.  A default argument does not recover. */
+               /* C++11 'new auto(e)', whose type is deduced from 'e' as for an 'auto' variable.  An unparsable 'e' is a syntax
+                  error, recovered from in a variable declaration but not a default argument, unless 'e' has a ';'. */
                | new_keyword new_auto_holder LPAREN expr RPAREN {
                    $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, 0);
                  }
@@ -8597,9 +8506,8 @@ decltypeexpr   : expr RPAREN {
 		  * issue a warning.
 		  */
 		 $$ = 0;
-                 /* Error recovery discards tokens up to the first ')' it meets, which is the operand's own
-                  * closing parenthesis unless the operand had parentheses of its own, so only in the second case
-                  * is there a group left to close.  Skipping unconditionally ran to the end of input instead. */
+                 /* Error recovery discarded tokens up to the first ')', the operand's own unless it has parentheses of its
+                  * own, when a group is left open to skip; skipping regardless ran to the end of input. */
                  if (balanced_group_is_open(')') && skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 Clear(scanner_ccode);
 	       }
@@ -9095,9 +9003,8 @@ constraint_primary : idcolon {
                     $$ = $atom;
                  }
                | NUM_BOOL {
-                    /* A literal is a primary-expression, so 'requires true' and 'requires false' are constraints.
-                     * Only the boolean literals are useful ones - [temp.constr.atomic] requires an atomic
-                     * constraint to be of type bool, which rejects every other literal. */
+                    /* A literal is a primary-expression, so 'requires true' and 'requires false' are constraints; no other
+                     * literal is useful, as [temp.constr.atomic] requires an atomic constraint to be of type bool. */
                     $$ = Constraint_new_atom("expression");
                     Setattr($$, "value", $NUM_BOOL.val);
                  }
@@ -9963,9 +9870,8 @@ qualifiers_exception_specification : cv_ref_qualifier {
                }
                ;
 
-/* A virt-specifier-seq comes after the trailing requires-clause, not before it, so 'int m() requires C<T> final;'
- * is the valid spelling and 'int m() final requires C<T>;' is not.  A virt-specifier-seq without a requires-clause
- * arrives through qualifiers_exception_specification, which is where the older grammar has always taken it. */
+/* A virt-specifier-seq follows a trailing requires-clause, as in 'int m() requires C<T> final;', never precedes it.
+ * Without a requires-clause it comes through qualifiers_exception_specification, as it always has. */
 cpp_const      : qualifiers_exception_specification
                | qualifiers_exception_specification REQUIRES constraint virt_specifier_seq_opt {
                  $$ = $qualifiers_exception_specification;

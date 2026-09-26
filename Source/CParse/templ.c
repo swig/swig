@@ -69,11 +69,8 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
  * Note that there are no parameter names are in the expanded parameter list.
  * Nothing happens if the parameter list has no variadic parameters.
  *
- * A function template may declare more than one pack.  Explicitly written template arguments fill the first one
- * entirely ([temp.arg.explicit]/9), leaving every later pack empty, so the parameter expanded from a later pack
- * is dropped.  Those later packs are the variadic entries that follow 'unexpanded_variadic_parm' in the template
- * parameter list it points into.  A pack of another template, such as a member template's own
- * inside a class template, is left alone.
+ * Explicit template arguments fill the first pack ([temp.arg.explicit]/9), so a parameter expanded from a later pack of
+ * the same template, one after 'unexpanded_variadic_parm', is dropped; another template's pack is left alone.
  * ----------------------------------------------------------------------------- */
 
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
@@ -583,11 +580,8 @@ static void cparse_postprocess_expanded_template(Node *n) {
 /* -----------------------------------------------------------------------------
  * replace_placeholder_decltype()
  *
- * Replace a 'decltype(name)' base of the type t, where name is a placeholder
- * non-type template parameter such as the 'N' of 'template<auto N>', with
- * argtype, the type of the template argument given for it.  Any other decltype
- * mentioning name has the argument substituted into its expression later, by
- * SwigType_typename_replace().
+ * Replace a 'decltype(name)' base of type 't', 'name' being a placeholder non-type template parameter, the 'N' of
+ * 'template<auto N>', with 'argtype', its argument's type.  SwigType_typename_replace() handles any other decltype.
  * ----------------------------------------------------------------------------- */
 
 static void replace_placeholder_decltype(SwigType *t, String *name, SwigType *argtype) {
@@ -839,16 +833,9 @@ static void resolve_partial_args(SwigType *concrete, SwigType *partialtype, Parm
 /* -----------------------------------------------------------------------------
  * rebuild_abbreviated_decl()
  *
- * A C++20 abbreviated function template is written with 'auto' where an explicitly
- * written template names a template parameter, so its declarator holds the placeholder
- * while its parms hold the invented type template parameters.  Rebuild the declarator's
- * parameter list from the parms so that template expansion has something to substitute
- * in it, as it does for an explicitly written template: 'f(auto).' becomes
- * 'f(__dummy_auto_0__).' and expands to 'f(int).' rather than staying 'f(auto).'.
- *
- * Only the node being instantiated is rebuilt.  The template declaration keeps the
- * declarator as written, which is what a %rename, %ignore or %feature declarator spelt
- * with 'auto' matches - the invented name is not something a user can write.
+ * Rebuild an abbreviated function template's declarator parameters from its parms, which have the invented template
+ * parameters to substitute: 'f(auto).' becomes 'f(__dummy_auto_0__).' and expands to 'f(int).'.  Only the node being
+ * instantiated is rebuilt, as a directive's declarator spelt with 'auto' matches the template's declarator as written.
  * ----------------------------------------------------------------------------- */
 
 static void rebuild_abbreviated_decl(Node *n) {
@@ -868,14 +855,9 @@ static void rebuild_abbreviated_decl(Node *n) {
 /* -----------------------------------------------------------------------------
  * explicit_template_argument_count()
  *
- * The number of a function template instantiation's template arguments that a call can write explicitly.
- * Explicit arguments fill the template parameters in order and a parameter pack takes every one left, so a
- * template parameter after the first pack can only be deduced from the call and its argument is left off.
- *
- * These make up the instantiation's name, which a directive matches, and the generated call.  The arguments
- * of an abbreviated function template's invented parameters are written too, although they could be deduced,
- * so that a directive names the instantiation as an explicitly written template's is named and the call
- * reaches the specialization instantiated rather than one deduction picks, such as 'f<const int>'.
+ * The number of an instantiation's template arguments that make up its name, which directives match, and the generated
+ * call: those a call can write, so none after the first pack, which takes every explicit argument left.  An abbreviated
+ * template's invented parameters are written although deducible, so the call reaches the one instantiated, 'f<const int>'.
  * ----------------------------------------------------------------------------- */
 
 static int explicit_template_argument_count(ParmList *templateparms, ParmList *tparms) {
@@ -957,10 +939,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     int variadic_pos = 0;
     unexpanded_variadic_parm = ParmList_find_variadic_parm(templateparmsraw, &variadic_pos);
     if (unexpanded_variadic_parm) {
-      /* Explicitly written template arguments fill the first pack entirely ([temp.arg.explicit]/9) and leave
-       * every later pack empty, so what the first absorbs is whatever the parms taking one argument each do not.
-       * Counting those rather than subtracting the length of the list is what makes a second pack come out empty
-       * instead of one argument short. */
+      /* Explicit arguments fill the first pack ([temp.arg.explicit]/9) and leave later packs empty, so the first takes all
+       * but those of the non-pack parms, counted as such so that a second pack comes out empty, not one argument short. */
       int absorbed = ParmList_len(templateparms) - ParmList_len_nonvariadic(templateparmsraw);
       Parm *slice = ParmList_nth_parm(templateparms, variadic_pos);
       expanded_variadic_parms = CopyParmListMax(slice, absorbed);
@@ -1792,19 +1772,9 @@ static void replace_template_parms(SwigType *t, Node *n, ParmList *instantiated_
 /* -----------------------------------------------------------------------------
  * instantiated_function_signature()
  *
- * Render the function parameter types of function template 'n' with each template
- * parameter name replaced by the matching argument from 'instantiated_parms', so
- * that two candidate overloads can be compared by the signature they instantiate
- * to rather than by the template parameter names they happen to have been given.
- *
- * With 'normalised' true top level cv-qualification is left out, C++ treating
- * 'f(const double)' and 'f(double)' as the same signature; qualification below the
- * top level is part of the type and is kept either way.  With it false the
- * parameters are rendered as written, which tells two overloads that only C++
- * considers the same apart from a plain redeclaration.
- *
- * The member cv-qualifier and ref-qualifier are part of the signature too, so
- * 'T get(T) &' and 'T get(T) const &' are distinct member functions.
+ * The signature function template 'n' instantiates to with 'instantiated_parms', to compare overloads by: its parameter
+ * types and member qualifiers.  'normalised' drops top level cv-qualifiers, as C++ treats 'f(const double)' as 'f(double)';
+ * without it the parameters are as written, telling overloads C++ considers the same apart from a plain redeclaration.
  * ----------------------------------------------------------------------------- */
 
 static String *instantiated_function_signature(Node *n, ParmList *instantiated_parms, int normalised) {
@@ -1850,20 +1820,10 @@ static int same_instantiated_return_type(Node *a, Node *b, ParmList *instantiate
 /* -----------------------------------------------------------------------------
  * check_constrained_overloads()
  *
- * Report an error when two of the function templates matched by a %template
- * instantiate to the same function signature and SWIG has no way to choose
- * between them.  It would otherwise wrap both, and the generated dispatcher
- * would call one overload while converting the result to the other overload's
- * return type.  Either constraints tell them apart, which C++ resolves by
- * constraint satisfaction and SWIG cannot, or they are written differently
- * with the same signature, which C++ makes an ambiguous call.
- *
- * Overloads written the same way with the same constraints are left alone,
- * being what the redundant redeclaration handling already collapses, as are
- * overloads differing only by top level cv-qualifiers with the same return
- * type, which declare the same template.
- *
- * Returns 1 if an error was reported, 0 otherwise.
+ * Report an error, returning 1, when two function templates matched by a %template instantiate to the same signature,
+ * whether constraints SWIG cannot evaluate tell them apart or C++ finds them ambiguous: wrapping both would mix up their
+ * return types.  Overloads written alike with the same constraints, or differing only by top level cv-qualifiers with
+ * the same return type, declare the same template, and are left for the redeclaration handling to collapse.
  * ----------------------------------------------------------------------------- */
 
 static int check_constrained_overloads(List *matches, String *name, ParmList *instantiated_parms) {
@@ -1918,22 +1878,7 @@ static int check_constrained_overloads(List *matches, String *name, ParmList *in
   return reported;
 }
 
-/* -----------------------------------------------------------------------------
- * collect_function_template_matches()
- *
- * Append to 'matches' each function template declaration of 'name' in the C symbol
- * table chain starting at 'firstn' whose template parameter list can take
- * 'instantiated_parms', and mark it for instantiation.  Only template parameters are
- * matched, not function parameters, as %template instantiation gives no function
- * parameters.
- *
- * 'variadic' selects the templates with a parameter pack rather than those without,
- * and 'ignored' those %ignore has kept out of the target language.  The chain walked
- * is the C symbol table one, which holds every declaration of the name: the target
- * language chain leaves ignored declarations out, so an ignored overload appearing
- * first would hide the overloads that are still to be wrapped.
- * ----------------------------------------------------------------------------- */
-
+/* Whether 'matches' already holds a declaration with the declarator and constraints of 'n'. */
 static int already_matched(List *matches, Node *n) {
   Iterator mi;
   for (mi = First(matches); mi.item; mi = Next(mi)) {
@@ -1942,6 +1887,14 @@ static int already_matched(List *matches, Node *n) {
   }
   return 0;
 }
+
+/* -----------------------------------------------------------------------------
+ * collect_function_template_matches()
+ *
+ * Append to 'matches', and mark for instantiation, each function template of 'name' whose template parameters take
+ * 'instantiated_parms': with a pack if 'variadic', %ignore'd ones if 'ignored'.  The C symbol table chain from 'firstn'
+ * is walked, as the target language one leaves ignored declarations out, where one could hide those still to be wrapped.
+ * ----------------------------------------------------------------------------- */
 
 static void collect_function_template_matches(Node *firstn, String *name, ParmList *instantiated_parms, int variadic, int ignored, List *matches) {
   Node *n;
@@ -2025,11 +1978,8 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       }
 
       firstn = Swig_symbol_clookup_local(name, 0);
-      /* Look for all the overloaded function template matches.  Variadic templates are only considered when
-       * there are no non-variadic matches; the variadic parm may sit anywhere in the templateparms list, as
-       * C++20 [dcl.fct]/19 appends invented type template parameters (from abbreviated 'auto' parameters)
-       * after the explicit list, which can leave the pack in the middle.  Declarations %ignore has excluded
-       * are considered last, so that ignoring one overload leaves the others instantiable. */
+      /* Match every overload, variadic ones only if nothing else matches (the pack can be mid-list, as C++20 [dcl.fct]/19
+       * appends invented parameters) and %ignore'd ones last, so that ignoring one overload leaves the others instantiable. */
       {
         int ignored;
         for (ignored = 0; ignored < 2 && Len(matches) == 0; ignored++) {
