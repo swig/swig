@@ -2047,6 +2047,13 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Node *constraint_node;
     /* The pointer type of a new-expression, which the T_* code in 'type' cannot describe. */
     SwigType *newtype;
+    /* The form of the expression, which its value text does not reliably show: 'idexpr' is the name when it is an
+     * id-expression, 'unparenthesised' the value text inside the parentheses when the whole of it is parenthesised,
+     * and 'literal' says whether it is a string or character literal.  Parentheses keep an id-expression and a literal
+     * what they are, so '(x)' and '((x))' both have the 'idexpr' 'x'.  See also clear_expression_form(). */
+    String *idexpr;
+    String *unparenthesised;
+    enum { LITERAL_NONE, LITERAL_STRING, LITERAL_CHARACTER } literal;
   } dtype;
   struct {
     String *filename;
@@ -2604,18 +2611,33 @@ static SwigType *deduce_type_from_value(String *val, int type_code) {
    deduced from.  'unwrap_parentheses' says whether parentheses around the whole expression can be ignored, which
    they can for the type an 'auto' variable deduces but not for the type a decltype names. */
 static SwigType *deduce_type(const struct Define *dtype, int unwrap_parentheses) {
-  SwigType *deduced;
-  String *unwrapped;
   if (dtype->newtype)
     return Copy(dtype->newtype);
   if (!dtype->val)
     return 0;
-  if (!unwrap_parentheses)
-    return deduce_type_from_value(dtype->val, dtype->type);
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  deduced = deduce_type_from_value(unwrapped ? unwrapped : dtype->val, dtype->type);
-  Delete(unwrapped);
-  return deduced;
+  return deduce_type_from_value(unwrap_parentheses && dtype->unparenthesised ? dtype->unparenthesised : dtype->val, dtype->type);
+}
+
+/* Clear what 'dtype' records of the form of the expression it was copied from, for an action that builds a new
+   expression on top of that one, such as a cast or a unary operator. */
+static void clear_expression_form(struct Define *dtype) {
+  dtype->idexpr = 0;
+  dtype->unparenthesised = 0;
+  dtype->literal = LITERAL_NONE;
+}
+
+/* The expression whose value text is 'text' and whose T_* code is 'type_code', when there is no parse of the text to
+   go by, as for the '(x)' of the braced initialiser in 'auto v{(x)};', which the grammar skips as raw text.  The form
+   of the expression is read off the text instead: the text inside any parentheses enclosing the whole of it is taken
+   to be an id-expression, to be looked up as a name, and the text is never taken to be a literal, its decoded value
+   not being known.  The caller deletes the 'unparenthesised' text. */
+static struct Define expression_dtype_from_text(String *text, int type_code) {
+  struct Define dtype = default_dtype;
+  dtype.val = text;
+  dtype.type = type_code;
+  dtype.unparenthesised = Swig_cparse_trim_parenthesis(text);
+  dtype.idexpr = dtype.unparenthesised ? dtype.unparenthesised : text;
+  return dtype;
 }
 
 /* Set "argtype" on each %template argument in 'args' given for a placeholder non-type template parameter in
@@ -2626,14 +2648,13 @@ static void set_placeholder_template_argument_types(ParmList *args, ParmList *tp
   for (p = args; p; p = nextSibling(p)) {
     Parm *tp = ParmList_find_name(tparms, Getattr(p, "name"));
     if (tp && SwigType_isauto(Getattr(tp, "type")) && Getattr(p, "valuetypecode")) {
-      struct Define dtype = default_dtype;
-      SwigType *type;
-      dtype.val = Getattr(p, "value");
-      dtype.type = GetInt(p, "valuetypecode");
-      type = deduce_type(&dtype, 1);
+      /* The argument has been qualified since it was parsed, so its form is read off its text. */
+      struct Define dtype = expression_dtype_from_text(Getattr(p, "value"), GetInt(p, "valuetypecode"));
+      SwigType *type = deduce_type(&dtype, 1);
       if (type)
         Setattr(p, "argtype", SwigType_remove_qualifier(type));
       Delete(type);
+      Delete(dtype.unparenthesised);
     }
   }
 }
@@ -2653,28 +2674,24 @@ static int type_names_enum(const SwigType *type) {
    the expression is not the name of a variable or an enumerator, leaving the caller to work the type out from the
    type code of the expression instead. */
 static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
-  String *unwrapped;
+  String *name = dtype->idexpr;
   SwigType *type;
   Node *n;
   int code;
   int enumerator = 0;
 
-  if (!dtype->val)
-    return 0;
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  if (!unwrapped)
+  if (!dtype->unparenthesised || !name)
     return 0;
   /* A parameter of a trailing return type being parsed is a variable too, and hides anything of the same name. */
-  if (ParmList_find_name(trailing_rettype_parms, unwrapped)) {
-    type = symbol_full_type(unwrapped);
+  if (ParmList_find_name(trailing_rettype_parms, name)) {
+    type = symbol_full_type(name);
   } else {
-    n = Swig_symbol_clookup(unwrapped, 0);
+    n = Swig_symbol_clookup(name, 0);
     if (!n)
-      n = qualified_unscoped_enumerator(unwrapped);
+      n = qualified_unscoped_enumerator(name);
     enumerator = n && Equal(nodeType(n), "enumitem");
-    type = n && (enumerator || Equal(nodeType(n), "cdecl")) ? symbol_full_type(unwrapped) : 0;
+    type = n && (enumerator || Equal(nodeType(n), "cdecl")) ? symbol_full_type(name) : 0;
   }
-  Delete(unwrapped);
   if (!type || enumerator)
     return type;
   if (SwigType_isfunction(type) || SwigType_isauto(type)) {
@@ -2707,74 +2724,37 @@ static SwigType *decltype_type(const struct Define *dtype) {
    object the name denotes, and the reference is not part of what the name was declared with, so a type deduced
    from the name alone would be missing it. */
 static int initialiser_is_parenthesised_name(const struct Define *dtype) {
-  int parenthesised_name = 0;
-  String *unwrapped;
-  if (!dtype->val)
+  SwigType *named;
+  int parenthesised_name;
+  if (!dtype->unparenthesised || !dtype->idexpr)
     return 0;
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  if (unwrapped) {
-    SwigType *named = symbol_full_type(unwrapped);
-    if (named) {
-      parenthesised_name = 1;
-      Delete(named);
-    }
-    Delete(unwrapped);
-  }
+  named = symbol_full_type(dtype->idexpr);
+  parenthesised_name = named != 0;
+  Delete(named);
   return parenthesised_name;
 }
 
 /* Whether the initialiser 'dtype' is a string literal, optionally parenthesised.  The T_STRING code alone does not
    say so: a named cast to 'const char *' summarises to T_STRING too, as does the address of a character and an
-   expression such as '"text" + 1' that merely has a literal as an operand, hence the check on the whole text.
-   The decoded text is required as well, that being where the length of the literal is read from. */
+   expression such as '"text" + 1' that merely has a literal as an operand.  The decoded text is required as well,
+   that being where the length of the literal is read from. */
 static int initialiser_is_string_literal(const struct Define *dtype) {
-  String *unwrapped;
-  const char *text;
-  int is_literal = 0;
-
-  if (dtype->type != T_STRING && dtype->type != T_WSTRING)
-    return 0;
-  if (!dtype->val || !dtype->stringval)
-    return 0;
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  text = Char(unwrapped ? unwrapped : dtype->val);
-  /* The grammar writes the value text as '"..."', or 'L"..."' when wide, whichever of the encoding and raw string
-     prefixes the source spelt it with, so 'L' is the only prefix that can appear here.  Adjacent literals are
-     already concatenated, so one pair of quotes spans however many pairs the source wrote. */
-  if (*text == 'L')
-    text++;
-  if (*text == '"') {
-    text++;
-    while (*text && *text != '"') {
-      if (*text == '\\' && text[1])
-        text++;
-      text++;
-    }
-    is_literal = *text == '"' && text[1] == '\0';
-  }
-  Delete(unwrapped);
-  return is_literal;
+  return dtype->literal == LITERAL_STRING && (dtype->type == T_STRING || dtype->type == T_WSTRING) && dtype->stringval;
 }
 
 /* Whether the initialiser 'dtype' is an id-expression naming an object, optionally parenthesised, or a string literal,
    either of which makes it an lvalue.  Any other literal and an enumerator are prvalues; the value category of any
    other expression is not something SWIG tracks, so it is reported as not an lvalue. */
 static int initialiser_is_lvalue(const struct Define *dtype) {
-  String *unwrapped;
   Node *n;
-  int lvalue = 0;
-  if (!dtype->val)
-    return 0;
   if (initialiser_is_string_literal(dtype))
     return 1;
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  n = Swig_symbol_clookup(unwrapped ? unwrapped : dtype->val, 0);
+  n = dtype->idexpr ? Swig_symbol_clookup(dtype->idexpr, 0) : 0;
   if (n && Equal(nodeType(n), "cdecl")) {
     SwigType *decl = Getattr(n, "decl");
-    lvalue = !decl || !SwigType_isfunction(decl);
+    return !decl || !SwigType_isfunction(decl);
   }
-  Delete(unwrapped);
-  return lvalue;
+  return 0;
 }
 
 /* An rvalue reference declarator on an 'auto' placeholder is a forwarding reference, which collapses to an lvalue
@@ -2855,19 +2835,9 @@ static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *d
 }
 
 /* Whether the initialiser 'dtype' is a wide character literal, optionally parenthesised.  Every prefixed character
-   literal reaches the grammar as a wide one, whose value text the grammar writes as 'L'...'' whichever prefix the
-   source spelt it with. */
+   literal reaches the grammar as a wide one. */
 static int initialiser_is_wide_character_literal(const struct Define *dtype) {
-  String *unwrapped;
-  const char *text;
-  int is_literal;
-  if (dtype->type != T_WCHAR || !dtype->val || !dtype->stringval)
-    return 0;
-  unwrapped = Swig_cparse_trim_parenthesis(dtype->val);
-  text = Char(unwrapped ? unwrapped : dtype->val);
-  is_literal = text[0] == 'L' && text[1] == '\'' && text[strlen(text) - 1] == '\'';
-  Delete(unwrapped);
-  return is_literal;
+  return dtype->literal == LITERAL_CHARACTER && dtype->type == T_WCHAR && dtype->stringval;
 }
 
 /* Carry the encoding prefix of the string literal 'piece' onto 'literal', the run of adjacent literals it is
@@ -2989,8 +2959,8 @@ static int auto_types_differ(SwigType *type1, SwigType *type2) {
    initialiser.  A declarator that deduces a different type to the declaration is marked so that add_symbols() can
    report the inconsistency; it keeps the type its own initialiser deduced, which is the best guess available.
 
-   The declarators after the first are read back from the parse tree, which holds the text of the initialiser and
-   the type code the grammar evaluated for it, so each initialiser deduces exactly what it would as the first. */
+   The declarators after the first are read back from the parse tree, which holds the text of the initialiser and what
+   the grammar evaluated for it, see c_decl_list_tail, so each initialiser deduces exactly what it would as the first. */
 static void set_auto_variable_types(Node *first, const struct Define *first_dtype, String *qualifier, String *conceptid, int isdecltypeauto) {
   SwigType *declaration_type = 0;
   Node *n;
@@ -3005,6 +2975,9 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       dtype.stringval = Getattr(n, "stringval");
       dtype.type = GetInt(n, "initialisertypecode");
       dtype.newtype = Getattr(n, "initialisernewtype");
+      dtype.idexpr = Getattr(n, "initialiseridexpr");
+      dtype.unparenthesised = Getattr(n, "initialiserunparenthesised");
+      dtype.literal = GetInt(n, "initialiserliteral");
     }
     if (!isdecltypeauto)
       collapse_forwarding_reference(Getattr(n, "decl"), &dtype);
@@ -3152,19 +3125,21 @@ static SwigType *new_expression_type(SwigType *type_id) {
    allocates from the one expression in 'initializer', the parenthesised or braced text that follows the placeholder,
    as an 'auto' variable does.  Returns 0 when there is no initialiser or no type can be deduced from it. */
 static SwigType *new_auto_expression_type(String *qualifier, String *initializer) {
-  struct Define dtype = default_dtype;
+  struct Define dtype;
+  String *value;
   SwigType *decl;
   SwigType *type;
   if (!initializer)
     return 0;
-  dtype.val = braced_initialiser_value(initializer);
-  dtype.type = literal_type_code(dtype.val);
+  value = braced_initialiser_value(initializer);
+  dtype = expression_dtype_from_text(value, literal_type_code(value));
   decl = NewStringEmpty();
   type = auto_variable_type(&dtype, decl, qualifier, 0);
   if (type)
     SwigType_add_pointer(type);
   Delete(decl);
-  Delete(dtype.val);
+  Delete(dtype.unparenthesised);
+  Delete(value);
   return type;
 }
 
@@ -5081,10 +5056,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
               if (braced_initialiser) {
-                struct Define dtype = default_dtype;
+                String *value = braced_initialiser_value(scanner_ccode);
+                struct Define dtype = expression_dtype_from_text(value, literal_type_code(value));
                 SwigType *type;
-                dtype.val = braced_initialiser_value(scanner_ccode);
-                dtype.type = literal_type_code(dtype.val);
                 if (!$auto_type_holder.isdecltypeauto)
                   collapse_forwarding_reference($declarator.type, &dtype);
                 /* A reference binds to the array a string literal is, whose length is not known from the undecoded
@@ -5097,10 +5071,11 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
                   type = auto_type_holder_type($auto_type_holder.qualifier, $auto_type_holder.conceptid);
                 Setattr($$, "type", type);
                 Setattr($$, "valuetype", type);
-                if (Len(dtype.val) > 0)
-                  Setattr($$, "value", dtype.val);
+                if (Len(value) > 0)
+                  Setattr($$, "value", value);
                 set_concept_constraint($$, $auto_type_holder.conceptid);
-                Delete(dtype.val);
+                Delete(dtype.unparenthesised);
+                Delete(value);
                 Delete(type);
               } else {
                 set_auto_type($$, $auto_type_holder.qualifier, $auto_type_holder.conceptid);
@@ -5315,15 +5290,22 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
 		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 		 if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
                  {
-                   /* The type code the grammar evaluated for the initialiser.  The parse tree holds the text of an
-                    * initialiser but not its value, and reading a type back out of the text recognises a single
-                    * literal only, so a C++11 'auto' declaration declaring more than one variable reads the code
-                    * from here to deduce from this declarator's own initialiser the way it deduces from the first. */
+                   /* The type code the grammar evaluated for the initialiser, and what it knows of the form of the
+                    * initialiser.  The parse tree holds the text of an initialiser but not its value, and reading a
+                    * type back out of the text recognises a single literal only, so a C++11 'auto' declaration
+                    * declaring more than one variable reads these from here to deduce from this declarator's own
+                    * initialiser the way it deduces from the first. */
                    String *typecode = NewStringf("%d", $initializer.type);
                    Setattr($$, "initialisertypecode", typecode);
                    Delete(typecode);
                    if ($initializer.newtype)
                      Setattr($$, "initialisernewtype", $initializer.newtype);
+                   if ($initializer.idexpr)
+                     Setattr($$, "initialiseridexpr", $initializer.idexpr);
+                   if ($initializer.unparenthesised)
+                     Setattr($$, "initialiserunparenthesised", $initializer.unparenthesised);
+                   if ($initializer.literal)
+                     SetInt($$, "initialiserliteral", $initializer.literal);
                  }
 		 Setattr($$,"throws",$cpp_const.throws);
 		 Setattr($$,"throw",$cpp_const.throwf);
@@ -8884,6 +8866,8 @@ expr           : valexpr
 		     }
 		   }
 		 }
+                 /* The name as the value text spells it, which is qualified for an enumerator. */
+                 $$.idexpr = $$.val;
                }
 	       ;
 
@@ -9103,15 +9087,18 @@ exprsimple     : exprnum
 		  $$.stringval = $string;
 		  $$.val = NewStringf("\"%(escape)s\"", $string);
 		  $$.type = T_STRING;
+                  $$.literal = LITERAL_STRING;
 	       }
 	       | wstring {
 		  $$ = default_dtype;
 		  $$.stringval = $wstring;
 		  $$.val = NewStringf("L\"%(escape)s\"", $wstring);
 		  $$.type = T_WSTRING;
+                  $$.literal = LITERAL_STRING;
 	       }
 	       | CHARCONST {
 		  $$ = default_dtype;
+                  $$.literal = LITERAL_CHARACTER;
 		  $$.val = NewStringf("'%(escape)s'", $CHARCONST);
 		  if (Len($CHARCONST) > 1) {
 		    /* A multicharacter constant, e.g. 'ab', has type int per the C and
@@ -9128,6 +9115,7 @@ exprsimple     : exprnum
 		  $$.stringval = $WCHARCONST;
 		  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST);
 		  $$.type = T_WCHAR;
+                  $$.literal = LITERAL_CHARACTER;
 	       }
 
 	       /* In sizeof(X) X can be a type or expression.  We don't actually
@@ -9201,6 +9189,9 @@ valexpr        : exprsimple
 		    $$.numval = Copy($expr.numval);
 		    $$.type = $expr.type;
 		    $$.newtype = $expr.newtype;
+                    $$.idexpr = $expr.idexpr;
+                    $$.unparenthesised = $expr.unparenthesised ? $expr.unparenthesised : $expr.val;
+                    $$.literal = $expr.literal;
 	       }
 
 /* A few common casting operations */
@@ -9224,6 +9215,7 @@ valexpr        : exprsimple
 		   }
 		   $$.stringval = 0;
 		   $$.numval = 0;
+                   clear_expression_form(&$$);
 		 }
 		 /* As well as C-style casts, this grammar rule currently also
 		  * matches a binary operator with a LHS in parentheses for
@@ -9257,6 +9249,7 @@ valexpr        : exprsimple
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
+                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] AND RPAREN expr[rhs] %prec CAST {
@@ -9269,6 +9262,7 @@ valexpr        : exprsimple
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
+                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] LAND RPAREN expr[rhs] %prec CAST {
@@ -9281,6 +9275,7 @@ valexpr        : exprsimple
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
+                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] pointer AND RPAREN expr[rhs] %prec CAST {
@@ -9294,6 +9289,7 @@ valexpr        : exprsimple
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
+                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] pointer LAND RPAREN expr[rhs] %prec CAST {
@@ -9307,6 +9303,7 @@ valexpr        : exprsimple
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
+                   clear_expression_form(&$$);
 		 }
  	       }
                | AND expr {
@@ -9316,6 +9313,7 @@ valexpr        : exprsimple
 		 $$.val = NewStringf("&%s", $expr.val);
 		 $$.stringval = 0;
 		 $$.numval = 0;
+                 clear_expression_form(&$$);
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)&7 which get parsed using this rule then
 		  * the rule for a C-style cast.
@@ -9342,6 +9340,7 @@ valexpr        : exprsimple
 		 $$.val = NewStringf("*%s", $expr.val);
 		 $$.stringval = 0;
 		 $$.numval = 0;
+                 clear_expression_form(&$$);
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)*7 which get parsed using this rule then
 		  * the rule for a C-style cast.
