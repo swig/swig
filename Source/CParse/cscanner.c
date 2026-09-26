@@ -177,16 +177,13 @@ int skip_balanced(int startchar, int endchar) {
 /* -----------------------------------------------------------------------------
  * balanced_group_is_open()
  *
- * Whether a group opened by startchar is still waiting to be closed, that is
- * whether skip_balanced() would find its endchar rather than run to the end of
- * input.  Does not change the state of the scanner.
+ * Whether a group is still waiting to be closed by endchar, that is whether
+ * skip_balanced() would find its endchar rather than run to the end of input.
+ * Does not change the state of the scanner.
  * ----------------------------------------------------------------------------- */
 
-int balanced_group_is_open(int startchar, int endchar) {
-  String *code = Scanner_get_raw_text_balanced(scan, startchar, endchar);
-  int is_open = code != 0;
-  Delete(code);
-  return is_open;
+int balanced_group_is_open(int endchar) {
+  return Scanner_has_balanced_end(scan, endchar);
 }
 
 /* -----------------------------------------------------------------------------

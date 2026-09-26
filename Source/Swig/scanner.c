@@ -1661,18 +1661,17 @@ static void lookahead_end(Scanner *s, Scanner *lookahead, long start) {
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_get_raw_text_balanced()
+ * balanced_end()
  *
- * Returns the raw text between 2 brackets, such as '{...}' or '(...)', including the brackets themselves, or NULL if
- * the closing bracket is missing.  The state of 's' is not changed in either case, as the lookahead runs on a private
- * scanner, see lookahead_begin().
+ * Looks ahead in the text of 's' for the 'endchar' closing a group whose opening bracket has just been scanned.
+ * Returns the position just after it, or -1 if the end of the text is reached first, and stores the position the
+ * lookahead started from in 'start'.  The state of 's' is not changed, as the lookahead runs on a private scanner, see
+ * lookahead_begin().
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
-  String *result = NULL;
+static long balanced_end(Scanner *s, int endchar, long *start) {
+  long end = -1;
   Scanner *lookahead;
-  long start;
-  int old_line = s->line;
 
   int num_levels = 1;
   int starttok = 0;
@@ -1697,9 +1696,9 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
   default:
     assert(0);
   }
-  lookahead = lookahead_begin(s, &start);
+  lookahead = lookahead_begin(s, start);
   if (!lookahead)
-    return NULL;
+    return -1;
 
   while (1) {
     int tok = Scanner_token(lookahead);
@@ -1707,11 +1706,7 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
       num_levels++;
     } else if (tok == endtok) {
       if (--num_levels == 0) {
-        result = NewStringEmpty();
-        Putc(startchar, result);
-        Write(result, Char(s->str) + start, (int)(Tell(s->str) - start));
-        Setfile(result, Getfile(s->str));
-        Setline(result, old_line);
+        end = Tell(s->str);
         break;
       }
     } else if (tok == SWIG_TOKEN_COMMENT) {
@@ -1726,9 +1721,43 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
     }
   }
 
-  lookahead_end(s, lookahead, start);
+  lookahead_end(s, lookahead, *start);
 
+  return end;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_get_raw_text_balanced()
+ *
+ * Returns the raw text between 2 brackets, such as '{...}' or '(...)', including the brackets themselves, or NULL if
+ * the closing bracket is missing.  The state of 's' is not changed in either case, see balanced_end().
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
+  String *result = NULL;
+  long start;
+  int old_line = s->line;
+  long end = balanced_end(s, endchar, &start);
+
+  if (end >= 0) {
+    result = NewStringEmpty();
+    Putc(startchar, result);
+    Write(result, Char(s->str) + start, (int)(end - start));
+    Setfile(result, Getfile(s->str));
+    Setline(result, old_line);
+  }
   return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_has_balanced_end()
+ *
+ * Returns 1 if the closing bracket Scanner_get_raw_text_balanced() looks for is there, else 0, without the text.
+ * ----------------------------------------------------------------------------- */
+
+int Scanner_has_balanced_end(Scanner *s, int endchar) {
+  long start;
+  return balanced_end(s, endchar, &start) >= 0;
 }
 
 /* -----------------------------------------------------------------------------

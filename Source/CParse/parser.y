@@ -8542,7 +8542,7 @@ decltypeexpr   : expr RPAREN {
                  /* Error recovery discards tokens up to the first ')' it meets, which is the operand's own
                   * closing parenthesis unless the operand had parentheses of its own, so only in the second case
                   * is there a group left to close.  Skipping unconditionally ran to the end of input instead. */
-                 if (balanced_group_is_open('(', ')') && skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+                 if (balanced_group_is_open(')') && skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 Clear(scanner_ccode);
 	       }
 	       ;
