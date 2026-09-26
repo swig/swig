@@ -6,4 +6,5 @@ let _ =
   assert (_X_CN '() as int = 1);
   assert (_X_EN '() as int = 2);
   assert (_X_CHARTEST '() as char = 'A');
+  assert (_CharTemplateB_CHARTEST '() as char = 'B');
 ;;
