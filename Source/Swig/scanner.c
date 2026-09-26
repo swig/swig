@@ -1599,6 +1599,43 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
 }
 
 /* -----------------------------------------------------------------------------
+ * lookahead_begin()
+ *
+ * Starts a lookahead over the rest of the text 's' is scanning.  Returns a private scanner that reads the same text
+ * in place from the current position, which is stored in 'start', or NULL if 's' has no text.  Finish the lookahead
+ * with lookahead_end().
+ *
+ * Scanning 's' itself and seeking back would work only as long as the lookahead stops within the text: reaching its
+ * end pops the text off the scanner's stack, leaving nothing to seek back to.  The private scanner pops the text off
+ * its own stack instead, and has its own '<' '>' bracket counting, so the counting used to split '>>' in 's' is not
+ * affected either.  The text is shared rather than copied: copying the rest of the input for every lookahead would
+ * make parsing quadratic in the size of the input.
+ * ----------------------------------------------------------------------------- */
+
+static Scanner *lookahead_begin(Scanner *s, long *start) {
+  Scanner *lookahead;
+  if (!s->str)
+    return NULL;
+  *start = Tell(s->str);
+  lookahead = NewScanner();
+  Scanner_push(lookahead, s->str);
+  /* Scanner_push() takes the line number the text keeps, which can differ from the line 's' is on. */
+  lookahead->line = s->line;
+  return lookahead;
+}
+
+/* -----------------------------------------------------------------------------
+ * lookahead_end()
+ *
+ * Finishes a lookahead started by lookahead_begin(), moving the read position in the text of 's' back to 'start'.
+ * ----------------------------------------------------------------------------- */
+
+static void lookahead_end(Scanner *s, Scanner *lookahead, long start) {
+  DelScanner(lookahead);
+  Seek(s->str, start, SEEK_SET);
+}
+
+/* -----------------------------------------------------------------------------
  * Scanner_get_raw_text_balanced()
  *
  * Returns raw text between 2 braces, does not change scanner state in any way
@@ -1669,31 +1706,18 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
  * Scanner_get_raw_text_to_semicolon()
  *
  * Returns the raw text from the current position up to, but not including, the next ';' that is not nested inside
- * '(...)', '[...]' or '{...}'.  Returns NULL if there is no such ';' in the text currently being scanned.
- *
- * The lookahead runs on a private scanner over a copy of the remaining text rather than on 's' itself.  Scanning 's'
- * and seeking back would work only as long as the ';' is found: running to the end of the text being scanned pops it
- * off the scanner's stack, leaving nothing to seek back to.  A private scanner also keeps the '<' '>' bracket
- * counting used to split '>>' unaffected by the lookahead.
+ * '(...)', '[...]' or '{...}'.  Returns NULL if there is no such ';' in the text currently being scanned.  The state of
+ * 's' is not changed, as the lookahead runs on a private scanner, see lookahead_begin().
  * ----------------------------------------------------------------------------- */
 
 String *Scanner_get_raw_text_to_semicolon(Scanner *s) {
   String *result = NULL;
-  String *remaining;
-  Scanner *lookahead;
-  long position;
+  long start;
   int num_levels = 0;
+  Scanner *lookahead = lookahead_begin(s, &start);
 
-  if (!s->str)
+  if (!lookahead)
     return NULL;
-
-  position = Tell(s->str);
-  remaining = NewStringWithSize(Char(s->str) + position, Len(s->str) - position);
-  Seek(remaining, 0, SEEK_SET);
-  Setfile(remaining, Getfile(s->str));
-  Setline(remaining, s->line);
-  lookahead = NewScanner();
-  Scanner_push(lookahead, remaining);
 
   while (1) {
     int tok = Scanner_token(lookahead);
@@ -1712,15 +1736,14 @@ String *Scanner_get_raw_text_to_semicolon(Scanner *s) {
         break;
     } else if (tok == SWIG_TOKEN_SEMI && num_levels == 0) {
       /* Tell() is positioned just after the ';', which is not wanted in the returned text. */
-      result = NewStringWithSize(Char(remaining), Tell(remaining) - 1);
-      Setfile(result, Getfile(remaining));
-      Setline(result, Getline(remaining));
+      result = NewStringWithSize(Char(s->str) + start, Tell(s->str) - start - 1);
+      Setfile(result, Getfile(s->str));
+      Setline(result, Scanner_line(lookahead));
       break;
     }
   }
 
-  DelScanner(lookahead);
-  Delete(remaining);
+  lookahead_end(s, lookahead, start);
 
   return result;
 }
