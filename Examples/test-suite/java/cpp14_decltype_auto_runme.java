@@ -55,6 +55,13 @@ public class cpp14_decltype_auto_runme {
     if (cpp14_decltype_auto.getVar_string_wide() == null)
       throw new RuntimeException("var_string_wide");
 
+    // A cast of a string literal is not a literal, so this 'const char *' can be set to a longer string.
+    if (!cpp14_decltype_auto.getVar_string_cast().equals("text"))
+      throw new RuntimeException("var_string_cast");
+    cpp14_decltype_auto.setVar_string_cast("longer text");
+    if (!cpp14_decltype_auto.getVar_string_cast().equals("longer text"))
+      throw new RuntimeException("var_string_cast should be settable");
+
     // A u8, u or U literal is of a character type SWIG has no type for, so it is ignored.
     try {
       cpp14_decltype_auto.class.getMethod("getVar_string_char16");

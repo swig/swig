@@ -62,6 +62,9 @@ int deref(int *p) { return *p; }
 int deref2(int **p) { return **p; }
 int call_fn(int (*fn)(int), int x) { return fn(x); }
 int array_first(int (*p)[4]) { return (*p)[0]; }
+const char *string_deref(const char *const *p) { return *p; }
+int first_byte(const unsigned char *p) { return p[0]; }
+int first_char(const void *p) { return *static_cast<const char *>(p); }
 
 // auto& - lvalue reference to the deduced type.
 auto& ref_var = global_int;
@@ -166,4 +169,11 @@ auto&& fwd_string = "text";             // const char (&)[5]
 const auto& cref_string = "text";       // const char (&)[5]
 auto const& cref_post_string = "te" "xt";  // const char (&)[5]
 auto& ref_string_wide = L"text";        // const wchar_t (&)[5]
+
+// A cast of a string literal is a pointer, so the reference binds to that pointer rather than to an array.
+const auto& cref_string_cast = (const char *)"text";  // const char *const &
+
+// A cast of a string literal to any other pointer type is that type too.
+const auto *const bytes_cast = (const unsigned char *)"text";  // const unsigned char *const
+auto *const void_cast = (const void *)"text";                  // const void *const
 %}

@@ -96,3 +96,8 @@ swig_check(cvar.fwd_string, "text")
 swig_check(cvar.cref_string, "text")
 swig_check(cvar.cref_post_string, "text")
 swig_check(isinstance(cvar.ref_string_wide, str), False)
+
+# A reference bound to a cast of a string literal is a reference to the pointer, wrapped as a pointer to it.
+swig_check(string_deref(cvar.cref_string_cast), "text")
+swig_check(first_byte(cvar.bytes_cast), ord("t"))
+swig_check(first_char(cvar.void_cast), ord("t"))

@@ -9200,6 +9200,9 @@ valexpr        : exprsimple
 		 int cast_type_code = SwigType_type($lhs.val);
 		 $$ = $rhs;
 		 $$.unary_arg_type = 0;
+                 /* A cast is not an id-expression or a literal, even where it keeps the value text of the string
+                  * literal it casts. */
+                 clear_expression_form(&$$);
 		 if ($rhs.type != T_STRING) {
 		   switch ($lhs.type) {
 		     case T_FLOAT:
@@ -9215,7 +9218,6 @@ valexpr        : exprsimple
 		   }
 		   $$.stringval = 0;
 		   $$.numval = 0;
-                   clear_expression_form(&$$);
 		 }
 		 /* As well as C-style casts, this grammar rule currently also
 		  * matches a binary operator with a LHS in parentheses for
@@ -9242,68 +9244,70 @@ valexpr        : exprsimple
                | LPAREN expr[lhs] pointer RPAREN expr[rhs] %prec CAST {
                  $$ = $rhs;
 		 $$.unary_arg_type = 0;
+                 clear_expression_form(&$$);
+                 SwigType_push($lhs.val,$pointer);
+                 $$.newtype = c_style_cast_type($lhs.val);
+                 /* A string literal operand keeps its value text and type code, which a string constant is
+                  * wrapped with, but an auto variable still deduces the type cast to. */
 		 if ($rhs.type != T_STRING) {
-		   SwigType_push($lhs.val,$pointer);
-		   $$.newtype = c_style_cast_type($lhs.val);
-		   $$.type = value_type_code($$.newtype);
+                   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
-                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] AND RPAREN expr[rhs] %prec CAST {
                  $$ = $rhs;
 		 $$.unary_arg_type = 0;
+                 clear_expression_form(&$$);
+                 SwigType_add_reference($lhs.val);
+                 $$.newtype = c_style_cast_type($lhs.val);
 		 if ($rhs.type != T_STRING) {
-		   SwigType_add_reference($lhs.val);
-		   $$.newtype = c_style_cast_type($lhs.val);
-		   $$.type = value_type_code($$.newtype);
+                   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
-                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] LAND RPAREN expr[rhs] %prec CAST {
                  $$ = $rhs;
 		 $$.unary_arg_type = 0;
+                 clear_expression_form(&$$);
+                 SwigType_add_rvalue_reference($lhs.val);
+                 $$.newtype = c_style_cast_type($lhs.val);
 		 if ($rhs.type != T_STRING) {
-		   SwigType_add_rvalue_reference($lhs.val);
-		   $$.newtype = c_style_cast_type($lhs.val);
-		   $$.type = value_type_code($$.newtype);
+                   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
-                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] pointer AND RPAREN expr[rhs] %prec CAST {
                  $$ = $rhs;
 		 $$.unary_arg_type = 0;
+                 clear_expression_form(&$$);
+                 SwigType_push($lhs.val,$pointer);
+                 SwigType_add_reference($lhs.val);
+                 $$.newtype = c_style_cast_type($lhs.val);
 		 if ($rhs.type != T_STRING) {
-		   SwigType_push($lhs.val,$pointer);
-		   SwigType_add_reference($lhs.val);
-		   $$.newtype = c_style_cast_type($lhs.val);
-		   $$.type = value_type_code($$.newtype);
+                   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
-                   clear_expression_form(&$$);
 		 }
  	       }
                | LPAREN expr[lhs] pointer LAND RPAREN expr[rhs] %prec CAST {
                  $$ = $rhs;
 		 $$.unary_arg_type = 0;
+                 clear_expression_form(&$$);
+                 SwigType_push($lhs.val,$pointer);
+                 SwigType_add_rvalue_reference($lhs.val);
+                 $$.newtype = c_style_cast_type($lhs.val);
 		 if ($rhs.type != T_STRING) {
-		   SwigType_push($lhs.val,$pointer);
-		   SwigType_add_rvalue_reference($lhs.val);
-		   $$.newtype = c_style_cast_type($lhs.val);
-		   $$.type = value_type_code($$.newtype);
+                   $$.type = value_type_code($$.newtype);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
 		   $$.numval = 0;
-                   clear_expression_form(&$$);
 		 }
  	       }
                | AND expr {

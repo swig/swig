@@ -52,6 +52,11 @@ for ignored in ("var_string_utf8", "var_string_char16", "var_string_char32",
 # An expression with a literal as an operand is not a literal, so this is a plain 'const char *'.
 swig_check(cvar.var_string_expr, "ext")
 
+# Nor is a cast of a literal, so this 'const char *' can be set to a longer string, unlike a reference to the array.
+swig_check(cvar.var_string_cast, "text")
+cvar.var_string_cast = "longer text"
+swig_check(cvar.var_string_cast, "longer text")
+
 k = Klass(11)
 swig_check(k.plain(), 11)
 

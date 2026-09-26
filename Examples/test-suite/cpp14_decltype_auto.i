@@ -25,8 +25,9 @@
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char16;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_string_raw_char32;
 
-// An operator applied to a string literal makes an expression, and this one has type 'const char *'.
+// An operator applied to a string literal, or a cast of one, makes an expression of type 'const char *'.
 %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) var_string_expr;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) var_string_cast;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_ptr;
@@ -69,6 +70,9 @@ decltype(auto) var_string_parens = ("text");
 // An operator applied to a literal makes an expression, whose type is deduced as usual.
 bool use_ext = true;
 decltype(auto) var_string_expr = use_ext ? "ext" : "none";
+
+// A cast of a literal is a prvalue of the type cast to, so this is a 'const char *' rather than a reference to an array.
+decltype(auto) var_string_cast = (const char *)"text";
 
 // A parenthesised name is an lvalue, so each of these deduces what 'decltype((name))' names, a reference to it.
 struct Paren {

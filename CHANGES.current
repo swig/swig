@@ -21,6 +21,14 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-26: wsfulton
+            An auto variable or decltype of a C-style cast of a string literal to
+            a pointer type is now deduced as the type cast to.  It was deduced as
+            'const char *' whatever the cast, and the wrapper did not compile:
+
+              auto v = (const void *)"abc";                     // const void *
+              decltype(auto) b = (const unsigned char *)"abc";  // const unsigned char *
+
+2026-09-26: wsfulton
             A decltype of a parenthesised enumerator, and a 'decltype(auto)'
             variable initialised by one, now name the enumeration, as the
             unparenthesised enumerator does:
