@@ -5740,24 +5740,11 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 			      Swig_error(Getfile($$), Getline($$), "Template partial specialization has fewer arguments than primary template %d %d.\n", specialization_parms_len, ParmList_len(primary_templateparms));
 			    } else {
 			      /* Create a specialized name with template parameters replaced with $ variables, such as, X<(T1,p.T2) => X<($1,p.$2)> */
-			      Parm *p = $template_parms;
 			      String *fname = NewString(tname);
 			      String *ffname = 0;
 			      ParmList *partialparms = 0;
 
-			      char   tmp[32];
-			      int i = 0;
-			      while (p) {
-				String *name = Getattr(p,"name");
-				++i;
-				if (!name) {
-				  p = nextSibling(p);
-				  continue;
-				}
-				snprintf(tmp, sizeof(tmp), "$%d", i);
-				Replaceid(fname, name, tmp);
-				p = nextSibling(p);
-			      }
+                              ParmList_replace_names_positional(fname, $template_parms, 0);
 			      /* Patch argument names with typedef */
 			      {
 				Iterator tt;
@@ -5788,20 +5775,16 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause
 			      {
 				/* Replace each primary template parameter's name and value with $ variables, such as, class Y,class T=Y => class $1,class $2=$1 */
 				ParmList *primary_templateparms_copy = CopyParmList(primary_templateparms);
-				p = primary_templateparms_copy;
-				i = 0;
-				while (p) {
-				  String *name = Getattr(p, "name");
-				  Parm *pp = nextSibling(p);
-				  ++i;
-				  snprintf(tmp, sizeof(tmp), "$%d", i);
-				  while (pp) {
-				    Replaceid(Getattr(pp, "value"), name, tmp);
-				    pp = nextSibling(pp);
-				  }
-				  Setattr(p, "name", NewString(tmp));
-				  p = nextSibling(p);
-				}
+                                Parm *p;
+                                int i = 0;
+                                /* A default value can only refer to the template parameters before it */
+                                for (p = primary_templateparms_copy; p; p = nextSibling(p))
+                                  ParmList_replace_names_positional(Getattr(p, "value"), primary_templateparms_copy, p);
+                                for (p = primary_templateparms_copy; p; p = nextSibling(p)) {
+                                  String *name = NewStringf("$%d", ++i);
+                                  Setattr(p, "name", name);
+                                  Delete(name);
+                                }
 				/* Modify partialparms by adding in missing default values ($ variables) from primary template parameters */
 				partialparms = Swig_cparse_template_partialargs_expand(partialparms, tempn, primary_templateparms_copy);
 				Delete(primary_templateparms_copy);

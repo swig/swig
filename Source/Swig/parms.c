@@ -376,3 +376,27 @@ int ParmList_has_varargs(ParmList *p) {
   }
   return lastparm ? SwigType_isvarargs(Getattr(lastparm, "type")) : 0;
 }
+
+/* -----------------------------------------------------------------------------
+ * ParmList_replace_names_positional()
+ *
+ * Replace each identifier in 's' naming one of the parameters in 'p' with that parameter's position as a $ variable,
+ * $1 for the first parameter, $2 for the second and so on, such as 'X<(T1,p.T2)>' into 'X<($1,p.$2)>' for template
+ * parameters T1 and T2.  Only the parameters before 'end' are replaced, or all of them when 'end' is 0.  An unnamed
+ * parameter still takes up a position.  Nothing is done when 's' is 0.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
+  int position = 0;
+  if (!s)
+    return;
+  for (; p && p != end; p = nextSibling(p)) {
+    String *name = Getattr(p, "name");
+    ++position;
+    if (name) {
+      String *dollar = NewStringf("$%d", position);
+      Replaceid(s, name, dollar);
+      Delete(dollar);
+    }
+  }
+}

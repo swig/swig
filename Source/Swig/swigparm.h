@@ -31,6 +31,7 @@ extern int ParmList_numrequired(ParmList *);
 extern int ParmList_len(ParmList *);
 extern int ParmList_has_defaultargs(ParmList *p);
 extern int ParmList_has_varargs(ParmList *p);
+extern void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end);
 
 /* Output functions */
 extern String *ParmList_str(ParmList *);
