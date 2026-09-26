@@ -764,20 +764,12 @@ static void features_get(Hash *features, const String *tname, SwigType *decl, Sw
 }
 
 void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
-  SwigType *ncdecl = 0;
+  SwigType *plain_decl = 0;
   SwigType *constrained = 0;
   String *rdecl = 0;
   String *rname = 0;
   if (!features)
     return;
-
-  /* MM: This removed to more tightly control feature/name matching */
-  /*
-     if ((decl) && (SwigType_isqualifier(decl))) {
-     ncdecl = strchr(Char(decl),'.');
-     ncdecl++;
-     }
-   */
 
   /* very specific hack for template constructors/destructors */
   if (name && SwigType_istemplate(name)) {
@@ -805,11 +797,10 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     }
   }
 
-  /* A constrained function template takes the features for its declarator and constraints over those for its
-   * declarator alone */
+  /* For a constrained function template, features for its declarator with constraints override those for 'plain_decl' */
   constrained = node_constrained_decl(node, decl);
   if (constrained) {
-    ncdecl = decl;
+    plain_decl = decl;
     decl = constrained;
   }
 
@@ -824,21 +815,21 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     /* add features for 'root' template */
     String *dname = SwigType_istemplate_templateprefix(name);
     if (dname) {
-      features_get(features, dname, decl, ncdecl, node);
+      features_get(features, dname, decl, plain_decl, node);
     }
     /* Catch-all */
-    features_get(features, name, decl, ncdecl, node);
+    features_get(features, name, decl, plain_decl, node);
     /* Perform a class-based lookup (if class prefix supplied) */
     if (prefix) {
       /* A class-generic feature */
       if (Len(prefix)) {
         Printf(tname, "%s::", prefix);
-        features_get(features, tname, decl, ncdecl, node);
+        features_get(features, tname, decl, plain_decl, node);
       }
       /* A wildcard-based class lookup */
       Clear(tname);
       Printf(tname, "*::%s", name);
-      features_get(features, tname, decl, ncdecl, node);
+      features_get(features, tname, decl, plain_decl, node);
       /* A specific class lookup */
       if (Len(prefix)) {
         /* A template-based class lookup */
@@ -846,18 +837,18 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
         if (tprefix) {
           Clear(tname);
           Printf(tname, "%s::%s", tprefix, name);
-          features_get(features, tname, decl, ncdecl, node);
+          features_get(features, tname, decl, plain_decl, node);
         }
         Clear(tname);
         Printf(tname, "%s::%s", prefix, name);
-        features_get(features, tname, decl, ncdecl, node);
+        features_get(features, tname, decl, plain_decl, node);
         Delete(tprefix);
       }
     } else {
       /* Lookup in the global namespace only */
       Clear(tname);
       Printf(tname, "::%s", name);
-      features_get(features, tname, decl, ncdecl, node);
+      features_get(features, tname, decl, plain_decl, node);
     }
     Delete(tname);
     Delete(dname);
@@ -866,7 +857,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     /* add features for complete template type */
     String *dname = Swig_symbol_template_deftype(name, 0);
     if (!Equal(dname, name)) {
-      Swig_features_get(features, prefix, dname, constrained ? ncdecl : decl, node);
+      Swig_features_get(features, prefix, dname, constrained ? plain_decl : decl, node);
     }
     Delete(dname);
   }
