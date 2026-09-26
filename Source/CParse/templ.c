@@ -865,13 +865,8 @@ static void rebuild_abbreviated_decl(Node *n) {
   for (tp = Getattr(n, "templateparms"); tp && !abbreviated; tp = nextSibling(tp))
     abbreviated = GetFlag(tp, "abbreviated_auto");
   if (abbreviated && parms && SwigType_isfunction(decl)) {
-    SwigType *newdecl = Copy(decl);
-    SwigType *qualifiers = SwigType_pop_function_qualifiers(newdecl);
-    Delete(SwigType_pop(newdecl));
-    SwigType_add_function(newdecl, parms);
-    SwigType_push(newdecl, qualifiers);
+    SwigType *newdecl = SwigType_replace_function_parms(Copy(decl), parms);
     Setattr(n, "decl", newdecl);
-    Delete(qualifiers);
     Delete(newdecl);
   }
 }
