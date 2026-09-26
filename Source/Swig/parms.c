@@ -232,6 +232,41 @@ Parm *ParmList_find_variadic_parm(ParmList *p, int *position) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_expanded_pack()
+ *
+ * Return the first template parameter pack in 'packs', skipping the parms that are not packs, that the variadic type
+ * 't' is an expansion of, such as the 'typename... Ts' that 'v.r.Ts' expands.  NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_expanded_pack(ParmList *packs, const SwigType *t) {
+  for (; packs; packs = nextSibling(packs)) {
+    if (SwigType_isvariadic(Getattr(packs, "type")) && SwigType_variadic_expands(t, Getattr(packs, "name")))
+      return packs;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_find_pack_expansion()
+ *
+ * Return the first parm in the list whose type is an expansion of the template parameter pack named 'pack', such as
+ * the 'Ts &... args' of the pack 'Ts', NULL otherwise.  As for ParmList_find_variadic_parm(), the zero based index of
+ * the parm is written through 'position' if it is non-NULL (left unchanged when no parm is found).
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_pack_expansion(ParmList *p, const String *pack, int *position) {
+  int i = 0;
+  for (; p; p = nextSibling(p), ++i) {
+    if (SwigType_variadic_expands(Getattr(p, "type"), pack)) {
+      if (position)
+        *position = i;
+      return p;
+    }
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_numrequired()
  *
  * Return number of required arguments - the number of arguments excluding

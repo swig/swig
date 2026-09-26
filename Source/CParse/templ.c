@@ -78,17 +78,11 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
 
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   Parm *pack;
-  for (pack = unexpanded_variadic_parm; pack; pack = nextSibling(pack)) {
+  for (pack = ParmList_find_variadic_parm(unexpanded_variadic_parm, 0); pack; pack = ParmList_find_variadic_parm(nextSibling(pack), 0)) {
     ParmList *p = Getattr(n, attribute);
     int variadic_pos = 0;
-    Parm *variadic;
-    if (!SwigType_isvariadic(Getattr(pack, "type")))
-      continue;
     /* The parm expanding this pack, not just the first variadic one, which may belong to a member template */
-    for (variadic = p; variadic; variadic = nextSibling(variadic), ++variadic_pos) {
-      if (SwigType_variadic_expands(Getattr(variadic, "type"), Getattr(pack, "name")))
-        break;
-    }
+    Parm *variadic = ParmList_find_pack_expansion(p, Getattr(pack, "name"), &variadic_pos);
     if (!variadic)
       continue;
     if (pack != unexpanded_variadic_parm) {

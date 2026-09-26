@@ -1466,15 +1466,6 @@ int SwigType_variadic_expands(const SwigType *t, const String *pack_name) {
  * A pack of any other template, such as a member template's own, is left for that template's instantiation.
  * ----------------------------------------------------------------------------- */
 
-static int variadic_names_later_pack(SwigType *t, Parm *unexpanded_variadic_parm) {
-  Parm *pack;
-  for (pack = nextSibling(unexpanded_variadic_parm); pack; pack = nextSibling(pack)) {
-    if (SwigType_isvariadic(Getattr(pack, "type")) && SwigType_variadic_expands(t, Getattr(pack, "name")))
-      return 1;
-  }
-  return 0;
-}
-
 void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   String *nt;
   int i, ilen;
@@ -1482,7 +1473,7 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
   if (!unexpanded_variadic_parm)
     return;
 
-  if (SwigType_isvariadic(t) && variadic_names_later_pack(t, unexpanded_variadic_parm)) {
+  if (SwigType_isvariadic(t) && ParmList_expanded_pack(nextSibling(unexpanded_variadic_parm), t)) {
     Clear(t);
     return;
   }

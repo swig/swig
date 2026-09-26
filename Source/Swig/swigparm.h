@@ -27,6 +27,8 @@ extern Parm *ParmList_nth_parm(ParmList *p, unsigned int n);
 extern Parm *ParmList_find_name(ParmList *p, const_String_or_char_ptr name);
 extern Parm *ParmList_variadic_parm(ParmList *p);
 extern Parm *ParmList_find_variadic_parm(ParmList *p, int *position);
+extern Parm *ParmList_expanded_pack(ParmList *packs, const SwigType *t);
+extern Parm *ParmList_find_pack_expansion(ParmList *p, const String *pack, int *position);
 extern Parm *ParmList_add_parm(ParmList *p, Parm *newparm);
 extern int ParmList_numrequired(ParmList *);
 extern int ParmList_len(ParmList *);
