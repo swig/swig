@@ -122,6 +122,13 @@ auto auto_paren_address = new auto(&(global_count));
 auto auto_unsigned = new auto(32u);
 auto decltype_int = new decltype(global_count)(17);
 
+// The placeholder is deduced from any expression an 'auto' variable is deduced from.
+auto auto_sum = new auto(global_count + 1);
+auto auto_scaled = new auto(global_count * 2.5);
+auto auto_narrowed = new auto(static_cast<unsigned short>(global_count));
+auto auto_widget = new auto(Widget(2, 5));
+auto const_auto_difference = new const auto{global_count - 1};
+
 // The placeholder can be decorated, and a declaration can declare more than one variable.
 auto *decorated_widget = new Widget(9, 9);
 const auto *decorated_const_int = new int(18);
@@ -141,6 +148,19 @@ auto parenthesised_type_id = new (int *[3]);
 
 // An ordinary variable after all of these is still seen.
 int after_all = 99;
+%}
+
+// The value of a new-expression default argument is compiled into the wrapper with compactdefaultargs.
+%feature("compactdefaultargs") auto_default;
+
+%inline %{
+// GCC 11 and earlier take the 'auto' of 'new auto' in a default argument for an auto parameter, so they are given 'new int'.
+#if defined(SWIG) || !defined(__GNUC__) || defined(__clang__) || __GNUC__ >= 12
+#define NEW_AUTO new auto
+#else
+#define NEW_AUTO new int
+#endif
+int auto_default(int *p = NEW_AUTO(global_count + 4)) { int v = *p; delete p; return v; }
 %}
 
 %template(BoxInt) Box<int>;

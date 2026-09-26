@@ -55,6 +55,13 @@ swig_check(pointed_int_value(v.auto_paren_address), 3)
 swig_check(unsigned_value(v.auto_unsigned), 32)
 swig_check(int_value(v.decltype_int), 17)
 
+swig_check(int_value(v.auto_sum), 4)
+swig_check(double_value(v.auto_scaled), 7.5)
+swig_check(unsigned_short_value(v.auto_narrowed), 3)
+swig_check(widget_value(v.auto_widget), 7)
+swig_check(const_int_value(v.const_auto_difference), 2)
+swig_check(auto_default(), 7)
+
 swig_check(widget_value(v.decorated_widget), 18)
 swig_check(const_int_value(v.decorated_const_int), 18)
 swig_check(int_value(v.first_int), 19)

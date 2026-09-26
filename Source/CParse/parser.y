@@ -2225,7 +2225,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    new_expression new_expression_head auto_initializer;
 %type <type>     new_type_id new_array_declarator;
-%type <str>      new_keyword new_placement new_initializer_opt;
+%type <str>      new_keyword new_placement new_initializer_opt new_auto_holder;
 %type            deleted_reason;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
@@ -3125,32 +3125,9 @@ static SwigType *new_expression_type(SwigType *type_id) {
   return type;
 }
 
-/* The type of the new-expression 'new auto(x)', optionally cv-qualified by 'qualifier', which deduces the type it
-   allocates from the one expression in 'initializer', the parenthesised or braced text that follows the placeholder,
-   as an 'auto' variable does.  Returns 0 when there is no initialiser or no type can be deduced from it. */
-static SwigType *new_auto_expression_type(String *qualifier, String *initializer) {
-  struct Define dtype;
-  String *value;
-  SwigType *decl;
-  SwigType *type;
-  if (!initializer)
-    return 0;
-  value = braced_initialiser_value(initializer);
-  dtype = expression_dtype_from_text(value, literal_type_code(value));
-  decl = NewStringEmpty();
-  type = auto_variable_type(&dtype, decl, qualifier, 0);
-  if (type)
-    SwigType_add_pointer(type);
-  Delete(decl);
-  Delete(dtype.unparenthesised);
-  Delete(dtype.newtype);
-  Delete(value);
-  return type;
-}
-
-/* The value of the new-expression made of 'keyword', which is 'new' or '::new', the raw texts of the optional
-   'placement' and 'initializer', and the optional 'type_id', whose text is as SwigType_str() writes it.  'newtype' is
-   the type of the pointer it creates, or 0 if that is not known. */
+/* The value of the new-expression made of 'keyword', which is 'new' or '::new', the texts of the optional 'placement'
+   and 'initializer', and the optional 'type_id', whose text is as SwigType_str() writes it.  'newtype' is the type of
+   the pointer it creates, or 0 if that is not known. */
 static struct Define new_expression_head_dtype(String *keyword, String *placement, SwigType *type_id, String *initializer, SwigType *newtype) {
   struct Define dtype = default_dtype;
   String *text = NewStringf("%s ", keyword);
@@ -3169,6 +3146,25 @@ static struct Define new_expression_head_dtype(String *keyword, String *placemen
   dtype.type = T_UNKNOWN;
   dtype.val = text;
   dtype.newtype = newtype;
+  return dtype;
+}
+
+/* The value of the new-expression 'new auto(e)', or 'new auto{e}' when 'braced', made of 'keyword', the cv-qualifier
+   'qualifier' of the placeholder, or 0, and the expression 'e' that 'initializer' describes.  The type allocated is
+   deduced from the expression as for an 'auto' variable, and the new-expression is a pointer to it. */
+static struct Define new_auto_expression_head_dtype(String *keyword, String *qualifier, const struct Define *initializer, int braced) {
+  SwigType *placeholder = NewString("auto");
+  String *text = NewStringf(braced ? "{%s}" : "(%s)", initializer->val);
+  SwigType *decl = NewStringEmpty();
+  SwigType *newtype = auto_variable_type(initializer, decl, qualifier, 0);
+  struct Define dtype;
+  if (newtype)
+    SwigType_add_pointer(newtype);
+  if (qualifier)
+    SwigType_push(placeholder, qualifier);
+  dtype = new_expression_head_dtype(keyword, 0, placeholder, text, newtype);
+  Delete(decl);
+  Delete(placeholder);
   return dtype;
 }
 
@@ -7676,9 +7672,10 @@ new_expression : new_expression_head {
                  }
                ;
 
-/* The new-expression itself.  The type-id is the only part the grammar parses: the placement and the initialiser are
-   skipped over as balanced raw text, and the value is built from the parts, see new_expression_head_dtype().  A
-   parenthesised type-id, as in 'new (int *[3])', reads as a placement with no type-id after it and has no type. */
+/* The new-expression itself.  The type-id is the only part the grammar parses, apart from the expression initialising
+   the 'auto' placeholder: the placement and the initialiser are skipped over as balanced raw text, and the value is
+   built from the parts, see new_expression_head_dtype().  A parenthesised type-id, as in 'new (int *[3])', reads as a
+   placement with no type-id after it and has no type. */
 new_expression_head : new_keyword new_type_id new_initializer_opt {
                    $$ = new_expression_head_dtype($new_keyword, 0, $new_type_id, $new_initializer_opt, new_expression_type($new_type_id));
                  }
@@ -7688,17 +7685,24 @@ new_expression_head : new_keyword new_type_id new_initializer_opt {
                | new_keyword new_placement new_initializer_opt {
                    $$ = new_expression_head_dtype($new_keyword, $new_placement, 0, $new_initializer_opt, 0);
                  }
-               /* The C++11 'auto' placeholder, which deduces the type allocated from the initialiser. */
-               | new_keyword AUTO new_initializer_opt {
-                   SwigType *placeholder = NewString("auto");
-                   $$ = new_expression_head_dtype($new_keyword, 0, placeholder, $new_initializer_opt, new_auto_expression_type(0, $new_initializer_opt));
-                   Delete(placeholder);
+               /* The C++11 'auto' placeholder, which deduces the type allocated from the one expression initialising it,
+                  as an 'auto' variable does.  An expression the grammar cannot parse is a syntax error, which a variable
+                  declaration recovers from as it does for any initialiser it cannot parse, unless the expression has a
+                  ';' in it, as a lambda body can.  A default argument does not recover. */
+               | new_keyword new_auto_holder LPAREN expr RPAREN {
+                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, 0);
                  }
-               | new_keyword type_qualifier AUTO new_initializer_opt {
-                   SwigType *placeholder = NewString("auto");
-                   SwigType_push(placeholder, $type_qualifier);
-                   $$ = new_expression_head_dtype($new_keyword, 0, placeholder, $new_initializer_opt, new_auto_expression_type($type_qualifier, $new_initializer_opt));
-                   Delete(placeholder);
+               | new_keyword new_auto_holder LBRACE expr RBRACE {
+                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, 1);
+                 }
+               ;
+
+/* The 'auto' placeholder of a new-expression, whose value is the cv-qualifier in front of it, or 0. */
+new_auto_holder : AUTO {
+                   $$ = 0;
+                 }
+               | type_qualifier AUTO {
+                   $$ = $type_qualifier;
                  }
                ;
 

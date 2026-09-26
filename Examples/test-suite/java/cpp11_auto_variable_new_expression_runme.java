@@ -69,6 +69,13 @@ public class cpp11_auto_variable_new_expression_runme {
     check(cpp11_auto_variable_new_expression.pointed_int_value(cpp11_auto_variable_new_expression.getAuto_paren_address()), 3, "auto_paren_address");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getDecltype_int()), 17, "decltype_int");
 
+    check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getAuto_sum()), 4, "auto_sum");
+    if (cpp11_auto_variable_new_expression.double_value(cpp11_auto_variable_new_expression.getAuto_scaled()) != 7.5)
+      throw new RuntimeException("auto_scaled");
+    check(cpp11_auto_variable_new_expression.unsigned_short_value(cpp11_auto_variable_new_expression.getAuto_narrowed()), 3, "auto_narrowed");
+    check(cpp11_auto_variable_new_expression.widget_value(cpp11_auto_variable_new_expression.getAuto_widget()), 7, "auto_widget");
+    check(cpp11_auto_variable_new_expression.const_int_value(cpp11_auto_variable_new_expression.getConst_auto_difference()), 2, "const_auto_difference");
+
     check(cpp11_auto_variable_new_expression.widget_value(cpp11_auto_variable_new_expression.getDecorated_widget()), 18, "decorated_widget");
     check(cpp11_auto_variable_new_expression.const_int_value(cpp11_auto_variable_new_expression.getDecorated_const_int()), 18, "decorated_const_int");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getFirst_int()), 19, "first_int");
