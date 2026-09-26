@@ -1220,8 +1220,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
          T an 'int *', but without its top-level qualifiers, which SwigType_base() also strips */
       base_type = array_dimensions_type(basetype_source);
       Delete(SwigType_pop_arrays(base_type));
-      while (SwigType_isqualifier(base_type))
-        Delete(SwigType_pop(base_type));
+      SwigType_remove_qualifier(base_type);
     } else {
       base_type = SwigType_base(basetype_source);
     }

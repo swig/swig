@@ -1814,8 +1814,8 @@ static String *instantiated_function_signature(Node *n, ParmList *instantiated_p
   for (p = Getattr(n, "parms"); p; p = nextSibling(p)) {
     SwigType *t = Copy(Getattr(p, "type"));
     replace_template_parms(t, n, instantiated_parms);
-    while (normalised && SwigType_isqualifier(t))
-      Delete(SwigType_pop(t));
+    if (normalised)
+      SwigType_remove_qualifier(t);
     Printf(sig, "%s|", t);
     Delete(t);
   }

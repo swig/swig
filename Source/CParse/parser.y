@@ -2473,8 +2473,8 @@ static SwigType *node_full_type(Node *n) {
   if (Equal(nodeType(n), "enum") && Getattr(n, "name") && SwigType_isenum(type)) {
     /* The "type" of an enum names it unqualified, as in 'enum NE' for the enum 'NE' of namespace 'N', which does not
      * name it outside of its scope.  An enum has no declarator, so this is the whole type. */
-    String *scope = Swig_symbol_qualifiedscopename(Getattr(n, "sym:symtab"));
-    if (scope) {
+    String *scope = Swig_symbol_qualified(n);
+    if (Len(scope) > 0) {
       Clear(type);
       Printf(type, "enum %s::%s", scope, Getattr(n, "name"));
     }
@@ -2568,9 +2568,9 @@ static SwigType *address_of_name_type(String *name, int parenthesised) {
   SwigType *type;
   Node *n = !parenthesised && Swig_scopename_check(name) ? Swig_symbol_clookup(name, 0) : 0;
   if (n && GetFlag(n, "ismember") && !Swig_storage_isstatic(n)) {
-    String *cls = Swig_symbol_qualifiedscopename(Getattr(n, "sym:symtab"));
+    String *cls = Swig_symbol_qualified(n);
     type = 0;
-    if (cls && Equal(nodeType(n), "cdecl") && !Getattr(n, "sym:overloaded") && !GetFlag(n, "isextendmember"))
+    if (Len(cls) > 0 && Equal(nodeType(n), "cdecl") && !Getattr(n, "sym:overloaded") && !GetFlag(n, "isextendmember"))
       type = symbol_full_type(name);
     if (type && (SwigType_isreference(type) || SwigType_isrvalue_reference(type))) {
       Delete(type);
@@ -3121,13 +3121,11 @@ static int named_cast_type_code(SwigType *t) {
    template SWIG has not seen, which could be a function template. */
 static SwigType *functional_cast_class_type(SwigType *t) {
   SwigType *reduced;
-  SwigType *prefix;
   int names_class = 0;
   if (SwigType_type(t) != T_USER)
     return 0;
   reduced = Swig_symbol_typedef_reduce(t, Swig_symbol_current());
-  prefix = SwigType_prefix(reduced);
-  if (Len(prefix) == 0) {
+  if (SwigType_issimple(reduced)) {
     Node *n;
     if (SwigType_istemplate(reduced)) {
       String *tprefix = SwigType_templateprefix(reduced);
@@ -3141,7 +3139,6 @@ static SwigType *functional_cast_class_type(SwigType *t) {
       names_class = n && (Equal(nodeType(n), "class") || Equal(nodeType(n), "classforward"));
     }
   }
-  Delete(prefix);
   Delete(reduced);
   return names_class ? Copy(t) : 0;
 }
@@ -5349,9 +5346,7 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
                     * type back out of the text recognises a single literal only, so a C++11 'auto' declaration
                     * declaring more than one variable reads these from here to deduce from this declarator's own
                     * initialiser the way it deduces from the first. */
-                   String *typecode = NewStringf("%d", $initializer.type);
-                   Setattr($$, "initialisertypecode", typecode);
-                   Delete(typecode);
+                   SetInt($$, "initialisertypecode", $initializer.type);
                    if ($initializer.newtype)
                      Setattr($$, "initialisernewtype", $initializer.newtype);
                    if ($initializer.untyped)
