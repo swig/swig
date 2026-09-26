@@ -34,6 +34,10 @@ Version 4.6.0 (in progress)
             An unqualified enumerator was not deduced at all.
 
 2026-09-26: wsfulton
+            [OCaml] The wrapper of a function returning 'const void *', or of a
+            global variable of that type, now compiles.
+
+2026-09-26: wsfulton
             [OCaml, R] Fix the wrapper of a class template instantiated with a
             character literal argument:
 

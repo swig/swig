@@ -20,11 +20,11 @@
 }
 
 %typemap(out) void * {
-    $result = caml_val_ptr($1,$descriptor);
+    $result = caml_val_ptr((void *)$1,$descriptor);
 }
 
 %typemap(varout) void * {
-    $result = caml_val_ptr($1,$descriptor);
+    $result = caml_val_ptr((void *)$1,$descriptor);
 }
 
 %typemap(in) char *& (char *temp), const char *& ($*1_ltype temp) {

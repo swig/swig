@@ -36,6 +36,8 @@ if v3.this != f.this:
 v4 = voidtest.vfunc1(f)
 if v4 != v1:
     raise RuntimeError
+if voidtest.vfunc_const(v1) != v1:
+    raise RuntimeError
 
 
 v3.memberfunc()
