@@ -2220,7 +2220,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    new_expression auto_initializer;
+%type <dtype>    new_expression new_expression_head auto_initializer;
 %type <type>     new_type_id new_array_declarator;
 %type <str>      new_keyword new_initializer_opt;
 %type            deleted_reason;
@@ -3149,37 +3149,45 @@ static String *new_expression_text(const char *keyword) {
   return text;
 }
 
-/* The value of a new-expression, 'text' being its raw text and 'newtype' the type parsed for it, or 0 if there is none.
-   'lookahead' is the parser's lookahead token, the token after the new-expression if it has been read, else YYEMPTY.
-
-   The grammar parses only the type-id, reading the placement and the initialiser as raw text, so the rest of the
-   new-expression is checked here.  After an initialiser no token has been read ahead, and anything up to the end of
-   the initialiser, as in 'new int(5) + 1', is skipped.  Without one the token after the type-id has been read ahead,
-   and one that cannot end an initialiser, such as the '+' of 'new int[3] + 1' or the 'auto' of 'new Numeric auto(5)',
-   is dropped and the rest skipped the same way.  Either way the new-expression is only part of the initialiser, or a
-   form the grammar does not parse, and no type is deduced from it. */
-static struct Define new_expression_dtype(String *text, SwigType *newtype, int *lookahead) {
+/* The value of a new-expression the grammar has parsed, 'text' being its raw text and 'newtype' the type parsed for it,
+   or 0 if there is none. */
+static struct Define new_expression_head_dtype(String *text, SwigType *newtype) {
   struct Define dtype = default_dtype;
-  int dropped = 0;
-  if (*lookahead != YYEMPTY && *lookahead != SEMI && *lookahead != COMMA && *lookahead != RPAREN) {
-    *lookahead = YYEMPTY;
-    dropped = 1;
-  }
-  if (*lookahead == YYEMPTY) {
-    String *rest = skip_to_initializer_end();
-    if (!rest)
-      Exit(EXIT_FAILURE);
-    Swig_cparse_trim_whitespace(rest);
-    if (dropped || Len(rest) > 0) {
-      Delete(newtype);
-      newtype = 0;
-    }
-    Delete(rest);
-  }
   dtype.type = T_UNKNOWN;
   dtype.val = text;
   dtype.newtype = newtype;
   return dtype;
+}
+
+/* Whether 'lookahead', the parser's lookahead token after a new-expression, is a token read ahead that cannot end an
+   initialiser, such as the '+' of 'new int[3] + 1' or the 'auto' of 'new Numeric auto(5)', and so starts the rest of
+   the initialiser the new-expression is only part of.  The parser must then discard it. */
+static int new_expression_lookahead_continues(int lookahead) {
+  return lookahead != YYEMPTY && lookahead != SEMI && lookahead != COMMA && lookahead != RPAREN;
+}
+
+/* The value of an initialiser or default argument that starts with the new-expression 'head', 'lookahead' being the
+   parser's lookahead token, the token after the new-expression if it has been read, else YYEMPTY.
+
+   The grammar parses only the new-expression, so the rest of the initialiser is checked here.  After a new-initializer
+   no token has been read ahead, and anything up to the end of the initialiser, as in 'new int(5) + 1', is skipped.
+   Without one the token after the type-id has been read ahead, and one that continues the initialiser, see
+   new_expression_lookahead_continues(), is discarded by the caller and the rest skipped the same way.  Either way the
+   new-expression is only part of the initialiser, or a form the grammar does not parse, and no type is deduced. */
+static struct Define new_expression_dtype(struct Define head, int lookahead) {
+  int continues = new_expression_lookahead_continues(lookahead);
+  if (lookahead == YYEMPTY || continues) {
+    String *rest = skip_to_initializer_end();
+    if (!rest)
+      Exit(EXIT_FAILURE);
+    Swig_cparse_trim_whitespace(rest);
+    if (continues || Len(rest) > 0) {
+      Delete(head.newtype);
+      head.newtype = 0;
+    }
+    Delete(rest);
+  }
+  return head;
 }
 
 // Append scanner_ccode to expr.  Some cleaning up of the code may be done.
@@ -7642,24 +7650,32 @@ def_args       : EQUAL definetype {
 /* A new-expression, 'new' followed by an optional placement, the type-id and an optional initialiser, such as
    'new int(5)', 'new (buffer) Widget{1, 2}' or 'new double[n]', which gives the type of the pointer it creates.  It is
    only parsed as the whole of an initialiser or a default argument, and never as an operand within an expression, as
-   in 'new int(5) + 1'.  The type-id is the only part the grammar parses: the placement and the initialiser are skipped
-   over as balanced raw text, and the value is the raw text of the whole new-expression.  A parenthesised type-id, as in
-   'new (int *[3])', reads as a placement with no type-id after it and has no type. */
-new_expression : new_keyword new_type_id new_initializer_opt {
-                   $$ = new_expression_dtype($new_keyword, new_expression_type($new_type_id), &yychar);
+   in 'new int(5) + 1', whose rest is skipped, see new_expression_dtype(). */
+new_expression : new_expression_head {
+                   $$ = new_expression_dtype($new_expression_head, yychar);
+                   if (new_expression_lookahead_continues(yychar))
+                     yyclearin;
+                 }
+               ;
+
+/* The new-expression itself.  The type-id is the only part the grammar parses: the placement and the initialiser are
+   skipped over as balanced raw text, and the value is the raw text of the whole new-expression.  A parenthesised
+   type-id, as in 'new (int *[3])', reads as a placement with no type-id after it and has no type. */
+new_expression_head : new_keyword new_type_id new_initializer_opt {
+                   $$ = new_expression_head_dtype($new_keyword, new_expression_type($new_type_id));
                  }
                | new_keyword new_placement new_type_id new_initializer_opt {
-                   $$ = new_expression_dtype($new_keyword, new_expression_type($new_type_id), &yychar);
+                   $$ = new_expression_head_dtype($new_keyword, new_expression_type($new_type_id));
                  }
                | new_keyword new_placement new_initializer_opt {
-                   $$ = new_expression_dtype($new_keyword, 0, &yychar);
+                   $$ = new_expression_head_dtype($new_keyword, 0);
                  }
                /* The C++11 'auto' placeholder, which deduces the type allocated from the initialiser. */
                | new_keyword AUTO new_initializer_opt {
-                   $$ = new_expression_dtype($new_keyword, new_auto_expression_type(0, $new_initializer_opt), &yychar);
+                   $$ = new_expression_head_dtype($new_keyword, new_auto_expression_type(0, $new_initializer_opt));
                  }
                | new_keyword type_qualifier AUTO new_initializer_opt {
-                   $$ = new_expression_dtype($new_keyword, new_auto_expression_type($type_qualifier, $new_initializer_opt), &yychar);
+                   $$ = new_expression_head_dtype($new_keyword, new_auto_expression_type($type_qualifier, $new_initializer_opt));
                  }
                ;
 
