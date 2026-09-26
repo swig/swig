@@ -382,6 +382,7 @@ extern String *Swig_stringify_with_location(DOH *object);
 extern void Swig_cresult_name_set(const char *new_name);
 extern const char *Swig_cresult_name(void);
 extern String *Swig_cparm_name(Parm *p, int i);
+extern SwigType *Swig_full_type(Node *n);
 extern SwigType *Swig_function_return_type(Node *n);
 extern String *Swig_wrapped_var_type(SwigType *t, int varcref);
 extern int Swig_cargs(Wrapper *w, ParmList *l);

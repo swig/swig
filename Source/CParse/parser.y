@@ -2435,28 +2435,25 @@ static Node *qualified_unscoped_enumerator(String *name) {
    Returns 0 when 'n' has no type. */
 static SwigType *node_full_type(Node *n) {
   SwigType *type;
-  SwigType *decl;
   String *storage;
   if (Equal(nodeType(n), "enumitem")) {
     /* For an enumitem, the "type" attribute gives us the underlying integer type - we want the "type"
      * attribute from the enum itself, which is "parentNode". */
     n = Getattr(n, "parentNode");
   }
-  type = Getattr(n, "type");
-  if (!type)
+  if (!Getattr(n, "type"))
     return 0;
-  if (Equal(nodeType(n), "enum") && Getattr(n, "name") && Strncmp(type, "enum ", 5) == 0) {
+  type = Swig_full_type(n);
+  if (Equal(nodeType(n), "enum") && Getattr(n, "name") && SwigType_isenum(type)) {
     /* The "type" of an enum names it unqualified, as in 'enum NE' for the enum 'NE' of namespace 'N', which does not
-     * name it outside of its scope. */
+     * name it outside of its scope.  An enum has no declarator, so this is the whole type. */
     String *scope = Swig_symbol_qualifiedscopename(Getattr(n, "sym:symtab"));
-    type = scope ? NewStringf("enum %s::%s", scope, Getattr(n, "name")) : Copy(type);
+    if (scope) {
+      Clear(type);
+      Printf(type, "enum %s::%s", scope, Getattr(n, "name"));
+    }
     Delete(scope);
-  } else {
-    type = Copy(type);
   }
-  decl = Getattr(n, "decl");
-  if (decl)
-    SwigType_push(type, decl);
   storage = Getattr(n, "storage");
   if (storage && Strstr(storage, "constexpr") && !SwigType_isconst(type)) {
     /* A 'constexpr' object is const, but SWIG keeps constexpr in the "storage" attribute rather than in the

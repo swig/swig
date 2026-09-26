@@ -126,17 +126,31 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_full_type()
+ *
+ * Returns a newly allocated SwigType holding the full type of the declaration
+ * node n, that is its "type" with the declarator in its "decl" applied, so
+ * 'p.int' for 'int *p' and 'q(const).f(int).p.int' for 'int *f(int) const'.
+ * A node without a "type", such as a constructor, gives its "decl" alone.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *Swig_full_type(Node *n) {
+  SwigType *type = NewString(Getattr(n, "type"));
+  SwigType_push(type, Getattr(n, "decl"));
+  return type;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_function_return_type()
  *
  * Returns a newly allocated SwigType holding the full return type of the
- * function node n, that is its "type" with the declarator in its "decl" applied
- * but for the function itself and any cv or ref-qualifier on a member function,
- * so 'p.int' for 'int *f(int) const'.
+ * function node n, that is its Swig_full_type() but for the function itself
+ * and any cv or ref-qualifier on a member function, so 'p.int' for
+ * 'int *f(int) const'.
  * ----------------------------------------------------------------------------- */
 
 SwigType *Swig_function_return_type(Node *n) {
-  SwigType *type = NewString(Getattr(n, "type"));
-  SwigType_push(type, Getattr(n, "decl"));
+  SwigType *type = Swig_full_type(n);
   Delete(SwigType_pop_function(type));
   return type;
 }
