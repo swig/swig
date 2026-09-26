@@ -1721,19 +1721,13 @@ String *Scanner_get_raw_text_to_semicolon(Scanner *s) {
 
   while (1) {
     int tok = Scanner_token(lookahead);
+    int delta = Scanner_bracket_depth_delta(tok);
     if (tok <= 0) {
       break;
-    } else if (tok == SWIG_TOKEN_LPAREN || tok == SWIG_TOKEN_LBRACKET || tok == SWIG_TOKEN_LBRACE) {
-      num_levels++;
-    } else if (tok == SWIG_TOKEN_LLBRACKET) {
-      num_levels += 2;
-    } else if (tok == SWIG_TOKEN_RPAREN || tok == SWIG_TOKEN_RBRACKET || tok == SWIG_TOKEN_RBRACE) {
-      if (--num_levels < 0)
-        break; /* A closing bracket at the outermost level - the declaration ended without a ';' */
-    } else if (tok == SWIG_TOKEN_RRBRACKET) {
-      num_levels -= 2;
+    } else if (delta) {
+      num_levels += delta;
       if (num_levels < 0)
-        break;
+        break; /* A closing bracket at the outermost level - the declaration ended without a ';' */
     } else if (tok == SWIG_TOKEN_SEMI && num_levels == 0) {
       /* Tell() is positioned just after the ';', which is not wanted in the returned text. */
       result = NewStringWithSize(Char(s->str) + start, Tell(s->str) - start - 1);
@@ -1759,6 +1753,32 @@ int Scanner_isoperator(int tokval) {
   if (tokval >= 100)
     return 1;
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_bracket_depth_delta()
+ *
+ * Returns the change a token makes to the depth of nesting inside '(...)', '[...]' and '{...}': 1 for an opening
+ * bracket, -1 for a closing one, 2 for '[[', -2 for ']]' and 0 for any other token.
+ * ----------------------------------------------------------------------------- */
+
+int Scanner_bracket_depth_delta(int tok) {
+  switch (tok) {
+  case SWIG_TOKEN_LPAREN:
+  case SWIG_TOKEN_LBRACKET:
+  case SWIG_TOKEN_LBRACE:
+    return 1;
+  case SWIG_TOKEN_RPAREN:
+  case SWIG_TOKEN_RBRACKET:
+  case SWIG_TOKEN_RBRACE:
+    return -1;
+  case SWIG_TOKEN_LLBRACKET:
+    return 2;
+  case SWIG_TOKEN_RRBRACKET:
+    return -2;
+  default:
+    return 0;
+  }
 }
 
 /* ----------------------------------------------------------------------
