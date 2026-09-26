@@ -879,15 +879,8 @@ static void rebuild_abbreviated_decl(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static int explicit_template_argument_count(ParmList *templateparms, ParmList *tparms) {
-  int later_singles = 0;
-  int seen_pack = 0;
-  Parm *p;
-  for (p = templateparms; p; p = nextSibling(p)) {
-    if (SwigType_isvariadic(Getattr(p, "type")))
-      seen_pack = 1;
-    else if (seen_pack)
-      ++later_singles;
-  }
+  Parm *pack = ParmList_find_variadic_parm(templateparms, 0);
+  int later_singles = pack ? ParmList_len_nonvariadic(nextSibling(pack)) : 0;
   return ParmList_len(tparms) - later_singles;
 }
 
@@ -968,14 +961,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
        * every later pack empty, so what the first absorbs is whatever the parms taking one argument each do not.
        * Counting those rather than subtracting the length of the list is what makes a second pack come out empty
        * instead of one argument short. */
-      int fixed_parms = 0;
-      int absorbed;
-      Parm *rp;
-      for (rp = templateparmsraw; rp; rp = nextSibling(rp)) {
-        if (!SwigType_isvariadic(Getattr(rp, "type")))
-          ++fixed_parms;
-      }
-      absorbed = ParmList_len(templateparms) - fixed_parms;
+      int absorbed = ParmList_len(templateparms) - ParmList_len_nonvariadic(templateparmsraw);
       Parm *slice = ParmList_nth_parm(templateparms, variadic_pos);
       expanded_variadic_parms = CopyParmListMax(slice, absorbed);
     }

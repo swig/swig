@@ -302,6 +302,21 @@ int ParmList_len(ParmList *p) {
   return i;
 }
 
+/* -----------------------------------------------------------------------------
+ * ParmList_len_nonvariadic()
+ *
+ * Return the number of parms in the list that are not variadic, such as the template parameters that are not packs.
+ * ----------------------------------------------------------------------------- */
+
+int ParmList_len_nonvariadic(ParmList *p) {
+  int i = 0;
+  for (; p; p = nextSibling(p)) {
+    if (!SwigType_isvariadic(Getattr(p, "type")))
+      i++;
+  }
+  return i;
+}
+
 /* ---------------------------------------------------------------------
  * get_empty_type()
  * ---------------------------------------------------------------------- */

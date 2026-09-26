@@ -32,6 +32,7 @@ extern Parm *ParmList_find_pack_expansion(ParmList *p, const String *pack, int *
 extern Parm *ParmList_add_parm(ParmList *p, Parm *newparm);
 extern int ParmList_numrequired(ParmList *);
 extern int ParmList_len(ParmList *);
+extern int ParmList_len_nonvariadic(ParmList *p);
 extern int ParmList_has_defaultargs(ParmList *p);
 extern int ParmList_has_varargs(ParmList *p);
 extern void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end);
