@@ -2222,7 +2222,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    new_expression new_expression_head auto_initializer;
 %type <type>     new_type_id new_array_declarator;
-%type <str>      new_keyword new_initializer_opt;
+%type <str>      new_keyword new_placement new_initializer_opt;
 %type            deleted_reason;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
@@ -3136,23 +3136,24 @@ static SwigType *new_auto_expression_type(String *qualifier, String *initializer
   return type;
 }
 
-/* The raw text of a new-expression that begins with 'keyword', which is 'new' or '::new', read up to the end of the
-   initialiser the new-expression is, before the parser reads any of it. */
-static String *new_expression_text(const char *keyword) {
-  String *rest = get_raw_text_to_initializer_end();
-  String *text;
-  if (!rest)
-    Exit(EXIT_FAILURE);
-  Swig_cparse_trim_whitespace(rest);
-  text = NewStringf("%s %s", keyword, rest);
-  Delete(rest);
-  return text;
-}
-
-/* The value of a new-expression the grammar has parsed, 'text' being its raw text and 'newtype' the type parsed for it,
-   or 0 if there is none. */
-static struct Define new_expression_head_dtype(String *text, SwigType *newtype) {
+/* The value of the new-expression made of 'keyword', which is 'new' or '::new', the raw texts of the optional
+   'placement' and 'initializer', and the optional 'type_id', whose text is as SwigType_str() writes it.  'newtype' is
+   the type of the pointer it creates, or 0 if that is not known. */
+static struct Define new_expression_head_dtype(String *keyword, String *placement, SwigType *type_id, String *initializer, SwigType *newtype) {
   struct Define dtype = default_dtype;
+  String *text = NewStringf("%s ", keyword);
+  if (placement)
+    Append(text, placement);
+  if (type_id) {
+    String *type_text = SwigType_str(type_id, 0);
+    Printf(text, placement ? " %s" : "%s", type_text);
+    Delete(type_text);
+  }
+  if (initializer)
+    Append(text, initializer);
+  Delete(keyword);
+  Delete(placement);
+  Delete(initializer);
   dtype.type = T_UNKNOWN;
   dtype.val = text;
   dtype.newtype = newtype;
@@ -3172,16 +3173,18 @@ static int new_expression_lookahead_continues(int lookahead) {
    The grammar parses only the new-expression, so the rest of the initialiser is checked here.  After a new-initializer
    no token has been read ahead, and anything up to the end of the initialiser, as in 'new int(5) + 1', is skipped.
    Without one the token after the type-id has been read ahead, and one that continues the initialiser, see
-   new_expression_lookahead_continues(), is discarded by the caller and the rest skipped the same way.  Either way the
-   new-expression is only part of the initialiser, or a form the grammar does not parse, and no type is deduced. */
+   new_expression_lookahead_continues(), is discarded by the caller and starts the rest, skipped the same way.  The text
+   of any rest is appended to the value, as the new-expression is then only part of the initialiser, or a form the
+   grammar does not parse, and no type is deduced. */
 static struct Define new_expression_dtype(struct Define head, int lookahead) {
   int continues = new_expression_lookahead_continues(lookahead);
   if (lookahead == YYEMPTY || continues) {
-    String *rest = skip_to_initializer_end();
+    String *rest = skip_to_initializer_end(continues);
     if (!rest)
       Exit(EXIT_FAILURE);
     Swig_cparse_trim_whitespace(rest);
-    if (continues || Len(rest) > 0) {
+    if (Len(rest) > 0) {
+      Printf(head.val, " %s", rest);
       Delete(head.newtype);
       head.newtype = 0;
     }
@@ -7659,34 +7662,38 @@ new_expression : new_expression_head {
                ;
 
 /* The new-expression itself.  The type-id is the only part the grammar parses: the placement and the initialiser are
-   skipped over as balanced raw text, and the value is the raw text of the whole new-expression.  A parenthesised
-   type-id, as in 'new (int *[3])', reads as a placement with no type-id after it and has no type. */
+   skipped over as balanced raw text, and the value is built from the parts, see new_expression_head_dtype().  A
+   parenthesised type-id, as in 'new (int *[3])', reads as a placement with no type-id after it and has no type. */
 new_expression_head : new_keyword new_type_id new_initializer_opt {
-                   $$ = new_expression_head_dtype($new_keyword, new_expression_type($new_type_id));
+                   $$ = new_expression_head_dtype($new_keyword, 0, $new_type_id, $new_initializer_opt, new_expression_type($new_type_id));
                  }
                | new_keyword new_placement new_type_id new_initializer_opt {
-                   $$ = new_expression_head_dtype($new_keyword, new_expression_type($new_type_id));
+                   $$ = new_expression_head_dtype($new_keyword, $new_placement, $new_type_id, $new_initializer_opt, new_expression_type($new_type_id));
                  }
                | new_keyword new_placement new_initializer_opt {
-                   $$ = new_expression_head_dtype($new_keyword, 0);
+                   $$ = new_expression_head_dtype($new_keyword, $new_placement, 0, $new_initializer_opt, 0);
                  }
                /* The C++11 'auto' placeholder, which deduces the type allocated from the initialiser. */
                | new_keyword AUTO new_initializer_opt {
-                   $$ = new_expression_head_dtype($new_keyword, new_auto_expression_type(0, $new_initializer_opt));
+                   SwigType *placeholder = NewString("auto");
+                   $$ = new_expression_head_dtype($new_keyword, 0, placeholder, $new_initializer_opt, new_auto_expression_type(0, $new_initializer_opt));
+                   Delete(placeholder);
                  }
                | new_keyword type_qualifier AUTO new_initializer_opt {
-                   $$ = new_expression_head_dtype($new_keyword, new_auto_expression_type($type_qualifier, $new_initializer_opt));
+                   SwigType *placeholder = NewString("auto");
+                   SwigType_push(placeholder, $type_qualifier);
+                   $$ = new_expression_head_dtype($new_keyword, 0, placeholder, $new_initializer_opt, new_auto_expression_type($type_qualifier, $new_initializer_opt));
+                   Delete(placeholder);
                  }
                ;
 
-/* The 'new' or '::new' that starts a new-expression.  Its value is the raw text of the whole new-expression, read
-   before the parser reads any further. */
+/* The 'new' or '::new' that starts a new-expression. */
 new_keyword    : NEW_KW {
-                   $$ = new_expression_text("new");
+                   $$ = NewString("new");
                  }
                /* The scanner gives a '::' that does not follow a name as NONID DCOLON. */
                | NONID DCOLON NEW_KW {
-                   $$ = new_expression_text("::new");
+                   $$ = NewString("::new");
                  }
                ;
 
@@ -7729,6 +7736,7 @@ new_array_declarator : LBRACKET expr RBRACKET {
 new_placement  : LPAREN {
                    if (skip_balanced('(', ')') < 0)
                      Exit(EXIT_FAILURE);
+                   $$ = Copy(scanner_ccode);
                    Clear(scanner_ccode);
                  }
                ;

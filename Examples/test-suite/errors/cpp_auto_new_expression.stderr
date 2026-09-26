@@ -1,5 +1,5 @@
 cpp_auto_new_expression.i:7: Warning 346: Unable to deduce auto type for variable 'after_initialiser' from initialiser 'new int(5) + 0' (ignored).
-cpp_auto_new_expression.i:8: Warning 346: Unable to deduce auto type for variable 'after_type_id' from initialiser 'new int[3] + 1' (ignored).
+cpp_auto_new_expression.i:8: Warning 346: Unable to deduce auto type for variable 'after_type_id' from initialiser 'new int [3] + 1' (ignored).
 cpp_auto_new_expression.i:9: Warning 346: Unable to deduce auto type for variable 'parenthesised' from initialiser 'new (int *[3])' (ignored).
 cpp_auto_new_expression.i:10: Warning 346: Unable to deduce auto type for variable 'constrained' from initialiser 'new Numeric auto(5)' (ignored).
 cpp_auto_new_expression.i:11: Warning 344: Unable to deduce decltype for 'auto'.

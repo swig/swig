@@ -218,32 +218,26 @@ String *get_raw_text_to_semicolon(void) {
  *
  * Skips the rest of an initializer or default argument, up to but not including
  * the ',', ';' or ')' that ends it, and returns its raw text, or NULL after
- * reporting an error if the end of input is reached first.
+ * reporting an error if the end of input is reached first.  If 'after_token' is
+ * set, the rest starts with the token scanned last, which the parser read ahead
+ * and discarded, and the text returned starts with that token's text.
  * ----------------------------------------------------------------------------- */
 
-String *skip_to_initializer_end(void) {
+String *skip_to_initializer_end(int after_token) {
   int start_line = Scanner_line(scan);
+  String *token = after_token ? Copy(Scanner_text(scan)) : 0;
   String *code = Scanner_skip_to_initializer_end(scan);
   if (!code) {
     Swig_error(cparse_file, start_line, "Missing ';' or ')'. Reached end of input.\n");
+    Delete(token);
     return NULL;
+  }
+  if (token) {
+    Insert(code, 0, token);
+    Delete(token);
   }
   cparse_line = Scanner_line(scan);
   cparse_file = Scanner_file(scan);
-  return code;
-}
-
-/* -----------------------------------------------------------------------------
- * get_raw_text_to_initializer_end()
- *
- * Returns the raw text skip_to_initializer_end() would skip without skipping it,
- * or NULL after reporting an error if the end of input is reached first.
- * ----------------------------------------------------------------------------- */
-
-String *get_raw_text_to_initializer_end(void) {
-  String *code = Scanner_get_raw_text_to_initializer_end(scan);
-  if (!code)
-    Swig_error(cparse_file, Scanner_line(scan), "Missing ';' or ')'. Reached end of input.\n");
   return code;
 }
 

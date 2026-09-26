@@ -54,6 +54,23 @@ int default_template(std::pair<int, int> *p = new std::pair<int, int>(3, 4), int
   return v;
 }
 
+%}
+
+// The text of a new-expression default argument is compiled into the wrapper with compactdefaultargs.
+%feature("compactdefaultargs") compact_defaults;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) compact_defaults;
+
+%inline %{
+int compact_defaults(int *a = new int[2] + 1, const Widget *w = new const Widget(2, 3),
+                     std::pair<int, int> *p = new std::pair<int, int>(4, 5)) {
+  *a = 3;
+  int v = *a + w->w + p->first + p->second;
+  delete[] (a - 1);
+  delete w;
+  delete p;
+  return v;
+}
+
 // 'new' inside a function body, which SWIG skips over, is unaffected.
 inline Widget *make_widget() { return new Widget; }
 %}

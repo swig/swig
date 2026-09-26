@@ -24,6 +24,7 @@ swig_check(cpp_new_expression.default_array(), 0)
 swig_check(cpp_new_expression.default_global(), 6)
 swig_check(cpp_new_expression.default_offset(), 0)
 swig_check(cpp_new_expression.default_template(), 17)
+swig_check(cpp_new_expression.compact_defaults(), 17)
 
 # A new-expression in a function body is unaffected.
 swig_check(cpp_new_expression.make_widget().w, 7)
