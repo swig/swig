@@ -98,6 +98,22 @@ struct ConversionOperators2 {
 };
 %}
 
+// Default arguments: the overloads added for the defaulted parameters keep the method's qualifiers
+%feature("except") DefaultArgs::vol(int a = 1, int b = 2) volatile %{ result = 100; %}
+%feature("except") DefaultArgs::lref(int a = 1, int b = 2) & %{ result = 200; %}
+%rename(cvref_renamed) DefaultArgs::cvref(int a = 1, int b = 2) const volatile &;
+%feature("ignore", "0") DefaultArgs::rv(int a = 1, int b = 2) &&;
+
+%inline %{
+struct DefaultArgs {
+  int vol(int a = 1, int b = 2) volatile { return a + b; }
+  int lref(int a = 1, int b = 2) & { return a + b; }
+  int cvref(int a = 1, int b = 2) const volatile & { return a + b; }
+  int rv(int a = 1, int b = 2) && { return a + b; }
+  int crv(int a = 1, int b = 2) const && { return a + b; }
+};
+%}
+
 %inline %{
 struct Funcs {
   short FF(bool) { return 0; }

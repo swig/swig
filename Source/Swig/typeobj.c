@@ -1014,6 +1014,26 @@ SwigType *SwigType_pop_function_qualifiers(SwigType *t) {
   return qualifiers;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_replace_function_parms()
+ *
+ * Replace the parameter list of the function type t with parms, keeping the cv-qualifier and ref-qualifier of a
+ * member function and everything after the parameter list.  Returns t.
+ * For example, with parms (double):
+ *   t in:   r.q(const).f(int,int).p.
+ *   t out:  r.q(const).f(double).p.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_replace_function_parms(SwigType *t, ParmList *parms) {
+  SwigType *function = SwigType_pop_function(t);
+  SwigType *qualifiers = SwigType_pop_function_qualifiers(function);
+  SwigType_add_function(t, parms);
+  SwigType_push(t, qualifiers);
+  Delete(qualifiers);
+  Delete(function);
+  return t;
+}
+
 int SwigType_isfunction(const SwigType *t) {
   char *c;
   if (!t) {

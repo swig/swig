@@ -1558,7 +1558,6 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 
   /* Add extra names if there are default parameters in the parameter list */
   if (decl) {
-    int constqualifier = SwigType_isconst(decl);
     while (declparms) {
       if (ParmList_has_defaultargs(declparms)) {
 
@@ -1567,11 +1566,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
         ParmList *newparms = CopyParmListMax(declparms, ParmList_len(declparms) - 1);
 
         /* Create new declaration - with the last parameter removed */
-        SwigType *newdecl = Copy(decl);
-        Delete(SwigType_pop_function(newdecl)); /* remove the old parameter list from newdecl */
-        SwigType_add_function(newdecl, newparms);
-        if (constqualifier)
-          SwigType_add_qualifier(newdecl, "const");
+        SwigType *newdecl = SwigType_replace_function_parms(Copy(decl), newparms);
 
         single_rename_add(prefix, name, newdecl, newname);
         declparms = newparms;

@@ -21,6 +21,30 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-26: wsfulton
+            The extra wrappers generated for the default arguments of a member
+            function now keep the function's 'volatile' qualifier and ref-qualifier,
+            as they already kept 'const'.  The extra wrappers of an rvalue
+            ref-qualified member function did not compile, and a %feature naming a
+            'volatile' or ref-qualified member function did not apply to them:
+
+              %feature("ignore", "0") S::rv(int a = 1) &&;
+              %feature("except") S::vol(int a = 1) volatile %{ ... %}
+              struct S {
+                int rv(int a = 1) &&;         // rv() compiles
+                int vol(int a = 1) volatile;  // vol() gets the %feature
+              };
+
+            An rvalue ref-qualified member function that is not unignored, and a
+            member function with an explicit object parameter that is an rvalue
+            reference, are now ignored along with their extra wrappers.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+            A %rename, %ignore or %feature naming one of these extra wrappers now
+            has to include the qualifiers, as it already had to for 'const', for
+            example '%ignore S::vol() volatile;' rather than '%ignore S::vol();'.
+
+2026-09-26: wsfulton
             An array dimension that is an expression, rather than a number or a
             name, is now parenthesised where a typemap uses it through $1_dim0,
             $1_dim1 and so on, or through $1_size, so that the expression keeps

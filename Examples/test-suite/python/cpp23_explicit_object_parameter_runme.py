@@ -20,6 +20,7 @@ swig_check(c.add(1, 2), 13)
 # An rvalue reference to the class can only be called on an rvalue, so it is not wrapped.  The
 # deduced forms above are forwarding references and are, which is what tells the two apart.
 swig_assert(not hasattr(c, "by_rvalue_ref"), "by_rvalue_ref should not be wrapped")
+swig_assert(not hasattr(c, "by_rvalue_ref_defarg"), "by_rvalue_ref_defarg should not be wrapped")
 
 # Passing the object explicitly is an error - it is not one of the method's arguments.
 with swig_assert_raises(TypeError):

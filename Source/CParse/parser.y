@@ -1785,22 +1785,17 @@ static void default_arguments(Node *n) {
 	SwigType *ntype = Copy(nodeType(function));
 	char *cntype = Char(ntype);
         Node *new_function = new_node(ntype);
-        SwigType *decl = Copy(Getattr(function,"decl"));
-        int constqualifier = SwigType_isconst(decl);
+        SwigType *decl = SwigType_replace_function_parms(Copy(Getattr(function, "decl")), newparms);
 	String *ccode = Copy(Getattr(function,"code"));
 	String *cstorage = Copy(Getattr(function,"storage"));
 	String *cvalue = Copy(Getattr(function,"value"));
 	SwigType *ctype = Copy(Getattr(function,"type"));
 	String *cthrow = Copy(Getattr(function,"throw"));
 
-        Delete(SwigType_pop_function(decl)); /* remove the old parameter list from decl */
-        SwigType_add_function(decl,newparms);
-        if (constqualifier)
-          SwigType_add_qualifier(decl,"const");
-
         Setattr(new_function,"name", Getattr(function,"name"));
         Setattr(new_function,"code", ccode);
         Setattr(new_function,"decl", decl);
+        Setattr(new_function, "refqualifier", Getattr(function, "refqualifier"));
         Setattr(new_function,"parms", newparms);
         Setattr(new_function,"storage", cstorage);
         Setattr(new_function,"value", cvalue);

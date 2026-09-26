@@ -11,6 +11,7 @@
 // An rvalue reference to the class can only be called on an rvalue, so it is ignored as the
 // equivalent 'void method() &&' spelling of it is.
 %warnfilter(SWIGWARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED) Counter::by_rvalue_ref;
+%warnfilter(SWIGWARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED) Counter::by_rvalue_ref_defarg;
 
 %inline %{
 struct Counter {
@@ -37,6 +38,9 @@ struct Counter {
   // An rvalue reference to the class, which binds no lvalue and so is ignored.  The deduced forms
   // above are forwarding references rather than rvalue references and are wrapped as usual.
   int by_rvalue_ref(this Counter &&self) { return self.value + 6; }
+
+  // The overload added for the default argument is ignored too.
+  int by_rvalue_ref_defarg(this Counter &&self, int a = 6) { return self.value + a; }
 
   // Ordinary parameters follow the explicit object parameter and are the only arguments wrapped.
   int add(this Counter &self, int a, int b) { return self.value + a + b; }
