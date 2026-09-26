@@ -143,3 +143,11 @@ if cpp11_decltype.cvar.typedef_enum_lvalue != cpp11_decltype.typedefed_a:
 
 swig_check(cpp11_decltype.cvar.constructed_held.member, 7)
 swig_check(cpp11_decltype.cvar.braced_held.member, 9)
+
+# A parenthesised enumerator has the type of its enumeration.
+swig_check(cpp11_decltype.cvar.paren_enumerator, cpp11_decltype.enumerated_b)
+swig_check(cpp11_decltype.cvar.paren_qualified_enumerator, cpp11_decltype.enumerated_b)
+swig_check(cpp11_decltype.cvar.paren_scoped_enumerator, cpp11_decltype.ScopedEnumerated_scoped_b)
+cpp11_decltype.cvar.paren_scoped_enumerator = cpp11_decltype.ScopedEnumerated_scoped_a
+swig_check(cpp11_decltype.cvar.paren_scoped_enumerator, cpp11_decltype.ScopedEnumerated_scoped_a)
+swig_check(cpp11_decltype.cvar.paren_namespace_enumerator, cpp11_decltype.hue_blue)

@@ -2649,13 +2649,15 @@ static int type_names_enum(const SwigType *type) {
 
 /* The type 'decltype' names for a parenthesised id-expression such as the '(gp)' of 'decltype((gp))'.  Being an
    lvalue it names an lvalue reference to the type the name was declared with, where the unparenthesised name
-   names that type on its own.  Returns 0 when the expression is not the name of a variable, leaving the caller to
-   work the type out from the type code of the expression instead. */
+   names that type on its own.  An enumerator is a prvalue, so it names its enumeration either way.  Returns 0 when
+   the expression is not the name of a variable or an enumerator, leaving the caller to work the type out from the
+   type code of the expression instead. */
 static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
   String *unwrapped;
   SwigType *type;
   Node *n;
   int code;
+  int enumerator = 0;
 
   if (!dtype->val)
     return 0;
@@ -2667,11 +2669,14 @@ static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
     type = symbol_full_type(unwrapped);
   } else {
     n = Swig_symbol_clookup(unwrapped, 0);
-    type = n && Equal(nodeType(n), "cdecl") ? symbol_full_type(unwrapped) : 0;
+    if (!n)
+      n = qualified_unscoped_enumerator(unwrapped);
+    enumerator = n && Equal(nodeType(n), "enumitem");
+    type = n && (enumerator || Equal(nodeType(n), "cdecl")) ? symbol_full_type(unwrapped) : 0;
   }
   Delete(unwrapped);
-  if (!type)
-    return 0;
+  if (!type || enumerator)
+    return type;
   if (SwigType_isfunction(type) || SwigType_isauto(type)) {
     Delete(type);
     return 0;

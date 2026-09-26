@@ -25,6 +25,10 @@ public class cpp14_decltype_auto_runme {
     if (cpp14_decltype_auto.paren_deref(cpp14_decltype_auto.getVar_paren_ptr()) != 10)
       throw new RuntimeException("var_paren_ptr should refer to paren_ptr");
 
+    // A parenthesised enumerator deduces its enumeration.
+    if (cpp14_decltype_auto.getVar_paren_scoped() != ParenScoped.scoped_dark)
+      throw new RuntimeException("var_paren_scoped");
+
     // Unlike 'auto', 'decltype(auto)' keeps the reference, so var_ref is wrapped as 'int &' and
     // reaches Java as a pointer type where var_int gives a plain int.
     if (cpp14_decltype_auto.getVar_ref() == null)

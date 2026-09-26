@@ -23,6 +23,9 @@ swig_check(cvar.paren_class.member, 12)
 swig_assert(cvar.var_paren_array is not None, "var_paren_array")
 cvar.var_paren_static = 13
 swig_check(cvar.Paren_count, 13)
+swig_check(cvar.var_paren_enumerator, paren_dark)
+swig_check(cvar.var_paren_scoped, ParenScoped_scoped_dark)
+swig_check(hasattr(cvar, "var_paren_function"), False)
 
 # A deduced return type cannot be deduced from the body, so these are all ignored.
 for ignored in ("ret_plain", "ret_trailing"):

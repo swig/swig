@@ -21,6 +21,19 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-26: wsfulton
+            A decltype of a parenthesised enumerator, and a 'decltype(auto)'
+            variable initialised by one, now name the enumeration, as the
+            unparenthesised enumerator does:
+
+              namespace N { enum class Shade { Light, Dark }; }
+              decltype((N::Shade::Dark)) s = N::Shade::Dark;  // N::Shade, was int
+              decltype(auto) t = (N::Shade::Dark);            // N::Shade, was int
+
+            An enumerator of a scoped enumeration, or in a namespace or a class,
+            was given the type int and the generated wrapper did not compile.
+            An unqualified enumerator was not deduced at all.
+
+2026-09-26: wsfulton
             [OCaml, R] Fix the wrapper of a class template instantiated with a
             character literal argument:
 

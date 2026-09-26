@@ -265,4 +265,13 @@
   // A functional cast to a class names the class.
   decltype(Held()) constructed_held = { 7 };
   decltype(Held{8}) braced_held = { 9 };
+
+  // An enumerator is a prvalue, so a parenthesised one names its enumeration as the unparenthesised one does.
+  namespace EnumSpace {
+    enum Hue { hue_red, hue_blue };
+  }
+  decltype((enumerated_b)) paren_enumerator = enumerated_b;                                     // Enumerated
+  decltype((Enumerated::enumerated_b)) paren_qualified_enumerator = enumerated_b;                // Enumerated
+  decltype((ScopedEnumerated::scoped_b)) paren_scoped_enumerator = ScopedEnumerated::scoped_b;   // ScopedEnumerated
+  decltype((EnumSpace::hue_blue)) paren_namespace_enumerator = EnumSpace::hue_blue;              // EnumSpace::Hue
 %}
