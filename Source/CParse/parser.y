@@ -2045,11 +2045,13 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     short untyped;
     /* The form of the expression, which its value text does not reliably show: 'idexpr' is the name when it is an
      * id-expression, 'unparenthesised' the value text inside the parentheses when the whole of it is parenthesised,
-     * and 'literal' says whether it is a string or character literal.  Parentheses keep an id-expression and a literal
-     * what they are, so '(x)' and '((x))' both have the 'idexpr' 'x'.  See also clear_expression_form(). */
+     * and 'literal' says whether it is a string or character literal, with 'literalprefix' its encoding prefix, a
+     * SWIG_LITERAL_* value.  Parentheses keep an id-expression and a literal what they are, so '(x)' and '((x))' both
+     * have the 'idexpr' 'x'.  See also clear_expression_form(). */
     String *idexpr;
     String *unparenthesised;
     enum { LITERAL_NONE, LITERAL_STRING, LITERAL_CHARACTER } literal;
+    int literalprefix;
   } dtype;
   struct {
     String *filename;
@@ -2092,6 +2094,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   } autotype;
   SwigType     *type;
   String       *str;
+  /* A string or character literal: its decoded text and its encoding prefix, a SWIG_LITERAL_* value. */
+  struct Literal {
+    String     *text;
+    int         prefix;
+  } literal;
   Parm         *p;
   ParmList     *pl;
   int           intvalue;
@@ -2113,9 +2120,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
-%token <str> STRING WSTRING
+%token <literal> STRING WSTRING
 %token INCLUDE IMPORT INSERT
-%token <str> CHARCONST WCHARCONST
+%token <literal> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
@@ -2248,7 +2255,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      using_conversion using_scope;
-%type <str>      string stringnum wstring;
+%type <str>      string stringnum;
+%type <literal>  string_literal wstring;
 %type <tparms>   template_parms;
 %type <pbuilder> template_parms_builder;
 %type <dtype>    cpp_vend;
@@ -2611,6 +2619,7 @@ static void clear_expression_form(struct Define *dtype) {
   dtype->idexpr = 0;
   dtype->unparenthesised = 0;
   dtype->literal = LITERAL_NONE;
+  dtype->literalprefix = SWIG_LITERAL_ORDINARY;
 }
 
 /* The expression whose value text is 'text' and whose T_* code is 'type_code', when there is no parse of the text to
@@ -2842,39 +2851,67 @@ static int initialiser_is_wide_character_literal(const struct Define *dtype) {
   return dtype->literal == LITERAL_CHARACTER && dtype->type == T_WCHAR && dtype->stringval;
 }
 
-/* Carry the encoding prefix of the string literal 'piece' onto 'literal', the run of adjacent literals it is
-   being concatenated onto.  The run makes one literal of the character type a u8, u or U prefix gives it, else an L
-   prefix, so it keeps the first such prefix, the 'u8' of both u8"a" u8"b" and R"(a)" u8"b". */
-static void append_literal_prefix(String *literal, String *piece) {
-  String *prefix = Getmeta(piece, "encodingprefix");
-  String *kept = Getmeta(literal, "encodingprefix");
-  if (!prefix || (kept && (Strchr(kept, 'u') || Strchr(kept, 'U'))))
-    return;
-  if (Strchr(prefix, 'u') || Strchr(prefix, 'U') || (Strchr(prefix, 'L') && !(kept && Strchr(kept, 'L'))))
-    Setmeta(literal, "encodingprefix", prefix);
+/* The encoding prefix 'prefix' of a string or character literal, a SWIG_LITERAL_* value, without SWIG_LITERAL_RAW,
+   which says nothing of the character type. */
+static int literal_encoding(int prefix) {
+  return prefix & ~SWIG_LITERAL_RAW;
 }
 
-/* The encoding prefix of the string or character literal 'stringval' when that prefix gives the literal one of the
-   char8_t, char16_t and char32_t character types, which SWIG has no type for, and 0 when the literal is of char or
-   wchar_t.  Returns the prefix of whichever of a concatenated run of string literals carries one. */
-static String *unsupported_literal_prefix(String *stringval) {
-  String *prefix = Getmeta(stringval, "encodingprefix");
-  return prefix && (Strchr(prefix, 'u') || Strchr(prefix, 'U')) ? prefix : 0;
+/* Whether the encoding prefix 'prefix' of a string or character literal gives it one of the char8_t, char16_t and
+   char32_t character types, which SWIG has no type for, rather than char or wchar_t. */
+static int unsupported_literal_prefix(int prefix) {
+  int encoding = literal_encoding(prefix);
+  return encoding == SWIG_LITERAL_UTF8 || encoding == SWIG_LITERAL_UTF16 || encoding == SWIG_LITERAL_UTF32;
+}
+
+/* The spelling of the encoding prefix 'prefix' of a string or character literal, such as "u8R" for u8R"(text)". */
+static String *literal_prefix_spelling(int prefix) {
+  const char *encoding = "";
+  switch (literal_encoding(prefix)) {
+  case SWIG_LITERAL_WIDE:
+    encoding = "L";
+    break;
+  case SWIG_LITERAL_UTF8:
+    encoding = "u8";
+    break;
+  case SWIG_LITERAL_UTF16:
+    encoding = "u";
+    break;
+  case SWIG_LITERAL_UTF32:
+    encoding = "U";
+    break;
+  }
+  return NewStringf("%s%s", encoding, (prefix & SWIG_LITERAL_RAW) ? "R" : "");
+}
+
+/* The rank of the encoding prefix 'prefix' in giving a run of adjacent string literals its character type: a u8, u or
+   U prefix outranks an L prefix, which outranks none. */
+static int literal_prefix_rank(int prefix) {
+  if (unsupported_literal_prefix(prefix))
+    return 2;
+  return literal_encoding(prefix) == SWIG_LITERAL_WIDE ? 1 : 0;
+}
+
+/* Append the string literal 'piece' to 'run', the adjacent string literals before it, which make one literal.  Its
+   prefix is the first of the highest rank, the u8 of both u8"a" u8"b" and R"(a)" u8"b". */
+static void append_string_literal(struct Literal *run, struct Literal piece) {
+  Append(run->text, piece.text);
+  if (literal_prefix_rank(piece.prefix) > literal_prefix_rank(run->prefix))
+    run->prefix = piece.prefix;
+  Delete(piece.text);
 }
 
 /* The type of the string literal initialiser 'dtype', which is the array of characters the literal is, so
    'const char [5]' for "text".  The bound counts the characters of the decoded text and the terminating null.
    Returns 0 for a literal whose character type SWIG has no type for. */
 static SwigType *string_literal_type(const struct Define *dtype) {
-  String *prefix;
   SwigType *type;
   String *bound;
 
-  if (unsupported_literal_prefix(dtype->stringval))
+  if (unsupported_literal_prefix(dtype->literalprefix))
     return 0;
   /* A wide literal reaches the grammar as T_WSTRING, except for a raw one, whose L is only in the prefix. */
-  prefix = Getmeta(dtype->stringval, "encodingprefix");
-  type = NewString(dtype->type == T_WSTRING || (prefix && Strchr(prefix, 'L')) ? "wchar_t" : "char");
+  type = NewString(dtype->type == T_WSTRING || literal_encoding(dtype->literalprefix) == SWIG_LITERAL_WIDE ? "wchar_t" : "char");
   bound = NewStringf("%d", Len(dtype->stringval) + 1);
   SwigType_add_qualifier(type, "const");
   SwigType_add_array(type, bound);
@@ -2891,7 +2928,7 @@ static SwigType *auto_variable_type(const struct Define *dtype, SwigType *decl, 
   SwigType *type = 0;
   SwigType *initialiser_type;
 
-  if ((initialiser_is_string_literal(dtype) || initialiser_is_wide_character_literal(dtype)) && unsupported_literal_prefix(dtype->stringval)) {
+  if ((initialiser_is_string_literal(dtype) || initialiser_is_wide_character_literal(dtype)) && unsupported_literal_prefix(dtype->literalprefix)) {
     /* The u8, u and U prefixes give a literal one of the char8_t, char16_t and char32_t character types. */
     return 0;
   }
@@ -2981,6 +3018,7 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       dtype.idexpr = Getattr(n, "initialiseridexpr");
       dtype.unparenthesised = Getattr(n, "initialiserunparenthesised");
       dtype.literal = GetInt(n, "initialiserliteral");
+      dtype.literalprefix = GetInt(n, "initialiserliteralprefix");
     }
     if (!isdecltypeauto)
       collapse_forwarding_reference(Getattr(n, "decl"), &dtype);
@@ -2995,12 +3033,11 @@ static void set_auto_variable_types(Node *first, const struct Define *first_dtyp
       if (!declaration_type)
         declaration_type = Copy(type);
       Delete(type);
-    } else if (initialiser_is_string_literal(&dtype) || initialiser_is_wide_character_literal(&dtype)) {
-      String *prefix = unsupported_literal_prefix(dtype.stringval);
-      if (prefix) {
-        Setattr(n, "autoliteralprefix", prefix);
-        Setattr(n, "autoliteralkind", dtype.type == T_WCHAR ? "character" : "string");
-      }
+    } else if ((initialiser_is_string_literal(&dtype) || initialiser_is_wide_character_literal(&dtype)) && unsupported_literal_prefix(dtype.literalprefix)) {
+      String *prefix = literal_prefix_spelling(dtype.literalprefix);
+      Setattr(n, "autoliteralprefix", prefix);
+      Setattr(n, "autoliteralkind", dtype.type == T_WCHAR ? "character" : "string");
+      Delete(prefix);
     }
   }
 
@@ -5320,6 +5357,8 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
                      Setattr($$, "initialiserunparenthesised", $initializer.unparenthesised);
                    if ($initializer.literal)
                      SetInt($$, "initialiserliteral", $initializer.literal);
+                   if ($initializer.literalprefix)
+                     SetInt($$, "initialiserliteralprefix", $initializer.literalprefix);
                  }
 		 Setattr($$,"throws",$cpp_const.throws);
 		 Setattr($$,"throw",$cpp_const.throwf);
@@ -9114,40 +9153,43 @@ exprsimple     : exprnum
                  $$.type = T_UNKNOWN;
                  note_this_in_trailing_rettype();
                }
-               | string {
+               | string_literal {
 		  $$ = default_dtype;
-		  $$.stringval = $string;
-		  $$.val = NewStringf("\"%(escape)s\"", $string);
+                  $$.stringval = $string_literal.text;
+                  $$.val = NewStringf("\"%(escape)s\"", $string_literal.text);
 		  $$.type = T_STRING;
                   $$.literal = LITERAL_STRING;
+                  $$.literalprefix = $string_literal.prefix;
 	       }
 	       | wstring {
 		  $$ = default_dtype;
-		  $$.stringval = $wstring;
-		  $$.val = NewStringf("L\"%(escape)s\"", $wstring);
+                  $$.stringval = $wstring.text;
+                  $$.val = NewStringf("L\"%(escape)s\"", $wstring.text);
 		  $$.type = T_WSTRING;
                   $$.literal = LITERAL_STRING;
+                  $$.literalprefix = $wstring.prefix;
 	       }
 	       | CHARCONST {
 		  $$ = default_dtype;
                   $$.literal = LITERAL_CHARACTER;
-		  $$.val = NewStringf("'%(escape)s'", $CHARCONST);
-		  if (Len($CHARCONST) > 1) {
+                  $$.val = NewStringf("'%(escape)s'", $CHARCONST.text);
+                  if (Len($CHARCONST.text) > 1) {
 		    /* A multicharacter constant, e.g. 'ab', has type int per the C and
 		     * C++ standards (unlike a single-character literal, which has type
 		     * char in C++). Its value is implementation-defined. */
 		    $$.type = T_INT;
 		  } else {
-		    $$.stringval = $CHARCONST;
+                    $$.stringval = $CHARCONST.text;
 		    $$.type = T_CHAR;
 		  }
 	       }
 	       | WCHARCONST {
 		  $$ = default_dtype;
-		  $$.stringval = $WCHARCONST;
-		  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST);
+                  $$.stringval = $WCHARCONST.text;
+                  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST.text);
 		  $$.type = T_WCHAR;
                   $$.literal = LITERAL_CHARACTER;
+                  $$.literalprefix = $WCHARCONST.prefix;
 	       }
 
 	       /* In sizeof(X) X can be a type or expression.  We don't actually
@@ -9225,6 +9267,7 @@ valexpr        : exprsimple
                     $$.idexpr = $expr.idexpr;
                     $$.unparenthesised = $expr.unparenthesised ? $expr.unparenthesised : $expr.val;
                     $$.literal = $expr.literal;
+                    $$.literalprefix = $expr.literalprefix;
 	       }
 
 /* A few common casting operations */
@@ -10149,35 +10192,31 @@ idcolontailnt   : DCOLON identifier idcolontailnt[in] {
                }
                ;
 
-/* Concatenated strings */
-string	       : string[in] STRING {
+/* Concatenated strings.  A directive only needs the text, while an expression also needs the encoding prefix. */
+string         : string_literal {
+                   $$ = $string_literal.text;
+               }
+               ;
+string_literal : string_literal[in] STRING {
 		   $$ = $in;
-		   Append($$, $STRING);
-		   append_literal_prefix($$, $STRING);
-		   Delete($STRING);
+                   append_string_literal(&$$, $STRING);
 	       }
 	       | STRING
 	       ;
 wstring	       : wstring[in] WSTRING {
 		   // Concatenated wide strings: L"str1" L"str2"
 		   $$ = $in;
-		   Append($$, $WSTRING);
-		   append_literal_prefix($$, $WSTRING);
-		   Delete($WSTRING);
+                   append_string_literal(&$$, $WSTRING);
 	       }
 	       | wstring[in] STRING {
 		   // Concatenated wide string and normal string literal: L"str1" "str2" (C++11).
 		   $$ = $in;
-		   Append($$, $STRING);
-		   append_literal_prefix($$, $STRING);
-		   Delete($STRING);
+                   append_string_literal(&$$, $STRING);
 	       }
-	       | string[in] WSTRING {
+               | string_literal[in] WSTRING {
 		   // Concatenated normal string and wide string literal: "str1" L"str2" (C++11).
 		   $$ = $in;
-		   Append($$, $WSTRING);
-		   append_literal_prefix($$, $WSTRING);
-		   Delete($WSTRING);
+                   append_string_literal(&$$, $WSTRING);
 	       }
 	       | WSTRING
 	       ;

@@ -20,7 +20,7 @@ extern void Scanner_push(Scanner *, String *);
 extern void Scanner_pushtoken(Scanner *, int, const_String_or_char_ptr value);
 extern int Scanner_token(Scanner *);
 extern String *Scanner_text(Scanner *);
-extern String *Scanner_literal_prefix(Scanner *);
+extern int Scanner_literal_prefix(Scanner *);
 extern void Scanner_skip_line(Scanner *);
 extern int Scanner_skip_balanced(Scanner *, int startchar, int endchar);
 extern String *Scanner_get_raw_text_balanced(Scanner *, int startchar, int endchar);
@@ -119,3 +119,15 @@ extern void Scanner_locator(Scanner *, String *loc);
 #define SWIG_TOKEN_ARROW       135 /* -> */
 #define SWIG_TOKEN_ARROWSTAR   136 /* ->* */
 #define SWIG_TOKEN_LTEQUALGT   137 /* <=> */
+
+/* Encoding prefix of a string or character literal, from Scanner_literal_prefix(), which gives the literal its character
+   type.  A raw string literal adds SWIG_LITERAL_RAW, so u8R"(text)" is SWIG_LITERAL_UTF8 | SWIG_LITERAL_RAW. */
+
+enum {
+  SWIG_LITERAL_ORDINARY, /* "str" */
+  SWIG_LITERAL_WIDE,     /* L"str" */
+  SWIG_LITERAL_UTF8,     /* u8"str" */
+  SWIG_LITERAL_UTF16,    /* u"str" */
+  SWIG_LITERAL_UTF32,    /* U"str" */
+  SWIG_LITERAL_RAW = 8   /* R"(str)" */
+};

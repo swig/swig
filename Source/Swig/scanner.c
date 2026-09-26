@@ -24,7 +24,7 @@ extern int cparse_start_line;
 
 struct Scanner {
   String *text;   /* Current token value */
-  String *prefix; /* Encoding prefix of the string or character literal just scanned, empty when it had none */
+  int prefix;     /* Encoding prefix of the string or character literal just scanned, a SWIG_LITERAL_* value */
   List *scanobjs; /* Objects being scanned */
   String *str;    /* Current object being scanned */
   char *idstart;  /* Optional identifier start characters */
@@ -64,7 +64,7 @@ Scanner *NewScanner(void) {
   s->idstart = NULL;
   s->scanobjs = NewList();
   s->text = NewStringEmpty();
-  s->prefix = NewStringEmpty();
+  s->prefix = SWIG_LITERAL_ORDINARY;
   s->str = 0;
   s->error = 0;
   s->error_line = 0;
@@ -85,7 +85,6 @@ void DelScanner(Scanner *s) {
   Delete(s->scanobjs);
   Delete(s->brackets);
   Delete(s->text);
-  Delete(s->prefix);
   Delete(s->error);
   Delete(s->str);
   Free(s->idstart);
@@ -511,12 +510,24 @@ static void get_escape(Scanner *s) {
   return;
 }
 
-/* Record the encoding prefix of the string or character literal whose opening quote has just been read, which is
-   whatever of the token text comes before that quote: empty for "text", L for L"text", u8R for u8R"(text)". */
+/* Classify the encoding prefix of the string or character literal whose opening quote has just been read, which is
+   whatever of the token text comes before that quote: none for "text", L for L"text", u8 and raw for u8R"(text)". */
 static void save_literal_prefix(Scanner *s) {
-  Clear(s->prefix);
-  Append(s->prefix, s->text);
-  Delitem(s->prefix, DOH_END);
+  const char *text = Char(s->text);
+  int len = Len(s->text);
+
+  if (strstr(text, "u8"))
+    s->prefix = SWIG_LITERAL_UTF8;
+  else if (strchr(text, 'u'))
+    s->prefix = SWIG_LITERAL_UTF16;
+  else if (strchr(text, 'U'))
+    s->prefix = SWIG_LITERAL_UTF32;
+  else if (strchr(text, 'L'))
+    s->prefix = SWIG_LITERAL_WIDE;
+  else
+    s->prefix = SWIG_LITERAL_ORDINARY;
+  if (len >= 2 && text[len - 2] == 'R')
+    s->prefix |= SWIG_LITERAL_RAW;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1524,10 +1535,10 @@ String *Scanner_text(Scanner *s) {
 /* -----------------------------------------------------------------------------
  * Scanner_literal_prefix()
  *
- * Return the encoding prefix of the string or character literal last returned.
+ * Return the encoding prefix of the string or character literal last returned, a SWIG_LITERAL_* value.
  * ----------------------------------------------------------------------------- */
 
-String *Scanner_literal_prefix(Scanner *s) {
+int Scanner_literal_prefix(Scanner *s) {
   return s->prefix;
 }
 

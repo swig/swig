@@ -788,29 +788,21 @@ static int yylook(void) {
 
     case SWIG_TOKEN_STRING:
     case SWIG_TOKEN_WSTRING:
-      {
-        String *prefix = Scanner_literal_prefix(scan);
-        yylval.str = NewString(Scanner_text(scan));
-        /* The literal's own text says nothing about which character type it has, so keep the encoding prefix that
-           does with the value, for the parser to read where the character type matters. */
-        if (Len(prefix) > 0)
-          Setmeta(yylval.str, "encodingprefix", NewString(prefix));
-        return scanner_literal_token(tok)->parser_token;
-      }
+      yylval.literal.text = NewString(Scanner_text(scan));
+      /* The decoded text says nothing about which character type the literal has, so its encoding prefix goes with it,
+         for the parser to read where the character type matters. */
+      yylval.literal.prefix = Scanner_literal_prefix(scan);
+      return scanner_literal_token(tok)->parser_token;
 
     case SWIG_TOKEN_CHAR:
     case SWIG_TOKEN_WCHAR:
-      {
-        String *prefix = Scanner_literal_prefix(scan);
-        yylval.str = NewString(Scanner_text(scan));
-        if (Len(yylval.str) == 0) {
-          Swig_error(cparse_file, cparse_line, "Empty character constant\n");
-        }
-        /* Every prefixed character literal is scanned as a wide one, so keep the prefix that says which it is. */
-        if (Len(prefix) > 0)
-          Setmeta(yylval.str, "encodingprefix", NewString(prefix));
-        return scanner_literal_token(tok)->parser_token;
+      yylval.literal.text = NewString(Scanner_text(scan));
+      if (Len(yylval.literal.text) == 0) {
+        Swig_error(cparse_file, cparse_line, "Empty character constant\n");
       }
+      /* Every prefixed character literal is scanned as a wide one, so its encoding prefix says which it is. */
+      yylval.literal.prefix = Scanner_literal_prefix(scan);
+      return scanner_literal_token(tok)->parser_token;
 
       /* Numbers */
 
