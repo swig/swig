@@ -466,7 +466,9 @@ extern Node *Constraint_combine(const_String_or_char_ptr op, Node *lhs, Node *rh
 extern String *Constraint_str(Node *n);
 extern String *Constraint_signature_str(Node *n);
 extern int Constraint_signatures_equal(Node *a, Node *b);
+extern int Constraint_has_any(Node *n);
 extern int Constraint_differently_constrained(Node *a, Node *b);
+extern String *Constraint_display_str(Node *n);
 extern String *Constraint_match_str(Node *constraint, ParmList *templateparms);
 
 /* hacks defined in C++ ! */

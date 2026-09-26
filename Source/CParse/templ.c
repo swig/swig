@@ -1855,40 +1855,6 @@ static String *instantiated_function_signature(Node *n, ParmList *instantiated_p
   return sig;
 }
 
-/* -----------------------------------------------------------------------------
- * template_constraints_display_str()
- *
- * Render every constraint attached to function template 'n' - the requires-clause on
- * the template itself and the type-constraint on each template parameter, which is
- * where a C++20 abbreviated 'Concept auto' parameter puts it - as constraint text for
- * a diagnostic.  Constraint_signature_str() is the equivalent for comparing two
- * declarations.
- * ----------------------------------------------------------------------------- */
-
-static String *template_constraints_display_str(Node *n) {
-  String *out = NewStringEmpty();
-  Node *constraint = Getattr(n, "constraint");
-  Parm *tp;
-  if (constraint) {
-    String *s = Constraint_str(constraint);
-    Printf(out, "%s", s);
-    Delete(s);
-  }
-  for (tp = Getattr(n, "templateparms"); tp; tp = nextSibling(tp)) {
-    Node *tconstraint = Getattr(tp, "constraint");
-    if (tconstraint) {
-      String *s = Constraint_str(tconstraint);
-      if (Len(out) > 0)
-        Append(out, " && ");
-      Printf(out, "%s", s);
-      Delete(s);
-    }
-  }
-  if (Len(out) == 0)
-    Append(out, "no constraint");
-  return out;
-}
-
 /* The return type function template 'n' instantiates to with 'instantiated_parms'. */
 static SwigType *instantiated_return_type(Node *n, ParmList *instantiated_parms) {
   SwigType *type = Swig_function_return_type(n);
@@ -1933,21 +1899,19 @@ static int check_constrained_overloads(List *matches, String *name, ParmList *in
     Node *ni = Getitem(matches, i);
     String *sigi = instantiated_function_signature(ni, instantiated_parms, 1);
     String *writteni = instantiated_function_signature(ni, instantiated_parms, 0);
-    String *coni = Constraint_signature_str(ni);
     for (j = i + 1; j < len && !reported; j++) {
       Node *nj = Getitem(matches, j);
       String *sigj = instantiated_function_signature(nj, instantiated_parms, 1);
       String *writtenj = instantiated_function_signature(nj, instantiated_parms, 0);
-      String *conj = Constraint_signature_str(nj);
-      int constraints_differ = !Equal(coni, conj);
+      int constraints_differ = !Constraint_signatures_equal(ni, nj);
       if (Equal(sigi, sigj) && (constraints_differ || (!Equal(writteni, writtenj) && !same_instantiated_return_type(ni, nj, instantiated_parms)))) {
         String *tname = Copy(name);
         String *namestr;
         SwigType_add_template(tname, instantiated_parms);
         namestr = SwigType_namestr(tname);
         if (constraints_differ) {
-          String *displayi = template_constraints_display_str(ni);
-          String *displayj = template_constraints_display_str(nj);
+          String *displayi = Constraint_display_str(ni);
+          String *displayj = Constraint_display_str(nj);
           Swig_error(cparse_file,
                      cparse_line,
                      "Ambiguous template instantiation of '%s'. Overloaded declarations of '%s' with '%s' and '%s' instantiate to the same "
@@ -1972,11 +1936,9 @@ static int check_constrained_overloads(List *matches, String *name, ParmList *in
       }
       Delete(sigj);
       Delete(writtenj);
-      Delete(conj);
     }
     Delete(sigi);
     Delete(writteni);
-    Delete(coni);
   }
   return reported;
 }
@@ -1998,17 +1960,12 @@ static int check_constrained_overloads(List *matches, String *name, ParmList *in
  * ----------------------------------------------------------------------------- */
 
 static int already_matched(List *matches, Node *n) {
-  String *decl = Getattr(n, "decl");
-  String *constraints = Constraint_signature_str(n);
-  int matched = 0;
   Iterator mi;
-  for (mi = First(matches); mi.item && !matched; mi = Next(mi)) {
-    String *mconstraints = Constraint_signature_str(mi.item);
-    matched = Equal(decl, Getattr(mi.item, "decl")) && Equal(constraints, mconstraints);
-    Delete(mconstraints);
+  for (mi = First(matches); mi.item; mi = Next(mi)) {
+    if (Equal(Getattr(n, "decl"), Getattr(mi.item, "decl")) && Constraint_signatures_equal(n, mi.item))
+      return 1;
   }
-  Delete(constraints);
-  return matched;
+  return 0;
 }
 
 static void collect_function_template_matches(Node *firstn, String *name, ParmList *instantiated_parms, int variadic, int ignored, List *matches) {

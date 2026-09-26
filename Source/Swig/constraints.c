@@ -374,14 +374,6 @@ String *Constraint_signature_str(Node *n) {
   return out;
 }
 
-/* A signature with no constraint in it is nothing but its slot terminators. */
-static int signature_is_empty(const String *sig) {
-  const char *c = Char(sig);
-  while (*c == ';')
-    c++;
-  return *c == '\0';
-}
-
 /* -----------------------------------------------------------------------------
  * Constraint_signatures_equal()
  *
@@ -400,6 +392,24 @@ int Constraint_signatures_equal(Node *a, Node *b) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Constraint_has_any()
+ *
+ * Whether declaration 'n' carries any constraint: a requires-clause, or a type-constraint on one of its
+ * template parameters.
+ * ----------------------------------------------------------------------------- */
+
+int Constraint_has_any(Node *n) {
+  Parm *tp;
+  if (Getattr(n, "constraint"))
+    return 1;
+  for (tp = Getattr(n, "templateparms"); tp; tp = nextSibling(tp)) {
+    if (Getattr(tp, "constraint"))
+      return 1;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
  * Constraint_differently_constrained()
  *
  * Whether a constraint is what tells two declarations apart, which needs one of them to carry a
@@ -408,12 +418,33 @@ int Constraint_signatures_equal(Node *a, Node *b) {
  * ----------------------------------------------------------------------------- */
 
 int Constraint_differently_constrained(Node *a, Node *b) {
-  String *ca = Constraint_signature_str(a);
-  String *cb = Constraint_signature_str(b);
-  int differently_constrained = !Equal(ca, cb) && !(signature_is_empty(ca) && signature_is_empty(cb));
-  Delete(ca);
-  Delete(cb);
-  return differently_constrained;
+  return (Constraint_has_any(a) || Constraint_has_any(b)) && !Constraint_signatures_equal(a, b);
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_display_str()
+ *
+ * Render every constraint of declaration 'n', which Constraint_signature_str() puts in slots, as written and
+ * joined by '&&' for a diagnostic, or as "no constraint" when it has none.
+ * ----------------------------------------------------------------------------- */
+
+String *Constraint_display_str(Node *n) {
+  String *out = NewStringEmpty();
+  Node *constraint = Getattr(n, "constraint");
+  Parm *tp;
+  if (constraint)
+    render_node(out, constraint);
+  for (tp = Getattr(n, "templateparms"); tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint) {
+      if (Len(out) > 0)
+        Append(out, " && ");
+      render_node(out, tconstraint);
+    }
+  }
+  if (Len(out) == 0)
+    Append(out, "no constraint");
+  return out;
 }
 
 /* Append 's' to 'conjuncts' without the whitespace between its tokens, as a parenthesised primary keeps the text as written. */
