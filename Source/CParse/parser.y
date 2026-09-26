@@ -2271,28 +2271,54 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 static const struct Decl default_decl;
 static const struct Define default_dtype;
 
-/* The parameters of the function whose trailing return type is being parsed, or 0 while no trailing return type
-   is being parsed.  The parameters are in scope in the trailing return type, so they have to be looked up before
-   the symbol table is, which is what makes 'auto f(int value) -> decltype(value)' return 'int' whatever else the
-   name 'value' denotes outside the function.  The list is owned by the declarator and only borrowed here for as
-   long as the trailing return type is being reduced. */
-static ParmList *trailing_rettype_parms = 0;
+/* The state of the trailing return type being parsed, as in 'auto f(int value) -> decltype(value)'.
+   trailing_rettype_begin() resets all of it at the '->' and trailing_rettype_end() ends the parse after the type, leaving
+   'placeholder_parm' and 'unusable' for the rule completing the declaration to read. */
+static struct {
+  /* Whether a trailing return type is being parsed. */
+  int parsing;
 
-/* The name of the parameter a trailing return type was deduced from, when that parameter was declared with an 'auto'
-   placeholder, or 0 otherwise.  The placeholder cannot be resolved until the whole declaration has reduced and the
-   parameter has become an invented template parameter, so it is left in the return type for
-   promote_abbreviated_template() to complete then. */
-static String *trailing_rettype_placeholder_parm = 0;
+  /* The parameters of the function, 0 while no trailing return type is being parsed.  The parameters are in scope in
+     the trailing return type, so they have to be looked up before the symbol table is, which is what makes the
+     example return 'int' whatever else the name 'value' denotes outside the function.  The list is owned by the
+     declarator and only borrowed here for as long as the trailing return type is being reduced. */
+  ParmList *parms;
 
-/* Whether a trailing return type is being parsed. */
-static int parsing_trailing_rettype = 0;
+  /* The name of the parameter the trailing return type was deduced from, when that parameter was declared with an
+     'auto' placeholder, or 0 otherwise.  The placeholder cannot be resolved until the whole declaration has reduced and
+     the parameter has become an invented template parameter, so it is left in the return type for
+     promote_abbreviated_template() to complete then. */
+  String *placeholder_parm;
 
-/* Set when the expression grammar meets, in a trailing return type being parsed, a name that is not in scope in the
-   wrapper: a parameter of the function, 'this' or a member of its class.  Cleared at the start of each decltype.  A
-   decltype over such a name that no type is deduced for cannot be left in the wrapper, so its operand is kept in
-   'trailing_rettype_unusable' for the declaration to be ignored. */
-static int decltype_mentions_local = 0;
-static String *trailing_rettype_unusable = 0;
+  /* Set when the expression grammar meets, in the trailing return type, a name that is not in scope in the wrapper: a
+     parameter of the function, 'this' or a member of its class.  Cleared at the start of each decltype.  A decltype over
+     such a name that no type is deduced for cannot be left in the wrapper, so its operand is kept in 'unusable' for the
+     declaration to be ignored. */
+  int decltype_mentions_local;
+  String *unusable;
+} trailing_rettype_state;
+
+/* Start parsing the trailing return type of the function with parameters 'parms'. */
+static void trailing_rettype_begin(ParmList *parms) {
+  trailing_rettype_state.parsing = 1;
+  trailing_rettype_state.parms = parms;
+  Delete(trailing_rettype_state.placeholder_parm);
+  trailing_rettype_state.placeholder_parm = 0;
+  trailing_rettype_state.decltype_mentions_local = 0;
+  Delete(trailing_rettype_state.unusable);
+  trailing_rettype_state.unusable = 0;
+}
+
+/* The trailing return type has been parsed. */
+static void trailing_rettype_end(void) {
+  trailing_rettype_state.parsing = 0;
+  trailing_rettype_state.parms = 0;
+}
+
+/* The parameter named 'name' of the function whose trailing return type is being parsed, or 0 if there is none. */
+static Parm *trailing_rettype_parm(const_String_or_char_ptr name) {
+  return ParmList_find_name(trailing_rettype_state.parms, name);
+}
 
 /* Apply the parameter adjustments of C++ [dcl.fct]/5 to the copy 't': an array parameter has the type pointer to
    element and a function parameter the type pointer to function.  normalize_parms() in typepass.cxx applies the
@@ -2320,14 +2346,14 @@ static void adjust_parm_type(SwigType *t) {
    being parsed, or 0 when there is no such parameter.  Never 0 for a parameter that does exist: the caller reads 0
    as "not in scope" and carries on into the enclosing scope, where an unrelated declaration would shadow it. */
 static SwigType *trailing_rettype_parm_type(String *name) {
-  Parm *p = ParmList_find_name(trailing_rettype_parms, name);
+  Parm *p = trailing_rettype_parm(name);
   SwigType *t;
   if (!p || !Getattr(p, "type"))
     return 0;
   t = Copy(Getattr(p, "type"));
   if (SwigType_isauto(t)) {
-    Delete(trailing_rettype_placeholder_parm);
-    trailing_rettype_placeholder_parm = Copy(name);
+    Delete(trailing_rettype_state.placeholder_parm);
+    trailing_rettype_state.placeholder_parm = Copy(name);
   }
   adjust_parm_type(t);
   return t;
@@ -2347,7 +2373,7 @@ static int value_type_code(SwigType *type) {
    expression grammar, which otherwise finds only what the symbol table has under that name.  Returns 0 when 'name' is
    not such a parameter. */
 static int trailing_rettype_parm_type_code(String *name) {
-  Parm *p = ParmList_find_name(trailing_rettype_parms, name);
+  Parm *p = trailing_rettype_parm(name);
   return p && Getattr(p, "type") ? value_type_code(Getattr(p, "type")) : 0;
 }
 
@@ -2360,15 +2386,15 @@ static Node *class_member_named(const_String_or_char_ptr name) {
 /* Note that the expression being parsed names 'name', which is not in scope in the wrapper if the expression is in a
    trailing return type and 'name' is a parameter of the function or a member of its class. */
 static void note_name_in_trailing_rettype(const_String_or_char_ptr name) {
-  if (parsing_trailing_rettype && (ParmList_find_name(trailing_rettype_parms, name) || class_member_named(name)))
-    decltype_mentions_local = 1;
+  if (trailing_rettype_state.parsing && (trailing_rettype_parm(name) || class_member_named(name)))
+    trailing_rettype_state.decltype_mentions_local = 1;
 }
 
 /* Note that the expression being parsed uses 'this', which is not in scope in the wrapper if the expression is in a
    trailing return type. */
 static void note_this_in_trailing_rettype(void) {
-  if (parsing_trailing_rettype)
-    decltype_mentions_local = 1;
+  if (trailing_rettype_state.parsing)
+    trailing_rettype_state.decltype_mentions_local = 1;
 }
 
 /* The template parameter named 'name' of the template declaration being parsed, or of the class template it is a
@@ -2560,7 +2586,7 @@ static SwigType *address_of_name_type(String *name, int parenthesised) {
     return type;
   }
   /* The first overload found is no more the answer than any other.  A parameter of the same name hides the overloads. */
-  n = ParmList_find_name(trailing_rettype_parms, name) ? 0 : Swig_symbol_clookup(name, 0);
+  n = trailing_rettype_parm(name) ? 0 : Swig_symbol_clookup(name, 0);
   if (n && Getattr(n, "sym:overloaded"))
     return 0;
   type = symbol_full_type(name);
@@ -2686,7 +2712,7 @@ static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
   if (!dtype->unparenthesised || !name)
     return 0;
   /* A parameter of a trailing return type being parsed is a variable too, and hides anything of the same name. */
-  if (ParmList_find_name(trailing_rettype_parms, name)) {
+  if (trailing_rettype_parm(name)) {
     type = symbol_full_type(name);
   } else {
     n = Swig_symbol_clookup(name, 0);
@@ -4977,33 +5003,25 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
            | storage_class auto_type_holder declarator cpp_const ARROW {
               /* The function parameters are in scope in the trailing return type, so make them visible to any
                * decltype in it for as long as it is being reduced. */
-              trailing_rettype_parms = $declarator.parms;
-              parsing_trailing_rettype = 1;
-              Delete(trailing_rettype_placeholder_parm);
-              trailing_rettype_placeholder_parm = 0;
-              Delete(trailing_rettype_unusable);
-              trailing_rettype_unusable = 0;
+              trailing_rettype_begin($declarator.parms);
              } trailing_rettype {
-              trailing_rettype_parms = 0;
-              parsing_trailing_rettype = 0;
+              trailing_rettype_end();
              } requires_clause_opt virt_specifier_seq_opt initializer c_decl_tail {
+              String *placeholder_parm = trailing_rettype_state.placeholder_parm;
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
               Setattr($$,"type",$trailing_rettype);
-              if (trailing_rettype_unusable) {
-                Setattr($$, "decltypeunusable", trailing_rettype_unusable);
-                Delete(trailing_rettype_unusable);
-                trailing_rettype_unusable = 0;
-              }
+              if (trailing_rettype_state.unusable)
+                Setattr($$, "decltypeunusable", trailing_rettype_state.unusable);
               /* A trailing return type that is itself a placeholder, 'auto f() -> auto' or 'auto f() -> decltype(auto)',
                * still leaves the return type to be deduced from the body.  A placeholder from an abbreviated parameter
                * is not one of those - promote_abbreviated_template() fills it in below. */
-              if (SwigType_isauto($trailing_rettype) && !trailing_rettype_placeholder_parm)
+              if (SwigType_isauto($trailing_rettype) && !placeholder_parm)
                 SetFlag($$, "autodeducefrombody");
-              if (trailing_rettype_placeholder_parm && !SwigType_isauto($trailing_rettype)) {
+              if (placeholder_parm && !SwigType_isauto($trailing_rettype)) {
                 /* The placeholder is buried in a template argument, as in '-> std::vector<decltype(value)>', not the type's base, so cannot be replaced. */
-                Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", trailing_rettype_placeholder_parm);
+                Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", placeholder_parm);
               }
 	      Setattr($$,"storage",$storage_class);
 	      Setattr($$,"name",$declarator.id);
@@ -5068,9 +5086,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
               /* Promote any 'auto' / 'Concept auto' parm to an invented type template parameter, completing any return type placeholder. */
-              if ($$) promote_abbreviated_template($$, trailing_rettype_placeholder_parm);
-              Delete(trailing_rettype_placeholder_parm);
-              trailing_rettype_placeholder_parm = 0;
+              if ($$) promote_abbreviated_template($$, placeholder_parm);
 	      Delete($storage_class);
            }
            /* C++14 allows the trailing return type to be omitted.  It's
@@ -8551,7 +8567,7 @@ type_right     : primitive_type
    to tell the two apart, and the captured text would then be missing the first token of the operand. */
 decltype_prefix : DECLTYPE LPAREN {
                  $$ = get_raw_text_balanced('(', ')');
-                 decltype_mentions_local = 0;
+                 trailing_rettype_state.decltype_mentions_local = 0;
                }
                ;
 
@@ -8564,10 +8580,10 @@ decltype       : decltype_prefix[expr] decltypeexpr {
 		   Delitem(expr, 0);
 		   Delitem(expr, DOH_END);
 		   $$ = SwigType_new_decltype(expr);
-		   if (decltype_mentions_local) {
-		     /* The declaration is ignored with a warning instead, see trailing_rettype_unusable. */
-		     Delete(trailing_rettype_unusable);
-		     trailing_rettype_unusable = Copy(expr);
+                   if (trailing_rettype_state.decltype_mentions_local) {
+                     /* The declaration is ignored with a warning instead, see trailing_rettype_state. */
+                     Delete(trailing_rettype_state.unusable);
+                     trailing_rettype_state.unusable = Copy(expr);
 		   } else {
 		     Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", expr);
 		   }
