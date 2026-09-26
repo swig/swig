@@ -1712,8 +1712,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
       if (rename) {
         String *msg = Getattr(wrn, "name");
         int fullname = GetFlag(wrn, "fullname");
-        if (result)
-          Delete(result);
+        String *replaced = result;
         result = apply_rename(n, rename, fullname, prefix, name);
         if ((msg) && (Len(msg))) {
           if (!Getmeta(nname, "already_warned")) {
@@ -1743,6 +1742,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
             Delete(suffix);
           }
         }
+        Delete(replaced);
       }
     }
   }
