@@ -3323,16 +3323,13 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
    has already made a function of, so take that function back off the type and keep its parameters as the locals.  The
    function is built underneath an array and underneath a pointer or reference to an array, so all are looked through. */
 static void declarator_remove_locals_function(struct Decl *d) {
-  SwigType *ptr_or_ref = 0;
+  SwigType *ptr_or_ref = SwigType_pop_to_array(d->type);
   SwigType *arrays = 0;
-  if (SwigType_ispointer(d->type) || SwigType_isreference(d->type) || SwigType_isrvalue_reference(d->type)) {
-    ptr_or_ref = SwigType_pop(d->type);
-    if (!SwigType_isarray(d->type)) {
-      SwigType_push(d->type, ptr_or_ref);
-      Delete(ptr_or_ref);
-      d->parms = 0;
-      return;
-    }
+  if (!ptr_or_ref && (SwigType_ispointer(d->type) || SwigType_isreference(d->type) || SwigType_isrvalue_reference(d->type))) {
+    /* A pointer or reference to anything else has no locals under it.  SwigType_isfunction() would take the reference
+     * to a function of 'int (&)(int)' for a function with a ref-qualifier. */
+    d->parms = 0;
+    return;
   }
   if (SwigType_isarray(d->type))
     arrays = SwigType_pop_arrays(d->type);

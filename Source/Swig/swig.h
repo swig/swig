@@ -119,6 +119,7 @@ extern SwigType *SwigType_del_pointer(SwigType *t);
 extern SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size);
 extern SwigType *SwigType_del_array(SwigType *t);
 extern SwigType *SwigType_pop_arrays(SwigType *t);
+extern SwigType *SwigType_pop_to_array(SwigType *t);
 extern SwigType *SwigType_add_reference(SwigType *t);
 extern SwigType *SwigType_del_reference(SwigType *t);
 extern SwigType *SwigType_add_rvalue_reference(SwigType *t);

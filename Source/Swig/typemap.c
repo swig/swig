@@ -624,14 +624,9 @@ void Swig_typemap_clear_apply(Parm *parms) {
 /* The type the array dimensions come from, which is the array a pointer or reference is to.  A type
    with no array behind it is returned as it is, so the result is only an array when the type has one. */
 static SwigType *array_dimensions_type(SwigType *type) {
-  if (SwigType_ispointer(type) || SwigType_isreference(type) || SwigType_isrvalue_reference(type)) {
-    SwigType *t = Copy(type);
-    Delete(SwigType_pop(t));
-    if (SwigType_isarray(t))
-      return t;
-    Delete(t);
-  }
-  return Copy(type);
+  SwigType *t = Copy(type);
+  Delete(SwigType_pop_to_array(t));
+  return t;
 }
 
 /* Whether a type is an array, or a pointer or reference to one. */
@@ -663,12 +658,11 @@ static String *array_dimension_operand(SwigType *type, int n) {
 /* Replace every array dimension with ANY, including behind a pointer or a reference. */
 static SwigType *strip_arrays(SwigType *type) {
   SwigType *t;
-  SwigType *prefix = 0;
+  SwigType *prefix;
   int ndim;
   int i;
   t = Copy(type);
-  if (SwigType_ispointer(t) || SwigType_isreference(t) || SwigType_isrvalue_reference(t))
-    prefix = SwigType_pop(t);
+  prefix = SwigType_pop_to_array(t);
   ndim = SwigType_array_ndim(t);
   for (i = 0; i < ndim; i++) {
     SwigType_array_setdim(t, i, "ANY");

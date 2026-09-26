@@ -752,6 +752,7 @@ int SwigType_ismemberpointer(const SwigType *t) {
  * SwigType_array_setdim()      - Set array dimension
  * SwigType_array_type()        - Return array type
  * SwigType_pop_arrays()        - Remove all arrays
+ * SwigType_pop_to_array()      - Remove the pointer or reference to an array
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
@@ -811,6 +812,22 @@ SwigType *SwigType_pop_arrays(SwigType *t) {
     Delete(td);
   }
   return ta;
+}
+
+/* Remove the pointer, reference or rvalue reference that t is to an array, so that t is the array, and return the element
+ * removed for the caller to push back.  Return 0, leaving t unchanged, when t is not a pointer or reference to an array.
+ * A pointer that is itself qualified, as in 'q(const).p.a(4).int', is not looked through. */
+SwigType *SwigType_pop_to_array(SwigType *t) {
+  SwigType *ptr_or_ref;
+  if (!SwigType_ispointer(t) && !SwigType_isreference(t) && !SwigType_isrvalue_reference(t))
+    return 0;
+  ptr_or_ref = SwigType_pop(t);
+  if (!SwigType_isarray(t)) {
+    SwigType_push(t, ptr_or_ref);
+    Delete(ptr_or_ref);
+    ptr_or_ref = 0;
+  }
+  return ptr_or_ref;
 }
 
 /* Return number of array dimensions */
