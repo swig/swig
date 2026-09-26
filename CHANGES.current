@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-01: arunisaac
+	    [Guile] #1567 Add support for std::string_view (new in C++17).
+
 2026-10-01: olly
 	    [Guile] Typemaps handling std::string no longer truncate strings at
 	    an embedded null character.
