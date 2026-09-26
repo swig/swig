@@ -2390,11 +2390,10 @@ static int names_type_template_parameter(String *name) {
 }
 
 /* Whether the template parameter 'p' is a non-type template parameter, the 'N' of 'template<int N>' or
-   'template<auto N>'.  A template template parameter has the 'template< ... > class' type the template_parm rule
-   gives it, and a pack is neither. */
+   'template<auto N>'.  A template template parameter, flagged by the templateparameter rule, and a pack are neither. */
 static int template_parm_is_nontype(Parm *p) {
   SwigType *type = Getattr(p, "type");
-  return type && !template_parm_is_type(p) && !SwigType_isvariadic(type) && Strncmp(type, "template< ", 10) != 0;
+  return type && !template_parm_is_type(p) && !SwigType_isvariadic(type) && !GetFlag(p, "templatetemplate");
 }
 
 /* The type of an id-expression naming the non-type template parameter 'name', which is the type the parameter is
@@ -6636,6 +6635,7 @@ templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($template_parms), $cpptype, $idcolon), $idcolon);
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
+                    SetFlag($$, "templatetemplate");
 		    if ($def_args.val) {
 		      Setattr($$, "value", $def_args.val);
 		    }
@@ -6644,6 +6644,7 @@ templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s", ParmList_str_defaultargs($template_parms), $cpptype), 0);
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
+                    SetFlag($$, "templatetemplate");
 		    if ($def_args.val) {
 		      Setattr($$, "value", $def_args.val);
 		    }
