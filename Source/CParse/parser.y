@@ -2520,13 +2520,17 @@ static SwigType *this_member_type(const_String_or_char_ptr name) {
   return node_full_type(n);
 }
 
+/* Whether 'n', found in the C symbol table, is a function with no overloads, so a call to it needs no overload resolution.
+   Unlike "sym:overloaded", that table chains every declaration of the name, whether %ignore or %rename apply to it or not. */
+static int is_function_not_overloaded(Node *n) {
+  return n && Equal(nodeType(n), "cdecl") && SwigType_isfunction(Getattr(n, "decl")) && !Getattr(n, "csym:nextSibling");
+}
+
 /* The type of a call to the member function 'name' of the class being parsed, which is its return type, or 0 if
    'name' is not a member function or is overloaded, as the call is not resolved. */
 static SwigType *member_call_type(const_String_or_char_ptr name) {
   Node *n = class_member_named(name);
-  if (!n || !Equal(nodeType(n), "cdecl") || !SwigType_isfunction(Getattr(n, "decl")) || Getattr(n, "sym:overloaded"))
-    return 0;
-  return Swig_function_return_type(n);
+  return is_function_not_overloaded(n) ? Swig_function_return_type(n) : 0;
 }
 
 /* The type of the C-style cast '(t) e', which is 't' qualified, without its top level cv-qualifiers unless it is a
@@ -2575,15 +2579,14 @@ static SwigType *dereference_type(SwigType *type) {
 }
 
 /* The type of calling the operator[] of the class 'type', which is the return type when the class declares exactly one
-   operator[], or 0 when it declares none or several, as SWIG does not resolve the call, or 'type' is not a class.  The
-   C symbol table chains every declaration of the name, whether %ignore or %rename apply to it or not. */
+   operator[], or 0 when it declares none or several, as SWIG does not resolve the call, or 'type' is not a class. */
 static SwigType *class_subscript_type(SwigType *type) {
   SwigType *name = SwigType_remove_qualifier_reference(Copy(type));
   Node *n = Swig_symbol_clookup_resolve_typedef(name, 0);
   SwigType *result = 0;
   Delete(name);
   n = n && Equal(nodeType(n), "class") ? Swig_symbol_clookup_local("operator []", Getattr(n, "symtab")) : 0;
-  if (n && Equal(nodeType(n), "cdecl") && !Getattr(n, "csym:nextSibling") && !GetFlag(n, "isextendmember")) {
+  if (is_function_not_overloaded(n) && !GetFlag(n, "isextendmember")) {
     /* The return type is written as in the class, where a member typedef needs no qualification. */
     SwigType *rettype = Swig_function_return_type(n);
     result = Swig_symbol_type_qualify(rettype, Getattr(n, "sym:symtab"));

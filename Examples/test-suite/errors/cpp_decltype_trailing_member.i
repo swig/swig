@@ -22,3 +22,17 @@ struct This {
   int d;
   auto member_of_deref() -> decltype((*this).d) { return d; }
 };
+
+// A call is overloaded even where %ignore or %rename leaves the target language only one of the overloads.
+%ignore IgnoredOverload::ov(double);
+%rename(ov_double) RenamedOverload::ov(double);
+struct IgnoredOverload {
+  double ov(double) { return 2.5; }
+  int ov(int) { return 1; }
+  auto call() -> decltype(ov(1)) { return ov(1); }
+};
+struct RenamedOverload {
+  int ov(int) { return 1; }
+  double ov(double) { return 2.5; }
+  auto call() -> decltype(ov(1.5)) { return ov(1.5); }
+};
