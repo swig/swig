@@ -1761,17 +1761,6 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
 }
 
 /* -----------------------------------------------------------------------------
- * Scanner_has_balanced_end()
- *
- * Returns 1 if the closing bracket Scanner_get_raw_text_balanced() looks for is there, else 0, without the text.
- * ----------------------------------------------------------------------------- */
-
-int Scanner_has_balanced_end(Scanner *s, int endchar) {
-  long start;
-  return balanced_end(s, endchar, &start) >= 0;
-}
-
-/* -----------------------------------------------------------------------------
  * Scanner_get_raw_text_to_semicolon()
  *
  * Returns the raw text from the current position up to, but not including, the next ';' that is not nested inside

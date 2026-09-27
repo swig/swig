@@ -2085,6 +2085,12 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   } autotype;
   SwigType     *type;
   String       *str;
+  /* The opening bracket of a group the grammar parses: the raw text of the group, brackets included, and the bracket
+   * depth outside it, for skip_to_bracket_depth() to recover from a syntax error inside the group. */
+  struct {
+    String     *text;
+    struct BracketDepth depth;
+  } group;
   /* A string or character literal: its decoded text and its encoding prefix, a SWIG_LITERAL_* value. */
   struct Literal {
     String     *text;
@@ -2213,8 +2219,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <intvalue> variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
-%type <str>      decltype_prefix;
+%type <type>     type rawtype type_right anon_bitfield_type decltype cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
+%type <group>    decltype_prefix;
 %type <type>     conversion_declarator;
 %type <str>      noexcept_specifier_opt;
 %type <str>      structured_binding_names;
@@ -2726,6 +2732,21 @@ static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
 static SwigType *decltype_type(const struct Define *dtype) {
   SwigType *type = decltype_parenthesised_name_type(dtype);
   return type ? type : deduce_type(dtype, 0);
+}
+
+/* The type 'decltype(e)' names when no type can be deduced from 'e', given 'operand', the raw text of '(e)', from which
+   the parentheses are removed.  Warns unless 'e' names a local, see trailing_rettype_state. */
+static SwigType *undeduced_decltype_type(String *operand) {
+  Delitem(operand, 0);
+  Delitem(operand, DOH_END);
+  if (trailing_rettype_state.decltype_mentions_local) {
+    /* The declaration is ignored with a warning instead. */
+    Delete(trailing_rettype_state.unusable);
+    trailing_rettype_state.unusable = Copy(operand);
+  } else {
+    Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", operand);
+  }
+  return SwigType_new_decltype(operand);
 }
 
 /* Whether the initialiser 'dtype' is a parenthesised name of something in scope, as in 'decltype(auto) r = (object);',
@@ -5391,13 +5412,13 @@ auto_type_holder : AUTO {
                    $$.isdecltypeauto = 0;
                  }
                  | decltype_prefix AUTO RPAREN {
-                   Delete($decltype_prefix);
+                   Delete($decltype_prefix.text);
                    $$.qualifier = 0;
                    $$.conceptid = 0;
                    $$.isdecltypeauto = 1;
                  }
                  | idcolon decltype_prefix AUTO RPAREN {
-                   Delete($decltype_prefix);
+                   Delete($decltype_prefix.text);
                    $$.qualifier = 0;
                    $$.conceptid = $idcolon;
                    $$.isdecltypeauto = 1;
@@ -8483,51 +8504,31 @@ type_right     : primitive_type
 /* The 'decltype(' that opens both 'decltype(expr)' and the 'decltype(auto)' placeholder matched by
    auto_type_holder.  The raw text of the operand is captured in this shared rule rather than in a mid-rule
    action of either alternative: a mid-rule action would run only after the parser had looked ahead one token
-   to tell the two apart, and the captured text would then be missing the first token of the operand. */
+   to tell the two apart, and the captured text would then be missing the first token of the operand.  The bracket
+   depth for recovering from a syntax error in the operand is taken here too. */
 decltype_prefix : DECLTYPE LPAREN {
-                 $$ = get_raw_text_balanced('(', ')');
+                 $$.text = get_raw_text_balanced('(', ')');
+                 if (!$$.text) Exit(EXIT_FAILURE);
+                 $$.depth = bracket_depth_outside('(');
                  trailing_rettype_state.decltype_mentions_local = 0;
                }
                ;
 
-decltype       : decltype_prefix[expr] decltypeexpr {
-		 String *expr = $expr;
-		 if ($decltypeexpr) {
-		   $$ = $decltypeexpr;
-		 } else {
-		   /* expr includes parentheses, which are not part of the expression. */
-		   Delitem(expr, 0);
-		   Delitem(expr, DOH_END);
-		   $$ = SwigType_new_decltype(expr);
-                   if (trailing_rettype_state.decltype_mentions_local) {
-                     /* The declaration is ignored with a warning instead, see trailing_rettype_state. */
-                     Delete(trailing_rettype_state.unusable);
-                     trailing_rettype_state.unusable = Copy(expr);
-		   } else {
-		     Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", expr);
-		   }
-		 }
-		 Delete(expr);
-	       }
-	       ;
-
-decltypeexpr   : expr RPAREN {
+decltype       : decltype_prefix[prefix] expr RPAREN {
                  $$ = decltype_type(&$expr);
-	       }
-	       | error RPAREN {
-		 /* Avoid a parse error if we can't parse the expression
-		  * decltype() is applied to.
-		  *
-		  * Set $$ to 0 here to trigger the decltype rule above to
-		  * issue a warning.
-		  */
-		 $$ = 0;
-                 /* Error recovery discarded tokens up to the first ')', the operand's own unless it has parentheses of its
-                  * own, when a group is left open to skip; skipping regardless ran to the end of input. */
-                 if (balanced_group_is_open(')') && skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 Clear(scanner_ccode);
-	       }
-	       ;
+                 if (!$$)
+                   $$ = undeduced_decltype_type($prefix.text);
+                 Delete($prefix.text);
+               }
+               /* An operand the expression grammar cannot parse, such as a lambda, is a syntax error recovered from by
+                  skipping the rest of the operand, and the token the error was found at is discarded. */
+               | decltype_prefix[prefix] error {
+                 if (skip_to_bracket_depth('(', ')', $prefix.depth) < 0) Exit(EXIT_FAILURE);
+                 yyclearin;
+                 $$ = undeduced_decltype_type($prefix.text);
+                 Delete($prefix.text);
+               }
+               ;
 
 primitive_type : primitive_type_list {
 		 String *type = $primitive_type_list.type;

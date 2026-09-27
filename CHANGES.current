@@ -490,9 +490,13 @@ Version 4.6.0 (in progress)
               decltype("abc"[1]) array_deref = 0;
 
             reported "Missing ')'. Reached end of input." and nothing after the
-            declaration was wrapped.  Warning 344 is issued for the operand and
-            parsing carries on, which is what already happened when the operand had
-            parentheses of its own.
+            declaration was wrapped.  Nor is it a syntax error any more as the type
+            of a parameter:
+
+              void take(decltype("abc"[1]) c, int n);
+
+            Warning 344 is issued for the operand and parsing carries on, which is
+            what already happened when the operand had parentheses of its own.
 
 2026-09-21: wsfulton
             An 'auto' variable initialised by a string literal with a u8, u or U

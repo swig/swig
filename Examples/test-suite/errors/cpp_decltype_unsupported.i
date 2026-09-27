@@ -43,3 +43,6 @@ constexpr auto gt_test2 = 1 > 2;
 // Assignment.
 bool a;
 decltype((a = true) + 1) assignment = true;
+
+// Parameter.
+void take_array_deref(decltype("abc"[1]) c, int n);

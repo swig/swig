@@ -52,6 +52,7 @@ static const struct Define default_dtype;
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
+static int num_paren = 0;
 static int last_id = 0;
 static int rename_active = 0;
 /* Set while the last tokens yylex() returned are an '=', optionally followed by the '::' of '::new', as the grammar
@@ -171,19 +172,51 @@ int skip_balanced(int startchar, int endchar) {
   Append(scanner_ccode, Scanner_text(scan));
   if (endchar == '}')
     num_brace--;
+  else if (endchar == ')')
+    num_paren--;
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
- * balanced_group_is_open()
+ * bracket_depth_outside()
  *
- * Whether a group is still waiting to be closed by endchar, that is whether
- * skip_balanced() would find its endchar rather than run to the end of input.
- * Does not change the state of the scanner.
+ * Returns the bracket depth outside a group whose opening bracket, startchar,
+ * is the last token the parser has read, for skip_to_bracket_depth().  Only the
+ * difference between two counts of '(' brackets is meaningful.
  * ----------------------------------------------------------------------------- */
 
-int balanced_group_is_open(int endchar) {
-  return Scanner_has_balanced_end(scan, endchar);
+struct BracketDepth bracket_depth_outside(int startchar) {
+  struct BracketDepth depth;
+  depth.paren = num_paren - (startchar == '(');
+  depth.brace = num_brace - (startchar == '{');
+  return depth;
+}
+
+/* -----------------------------------------------------------------------------
+ * skip_to_bracket_depth()
+ *
+ * Recovers from a syntax error inside a group enclosed in startchar/endchar by
+ * skipping the rest of it, however deeply nested inside it the error was, until
+ * the count of brackets endchar closes is back down to that in depth, taken by
+ * bracket_depth_outside() at the group's opening bracket.  Nothing is skipped if
+ * the group is closed.  As the code skipped may close brackets of the other
+ * kind that the parser has read inside the group, such as a '{' the error was
+ * found at, both counts are set back to depth.  The code skipped is not kept.
+ *
+ * Returns 0 if successfully skipped, -1 if EOF found first.
+ * ----------------------------------------------------------------------------- */
+
+int skip_to_bracket_depth(int startchar, int endchar, struct BracketDepth depth) {
+  const int *count = endchar == '}' ? &num_brace : &num_paren;
+  int outside = endchar == '}' ? depth.brace : depth.paren;
+  while (*count > outside) {
+    if (skip_balanced(startchar, endchar) < 0)
+      return -1;
+  }
+  num_paren = depth.paren;
+  num_brace = depth.brace;
+  Clear(scanner_ccode);
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -670,8 +703,10 @@ static int yylook(void) {
     case SWIG_TOKEN_ID:
       return ID;
     case SWIG_TOKEN_LPAREN:
+      num_paren++;
       return LPAREN;
     case SWIG_TOKEN_RPAREN:
+      num_paren--;
       return RPAREN;
     case SWIG_TOKEN_SEMI:
       return SEMI;

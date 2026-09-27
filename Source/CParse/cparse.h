@@ -34,8 +34,16 @@ extern void Swig_cparse_cplusplus(int);
 extern void Swig_cparse_cplusplusout(int);
 extern void scanner_file(File *);
 extern void scanner_next_token(int);
+
+/* The number of '(' and of '{' brackets that the parser has read and not yet seen closed. */
+struct BracketDepth {
+  int paren;
+  int brace;
+};
+
 extern int skip_balanced(int startchar, int endchar);
-extern int balanced_group_is_open(int endchar);
+extern struct BracketDepth bracket_depth_outside(int startchar);
+extern int skip_to_bracket_depth(int startchar, int endchar, struct BracketDepth depth);
 extern String *get_raw_text_balanced(int startchar, int endchar);
 extern String *get_raw_text_to_semicolon(void);
 extern String *skip_to_initializer_end(int after_token);

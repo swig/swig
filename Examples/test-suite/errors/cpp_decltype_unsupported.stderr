@@ -11,3 +11,4 @@ cpp_decltype_unsupported.i:39: Warning 344: Unable to deduce decltype for '1 > 2
 cpp_decltype_unsupported.i:40: Warning 346: Unable to deduce auto type for variable 'lt_test2' from an unsupported initialiser (ignored).
 cpp_decltype_unsupported.i:41: Warning 346: Unable to deduce auto type for variable 'gt_test2' from an unsupported initialiser (ignored).
 cpp_decltype_unsupported.i:45: Warning 344: Unable to deduce decltype for '(a = true) + 1'.
+cpp_decltype_unsupported.i:48: Warning 344: Unable to deduce decltype for '"abc"[1]'.

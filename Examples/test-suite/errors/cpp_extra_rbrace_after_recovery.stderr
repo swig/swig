@@ -1,0 +1,6 @@
+cpp_extra_rbrace_after_recovery.i:6: Warning 344: Unable to deduce decltype for '(f)({1})'.
+cpp_extra_rbrace_after_recovery.i:7: Error: Syntax error. Extraneous closing brace ('}')
+cpp_extra_rbrace_after_recovery.i:8: Warning 344: Unable to deduce decltype for '(f)({1})'.
+cpp_extra_rbrace_after_recovery.i:9: Error: Syntax error. Extraneous closing brace ('}')
+cpp_extra_rbrace_after_recovery.i:10: Warning 344: Unable to deduce decltype for '[] { return f(1); }()'.
+cpp_extra_rbrace_after_recovery.i:11: Error: Syntax error. Extraneous closing brace ('}')
