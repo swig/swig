@@ -2279,10 +2279,13 @@ static struct {
      the operand of such a decltype that no type was deduced for, so that the declaration is ignored. */
   int decltype_mentions_local;
   String *unusable;
+  /* The type of 'this' when the function is a non-static member function of the class being parsed, else 0. */
+  SwigType *this_type;
 } trailing_rettype_state;
 
-/* Start parsing the trailing return type of the function with parameters 'parms'. */
-static void trailing_rettype_begin(ParmList *parms) {
+/* Start parsing the trailing return type of the function with parameters 'parms', storage class 'storage' and the
+   qualifiers 'qualifier', the cv-qualifiers of which apply to 'this', but not the ref-qualifier. */
+static void trailing_rettype_begin(ParmList *parms, String *storage, String *qualifier) {
   trailing_rettype_state.parsing = 1;
   trailing_rettype_state.parms = parms;
   Delete(trailing_rettype_state.placeholder_parm);
@@ -2290,12 +2293,25 @@ static void trailing_rettype_begin(ParmList *parms) {
   trailing_rettype_state.decltype_mentions_local = 0;
   Delete(trailing_rettype_state.unusable);
   trailing_rettype_state.unusable = 0;
+  Delete(trailing_rettype_state.this_type);
+  trailing_rettype_state.this_type = 0;
+  if (inclass && Classprefix && !(storage && Strstr(storage, "static"))) {
+    trailing_rettype_state.this_type = NewString(Classprefix);
+    if (qualifier) {
+      SwigType *cv = SwigType_remove_reference(Copy(qualifier));
+      SwigType_push(trailing_rettype_state.this_type, cv);
+      Delete(cv);
+    }
+    SwigType_add_pointer(trailing_rettype_state.this_type);
+  }
 }
 
 /* The trailing return type has been parsed. */
 static void trailing_rettype_end(void) {
   trailing_rettype_state.parsing = 0;
   trailing_rettype_state.parms = 0;
+  Delete(trailing_rettype_state.this_type);
+  trailing_rettype_state.this_type = 0;
 }
 
 /* The parameter named 'name' of the function whose trailing return type is being parsed, or 0 if there is none. */
@@ -4931,7 +4947,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
            | storage_class auto_type_holder declarator cpp_const ARROW {
               /* The function parameters are in scope in the trailing return type, so make them visible to any
                * decltype in it for as long as it is being reduced. */
-              trailing_rettype_begin($declarator.parms);
+              trailing_rettype_begin($declarator.parms, $storage_class, $cpp_const.qualifier);
              } trailing_rettype {
               trailing_rettype_end();
              } requires_clause_opt virt_specifier_seq_opt initializer c_decl_tail {
@@ -9058,6 +9074,10 @@ exprsimple     : exprnum
                  $$.val = NewString("this");
                  $$.type = T_UNKNOWN;
                  note_this_in_trailing_rettype();
+                 if (trailing_rettype_state.this_type) {
+                   $$.newtype = Copy(trailing_rettype_state.this_type);
+                   $$.type = value_type_code($$.newtype);
+                 }
                }
                | string_literal {
 		  $$ = default_dtype;

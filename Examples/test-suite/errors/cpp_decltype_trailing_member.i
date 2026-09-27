@@ -19,12 +19,6 @@ struct Members {
 };
 
 struct This {
-  auto self_ptr() -> decltype(this) { return this; }
-  auto self_deref() const -> decltype(*this) { return *this; }
-  auto paren_self() -> decltype((this)) { return this; }
+  int d;
+  auto member_of_deref() -> decltype((*this).d) { return d; }
 };
-
-template<class T> struct TemplateThis {
-  auto self_ptr() -> decltype(this) { return this; }
-};
-%template(TemplateThisInt) TemplateThis<int>;

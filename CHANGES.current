@@ -20,6 +20,18 @@ Version 4.6.0 (in progress)
 	    `std_string.i` instead) and some for std::complex which I've moved
 	    to new library files `complex.i` and `std_complex.i`.
 
+2026-09-27: wsfulton
+            A trailing return type decltype of 'this', or of '*this', in a member
+            function is now deduced as a pointer, or reference, to the class, with
+            the member function's cv-qualifiers:
+
+              struct S {
+                auto self() -> decltype(this);         // S *
+                auto cself() const -> decltype(*this); // const S &
+              };
+
+            It was previously left in the wrapper, which then did not compile.
+
 2026-09-26: wsfulton
             The extra wrappers generated for the default arguments of a member
             function now keep the function's 'volatile' qualifier and ref-qualifier,
