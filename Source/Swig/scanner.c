@@ -1580,6 +1580,7 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   int num_levels = 1;
   int starttok = 0;
   int endtok = 0;
+  int pushed_back = 0;
   switch (endchar) {
   case '}':
     starttok = SWIG_TOKEN_LBRACE;
@@ -1611,8 +1612,11 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
     } else if (tok == SWIG_TOKEN_RRBRACKET && endtok == SWIG_TOKEN_RBRACKET) {
       num_levels -= 2;
       if (num_levels <= 0) {
-        if (num_levels < 0)
+        /* The second ']' of the ']]' closes an enclosing group, so it is handed back and left out of the text. */
+        if (num_levels < 0) {
           Scanner_pushtoken(s, SWIG_TOKEN_RBRACKET, "]");
+          pushed_back = 1;
+        }
         break;
       }
     } else if (tok == SWIG_TOKEN_COMMENT) {
@@ -1626,7 +1630,7 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   }
 
   Delete(s->text);
-  s->text = NewStringWithSize(Char(s->str) + position - 1, Tell(s->str) - position + 1);
+  s->text = NewStringWithSize(Char(s->str) + position - 1, Tell(s->str) - position + 1 - pushed_back);
   Char(s->text)[0] = startchar;
   Setfile(s->text, Getfile(s->str));
   Setline(s->text, old_line);

@@ -1,6 +1,8 @@
 # Note that this test is also used by python_default_args_runme.py hence
 # the use of __main__ and the run function
 
+from swig_test_utils import swig_check
+
 
 def run(module_name):
     default_args = __import__(module_name)
@@ -193,6 +195,11 @@ def run(module_name):
     default_args.wrapptr_0l(1)
     default_args.wrapptr_null(1)
     default_args.wrapptr_nullptr(1)
+
+    swig_check(default_args.sizeof_subscript_default_arg(), 5)
+    swig_check(default_args.sizeof_subscript_count, 5)
+    swig_check(default_args.number_subscript_default_arg(), 3)
+    swig_check(default_args.new_subscript_default_arg(), 2)
 
 if __name__ == "__main__":
     run("default_args")

@@ -124,3 +124,16 @@ namespace OuterSpace {
 %template(nsottint) OuterSpace::InnerSpace::nsott<int>; // default arg requires a rename
 %template(nsottstring) OuterSpace::InnerSpace::nsott<const char *>; // default arg requires a rename
 
+// A type-id with an array bound as the default of a type template parameter
+%inline %{
+template<class T = unsigned short[4]> struct ArrayDefault {
+  T t;
+  int count() const { return sizeof(T) / sizeof(unsigned short); }
+};
+template<class T, class U = const T[2][3]> struct ConstArrayDefault {
+  int count() const { return sizeof(U) / sizeof(T); }
+};
+%}
+%template(ArrayDefaultUShort) ArrayDefault<>;
+%template(ConstArrayDefaultShort) ConstArrayDefault<short>;
+

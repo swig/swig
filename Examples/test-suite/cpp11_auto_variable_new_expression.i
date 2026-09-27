@@ -9,7 +9,6 @@
 %warnfilter(SWIGWARN_CPP11_AUTO) plus_after_initialiser;
 %warnfilter(SWIGWARN_CPP11_AUTO) plus_after_array;
 %warnfilter(SWIGWARN_CPP11_AUTO) parenthesised_type_id;
-%warnfilter(SWIGWARN_CPP11_AUTO) subscript_auto;
 %warnfilter(SWIGWARN_CPP11_AUTO) lambda_auto;
 
 // A macro spanning more than one line gets locator comments round its expansion, which must not stop the deduction.
@@ -132,12 +131,16 @@ auto auto_narrowed = new auto(static_cast<unsigned short>(global_count));
 auto auto_widget = new auto(Widget(2, 5));
 auto const_auto_difference = new const auto{global_count - 1};
 
-// An expression the grammar does not parse, such as a subscript or a lambda, deduces no type but is kept as written.
+// The placeholder is deduced from a subscript as well.
 int *subscript_int = new auto(global_values[1]);
 int *nested_subscript_int = new auto((global_values[0] + global_values[2]));
 int *braced_subscript_int = new auto{global_values[2]};
-int *lambda_int = new auto([](int x) { return x * 2; }(21));
 auto subscript_auto = new auto(global_values[0]);
+
+// An expression the grammar does not parse, such as a lambda, deduces no type but is kept as written.
+int *lambda_int = new auto([](int x) { return x * 2; }(21));
+int *nested_lambda_int = new auto(([](int x) { return x; }(40) + 3));
+int *braced_lambda_int = new auto{[] { return 44; }()};
 auto lambda_auto = new auto([](int x) { return x; });
 
 // The placeholder can be decorated, and a declaration can declare more than one variable.

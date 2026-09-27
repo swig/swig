@@ -230,6 +230,34 @@
   auto deref_sum(int *p) -> decltype(*p + 1) { return *p + 1; }
 %}
 
+%ignore Indexed::operator[];
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) subscript_ref;
+
+%inline %{
+  // A subscript is an lvalue too, so these are 'int &', as is what the one operator[] of Indexed returns.
+  struct Indexed {
+    int values[3];
+    int &operator[](int i) { return values[i]; }
+  };
+  Indexed indexed = { { 7, 8, 9 } };
+  int subscript_values[3] = { 10, 20, 30 };
+  void set_subscript_value(int i, int v) { subscript_values[i] = v; }
+  auto subscript_lvalue() -> decltype(lvalue_values[1]) { return lvalue_values[1]; }
+  auto parameter_subscript(int *p, int i) -> decltype(p[i]) { return p[i]; }
+  auto subscript_sum(int *p) -> decltype(p[1] + 1) { return p[1] + 1; }
+  auto indexed_element() -> decltype(indexed[2]) { return indexed[2]; }
+  decltype(subscript_values[1]) subscript_ref = subscript_values[1];
+  decltype("abc"[1]) literal_element_ref = "abc"[1];
+
+  // A name followed by '[' starting a template argument is an array type, not a subscript.
+  template<class T> struct ArrayHolder {
+    T held;
+    static const int count = sizeof(T) / sizeof(int);
+  };
+  typedef int HeldElement;
+%}
+%template(ArrayHolder3) ArrayHolder<HeldElement[3]>;
+
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr_lvalue;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) held_lvalue;

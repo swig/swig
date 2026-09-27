@@ -390,3 +390,16 @@ int nasty_default_expression(int x = someobject.d(sizeof - sizeof 1)) { return x
 // means SWIG can now handle any expression as the subscript.
 int subscripted_default_arg(int x = "abcdefghij"[sizeof - sizeof 1]) { return x; }
 %}
+
+%{
+static const int count_array[] = {1, 2, 3, 4, 5};
+%}
+%feature("compactdefaultargs") new_subscript_default_arg;
+%inline %{
+// A subscript after 'sizeof(...)' is part of its operand, as in the array count idiom.
+int sizeof_subscript_default_arg(int n = sizeof(count_array) / sizeof(count_array)[0]) { return n; }
+const int sizeof_subscript_count = sizeof (count_array) / sizeof (count_array)[0];
+int number_subscript_default_arg(int x = 2[count_array]) { return x; }
+// The ']' of the subscript is followed by the ']' of the array bound, which compactdefaultargs puts in the wrapper.
+int new_subscript_default_arg(int *p = new int[count_array[1]]) { delete [] p; return count_array[1]; }
+%}

@@ -146,5 +146,12 @@ public class default_args_runme {
       throw new RuntimeException("coo test 1 failed");
     if (cm.coo(1.0) != 20)
       throw new RuntimeException("coo test 2 failed");
+
+    if (default_args.sizeof_subscript_default_arg() != 5)
+      throw new RuntimeException("sizeof_subscript_default_arg failed");
+    if (default_args.getSizeof_subscript_count() != 5)
+      throw new RuntimeException("sizeof_subscript_count failed");
+    if (default_args.number_subscript_default_arg() != 3)
+      throw new RuntimeException("number_subscript_default_arg failed");
   }
 }

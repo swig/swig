@@ -151,6 +151,11 @@ public class template_default_arg_runme {
       if (template_default_arg.nsott(new Hello_int()) != 160)
         throw new RuntimeException("nsott test 13 failed");
     }
+
+    if (new ArrayDefaultUShort().count() != 4)
+      throw new RuntimeException("ArrayDefaultUShort failed");
+    if (new ConstArrayDefaultShort().count() != 6)
+      throw new RuntimeException("ConstArrayDefaultShort failed");
   }
 }
 

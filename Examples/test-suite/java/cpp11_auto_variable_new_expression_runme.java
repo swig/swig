@@ -79,7 +79,10 @@ public class cpp11_auto_variable_new_expression_runme {
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getSubscript_int()), 41, "subscript_int");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getNested_subscript_int()), 82, "nested_subscript_int");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getBraced_subscript_int()), 42, "braced_subscript_int");
+    check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getSubscript_auto()), 40, "subscript_auto");
     check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getLambda_int()), 42, "lambda_int");
+    check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getNested_lambda_int()), 43, "nested_lambda_int");
+    check(cpp11_auto_variable_new_expression.int_value(cpp11_auto_variable_new_expression.getBraced_lambda_int()), 44, "braced_lambda_int");
 
     check(cpp11_auto_variable_new_expression.widget_value(cpp11_auto_variable_new_expression.getDecorated_widget()), 18, "decorated_widget");
     check(cpp11_auto_variable_new_expression.const_int_value(cpp11_auto_variable_new_expression.getDecorated_const_int()), 18, "decorated_const_int");

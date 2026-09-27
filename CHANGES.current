@@ -21,6 +21,38 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-27: wsfulton
+            An array type as the default of a template type parameter is now used
+            as that type by %template, rather than generating wrappers that do not
+            compile, and a multidimensional one is no longer a syntax error:
+
+              template<class T = unsigned short[4]> struct A { T t; };
+              template<class T, class U = const T[2][3]> struct B {};
+              %template(ADefault) A<>;
+              %template(BShort) B<short>;
+
+2026-09-27: wsfulton
+            A subscript is now parsed as part of an expression, so an auto variable
+            or decltype of one is deduced, which it was not before:
+
+              int arr[3];
+              int *pg;
+              auto a = arr[1];               // int
+              auto p = pg[1];                // int
+              auto f() -> decltype(arr[0]);  // int &
+
+            The type is that of an element of the array or of what the pointer
+            points to, a reference to it for decltype, or the return type of the
+            operator[] of a class that declares only one.  A subscript of a class
+            with more, such as a const and a non-const operator[], is still not
+            deduced, with warning 346, or 344 for decltype.
+
+            A default argument subscripted more than once is no longer a syntax
+            error:
+
+              int matrix[2][3];
+              void g(int v = matrix[1][2]);
+
+2026-09-27: wsfulton
             A trailing return type decltype of 'this', or of '*this', in a member
             function is now deduced as a pointer, or reference, to the class, with
             the member function's cv-qualifiers:
@@ -487,13 +519,12 @@ Version 4.6.0 (in progress)
             swallows the rest of the file:
 
               decltype(1 < 2) lt_test = 0;
-              decltype("abc"[1]) array_deref = 0;
 
             reported "Missing ')'. Reached end of input." and nothing after the
             declaration was wrapped.  Nor is it a syntax error any more as the type
             of a parameter:
 
-              void take(decltype("abc"[1]) c, int n);
+              void take(decltype(1 < 2) c, int n);
 
             Warning 344 is issued for the operand and parsing carries on, which is
             what already happened when the operand had parentheses of its own.
@@ -837,8 +868,8 @@ Version 4.6.0 (in progress)
               auto &&r2 = g;   // int &, was int &&
 
             SWIG does not track the value category of an arbitrary expression, so
-            only an id-expression naming an object, optionally parenthesised, is
-            taken to be an lvalue.
+            only an id-expression naming an object, optionally parenthesised, a
+            dereference or a subscript is taken to be an lvalue.
 
 2026-09-12: wsfulton
             An 'auto' variable deduced from a reference no longer keeps the

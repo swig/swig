@@ -1,4 +1,5 @@
 import template_default_arg
+from swig_test_utils import swig_check
 
 
 helloInt = template_default_arg.Hello_int()
@@ -91,3 +92,6 @@ if (template_default_arg.ott(template_default_arg.Hello_int(), 1.0) != 60):
 
 if (template_default_arg.ott(template_default_arg.Hello_int()) != 60):
     raise RuntimeError(("ott test 13 failed"))
+
+swig_check(template_default_arg.ArrayDefaultUShort().count(), 4)
+swig_check(template_default_arg.ConstArrayDefaultShort().count(), 6)

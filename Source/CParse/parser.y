@@ -2176,6 +2176,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
    C++20 bit-field width, as in 'int x : W {5};', the initialiser is then read into the width, which SWIG keeps as text. */
 %precedence EXPR_TYPE
 %precedence LBRACE
+/* A '[' after a name starting a template argument, as in 'X<T[3]>', begins the array declarator of a type-id rather than
+   a subscript: C++ resolves an ambiguity between a type-id and an expression to the type-id, and the grammar cannot tell
+   whether the name is a type. */
+%precedence LBRACKET
+%precedence NAME_AS_TYPE
 %token DCOLON
 
 %type <node>     program interface declaration swig_directive ;
@@ -2219,7 +2224,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <intvalue> variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
+%type <type>     type rawtype qualified_type type_right keyword_type anon_bitfield_type decltype cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
+%type <type>     array_type_id array_element_type;
 %type <group>    decltype_prefix;
 %type <type>     conversion_declarator;
 %type <str>      noexcept_specifier_opt;
@@ -2231,7 +2237,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      new_keyword new_placement new_initializer_opt new_auto_holder;
 %type <group>    new_auto_lparen new_auto_lbrace;
 %type            deleted_reason;
-%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
+%type <dtype>    expr exprnum exprstring exprsimple exprcompound valexpr exprmem sizeof_paren;
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
@@ -2532,17 +2538,33 @@ static SwigType *c_style_cast_type(SwigType *t) {
   return type;
 }
 
-/* The type of '*e', where 'type' is the type of 'e': an lvalue of the type pointed to, and so a reference to it,
-   which decltype keeps and auto drops.  Returns 0 if 'type' is not a pointer to an object type, or is 0. */
+/* The type of '*e', where 'type' is the type of 'e': an lvalue of the type pointed to, or of the element of an array,
+   and so a reference to it, which decltype keeps and auto drops.  Returns 0 if 'type' is not a pointer to an object
+   type or an array, or is 0. */
 static SwigType *dereference_type(SwigType *type) {
   SwigType *element;
   SwigType *resolved;
+  SwigType *qualifier = 0;
   if (!type)
     return 0;
-  element = SwigType_remove_qualifier_reference(Copy(type));
+  element = SwigType_remove_reference(Copy(type));
   /* A typedef can hide the pointer or array, as in adjust_parm_type(). */
   resolved = Swig_symbol_typedef_reduce(element, Swig_symbol_current());
   Delete(element);
+  if (SwigType_isqualifier(resolved))
+    qualifier = SwigType_pop(resolved);
+  if (SwigType_isarray(resolved)) {
+    SwigType_del_array(resolved);
+    /* The cv-qualifiers of an array, which a typedef of an array type can carry, are those of its elements. */
+    if (qualifier) {
+      String *cv = SwigType_parm(qualifier);
+      SwigType_add_qualifier(resolved, cv);
+      Delete(cv);
+    }
+    Delete(qualifier);
+    return SwigType_add_reference(resolved);
+  }
+  Delete(qualifier);
   if (SwigType_ispointer(resolved)) {
     Delete(SwigType_pop(resolved));
     if (!SwigType_isfunction(resolved) && SwigType_type(resolved) != T_VOID)
@@ -2550,6 +2572,33 @@ static SwigType *dereference_type(SwigType *type) {
   }
   Delete(resolved);
   return 0;
+}
+
+/* The type of calling the operator[] of the class 'type', which is the return type when the class declares exactly one
+   operator[], or 0 when it declares none or several, as SWIG does not resolve the call, or 'type' is not a class.  The
+   C symbol table chains every declaration of the name, whether %ignore or %rename apply to it or not. */
+static SwigType *class_subscript_type(SwigType *type) {
+  SwigType *name = SwigType_remove_qualifier_reference(Copy(type));
+  Node *n = Swig_symbol_clookup_resolve_typedef(name, 0);
+  SwigType *result = 0;
+  Delete(name);
+  n = n && Equal(nodeType(n), "class") ? Swig_symbol_clookup_local("operator []", Getattr(n, "symtab")) : 0;
+  if (n && Equal(nodeType(n), "cdecl") && !Getattr(n, "csym:nextSibling") && !GetFlag(n, "isextendmember")) {
+    /* The return type is written as in the class, where a member typedef needs no qualification. */
+    SwigType *rettype = Swig_function_return_type(n);
+    result = Swig_symbol_type_qualify(rettype, Getattr(n, "sym:symtab"));
+    Delete(rettype);
+  }
+  return result;
+}
+
+/* The type of 'e[i]', where 'type' is the type of 'e': that of '*e' for an array or pointer, see dereference_type(), or
+   of calling the operator[] of a class, see class_subscript_type().  Returns 0 for any other type, or if 'type' is 0. */
+static SwigType *subscript_type(SwigType *type) {
+  SwigType *element = dereference_type(type);
+  if (!element && type)
+    element = class_subscript_type(type);
+  return element;
 }
 
 /* The type of '&e', where 'type' is the type of 'e', which is a pointer to it, or 0 when 'type' is 0. */
@@ -2769,11 +2818,12 @@ static int initialiser_is_string_literal(const struct Define *dtype) {
   return dtype->literal == LITERAL_STRING && (dtype->type == T_STRING || dtype->type == T_WSTRING) && dtype->stringval;
 }
 
-/* Whether the initialiser 'dtype' is an lvalue: an id-expression naming an object, optionally parenthesised, or a string
-   literal.  Other literals and enumerators are prvalues, and SWIG does not track any other expression's value category. */
+/* Whether the initialiser 'dtype' is an lvalue: an id-expression naming an object, optionally parenthesised, a string
+   literal, or an expression whose type the grammar gives as an lvalue reference, as for a dereference or a subscript.
+   Other literals and enumerators are prvalues, and SWIG does not track any other expression's value category. */
 static int initialiser_is_lvalue(const struct Define *dtype) {
   Node *n;
-  if (initialiser_is_string_literal(dtype))
+  if (initialiser_is_string_literal(dtype) || (dtype->newtype && SwigType_isreference(dtype->newtype)))
     return 1;
   n = dtype->idexpr ? Swig_symbol_clookup(dtype->idexpr, 0) : 0;
   if (n && Equal(nodeType(n), "cdecl")) {
@@ -3255,6 +3305,36 @@ static void append_expr_from_scanner(String *expr) {
     Append(expr, scanner_ccode);
   }
   Clear(scanner_ccode);
+}
+
+/* The subscript of the expression 'operand' by the '[...]' the scanner has just skipped, which is kept as text: the type
+   does not depend on the index, bar the rare 'i[a]' spelling, where the integer 'i' deduces no type. */
+static struct Define subscript_dtype(const struct Define *operand) {
+  struct Define dtype = default_dtype;
+  /* The type of a string literal is its array, which its T_* code does not describe. */
+  SwigType *operand_type = initialiser_is_string_literal(operand) ? string_literal_type(operand) : deduce_type(operand, 1);
+  dtype.val = Copy(operand->val);
+  append_expr_from_scanner(dtype.val);
+  dtype.newtype = subscript_type(operand_type);
+  dtype.type = dtype.newtype ? value_type_code(dtype.newtype) : T_UNKNOWN;
+  Delete(operand_type);
+  return dtype;
+}
+
+/* Add the array bound the scanner has just skipped, the '[3]' of 'int[3]', to 'type' as its innermost dimension, so that
+   'int[2][3]' is an array of 2 arrays of 3. */
+static void add_array_from_scanner(SwigType *type) {
+  String *bound = NewStringEmpty();
+  SwigType *arrays = SwigType_isarray(type) ? SwigType_pop_arrays(type) : 0;
+  append_expr_from_scanner(bound);
+  Delitem(bound, 0);
+  Delitem(bound, DOH_END);
+  Swig_cparse_trim_whitespace(bound);
+  SwigType_add_array(type, bound);
+  if (arrays)
+    SwigType_push(type, arrays);
+  Delete(arrays);
+  Delete(bound);
 }
 
 static Node *new_enum_node(SwigType *enum_base_type) {
@@ -7633,13 +7713,10 @@ valparm        : parm {
 def_args       : EQUAL definetype { 
                  $$ = $definetype;
                }
-	       | EQUAL definetype LBRACKET {
-		 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.type = T_UNKNOWN;
-		 $$.val = $definetype.val;
-		 Append($$.val, scanner_ccode);
-		 Clear(scanner_ccode);
+               | EQUAL array_type_id {
+                 $$ = default_dtype;
+                 $$.val = $array_type_id;
+                 $$.type = T_UNKNOWN;
                }
                | EQUAL LBRACE {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
@@ -7677,8 +7754,8 @@ new_expression_head : new_keyword new_type_id new_initializer_opt {
                    $$ = new_expression_head_dtype($new_keyword, $new_placement, 0, $new_initializer_opt, 0);
                  }
                /* C++11 'new auto(e)', whose type is deduced from 'e' as for an 'auto' variable.  An 'e' the expression grammar
-                  cannot parse, such as a subscript or a lambda, is a syntax error recovered from by skipping the rest of the
-                  initialiser, whose raw text is then the value, and the token the error was found at is discarded. */
+                  cannot parse, such as a lambda, is a syntax error recovered from by skipping the rest of the initialiser,
+                  whose raw text is then the value, and the token the error was found at is discarded. */
                | new_keyword new_auto_holder new_auto_lparen expr RPAREN {
                    $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, NewStringf("(%s)", $expr.val));
                    Delete($new_auto_lparen.text);
@@ -8501,38 +8578,62 @@ type            : rawtype %expect 4 {
                 }
                 ;
 
-rawtype        : type_qualifier type_right {
-                   $$ = $type_right;
-	           SwigType_push($$,$type_qualifier);
-               }
+rawtype        : qualified_type
 	       | type_right
-               | type_right type_qualifier {
-		  $$ = $type_right;
-	          SwigType_push($$,$type_qualifier);
-	       }
-               | type_qualifier[type_qualifier1] type_right type_qualifier[type_qualifier2] {
-		  $$ = $type_right;
-	          SwigType_push($$,$type_qualifier2);
-	          SwigType_push($$,$type_qualifier1);
-	       }
 	       | rawtype[in] ELLIPSIS {
 		  $$ = $in;
 		  SwigType_add_variadic($$);
 	       }
                ;
 
-type_right     : primitive_type
+qualified_type : type_qualifier type_right {
+                 $$ = $type_right;
+                 SwigType_push($$, $type_qualifier);
+               }
+               | type_right type_qualifier {
+                 $$ = $type_right;
+                 SwigType_push($$, $type_qualifier);
+               }
+               | type_qualifier[type_qualifier1] type_right type_qualifier[type_qualifier2] {
+                 $$ = $type_right;
+                 SwigType_push($$, $type_qualifier2);
+                 SwigType_push($$, $type_qualifier1);
+               }
+               ;
+
+type_right     : keyword_type
+               | idcolon %prec NAME_AS_TYPE %expect 1 {
+		  $$ = $idcolon;
+               }
+               ;
+
+/* Each type_right but a name, all starting with a keyword. */
+keyword_type   : primitive_type
                | TYPE_BOOL
                | TYPE_VOID
                | c_enum_key idcolon { $$ = NewStringf("enum %s", $idcolon); }
-
-               | idcolon %expect 1 {
-		  $$ = $idcolon;
-               }
                | cpptype idcolon %expect 1 {
-		 $$ = NewStringf("%s %s", $cpptype, $idcolon);
+                 $$ = NewStringf("%s %s", $cpptype, $idcolon);
                }
                | decltype
+               ;
+
+/* The type-id of an array type, as in 'template<class T = int[2]>', where the bounds are skipped as text.  A plain name
+   followed by '[' is a subscript instead, which gives 'T[3]' the same text. */
+array_type_id  : array_element_type LBRACKET {
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = $array_element_type;
+                 add_array_from_scanner($$);
+               }
+               | array_type_id[in] LBRACKET {
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = $in;
+                 add_array_from_scanner($$);
+               }
+               ;
+
+array_element_type : keyword_type
+               | qualified_type
                ;
 
 /* The 'decltype(' that opens both 'decltype(expr)' and the 'decltype(auto)' placeholder matched by
@@ -8929,6 +9030,29 @@ exprmem        : idcolon ARROW ID {
 		 $$.newtype = 0;
 		 Printf($$.val, ".%s", $ID);
 	       }
+               /* A subscript, whose index is skipped as text, see subscript_dtype().  Where a type-id can start, a name
+                  followed by '[' is a type instead, see NAME_AS_TYPE. */
+               | idcolon LBRACKET {
+                 struct Define operand = default_dtype;
+                 note_name_in_trailing_rettype($idcolon);
+                 operand.val = SwigType_istemplate($idcolon) ? SwigType_namestr($idcolon) : $idcolon;
+                 operand.idexpr = $idcolon;
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = subscript_dtype(&operand);
+               }
+               | exprmem[in] LBRACKET {
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = subscript_dtype(&$in);
+               }
+               | exprstring LBRACKET {
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = subscript_dtype(&$exprstring);
+               }
+               /* The rare 'i[a]' spelling of 'a[i]'. */
+               | exprnum LBRACKET {
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = subscript_dtype(&$exprnum);
+               }
 	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
@@ -9114,22 +9238,7 @@ exprsimple     : exprnum
                    $$.type = value_type_code($$.newtype);
                  }
                }
-               | string_literal {
-		  $$ = default_dtype;
-                  $$.stringval = $string_literal.text;
-                  $$.val = NewStringf("\"%(escape)s\"", $string_literal.text);
-		  $$.type = T_STRING;
-                  $$.literal = LITERAL_STRING;
-                  $$.literalprefix = $string_literal.prefix;
-	       }
-	       | wstring {
-		  $$ = default_dtype;
-                  $$.stringval = $wstring.text;
-                  $$.val = NewStringf("L\"%(escape)s\"", $wstring.text);
-		  $$.type = T_WSTRING;
-                  $$.literal = LITERAL_STRING;
-                  $$.literalprefix = $wstring.prefix;
-	       }
+               | exprstring
 	       | CHARCONST {
 		  $$ = default_dtype;
                   $$.literal = LITERAL_CHARACTER;
@@ -9153,18 +9262,7 @@ exprsimple     : exprnum
                   $$.literalprefix = $WCHARCONST.prefix;
 	       }
 
-	       /* In sizeof(X) X can be a type or expression.  We don't actually
-		* need to parse X as the type of sizeof is always size_t (which
-		* SWIG handles as T_ULONG), so we just skip to the closing ')' and
-		* grab the skipped text to use in the value of the expression.
-		*/
-	       | SIZEOF LPAREN {
-		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		  $$ = default_dtype;
-		  $$.val = NewString("sizeof");
-		  append_expr_from_scanner($$.val);
-		  $$.type = T_ULONG;
-               }
+               | sizeof_paren
 	       /* alignof(T) always has type size_t. */
 	       | ALIGNOF LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
@@ -9196,6 +9294,23 @@ exprsimple     : exprnum
 		  $$.val = NewStringf("sizeof(%s)", $in.val);
 		  $$.type = T_ULONG;
 	       }
+               ;
+
+/* In 'sizeof(X)' X can be a type or an expression.  X is not parsed, as the type of sizeof is always size_t, which SWIG
+   handles as T_ULONG, so the text up to the closing ')' is skipped and used in the value of the expression.  A subscript
+   after it, as in the array count 'sizeof(a) / sizeof(a)[0]', is part of the operand, 'sizeof((a)[0])'. */
+sizeof_paren   : SIZEOF LPAREN {
+                 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+                 $$ = default_dtype;
+                 $$.val = NewString("sizeof");
+                 append_expr_from_scanner($$.val);
+                 $$.type = T_ULONG;
+               }
+               | sizeof_paren[in] LBRACKET {
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = $in;
+                 append_expr_from_scanner($$.val);
+               }
                ;
 
 valexpr        : exprsimple
@@ -9230,6 +9345,13 @@ valexpr        : exprsimple
                     $$.literal = $expr.literal;
                     $$.literalprefix = $expr.literalprefix;
 	       }
+               /* A subscript of a parenthesised expression, not an exprmem, which would make 'sizeof (x)[0]' ambiguous. */
+               | LPAREN expr RPAREN LBRACKET {
+                 struct Define operand = $expr;
+                 operand.val = NewStringf("(%s)", $expr.val);
+                 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+                 $$ = subscript_dtype(&operand);
+               }
 
 /* A few common casting operations */
 
@@ -9415,6 +9537,24 @@ exprnum        :  NUM_INT
                |  NUM_LONGLONG
                |  NUM_ULONGLONG
                |  NUM_BOOL
+               ;
+
+exprstring     : string_literal {
+                 $$ = default_dtype;
+                 $$.stringval = $string_literal.text;
+                 $$.val = NewStringf("\"%(escape)s\"", $string_literal.text);
+                 $$.type = T_STRING;
+                 $$.literal = LITERAL_STRING;
+                 $$.literalprefix = $string_literal.prefix;
+               }
+               | wstring {
+                 $$ = default_dtype;
+                 $$.stringval = $wstring.text;
+                 $$.val = NewStringf("L\"%(escape)s\"", $wstring.text);
+                 $$.type = T_WSTRING;
+                 $$.literal = LITERAL_STRING;
+                 $$.literalprefix = $wstring.prefix;
+               }
                ;
 
 exprcompound   : expr[lhs] PLUS expr[rhs] {
