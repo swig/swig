@@ -830,6 +830,7 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
   if (!strstr(c, "::")) {
     *rprefix = 0;
     *rlast = Copy(s);
+    return;
   }
 
   co = strstr(cc, "operator ");
