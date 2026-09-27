@@ -2404,6 +2404,35 @@ static void note_this_in_trailing_rettype(void) {
     trailing_rettype_state.decltype_mentions_local = 1;
 }
 
+/* Note the names in 'text', part of the expression being parsed that the grammar skips as text, such as the index of a
+   subscript or the arguments of a call, see note_name_in_trailing_rettype().  A name after '.', '->' or '::' is not one
+   in scope.  A private scanner reads the text, as in literal_type_code(). */
+static void note_names_in_trailing_rettype(String *text) {
+  Scanner *scanner;
+  String *copy;
+  int previous = 0;
+  int tok;
+  if (!trailing_rettype_state.parsing)
+    return;
+  scanner = NewScanner();
+  copy = Copy(text);
+  Seek(copy, 0, SEEK_SET);
+  Scanner_push(scanner, copy);
+  while ((tok = Scanner_token(scanner)) > 0) {
+    if (tok == SWIG_TOKEN_COMMENT || tok == SWIG_TOKEN_ENDLINE)
+      continue;
+    if (tok == SWIG_TOKEN_ID && previous != SWIG_TOKEN_PERIOD && previous != SWIG_TOKEN_ARROW && previous != SWIG_TOKEN_DCOLON) {
+      if (Equal(Scanner_text(scanner), "this"))
+        note_this_in_trailing_rettype();
+      else
+        note_name_in_trailing_rettype(Scanner_text(scanner));
+    }
+    previous = tok;
+  }
+  DelScanner(scanner);
+  Delete(copy);
+}
+
 /* The template parameter named 'name' of the template declaration being parsed, or of the class template it is a
    member of, or 0 if there is none. */
 static Parm *template_parameter_named(String *name) {
@@ -3337,6 +3366,7 @@ static struct Define subscript_dtype(const struct Define *operand) {
   struct Define dtype = default_dtype;
   /* The type of a string literal is its array, which its T_* code does not describe. */
   SwigType *operand_type = initialiser_is_string_literal(operand) ? string_literal_type(operand) : deduce_type(operand, 1);
+  note_names_in_trailing_rettype(scanner_ccode);
   dtype.val = Copy(operand->val);
   append_expr_from_scanner(dtype.val);
   dtype.newtype = subscript_type(operand_type);
@@ -8684,6 +8714,7 @@ decltype       : decltype_prefix[prefix] expr RPAREN {
                | decltype_prefix[prefix] error {
                  if (skip_to_bracket_depth('(', ')', $prefix.depth) < 0) Exit(EXIT_FAILURE);
                  yyclearin;
+                 note_names_in_trailing_rettype($prefix.text);
                  $$ = undeduced_decltype_type($prefix.text);
                  Delete($prefix.text);
                }
@@ -9079,6 +9110,7 @@ exprmem        : idcolon ARROW ID {
                }
 	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+                 note_names_in_trailing_rettype(scanner_ccode);
 		 $$ = $in;
 		 $$.newtype = 0;
 		 append_expr_from_scanner($$.val);
@@ -9089,6 +9121,7 @@ exprmem        : idcolon ARROW ID {
                   * expression, unlike the constructor cast and the function call this rule also matches. */
                  int cast_type_code = named_cast_type_code($type);
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+                 note_names_in_trailing_rettype(scanner_ccode);
 
 		 String *qty = Swig_symbol_type_qualify($type, 0);
 		 SwigType *call_type = 0;
@@ -9126,6 +9159,7 @@ exprmem        : idcolon ARROW ID {
 	       | type LBRACE {
 		 String *qty;
 		 if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
+                 note_names_in_trailing_rettype(scanner_ccode);
 		 $$ = default_dtype;
 		 qty = Swig_symbol_type_qualify($type, 0);
 		 $$.newtype = functional_cast_type($type, qty);

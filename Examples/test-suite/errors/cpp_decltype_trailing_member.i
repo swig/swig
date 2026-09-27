@@ -23,6 +23,17 @@ struct This {
   auto member_of_deref() -> decltype((*this).d) { return d; }
 };
 
+// Also when only the text skipped in a subscript or the arguments of a call names one.
+Inner inners[2];
+int overloaded(int);
+int overloaded(double);
+struct Skipped {
+  int idx;
+  auto index() -> decltype(inners[idx].x) { return inners[idx].x; }
+  auto this_index() -> decltype(inners[this->idx].x) { return inners[idx].x; }
+  auto argument() -> decltype(overloaded(idx)) { return overloaded(idx); }
+};
+
 // A call is overloaded even where %ignore or %rename leaves the target language only one of the overloads.
 %ignore IgnoredOverload::ov(double);
 %rename(ov_double) RenamedOverload::ov(double);
