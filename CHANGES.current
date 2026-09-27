@@ -19,6 +19,15 @@ Version 4.6.0 (in progress)
 2026-10-02: olly
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
+2026-10-01: wsfulton
+            [Javascript] Fix a member function declared through a function typedef, which was
+            registered without its wrapper function, so the generated code did not compile:
+
+              typedef int Fn(int);
+              struct S {
+                Fn f;
+              };
+
 2026-10-01: arunisaac
 	    [Guile] #1567 Add support for std::string_view (new in C++17).
 

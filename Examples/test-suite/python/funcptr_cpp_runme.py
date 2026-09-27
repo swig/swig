@@ -1,4 +1,5 @@
 from funcptr_cpp import *
+from swig_test_utils import swig_check
 
 if call1(ADD_BY_VALUE, 10, 11) != 21:
     raise RuntimeError
@@ -11,3 +12,6 @@ if call1(ADD_BY_VALUE_C, 2, 3) != 5:
 
 if callconst1(ADD_BY_VALUE_C, 2, 3) != 5:
     raise RuntimeError
+
+holder = AddByValueHolder()
+swig_check(holder.byValueMethod(4, 5), 9)

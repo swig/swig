@@ -15,3 +15,8 @@ if (funcptr_cpp.call1(funcptr_cpp.ADD_BY_VALUE_C, 2, 3) != 5) {
 if (funcptr_cpp.callconst1(funcptr_cpp.ADD_BY_VALUE_C, 2, 3) != 5) {
     throw new Error;
 }
+
+var holder = new funcptr_cpp.AddByValueHolder();
+if (holder.byValueMethod(4, 5) != 9) {
+    throw new Error;
+}

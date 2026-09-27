@@ -32,4 +32,9 @@ typedef int & AddByReferenceTypedef(const int &a, int b);
 void *typedef_call1(AddByValueTypedef *& precallback, AddByValueTypedef * postcallback) { return 0; }
 void *typedef_call2(AddByPointerTypedef *& precallback, AddByPointerTypedef * postcallback) { return 0; }
 void *typedef_call3(AddByReferenceTypedef *& precallback, AddByReferenceTypedef * postcallback) { return 0; }
+
+struct AddByValueHolder {
+  AddByValueTypedef byValueMethod;
+};
+int AddByValueHolder::byValueMethod(const int &a, int b) { return a + b; }
 %}
