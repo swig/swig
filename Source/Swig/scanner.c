@@ -1981,10 +1981,10 @@ void Scanner_locator(Scanner *s, String *loc) {
       return;
     }
 
-    /* We're going to push a new location */
+    /* We're going to push a new location. Save the scanner's line as the last token's line (cparse_line) can be several lines earlier. */
     l = (Locator *)Malloc(sizeof(Locator));
     l->filename = cparse_file;
-    l->line_number = cparse_line;
+    l->line_number = s->line;
     l->next = locs;
     locs = l;
 
