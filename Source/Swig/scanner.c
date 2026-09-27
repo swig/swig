@@ -1974,6 +1974,8 @@ void Scanner_locator(Scanner *s, String *loc) {
         Scanner_set_location(s, locs->filename, locs->line_number);
         cparse_file = locs->filename;
         cparse_line = locs->line_number;
+        /* The scanner now holds a reference to the filename */
+        Delete(locs->filename);
         l = locs->next;
         Free(locs);
         locs = l;
@@ -1984,22 +1986,22 @@ void Scanner_locator(Scanner *s, String *loc) {
     /* We're going to push a new location. Save the scanner's line as the last token's line (cparse_line) can be several lines earlier. */
     l = (Locator *)Malloc(sizeof(Locator));
     l->filename = cparse_file;
+    /* Keep the filename alive as setting the new location below deletes it when the scanner holds the only reference */
+    DohIncref(l->filename);
     l->line_number = s->line;
     l->next = locs;
     locs = l;
 
     /* Now, parse the new location out of the locator string */
     {
+      String *filename = NewStringEmpty();
       String *fn = NewStringEmpty();
-      /*      Putc(c, fn); */
 
       while ((c = Getc(loc)) != EOF) {
         if ((c == '@') || (c == ','))
           break;
-        Putc(c, fn);
+        Putc(c, filename);
       }
-      cparse_file = Swig_copy_string(Char(fn));
-      Clear(fn);
       cparse_line = 1;
       /* Get the line number */
       while ((c = Getc(loc)) != EOF) {
@@ -2017,7 +2019,10 @@ void Scanner_locator(Scanner *s, String *loc) {
         Putc(c, fn);
       }
       /*  Swig_diagnostic(cparse_file, cparse_line, "Scanner_set_location\n"); */
-      Scanner_set_location(s, cparse_file, cparse_line);
+      Scanner_set_location(s, filename, cparse_line);
+      /* The scanner holds the reference to the filename, as it does when cparse_file is set from Scanner_file() */
+      cparse_file = filename;
+      Delete(filename);
       Delete(fn);
     }
   }

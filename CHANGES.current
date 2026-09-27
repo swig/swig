@@ -20,6 +20,10 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            Fix a possible crash when using -macroerrors, such as when a multiline macro expands
+            another macro.
+
+2026-10-01: wsfulton
             Fix the line numbers in warnings and errors for the code following a multiline
             macro expansion when using -macroerrors. They were counted from the last code before
             the macro invocation instead of from the invocation, so any blank lines, comments or
