@@ -75,7 +75,7 @@ static DOH *CopyString(DOH *so) {
     Incref(str->file);
   str->str = (char *)DohMalloc(s->len + 1);
   memcpy(str->str, s->str, s->len);
-  str->maxsize = s->len;
+  str->maxsize = s->len + 1;
   str->len = s->len;
   str->str[str->len] = 0;
 
