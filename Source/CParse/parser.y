@@ -2229,6 +2229,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    new_expression new_expression_head auto_initializer;
 %type <type>     new_type_id new_array_declarator;
 %type <str>      new_keyword new_placement new_initializer_opt new_auto_holder;
+%type <group>    new_auto_lparen new_auto_lbrace;
 %type            deleted_reason;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <id>       ename ;
@@ -3186,20 +3187,23 @@ static struct Define new_expression_head_dtype(String *keyword, String *placemen
   return dtype;
 }
 
-/* The value of 'new auto(e)', or 'new auto{e}' when 'braced', 'qualifier' being the placeholder's cv-qualifier or 0 and
-   'initializer' describing 'e', from which the type allocated is deduced as for an 'auto' variable. */
-static struct Define new_auto_expression_head_dtype(String *keyword, String *qualifier, const struct Define *initializer, int braced) {
+/* The value of 'new auto' followed by the initialiser 'text', that is '(e)' or '{e}', 'qualifier' being the placeholder's
+   cv-qualifier or 0.  The type allocated is deduced from 'initializer', describing 'e', as for an 'auto' variable, and is
+   unknown if 'initializer' is 0, as it is when 'e' is a syntax error. */
+static struct Define new_auto_expression_head_dtype(String *keyword, String *qualifier, const struct Define *initializer, String *text) {
   SwigType *placeholder = NewString("auto");
-  String *text = NewStringf(braced ? "{%s}" : "(%s)", initializer->val);
-  SwigType *decl = NewStringEmpty();
-  SwigType *newtype = auto_variable_type(initializer, decl, qualifier, 0);
+  SwigType *newtype = 0;
   struct Define dtype;
-  if (newtype)
-    SwigType_add_pointer(newtype);
+  if (initializer) {
+    SwigType *decl = NewStringEmpty();
+    newtype = auto_variable_type(initializer, decl, qualifier, 0);
+    if (newtype)
+      SwigType_add_pointer(newtype);
+    Delete(decl);
+  }
   if (qualifier)
     SwigType_push(placeholder, qualifier);
   dtype = new_expression_head_dtype(keyword, 0, placeholder, text, newtype);
-  Delete(decl);
   Delete(placeholder);
   return dtype;
 }
@@ -7672,13 +7676,43 @@ new_expression_head : new_keyword new_type_id new_initializer_opt {
                | new_keyword new_placement new_initializer_opt {
                    $$ = new_expression_head_dtype($new_keyword, $new_placement, 0, $new_initializer_opt, 0);
                  }
-               /* C++11 'new auto(e)', whose type is deduced from 'e' as for an 'auto' variable.  An unparsable 'e' is a syntax
-                  error, recovered from in a variable declaration but not a default argument, unless 'e' has a ';'. */
-               | new_keyword new_auto_holder LPAREN expr RPAREN {
-                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, 0);
+               /* C++11 'new auto(e)', whose type is deduced from 'e' as for an 'auto' variable.  An 'e' the expression grammar
+                  cannot parse, such as a subscript or a lambda, is a syntax error recovered from by skipping the rest of the
+                  initialiser, whose raw text is then the value, and the token the error was found at is discarded. */
+               | new_keyword new_auto_holder new_auto_lparen expr RPAREN {
+                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, NewStringf("(%s)", $expr.val));
+                   Delete($new_auto_lparen.text);
                  }
-               | new_keyword new_auto_holder LBRACE expr RBRACE {
-                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, 1);
+               | new_keyword new_auto_holder new_auto_lparen error {
+                   if (skip_to_bracket_depth('(', ')', $new_auto_lparen.depth) < 0) Exit(EXIT_FAILURE);
+                   yyclearin;
+                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, 0, $new_auto_lparen.text);
+                 }
+               | new_keyword new_auto_holder new_auto_lbrace expr RBRACE {
+                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, &$expr, NewStringf("{%s}", $expr.val));
+                   Delete($new_auto_lbrace.text);
+                 }
+               | new_keyword new_auto_holder new_auto_lbrace error {
+                   if (skip_to_bracket_depth('{', '}', $new_auto_lbrace.depth) < 0) Exit(EXIT_FAILURE);
+                   yyclearin;
+                   $$ = new_auto_expression_head_dtype($new_keyword, $new_auto_holder, 0, $new_auto_lbrace.text);
+                 }
+               ;
+
+/* The bracket opening the initialiser of 'new auto', at which the raw text of the initialiser and the bracket depth outside
+   it are taken in case it does not parse.  Rules of their own, reduced before any token of the initialiser is read, see
+   decltype_prefix. */
+new_auto_lparen : LPAREN {
+                   $$.text = get_raw_text_balanced('(', ')');
+                   if (!$$.text) Exit(EXIT_FAILURE);
+                   $$.depth = bracket_depth_outside('(');
+                 }
+               ;
+
+new_auto_lbrace : LBRACE {
+                   $$.text = get_raw_text_balanced('{', '}');
+                   if (!$$.text) Exit(EXIT_FAILURE);
+                   $$.depth = bracket_depth_outside('{');
                  }
                ;
 

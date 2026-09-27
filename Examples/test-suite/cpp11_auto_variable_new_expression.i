@@ -9,6 +9,8 @@
 %warnfilter(SWIGWARN_CPP11_AUTO) plus_after_initialiser;
 %warnfilter(SWIGWARN_CPP11_AUTO) plus_after_array;
 %warnfilter(SWIGWARN_CPP11_AUTO) parenthesised_type_id;
+%warnfilter(SWIGWARN_CPP11_AUTO) subscript_auto;
+%warnfilter(SWIGWARN_CPP11_AUTO) lambda_auto;
 
 // A macro spanning more than one line gets locator comments round its expansion, which must not stop the deduction.
 %define NEW_WIDGET(A, B)
@@ -47,6 +49,7 @@ template<typename T> struct Box {
 };
 
 int global_count = 3;
+int global_values[3] = {40, 41, 42};
 
 int int_value(int *p) { return *p; }
 int pointed_int_value(int **p) { return **p; }
@@ -129,6 +132,14 @@ auto auto_narrowed = new auto(static_cast<unsigned short>(global_count));
 auto auto_widget = new auto(Widget(2, 5));
 auto const_auto_difference = new const auto{global_count - 1};
 
+// An expression the grammar does not parse, such as a subscript or a lambda, deduces no type but is kept as written.
+int *subscript_int = new auto(global_values[1]);
+int *nested_subscript_int = new auto((global_values[0] + global_values[2]));
+int *braced_subscript_int = new auto{global_values[2]};
+int *lambda_int = new auto([](int x) { return x * 2; }(21));
+auto subscript_auto = new auto(global_values[0]);
+auto lambda_auto = new auto([](int x) { return x; });
+
 // The placeholder can be decorated, and a declaration can declare more than one variable.
 auto *decorated_widget = new Widget(9, 9);
 const auto *decorated_const_int = new int(18);
@@ -152,6 +163,8 @@ int after_all = 99;
 
 // The value of a new-expression default argument is compiled into the wrapper with compactdefaultargs.
 %feature("compactdefaultargs") auto_default;
+%feature("compactdefaultargs") subscript_default;
+%feature("compactdefaultargs") lambda_default;
 
 %inline %{
 // GCC 11 and earlier take the 'auto' of 'new auto' in a default argument for an auto parameter, so they are given 'new int'.
@@ -161,6 +174,8 @@ int after_all = 99;
 #define NEW_AUTO new int
 #endif
 int auto_default(int *p = NEW_AUTO(global_count + 4)) { int v = *p; delete p; return v; }
+int subscript_default(int *p = NEW_AUTO(global_values[1])) { int v = *p; delete p; return v; }
+int lambda_default(int *p = NEW_AUTO([] { return 43; }()), int k = 1) { int v = *p * k; delete p; return v; }
 %}
 
 %template(BoxInt) Box<int>;
