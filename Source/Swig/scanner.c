@@ -540,6 +540,7 @@ static int look(Scanner *s) {
   int state = 0;
   int c = 0;
   String *str_delimiter = 0;
+  int wide_raw_string = 0; /* LR"XXXX(value)XXXX" rather than R"XXXX(value)XXXX" */
 
   Clear(s->text);
   s->start_line = s->line;
@@ -767,7 +768,7 @@ static int look(Scanner *s) {
             Delete(end_delimiter);                                /* Correct end delimiter )XXXX" occurred */
             Delete(str_delimiter);
             str_delimiter = 0;
-            return SWIG_TOKEN_STRING;
+            return wide_raw_string ? SWIG_TOKEN_WSTRING : SWIG_TOKEN_STRING;
           } else { /* Incorrect end delimiter occurred */
             if (c == EOF) {
               Swig_error(
@@ -1075,6 +1076,9 @@ static int look(Scanner *s) {
         save_literal_prefix(s);
         Clear(s->text);
         state = 79;
+      } else if (c == 'R') { /* Possibly CUSTOM DELIMITER wide string */
+        wide_raw_string = 1;
+        state = 72;
       } else if (isalnum(c) || (c == '_') || (c == '$'))
         state = 7;
       else {

@@ -3026,8 +3026,7 @@ static SwigType *string_literal_type(const struct Define *dtype) {
 
   if (unsupported_literal_prefix(dtype->literalprefix))
     return 0;
-  /* A wide literal reaches the grammar as T_WSTRING, except for a raw one, whose L is only in the prefix. */
-  type = NewString(dtype->type == T_WSTRING || literal_encoding(dtype->literalprefix) == SWIG_LITERAL_WIDE ? "wchar_t" : "char");
+  type = NewString(dtype->type == T_WSTRING ? "wchar_t" : "char");
   bound = NewStringf("%d", Len(dtype->stringval) + 1);
   SwigType_add_qualifier(type, "const");
   SwigType_add_array(type, bound);

@@ -51,6 +51,10 @@ if cvar.ff != "I'm a \"raw wide\" \\ string.":
 if cvar.gg != "I'm a \"raw UTF-8\" \\ string.":
     raise RuntimeError(cvar.gg)
 
+swig_check(nn, "I'm a \"raw wide\" \\ string constant.")
+swig_check(cvar.ww, "I'm a \"raw wide\" \\ auto.")
+swig_check(raw_wide_default_length(), 4)
+
 
 def check(got, expected):
     expected_list = expected.split("\n")

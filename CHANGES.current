@@ -20,6 +20,18 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            A wide raw string literal, such as LR"(text)", is now parsed as a wide string literal,
+            the same as L"text", instead of as a narrow string literal. The generated code for a
+            constant or a C++11 auto variable initialised by one no longer uses a narrow string,
+            which did not compile, and a compact default argument no longer passes a narrow string
+            where a wide string is expected:
+
+              %constant const wchar_t *C = LR"(text)";
+              auto v = LR"(text)";
+              %feature("compactdefaultargs") f;
+              void f(const wchar_t *s = LR"(text)");
+
+2026-10-01: wsfulton
             [Go] Fix the generated code failing to compile for a constant initialised by a wide
             string literal:
 

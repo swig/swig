@@ -70,6 +70,16 @@ const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
 const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
 %}
 
+// A wide raw string literal has the type and value of a wide string literal
+%constant const wchar_t *nn = LR"XXX(I'm a "raw wide" \ string constant.)XXX";
+%feature("compactdefaultargs") raw_wide_default_length;
+
+%inline %{
+#include <cwchar>
+static constexpr auto ww = LR"XXX(I'm a "raw wide" \ auto.)XXX";
+size_t raw_wide_default_length(const wchar_t *s = LR"XXX(abcd)XXX") { return wcslen(s); }
+%}
+
 // Constants
 #if defined(SWIGJAVA)
 %javaconst(1);
