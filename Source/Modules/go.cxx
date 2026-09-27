@@ -2025,6 +2025,8 @@ private:
 
       if (SwigType_type(type) == T_STRING) {
         Printv(get, "(char *)", NULL);
+      } else if (SwigType_type(type) == T_WSTRING) {
+        Printv(get, "(wchar_t *)", NULL);
       }
 
       Printv(get, Getattr(n, "value"), NULL);

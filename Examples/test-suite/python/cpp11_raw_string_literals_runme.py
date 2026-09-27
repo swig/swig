@@ -1,5 +1,6 @@
 from cpp11_raw_string_literals import *
 import inspect
+from swig_test_utils import swig_check
 
 if cvar.L != 100:
     raise RuntimeError
@@ -32,6 +33,8 @@ if URStruct.UR != 100:
 
 if cvar.aa != "Wide string":
     raise RuntimeError
+
+swig_check(ll, "Wide string constant")
 
 if cvar.bb != "UTF-8 string":
     raise RuntimeError(cvar.wide)

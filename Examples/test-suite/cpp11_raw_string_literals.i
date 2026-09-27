@@ -58,6 +58,8 @@ char16_t char16_t_char = u'a';
 char32_t char32_t_char = U'b';
 %}
 
+%constant const wchar_t *ll = L"Wide string constant";
+
 /* Raw string literals */
 %inline %{
 const char      *xx =        ")I'm an \"ascii\" \\ string.";
