@@ -89,7 +89,8 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 swig.cmi:
 	env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGEXE) -ocaml -co swig.mli
 	$(OCC) -c swig.mli
-swig.cmo:
+# swig.ml is compiled against the swig.cmi interface built from swig.mli
+swig.cmo: swig.cmi
 	env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGEXE) -ocaml -co swig.ml
 	$(OCC) -c swig.ml
 swigp4.cmi:
