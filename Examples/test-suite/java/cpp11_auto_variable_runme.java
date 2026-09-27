@@ -41,5 +41,16 @@ public class cpp11_auto_variable_runme {
     cpp11_auto_variable.set_subscript_array_value(2, 62);
     check(cpp11_auto_variable.deref_const_int_ptr(cpp11_auto_variable.getElement_ref()), 60, "element_ref");
     check(cpp11_auto_variable.deref_const_int_ptr(cpp11_auto_variable.getForwarded_element()), 62, "forwarded_element");
+
+    // auto drops a reference hidden by a typedef.
+    int typedef_ref_element = cpp11_auto_variable.getTypedef_ref_element();
+    check(typedef_ref_element, 71, "typedef_ref_element");
+    int typedef_ref_copy = cpp11_auto_variable.getTypedef_ref_copy();
+    check(typedef_ref_copy, 70, "typedef_ref_copy");
+    check(cpp11_auto_variable.deref_const_int_ptr(cpp11_auto_variable.getTypedef_ref_address()), 70, "typedef_ref_address");
+    check(cpp11_auto_variable.deref_const_int_ptr(cpp11_auto_variable.getTypedef_ref_forwarded()), 71, "typedef_ref_forwarded");
+    check(cpp11_auto_variable.getTypedef_ref_paren(), 70, "typedef_ref_paren");
+    if (cpp11_auto_variable.getTypedef_ref_paren_class() == null)
+      throw new RuntimeException("typedef_ref_paren_class");
   }
 }

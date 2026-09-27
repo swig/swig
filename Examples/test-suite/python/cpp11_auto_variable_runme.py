@@ -55,6 +55,16 @@ set_subscript_array_value(2, 62)
 swig_check(deref_const_int_ptr(cvar.element_ref), 60)
 swig_check(deref_const_int_ptr(cvar.forwarded_element), 62)
 
+# auto drops a reference hidden by a typedef.
+swig_check(cvar.typedef_ref_element, 71)
+swig_assert(isinstance(cvar.typedef_ref_element, int), "typedef_ref_element should be an int")
+swig_check(cvar.typedef_ref_copy, 70)
+swig_assert(isinstance(cvar.typedef_ref_copy, int), "typedef_ref_copy should be an int")
+swig_check(deref_const_int_ptr(cvar.typedef_ref_address), 70)
+swig_check(deref_const_int_ptr(cvar.typedef_ref_forwarded), 71)
+swig_check(cvar.typedef_ref_paren, 70)
+swig_assert(isinstance(cvar.typedef_ref_paren_class, RefIndexedInt), "typedef_ref_paren_class should be a RefIndexedInt")
+
 # A C-style cast deduces the type it casts to, and a dereference the type pointed to.
 swig_check(deref_const_int_ptr(cvar.cstyle_cast_ptr), 0)
 swig_assert(cvar.cstyle_cast_null is None, "cstyle_cast_null")

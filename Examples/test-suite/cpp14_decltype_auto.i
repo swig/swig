@@ -34,6 +34,7 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_class;
 %warnfilter(SWIGWARN_CPP11_AUTO) var_paren_function;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_paren_address;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_typedef_ref;
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_new;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) var_new_klass;
@@ -93,6 +94,11 @@ decltype(auto) var_paren_ptr = (paren_ptr);        // int *&
 decltype(auto) var_paren_class = (paren_class);    // Paren &
 decltype(auto) var_paren_array = (paren_array);    // int (&)[2]
 decltype(auto) var_paren_static = (Paren::count);  // int &
+
+// A name declared with a reference that a typedef hides keeps that one reference.
+typedef int &ParenIntRef;
+ParenIntRef paren_typedef_ref = paren_int;
+decltype(auto) var_paren_typedef_ref = (paren_typedef_ref);  // int &
 
 // A parenthesised enumerator deduces its enumeration, and a parenthesised function name deduces nothing, as for decltype.
 namespace ParenSpace {

@@ -2542,6 +2542,27 @@ static SwigType *c_style_cast_type(SwigType *t) {
   return type;
 }
 
+/* A copy of the type 'type' without its reference, which a typedef can hide, as the 'reference' member typedef of a
+   container does, when the copy is reduced through the typedefs.  An expression of type 'type' has the copy's type. */
+static SwigType *referred_type(const SwigType *type) {
+  SwigType *t = SwigType_remove_reference(Copy(type));
+  SwigType *resolved = Swig_symbol_typedef_reduce(t, Swig_symbol_current());
+  if (SwigType_isanyreference(resolved)) {
+    Delete(t);
+    return SwigType_remove_reference(resolved);
+  }
+  Delete(resolved);
+  return t;
+}
+
+/* Whether 'type' is an lvalue reference, which a typedef can hide, see referred_type(). */
+static int is_lvalue_reference_type(const SwigType *type) {
+  SwigType *resolved = Swig_symbol_typedef_reduce(type, Swig_symbol_current());
+  int lvalue_reference = SwigType_isreference(resolved);
+  Delete(resolved);
+  return lvalue_reference;
+}
+
 /* The type of '*e', where 'type' is the type of 'e': an lvalue of the type pointed to, or of the element of an array,
    and so a reference to it, which decltype keeps and auto drops.  Returns 0 if 'type' is not a pointer to an object
    type or an array, or is 0. */
@@ -2551,7 +2572,7 @@ static SwigType *dereference_type(SwigType *type) {
   SwigType *qualifier = 0;
   if (!type)
     return 0;
-  element = SwigType_remove_reference(Copy(type));
+  element = referred_type(type);
   /* A typedef can hide the pointer or array, as in adjust_parm_type(). */
   resolved = Swig_symbol_typedef_reduce(element, Swig_symbol_current());
   Delete(element);
@@ -2604,15 +2625,17 @@ static SwigType *subscript_type(SwigType *type) {
   return element;
 }
 
-/* The type of '&e', where 'type' is the type of 'e', which is a pointer to it, or 0 when 'type' is 0. */
+/* The type of '&e', where 'type' is the type of 'e', which is a pointer to it, or to what it refers to, as there is no
+   such thing as a pointer to a reference, or 0 when 'type' is 0. */
 static SwigType *address_type(SwigType *type) {
-  return type ? SwigType_add_pointer(SwigType_remove_reference(Copy(type))) : 0;
+  return type ? SwigType_add_pointer(referred_type(type)) : 0;
 }
 
 /* The type of '&name' for id-expression 'name', 'parenthesised' or not: 'int *' for '&g' with 'g' an 'int' or 'int &',
    'int Pt::*' for '&Pt::a' but not '&(Pt::a)', or 0 when 'name' is out of scope, overloaded or has no member pointer type. */
 static SwigType *address_of_name_type(String *name, int parenthesised) {
   SwigType *type;
+  SwigType *named;
   Node *n = !parenthesised && Swig_scopename_check(name) ? Swig_symbol_clookup(name, 0) : 0;
   if (n && GetFlag(n, "ismember") && !Swig_storage_isstatic(n)) {
     String *cls = Swig_symbol_qualified(n);
@@ -2636,12 +2659,9 @@ static SwigType *address_of_name_type(String *name, int parenthesised) {
   n = trailing_rettype_parm(name) ? 0 : Swig_symbol_clookup(name, 0);
   if (n && Getattr(n, "sym:overloaded"))
     return 0;
-  type = symbol_full_type(name);
-  if (type) {
-    /* There is no such thing as a pointer to a reference. */
-    SwigType_remove_reference(type);
-    SwigType_add_pointer(type);
-  }
+  named = symbol_full_type(name);
+  type = address_type(named);
+  Delete(named);
   return type;
 }
 
@@ -2745,6 +2765,7 @@ static int type_names_enum(const SwigType *type) {
 static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
   String *name = dtype->idexpr;
   SwigType *type;
+  SwigType *referred;
   Node *n;
   int code;
   int enumerator = 0;
@@ -2768,9 +2789,11 @@ static SwigType *decltype_parenthesised_name_type(const struct Define *dtype) {
     return 0;
   }
 
-  /* A name declared with a reference already denotes an lvalue of the referred-to type, so the reference the
-   * parentheses call for is the one it has. */
-  SwigType_remove_reference(type);
+  /* A name declared with a reference, which a typedef can hide, already denotes an lvalue of the referred-to type, so
+   * the reference the parentheses call for is the one it has. */
+  referred = referred_type(type);
+  Delete(type);
+  type = referred;
 
   /* Added only where the variable is wrapped through a pointer anyway: a scalar, array, string or enumeration is wrapped
    * by value, and the reference would make it an opaque SWIGTYPE for no gain, as an 'int&' behaves as an 'int'. */
@@ -2826,7 +2849,7 @@ static int initialiser_is_string_literal(const struct Define *dtype) {
    Other literals and enumerators are prvalues, and SWIG does not track any other expression's value category. */
 static int initialiser_is_lvalue(const struct Define *dtype) {
   Node *n;
-  if (initialiser_is_string_literal(dtype) || (dtype->newtype && SwigType_isreference(dtype->newtype)))
+  if (initialiser_is_string_literal(dtype) || (dtype->newtype && is_lvalue_reference_type(dtype->newtype)))
     return 1;
   n = dtype->idexpr ? Swig_symbol_clookup(dtype->idexpr, 0) : 0;
   if (n && Equal(nodeType(n), "cdecl")) {
@@ -2853,15 +2876,13 @@ static void collapse_forwarding_reference(SwigType *decl, const struct Define *d
    'auto& r = g;' with 'g' an 'int' leaves 'int' too.  Returns 0 when the declarator does not match the
    initialiser type, which is not valid C++ anyway. */
 static SwigType *deduce_auto_placeholder(SwigType *initialiser_type, SwigType *decl) {
-  SwigType *placeholder = Copy(initialiser_type);
+  /* An id-expression naming a reference has the type it refers to, so 'auto x = r;' with 'r' an 'int&' deduces 'int',
+   * also when a typedef hides the reference.  Only 'decltype(auto)' keeps the reference, and that does not come here. */
+  SwigType *placeholder = referred_type(initialiser_type);
   SwigType *remaining = Copy(decl);
   SwigType *resolved;
   int matched = 1;
   int reference;
-
-  /* An id-expression naming a reference has the type it refers to, so 'auto x = r;' with 'r' an 'int&' deduces
-   * 'int'.  Only 'decltype(auto)' keeps the reference, and that does not come through here. */
-  SwigType_remove_reference(placeholder);
 
   reference = SwigType_isanyreference(remaining);
   SwigType_remove_reference(remaining);

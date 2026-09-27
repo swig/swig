@@ -24,6 +24,8 @@ public class cpp14_decltype_auto_runme {
       throw new RuntimeException("var_paren_int should refer to paren_int");
     if (cpp14_decltype_auto.paren_deref(cpp14_decltype_auto.getVar_paren_ptr()) != 10)
       throw new RuntimeException("var_paren_ptr should refer to paren_ptr");
+    if (cpp14_decltype_auto.getVar_paren_typedef_ref() != 10)
+      throw new RuntimeException("var_paren_typedef_ref should refer to paren_int");
 
     // A parenthesised address is the pointer itself.
     if (cpp14_decltype_auto.paren_address_value(cpp14_decltype_auto.getVar_paren_address()) != 10)

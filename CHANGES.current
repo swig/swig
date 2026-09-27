@@ -21,6 +21,18 @@ Version 4.6.0 (in progress)
 	    to new library files `complex.i` and `std_complex.i`.
 
 2026-09-27: wsfulton
+            An auto variable initialised by an expression whose type is a typedef
+            of a reference now has the type referred to, as in C++, rather than the
+            typedef, which wrapped it as a reference, and the address of such an
+            expression is no longer a pointer to a reference, which did not compile:
+
+              typedef int &IntRef;
+              int value;
+              IntRef ref = value;
+              auto copy = ref;   // int
+              auto addr = &ref;  // int *
+
+2026-09-27: wsfulton
             An array type as the default of a template type parameter is now used
             as that type by %template, rather than generating wrappers that do not
             compile, and a multidimensional one is no longer a syntax error:
