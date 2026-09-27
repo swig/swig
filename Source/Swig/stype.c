@@ -279,17 +279,18 @@ int SwigType_issimple(const SwigType *t) {
   if (!t)
     return 0;
   while (*c) {
-    if (*c == '<') {
-      int nest = 1;
-      c++;
-      while (*c && nest) {
-        if (*c == '<')
-          nest++;
-        if (*c == '>')
-          nest--;
+    if (c[0] == '<' && c[1] == '(') {
+      /* Skip a template argument list "<(...)>", but not a '<' operator such as in an array dimension "a(2 << 1)" */
+      int nparen = 1;
+      c += 2;
+      while (*c && nparen) {
+        if (*c == '(')
+          nparen++;
+        else if (*c == ')')
+          nparen--;
         c++;
       }
-      c--;
+      continue;
     }
     if (*c == '.')
       return 0;
