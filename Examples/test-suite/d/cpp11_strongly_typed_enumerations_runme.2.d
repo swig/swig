@@ -16,6 +16,11 @@ import cpp11_strongly_typed_enumerations.Enum15;
 import cpp11_strongly_typed_enumerations.Enum16;
 import cpp11_strongly_typed_enumerations.Enum17;
 import cpp11_strongly_typed_enumerations.Enum18;
+import cpp11_strongly_typed_enumerations.Enum19;
+import cpp11_strongly_typed_enumerations.Enum20;
+import cpp11_strongly_typed_enumerations.Enum21;
+import cpp11_strongly_typed_enumerations.Enum22;
+import cpp11_strongly_typed_enumerations.Enum23;
 import cpp11_strongly_typed_enumerations.Class1;
 import cpp11_strongly_typed_enumerations.Class2;
 import std.conv;
@@ -181,6 +186,14 @@ void main() {
   enumCheck(cast(int)Enum18.Val1, 1181);
   enumCheck(cast(int)Enum18.Val2, 1182);
 
+  enumCheck(cast(int)Enum19.Val2, 'b');
+  enumCheck(cast(int)Enum20.Val2, 'c');
+  enumCheck(cast(int)Enum21.Val2, 'd');
+  enumCheck(cast(int)Enum21.Val3, 0x263A);
+  enumCheck(cast(int)Enum21.Val4, 0x263B);
+  enumCheck(cast(int)Enum22.Val2, 1);
+  enumCheck(cast(int)Enum23.Val2, 'e');
+
   Class1 class1 = new Class1();
   enumCheck(cast(int)class1.class1Test1(Enum1.Val5a), 13);
   enumCheck(cast(int)class1.class1Test2(Class1.Enum12.Val5c), 1121);
@@ -205,4 +218,9 @@ void main() {
   assert(is(typeof(Enum15.Val1.asOriginalType) == short));
   assert(is(typeof(Enum16.Val1.asOriginalType) == long));
   assert(is(typeof(Enum17.Val1.asOriginalType) == uint));
+
+  assert(is(typeof(Enum20.Val1.asOriginalType) == char));
+  assert(is(typeof(Enum21.Val1.asOriginalType) == dchar));
+  assert(is(typeof(Enum22.Val1.asOriginalType) == bool));
+  assert(is(typeof(Enum23.Val1.asOriginalType) == dchar));
 }
