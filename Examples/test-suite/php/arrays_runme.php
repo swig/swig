@@ -10,7 +10,13 @@ $ss=new simplestruct();
 check::classname('simplestruct',$ss);
 
 $as=new arraystruct();
-$as->array_c="abc";
+$as->array_c="a";
+check::equal($as->array_c,"a",'$as->array_c=="a"');
+try {
+  $as->array_c="abc";
+  check::fail("set array_c overlong string");
+} catch (ValueError $e) {
+}
 check::equal($as->array_c,"a",'$as->array_c=="a"');
 check::equal(isset($as->array_const_i),TRUE,'isset($as->array_const_i)');
 

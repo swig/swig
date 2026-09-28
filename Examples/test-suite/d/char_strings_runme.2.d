@@ -84,10 +84,14 @@ void main() {
   }
 
   foreach (i; TEST_RANGE) {
-    string ping = OTHERLAND_MSG ~ to!string(i);
+    string ping = "Ping" ~ to!string(i); // char[16] buffer, keep short enough to fit
     string pong = CharArrayDimsPingPong(ping);
     enforce(ping == pong, "Test PingPong 3 failed.\nExpected:" ~ ping ~ "\nReceived:" ~ pong);
   }
+
+  enforce(CharArrayDimsLength("Ping") == 4, "Test CharArrayDimsLength failed");
+  enforce(CharArrayDimsLength("0123456789abcde") == 15, "Test CharArrayDimsLength failed");
+  enforce(collectException(CharArrayDimsLength("0123456789abcdef")) !is null, "Test CharArrayDimsLength overlong string failed");
 
   // variables
   foreach (i; TEST_RANGE) {
@@ -107,6 +111,8 @@ void main() {
     global_char_array2 = msg;
     enforce(global_char_array2 == msg, "Test variables 2 failed, iteration " ~ to!string(i));
   }
+
+  enforce(collectException(global_char_array2 = CPLUSPLUS_MSG ~ CPLUSPLUS_MSG) !is null, "Test variables 3 overlong string failed");
 
   foreach (i; TEST_RANGE) {
     enforce(global_const_char == CPLUSPLUS_MSG, "Test variables 4 failed, iteration " ~ to!string(i));

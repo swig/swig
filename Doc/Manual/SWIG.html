@@ -1785,6 +1785,7 @@ char *pathname_get() {
   return pathname;
 }
 void pathname_set(char *value) {
+  /* An error is raised instead if value does not fit along with its NUL terminator */
   strncpy(pathname, value, 256);
 }
 </pre>
@@ -1792,6 +1793,8 @@ void pathname_set(char *value) {
 
 <p>
 In the target language, the value can be set like a normal variable.
+A string that does not fit in the array along with its NUL terminator, in this case one longer than 255 characters,
+is an error rather than being truncated.
 </p>
 
 <H3><a name="SWIG_readonly_variables">5.4.6 Creating read-only variables</a></H3>

@@ -180,14 +180,7 @@ unsigned char *OUTPUT
    free($1);
 }
 
-%typemap(in,noblock=1,fragment="SWIG_strdup") char[ANY] {
-    $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
-}
-
-%typemap(freearg,noblock=1) char[ANY] {
-    free($1);
-}
-
+/* char[ANY] uses the Lib/typemaps typemaps, which copy the string into a zero filled array of the declared size */
 %typemap(in,noblock=1,fragment="SWIG_strdup") char[] {
     $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
 }

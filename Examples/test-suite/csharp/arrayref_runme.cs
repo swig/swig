@@ -29,6 +29,11 @@ public class arrayref_runme {
       throw new Exception("length_of_writable(null) did not throw");
     } catch (ArgumentNullException) {
     }
+    try {
+      arrayref.length_of_writable("01234567");
+      throw new Exception("length_of_writable overlong string did not throw");
+    } catch (ArgumentException) {
+    }
 
     ArrayRefMember member = new ArrayRefMember();
     check(10, member.sum());

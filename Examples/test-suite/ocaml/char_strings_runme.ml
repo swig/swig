@@ -59,9 +59,16 @@ let _ =
   test_set _SetConstCharConstStaticString;
   test_set _SetConstCharTypedefString;
 
-  (* get set function.  CharArrayPingPong / CharArrayDimsPingPong take char[]
-     parameters and are omitted for the same char array limitation as above. *)
+  (* get set function.  CharArrayPingPong takes a char[] parameter and is
+     omitted for the same char array limitation as above. *)
   test_pingpong _CharPingPong;
+  List.iter (fun i ->
+    let msg = "Ping" ^ string_of_int i in
+    assert (_CharArrayDimsPingPong (C_string msg) as string = msg)
+  ) iters;
+  assert (_CharArrayDimsLength (C_string "Ping") as int = 4);
+  assert (_CharArrayDimsLength (C_string "0123456789abcde") as int = 15);
+  assert (try ignore (_CharArrayDimsLength (C_string "0123456789abcdef")); false with Invalid_argument _ -> true);
 
   (* variables: settable globals - set then read back *)
   List.iter (fun i ->
@@ -79,6 +86,7 @@ let _ =
     assert (_global_char_array2 (C_string msg) as string = msg);
     assert (_global_char_array2 C_void as string = msg)
   ) iters;
+  assert (try ignore (_global_char_array2 (C_string (cpp_msg ^ cpp_msg))); false with Invalid_argument _ -> true);
 
   (* variables: read-only const globals *)
   assert (_global_const_char C_void as string = cpp_msg);

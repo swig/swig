@@ -12,6 +12,31 @@ Version 4.6.0 (in progress)
 	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
 	    is no longer supported.
 
+2026-10-05: wsfulton
+            [C#, D, Go, Java, Lua, OCaml, PHP, R] Fix a function with a fixed size char array
+            parameter reading past the end of the string passed to it, such as:
+
+              void set_name(char name[16]);
+              void set_name_ref(char (&name)[16]);
+
+            The function was given a buffer only as long as the string, so reading or writing
+            all 16 chars went past its end. The string is now copied into a 16 char array with
+            the unused chars zero filled, as is already done for Python, Perl, Ruby, Tcl and
+            others. In D, Lua, OCaml and PHP, changes the function makes to the array also no
+            longer alter the target language string passed in.
+
+            A string that does not fit along with its NUL terminator is now an error: an
+            IllegalArgumentException in Java, ArgumentException in C#, Exception in D,
+            ValueError in PHP, Invalid_argument in OCaml, a panic in Go and a Lua or R error. This
+            includes setting a fixed size char array member or global variable, which silently
+            truncated an overlong string before, except that R stored the first chars without a NUL
+            terminator and OCaml wrote past the end of a global. In R, setting one to a shorter
+            string also no longer copies the memory after the end of the string. The wrapper now uses
+            the array size, so a size that is a constant it cannot access, such as a private class
+            enum, no longer compiles, as for the other target languages.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-10-04: wsfulton
             Fix a named non-type template parameter of class type introduced with the 'struct',
             'union' or 'class' keyword, which was taken to be a type parameter constrained by a

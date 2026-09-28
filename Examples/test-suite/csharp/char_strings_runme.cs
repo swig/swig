@@ -107,10 +107,20 @@ public class char_strings_runme {
     }
 
     for (i=0; i<count; i++) {
-      string ping = OTHERLAND_MSG + i;
+      string ping = "Ping" + i; // char[16] buffer, keep short enough to fit
       string pong = char_strings.CharArrayDimsPingPong(ping);
       if (ping != pong)
         throw new Exception("Test PingPong 3 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    if (char_strings.CharArrayDimsLength("Ping") != 4)
+      throw new Exception("Test CharArrayDimsLength failed");
+    if (char_strings.CharArrayDimsLength("0123456789abcde") != 15)
+      throw new Exception("Test CharArrayDimsLength failed");
+    try {
+      char_strings.CharArrayDimsLength("0123456789abcdef");
+      throw new Exception("Test CharArrayDimsLength overlong string failed");
+    } catch (ArgumentException) {
     }
 
     // variables
@@ -130,6 +140,12 @@ public class char_strings_runme {
       char_strings.global_char_array2 = OTHERLAND_MSG + i;
       if (char_strings.global_char_array2 != OTHERLAND_MSG + i)
         throw new Exception("Test variables 3 failed, iteration " + i);
+    }
+
+    try {
+      char_strings.global_char_array2 = CPLUSPLUS_MSG + CPLUSPLUS_MSG;
+      throw new Exception("Test variables 3 overlong string failed");
+    } catch (ArgumentException) {
     }
 
     for (i=0; i<count; i++) {

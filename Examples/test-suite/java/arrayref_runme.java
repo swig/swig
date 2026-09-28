@@ -58,6 +58,11 @@ public class arrayref_runme {
       throw new RuntimeException("length_of_writable(null) did not throw");
     } catch (NullPointerException e) {
     }
+    try {
+      arrayref.length_of_writable("01234567");
+      throw new RuntimeException("length_of_writable overlong string did not throw");
+    } catch (IllegalArgumentException e) {
+    }
 
     check("hi", member.getText_ref());
     member.setText_ref("bye");

@@ -10,8 +10,12 @@ check::globals(array('array_c','array_sc','array_uc','array_s','array_us','array
 // single byte string in it.
 check::set("array_c","Z");
 check::equal("Z",check::get("array_c"),"set array_c");
-check::set("array_c","xy");
-check::equal("x",check::get("array_c"),"set array_c");
+try {
+  check::set("array_c","xy");
+  check::fail("set array_c overlong string");
+} catch (ValueError $e) {
+}
+check::equal("Z",check::get("array_c"),"set array_c");
 check::set("array_c","h");
 check::equal("h",check::get("array_c"),"set array_c");
 

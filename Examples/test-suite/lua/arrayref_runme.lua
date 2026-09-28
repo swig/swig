@@ -18,6 +18,7 @@ assert(ar.length_of("abc") == 3)
 assert(ar.length_of_writable("xy") == 2)
 assert(not pcall(ar.length_of, nil))
 assert(not pcall(ar.length_of_writable, nil))
+assert(not pcall(ar.length_of_writable, "01234567"))
 
 local member = ar.ArrayRefMember()
 assert(member:sum() == 10)

@@ -114,10 +114,20 @@ public class char_strings_runme {
     }
 
     for (i=0; i<count; i++) {
-      String ping = OTHERLAND_MSG + i;
+      String ping = "Ping" + i; // char[16] buffer, keep short enough to fit
       String pong = char_strings.CharArrayDimsPingPong(ping);
       if (!ping.equals(pong))
         throw new RuntimeException("Test PingPong 3 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    if (char_strings.CharArrayDimsLength("Ping") != 4)
+      throw new RuntimeException("Test CharArrayDimsLength failed");
+    if (char_strings.CharArrayDimsLength("0123456789abcde") != 15)
+      throw new RuntimeException("Test CharArrayDimsLength failed");
+    try {
+      char_strings.CharArrayDimsLength("0123456789abcdef");
+      throw new RuntimeException("Test CharArrayDimsLength overlong string failed");
+    } catch (IllegalArgumentException e) {
     }
 
     // variables
@@ -137,6 +147,12 @@ public class char_strings_runme {
       char_strings.setGlobal_char_array2(OTHERLAND_MSG + i);
       if (!char_strings.getGlobal_char_array2().equals(OTHERLAND_MSG + i))
         throw new RuntimeException("Test variables 3 failed, iteration " + i);
+    }
+
+    try {
+      char_strings.setGlobal_char_array2(CPLUSPLUS_MSG + CPLUSPLUS_MSG);
+      throw new RuntimeException("Test variables 3 overlong string failed");
+    } catch (IllegalArgumentException e) {
     }
 
     for (i=0; i<count; i++) {

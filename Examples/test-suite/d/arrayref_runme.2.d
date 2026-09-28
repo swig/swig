@@ -22,6 +22,7 @@ void main() {
   enforce(length_of_writable("xy") == 2, "length_of_writable");
   enforce(collectException(length_of(null)) !is null, "length_of(null) did not throw");
   enforce(collectException(length_of_writable(null)) !is null, "length_of_writable(null) did not throw");
+  enforce(collectException(length_of_writable("01234567")) !is null, "length_of_writable overlong string did not throw");
 
   auto member = new ArrayRefMember();
   enforce(member.sum() == 10, "member sum");

@@ -131,6 +131,15 @@ char *CharArrayPingPong(char abcstr[]) {
 char *CharArrayDimsPingPong(char abcstr[16]) {
   return abcstr;
 }
+// Reads all 16 chars, returning the string length or -1 if any char after the string is not zero
+int CharArrayDimsLength(char abcstr[16]) {
+  size_t len = strlen(abcstr);
+  for (size_t i = len; i < 16; ++i) {
+    if (abcstr[i])
+      return -1;
+  }
+  return (int)len;
+}
 
 // variables
 char *global_char = NULL;

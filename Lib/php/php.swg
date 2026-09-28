@@ -75,9 +75,18 @@
 %typemap(in) char *& = const char *&;
 %typemap(directorout) char *& = const char *&;
 
-// char array can be in/out, though the passed string may not be big enough...
-// so we have to size it
-%typemap(in, phptype="string") char[ANY]
+// Copy into a zero filled char array as the string passed may be shorter than the array
+%typemap(in, phptype="string", fragment="SWIG_CopyCharArray") char[ANY] (char temp[$1_dim0])
+%{
+   convert_to_string(&$input);
+   if (!SWIG_CopyCharArray(temp, $1_dim0, Z_STRVAL($input), Z_STRLEN($input))) {
+     zend_value_error("String too long for char array argument $argnum of $symname");
+     SWIG_fail;
+   }
+   $1 = ($1_ltype)temp;
+%}
+
+%typemap(in, phptype="string") char[]
 %{
    convert_to_string(&$input);
    $1 = ($1_ltype) Z_STRVAL($input);

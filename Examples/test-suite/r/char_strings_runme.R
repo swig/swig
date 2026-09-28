@@ -82,9 +82,15 @@ for (i in 0:(count-1)) {
 }
 
 for (i in 0:(count-1)) {
-  ping = paste0(OTHERLAND_MSG, i)
+  ping = paste0("Ping", i) # char[16] buffer, keep short enough to fit
   unittest(CharArrayDimsPingPong(ping), ping)
 }
+
+unittest(CharArrayDimsLength("Ping"), 4)
+unittest(CharArrayDimsLength("0123456789abcde"), 15)
+exception_thrown = FALSE
+tryCatch(CharArrayDimsLength("0123456789abcdef"), error = function(e) exception_thrown <<- TRUE)
+unittest(exception_thrown, TRUE)
 
 # variables
 for (i in 0:(count-1)) {
@@ -97,6 +103,10 @@ for (i in 0:(count-1)) {
 # getters return type '_p_char' and the R proxy wraps the (correct) string into
 # new("_p_char", ref=...), an undefined S4 class which errors.  The setters run
 # without error, but there is no working accessor to verify the value.
+global_char_array2_set(OTHERLAND_MSG)
+exception_thrown = FALSE
+tryCatch(global_char_array2_set(paste0(CPLUSPLUS_MSG, CPLUSPLUS_MSG)), error = function(e) exception_thrown <<- TRUE)
+unittest(exception_thrown, TRUE)
 
 for (i in 0:(count-1)) {
   unittest(global_const_char_get(), CPLUSPLUS_MSG)

@@ -23,7 +23,15 @@ check::equal(SetConstCharTypedefString($OTHERLAND_MSG_10, 10), true, "failed Set
 
 check::equal(CharPingPong($OTHERLAND_MSG_10), $OTHERLAND_MSG_10, "failed CharPingPong");
 check::equal(CharArrayPingPong($OTHERLAND_MSG_10), $OTHERLAND_MSG_10, "failed CharArrayPingPong");
-check::equal(CharArrayDimsPingPong($OTHERLAND_MSG_10), $OTHERLAND_MSG_10, "failed CharArrayDimsPingPong");
+check::equal(CharArrayDimsPingPong("Ping10"), "Ping10", "failed CharArrayDimsPingPong");
+
+check::equal(CharArrayDimsLength("Ping"), 4, "failed CharArrayDimsLength");
+check::equal(CharArrayDimsLength("0123456789abcde"), 15, "failed CharArrayDimsLength");
+try {
+  CharArrayDimsLength("0123456789abcdef");
+  check::fail("CharArrayDimsLength overlong string");
+} catch (ValueError $e) {
+}
 
 Global_char_set($OTHERLAND_MSG_10);
 check::equal(Global_char_get(), $OTHERLAND_MSG_10, "failed Global_char_get");
@@ -33,6 +41,11 @@ check::equal(Global_char_array1_get(), $OTHERLAND_MSG_10, "failed Global_char_ar
 
 Global_char_array2_set($OTHERLAND_MSG_10);
 check::equal(Global_char_array2_get(), $OTHERLAND_MSG_10, "failed Global_char_array2_get");
+try {
+  Global_char_array2_set($CPLUSPLUS_MSG . $CPLUSPLUS_MSG);
+  check::fail("Global_char_array2_set overlong string");
+} catch (ValueError $e) {
+}
 
 check::equal(Global_const_char_get(), $CPLUSPLUS_MSG, "failed Global_const_char");
 check::equal(Global_const_char_array1_get(), $CPLUSPLUS_MSG, "failed Global_const_char_array1");

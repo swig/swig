@@ -475,8 +475,17 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
 %typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
-/* char arrays - treat as String */
-%typemap(in) char[ANY], char[] %{ $1 = ($1_ltype)$input; %}
+/* char arrays - treat as String, copying into a zero filled array when the size is known */
+%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char[ANY] (char temp[$1_dim0])
+%{ $1 = 0;
+   if ($input) {
+     if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+       SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
+       return $null;
+     }
+     $1 = ($1_ltype)temp;
+   } %}
+%typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
 %typemap(out) char[ANY], char[] %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
 
 %typemap(directorout) char[ANY], char[] %{ $result = ($1_ltype)$input; %}
@@ -1080,11 +1089,16 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
 /* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
-%typemap(in, canthrow=1) char (&)[ANY] %{ $1 = ($1_ltype)$input;
-  if (!$1) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
-    return $null;
-  } %}
+%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
+%{ if (!$input) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
+     return $null;
+   }
+   if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
+     return $null;
+   }
+   $1 = ($1_ltype)temp; %}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

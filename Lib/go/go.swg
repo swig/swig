@@ -436,11 +436,19 @@ rvrdeleter.reset($1); %}
 %typemap(gotype) char&, unsigned char& "*byte"
 %typemap(gotype) signed char& "*int8"
 
-%typemap(in) char *(char *temp), char[ANY](char *temp), char[](char *temp)
+%typemap(in) char *(char *temp), char[](char *temp)
 %{
   temp = (char *)malloc($input.n + 1);
   memcpy(temp, $input.p, $input.n);
   temp[$input.n] = '\0';
+  $1 = ($1_ltype)temp;
+%}
+
+%typemap(in, fragment="SWIG_CopyCharArray") char[ANY](char temp[$1_dim0])
+%{
+  if (!SWIG_CopyCharArray(temp, $1_dim0, $input.p, (size_t)$input.n)) {
+    _swig_gopanic("string too long for char array");
+  }
   $1 = ($1_ltype)temp;
 %}
 
@@ -452,8 +460,10 @@ rvrdeleter.reset($1); %}
   $1 = ($1_ltype)&temp;
 %}
 
-%typemap(freearg) char *, char[ANY], char[]
+%typemap(freearg) char *, char[]
 %{ free((char *)$1); %}
+
+%typemap(freearg) char[ANY] ""
 
 %typemap(freearg) char *&
 %{ free((char *)*$1); %}

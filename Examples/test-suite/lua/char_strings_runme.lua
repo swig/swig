@@ -47,7 +47,14 @@ test_set(char_strings.SetConstCharTypedefString)
 -- get set function
 test_pingpong(char_strings.CharPingPong)
 test_pingpong(char_strings.CharArrayPingPong)
-test_pingpong(char_strings.CharArrayDimsPingPong)
+for i = 0, count - 1 do
+  local msg = "Ping" .. i -- char[16] buffer, keep short enough to fit
+  assert(char_strings.CharArrayDimsPingPong(msg) == msg)
+end
+
+assert(char_strings.CharArrayDimsLength("Ping") == 4)
+assert(char_strings.CharArrayDimsLength("0123456789abcde") == 15)
+assert(not pcall(char_strings.CharArrayDimsLength, "0123456789abcdef"))
 
 -- variables: settable globals - set then read back
 for i = 0, count - 1 do
@@ -65,6 +72,7 @@ for i = 0, count - 1 do
   char_strings.global_char_array2 = msg
   assert(char_strings.global_char_array2 == msg)
 end
+assert(not pcall(function() char_strings.global_char_array2 = CPLUSPLUS_MSG .. CPLUSPLUS_MSG end))
 
 -- variables: read-only const globals
 assert(char_strings.global_const_char == CPLUSPLUS_MSG)

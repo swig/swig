@@ -131,3 +131,18 @@
 %fragment("long_check_wordsize", "header", fragment="long_check_wordsize32") {}
 #endif
 
+/* Copy the 'len' chars at 'str' into the char array 'buf' of 'size' elements and zero pad the rest of 'buf'.
+ * This is strncpy, except that exactly 'len' chars are copied, so embedded NULs are kept. Returns 0, copying
+ * nothing, if 'str' is too long. It fits if there is also room for a NUL terminator, except that a single char
+ * fills a char[1], as in SWIG_AsCharArray. */
+%fragment("SWIG_CopyCharArray", "header", fragment="<string.h>") %{
+SWIGINTERN int SWIG_CopyCharArray(char *buf, size_t size, const char *str, size_t len) {
+  if (len > size || (len == size && size != 1))
+    return 0;
+  if (len)
+    memcpy(buf, str, len);
+  memset(buf + len, 0, size - len);
+  return 1;
+}
+%}
+

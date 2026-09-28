@@ -106,7 +106,20 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char *, char *
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
-%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char[ANY], char[ANY]
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring",fragment="SWIG_CopyCharArray")
+  const char[ANY] (char temp[$1_dim0]), char[ANY] (char temp[$1_dim0])
+%{$1 = 0;
+  if (!lua_isnil(L, $input)) {
+    size_t len = 0;
+    const char *str = lua_tolstring(L, $input, &len);
+    if (!SWIG_CopyCharArray(temp, $1_dim0, str, len)) {
+      SWIG_Lua_pusherrstring(L, "Error in $symname (arg $argnum), string too long for char array");
+      SWIG_fail;
+    }
+    $1 = ($ltype)temp;
+  }%}
+
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char[], char[]
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 
 %typemap(out) const char *, char *
@@ -398,7 +411,16 @@ parameters match which function
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
 /* Unlike the string typemaps, nil is not accepted, as a reference cannot be bound to null */
-%typemap(in,checkfn="lua_isstring") char (&)[ANY] %{$1 = ($ltype)lua_tostring(L, $input);%}
+%typemap(in,checkfn="lua_isstring",fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
+%{{
+    size_t len = 0;
+    const char *str = lua_tolstring(L, $input, &len);
+    if (!SWIG_CopyCharArray(temp, $1_dim0, str, len)) {
+      SWIG_Lua_pusherrstring(L, "Error in $symname (arg $argnum), string too long for char array");
+      SWIG_fail;
+    }
+    $1 = ($ltype)temp;
+  }%}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
