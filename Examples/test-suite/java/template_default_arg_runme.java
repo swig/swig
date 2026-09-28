@@ -156,6 +156,32 @@ public class template_default_arg_runme {
       throw new RuntimeException("ArrayDefaultUShort failed");
     if (new ConstArrayDefaultShort().count() != 6)
       throw new RuntimeException("ConstArrayDefaultShort failed");
+
+    // Pointer type-ids as the default of a type template parameter
+    {
+      PtrDefault_def pd = new PtrDefault_def();
+      if (pd.deref(pd.getT()) != 42)
+        throw new RuntimeException("PtrDefault deref failed");
+      if (template_default_arg.deref_int_ptr(pd.getT()) != 42)
+        throw new RuntimeException("PtrDefault deref_int_ptr failed");
+
+      PtrArrayDefault_def pad = new PtrArrayDefault_def();
+      if (pad.sum(pad.getT()) != 30)
+        throw new RuntimeException("PtrArrayDefault sum failed");
+
+      if (new PtrConstDefault_def().deref(pd.getT()) != 42)
+        throw new RuntimeException("PtrConstDefault deref failed");
+      if (new PtrPtrDefault_def().deref(pad.getT()) != 10)
+        throw new RuntimeException("PtrPtrDefault deref failed");
+      if (new PtrConstPtrDefault_def().deref(pad.getT()) != 10)
+        throw new RuntimeException("PtrConstPtrDefault deref failed");
+      if (new RefDefault_def().deref(pd.getT()) != 42)
+        throw new RuntimeException("RefDefault deref failed");
+
+      PtrArray2dDefault_def pa2d = new PtrArray2dDefault_def();
+      if (pa2d.get(pa2d.getT()) != 6)
+        throw new RuntimeException("PtrArray2dDefault get failed");
+    }
   }
 }
 

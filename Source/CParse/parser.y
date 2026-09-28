@@ -2273,7 +2273,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       pragma_lang;
 %type <str>      pragma_arg;
 %type <includetype> includetype;
-%type <type>     pointer primitive_type;
+%type <type>     pointer primitive_type type_id_pointer;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
 %type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
@@ -7834,6 +7834,25 @@ def_args       : EQUAL definetype {
                  $$.val = $array_type_id;
                  $$.type = T_UNKNOWN;
                }
+               | EQUAL expr type_id_pointer {
+                 /* A pointer or reference type-id, such as the 'int *' default of 'template<class T = int *>', with the
+                    base type parsed as an expression */
+                 $$ = default_dtype;
+                 $$.val = Copy($expr.val);
+                 SwigType_push($$.val, $type_id_pointer);
+                 $$.type = T_UNKNOWN;
+                 Delete($type_id_pointer);
+               }
+               | EQUAL expr type_id_pointer new_array_declarator {
+                 /* An array of pointers type-id, such as 'int *[2]' */
+                 $$ = default_dtype;
+                 $$.val = Copy($expr.val);
+                 SwigType_push($$.val, $type_id_pointer);
+                 SwigType_push($$.val, $new_array_declarator);
+                 $$.type = T_UNKNOWN;
+                 Delete($type_id_pointer);
+                 Delete($new_array_declarator);
+               }
                | EQUAL LBRACE {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$ = default_dtype;
@@ -7848,6 +7867,41 @@ def_args       : EQUAL definetype {
                  $$.type = T_UNKNOWN;
                }
                ;
+
+/* The pointer and reference declarator of a type-id following a type parsed as an expression in 'def_args'.  It is right
+   recursive, unlike 'pointer', so that the token after each '*' decides between a pointer and a multiplication or a
+   dereference, such as 'int **' and 'a * *b'. */
+type_id_pointer : STAR {
+                  $$ = NewStringEmpty();
+                  SwigType_add_pointer($$);
+                }
+                | STAR type_qualifier {
+                  $$ = NewStringEmpty();
+                  SwigType_add_pointer($$);
+                  SwigType_push($$, $type_qualifier);
+                }
+                | STAR type_id_pointer[in] {
+                  $$ = NewStringEmpty();
+                  SwigType_add_pointer($$);
+                  SwigType_push($$, $in);
+                  Delete($in);
+                }
+                | STAR type_qualifier type_id_pointer[in] {
+                  $$ = NewStringEmpty();
+                  SwigType_add_pointer($$);
+                  SwigType_push($$, $type_qualifier);
+                  SwigType_push($$, $in);
+                  Delete($in);
+                }
+                | AND {
+                  $$ = NewStringEmpty();
+                  SwigType_add_reference($$);
+                }
+                | LAND {
+                  $$ = NewStringEmpty();
+                  SwigType_add_rvalue_reference($$);
+                }
+                ;
 
 /* A new-expression such as 'new int(5)', 'new (buffer) Widget{1, 2}' or 'new double[n]', typed as the pointer it creates.
    Parsed only at the start of an initialiser or default argument, see new_expression_dtype() for the rest. */
@@ -7946,7 +8000,8 @@ new_type_id    : type
                  }
                ;
 
-/* The array bounds of a new-expression type-id, the first of which can be any expression, as in 'new int[n][3]'. */
+/* The array bounds of a new-expression type-id, the first of which can be any expression, as in 'new int[n][3]', and of
+   an array of pointers type-id default in 'def_args', as in 'int *[][3]'. */
 new_array_declarator : LBRACKET expr RBRACKET {
                    $$ = NewStringEmpty();
                    SwigType_add_array($$, $expr.val);

@@ -20,6 +20,13 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            #543 Fix syntax error for a pointer, reference or array of pointers type-id used as
+            the default of a template type parameter, such as:
+
+              template<class T = int *> struct P {...};
+              template<class T1, class T2 = T1 *[2]> struct Q {...};
+
+2026-10-01: wsfulton
             [PHP] Fix a C++11 enum class enumerator initialised by a character literal, which was
             wrapped by code that did not compile, such as:
 

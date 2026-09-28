@@ -94,7 +94,6 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_boost_shared_ptr_template \
 	nested_private \
-	template_default_pointer \
 	$(CPP11_TEST_BROKEN) \
 	$(CPP14_TEST_BROKEN) \
 	$(CPP17_TEST_BROKEN) \
@@ -484,6 +483,7 @@ CPP_TEST_CASES += \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
 	template_default_inherit \
+	template_default_pointer \
 	template_default_qualify \
 	template_default_vw \
 	template_duplicate \
