@@ -275,6 +275,13 @@ private:
   };
 %}
 
+// Enumerator initialised by a character literal
+%inline %{
+  enum class Enum19 {
+    Val1 = 'a', Val2
+  };
+%}
+
 // Regression tests for cases where SWIG incorrectly included "enum " when
 // qualifying the emunerator name:
 
