@@ -9494,7 +9494,8 @@ exprsimple     : exprnum
 
 /* In 'sizeof(X)' X can be a type or an expression.  X is not parsed, as the type of sizeof is always size_t, which SWIG
    handles as T_ULONG, so the text up to the closing ')' is skipped and used in the value of the expression.  A subscript
-   after it, as in the array count 'sizeof(a) / sizeof(a)[0]', is part of the operand, 'sizeof((a)[0])'. */
+   or member access after it, as in the array count 'sizeof(a) / sizeof(a)[0]' or in 'sizeof (p)->m', is part of the
+   operand, 'sizeof((a)[0])' or 'sizeof((p)->m)'. */
 sizeof_paren   : SIZEOF LPAREN {
                  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
                  $$ = default_dtype;
@@ -9506,6 +9507,14 @@ sizeof_paren   : SIZEOF LPAREN {
                  if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
                  $$ = $in;
                  append_expr_from_scanner($$.val);
+               }
+               | sizeof_paren[in] PERIOD ID {
+                 $$ = $in;
+                 Printf($$.val, ".%s", $ID);
+               }
+               | sizeof_paren[in] ARROW ID {
+                 $$ = $in;
+                 Printf($$.val, "->%s", $ID);
                }
                ;
 

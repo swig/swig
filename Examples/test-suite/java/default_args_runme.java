@@ -153,5 +153,18 @@ public class default_args_runme {
       throw new RuntimeException("sizeof_subscript_count failed");
     if (default_args.number_subscript_default_arg() != 3)
       throw new RuntimeException("number_subscript_default_arg failed");
+
+    // sizeof applied to a member access of a parenthesised operand
+    long size = default_args.sizeof_member_size();
+    if (default_args.getSizeof_member_constant() != 2 * size)
+      throw new RuntimeException("sizeof_member_constant failed");
+    if (default_args.sizeof_member_default() != 2 * size)
+      throw new RuntimeException("sizeof_member_default test 1 failed");
+    if (default_args.sizeof_member_default(1) != 1 + size)
+      throw new RuntimeException("sizeof_member_default test 2 failed");
+    if (!default_args.sizeof_member_chain())
+      throw new RuntimeException("sizeof_member_chain test 1 failed");
+    if (default_args.sizeof_member_chain(0))
+      throw new RuntimeException("sizeof_member_chain test 2 failed");
   }
 }

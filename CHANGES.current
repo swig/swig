@@ -20,6 +20,12 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            Fix syntax error for sizeof applied to a member of a parenthesised expression, such as:
+
+              const size_t n = sizeof (x).m;
+              void f(size_t n = sizeof (p)->m);
+
+2026-10-01: wsfulton
             #543 Fix syntax error for a pointer, reference or array of pointers type-id used as
             the default of a template type parameter, such as:
 

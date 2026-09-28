@@ -201,5 +201,12 @@ def run(module_name):
     swig_check(default_args.number_subscript_default_arg(), 3)
     swig_check(default_args.new_subscript_default_arg(), 2)
 
+    size = default_args.sizeof_member_size()
+    swig_check(default_args.sizeof_member_constant, 2 * size)
+    swig_check(default_args.sizeof_member_default(), 2 * size)
+    swig_check(default_args.sizeof_member_default(1), 1 + size)
+    swig_check(default_args.sizeof_member_chain(), True)
+    swig_check(default_args.sizeof_member_chain(0), False)
+
 if __name__ == "__main__":
     run("default_args")
