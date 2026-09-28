@@ -3420,14 +3420,14 @@ int QuickJSEmitter::exitClass(Node *n) {
           // name has to be computed.
           // If there is no module or namespace, the base class is ignored.
           Node *module = Getattr(base.item, "module");
-          if (module && Getattr(module, "name")) {
-            String *pmn;
-            pmn = NewStringf("%s_%s", Getattr(module, "name"), Getattr(base.item, "sym:name"));
-            Printv(jsclass_inheritance, "\"", SwigType_manglestr(pmn), "\", ", NIL);
-            Delete(pmn);
-          } else if (Getattr(base.item, "sym:nspace")) {
+          if (Getattr(base.item, "sym:nspace")) {
             String *pmn;
             pmn = NewStringf("%s_%s", Getattr(base.item, "sym:nspace"), Getattr(base.item, "sym:name"));
+            Printv(jsclass_inheritance, "\"", SwigType_manglestr(pmn), "\", ", NIL);
+            Delete(pmn);
+          } else if (module && Getattr(module, "name")) {
+            String *pmn;
+            pmn = NewStringf("%s_%s", Getattr(module, "name"), Getattr(base.item, "sym:name"));
             Printv(jsclass_inheritance, "\"", SwigType_manglestr(pmn), "\", ", NIL);
             Delete(pmn);
           }
