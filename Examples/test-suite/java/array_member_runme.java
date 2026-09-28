@@ -30,6 +30,10 @@ public class array_member_runme {
           if (array_member.get_value(f.getData(),i) != array_member.get_value(array_member.getGlobal_data(),i))
               throw new RuntimeException("Bad array assignment");
       }
+
+      f.setText_shift("abcdefg");
+      if (!f.getText_shift().equals("abcdefg"))
+          throw new RuntimeException("Bad char array assignment: " + f.getText_shift());
   }
 }
 

@@ -57,4 +57,6 @@ ts.wchar_t_member = h
 swig_assert_equal("ts.wchar_t_member", "h", binding)
 ts.wchar_t_ptr_member = s
 swig_assert_equal("ts.wchar_t_ptr_member", "s", binding)
+ts.wchar_t_array_member = "xyz"
+swig_assert_equal("ts.wchar_t_array_member", '"xyz"', binding)
 

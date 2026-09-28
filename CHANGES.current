@@ -199,7 +199,10 @@ Version 4.6.0 (in progress)
 
             Setting a global or member array of such a size could loop past its
             end, and setting a char array of such a size could cut the string
-            short.
+            short.  In Python, Ruby and Tcl, with std_wstring.i or cwstring.i,
+            setting a wchar_t array member of such a size could also copy too
+            few wide characters, or write past its end for a size such as
+            '1 << 4'.
 
 2026-09-26: wsfulton
             An auto variable or decltype of the address of a parenthesised name, or
