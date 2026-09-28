@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Windows">3 Getting started on Windows </a></H1>
+<h1 id="Windows">3 Getting started on Windows </h1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -54,7 +54,7 @@ Usage within the Unix like environments MinGW and Cygwin is also detailed.
 </p>
 
 
-<H2><a name="Windows_installation">3.1 Installation on Windows</a></H2>
+<h2 id="Windows_installation">3.1 Installation on Windows</h2>
 
 
 <p>
@@ -65,7 +65,7 @@ SWIG does not come with the usual Windows type installation program, however it 
         <li>Set environment variables as described in the <a href="#Windows_examples">SWIG Windows Examples</a> section in order to run examples using Visual C++.
 </ul>
 
-<H3><a name="Windows_executable">3.1.1 Windows Executable</a></H3>
+<h3 id="Windows_executable">3.1.1 Windows Executable</h3>
 
 
 <p>
@@ -74,7 +74,7 @@ If you want to build your own swig.exe have a look at <a href="#Windows_swig_exe
 </p>
 
 
-<H2><a name="Windows_examples">3.2 SWIG Windows Examples</a></H2>
+<h2 id="Windows_examples">3.2 SWIG Windows Examples</h2>
 
 
 <p>
@@ -90,7 +90,7 @@ Alternatively run the <a href="#Windows_examples_cygwin">examples using Cygwin</
 <p>
 More information on each of the examples is available with the examples distributed with SWIG (Examples/index.html).
 
-<H3><a name="Windows_visual_studio">3.2.1 Instructions for using the Examples with Visual Studio</a></H3>
+<h3 id="Windows_visual_studio">3.2.1 Instructions for using the Examples with Visual Studio</h3>
 
 
 <p>
@@ -108,7 +108,7 @@ If you don't want to use environment variables then change all occurrences of th
 If you are interested in how the project files are set up there is explanatory information in some of the language module's documentation.
 </p>
 
-<H4><a name="Windows_csharp">3.2.1.1 C#</a></H4>
+<h4 id="Windows_csharp">3.2.1.1 C#</h4>
 
 
 <p>
@@ -118,7 +118,7 @@ The accompanying C# and C++ project files are automatically used by the solution
 </p>
 
 
-<H4><a name="Windows_java">3.2.1.2 Java</a></H4>
+<h4 id="Windows_java">3.2.1.2 Java</h4>
 
 
 <p>
@@ -132,7 +132,7 @@ JAVA_BIN: C:\miniconda3\envs\java\Library\lib\jvm\bin<br>
 </p>
 
 
-<H4><a name="Windows_python">3.2.1.3 Python</a></H4>
+<h4 id="Windows_python">3.2.1.3 Python</h4>
 
 
 <p>
@@ -146,7 +146,7 @@ PYTHON_LIB: C:\miniconda3\envs\python\libs\python313.lib<br>
 </p>
 
 
-<H4><a name="Windows_tcl">3.2.1.4 TCL</a></H4>
+<h4 id="Windows_tcl">3.2.1.4 TCL</h4>
 
 
 <p>
@@ -160,14 +160,14 @@ TCL_LIB: C:\ActiveTcl\lib\tcl86t.lib<br>
 </p>
 
 
-<H3><a name="Windows_other_compilers">3.2.2 Instructions for using the Examples with other compilers</a></H3>
+<h3 id="Windows_other_compilers">3.2.2 Instructions for using the Examples with other compilers</h3>
 
 
 <p>
 If you do not have access to Visual C++ you will have to set up project files / Makefiles for your chosen compiler. There is a section in each of the language modules detailing what needs setting up using Visual C++ which may be of some guidance. Alternatively you may want to use Cygwin as described in the following section.
 </p>
 
-<H2><a name="Windows_swig_exe">3.3 Building swig.exe on Windows</a></H2>
+<h2 id="Windows_swig_exe">3.3 Building swig.exe on Windows</h2>
 
 
 <p>
@@ -183,7 +183,7 @@ SWIG can also be compiled with MSYS2 using MSVC and SWIG <a href="https://github
 </p>
 
 
-<H3><a name="Windows_cmake">3.3.1 Building swig.exe using CMake</a></H3>
+<h3 id="Windows_cmake">3.3.1 Building swig.exe using CMake</h3>
 
 
 <p>
@@ -273,7 +273,7 @@ cd install2/bin
     <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
 </div>
 
-<H3><a name="Windows_msys2">3.3.2 Building swig.exe using MSYS2 and MinGW-w64</a></H3>
+<h3 id="Windows_msys2">3.3.2 Building swig.exe using MSYS2 and MinGW-w64</h3>
 
 
 <p>
@@ -325,7 +325,7 @@ make install
 </pre>
 </div>
 
-<H3><a name="Windows_mingw_msys">3.3.3 Building swig.exe using MinGW and MSYS</a></H3>
+<h3 id="Windows_mingw_msys">3.3.3 Building swig.exe using MinGW and MSYS</h3>
 
 
 <p>Warning: These instructions were added in 2006 and have barely changed since
@@ -445,7 +445,7 @@ make
 </ol>
 
 
-<H3><a name="Windows_cygwin">3.3.4 Building swig.exe using Cygwin</a></H3>
+<h3 id="Windows_cygwin">3.3.4 Building swig.exe using Cygwin</h3>
 
 
 <p>
@@ -457,7 +457,7 @@ These files are generated using the <tt>autogen.sh</tt> script and will only nee
 </p>
 
 
-<H4><a name="Windows_examples_cygwin">3.3.4.1 Running the examples on Windows using Cygwin</a></H4>
+<h4 id="Windows_examples_cygwin">3.3.4.1 Running the examples on Windows using Cygwin</h4>
 
 
 <p>
@@ -466,10 +466,10 @@ The modules which are known to work are Python, Tcl, Perl, Ruby, Java and C#.
 Follow the Unix instructions in the README file in the SWIG root directory to build the examples.
 </p>
 
-<H2><a name="Windows_interface_file">3.4 Microsoft extensions and other Windows quirks</a></H2>
+<h2 id="Windows_interface_file">3.4 Microsoft extensions and other Windows quirks</h2>
 
 
-<H3><a name="Windows_msvc_cpp_standards">3.4.1 Visual C++ standards compliance</a></H3>
+<h3 id="Windows_msvc_cpp_standards">3.4.1 Visual C++ standards compliance</h3>
 
 
 <p>
@@ -486,7 +486,7 @@ MSVC users are urged to ensure this macro is defined correctly by consulting the
 <a href="https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus">/Zc:__cplusplus</a>.
 </p>
 
-<H3><a name="Windows_calling_conventions">3.4.2 Calling conventions</a></H3>
+<h3 id="Windows_calling_conventions">3.4.2 Calling conventions</h3>
 
 
 <p>
