@@ -52,10 +52,11 @@ This section details guile-specific support in SWIG.
 
 
 <p>
-SWIG is known to work with Guile versions 2.0.x, 2.2.x and 3.0.x (these are
-all tested via CI). SWIG probably still works with Guile 1.8.x but we're no
-longer able to regularly test this either in CI or by hand. Support for Guile
-1.6.x has been dropped (SWIG 2.0.9 was the last version of SWIG to support it).
+SWIG is known to work with Guile versions 2.2.x and 3.0.x (these are
+tested via CI). SWIG probably still works with Guile 2.0.x but we're no
+longer able to regularly test this either in CI or by hand.  Guile 1.x is
+no longer supported.
+</p>
 
 <p>
 Note that starting with guile 2.0, the guile sources can be compiled for
@@ -429,8 +430,8 @@ the corresponding GOOPS class.</p>
 <H3><a name="Guile_nn15">28.7.2 Garbage Collection</a></H3>
 
 
-<p>Garbage collection is a feature of Guile since version 1.6. As SWIG now requires Guile &gt; 1.8,
-it is automatically included.
+<p>Garbage collection is a feature of Guile since version 1.6, so is available in all Guile versions
+which SWIG currently supports.
 Garbage collection works like this.  Every swig_type_info structure stores in its clientdata field a pointer
 to the destructor for this type.  The destructor is the generated wrapper around the delete function.
 So swig still exports a wrapper for the destructor, it just does not call scm_c_define_gsubr() for
