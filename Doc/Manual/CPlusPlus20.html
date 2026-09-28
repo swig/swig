@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="CPlusPlus20">10 SWIG and C++20</a></H1>
+<h1 id="CPlusPlus20">10 SWIG and C++20</h1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -50,7 +50,7 @@
 
 
 
-<H2><a name="CPlusPlus20_introduction">10.1 Introduction</a></H2>
+<h2 id="CPlusPlus20_introduction">10.1 Introduction</h2>
 
 
 <p>This chapter gives you a brief overview about the SWIG
@@ -62,10 +62,10 @@ Work has only just begun on adding C++20 support.
 <b>Compatibility note:</b> SWIG-4.1.0 is the first version to support any C++20 features.
 </p>
 
-<H2><a name="CPlusPlus20_core_language_changes">10.2 Core language changes</a></H2>
+<h2 id="CPlusPlus20_core_language_changes">10.2 Core language changes</h2>
 
 
-<H3><a name="CPlusPlus20_spaceship_operator">10.2.1 Spaceship operator</a></H3>
+<h3 id="CPlusPlus20_spaceship_operator">10.2.1 Spaceship operator</h3>
 
 
 <p>
@@ -170,7 +170,7 @@ wrapped:
 is declared with a cv-qualifier and an <tt>auto</tt> return type.
 </p>
 
-<H3><a name="CPlusPlus20_lambda_templates">10.2.2 Lambda templates</a></H3>
+<h3 id="CPlusPlus20_lambda_templates">10.2.2 Lambda templates</h3>
 
 
 <p>
@@ -188,7 +188,7 @@ auto templated_lambda_sum = []&lt;typename T&gt;(std::vector&lt;T&gt; v) {
 </pre>
 </div>
 
-<H3><a name="CPlusPlus20_constexpr_destructors">10.2.3 Constexpr destructors</a></H3>
+<h3 id="CPlusPlus20_constexpr_destructors">10.2.3 Constexpr destructors</h3>
 
 
 <p>
@@ -205,7 +205,7 @@ public:
 </pre>
 </div>
 
-<H3><a name="CPlusPlus20_abbreviated_templates">10.2.4 Abbreviated function templates</a></H3>
+<h3 id="CPlusPlus20_abbreviated_templates">10.2.4 Abbreviated function templates</h3>
 
 
 <p>
@@ -273,7 +273,7 @@ parameters, wraps two instantiations given the same target language name as over
 <tt>%ignore</tt> and <tt>%feature</tt> select a single instantiation.
 </p>
 
-<H4><a name="CPlusPlus20_abbreviated_constrained_auto">10.2.4.1 Constrained auto parameters and return types</a></H4>
+<h4 id="CPlusPlus20_abbreviated_constrained_auto">10.2.4.1 Constrained auto parameters and return types</h4>
 
 
 <p>
@@ -317,7 +317,7 @@ Numeric auto times3(int x);                                          // ignored 
 </pre>
 </div>
 
-<H4><a name="CPlusPlus20_abbreviated_decorated_auto">10.2.4.2 Decorated auto parameters</a></H4>
+<h4 id="CPlusPlus20_abbreviated_decorated_auto">10.2.4.2 Decorated auto parameters</h4>
 
 
 <p>
@@ -340,7 +340,7 @@ T o(T x, const auto&amp; y);          // decorated auto mixed with explicit head
 </pre>
 </div>
 
-<H4><a name="CPlusPlus20_abbreviated_explicit_template_parameters">10.2.4.3 Mixing with an explicit template parameter list</a></H4>
+<h4 id="CPlusPlus20_abbreviated_explicit_template_parameters">10.2.4.3 Mixing with an explicit template parameter list</h4>
 
 
 <p>
@@ -413,7 +413,7 @@ appended after <tt>Ts...</tt>.  The three <tt>%template</tt> arguments bind as
 wrapper signature <tt>f_mix(double x, int y1, std::string y2)</tt>.
 </p>
 
-<H4><a name="CPlusPlus20_abbreviated_parameter_packs">10.2.4.4 auto parameter packs</a></H4>
+<h4 id="CPlusPlus20_abbreviated_parameter_packs">10.2.4.4 auto parameter packs</h4>
 
 
 <p>
@@ -468,7 +468,7 @@ That is what C++ itself does with an explicit template argument list: a pack tha
 <tt>two_packs&lt;int, int, int&gt;</tt> therefore wraps three parameters, all of them in <tt>first</tt>, with <tt>second</tt> empty.
 </p>
 
-<H4><a name="CPlusPlus20_abbreviated_directives">10.2.4.5 Naming an instantiation in a directive</a></H4>
+<h4 id="CPlusPlus20_abbreviated_directives">10.2.4.5 Naming an instantiation in a directive</h4>
 
 
 <p>
@@ -541,7 +541,7 @@ template arguments then share a name, give the parameter list to select one of t
 </pre>
 </div>
 
-<H3><a name="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</a></H3>
+<h3 id="CPlusPlus20_concepts">10.2.5 Concepts and requires-clauses</h3>
 
 
 <p>
@@ -605,7 +605,7 @@ function templates differing only by their constraint are kept as distinct overl
 warning 302 (<i>Redefinition of identifier 'X' ignored</i>).
 </p>
 
-<H4><a name="CPlusPlus20_requires_clause_positions">10.2.5.1 Where a requires-clause can be written</a></H4>
+<h4 id="CPlusPlus20_requires_clause_positions">10.2.5.1 Where a requires-clause can be written</h4>
 
 
 <p>
@@ -658,7 +658,7 @@ auto with_ret = []&lt;typename T&gt;(T x) -&gt; T requires Numeric&lt;T&gt; { re
 </pre>
 </div>
 
-<H4><a name="CPlusPlus20_concept_definitions">10.2.5.2 Concept definitions and requires-expressions</a></H4>
+<h4 id="CPlusPlus20_concept_definitions">10.2.5.2 Concept definitions and requires-expressions</h4>
 
 
 <p>
@@ -737,7 +737,7 @@ T add_same(T a, T b) requires AddableSame&lt;T&gt; {
 </pre>
 </div>
 
-<H4><a name="CPlusPlus20_constrained_class_templates">10.2.5.3 Constrained class templates and member function templates</a></H4>
+<h4 id="CPlusPlus20_constrained_class_templates">10.2.5.3 Constrained class templates and member function templates</h4>
 
 
 <p>
@@ -849,7 +849,7 @@ Use a structural pattern (such as <tt>T*</tt>, <tt>T const&amp;</tt>,
 etc.) to differentiate partial specs that need to wrap distinctly.
 </p>
 
-<H4><a name="CPlusPlus20_constrained_overloads">10.2.5.4 Overloads differing only by their constraint</a></H4>
+<h4 id="CPlusPlus20_constrained_overloads">10.2.5.4 Overloads differing only by their constraint</h4>
 
 
 <p>
@@ -961,7 +961,7 @@ A target language with no ref-qualifiers keeps one of the two and reports warnin
 (<i>Overloaded method 'declaration' ignored, using 'declaration' instead</i>).
 </p>
 
-<H4><a name="CPlusPlus20_constrained_overload_directives">10.2.5.5 Naming a constrained overload in a directive</a></H4>
+<h4 id="CPlusPlus20_constrained_overload_directives">10.2.5.5 Naming a constrained overload in a directive</h4>
 
 
 <p>
@@ -1034,7 +1034,7 @@ and a directive with a constraint takes precedence over it whatever the order:
 </pre>
 </div>
 
-<H3><a name="CPlusPlus20_type_constrained_template_parameters">10.2.6 Type constrained template parameters</a></H3>
+<h3 id="CPlusPlus20_type_constrained_template_parameters">10.2.6 Type constrained template parameters</h3>
 
 
 <p>
@@ -1162,7 +1162,7 @@ int first_int(T x) { return (int)x; }
 carrying a type-constraint, including the template-id form above.
 </p>
 
-<H3><a name="CPlusPlus20_constrained_alias_templates">10.2.7 Constrained alias templates</a></H3>
+<h3 id="CPlusPlus20_constrained_alias_templates">10.2.7 Constrained alias templates</h3>
 
 
 <p>
@@ -1222,7 +1222,7 @@ best effort policy for partial type information.
 <tt>requires</tt>-clause form on alias templates.
 </p>
 
-<H3><a name="CPlusPlus20_variable_templates">10.2.8 Variable templates initialised from a requires-expression</a></H3>
+<h3 id="CPlusPlus20_variable_templates">10.2.8 Variable templates initialised from a requires-expression</h3>
 
 
 <p>
@@ -1268,7 +1268,7 @@ not idiomatic.
 <tt>requires</tt>-expression in expression position.
 </p>
 
-<H3><a name="CPlusPlus20_class_template_argument_deduction">10.2.9 Class template argument deduction</a></H3>
+<h3 id="CPlusPlus20_class_template_argument_deduction">10.2.9 Class template argument deduction</h3>
 
 
 <p>
@@ -1292,7 +1292,7 @@ template argument deduction, so it issues Warning 347 and skips the variable.  S
 in the C++17 chapter for details.
 </p>
 
-<H3><a name="CPlusPlus20_structured_bindings">10.2.10 Structured bindings</a></H3>
+<h3 id="CPlusPlus20_structured_bindings">10.2.10 Structured bindings</h3>
 
 
 <p>
@@ -1330,10 +1330,10 @@ Capturing a structured binding in a lambda needs no support in SWIG, as it can o
 happen inside a function body and SWIG skips function bodies without parsing them.
 </p>
 
-<H2><a name="CPlusPlus20_preprocessor_changes">10.3 Preprocessor changes</a></H2>
+<h2 id="CPlusPlus20_preprocessor_changes">10.3 Preprocessor changes</h2>
 
 
-<H3><a name="CPlusPlus20_va_opt">10.3.1 __VA_OPT__()</a></H3>
+<h3 id="CPlusPlus20_va_opt">10.3.1 __VA_OPT__()</h3>
 
 
 <p>
@@ -1341,7 +1341,7 @@ Support for <tt>__VA_OPT__()</tt> was added in SWIG 4.3.0.
 </p>
 
 
-<H2><a name="CPlusPlus20_standard_library_changes">10.4 Standard library changes</a></H2>
+<h2 id="CPlusPlus20_standard_library_changes">10.4 Standard library changes</h2>
 
 
 </body>
