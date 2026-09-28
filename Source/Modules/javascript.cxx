@@ -3409,11 +3409,29 @@ int QuickJSEmitter::exitClass(Node *n) {
     Iterator base = First(baselist);
     while (base.item) {
       // pass base classes that have to be ignored
-      while (base.item && (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "quickjs:mangledname"))) {
+      while (base.item && (GetFlag(base.item, "feature:ignore"))) {
         base = Next(base);
       }
       if (base.item) {
-        Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
+        if (Getattr(base.item, "quickjs:mangledname")) {
+          Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
+        } else {
+          // This is the case when the base class was imported ("%import"): the mangled
+          // name has to be computed.
+          // If there is no module or namespace, the base class is ignored.
+          Node *module = Getattr(base.item, "module");
+          if (module && Getattr(module, "name")) {
+            String *pmn;
+            pmn = NewStringf("%s_%s", Getattr(module, "name"), Getattr(base.item, "sym:name"));
+            Printv(jsclass_inheritance, "\"", SwigType_manglestr(pmn), "\", ", NIL);
+            Delete(pmn);
+          } else if (Getattr(base.item, "sym:nspace")) {
+            String *pmn;
+            pmn = NewStringf("%s_%s", Getattr(base.item, "sym:nspace"), Getattr(base.item, "sym:name"));
+            Printv(jsclass_inheritance, "\"", SwigType_manglestr(pmn), "\", ", NIL);
+            Delete(pmn);
+          }
+        }
         base = Next(base);
       }
     }
