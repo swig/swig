@@ -384,12 +384,39 @@ static void retract(Scanner *s, int n) {
 }
 
 /* -----------------------------------------------------------------------------
- * get_escape()
+ * put_escape_value()
  *
- * Get escape sequence.  Called when a backslash is found in a string
+ * Append the value of a numeric escape sequence. In a wide character literal, a value that is not ASCII is appended as
+ * its UTF-8 encoding, as a UTF-8 source character already is, rather than truncated.
  * ----------------------------------------------------------------------------- */
 
-static void get_escape(Scanner *s) {
+static void put_escape_value(Scanner *s, int value, int wide_char) {
+  if (wide_char && value > 0x7F && value <= 0x10FFFF) {
+    if (value <= 0x7FF) {
+      Putc((char)(0xC0 | (value >> 6)), s->text);
+    } else {
+      if (value <= 0xFFFF) {
+        Putc((char)(0xE0 | (value >> 12)), s->text);
+      } else {
+        Putc((char)(0xF0 | (value >> 18)), s->text);
+        Putc((char)(0x80 | ((value >> 12) & 0x3F)), s->text);
+      }
+      Putc((char)(0x80 | ((value >> 6) & 0x3F)), s->text);
+    }
+    Putc((char)(0x80 | (value & 0x3F)), s->text);
+  } else {
+    Putc((char)value, s->text);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * get_escape()
+ *
+ * Get escape sequence.  Called when a backslash is found in a string or character literal, 'wide_char' being set for a
+ * wide character literal.
+ * ----------------------------------------------------------------------------- */
+
+static void get_escape(Scanner *s, int wide_char) {
   int result = 0;
   int state = 0;
   int c;
@@ -480,15 +507,15 @@ static void get_escape(Scanner *s) {
     case 11:  // Third digit of octal escape sequence
       if (c < '0' || c > '7') {
         retract(s, 1);
-        Putc((char)result, s->text);
+        put_escape_value(s, result, wide_char);
         return;
       }
       result = (result << 3) + (c - '0');
       Delitem(s->text, DOH_END);
       if (state == 11) {
-        if (result > 255)
+        if (result > 255 && !wide_char)
           Swig_error(Scanner_file(s), Scanner_line(s), "octal escape sequence out of range\n");
-        Putc((char)result, s->text);
+        put_escape_value(s, result, wide_char);
         return;
       }
       state = 11;
@@ -496,7 +523,7 @@ static void get_escape(Scanner *s) {
     case 20:
       if (!isxdigit(c)) {
         retract(s, 1);
-        Putc((char)result, s->text);
+        put_escape_value(s, result, wide_char);
         return;
       }
       if (isdigit(c))
@@ -750,7 +777,7 @@ static int look(Scanner *s) {
           return SWIG_TOKEN_STRING;
         } else if (c == '\\') {
           Delitem(s->text, DOH_END);
-          get_escape(s);
+          get_escape(s, 0);
         }
       } else { /* Custom delimiter string: R"XXXX(value)XXXX" */
         if (c == ')') {
@@ -1097,7 +1124,7 @@ static int look(Scanner *s) {
         return SWIG_TOKEN_WSTRING;
       } else if (c == '\\') {
         Delitem(s->text, DOH_END);
-        get_escape(s);
+        get_escape(s, 0);
       }
       break;
 
@@ -1111,7 +1138,7 @@ static int look(Scanner *s) {
         return (SWIG_TOKEN_WCHAR);
       } else if (c == '\\') {
         Delitem(s->text, DOH_END);
-        get_escape(s);
+        get_escape(s, s->prefix != SWIG_LITERAL_UTF8);
       }
       break;
 
@@ -1355,7 +1382,7 @@ static int look(Scanner *s) {
         return (SWIG_TOKEN_CHAR);
       } else if (c == '\\') {
         Delitem(s->text, DOH_END);
-        get_escape(s);
+        get_escape(s, 0);
       }
       break;
 

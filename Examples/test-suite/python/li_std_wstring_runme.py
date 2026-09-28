@@ -6,6 +6,7 @@ def check_equal(a, b):
 
 h = "h"
 check_equal(li_std_wstring.test_wcvalue(h), h)
+check_equal(li_std_wstring.wchar_default(), 0x263A)
 
 x = "abc"
 check_equal(li_std_wstring.test_ccvalue(x), x)

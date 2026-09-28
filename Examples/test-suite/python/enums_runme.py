@@ -1,5 +1,6 @@
 
 import _enums
+from swig_test_utils import swig_check
 
 _enums.bar2(1)
 _enums.bar3(1)
@@ -16,3 +17,7 @@ if _enums.cvar.Mine != 11:
 
 if _enums.cvar.Thigh != 12:
     raise RuntimeError
+
+swig_check(_enums.WideCharW, ord("w"))
+swig_check(_enums.WideCharE, 0xE9)
+swig_check(_enums.WideCharSmile, 0x263A)

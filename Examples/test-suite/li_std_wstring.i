@@ -19,6 +19,9 @@
 #include "li_std_wstring.h"
 %}
 
+// The wrapper is given the default value
+%feature("compactdefaultargs") wchar_default;
+
 %inline %{
 #include <string>
 #include <iostream>
@@ -39,6 +42,10 @@ void show_wstring_bytes(const std::wstring &s) {
 
 wchar_t test_wcvalue(wchar_t x) {
   return x;
+}
+
+int wchar_default(wchar_t x = L'\x263A') {
+  return (int)x;
 }
 
 const wchar_t* test_ccvalue(const wchar_t* x) {

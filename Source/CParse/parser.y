@@ -3390,6 +3390,48 @@ static void add_array_from_scanner(SwigType *type) {
   Delete(bound);
 }
 
+/* Decode the UTF-8 'text' that the scanner stores for a wide character literal, returning the code point of
+   its single character, or -1 if 'text' is not a single character. A hexadecimal or octal escape sequence in
+   the literal is encoded as UTF-8 by put_escape_value() in scanner.c, while a character written as itself is
+   copied unchanged from the source file, so it is UTF-8 only in a UTF-8 source file. Either way, an ASCII
+   character is a single char. A code point is the number Unicode assigns to a character and is the value of a
+   wide character literal holding it. For example:
+
+     Literal                              'text' (UTF-8 bytes)   Returns
+     L'A' or L'\x41'                      41                     0x41
+     L'\xF1' or the n with tilde itself   C3 B1                  0xF1
+     L'\x263A' or the smiley face itself  E2 98 BA               0x263A
+*/
+static long wide_char_code_point(String *text) {
+  const unsigned char *s = (const unsigned char *)Char(text);
+  int len = Len(text);
+  int extra;
+  int i;
+  long code_point;
+  if (len == 1)
+    return s[0];
+  if ((s[0] & 0xE0) == 0xC0) {
+    code_point = s[0] & 0x1F;
+    extra = 1;
+  } else if ((s[0] & 0xF0) == 0xE0) {
+    code_point = s[0] & 0x0F;
+    extra = 2;
+  } else if ((s[0] & 0xF8) == 0xF0) {
+    code_point = s[0] & 0x07;
+    extra = 3;
+  } else {
+    return -1;
+  }
+  if (len != extra + 1)
+    return -1;
+  for (i = 1; i <= extra; i++) {
+    if ((s[i] & 0xC0) != 0x80)
+      return -1;
+    code_point = (code_point << 6) | (s[i] & 0x3F);
+  }
+  return code_point;
+}
+
 static Node *new_enum_node(SwigType *enum_base_type) {
   Node *n = new_node("enum");
   if (enum_base_type) {
@@ -8993,7 +9035,15 @@ edecl          :  identifier {
 		   SetFlag($$,"feature:immutable");
 		   Setattr($$,"enumvalue", $etype.val);
 		   if ($etype.stringval) {
-		     Setattr($$, "enumstringval", $etype.stringval);
+                     long code_point = $etype.type == T_WCHAR ? wide_char_code_point($etype.stringval) : -1;
+                     if (code_point >= 0) {
+                       /* A wide character is also given as a number, the only portable form when it is not ASCII */
+                       String *numval = NewStringf("%ld", code_point);
+                       Setattr($$, "enumnumval", numval);
+                       Delete(numval);
+                     }
+                     if (code_point <= 0x7F)
+                       Setattr($$, "enumstringval", $etype.stringval);
 		   }
 		   if ($etype.numval) {
 		     Setattr($$, "enumnumval", $etype.numval);
@@ -9012,7 +9062,7 @@ etype            : expr {
 		       ($$.type != T_LONGLONG) && ($$.type != T_ULONGLONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
-		       ($$.type != T_CHAR) && ($$.type != T_BOOL) &&
+		       ($$.type != T_CHAR) && ($$.type != T_WCHAR) && ($$.type != T_BOOL) &&
 		       ($$.type != T_UNKNOWN) && ($$.type != T_USER)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
@@ -9311,9 +9361,15 @@ exprsimple     : exprnum
 		  }
 	       }
 	       | WCHARCONST {
+                  long code_point = wide_char_code_point($WCHARCONST.text);
 		  $$ = default_dtype;
                   $$.stringval = $WCHARCONST.text;
-                  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST.text);
+                  if (code_point > 0x7F) {
+                    /* Not ASCII, so the scanned text is a UTF-8 encoding that must not be escaped byte by byte */
+                    $$.val = NewStringf("L'\\x%lX'", code_point);
+                  } else {
+                    $$.val = NewStringf("L'%(escape)s'", $WCHARCONST.text);
+                  }
 		  $$.type = T_WCHAR;
                   $$.literal = LITERAL_CHARACTER;
                   $$.literalprefix = $WCHARCONST.prefix;
