@@ -15,3 +15,6 @@ if callconst1(ADD_BY_VALUE_C, 2, 3) != 5:
 
 holder = AddByValueHolder()
 swig_check(holder.byValueMethod(4, 5), 9)
+swig_check(holder.byValueConstMethod(5, 6), 11)
+swig_check(holder.byValueRef(6, 7), 13)
+swig_check(addByValueRef(10, 11), 21)

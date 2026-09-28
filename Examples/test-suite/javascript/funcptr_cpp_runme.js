@@ -20,3 +20,12 @@ var holder = new funcptr_cpp.AddByValueHolder();
 if (holder.byValueMethod(4, 5) != 9) {
     throw new Error;
 }
+if (holder.byValueConstMethod(5, 6) != 11) {
+    throw new Error;
+}
+if (holder.byValueRef(6, 7) != 13) {
+    throw new Error;
+}
+if (funcptr_cpp.addByValueRef(10, 11) != 21) {
+    throw new Error;
+}

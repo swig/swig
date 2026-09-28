@@ -1009,8 +1009,12 @@ int Language::cDeclaration(Node *n) {
       Delete(ty);
       ty = fullty;
       fullty = 0;
-      ParmList *parms = SwigType_function_parms(ty, n);
+      /* Skip a leading ref-qualifier or cv-qualifier, such as the reference in 'Fn &fnref = f;' where 'Fn' is a function typedef */
+      SwigType *fty = Copy(ty);
+      Delete(SwigType_pop_function_qualifiers(fty));
+      ParmList *parms = SwigType_function_parms(fty, n);
       Setattr(n, "parms", parms);
+      Delete(fty);
     }
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {

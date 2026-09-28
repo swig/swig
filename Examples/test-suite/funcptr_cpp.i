@@ -33,8 +33,16 @@ void *typedef_call1(AddByValueTypedef *& precallback, AddByValueTypedef * postca
 void *typedef_call2(AddByPointerTypedef *& precallback, AddByPointerTypedef * postcallback) { return 0; }
 void *typedef_call3(AddByReferenceTypedef *& precallback, AddByReferenceTypedef * postcallback) { return 0; }
 
+typedef int AddByValueConstTypedef(const int &a, int b) const;
 struct AddByValueHolder {
   AddByValueTypedef byValueMethod;
+  AddByValueConstTypedef byValueConstMethod;
+  AddByValueTypedef &byValueRef;
+  AddByValueHolder() : byValueRef(addByValue) {}
 };
 int AddByValueHolder::byValueMethod(const int &a, int b) { return a + b; }
+int AddByValueHolder::byValueConstMethod(const int &a, int b) const { return a + b; }
+
+// Reference to a function declared through a function typedef, wrapped as a function
+AddByValueTypedef &addByValueRef = addByValue;
 %}

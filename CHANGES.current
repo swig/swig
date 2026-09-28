@@ -20,6 +20,21 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            Fix a crash wrapping a reference to a function declared through a function typedef:
+
+              typedef int Fn(int);
+              Fn &fnref = fn;
+
+            The reference is now wrapped as a function, the same as a reference to a function
+            declared without a typedef. A member function declared through a const qualified
+            function typedef is also fixed, as its wrapper did not compile:
+
+              typedef int CFn(int) const;
+              struct S {
+                CFn f;
+              };
+
+2026-10-01: wsfulton
             [Javascript] Fix a member function declared through a function typedef, which was
             registered without its wrapper function, so the generated code did not compile:
 
