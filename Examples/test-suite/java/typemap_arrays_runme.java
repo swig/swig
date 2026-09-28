@@ -14,6 +14,10 @@ public class typemap_arrays_runme {
   public static void main(String argv[]) {
     if (typemap_arrays.sumA(null) != 60)
       throw new RuntimeException("Sum is wrong");
+    if (typemap_arrays.gridSize(null) != 12)
+      throw new RuntimeException("Grid size is wrong");
+    if (typemap_arrays.rowSize(null) != 6)
+      throw new RuntimeException("Row size is wrong");
   }
 }
 
