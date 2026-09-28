@@ -295,10 +295,15 @@ SWIGRUNTIME int SWIG_QuickJS_IsSwigObject(JSContext *ctx, JSValueConst this_val)
 #endif
 
   if (JS_IsObject(this_val)) {
-    proto = JS_GetPrototype(ctx, this_val);
-    if (JS_IsException(proto)) { return -1; }
-    result = (JS_GetClassID(proto) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id);
-    JS_FreeValue(ctx, proto);
+	// as the prototype of a prototype can itself be a prototype, don't get this confused
+	// with a swig object (aka prototype chain for inheritance)
+	result = (JS_GetClassID(this_val) != SWIG_QuickJS_swig_prototype_class_class_definition.class_id);
+	if (result) {
+        proto = JS_GetPrototype(ctx, this_val);
+        if (JS_IsException(proto)) { return -1; }
+        result = (JS_GetClassID(proto) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id);
+        JS_FreeValue(ctx, proto);
+    }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
     if(result) {
       /* check the SwigObject */
