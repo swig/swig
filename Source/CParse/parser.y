@@ -8363,19 +8363,26 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = $pointer;
                   }
+                  /* The reference applies to what the inner declarator yields, such as the return type in 'int (&f())(int)' */
                   | LPAREN AND direct_declarator[in] RPAREN {
+                    SwigType *t = NewStringEmpty();
                     $$ = $in;
-		    if (!$$.type) {
-		      $$.type = NewStringEmpty();
-		    }
-		    SwigType_add_reference($$.type);
+                    SwigType_add_reference(t);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
                   }
                   | LPAREN LAND direct_declarator[in] RPAREN {
+                    SwigType *t = NewStringEmpty();
                     $$ = $in;
-		    if (!$$.type) {
-		      $$.type = NewStringEmpty();
-		    }
-		    SwigType_add_rvalue_reference($$.type);
+                    SwigType_add_rvalue_reference(t);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
                   }
                   | LPAREN idcolon DSTAR declarator RPAREN {
 		    SwigType *t;

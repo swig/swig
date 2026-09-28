@@ -96,10 +96,10 @@ class TypePass : private Dispatcher {
     while (p) {
       SwigType *ty = Getattr(p, "type");
       normalize_type(ty);
-      /* This is a check for a function type */
+      /* A parameter of function type decays to a function pointer, but a reference to a function, such as 'int (&f)(int)', does not */
       {
         SwigType *qty = SwigType_typedef_resolve_all(ty);
-        if (SwigType_isfunction(qty)) {
+        if (SwigType_isfunction(qty) && !SwigType_isreference(qty) && !SwigType_isrvalue_reference(qty)) {
           SwigType_add_pointer(ty);
         }
         Delete(qty);

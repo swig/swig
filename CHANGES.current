@@ -20,6 +20,25 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            Fix a reference to a function used as a parameter or return type, which was wrapped
+            by code that did not compile, or crashed SWIG for D, such as:
+
+              typedef int Fn(int);
+              int call(int (&f)(int), int i);
+              int call_typedef(Fn &f, int i);
+              int (&get())(int);
+              Fn &get_typedef();
+
+            It is now wrapped in the same way as a pointer to a function, so a function pointer
+            constant or the result of get() can be passed to call().
+
+            A function returning a reference to an array, such as 'int (&get_array())[4]', is
+            also parsed correctly now. As when the array type is a typedef, it returns a pointer
+            to the array instead of a pointer to its first element.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-01: wsfulton
             A member function declared through a function typedef with an rvalue ref-qualifier
             is now ignored by default with warning 405, the same as when it is written out in
             full, instead of being wrapped by code that does not compile:

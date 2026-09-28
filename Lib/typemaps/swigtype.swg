@@ -676,6 +676,31 @@
 
 %apply SWIGTYPE ((*)(ANY)) { SWIGTYPE ((* const)(ANY)) }
 
+/* ------------------------------------------------------------
+ * --- function reference typemaps ---
+ * A reference to a function is passed and returned as a function pointer.
+ * ------------------------------------------------------------ */
+
+%typemap(in) SWIGTYPE ((&)(ANY)) {
+  int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum);
+  }
+  if (!$1) {
+    %argument_nullref("$type", $symname, $argnum);
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)) {
+  void *ptr = 0;
+  int res = SWIG_ConvertFunctionPtr($input, &ptr, $descriptor);
+  $1 = ptr ? SWIG_CheckState(res) : 0;
+}
+
+%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)) {
+  %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
+}
+
 %apply SWIGTYPE * { SWIGTYPE *const }
 
 /* ------------------------------------------------------------
