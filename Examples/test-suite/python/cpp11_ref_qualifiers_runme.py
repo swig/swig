@@ -1,4 +1,5 @@
 import cpp11_ref_qualifiers
+from swig_test_utils import swig_assert
 
 h = cpp11_ref_qualifiers.Host()
 
@@ -9,6 +10,11 @@ h.h6()
 h.h7()
 
 h.h()
+
+th = cpp11_ref_qualifiers.TypedefHost()
+th.t1()
+swig_assert(not hasattr(th, "t2"), "t2 should be ignored")
+swig_assert(not hasattr(th, "t3"), "t3 should be ignored")
 
 # %feature testing
 f = cpp11_ref_qualifiers.Features()

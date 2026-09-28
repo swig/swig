@@ -20,6 +20,19 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            A member function declared through a function typedef with an rvalue ref-qualifier
+            is now ignored by default with warning 405, the same as when it is written out in
+            full, instead of being wrapped by code that does not compile:
+
+              typedef int Fn(int) &&;
+              struct S {
+                Fn f;
+              };
+
+            It can be unignored in the same way too, such as with %feature("ignore", "0") S::f;.
+            Warning 405 is also no longer issued for the typedef itself.
+
+2026-10-01: wsfulton
             Fix a possible crash when using -macroerrors, such as when a multiline macro expands
             another macro.
 

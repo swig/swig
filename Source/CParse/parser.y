@@ -628,6 +628,24 @@ static int inheriting_ctor_base_match(Node *cls, String *unqualified_id) {
   return 0;
 }
 
+/* A member function declared through a typedef of a function type, such as 'F f;' after 'typedef int F(int) &&;', takes
+ * the ref-qualifier of the typedef so that it is handled like the member function written out in full.  A typedef naming
+ * such a typedef takes it too, so a chain of typedefs is followed.  The ref-qualifier in a pointer to member function
+ * typedef, such as 'typedef int (V::*MP)(int) &&;', is part of the pointer type so is not taken. */
+static void inherit_typedef_refqualifier(Node *n) {
+  SwigType *type = Getattr(n, "type");
+  SwigType *decl = Getattr(n, "decl");
+  if (type && (!decl || Len(decl) == 0)) {
+    Node *td = Swig_symbol_clookup(type, 0);
+    if (td && Equal(nodeType(td), "cdecl") && Equal(Getattr(td, "storage"), "typedef")) {
+      SwigType *tddecl = Getattr(td, "decl");
+      String *refqualifier = Getattr(td, "refqualifier");
+      if (refqualifier && (!tddecl || Len(tddecl) == 0 || SwigType_isfunction(tddecl)))
+        Setattr(n, "refqualifier", refqualifier);
+    }
+  }
+}
+
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
 
@@ -850,12 +868,15 @@ static void add_symbols(Node *n) {
     if (cparse_cplusplus) {
       String *value = Getattr(n, "value");
       SwigType *auto_type = Getattr(n, "type");
+      int istypedef = Equal(Getattr(n, "storage"), "typedef");
       if (value && Strcmp(value, "delete") == 0) {
 	/* C++11 deleted definition / deleted function */
         SetFlag(n,"deleted");
         SetFlag(n,"feature:ignore");
       }
-      if (SwigType_isrvalue_reference(Getattr(n, "refqualifier"))) {
+      if (iscdecl && (inclass || istypedef))
+        inherit_typedef_refqualifier(n);
+      if (!istypedef && SwigType_isrvalue_reference(Getattr(n, "refqualifier"))) {
 	/* Ignore rvalue ref-qualifiers by default
 	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
 	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {

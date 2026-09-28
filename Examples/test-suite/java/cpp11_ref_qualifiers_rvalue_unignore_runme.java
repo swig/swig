@@ -15,6 +15,7 @@ public class cpp11_ref_qualifiers_rvalue_unignore_runme {
   public static void main(String argv[]) {
     new RefQualifier().m1();
     new RefQualifier().m2();
+    new RefQualifier().m3();
   }
 }
 
