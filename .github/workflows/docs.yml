@@ -1,0 +1,75 @@
+name: docs
+
+on:
+  push:
+    paths-ignore:
+      - '.agents/**'
+      - '.github/workflows/linux.yml'
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/cmake.yml'
+      - '.github/workflows/windows.yml'
+      - 'AGENTS.md'
+      - 'CCache/**'
+      - 'CHANGES*'
+      - 'Examples/**'
+      - 'Lib/**'
+      - 'Source/**'
+      - 'Tools/**'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - '.agents/**'
+      - '.github/workflows/linux.yml'
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/cmake.yml'
+      - '.github/workflows/windows.yml'
+      - 'AGENTS.md'
+      - 'CCache/**'
+      - 'CHANGES*'
+      - 'Examples/**'
+      - 'Lib/**'
+      - 'Source/**'
+      - 'Tools/**'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    name: docs
+
+    steps:
+    - name: Machine Info
+      run: |
+          echo "nproc..."
+          nproc --all
+          echo "uname..."
+          uname --all
+          echo "meminfo..."
+          cat /proc/meminfo
+          echo "lsb-release..."
+          cat /etc/lsb-release
+
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+        persist-credentials: false
+
+    - name: Install
+      run: |
+          sudo apt-get -qq update
+          sudo apt-get -qq install tidy xfonts-scalable htmldoc weasyprint
+
+    - name: Configure
+      run: ./autogen.sh && ./configure
+
+    - name: Docs
+      run: |
+          make docs
+          # Make Sure documents are properly structured
+          if [[ -n "$(git status -s)"  ]]; then
+             exit 1 # We need to update documents!
+          fi
