@@ -1,15 +1,11 @@
 # Makefile for generating the SWIG documentation
 #
-# Note that the htmldoc package needs to be installed. wkhtmltopdf patched with qt is also required
-# and the prebuilt binaries can be installed from https://wkhtmltopdf.org/downloads.html.
-# wkhtmltopdf is no longer maintained - the final release (0.12.6.1-2, June 2022) provides Ubuntu
-# packages built for 22.04 (jammy) at the newest, but at the time of writing that package installs
-# and works correctly on 24.04 and 26.04 too.
+# Note that the htmldoc package needs to be installed.
 #
 # The .html files are first processed and updated with chapter numbering and anchor names
 # are added to the HTML headings using the python scripts. The htmldoc program is then
 # used to generate the single page HTML version of the documentation.
-# wkhtmltopdf is used to generate the pdf document from the single page html file.
+# htmldoc is used to generate the pdf document from the single page html file.
 # HTML TIDY (package also known as tidy) is also required and is used as an aid to HTML
 # validation.
 #
@@ -29,7 +25,7 @@ SWIG_CHAPTERS!=sed '/^\#/d' chapters
 # Note the # and " are escaped
 HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage $(SWIG_TITLE) --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
 
-.PHONY: all maketoc check check-fonts generate maintainer-clean clean-baks test validate\
+.PHONY: all maketoc check generate maintainer-clean clean-baks test validate\
 	nu_validate linkchecker1 linkchecker2 linkchecker3
 
 all: maketoc check generate
@@ -50,29 +46,13 @@ check:
 	all="index.html Sections.html `sed '/^#/d' chapters | grep -v CCache.html`" && for a in $$all; do echo "Check for tabs $$a" && if grep -P '\t' $$a; then echo "Please delete the tabs from the lines above" && exit 1; fi; done && for a in $$all; do echo "HTML tidy check $$a" && tidy -errors --gnu-emacs yes -quiet $$a; done;
 	python3 checklines.py
 
-# Check a fixed-width font for the code blocks is installed before generating the pdf, see note 3 below
-check-fonts:
-	python3 checkfonts.py
+# The WeasyPrint tool
+# https://weasyprint.org/
+# Debian/Ubuntu package: weasyprint
+$(SWIG_PDF): $(SWIG_HTML)
+	weasyprint -s page.css $^ $@
 
-# Note wkhtmltopdf limitations for generating pdf docs:
-#  1) <H1><a name="X"></a>Text</H1> style links don't work and need changing to
-#     <H1><a name="X">Text</a></H1>
-#  2) Tabs in <pre> elements should be expanded to 8 spaces by default, but
-#     are expanded to just one space and css tab-size is not working.
-#  3) <pre> <tt> <code> elements do not always select a fixed-width font. wkhtmltopdf ignores the
-#     generic monospace CSS fallback, so one of the font families named in style.css has to be
-#     installed. On Debian/Ubuntu install the "Courier 10 Pitch" font with:
-#       sudo apt install xfonts-scalable
-#     Without it every code block, shell block, diagram and inline code element silently comes
-#     out in a proportional font.
-#  4) Text in <pre> elements is not wrapped, so an over long line runs out of the coloured box
-#     it sits in and is then clipped at the page edge, silently losing the rest of the line.
-#     Worse, wkhtmltopdf shrinks the whole document to help fit the widest content, so a
-#     handful of over long lines make the text smaller on every one of the 500+ pages. The
-#     check target rejects lines longer than 130 characters, see checklines.py.
-generate: check-fonts $(SWIG_HTML)
-	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from https://wkhtmltopdf.org/downloads.html" && false)
-	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' --allow . SWIGDocumentation.html SWIGDocumentation.pdf
+generate: $(SWIG_PDF)
 
 $(SWIG_HTML): $(SWIG_BOOK)
 	htmldoc --batch $^ || true

@@ -24,13 +24,13 @@ The reference manual is hand written HTML4 Transitional. There is no Markdown / 
 From `Doc/Manual/`:
 
 ```bash
-make            # = maketoc check generate (full build, needs htmldoc + patched-qt wkhtmltopdf)
+make            # = maketoc check generate (full build, needs htmldoc)
 make maketoc    # renumber headings, regenerate <!-- INDEX --> blocks, write Contents.html
 make check      # tab detection (tabs fail the build) + HTML tidy on every chapter
 make clean-baks # delete all *.bak files left by maketoc
 ```
 
-For ordinary authoring, `make maketoc check` is what you run after every edit. `make generate` is only needed for the single page HTML and PDF artefacts and pulls in `htmldoc` and a patched-qt build of `wkhtmltopdf` — usually skip it unless explicitly producing the release docs.
+For ordinary authoring, `make maketoc check` is what you run after every edit. `make generate` is only needed for the single page HTML and PDF artefacts and pulls in `htmldoc` — usually skip it unless explicitly producing the release docs.
 
 What `maketoc` does, per chapter (via `makechap.py`):
 1. Numbers `<H1>`–`<H5>` from the chapter's position in `chapters` (e.g. `10.2.1 ...`).
