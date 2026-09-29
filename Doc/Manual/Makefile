@@ -16,11 +16,21 @@
 # Additional html validation can be done using the validate target.
 # Additional link checking can be done using the linkchecker1 and linkchecker2 target.
 #
+SWIG_PDF:=SWIGDocumentation.pdf
+SWIG_HTML:=SWIGDocumentation.html
+SWIG_SECTIONS:=Sections.html
+SWIG_INDEX:=index.html
+SWIG_BOOK:=swightml.book
+SWIG_CSS:=style.css
+LINK_TMP:=linkchecker-tmp
+SWIG_TITLE:=swig16.png
+SWIG_CHAPTERS!=sed '/^\#/d' chapters
 
 # Note the # and " are escaped
-HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage swig16.png --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
+HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage $(SWIG_TITLE) --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
 
-.PHONY: maketoc check check-fonts generate all maintainer-clean validate test
+.PHONY: all maketoc check check-fonts generate maintainer-clean clean-baks test validate\
+	nu_validate linkchecker1 linkchecker2 linkchecker3
 
 all: maketoc check generate
 
@@ -29,7 +39,7 @@ maketoc:
 
 # Use this to regenerate CCache.html should this ever be needed
 CCache.html: ../../CCache/ccache.yo
-	yodl2html -o CCache.html ../../CCache/ccache.yo
+	yodl2html -o $@ $^
 
 # Tabs in the html files will stop the build as wkhtmltopdf does not expand them correctly - replace them with the appropriate number of tabs
 # Use htmltidy to warn about some HTML errors. Note that it is not used to clean/tidy the HTML,
@@ -60,25 +70,23 @@ check-fonts:
 #     Worse, wkhtmltopdf shrinks the whole document to help fit the widest content, so a
 #     handful of over long lines make the text smaller on every one of the 500+ pages. The
 #     check target rejects lines longer than 130 characters, see checklines.py.
-generate: check-fonts SWIGDocumentation.html
+generate: check-fonts $(SWIG_HTML)
 	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from https://wkhtmltopdf.org/downloads.html" && false)
 	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' --allow . SWIGDocumentation.html SWIGDocumentation.pdf
 
-SWIGDocumentation.html: swightml.book
-	htmldoc --batch swightml.book || true
-	python3 fixstyle.py SWIGDocumentation.html
+$(SWIG_HTML): $(SWIG_BOOK)
+	htmldoc --batch $^ || true
+	python3 fixstyle.py $@
 
-swightml.book: chapters Sections.html
-	echo "#HTMLDOC 1.8.24" > swightml.book
-	echo -t html -f SWIGDocumentation.html $(HTMLDOC_OPTIONS) >> swightml.book
-	echo "Sections.html" >> swightml.book
-	cat chapters >> swightml.book
+$(SWIG_BOOK): chapters $(SWIG_SECTIONS)
+	echo "#HTMLDOC 1.8.24" > $@
+	echo -t html -f $(SWIG_HTML) $(HTMLDOC_OPTIONS) >> $@
+	echo "$(SWIG_SECTIONS)" >> $@
+	cat $< >> $@
 
 maintainer-clean: clean-baks
-	rm -f swightml.book
-	rm -f SWIGDocumentation.html
-	rm -f SWIGDocumentation.pdf
-	rm -rf linkchecker-tmp
+	rm -f $(SWIG_BOOK) $(SWIG_HTML) $(SWIG_PDF)
+	rm -rf $(LINK_TMP)
 
 clean-baks:
 	rm -f *.bak
@@ -90,26 +98,32 @@ test:
 
 # Validating using the WDG offline validator - http://www.htmlhelp.com/tools/validator/offline/
 validate:
-	all=`sed '/^#/d' chapters`; for a in $$all; do validate --emacs $$a; done;
+	for a in $(SWIG_CHAPTERS); do validate --emacs $$a; done;
+
+# Alternativly, using the Nu Html Checker (vnu)
+# https://validator.github.io/validator/
+# Debian/Ubuntu package: vnu
+nu_validate:
+	vnu $(SWIG_CHAPTERS) $(SWIG_CSS)
 
 # Link checking using linkchecker of the index.html only file (including anchors)
 linkchecker1:
 	@echo -----------------------------------------------------------------------
 	@echo Note linkchecker versions prior to 6.1 do not work properly wrt anchors
 	@echo -----------------------------------------------------------------------
-	linkchecker --config=./linkchecker.config --anchors index.html
+	linkchecker --config=./linkchecker.config --anchors $(SWIG_INDEX)
 
 # Check for links which don't work including those generated from the individual .html files into SWIGDocumentation.html
 linkchecker2:
-	rm -rf linkchecker-tmp
-	mkdir linkchecker-tmp
-	cp SWIGDocumentation.html linkchecker-tmp
-	cp *.png linkchecker-tmp
-	(cd linkchecker-tmp && linkchecker --config=../linkchecker.config -F text --no-warnings SWIGDocumentation.html)
+	rm -rf $(LINK_TMP)
+	mkdir -p $(LINK_TMP)
+	cp $(SWIG_HTML) $(LINK_TMP)
+	cp *.png $(LINK_TMP)
+	(cd $(LINK_TMP) && linkchecker --config=../linkchecker.config -F text --no-warnings $(SWIG_HTML))
 
 # Simple check for relative links (there shouldn't be any), they don't translate properly creating the .pdf doc
 # with wkhtmltopdf. For example, href="SWIG.html" needs to be href="SWIG.html#SWIG"
 linkchecker3:
-	@echo "The following list should just contain SWIGDocumentation.html and SWIGDocumentation.pdf,"
+	@echo "The following list should just contain $(SWIG_HTML) and $(SWIG_PDF),"
 	@echo "as all links should have an anchor (with a #) or be a full url beginning http."
-	grep 'href="' *.html | sed -e 's/.*href="\(.*\)">.*$$/\1/' | grep -v "#" | grep -v "^http" | grep -v "^style.css"
+	grep 'href="' *.html | sed -e 's/.*href="\(.*\)">.*$$/\1/' | grep -v "#" | grep -v "^http" | grep -v "^$(SWIG_CSS)"
