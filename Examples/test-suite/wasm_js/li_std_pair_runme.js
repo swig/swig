@@ -1,0 +1,20 @@
+const assert = require('assert');
+require('./li_std_pair_wrap.js')().then((m) => {
+  assert.deepStrictEqual(m.makeIntPair(3, 4), [3, 4]);
+  assert.strictEqual(m.product1([3, 4]), 12);
+  assert.strictEqual(m.product2([3, 4]), 12);
+  const pointer = m.makeIntPairPtr(5, 6);
+  assert.strictEqual(m.product3(pointer), 30);
+  pointer.delete();
+  const reference = m.makeIntPairRef(7, 8);
+  assert.strictEqual(reference.first, 7);
+  assert.strictEqual(reference.second, 8);
+  reference.delete();
+  assert.deepStrictEqual(m.makeIntPairConstRef(9, 10), [9, 10]);
+  const holder = new m.Holder(11);
+  const nested = m.pair1([holder, 12]);
+  assert.strictEqual(nested[0].number, 11);
+  assert.strictEqual(nested[1], 12);
+  nested[0].delete();
+  holder.delete();
+}).catch((error) => { console.error(error); process.exitCode = 1; });

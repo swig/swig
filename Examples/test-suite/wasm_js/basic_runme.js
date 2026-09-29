@@ -1,0 +1,20 @@
+const assert = require('assert');
+require('./basic_wrap.js')().then((m) => {
+  assert.strictEqual(m.Colour.GREEN, 7);
+  assert.strictEqual(m.add(2, 3), 5);
+  assert.strictEqual(m.wide(9007199254740993n), 9007199254740994n);
+  assert.strictEqual(m.negate(true), false);
+  assert.strictEqual(m.greet('world'), 'hello world');
+  assert.strictEqual(m.greet('\u03bb'), 'hello \u03bb');
+  assert.throws(() => m.fail());
+  const c = new m.Counter();
+  assert.strictEqual(c.value, 0);
+  c.value = 7;
+  assert.strictEqual(c.increment(3), 10);
+  assert.strictEqual(m.Counter.twice(6), 12);
+  c.delete();
+  c.delete();
+  const other = m.Counter(9);
+  assert.strictEqual(other.value, 9);
+  other.delete();
+}).catch((error) => { console.error(error); process.exitCode = 1; });

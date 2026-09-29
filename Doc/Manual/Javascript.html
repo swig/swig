@@ -46,6 +46,11 @@
 <li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
 <li><a href="#Javascript_napi_exceptions">Handling Exceptions in Node-API</a>
 </ul>
+<li><a href="#Javascript_wasm">Experimental WebAssembly target</a>
+<ul>
+<li><a href="#Javascript_wasm_containers">Standard library containers</a>
+<li><a href="#Javascript_wasm_limits">Limitations and testing</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -1037,5 +1042,160 @@ if(js_exception)
 </pre>
 </div>
 <p>In this case, nothing else is needed for the C++ exceptions to be passed to JavaScript.</p>
+<H2><a name="Javascript_wasm">30.6 Experimental WebAssembly target</a></H2>
+
+
+<p>
+The experimental <tt>-wasm-js</tt> target generates C++ wrappers for Emscripten
+and a CommonJS JavaScript module for Node.js. It is separate from the native
+<tt>-javascript</tt> target. The generated JavaScript calls WebAssembly exports;
+Emscripten's Embind value support is also required to transfer JavaScript objects.
+The target currently requires C++ input, a wasm32 Emscripten toolchain, and a
+JavaScript runtime supporting BigInt and FinalizationRegistry.
+</p>
+
+<p>
+For an interface named <tt>example.i</tt>, generate and compile the wrappers:
+</p>
+
+<div class="shell"><pre>
+$ swig -c++ -wasm-js -stubs -o example_wrap.cxx example.i
+$ em++ -fwasm-exceptions -lembind example_wrap.cxx \
+    -sMODULARIZE=1 -sEXPORT_NAME=createWasm \
+    -sEXPORTED_FUNCTIONS=@example_wrap.cxx.exports \
+    -sEXPORTED_RUNTIME_METHODS='["UTF8ToString","lengthBytesUTF8","stringToUTF8"]' \
+    -o example_wrap_wasm.js
+</pre></div>
+
+<p>
+SWIG writes <tt>example_wrap.cxx</tt>, <tt>example_wrap.cxx.exports</tt> and
+<tt>example_wrap.js</tt>. The optional <tt>-stubs</tt> flag also writes
+<tt>example_wrap.d.ts</tt>. Keep these JavaScript files and the compiled
+<tt>example_wrap_wasm.wasm</tt> file together. Load the module asynchronously:
+</p>
+
+<div class="targetlang"><pre>
+const createModule = require('./example_wrap.js');
+async function main() {
+  const example = await createModule();
+  console.log(example.add(2, 3));
+}
+main().catch(console.error);
+</pre></div>
+
+<p>
+Wrapped classes support construction with <tt>new</tt> or a direct call.
+Call <tt>delete()</tt> to release an owned instance promptly. A finalization
+registry also releases owned instances when the runtime collects them.
+Do not use an instance after deleting it. C++ <tt>long long</tt> and
+<tt>unsigned long long</tt> values use JavaScript <tt>bigint</tt>;
+ordinary integers use <tt>number</tt>. Strings are transferred as UTF-8.
+</p>
+
+<p>
+Enums follow their C++ underlying type: types up to 32 bits use
+<tt>number</tt>, and 64 bit types use <tt>bigint</tt>. This applies to
+arguments, return values, constants and container elements, with range
+checks on input. TypeScript declarations use the explicit underlying type
+when one is declared. Scoped enums without an explicit base use
+<tt>number</tt>, since their base is <tt>int</tt>. For unscoped enums without
+an explicit base, the compiler selects the underlying type; declarations
+conservatively use <tt>number | bigint</tt>.
+</p>
+
+<p>
+Use <tt>%feature("wasmjs:enum_int_type", "unsigned long long") Operation;</tt>
+to expose an enum's constants as a chosen integer type, for example when
+comparing them with a related API returning 64 bit integer operation codes.
+Integer typedefs are also accepted. This feature changes only the constants
+and their TypeScript declarations; enum arguments, returns and container
+elements continue to follow the C++ underlying type.
+</p>
+
+<H3><a name="Javascript_wasm_containers">30.6.1 Standard library containers</a></H3>
+
+
+<p>
+Include the corresponding standard library interface and instantiate the
+required types with <tt>%template</tt> before declarations that use their
+container conversions, as for other SWIG targets:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+%include &lt;std_map.i&gt;
+%include &lt;std_pair.i&gt;
+%template(IntVector) std::vector&lt;int&gt;;
+%template(IntMap) std::map&lt;int, int&gt;;
+%template(IntPair) std::pair&lt;int, int&gt;;
+</pre></div>
+
+<p>
+Container arguments passed by value or constant reference accept either a
+compatible wrapped container or its native JavaScript representation.
+Returns by value or constant reference produce independent native JavaScript
+copies. Element conversions are recursive, including nested containers and
+wrapped class values.
+</p>
+
+<div class="table">
+<table summary="WebAssembly standard library conversions">
+<tr><th>C++ type</th><th>JavaScript representation</th></tr>
+<tr><td><tt>std::string</tt></td><td><tt>string</tt></td></tr>
+<tr><td><tt>std::vector</tt>, <tt>std::deque</tt>, <tt>std::list</tt></td><td><tt>Array</tt></td></tr>
+<tr><td><tt>std::array</tt></td><td><tt>Array</tt> of the declared fixed size</td></tr>
+<tr><td><tt>std::pair</tt></td><td>Two element <tt>Array</tt></td></tr>
+<tr><td><tt>std::map</tt>, <tt>std::unordered_map</tt></td><td><tt>Map</tt></td></tr>
+<tr><td><tt>std::set</tt>, <tt>std::unordered_set</tt></td><td><tt>Set</tt></td></tr>
+</table>
+</div>
+
+<p>
+Maps with <tt>std::string</tt> keys also accept plain JavaScript objects as
+input, using their own enumerable string keys. Returned maps use
+<tt>Map</tt>. Integral elements must have the correct JavaScript type and
+fit the C++ type; 64 bit integers require <tt>bigint</tt>. Invalid element
+types and incorrect fixed array or pair lengths are rejected. Finite
+floating-point inputs outside the C++ type's range are rejected; explicit
+JavaScript infinities and <tt>NaN</tt> are preserved.
+</p>
+
+<p>
+Mutable references and pointers to the listed containers other than
+<tt>std::string</tt> require wrapped container instances.
+For example, pass <tt>new example.IntVector()</tt> to a function accepting
+<tt>std::vector&lt;int&gt; &amp;</tt>, and inspect its elements with
+<tt>size()</tt> and <tt>at(index)</tt> after the call. Native JavaScript
+arrays are rejected for these parameters because mutating a temporary C++
+copy would not update the original JavaScript array. Mutable references and
+pointers returned from C++ are borrowed proxies: their native owner must
+remain alive while they are used. A null container pointer returned from
+C++ becomes JavaScript <tt>null</tt>. Sequence element accessors such as
+<tt>at(index)</tt> return values, so changing a returned wrapped class value
+does not modify the stored element; use <tt>set(index, value)</tt> to replace
+it. C++ iterator objects are not exposed.
+</p>
+
+<H3><a name="Javascript_wasm_limits">30.6.2 Limitations and testing</a></H3>
+
+
+<p>
+This target is experimental. It does not yet provide the complete typemap
+library or feature coverage of the native JavaScript target. Global variables,
+static member variables and multi module imports are not supported.
+Uncaught C++ exceptions propagate as WebAssembly exceptions.
+Browser module packaging is not provided.
+</p>
+
+<p>
+The initial runtime and TypeScript regression tests can be run with
+<tt>make check-wasm-js-test-suite</tt>. This requires <tt>em++</tt>,
+<tt>node</tt>, and <tt>tsc</tt> on PATH. When configure finds all three,
+<tt>make check-test-suite</tt> includes these tests. Use <tt>--without-wasm-js</tt>
+to disable them. The configure variables <tt>EMCXX</tt>, <tt>WASM_NODE</tt> and
+<tt>WASM_TSC</tt> select the tools; the test makefile also accepts <tt>NODE</tt>,
+<tt>TSC</tt> and <tt>EMCXXFLAGS</tt> overrides.
+</p>
+
 </body>
 </html>

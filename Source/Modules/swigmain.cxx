@@ -43,6 +43,7 @@ Language *swig_r(void);
 Language *swig_ruby(void);
 Language *swig_scilab(void);
 Language *swig_tcl(void);
+Language *swig_wasm_js(void);
 Language *swig_xml(void);
 }
 
@@ -51,36 +52,37 @@ Language *swig_xml(void);
    list sorted alphabetically. */
 
 static TargetLanguageModule modules[] = {
-  {"-allegrocl",  NULL,            "ALLEGROCL",          Disabled    },
-  {"-c",          swig_c,          "C",                  Experimental},
-  {"-chicken",    NULL,            "CHICKEN",            Disabled    },
-  {"-clisp",      NULL,            "CLISP",              Disabled    },
-  {"-csharp",     swig_csharp,     "C#",                 Supported   },
-  {"-d",          swig_d,          "D",                  Supported   },
-  {"-go",         swig_go,         "Go",                 Supported   },
-  {"-guile",      swig_guile,      "Guile",              Supported   },
-  {"-java",       swig_java,       "Java",               Supported   },
-  {"-javascript", swig_javascript, "Javascript",         Supported   },
-  {"-lua",        swig_lua,        "Lua",                Supported   },
-  {"-modula3",    NULL,            "Modula 3",           Disabled    },
-  {"-ocaml",      swig_ocaml,      "OCaml",              Experimental},
-  {"-octave",     swig_octave,     "Octave",             Supported   },
-  {"-perl",       swig_perl5,      NULL,                 Supported   },
-  {"-perl5",      swig_perl5,      "Perl 5",             Supported   },
-  {"-php",        swig_php,        NULL,                 Supported   },
-  {"-php5",       NULL,            "PHP 5",              Disabled    },
-  {"-php7",       swig_php,        "PHP 8 or later",     Supported   },
-  {"-pike",       NULL,            "Pike",               Disabled    },
-  {"-python",     swig_python,     "Python",             Supported   },
-  {"-r",          swig_r,          "R (aka GNU S)",      Supported   },
-  {"-ruby",       swig_ruby,       "Ruby",               Supported   },
-  {"-scilab",     swig_scilab,     "Scilab",             Supported   },
-  {"-sexp",       NULL,            "Lisp S-Expressions", Disabled    },
-  {"-tcl",        swig_tcl,        NULL,                 Supported   },
-  {"-tcl8",       swig_tcl,        "Tcl 8",              Supported   },
-  {"-uffi",       NULL,            "Common Lisp / UFFI", Disabled    },
-  {"-xml",        swig_xml,        "XML",                Supported   },
-  {NULL,          NULL,            NULL,                 Disabled    }
+  {"-allegrocl",  NULL,            "ALLEGROCL",              Disabled    },
+  {"-c",          swig_c,          "C",                      Experimental},
+  {"-chicken",    NULL,            "CHICKEN",                Disabled    },
+  {"-clisp",      NULL,            "CLISP",                  Disabled    },
+  {"-csharp",     swig_csharp,     "C#",                     Supported   },
+  {"-d",          swig_d,          "D",                      Supported   },
+  {"-go",         swig_go,         "Go",                     Supported   },
+  {"-guile",      swig_guile,      "Guile",                  Supported   },
+  {"-java",       swig_java,       "Java",                   Supported   },
+  {"-javascript", swig_javascript, "Javascript",             Supported   },
+  {"-lua",        swig_lua,        "Lua",                    Supported   },
+  {"-modula3",    NULL,            "Modula 3",               Disabled    },
+  {"-ocaml",      swig_ocaml,      "OCaml",                  Experimental},
+  {"-octave",     swig_octave,     "Octave",                 Supported   },
+  {"-perl",       swig_perl5,      NULL,                     Supported   },
+  {"-perl5",      swig_perl5,      "Perl 5",                 Supported   },
+  {"-php",        swig_php,        NULL,                     Supported   },
+  {"-php5",       NULL,            "PHP 5",                  Disabled    },
+  {"-php7",       swig_php,        "PHP 8 or later",         Supported   },
+  {"-pike",       NULL,            "Pike",                   Disabled    },
+  {"-python",     swig_python,     "Python",                 Supported   },
+  {"-r",          swig_r,          "R (aka GNU S)",          Supported   },
+  {"-ruby",       swig_ruby,       "Ruby",                   Supported   },
+  {"-scilab",     swig_scilab,     "Scilab",                 Supported   },
+  {"-sexp",       NULL,            "Lisp S-Expressions",     Disabled    },
+  {"-tcl",        swig_tcl,        NULL,                     Supported   },
+  {"-tcl8",       swig_tcl,        "Tcl 8",                  Supported   },
+  {"-uffi",       NULL,            "Common Lisp / UFFI",     Disabled    },
+  {"-wasm-js",    swig_wasm_js,    "WebAssembly JavaScript", Experimental},
+  {"-xml",        swig_xml,        "XML",                    Supported   },
+  {NULL,          NULL,            NULL,                     Disabled    }
 };
 
 //-----------------------------------------------------------------

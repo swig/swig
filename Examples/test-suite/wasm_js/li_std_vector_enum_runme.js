@@ -1,0 +1,25 @@
+const assert = require('assert');
+require('./li_std_vector_enum_wrap.js')().then((m) => {
+  const owner = new m.EnumVector();
+  const snapshot = owner.nums;
+  assert.strictEqual(snapshot.size(), 3);
+  assert.strictEqual(snapshot.at(0), 10);
+  const replacement = new m.vector_numbers();
+  replacement.push_back(30);
+  replacement.push_back(10);
+  owner.nums = replacement;
+  const current = owner.nums;
+  assert.strictEqual(current.size(), 2);
+  assert.strictEqual(current.at(0), 30);
+  assert.strictEqual(snapshot.at(0), 10);
+  current.delete();
+  replacement.delete();
+  snapshot.delete();
+  assert.throws(() => { owner.nums = ['wrong']; });
+  const proxy = new m.vector_numbers();
+  proxy.push_back(20);
+  assert.strictEqual(proxy.at(0), 20);
+  assert.throws(() => proxy.push_back('wrong'));
+  proxy.delete();
+  owner.delete();
+}).catch((error) => { console.error(error); process.exitCode = 1; });

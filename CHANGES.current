@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-20: jgillis
+            [JavaScript] Add an experimental -wasm-js target for C++ bindings using
+            Emscripten WebAssembly and a Node.js CommonJS wrapper. The -stubs
+            option generates TypeScript declarations for the module factory.
+            Standard library interfaces support native JavaScript container values
+            and wrapped mutable containers, including recursive element conversion.
+            Enum conversions preserve the underlying integer width, and finite
+            numeric inputs outside their C++ range are rejected.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These

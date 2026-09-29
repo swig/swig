@@ -86,6 +86,7 @@ skip-r		= test -n "@SKIP_R@"
 skip-ruby	= test -n "@SKIP_RUBY@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
 skip-tcl	= test -n "@SKIP_TCL@"
+skip-wasm-js = test -n "@SKIP_WASM_JS@"
 
 # Additional dependencies for some tests
 skip-android    = test -n "@SKIP_ANDROID@"
@@ -259,6 +260,15 @@ check-test-suite:				\
 	check-ruby-test-suite			\
 	check-scilab-test-suite			\
 	check-tcl-test-suite			\
+	check-wasm-js-test-suite			\
+
+.PHONY: check-wasm-js-test-suite
+check-wasm-js-test-suite:
+	@if $(skip-wasm-js) && test "$(NOSKIP)" != 1; then \
+	  echo "skipping wasm-js test-suite $(ACTION) (requires em++, node and tsc)"; \
+	else \
+	  $(MAKE) -C Examples/test-suite/wasm_js $(FLAGS) $(ACTION); \
+	fi
 
 check-%-test-suite: check-%-prepare
 	@if test -z "$(skip-$*)"; then					\
@@ -461,7 +471,7 @@ install-main:
 
 lib-languages = typemaps tcl perl5 python guile java ruby php ocaml octave \
 	csharp lua r c go d javascript javascript/jsc \
-	javascript/v8 javascript/napi scilab xml
+	javascript/v8 javascript/napi scilab wasm_js xml
 
 lib-modules = std
 

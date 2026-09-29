@@ -1,0 +1,52 @@
+name: wasm-js
+
+on:
+  push:
+    paths:
+      - 'Source/**'
+      - 'Lib/**'
+      - 'Examples/test-suite/wasm_js/**'
+      - 'configure.ac'
+      - 'Makefile.in'
+      - '.github/workflows/wasm-js.yml'
+  pull_request:
+    branches: master
+    paths:
+      - 'Source/**'
+      - 'Lib/**'
+      - 'Examples/test-suite/wasm_js/**'
+      - 'configure.ac'
+      - 'Makefile.in'
+      - '.github/workflows/wasm-js.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  wasm-js:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+      - name: Install build and type checking tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf automake bison libpcre2-dev
+          npm install --prefix "$RUNNER_TEMP/typescript" typescript@4.8.4
+          echo "$RUNNER_TEMP/typescript/node_modules/.bin" >> "$GITHUB_PATH"
+      - name: Install Emscripten
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install 5.0.7
+          "$RUNNER_TEMP/emsdk/emsdk" activate 5.0.7
+      - name: Build and test
+        run: |
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          ./autogen.sh
+          ./configure --without-alllang --with-wasm-js
+          make -j2
+          make check-wasm-js-test-suite

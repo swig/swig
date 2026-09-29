@@ -2566,6 +2566,25 @@ AC_SUBST(TCLCXXSHARED)
 AC_SUBST(TCLLINK)
 
 #----------------------------------------------------------------
+# Experimental WebAssembly JavaScript test tools
+#----------------------------------------------------------------
+AC_ARG_WITH([wasm-js], AS_HELP_STRING([--without-wasm-js], [Disable WebAssembly JavaScript tests]), [], [with_wasm_js=$with_alllang])
+AC_ARG_VAR([EMCXX], [Emscripten C++ compiler command])
+AC_ARG_VAR([WASM_NODE], [Node.js interpreter for WebAssembly tests])
+AC_ARG_VAR([WASM_TSC], [TypeScript compiler for WebAssembly declarations])
+SKIP_WASM_JS=1
+if test "x$with_wasm_js" != xno; then
+  # Use resolved paths: GNU make can mistake the emsdk node directory on PATH for the interpreter.
+  AC_PATH_PROGS([EMCXX], [em++])
+  AC_PATH_PROGS([WASM_NODE], [node nodejs])
+  AC_PATH_PROGS([WASM_TSC], [tsc])
+  if test -n "$EMCXX" && test -n "$WASM_NODE" && test -n "$WASM_TSC"; then
+    SKIP_WASM_JS=
+  fi
+fi
+AC_SUBST([SKIP_WASM_JS])
+
+#----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
@@ -2779,6 +2798,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/ruby/Makefile
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
+    Examples/test-suite/wasm_js/Makefile
     Source/Makefile
     Tools/javascript/Makefile
 ])
@@ -2841,6 +2861,7 @@ test -n "$SKIP_R"		|| langs="${langs}r "
 test -n "$SKIP_RUBY"		|| langs="${langs}ruby "
 test -n "$SKIP_SCILAB"		|| langs="${langs}scilab "
 test -n "$SKIP_TCL"		|| langs="${langs}tcl "
+test -n "$SKIP_WASM_JS"		|| langs="${langs}wasm-js "
 
 echo "
 The SWIG test-suite and examples are configured for the following languages:
