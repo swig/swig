@@ -7,6 +7,32 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-09-09: sbellus
+            Add an experimental Swift target language, enabled with the new -swift
+            command line option. It generates a C++ wrapper plus a Swift proxy module
+            (module.swift) exposing proxy classes and free functions. Supported features
+            include classes, single inheritance (including from a base in an %import-ed
+            module), nested classes, enumerations (including scoped enums and enums with
+            duplicate values), overloading, static methods, directors (including bases
+            without a default constructor and abstract, template and nested director
+            bases), std::string, std::vector, std::shared_ptr and boost::shared_ptr, and
+            C++ exceptions surfaced as Swift throwing functions. Pointers to types that
+            are not wrapped generate SWIGTYPE_p_* opaque classes, as in the Java and C#
+            modules.
+
+            The swiftcode and swiftconstruct/swiftconstruct_derived typemaps are the
+            Swift analogues of cscode/csconstruct (C#) and javacode/javaconstruct (Java),
+            and %feature("swift:nonnull") marks a pointer return as non-optional. A nested
+            type whose name collides with a Swift metatype expression ("Type" or
+            "Protocol") is reported with the new warning 869; warnings 861-869 are
+            reserved for Swift.
+
+            When a Swift compiler is available the test-suite and examples compile and
+            run the generated Swift; configure detects swiftc and accepts
+            --with-swift[=path]. Without a Swift compiler the suite is compile-only. As
+            an experimental language it emits Warning 524 when used; suppress it with
+            -w524. See the new Swift chapter in the documentation for details.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These
