@@ -19,13 +19,13 @@ type _value = c_obj
 %define %array_tmap_in(type,what,in_f)
 %typemap(type) what [ANY] {
     int i;
-    $1 = ($*1_type *)malloc( $1_size );
+    $1 = ($*1_type *)malloc( $1_size * sizeof($*1_type) );
     for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
 	$1[i] = in_f(caml_array_nth($input,i));
     }
 }
 
-%typemap(free) what [ANY] {
+%typemap(freearg) what [ANY] {
     free( (void *)$1 );
 }
 %enddef

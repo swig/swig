@@ -20,6 +20,12 @@ Version 4.6.0 (in progress)
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 
 2026-10-01: wsfulton
+            [OCaml] Fix a heap overflow in the carray.i typemaps for an array parameter, which
+            allocated one byte per element instead of the size of an element. In C++, an array
+            of a simple type such as int or double, which is allocated with malloc, is now also
+            released with free instead of delete [].
+
+2026-10-01: wsfulton
             Fix syntax error for sizeof applied to a member of a parenthesised expression, such as:
 
               const size_t n = sizeof (x).m;
