@@ -12,7 +12,7 @@ public class arrays_dimension_expression_runme {
 
   public static void main(String argv[])
   {
-    // Setting an array sized 'DIM_FLAGS | 4' copies its 7 elements, and no more.
+    // Setting an array with a dimension such as 'DIM_FLAGS | 4' copies all of its elements, and no more.
     arrays_dimension_expression.setOr_array(arrays_dimension_expression.getOr_source());
     check(28, arrays_dimension_expression.or_array_sum());
 
@@ -22,6 +22,21 @@ public class arrays_dimension_expression_runme {
     arrays_dimension_expression.setOr_text("abcdef");
     check("abcdef", arrays_dimension_expression.getOr_text());
     check(6, arrays_dimension_expression.or_text_length("abcdef"));
+
+    arrays_dimension_expression.setAnd_array(arrays_dimension_expression.getAnd_source());
+    check(3, arrays_dimension_expression.and_array_sum());
+    arrays_dimension_expression.setAnd_grid(arrays_dimension_expression.getAnd_grid_source());
+    check(10, arrays_dimension_expression.and_grid_sum());
+
+    arrays_dimension_expression.setXor_array(arrays_dimension_expression.getXor_source());
+    check(28, arrays_dimension_expression.xor_array_sum());
+    arrays_dimension_expression.setXor_grid(arrays_dimension_expression.getXor_grid_source());
+    check(105, arrays_dimension_expression.xor_grid_sum());
+
+    arrays_dimension_expression.setEq_array(arrays_dimension_expression.getEq_source());
+    check(5, arrays_dimension_expression.eq_array_sum());
+    arrays_dimension_expression.setEq_grid(arrays_dimension_expression.getEq_grid_source());
+    check(11, arrays_dimension_expression.eq_grid_sum());
 
     DimensionHolder holder = new DimensionHolder();
     holder.setOr_member(arrays_dimension_expression.getOr_source());
