@@ -1185,20 +1185,6 @@ int R::enumvalueDeclaration(Node *n) {
   // Note that this is used in enumValue() amongst other places
   Setattr(n, "value", tmpValue);
 
-  // Deal with enum values that are not int
-  int swigtype = SwigType_type(Getattr(n, "type"));
-  if (swigtype == T_CHAR) {
-    if (Getattr(n, "enumstringval")) {
-      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
-      Setattr(n, "enumvalue", val);
-      Delete(val);
-    }
-  } else {
-    String *numval = Getattr(n, "enumnumval");
-    if (numval)
-      Setattr(n, "enumvalue", numval);
-  }
-
   {
     // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
     SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
