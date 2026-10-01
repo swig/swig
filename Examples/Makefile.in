@@ -808,15 +808,15 @@ endif
 # These targets are used by the test-suite:
 
 javascript: $(SRCDIR_SRCS) javascript_custom_interpreter
-ifeq (v8, $(ENGINE))
+ifeq (v8, $(JSENGINE))
 	$(SWIG) -javascript $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 else
 	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
 endif
-ifeq (jsc, $(ENGINE))
+ifeq (jsc, $(JSENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-else ifeq (v8, $(ENGINE)) # v8 must be compiled as c++
+else ifeq (v8, $(JSENGINE)) # v8 must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else # node and napi must be compiled as c++
@@ -849,7 +849,7 @@ endif
 # -----------------------------------------------------------------
 
 javascript_version:
-ifeq (, $(ENGINE))
+ifeq (, $(JSENGINE))
 	@if [ "$(NODEJS)" != "" ]; then \
 	  echo "Node.js: `($(NODEJS) --version)`"; \
 	  echo "node-gyp: `($(NODEGYP) --version)`"; \
@@ -857,18 +857,18 @@ ifeq (, $(ENGINE))
 	  echo "Version depends on the interpreter"; \
 	fi
 endif
-ifeq ($(ENGINE), $(filter $(ENGINE), node napi))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	echo "Node.js: `($(NODEJS) --version)`"
 	echo "node-gyp: `($(NODEGYP) --version)`"
 endif
-ifeq (jsc, $(ENGINE))
+ifeq (jsc, $(JSENGINE))
 	@if [ "@JSCOREVERSION@" != "" ]; then \
 	  echo "JavaScriptCore: @JSCOREVERSION@"; \
 	else \
 	  echo "Unknown JavaScriptCore version."; \
 	fi
 endif
-ifeq (v8, $(ENGINE))
+ifeq (v8, $(JSENGINE))
 	@printf '%s\n' '#include <v8-version.h>' 'SWIGMAGICv8: V8_MAJOR_VERSION.V8_MINOR_VERSION.V8_BUILD_NUMBER.V8_PATCH_LEVEL'|$(CXX) $(JSINCLUDES) -xc++ -E -|sed 's/ \. /./g;s/SWIGMAGIC//p;d'
 endif
 
