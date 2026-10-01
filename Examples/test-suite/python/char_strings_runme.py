@@ -1,5 +1,6 @@
 import char_strings
 from char_strings import *
+from swig_test_utils import swig_assert_raises
 
 CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible."
 OTHERLAND_MSG = "Little message from the safe world."
@@ -82,6 +83,11 @@ for i in range(count):
     ping = "Ping" + str(i)  # char[16] buffer, keep short enough to fit
     pong = CharArrayDimsPingPong(ping)
     check_equal(pong, ping, "Test PingPong 3 failed.")
+
+check_equal(CharArrayDimsLength("Ping"), 4, "Test CharArrayDimsLength failed.")
+check_equal(CharArrayDimsLength("0123456789abcde"), 15, "Test CharArrayDimsLength failed.")
+with swig_assert_raises(TypeError):
+    CharArrayDimsLength("0123456789abcdef")
 
 # variables
 for i in range(count):

@@ -57,5 +57,7 @@
 ;; A string too long for a char[16] argument is an error rather than read past the end of the array.
 (check (string=? (CharArrayDimsPingPong "fifteen chars..") "fifteen chars.."))
 (expect-throw 'wrong-type-arg (CharArrayDimsPingPong "sixteen chars..."))
+(check (= (CharArrayDimsLength "Ping") 4))
+(check (= (CharArrayDimsLength "0123456789abcde") 15))
 
 (exit 0)

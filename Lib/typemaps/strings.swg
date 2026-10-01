@@ -558,27 +558,21 @@ SWIG_From##CharName##Array(const Char *cptr, size_t size)
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_AsCharPtrAndSize(obj, val, NULL, alloc))
 }
 
-%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize) {
+%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
 SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
 { 
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
-    /* special case of single char conversion when we don't need space for NUL */
-    if (size == 1 && csize == 2 && cptr && !cptr[1]) --csize;
-    if (csize <= size) {
-      if (val) {
-	if (csize) memcpy(val, cptr, csize*sizeof(Char));
-	if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
-      }
-      if (alloc == SWIG_NEWOBJ) {
-	SWIG_DeleteCharArray(cptr);
-	res = SWIG_DelNewMask(res);
-      }      
-      return res;
+    /* csize includes the NUL terminator, except for a null string */
+    int copied = SWIG_Copy##CharName##Array(val, size, cptr, csize ? csize - 1 : 0);
+    if (alloc == SWIG_NEWOBJ) {
+      SWIG_DeleteCharArray(cptr);
+      res = SWIG_DelNewMask(res);
     }
-    if (alloc == SWIG_NEWOBJ) SWIG_DeleteCharArray(cptr);
+    if (copied)
+      return res;
   }
   return SWIG_TypeError;
 }

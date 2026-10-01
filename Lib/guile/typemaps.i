@@ -329,18 +329,15 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
  %typemap (out,    doc="<string>")              char * {$result = SWIG_str02scm((const char *)$1);}
  %typemap (varout, doc="<string>")              char * {$result = SWIG_str02scm($1);}
 
- /* A string is copied into a char array argument as SWIG_AsCharArray does in the other languages: zero filled, and
-    an error if too long to fit with its NUL.  An array of unknown size is passed the converted string itself. */
- %typemap (in,     doc="$NAME is a string", fragment="<string.h>") char [ANY](char temp[$1_dim0]) {
+ /* A string is copied into a char array argument as in the other languages: zero filled, with an error if too long
+    to fit with its NUL.  An array of unknown size is passed the converted string itself. */
+ %typemap (in,     doc="$NAME is a string", fragment="SWIG_CopyCharArray") char [ANY](char temp[$1_dim0]) {
    size_t swig_len = 0;
    char *swig_str = SWIG_Guile_scm2newstr($input, &swig_len);
-   if (swig_len >= (size_t)$1_dim0 && !(swig_len == 1 && (size_t)$1_dim0 == 1)) {
-     SWIG_free(swig_str);
-     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
-   }
-   memcpy(temp, swig_str, swig_len);
-   memset(temp + swig_len, 0, (size_t)$1_dim0 - swig_len);
+   int swig_copied = SWIG_CopyCharArray(temp, $1_dim0, swig_str, swig_len);
    SWIG_free(swig_str);
+   if (!swig_copied)
+     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
    $1 = ($1_ltype)temp;
  }
  %typemap (in,     doc="$NAME is a string")      char [](char *swig_str = 0) {
