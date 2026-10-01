@@ -13,6 +13,15 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Javascript] With JavaScriptCore, a string with as many chars as a fixed size char
+            array, such as a 16 char string for a char[16] parameter, member or global variable,
+            was copied into the array without a NUL terminator, so reading the array as a string
+            read past its end. Such a string is now an error, as it is with the other Javascript
+            engines.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
             [C#, D, Go, Java, Lua, OCaml, PHP, R] Fix a function with a fixed size char array
             parameter reading past the end of the string passed to it, such as:
 

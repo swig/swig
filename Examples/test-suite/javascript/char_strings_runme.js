@@ -91,6 +91,20 @@ for (i = 0; i < count; i++) {
   assertIsEqual(ping3, char_strings.CharArrayDimsPingPong(ping3));
 }
 
+var assertThrows = function(f) {
+  var thrown = false;
+  try {
+    f();
+  } catch (e) {
+    thrown = true;
+  }
+  assertIsEqual(true, thrown);
+};
+
+assertIsEqual(4, char_strings.CharArrayDimsLength("Ping"));
+assertIsEqual(15, char_strings.CharArrayDimsLength("0123456789abcde"));
+assertThrows(function() { char_strings.CharArrayDimsLength("0123456789abcdef"); });
+
 // variables
 for (i = 0; i < count; i++) {
   var expected1 = OTHERLAND_MSG + i;
@@ -117,6 +131,10 @@ for (i = 0; i < count; i++) {
   char_strings.global_char_array2 = expected3;
   assertIsEqual(expected3, char_strings.global_char_array2);
 }
+char_strings.global_char_array2 = CPLUSPLUS_MSG + "!";
+assertIsEqual(CPLUSPLUS_MSG + "!", char_strings.global_char_array2);
+assertThrows(function() { char_strings.global_char_array2 = CPLUSPLUS_MSG + "!!"; });
+assertThrows(function() { char_strings.global_char_array2 = CPLUSPLUS_MSG + CPLUSPLUS_MSG; });
 
 for (i = 0; i < count; i++) {
   assertIsEqual(CPLUSPLUS_MSG, char_strings.global_const_char);

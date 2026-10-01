@@ -108,26 +108,21 @@ SWIG_JSC_From##CharName##Array(JSContextRef context, const Char *cptr, size_t si
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_JSC_AsCharPtrAndSize(context, obj, val, NULL, alloc))
 }
 
-%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize) {
+%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
 SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
 {
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_JSC_AsCharPtrAndSize(context, obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
-    if ((csize == size + 1) && cptr && !(cptr[csize-1])) --csize;
-    if (csize <= size) {
-      if (val) {
-        if (csize) memcpy(val, cptr, csize*sizeof(Char));
-        if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
-      }
-      if (alloc == SWIG_NEWOBJ) {
-        SWIG_DeleteCharArray(cptr);
-        res = SWIG_DelNewMask(res);
-      }
-      return res;
+    /* csize includes the NUL terminator, except for a null string */
+    int copied = SWIG_Copy##CharName##Array(val, size, cptr, csize ? csize - 1 : 0);
+    if (alloc == SWIG_NEWOBJ) {
+      SWIG_DeleteCharArray(cptr);
+      res = SWIG_DelNewMask(res);
     }
-    if (alloc == SWIG_NEWOBJ) SWIG_DeleteCharArray(cptr);
+    if (copied)
+      return res;
   }
   return SWIG_TypeError;
 }
