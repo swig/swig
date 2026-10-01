@@ -16,7 +16,9 @@ endfunction
 
 m = [-10, 20];
 um = [10, 20];
-testArray("array_c", array_c_set, array_c_get, ['ab'], ['ab']);
+testArray("array_c", array_c_set, array_c_get, ['a'], ['a']);
+ierr = execstr("array_c_set(''ab'')", "errcatch");
+if ierr == 0 then swigtesterror("array_c_set() error expected"); end
 testArray("array_sc", array_sc_set, array_sc_get, m, m);
 testArray("array_sc", array_sc_set, array_sc_get, int8(m), m);
 testArray("array_uc", array_uc_set, array_uc_get, uint8(um), um);

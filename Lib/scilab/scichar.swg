@@ -69,7 +69,7 @@ SWIG_SciString_FromChar(void *pvApiCtx, int iVarOut, char chValue) {
 %fragment("SWIG_AsCharArray", "header", fragment = "SWIG_SciString_AsCharPtr") {
 %#define SWIG_AsCharArray(scilabValue, charPtrPointer, charPtrLength) SWIG_SciString_AsCharPtr(pvApiCtx, scilabValue, charPtrPointer, charPtrLength, SWIG_Scilab_GetFuncName())
 }
-%fragment("SWIG_SciString_AsCharPtr", "header") {
+%fragment("SWIG_SciString_AsCharPtr", "header", fragment="SWIG_CopyCharArray") {
 SWIGINTERN int
 SWIG_SciString_AsCharPtr(void *pvApiCtx, int iVar, char *pcValue, int iLength, char *fname) {
   SciErr sciErr;
@@ -88,12 +88,11 @@ SWIG_SciString_AsCharPtr(void *pvApiCtx, int iVar, char *pcValue, int iLength, c
     return SWIG_ERROR;
   }
 
-  if (pcValue != NULL) {
-    strncpy(pcValue, pcTmpValue, iLength);
-  }
+  /* A string that does not fit in the array along with its NUL terminator is an error rather than truncated */
+  iRet = SWIG_CopyCharArray(pcValue, (size_t)iLength, pcTmpValue, strlen(pcTmpValue)) ? SWIG_OK : SWIG_TypeError;
 
   freeAllocatedSingleString(pcTmpValue);
-  return SWIG_OK;
+  return iRet;
 }
 }
 

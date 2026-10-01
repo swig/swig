@@ -13,6 +13,15 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Scilab] A string passed or assigned to a fixed size char array parameter, member or
+            global variable that does not fit along with its NUL terminator is now an error. It
+            was silently truncated before. A string with as many chars as the array, such as a 16
+            char string for a char[16], was copied in without a NUL terminator, so reading the array
+            as a string read past its end.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
             [Javascript] With JavaScriptCore, a string with as many chars as a fixed size char
             array, such as a 16 char string for a char[16] parameter, member or global variable,
             was copied into the array without a NUL terminator, so reading the array as a string
