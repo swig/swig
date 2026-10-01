@@ -9,16 +9,20 @@
 %apply size_t { std::size_t };
 
 #define SWIG_bool2scm(b) scm_from_bool(b ? 1 : 0)
-#define SWIG_string2scm(s) SWIG_str02scm(s.c_str())
 
 %{
 #include <string>
 
 SWIGINTERNINLINE
+SCM SWIG_string2scm(const std::string& s) {
+    return scm_from_utf8_stringn(s.data(), s.size());
+}
+
+SWIGINTERNINLINE
 std::string SWIG_scm2string(SCM x) {
-    char* temp;
-    temp = SWIG_scm2str(x);
-    std::string s(temp);
+    size_t len;
+    char* temp = SWIG_Guile_scm2newstr(x, &len);
+    std::string s(temp, len);
     SWIG_free(temp);
     return s;
 }

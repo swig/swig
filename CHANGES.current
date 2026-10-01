@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-01: olly
+	    [Guile] Typemaps handling std::string no longer truncate strings at
+	    an embedded null character.
+
+2026-10-01: olly
 	    [Guile] Remove non-functional `cplusplus.i` from library.  This defines
 	    typemaps with a language name, which we stopped supporting in SWIG 4.1.0
 	    after deprecating it about 20 years ago.
