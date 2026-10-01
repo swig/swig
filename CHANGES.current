@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-01: olly
+	    [Guile] Remove non-functional `cplusplus.i` from library.  This defines
+	    typemaps with a language name, which we stopped supporting in SWIG 4.1.0
+	    after deprecating it about 20 years ago.
+
+	    `cplusplus.i` defined some typemaps for std::string (use
+	    `std_string.i` instead) and some for std::complex which I've moved
+	    to new library files `complex.i` and `std_complex.i`.
+
 2026-09-11: wsfulton
             [Python] #3528 The .pyi stub file now declares the module scope functions that are
             declared inside a class, such as a friend function or a renamed constructor. These
