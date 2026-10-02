@@ -1461,9 +1461,9 @@ public:
       Wrapper_add_local(f, "arg_count", "int arg_count");
       Printf(f->code, "arg_count = ZEND_NUM_ARGS();\n");
       Printf(f->code, "if(arg_count<%d || arg_count>%d ||\n", num_required, num_arguments);
-      Printf(f->code, "   zend_get_parameters_array_ex(arg_count,args)!=SUCCESS)\n");
+      Printf(f->code, "   zend_get_parameters_array_ex(arg_count,args)!=SUCCESS) {\n");
       Printf(f->code, "\tzend_wrong_param_count();\n");
-      Printf(f->code, "\tRETURN_THROWS();\n\n");
+      Printf(f->code, "\tRETURN_THROWS();\n}\n\n");
     } else if (static_setter || static_getter) {
       if (num_arguments == 0) {
         Printf(f->code, "if(ZEND_NUM_ARGS() == 0) {\n");
