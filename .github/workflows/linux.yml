@@ -165,6 +165,10 @@ jobs:
         - SWIGLANG: php
           VER: '8.5'
           CPPSTD: c++11 # C++98 not supported by PHP.
+        - SWIGLANG: php
+          VER: '8.6'
+          CPPSTD: c++11 # C++98 not supported by PHP.
+          continue-on-error: true # PHP 8.6 currently RC.
         #- SWIGLANG: python
         #  VER: '3.5'
         #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
