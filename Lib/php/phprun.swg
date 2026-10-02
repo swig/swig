@@ -66,7 +66,7 @@ typedef struct {
 
 static inline
 swig_object_wrapper * swig_php_fetch_object(zend_object *obj) {
-  return (swig_object_wrapper *)((char *)obj - XtOffsetOf(swig_object_wrapper, std));
+  return (swig_object_wrapper *)((char *)obj - offsetof(swig_object_wrapper, std));
 }
 
 #define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))
