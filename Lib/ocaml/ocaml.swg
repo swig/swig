@@ -216,8 +216,9 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %char_ptr_in(varin);
 %char_ptr_in(directorout);
 
+/* Unlike plain char arrays, signed char and unsigned char arrays are arrays, as in the other target languages, see carray.i */
 %define %char_array_in(how)
-%typemap(how) char [ANY], signed char [ANY], unsigned char [ANY] {
+%typemap(how) char [ANY] {
     $1 = ($ltype)caml_string_val($input);
 }
 %enddef
@@ -225,12 +226,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %char_array_in(in);
 %char_array_in(directorout);
 
-%typemap(varin) signed char [ANY], unsigned char [ANY] {
-    char *temp = caml_string_val($input);
-    strcpy((char *)$1,temp);
-}
-
-/* Override the above for plain char arrays, copying into a zero filled array as the string may be shorter than the array */
+/* Override the above, copying into a zero filled array as the string may be shorter than the array */
 %typemap(in, fragment="SWIG_CopyCharArray") char [ANY] (char temp[$1_dim0]) {
     char *str = caml_string_val($input);
     $1 = 0;
@@ -262,14 +258,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(how)
     char *, signed char *, unsigned char *,
     const char *, const signed char *, const unsigned char *,
-    char [], signed char [], unsigned char [],
-    const char [], const signed char [], const unsigned char [] {
+    char [], const char [] {
     $result = caml_val_string((char *)$1);
 }
 /* A full array has no NUL terminator, so the string is limited to the array size */
-%typemap(how, fragment="SWIG_CharArrayLength")
-    char [ANY], signed char [ANY], unsigned char [ANY],
-    const char [ANY], const signed char [ANY], const unsigned char [ANY] {
+%typemap(how, fragment="SWIG_CharArrayLength") char [ANY], const char [ANY] {
     $result = caml_val_string_len((char *)$1, $1 ? (int)SWIG_CharArrayLength((const char *)$1, $1_dim0) : 0);
 }
 %enddef
@@ -379,6 +372,17 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [];
 %apply char[ANY] { char (&)[ANY] }
+/* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
+%typemap(in, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]) {
+    char *str = caml_string_val($input);
+    if (!str) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
+    }
+    if (!SWIG_CopyCharArray(temp, $1_dim0, str, (size_t)caml_string_len($input))) {
+        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "string too long for char array");
+    }
+    $1 = ($1_ltype)temp;
+}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

@@ -12,4 +12,7 @@ let () =
   assert (_letters_ref C_void as string = "abc");
   assert (_letters_ref (C_string "xy") as string = "xy");
   assert (_letters_are C_void as string = "xy");
-  assert (_frozen_ref C_void as string = "xyz")
+  assert (_frozen_ref C_void as string = "xyz");
+  assert (_length_of_writable (C_string "abc") as int = 3);
+  assert (try ignore (_length_of_writable (C_list [ C_void ])); false with Invalid_argument _ -> true);
+  assert (try ignore (_length_of_writable (C_string "abcdefgh")); false with Invalid_argument _ -> true)

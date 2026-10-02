@@ -14,4 +14,12 @@ int sum_ints(int a[8]) {
 double sum_doubles(double a[4]) {
   return a[0] + a[1] + a[2] + a[3];
 }
+
+int sum_schars(signed char a[4]) {
+  return a[0] + a[1] + a[2] + a[3];
+}
+
+int sum_uchars(unsigned char a[4]) {
+  return a[0] + a[1] + a[2] + a[3];
+}
 %}

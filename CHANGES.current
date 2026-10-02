@@ -13,6 +13,18 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [OCaml] signed char and unsigned char arrays are now wrapped as arrays, as in the other
+            target languages, instead of as strings. Like the other integer arrays, they need array
+            typemaps, such as those in carray.i, which now include them. As strings, a function
+            reading a whole fixed size array read past the end of a shorter string. A global
+            variable was set with strcpy, writing past the end of the array for a long string.
+
+            A NULL argument for a reference to a char array, such as 'char (&)[8]', now raises
+            Invalid_argument instead of crashing.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
             [Guile] Setting a fixed size char array global variable to a string that does not fit
             along with its NUL terminator is now an error, as for a parameter or member variable,
             instead of the string being silently truncated.

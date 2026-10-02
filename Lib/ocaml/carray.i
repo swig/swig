@@ -41,6 +41,8 @@ type _value = c_obj
 %enddef
 
 %make_simple_array_typemap(bool,caml_val_bool,caml_long_val);
+%make_simple_array_typemap(signed char,caml_val_char,caml_long_val);
+%make_simple_array_typemap(unsigned char,caml_val_uchar,caml_long_val);
 %make_simple_array_typemap(short,caml_val_short,caml_long_val);
 %make_simple_array_typemap(unsigned short,caml_val_ushort,caml_long_val);
 %make_simple_array_typemap(int,caml_val_int,caml_long_val);
