@@ -510,19 +510,17 @@ namespace std {
 
 /* Character array handling */
 
-%typemap(memberin,fragment="<string.h>") char [ANY] {
+%typemap(memberin,fragment="SWIG_AssignCharArray") char [ANY] {
   if($input) {
-    strncpy((char*)$1, (const char *)$input, $1_dim0-1);
-    $1[$1_dim0-1] = 0;
+    SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
   } else {
     $1[0] = 0;
   }
 }
 
-%typemap(globalin,fragment="<string.h>") char [ANY] {
+%typemap(globalin,fragment="SWIG_AssignCharArray") char [ANY] {
   if($input) {
-    strncpy((char*)$1, (const char *)$input, $1_dim0-1);
-    $1[$1_dim0-1] = 0;
+    SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
   } else {
     $1[0] = 0;
   }

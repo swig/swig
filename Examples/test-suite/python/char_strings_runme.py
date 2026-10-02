@@ -118,6 +118,12 @@ for i in range(count):
 check_equal(char_strings.cvar.char_array_no_nul.full, "abcd", "Test full char array failed")
 check_equal(char_strings.cvar.char_array_no_nul.after, "XYZ", "Test full char array failed")
 
+char_strings.cvar.global_char_one = "a"
+check_equal(char_strings.cvar.global_char_one, "a", "Test char[1] failed")
+one = CharArrayOne()
+one.one = "b"
+check_equal(one.one, "b", "Test char[1] failed")
+
 # char *& tests
 for i in range(count):
     check_equal(GetCharPointerRef(), CPLUSPLUS_MSG, "Test char pointer ref get failed, iteration %d" % i)

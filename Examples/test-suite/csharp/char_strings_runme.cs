@@ -151,6 +151,12 @@ public class char_strings_runme {
     if (char_strings.char_array_no_nul.full != "abcd" || char_strings.char_array_no_nul.after != "XYZ")
       throw new Exception("Test full char array failed");
 
+    char_strings.global_char_one = "a";
+    CharArrayOne one = new CharArrayOne();
+    one.one = "b";
+    if (char_strings.global_char_one != "a" || one.one != "b")
+      throw new Exception("Test char[1] failed");
+
     for (i=0; i<count; i++) {
       if (char_strings.global_const_char != CPLUSPLUS_MSG)
         throw new Exception("Test variables 4 failed, iteration " + i);

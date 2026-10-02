@@ -75,6 +75,11 @@ end
 assert(not pcall(function() char_strings.global_char_array2 = CPLUSPLUS_MSG .. CPLUSPLUS_MSG end))
 assert(char_strings.char_array_no_nul.full == "abcd")
 assert(char_strings.char_array_no_nul.after == "XYZ")
+char_strings.global_char_one = "a"
+assert(char_strings.global_char_one == "a")
+one = char_strings.CharArrayOne()
+one.one = "b"
+assert(one.one == "b")
 
 -- variables: read-only const globals
 assert(char_strings.global_const_char == CPLUSPLUS_MSG)

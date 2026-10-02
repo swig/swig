@@ -68,5 +68,10 @@
 
 (check (string=? (CharArrayNoNul-full-get (char-array-no-nul)) "abcd"))
 (check (string=? (CharArrayNoNul-after-get (char-array-no-nul)) "XYZ"))
+(global-char-one "a")
+(check (string=? (global-char-one) "a"))
+(define one (new-CharArrayOne))
+(CharArrayOne-one-set one "b")
+(check (string=? (CharArrayOne-one-get one) "b"))
 
 (exit 0)

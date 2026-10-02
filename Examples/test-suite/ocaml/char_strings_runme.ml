@@ -90,6 +90,10 @@ let _ =
   let no_nul = create_CharArrayNoNul_from_ptr (_char_array_no_nul C_void) in
   assert ((invoke no_nul) "[full]" C_void as string = "abcd");
   assert ((invoke no_nul) "[after]" C_void as string = "XYZ");
+  assert (_global_char_one (C_string "a") as string = "a");
+  let one = new_CharArrayOne C_void in
+  ignore ((invoke one) "[one]" (C_string "b"));
+  assert ((invoke one) "[one]" C_void as string = "b");
 
   (* variables: read-only const globals *)
   assert (_global_const_char C_void as string = cpp_msg);

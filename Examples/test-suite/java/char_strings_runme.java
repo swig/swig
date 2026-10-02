@@ -158,6 +158,12 @@ public class char_strings_runme {
     if (!char_strings.getChar_array_no_nul().getFull().equals("abcd") || !char_strings.getChar_array_no_nul().getAfter().equals("XYZ"))
       throw new RuntimeException("Test full char array failed");
 
+    char_strings.setGlobal_char_one("a");
+    CharArrayOne one = new CharArrayOne();
+    one.setOne("b");
+    if (!char_strings.getGlobal_char_one().equals("a") || !one.getOne().equals("b"))
+      throw new RuntimeException("Test char[1] failed");
+
     for (i=0; i<count; i++) {
       if (!char_strings.getGlobal_const_char().equals(CPLUSPLUS_MSG))
         throw new RuntimeException("Test variables 4 failed, iteration " + i);

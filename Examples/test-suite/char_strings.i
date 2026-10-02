@@ -157,6 +157,12 @@ struct CharArrayNoNul {
 };
 CharArrayNoNul char_array_no_nul = {{'a', 'b', 'c', 'd'}, {'X', 'Y', 'Z', 0}};
 
+// A single char fills a char[1], which has no room for a NUL terminator
+char global_char_one[1] = {0};
+struct CharArrayOne {
+  char one[1];
+};
+
 %}
 
 

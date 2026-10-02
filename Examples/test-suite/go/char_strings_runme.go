@@ -172,6 +172,12 @@ func main() {
 	if char_strings.GetChar_array_no_nul().GetFull() != "abcd" || char_strings.GetChar_array_no_nul().GetAfter() != "XYZ" {
 		panic("Test full char array failed")
 	}
+	char_strings.SetGlobal_char_one("a")
+	one := char_strings.NewCharArrayOne()
+	one.SetOne("b")
+	if char_strings.GetGlobal_char_one() != "a" || one.GetOne() != "b" {
+		panic("Test char[1] failed")
+	}
 
 	for i := uint(0); i < count; i++ {
 		if char_strings.GetGlobal_const_char() != CPLUSPLUS_MSG {

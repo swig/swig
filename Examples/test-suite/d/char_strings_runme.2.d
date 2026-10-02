@@ -4,6 +4,7 @@ import std.conv;
 import std.exception;
 import std.range;
 import char_strings.char_strings;
+import char_strings.CharArrayOne;
 
 enum CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";
 enum OTHERLAND_MSG = "Little message from the safe world.";
@@ -114,6 +115,10 @@ void main() {
 
   enforce(collectException(global_char_array2 = CPLUSPLUS_MSG ~ CPLUSPLUS_MSG) !is null, "Test variables 3 overlong string failed");
   enforce(char_array_no_nul.full == "abcd" && char_array_no_nul.after == "XYZ", "Test full char array failed");
+  global_char_one = "a";
+  auto one = new CharArrayOne();
+  one.one = "b";
+  enforce(global_char_one == "a" && one.one == "b", "Test char[1] failed");
 
   foreach (i; TEST_RANGE) {
     enforce(global_const_char == CPLUSPLUS_MSG, "Test variables 4 failed, iteration " ~ to!string(i));

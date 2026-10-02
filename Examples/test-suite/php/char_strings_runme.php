@@ -47,6 +47,12 @@ try {
 } catch (ValueError $e) {
 }
 
+Global_char_one_set("a");
+check::equal(Global_char_one_get(), "a", "failed Global_char_one_get");
+$one = new CharArrayOne();
+$one->one = "b";
+check::equal($one->one, "b", "failed CharArrayOne one");
+
 check::equal(Global_const_char_get(), $CPLUSPLUS_MSG, "failed Global_const_char");
 check::equal(Global_const_char_array1_get(), $CPLUSPLUS_MSG, "failed Global_const_char_array1");
 check::equal(Global_const_char_array2_get(), $CPLUSPLUS_MSG, "failed Global_const_char_array2");

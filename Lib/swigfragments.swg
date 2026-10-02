@@ -161,6 +161,23 @@ SWIGINTERN size_t SWIG_CharArrayLength(const char *buf, size_t size) {
 }
 }
 
+/* Copy the NUL terminated string 'str' into the char array 'buf' of 'size' elements, for the 'memberin' and 'globalin'
+ * typemaps. This is strncpy(buf, str, size), which copies up to the NUL terminator and zero pads the rest of 'buf',
+ * followed by adding a trailing NUL only if 'size' is greater than 1, truncating 'str' if need be, so that a single
+ * char still fills a char[1]. Only a string from a custom 'in' typemap can be truncated, as the 'in' typemaps reject a
+ * string too long to fit. strncpy itself is not used, as gcc warns about it for a char[1]. */
+%fragment("SWIG_AssignCharArray", "header", fragment="<string.h>") {
+SWIGINTERN void SWIG_AssignCharArray(char *buf, size_t size, const char *str) {
+  size_t len = 0;
+  while (len < size && str[len])
+    len++;
+  if (len == size && size > 1)
+    len = size - 1;
+  memcpy(buf, str, len);
+  memset(buf + len, 0, size - len);
+}
+}
+
 /* The string in the char array 'buf' of 'size' elements as a NUL terminated string, for an API that needs one: 'buf'
  * itself, unless the array is full and so has no NUL terminator, when it is a copy. Release it with
  * SWIG_DeleteCharArrayString. */
