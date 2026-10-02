@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-03: olly
+	    [Guile] Guile >= 2.0 is now required, since we haven't been testing
+	    with Guile 1.x for approaching 5 years.  Some internal compatibility
+	    code has been cleaned up - if you were using these in your interface
+	    files, the suggested updates are:
+
+	    * Replace `swig_guile_proc` with `scm_t_subr`
+	    * Replace `guile_destructor` with `swig_guile_destructor`
+
 2026-10-02: olly
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 

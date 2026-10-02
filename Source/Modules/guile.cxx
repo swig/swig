@@ -896,7 +896,7 @@ public:
         Printv(f_wrappers, ");\n", NIL);
         Printv(f_wrappers, "}\n", NIL);
         /* Register it */
-        Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s_rest);\n", proc_name, wname);
+        Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (scm_t_subr) %s_rest);\n", proc_name, wname);
       } else if (emit_setters && struct_member && strlen(Char(proc_name)) > 3) {
         int len = Len(proc_name);
         const char *pc = Char(proc_name);
@@ -910,9 +910,9 @@ public:
         /* GOOPS support uses the MEMBER-set and MEMBER-get functions,
            so ignore only_setters in this case. */
         if (only_setters && !goops)
-          Printf(f_init, "scm_c_make_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
+          Printf(f_init, "scm_c_make_gsubr(\"%s\", %d, %d, 0, (scm_t_subr) %s);\n", proc_name, numreq, numargs - numreq, wname);
         else
-          Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
+          Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (scm_t_subr) %s);\n", proc_name, numreq, numargs - numreq, wname);
 
         if (!is_setter) {
           /* Strip off "-get" */
@@ -935,10 +935,10 @@ public:
       } else {
         /* Register the function */
         if (exporting_destructor) {
-          Printf(f_init, "((swig_guile_clientdata *)(SWIGTYPE%s->clientdata))->destroy = (guile_destructor) %s;\n", swigtype_ptr, wname);
+          Printf(f_init, "((swig_guile_clientdata *)(SWIGTYPE%s->clientdata))->destroy = (swig_guile_destructor) %s;\n", swigtype_ptr, wname);
           // Printf(f_init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
         }
-        Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
+        Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (scm_t_subr) %s);\n", proc_name, numreq, numargs - numreq, wname);
       }
     } else { /* overloaded function; don't export the single methods */
       if (!Getattr(n, "sym:nextSibling")) {
@@ -962,7 +962,7 @@ public:
         Printf(df->code, "#undef FUNC_NAME\n");
         Printv(df->code, "}\n", NIL);
         Wrapper_print(df, f_wrappers);
-        Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s);\n", proc_name, dname);
+        Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (scm_t_subr) %s);\n", proc_name, dname);
         DelWrapper(df);
         Delete(dispatch);
         Delete(dname);
@@ -1141,7 +1141,7 @@ public:
           /* need to export this function as a variable instead of a procedure */
           if (scmstub) {
             /* export the function in the wrapper, and (set!) it in scmstub */
-            Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
+            Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (scm_t_subr) %s);\n", proc_name, assignable, var_name);
             Printf(scmtext, "(set! %s (%s))\n", proc_name, proc_name);
           } else {
             /* export the variable directly */
@@ -1150,12 +1150,12 @@ public:
 
         } else {
           /* Export the function as normal */
-          Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
+          Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (scm_t_subr) %s);\n", proc_name, assignable, var_name);
         }
 
       } else {
         /* Read/write variables become a procedure with setter. */
-        Printf(f_init, "{ SCM p = scm_c_define_gsubr(\"%s\", 0, 1, 0, (swig_guile_proc) %s);\n", proc_name, var_name);
+        Printf(f_init, "{ SCM p = scm_c_define_gsubr(\"%s\", 0, 1, 0, (scm_t_subr) %s);\n", proc_name, var_name);
         Printf(f_init, "scm_c_define");
         Printf(f_init,
                "(\"%s\", "
@@ -1417,7 +1417,7 @@ public:
       Printf(f_wrappers, "  return SCM_UNSPECIFIED;\n");
       Printf(f_wrappers, "}\n#undef FUNC_NAME\n\n");
 
-      Printf(f_init, "scm_c_define_gsubr(\"%s\", 1, 0, 0, (swig_guile_proc) %s);\n", guileFuncName, funcName);
+      Printf(f_init, "scm_c_define_gsubr(\"%s\", 1, 0, 0, (scm_t_subr) %s);\n", guileFuncName, funcName);
       Printf(exported_symbols, "\"%s\", ", guileFuncName);
 
       /* export the call to the wrapper function */
