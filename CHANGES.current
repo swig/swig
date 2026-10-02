@@ -16,6 +16,26 @@ Version 4.6.0 (in progress)
 	    * Replace `swig_guile_proc` with `scm_t_subr`
 	    * Replace `guile_destructor` with `swig_guile_destructor`
 
+2026-10-02: wsfulton
+            Fix the line numbers in warnings and errors when a macro passes on a multiline macro
+            call in one of its arguments to another macro, such as DECLARE below. With
+            -macroerrors, the warning for the unknown base class was reported two lines after its
+            line in DECLARE:
+
+              %define VAL(n)
+              (n)
+              %enddef
+
+              %define DECLARE(name, n)
+              const int name = VAL(n);
+              struct name ## _after : public Unknown {};
+              %enddef
+
+              DECLARE(r, VAL(3))
+
+            Without -macroerrors, the code following such a macro call was reported too many lines
+            later when the macro passing on the argument is a #define macro.
+
 2026-10-02: olly
 	    [PHP] Adjust generated code to be compatible with PHP 8.6.
 

@@ -30,3 +30,16 @@ MYSWIGMACRO(xx,
 void bar(int *);
 void bar(const int *);
 
+// A macro argument containing an expanded multiline macro
+%define PARENS(X)
+(X)
+%enddef
+
+#define CONSTANT(NAME, VALUE) const int NAME = VALUE;
+#define CALL(M, NAME, VALUE) M(NAME, VALUE)
+
+CALL(CONSTANT, cc, PARENS(3))
+
+void baz(int *);
+void baz(const int *);
+
