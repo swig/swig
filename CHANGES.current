@@ -13,6 +13,12 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Javascript] With JavaScriptCore, reading a fixed size char array holding as many
+            chars as it has elements, so with no NUL terminator, such as a char[4] member set to
+            "abcd" in C, read past the end of the array. The string read is now limited to the
+            array size, as with the other Javascript engines.
+
+2026-10-05: wsfulton
             [Scilab] A string passed or assigned to a fixed size char array parameter, member or
             global variable that does not fit along with its NUL terminator is now an error. It
             was silently truncated before. A string with as many chars as the array, such as a 16

@@ -136,6 +136,9 @@ assertIsEqual(CPLUSPLUS_MSG + "!", char_strings.global_char_array2);
 assertThrows(function() { char_strings.global_char_array2 = CPLUSPLUS_MSG + "!!"; });
 assertThrows(function() { char_strings.global_char_array2 = CPLUSPLUS_MSG + CPLUSPLUS_MSG; });
 
+assertIsEqual("abcd", char_strings.char_array_no_nul.full);
+assertIsEqual("XYZ", char_strings.char_array_no_nul.after);
+
 for (i = 0; i < count; i++) {
   assertIsEqual(CPLUSPLUS_MSG, char_strings.global_const_char);
 }

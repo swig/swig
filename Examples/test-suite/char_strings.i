@@ -150,6 +150,13 @@ const char *global_const_char = CPLUSPLUS_MSG;
 const char global_const_char_array1[] = CPLUSPLUS_MSG;
 const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 
+// The first array is full, so has no NUL terminator. It must not be read past its end into the second
+struct CharArrayNoNul {
+  char full[4];
+  char after[4];
+};
+CharArrayNoNul char_array_no_nul = {{'a', 'b', 'c', 'd'}, {'X', 'Y', 'Z', 0}};
+
 %}
 
 

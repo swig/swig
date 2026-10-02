@@ -42,7 +42,7 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
 }
 }
 
-%fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+%fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor",fragment="<string.h>") {
 SWIGINTERNINLINE JSValueRef
 SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t size)
 {
@@ -56,17 +56,13 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
     } else {
       JSStringRef jsstring;
       JSValueRef result;
-      if(size < 2) {
-        char c[2];
-        int i;
-        for(i=0;i<size;++i) {
-          c[i] = carray[i];
-        }
-        c[size] = 0;
-        jsstring = JSStringCreateWithUTF8CString(c);
-      } else {
-        jsstring = JSStringCreateWithUTF8CString(carray);
-      }
+      /* The size chars need not be NUL terminated, such as a full char array, so terminate a copy for JSC */
+      char *cstr = (char *)%new_array(size + 1, char);
+      if (size)
+        memcpy(cstr, carray, size);
+      cstr[size] = 0;
+      jsstring = JSStringCreateWithUTF8CString(cstr);
+      %delete_array(cstr);
       result = JSValueMakeString(context, jsstring);
       JSStringRelease(jsstring);
       return result;

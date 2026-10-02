@@ -115,6 +115,9 @@ for i in range(count):
 for i in range(count):
     check_equal(char_strings.cvar.global_const_char_array2, CPLUSPLUS_MSG, "Test variables 6 failed, iteration %d" % i)
 
+check_equal(char_strings.cvar.char_array_no_nul.full, "abcd", "Test full char array failed")
+check_equal(char_strings.cvar.char_array_no_nul.after, "XYZ", "Test full char array failed")
+
 # char *& tests
 for i in range(count):
     check_equal(GetCharPointerRef(), CPLUSPLUS_MSG, "Test char pointer ref get failed, iteration %d" % i)
