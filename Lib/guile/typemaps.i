@@ -353,11 +353,13 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
  }
  %typemap (out,    doc="<string>")               char [] {$result = SWIG_str02scm((const char *)$1);}
  %typemap (varout, doc="<string>")               char [] {$result = SWIG_str02scm((const char *)$1);}
- %typemap (varin,  doc="NEW-VALUE is a string", fragment="<string.h>") char [ANY] {
-   char *swig_str = SWIG_scm2str($input);
-   strncpy((char *)$1, swig_str, $1_dim0 - 1);
-   $1[$1_dim0 - 1] = 0;
+ %typemap (varin,  doc="NEW-VALUE is a string", fragment="SWIG_CopyCharArray") char [ANY] {
+   size_t swig_len = 0;
+   char *swig_str = SWIG_Guile_scm2newstr($input, &swig_len);
+   int swig_copied = SWIG_CopyCharArray((char *)$1, $1_dim0, swig_str, swig_len);
    SWIG_free(swig_str);
+   if (!swig_copied)
+     scm_wrong_type_arg(FUNC_NAME, 1, $input);
  }
  /* An array of unknown size is read-only, as for SWIGTYPE [], there being no size to bound the copy by. */
  %typemap (varin)                                char [] {

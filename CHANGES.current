@@ -13,6 +13,13 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Guile] Setting a fixed size char array global variable to a string that does not fit
+            along with its NUL terminator is now an error, as for a parameter or member variable,
+            instead of the string being silently truncated.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
             [C#, D, Go, Guile, Java, Lua, OCaml]
             Fix reading a fixed size char array holding as many chars as it has elements, so with
             no NUL terminator, such as a char[4] member set to "abcd" in C, which read past the

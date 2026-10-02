@@ -60,6 +60,12 @@
 (check (= (CharArrayDimsLength "Ping") 4))
 (check (= (CharArrayDimsLength "0123456789abcde") 15))
 
+;; A string that does not fit in a global char array along with its NUL is an error rather than truncated.
+(global-char-array2 (string-append CPLUSPLUS_MSG "!"))
+(check (string=? (global-char-array2) (string-append CPLUSPLUS_MSG "!")))
+(expect-throw 'wrong-type-arg (global-char-array2 (string-append CPLUSPLUS_MSG "!!")))
+(check (string=? (global-char-array2) (string-append CPLUSPLUS_MSG "!")))
+
 (check (string=? (CharArrayNoNul-full-get (char-array-no-nul)) "abcd"))
 (check (string=? (CharArrayNoNul-after-get (char-array-no-nul)) "XYZ"))
 
