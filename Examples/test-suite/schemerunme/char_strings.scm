@@ -60,4 +60,7 @@
 (check (= (CharArrayDimsLength "Ping") 4))
 (check (= (CharArrayDimsLength "0123456789abcde") 15))
 
+(check (string=? (CharArrayNoNul-full-get (char-array-no-nul)) "abcd"))
+(check (string=? (CharArrayNoNul-after-get (char-array-no-nul)) "XYZ"))
+
 (exit 0)

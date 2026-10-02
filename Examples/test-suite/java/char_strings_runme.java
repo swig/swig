@@ -155,6 +155,9 @@ public class char_strings_runme {
     } catch (IllegalArgumentException e) {
     }
 
+    if (!char_strings.getChar_array_no_nul().getFull().equals("abcd") || !char_strings.getChar_array_no_nul().getAfter().equals("XYZ"))
+      throw new RuntimeException("Test full char array failed");
+
     for (i=0; i<count; i++) {
       if (!char_strings.getGlobal_const_char().equals(CPLUSPLUS_MSG))
         throw new RuntimeException("Test variables 4 failed, iteration " + i);

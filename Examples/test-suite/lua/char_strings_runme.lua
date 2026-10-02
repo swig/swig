@@ -73,6 +73,8 @@ for i = 0, count - 1 do
   assert(char_strings.global_char_array2 == msg)
 end
 assert(not pcall(function() char_strings.global_char_array2 = CPLUSPLUS_MSG .. CPLUSPLUS_MSG end))
+assert(char_strings.char_array_no_nul.full == "abcd")
+assert(char_strings.char_array_no_nul.after == "XYZ")
 
 -- variables: read-only const globals
 assert(char_strings.global_const_char == CPLUSPLUS_MSG)

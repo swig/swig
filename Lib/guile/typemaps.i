@@ -345,8 +345,14 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    $1 = ($1_ltype)swig_str;
  }
  %typemap (freearg)                              char [] {if (swig_str$argnum) SWIG_free(swig_str$argnum);}
- %typemap (out,    doc="<string>")               char [ANY] {$result = SWIG_str02scm((const char *)$1);}
- %typemap (varout, doc="<string>")               char [ANY] {$result = SWIG_str02scm((const char *)$1);}
+ %typemap (out,    doc="<string>", fragment="SWIG_CharArrayLength") char [ANY] {
+   $result = $1 ? scm_from_utf8_stringn((const char *)$1, SWIG_CharArrayLength((const char *)$1, $1_dim0)) : SCM_BOOL_F;
+ }
+ %typemap (varout, doc="<string>", fragment="SWIG_CharArrayLength") char [ANY] {
+   $result = $1 ? scm_from_utf8_stringn((const char *)$1, SWIG_CharArrayLength((const char *)$1, $1_dim0)) : SCM_BOOL_F;
+ }
+ %typemap (out,    doc="<string>")               char [] {$result = SWIG_str02scm((const char *)$1);}
+ %typemap (varout, doc="<string>")               char [] {$result = SWIG_str02scm((const char *)$1);}
  %typemap (varin,  doc="NEW-VALUE is a string", fragment="<string.h>") char [ANY] {
    char *swig_str = SWIG_scm2str($input);
    strncpy((char *)$1, swig_str, $1_dim0 - 1);

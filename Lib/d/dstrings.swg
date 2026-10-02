@@ -47,7 +47,12 @@
      $1 = ($1_ltype)temp;
    } %}
 %typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
-%typemap(out) char[ANY], char[] %{ $result = SWIG_d_string_callback((const char *)$1); %}
+%typemap(out, fragment="SWIG_CharArrayString") char[ANY] %{ {
+     const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
+     $result = SWIG_d_string_callback(swig_str);
+     SWIG_DeleteCharArrayString(swig_str, (const char *)$1);
+   } %}
+%typemap(out) char[] %{ $result = SWIG_d_string_callback((const char *)$1); %}
 
 %typemap(directorout) char[ANY], char[] %{ $result = ($1_ltype)$input; %}
 %typemap(directorin) char[ANY], char[] %{ $input = SWIG_d_string_callback((const char *)$1); %}

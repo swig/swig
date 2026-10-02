@@ -13,6 +13,13 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [C#, D, Go, Guile, Java, Lua, OCaml]
+            Fix reading a fixed size char array holding as many chars as it has elements, so with
+            no NUL terminator, such as a char[4] member set to "abcd" in C, which read past the
+            end of the array. The string read is now limited to the array size, as with the other
+            target languages.
+
+2026-10-05: wsfulton
             [Javascript] With JavaScriptCore, reading a fixed size char array holding as many
             chars as it has elements, so with no NUL terminator, such as a char[4] member set to
             "abcd" in C, read past the end of the array. The string read is now limited to the

@@ -797,7 +797,15 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(argout) char[ANY], char[] ""
 %typemap(freearg) char[ANY] ""
 %typemap(freearg, noblock=1) char[] { if ($1) JCALL2(ReleaseStringUTFChars, jenv, $input, (const char *)$1); }
-%typemap(out, noblock=1) char[ANY], char[] { if ($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
+%typemap(out, noblock=1, fragment="SWIG_CharArrayString") char[ANY] {
+  if ($1) {
+    const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
+    if (swig_str)
+      $result = JCALL1(NewStringUTF, jenv, swig_str);
+    SWIG_DeleteCharArrayString(swig_str, (const char *)$1);
+  }
+}
+%typemap(out, noblock=1) char[] { if ($1) $result = JCALL1(NewStringUTF, jenv, (const char *)$1); }
 %typemap(javadirectorin) char[ANY], char[] "$jniinput"
 %typemap(javadirectorout) char[ANY], char[] "$javacall"
 

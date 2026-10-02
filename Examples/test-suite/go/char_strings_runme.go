@@ -169,6 +169,9 @@ func main() {
 	if !panics(func() { char_strings.SetGlobal_char_array2(CPLUSPLUS_MSG + CPLUSPLUS_MSG) }) {
 		panic("Test variables 3 overlong string failed")
 	}
+	if char_strings.GetChar_array_no_nul().GetFull() != "abcd" || char_strings.GetChar_array_no_nul().GetAfter() != "XYZ" {
+		panic("Test full char array failed")
+	}
 
 	for i := uint(0); i < count; i++ {
 		if char_strings.GetGlobal_const_char() != CPLUSPLUS_MSG {

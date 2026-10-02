@@ -113,6 +113,7 @@ void main() {
   }
 
   enforce(collectException(global_char_array2 = CPLUSPLUS_MSG ~ CPLUSPLUS_MSG) !is null, "Test variables 3 overlong string failed");
+  enforce(char_array_no_nul.full == "abcd" && char_array_no_nul.after == "XYZ", "Test full char array failed");
 
   foreach (i; TEST_RANGE) {
     enforce(global_const_char == CPLUSPLUS_MSG, "Test variables 4 failed, iteration " ~ to!string(i));

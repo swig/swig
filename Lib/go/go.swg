@@ -468,8 +468,11 @@ rvrdeleter.reset($1); %}
 %typemap(freearg) char *&
 %{ free((char *)*$1); %}
 
-%typemap(out,fragment="AllocateString") char *, char[ANY], char[]
+%typemap(out,fragment="AllocateString") char *, char[]
 %{ $result = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0); %}
+
+%typemap(out,fragment="AllocateString",fragment="SWIG_CharArrayLength") char[ANY]
+%{ $result = Swig_AllocateString((char*)$1, $1 ? SWIG_CharArrayLength((const char *)$1, $1_dim0) : 0); %}
 
 %typemap(out,fragment="AllocateString") char *&
 %{ $result = Swig_AllocateString((char*)*$1, *$1 ? strlen((char*)*$1) : 0); %}

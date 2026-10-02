@@ -125,7 +125,10 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
 %typemap(out) const char *, char *
 %{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
-%typemap(out) const char[ANY], char[ANY]
+%typemap(out,fragment="SWIG_CharArrayLength") const char[ANY], char[ANY]
+%{  if ($1) lua_pushlstring(L,(const char *)$1,SWIG_CharArrayLength((const char *)$1,$1_dim0)); else lua_pushnil(L); SWIG_arg++;%}
+
+%typemap(out) const char[], char[]
 %{  lua_pushstring(L,(const char *)$1); SWIG_arg++;%}
 
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") char *& ($*1_ltype temp), const char *& ($*1_ltype temp)

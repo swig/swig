@@ -153,3 +153,33 @@ SWIGINTERN int SWIG_Copy##CharName##Array(Char *buf, size_t size, const Char *st
 %_copy_char_array_fragment(char, Char, "<stddef.h>")
 %_copy_char_array_fragment(wchar_t, WChar, "<wchar.h>")
 
+/* The length of the string in the char array 'buf' of 'size' elements, which has no NUL terminator when it is full. */
+%fragment("SWIG_CharArrayLength", "header", fragment="<string.h>") {
+SWIGINTERN size_t SWIG_CharArrayLength(const char *buf, size_t size) {
+  const char *nul = (const char *)memchr(buf, 0, size);
+  return nul ? (size_t)(nul - buf) : size;
+}
+}
+
+/* The string in the char array 'buf' of 'size' elements as a NUL terminated string, for an API that needs one: 'buf'
+ * itself, unless the array is full and so has no NUL terminator, when it is a copy. Release it with
+ * SWIG_DeleteCharArrayString. */
+%fragment("SWIG_CharArrayString", "header", fragment="<stdlib.h>", fragment="<string.h>") {
+SWIGINTERN const char *SWIG_CharArrayString(const char *buf, size_t size) {
+  char *str;
+  if (!buf || memchr(buf, 0, size))
+    return buf;
+  str = (char *)malloc(size + 1);
+  if (str) {
+    memcpy(str, buf, size);
+    str[size] = 0;
+  }
+  return str;
+}
+
+SWIGINTERN void SWIG_DeleteCharArrayString(const char *str, const char *buf) {
+  if (str != buf)
+    free((char *)str);
+}
+}
+

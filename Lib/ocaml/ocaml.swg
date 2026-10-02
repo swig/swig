@@ -259,16 +259,18 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 }
 
 %define %char_ptr_out(how)
-%typemap(how) 
-    char *, signed char *, unsigned char *, 
-    const char *, const signed char *, const unsigned char * {
+%typemap(how)
+    char *, signed char *, unsigned char *,
+    const char *, const signed char *, const unsigned char *,
+    char [], signed char [], unsigned char [],
+    const char [], const signed char [], const unsigned char [] {
     $result = caml_val_string((char *)$1);
 }
-/* I'd like to use the length here but can't because it might be empty */
-%typemap(how)
+/* A full array has no NUL terminator, so the string is limited to the array size */
+%typemap(how, fragment="SWIG_CharArrayLength")
     char [ANY], signed char [ANY], unsigned char [ANY],
     const char [ANY], const signed char [ANY], const unsigned char [ANY] {
-    $result = caml_val_string((char *)$1);
+    $result = caml_val_string_len((char *)$1, $1 ? (int)SWIG_CharArrayLength((const char *)$1, $1_dim0) : 0);
 }
 %enddef
 

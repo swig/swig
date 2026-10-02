@@ -87,6 +87,9 @@ let _ =
     assert (_global_char_array2 C_void as string = msg)
   ) iters;
   assert (try ignore (_global_char_array2 (C_string (cpp_msg ^ cpp_msg))); false with Invalid_argument _ -> true);
+  let no_nul = create_CharArrayNoNul_from_ptr (_char_array_no_nul C_void) in
+  assert ((invoke no_nul) "[full]" C_void as string = "abcd");
+  assert ((invoke no_nul) "[after]" C_void as string = "XYZ");
 
   (* variables: read-only const globals *)
   assert (_global_const_char C_void as string = cpp_msg);
