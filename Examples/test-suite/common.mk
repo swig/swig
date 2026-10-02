@@ -746,6 +746,7 @@ CPP17_TEST_CASES += \
 	cpp17_nested_namespaces \
 	cpp17_noexcept_function_type_alias \
 	cpp17_nspace_nested_namespaces \
+	cpp17_optional \
 	cpp17_string_view \
 	cpp17_structured_bindings \
 	cpp17_u8_char_literals \
