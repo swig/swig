@@ -5,7 +5,20 @@ Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.6.0 (in progress)
-===========================
+====================
+2026-09-21: jgillis
+            [MATLAB] Preserve enum ranges and signedness in scalar and container
+            conversions, including narrow enum storage and 64 bit constants.
+
+2026-09-21: jgillis
+            [MATLAB] Accept Octave classdef receivers in overloaded director
+            constructors and avoid collisions with user constructor parameter names.
+
+2026-09-20: jgillis
+            [MATLAB] Add an experimental MATLAB MEX target selected with -matlab,
+            including package functions, handle class proxies, C++ inheritance,
+            overloads, standard containers, director callbacks, and a regression test
+            harness for MATLAB and the Octave MEX interface.
 
 2026-10-03: olly
 	    [Guile] Guile >= 2.0 is now required, since we haven't been testing

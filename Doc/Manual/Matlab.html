@@ -1,0 +1,219 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>SWIG and MATLAB</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body>
+<H1><a name="Matlab">42 SWIG and MATLAB</a></H1>
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="#Matlab_introduction">Introduction</a>
+<li><a href="#Matlab_getting_started">Getting started</a>
+<li><a href="#Matlab_options">Module and command line options</a>
+<li><a href="#Matlab_types">Types and ownership</a>
+<li><a href="#Matlab_directors">Virtual callbacks</a>
+<li><a href="#Matlab_customization">Customizing generated code</a>
+<li><a href="#Matlab_testing">Building and testing SWIG</a>
+</ul>
+</div>
+<!-- INDEX -->
+
+
+
+<H2><a name="Matlab_introduction">42.1 Introduction</a></H2>
+
+
+<p>
+The experimental MATLAB module generates a MEX gateway and MATLAB proxy files
+for C and C++ declarations. Functions are placed in a MATLAB package and C++
+classes become MATLAB handle classes. The generated files also target the
+Octave MEX interface; the existing <a href="Octave.html#Octave">Octave module</a>
+uses Octave's native C++ interface instead.
+</p>
+<p>
+This module has <a href="Introduction.html#Introduction_experimental_status">experimental status</a>.
+Applications should test the generated wrappers with their chosen MATLAB or
+Octave release. MATLAB requires a working MEX compiler, configured with
+<tt>mex -setup</tt> or <tt>mex -setup C++</tt>.
+</p>
+
+<H2><a name="Matlab_getting_started">42.2 Getting started</a></H2>
+
+
+<p>Create an interface named <tt>matlab_example.i</tt>:</p>
+<div class="code"><pre>
+%module matlab_example
+%inline %{
+int add(int a, int b) {
+  return a + b;
+}
+class Counter {
+public:
+  Counter(int initial = 0) : value(initial) {}
+  int increment() { return ++value; }
+  int value;
+};
+%}
+</pre></div>
+<p>Generate the wrappers:</p>
+<div class="shell"><pre>
+swig -c++ -matlab matlab_example.i
+</pre></div>
+<p>
+SWIG writes <tt>matlab_example_wrap.cxx</tt>, a <tt>+matlab_example</tt> package directory,
+and shared support files such as <tt>SwigRef.m</tt> and <tt>SwigMem.m</tt>.
+Keep the support files alongside the package directory. Compile and use the
+module from MATLAB:
+</p>
+<div class="targetlang"><pre>
+mex -output matlab_exampleMEX matlab_example_wrap.cxx
+assert(matlab_example.add(2, 3) == 5);
+counter = matlab_example.Counter(10);
+assert(counter.increment() == 11);
+assert(counter.value() == 11);
+counter.value(20);
+assert(counter.increment() == 21);
+delete(counter);
+</pre></div>
+<p>
+Add the directory containing <tt>+matlab_example</tt> and the MEX file to the MATLAB
+path, rather than adding <tt>+matlab_example</tt> itself. Use <tt>-matlab</tt> without
+<tt>-c++</tt> for C interfaces, then compile the generated C file with <tt>mex</tt>.
+</p>
+
+<H2><a name="Matlab_options">42.3 Module and command line options</a></H2>
+
+
+<ul>
+<li><tt>-pkgname name</tt> selects the MATLAB package name. The default is the SWIG module name.</li>
+<li><tt>-mexname name</tt> selects the gateway function name. The default is the module name followed by <tt>MEX</tt>. Compile with the same <tt>mex -output</tt> name.</li>
+<li><tt>-opprefix prefix</tt> selects the prefix for global C++ operator wrappers. The default is <tt>op_</tt>.</li>
+<li><tt>-nodelete</tt> generates <tt>do_delete</tt> instead of automatic <tt>delete</tt> methods. Applications must explicitly release owned native objects.</li>
+</ul>
+<p>
+<tt>-outdir</tt> selects the directory for MATLAB files. Use
+<a href="SWIG.html#SWIG_rename">%rename</a> for declarations whose names cannot
+be MATLAB identifiers. MATLAB keywords are renamed with a trailing <tt>1</tt>.
+</p>
+
+<H2><a name="Matlab_types">42.4 Types and ownership</a></H2>
+
+
+<p>
+Scalar real numeric inputs map to C and C++ arithmetic parameters. Integer
+parameters reject fractional, complex, nonfinite, and out of range values.
+Boolean parameters accept logical scalars. Integer outputs use MATLAB integer
+classes; floating point outputs use MATLAB doubles.
+</p>
+<p>
+With C++11 or later, enum inputs are checked against the range of their C++
+underlying type. Signed enum outputs use MATLAB <tt>int64</tt>, and unsigned
+enum outputs use <tt>uint64</tt>, preserving all 64 bits. These conversions
+also apply to constants and container elements. C and C++98 wrappers retain
+the ordinary <tt>int</tt> enum conversion.
+</p>
+<p>
+Character row vectors map to <tt>char *</tt> and, with
+<tt>%include &lt;std_string.i&gt;</tt>, to <tt>std::string</tt>. The narrow string
+mapping preserves bytes, including embedded zero bytes in <tt>std::string</tt>;
+characters outside the byte range are rejected. This mapping does not perform
+UTF-8 encoding. MATLAB's <tt>string</tt> objects require an explicit conversion
+to a character vector. With <tt>%include &lt;std_wstring.i&gt;</tt>, wide strings
+map to MATLAB UTF-16 code units; native wide characters above 65535 are rejected.
+Octave uses byte characters instead, so this mapping preserves its UTF-8 bytes
+and rejects native wide characters above 255.
+</p>
+<p>
+Include the corresponding standard library interface and instantiate a
+<tt>%template</tt> before declarations using a container. Vectors accept row
+or column cell arrays and return row cell arrays. Empty cell arrays represent
+empty containers. Wrapped <tt>std::map</tt> values remain proxy objects rather than converting to MATLAB maps. For example:
+</p>
+<div class="code"><pre>
+%include &lt;std_vector.i&gt;
+%template(DoubleVector) std::vector&lt;double&gt;;
+std::vector&lt;double&gt; scale(const std::vector&lt;double&gt; &amp;values);
+</pre></div>
+<div class="targetlang"><pre>
+result = matlab_example.scale({1, 2, 3});
+</pre></div>
+<p>
+Wrapped classes derive from <tt>SwigRef</tt>. Objects created by constructors
+are owned by their MATLAB proxies and are destroyed when the proxy is deleted.
+The <a href="Customization.html#Customization_ownership">%newobject directive</a>
+marks factory results as owned. Borrowed pointer results do not transfer
+ownership. Use <tt>[]</tt> for a null pointer input. Do not modify the internal
+<tt>swigPtr</tt> property or retain borrowed objects after their native owners
+have been destroyed.
+</p>
+<p>
+Members use method syntax: <tt>obj.member()</tt> reads a member and
+<tt>obj.member(value)</tt> writes it. Global variables and constants use package
+functions. Static members and class constants use static methods. C++ operators
+map to MATLAB methods such as <tt>plus</tt>, <tt>minus</tt>, <tt>mtimes</tt>,
+<tt>eq</tt>, and <tt>lt</tt>.
+</p>
+
+<H2><a name="Matlab_directors">42.5 Virtual callbacks</a></H2>
+
+
+<p>
+Enable <tt>%module(directors="1")</tt> and <tt>%feature("director") ClassName;</tt>
+to override C++ virtual methods in a MATLAB subclass. The subclass constructor
+must call the generated superclass constructor. The <tt>matlab_director</tt>
+regression demonstrates virtual dispatch and a custom <tt>directorargout</tt>
+typemap for multiple MATLAB outputs. Director support is experimental, including
+ownership of callback objects. Director subclasses are retained in persistent
+MATLAB storage so that native calls can reach them. Call <tt>delete(callback)</tt>
+explicitly when a MATLAB owned director is no longer needed; clearing the last
+workspace variable alone does not release this retained reference. Native
+destruction removes the stored reference. Invalid callback return values and
+callback errors are translated to MATLAB errors at the MEX gateway after native
+stack cleanup.
+</p>
+
+<H2><a name="Matlab_customization">42.6 Customizing generated code</a></H2>
+
+
+<p>
+<a href="Customization.html#Customization_exception">%exception</a> can translate
+C++ exceptions using <tt>SWIG_exception</tt>. Uncaught C++ exceptions must not
+escape a MEX gateway. <tt>%feature("autodoc", "1")</tt> adds usage information
+to generated help text, and <tt>%feature("docstring")</tt> supplies explicit
+help text.
+</p>
+<p>
+Within a class, <tt>%matlabcode</tt> inserts instance methods,
+<tt>%matlabcode_static</tt> inserts static methods, and
+<tt>%matlabcode_class</tt> inserts class level declarations.
+<tt>%feature("matlabprepend")</tt> and <tt>%feature("matlabappend")</tt> insert
+code before and after a proxy method's MEX call.
+</p>
+
+<H2><a name="Matlab_testing">42.7 Building and testing SWIG</a></H2>
+
+
+<p>
+MATLAB is optional when building the SWIG executable. Configure the regression
+suite with the MATLAB installation directory:
+</p>
+<div class="shell"><pre>
+./configure --with-matlab=/path/to/MATLAB
+make
+make check-matlab-test-suite
+cd Examples/test-suite/matlab
+make matlab_features.cpptest
+</pre></div>
+<p>
+The suite generates wrappers, compiles each MEX file, and runs an accompanying
+<tt>_runme.m</tt> script when present. Runtime failures propagate to <tt>make</tt>.
+To exercise the MEX backend with Octave, configure with
+<tt>--enable-octave-for-matlab --with-matlab=/path/to/octave</tt>; an associated
+<tt>mkoctfile</tt> compiler is required. MATLAB and Octave have different class
+and exception behavior, so testing on one does not replace testing on the other.
+</p>
+</body>
+</html>

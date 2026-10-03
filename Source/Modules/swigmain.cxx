@@ -34,6 +34,7 @@ Language *swig_guile(void);
 Language *swig_java(void);
 Language *swig_javascript(void);
 Language *swig_lua(void);
+Language *swig_matlab(void);
 Language *swig_ocaml(void);
 Language *swig_octave(void);
 Language *swig_perl5(void);
@@ -62,6 +63,7 @@ static TargetLanguageModule modules[] = {
   {"-java",       swig_java,       "Java",               Supported   },
   {"-javascript", swig_javascript, "Javascript",         Supported   },
   {"-lua",        swig_lua,        "Lua",                Supported   },
+  {"-matlab",     swig_matlab,     "MATLAB",             Experimental},
   {"-modula3",    NULL,            "Modula 3",           Disabled    },
   {"-ocaml",      swig_ocaml,      "OCaml",              Experimental},
   {"-octave",     swig_octave,     "Octave",             Supported   },

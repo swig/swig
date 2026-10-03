@@ -1,0 +1,51 @@
+name: matlab
+
+on:
+  push:
+    paths:
+      - '.github/workflows/matlab.yml'
+      - 'configure.ac'
+      - 'Makefile.in'
+      - 'Source/**'
+      - 'Lib/**'
+      - 'Examples/**'
+      - 'Tools/testflags.py'
+  pull_request:
+    branches: master
+    paths:
+      - '.github/workflows/matlab.yml'
+      - 'configure.ac'
+      - 'Makefile.in'
+      - 'Source/**'
+      - 'Lib/**'
+      - 'Examples/**'
+      - 'Tools/testflags.py'
+
+permissions:
+  contents: read
+
+jobs:
+  octave-mex:
+    name: MATLAB MEX backend with Octave
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+          persist-credentials: false
+      - name: Install build and Octave dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential autoconf automake bison libpcre2-dev octave octave-dev
+      - name: Build SWIG
+        run: |
+          ./autogen.sh
+          ./configure --without-alllang --with-matlab=/usr/bin/octave --enable-octave-for-matlab
+          make -j2
+      - name: Run MEX runtime regressions
+        run: |
+          cflags=$(python3 Tools/testflags.py -l matlab -c -s c17)
+          cxxflags=$(python3 Tools/testflags.py -l matlab -x -s c++17)
+          make -j2 -C Examples/test-suite/matlab CFLAGS="$cflags" CXXFLAGS="$cxxflags" HAVE_CXX11=1 check-runtime
+          make check-matlab-examples

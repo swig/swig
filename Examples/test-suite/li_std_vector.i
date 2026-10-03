@@ -122,8 +122,8 @@ namespace aa {
 }
 %}
 
-#if !defined(SWIGOCTAVE)
-// To fix: something different in Octave is preventing this from working
+#if !defined(SWIGOCTAVE) && !defined(SWIGMATLAB)
+// TODO: Fix leading global namespace qualifiers in Octave and MATLAB container traits.
 %template(VectorTest) std::vector< ::aa::Holder >;
 
 %inline %{
