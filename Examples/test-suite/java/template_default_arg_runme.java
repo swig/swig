@@ -182,6 +182,24 @@ public class template_default_arg_runme {
       if (pa2d.get(pa2d.getT()) != 6)
         throw new RuntimeException("PtrArray2dDefault get failed");
     }
+
+    // Pointer to member and function pointer type-ids as the default of a type template parameter
+    {
+      MemberHolder mh = new MemberHolder();
+      MemberPtrDefault_def mpd = new MemberPtrDefault_def();
+      if (mpd.get(mh, mpd.getT()) != 5)
+        throw new RuntimeException("MemberPtrDefault get failed");
+
+      MemberFuncPtrDefault_def mfpd = new MemberFuncPtrDefault_def();
+      if (mfpd.call(mh, mfpd.getT(), 2) != 7)
+        throw new RuntimeException("MemberFuncPtrDefault call failed");
+
+      FuncPtrDefault_def fpd = new FuncPtrDefault_def();
+      if (fpd.call(fpd.getT(), 4) != 12)
+        throw new RuntimeException("FuncPtrDefault call failed");
+      if (new FuncPtrParmDefault_int().call(fpd.getT(), 5) != 15)
+        throw new RuntimeException("FuncPtrParmDefault call failed");
+    }
   }
 }
 

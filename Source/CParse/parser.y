@@ -2202,6 +2202,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
    whether the name is a type. */
 %precedence LBRACKET
 %precedence NAME_AS_TYPE
+/* The '=' after 'class T' or 'typename T' in a template parameter list starts the type-id default of a type template
+   parameter, see templateparameter, so the 'T' is not reduced as the name of a type for a parameter of type 'class T'. */
+%precedence EQUAL
 %token DCOLON
 
 %type <node>     program interface declaration swig_directive ;
@@ -2246,7 +2249,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     base_specifier;
 %type <intvalue> variadic_opt;
 %type <type>     type rawtype qualified_type type_right keyword_type anon_bitfield_type decltype cpp_alternate_rettype explicit_instantiation_rettype trailing_rettype;
-%type <type>     array_type_id array_element_type;
+%type <type>     array_type_id array_element_type type_id type_id_default;
 %type <group>    decltype_prefix;
 %type <type>     conversion_declarator;
 %type <str>      noexcept_specifier_opt;
@@ -6816,14 +6819,20 @@ template_parms_builder : templateparameter {
 		  }
 		  ;
 
-templateparameter : templcpptype def_args {
+/* The default of a type template parameter is a type-id, such as 'int S::*' or 'int (*)(int)', which def_args cannot parse
+   as an expression.  A named one is told apart from 'parm' by the precedence of EQUAL, 'parm' still matching 'class T'. */
+templateparameter : templcpptype type_id_default {
 		    $$ = NewParmWithoutFileLineInfo($templcpptype, 0);
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
-		    Setattr($$, "value", $def_args.val);
-		    if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
-		    if ($def_args.numval) Setattr($$, "numval", $def_args.numval);
+                    Setattr($$, "value", $type_id_default);
 		  }
+                  | cpptype identifier EQUAL type_id {
+                    $$ = NewParmWithoutFileLineInfo($cpptype, $identifier);
+                    Setfile($$, cparse_file);
+                    Setline($$, cparse_line);
+                    Setattr($$, "value", $type_id);
+                  }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($template_parms), $cpptype, $idcolon), $idcolon);
 		    Setfile($$, cparse_file);
@@ -7835,7 +7844,7 @@ def_args       : EQUAL definetype {
                  $$.type = T_UNKNOWN;
                }
                | EQUAL expr type_id_pointer {
-                 /* A pointer or reference type-id, such as the 'int *' default of 'template<class T = int *>', with the
+                 /* A pointer or reference type-id, such as the 'int *' default of 'template<Concept T = int *>', with the
                     base type parsed as an expression */
                  $$ = default_dtype;
                  $$.val = Copy($expr.val);
@@ -8796,7 +8805,21 @@ keyword_type   : primitive_type
                | decltype
                ;
 
-/* The type-id of an array type, as in 'template<class T = int[2]>', where the bounds are skipped as text.  A plain name
+/* A type followed by an optional abstract declarator, such as 'int', 'int S::*' or 'int (*)(int)'. */
+type_id        : type
+               | type abstract_declarator {
+                 $$ = $type;
+                 SwigType_push($$, $abstract_declarator.type);
+                 Delete($abstract_declarator.type);
+               }
+               ;
+
+/* The optional default of an unnamed type template parameter. */
+type_id_default : EQUAL type_id { $$ = $type_id; }
+               | %empty { $$ = 0; }
+               ;
+
+/* The type-id of an array type, as in 'template<Concept T = int[2]>', where the bounds are skipped as text.  A plain name
    followed by '[' is a subscript instead, which gives 'T[3]' the same text. */
 array_type_id  : array_element_type LBRACKET {
                  if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
@@ -10439,7 +10462,7 @@ idcolontail    : DCOLON idtemplatetemplate idcolontail[in] {
                ;
 
 
-idtemplate    : identifier {
+idtemplate    : identifier %prec NAME_AS_TYPE {
 		$$ = NewString($identifier);
 	      }
 	      | identifier less_valparms_greater {

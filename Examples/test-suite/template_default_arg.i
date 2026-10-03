@@ -187,3 +187,44 @@ template<class T, class U = const T[2][3]> struct ConstArrayDefault {
 %template(PtrArray2dDefault_def) PtrArray2dDefault<>;
 #endif
 
+// Pointer to member and function pointer type-ids as the default of a type template parameter
+%inline %{
+  struct MemberHolder {
+    int m;
+    MemberHolder() : m(5) {}
+    int add(int i) const { return m + i; }
+  };
+
+  template<class T = int MemberHolder::*> struct MemberPtrDefault {
+    T t;
+    MemberPtrDefault() : t(&MemberHolder::m) {}
+    int get(const MemberHolder &h, T p) { return h.*p; }
+  };
+
+  template<class T = int (MemberHolder::*)(int) const> struct MemberFuncPtrDefault {
+    T t;
+    MemberFuncPtrDefault() : t(&MemberHolder::add) {}
+    int call(const MemberHolder &h, T f, int i) { return (h.*f)(i); }
+  };
+
+  int triple(int i) { return 3 * i; }
+
+  template<class T = int (*)(int)> struct FuncPtrDefault {
+    T t;
+    FuncPtrDefault() : t(triple) {}
+    int call(T f, int i) { return f(i); }
+  };
+
+  template<class T, class F = T (*)(T)> struct FuncPtrParmDefault {
+    T call(F f, T i) { return f(i); }
+  };
+%}
+
+#if !defined(SWIGC)
+// TODO: Fix the experimental C backend emitting invalid C for a pointer to member or function pointer, such as 'int (*)(int)'
+%template(MemberPtrDefault_def) MemberPtrDefault<>;
+%template(MemberFuncPtrDefault_def) MemberFuncPtrDefault<>;
+%template(FuncPtrDefault_def) FuncPtrDefault<>;
+%template(FuncPtrParmDefault_int) FuncPtrParmDefault<int>;
+#endif
+

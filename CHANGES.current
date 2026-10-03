@@ -17,6 +17,15 @@ Version 4.6.0 (in progress)
 	    * Replace `guile_destructor` with `swig_guile_destructor`
 
 2026-10-02: wsfulton
+            Fix a pointer to member type-id used as the default of a template type parameter
+            declared with class or typename, which was a syntax error, and a function pointer or
+            other type-id with a parenthesised declarator, which was wrapped by code that did not
+            compile, such as:
+
+              template<class T = int S::*> struct P {...};
+              template<class T = int (*)(int)> struct Q {...};
+
+2026-10-02: wsfulton
             Fix the line numbers in warnings and errors when a macro passes on a multiline macro
             call in one of its arguments to another macro, such as DECLARE below. With
             -macroerrors, the warning for the unknown base class was reported two lines after its

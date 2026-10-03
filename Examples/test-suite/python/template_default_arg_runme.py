@@ -111,3 +111,15 @@ swig_check(template_default_arg.RefDefault_def().deref(pd.t), 42)
 
 pa2d = template_default_arg.PtrArray2dDefault_def()
 swig_check(pa2d.get(pa2d.t), 6)
+
+# Pointer to member and function pointer type-ids as the default of a type template parameter
+mh = template_default_arg.MemberHolder()
+mpd = template_default_arg.MemberPtrDefault_def()
+swig_check(mpd.get(mh, mpd.t), 5)
+
+mfpd = template_default_arg.MemberFuncPtrDefault_def()
+swig_check(mfpd.call(mh, mfpd.t, 2), 7)
+
+fpd = template_default_arg.FuncPtrDefault_def()
+swig_check(fpd.call(fpd.t, 4), 12)
+swig_check(template_default_arg.FuncPtrParmDefault_int().call(fpd.t, 5), 15)
