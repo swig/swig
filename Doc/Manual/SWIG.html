@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="SWIG">5 SWIG Basics</a></H1>
+<h1 id="SWIG">5 SWIG Basics</h1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -100,7 +100,7 @@ Specific details about each target language are described in later
 chapters.
 </p>
 
-<H2><a name="SWIG_nn2">5.1 Running SWIG</a></H2>
+<h2 id="SWIG_nn2">5.1 Running SWIG</h2>
 
 
 <p>
@@ -254,7 +254,7 @@ contain additional <tt>@file</tt> options; any such options will be processed
 recursively.
 </p>
 
-<H3><a name="SWIG_nn3">5.1.1 Input format</a></H3>
+<h3 id="SWIG_nn3">5.1.1 Input format</h3>
 
 
 <p>
@@ -301,7 +301,7 @@ semantics in SWIG is analogous to that of the declarations section
 used in input files to parser generation tools such as yacc or bison.
 </p>
 
-<H3><a name="SWIG_output">5.1.2 SWIG output</a></H3>
+<h3 id="SWIG_output">5.1.2 SWIG output</h3>
 
 
 <p>
@@ -362,7 +362,7 @@ generated C/C++ file if not overridden with <tt>-outdir</tt>.
 </p>
 
 
-<H4><a name="SWIG_dependency_files">5.1.2.1 Dependency files</a></H4>
+<h4 id="SWIG_dependency_files">5.1.2.1 Dependency files</h4>
 
 
 <p>
@@ -428,7 +428,7 @@ in a single invocation.
 </p>
 
 
-<H3><a name="SWIG_nn5">5.1.3 Comments</a></H3>
+<h3 id="SWIG_nn5">5.1.3 Comments</h3>
 
 
 <p>
@@ -439,7 +439,7 @@ Doxygen comments can now be used to generate target language specific documentat
 <a href="Doxygen.html">Doxygen</a> chapter.
 </p>
 
-<H3><a name="SWIG_nn6">5.1.4 C Preprocessor</a></H3>
+<h3 id="SWIG_nn6">5.1.4 C Preprocessor</h3>
 
 
 <p>
@@ -463,7 +463,7 @@ make it more powerful than the normal C preprocessor.  These
 extensions are described in the "<a href="Preprocessor.html#Preprocessor">Preprocessor</a>" chapter.
 </p>
 
-<H3><a name="SWIG_nn7">5.1.5 SWIG directives</a></H3>
+<h3 id="SWIG_nn7">5.1.5 SWIG directives</h3>
 
 
 <p>
@@ -494,7 +494,7 @@ included in C header files using conditional compilation like this:
 it is parsing an input file.
 </p>
 
-<H3><a name="SWIG_nn8">5.1.6 Parser limitations</a></H3>
+<h3 id="SWIG_nn8">5.1.6 Parser limitations</h3>
 
 
 <p>
@@ -592,7 +592,7 @@ does not utilize a separate <em>typedef-name</em> terminal symbol as
 described on p. 234 of K&amp;R).
 </p>
 
-<H3><a name="SWIG_parse_tree">5.1.7 Parse tree</a></H3>
+<h3 id="SWIG_parse_tree">5.1.7 Parse tree</h3>
 
 
 <p>
@@ -601,7 +601,7 @@ This can be useful for advanced development or debugging purposes.
 Details are covered in the developer documentation <a href="Extending.html#Extending">Extending SWIG</a> chapter.
 </p>
 
-<H2><a name="SWIG_nn9">5.2 Wrapping simple C declarations</a></H2>
+<h2 id="SWIG_nn9">5.2 Wrapping simple C declarations</h2>
 
 
 <p>
@@ -664,7 +664,7 @@ environments, and semantics, it is not always possible to do so.   The
 next few sections describe various aspects of this mapping.
 </p>
 
-<H3><a name="SWIG_nn10">5.2.1 Basic type handling</a></H3>
+<h3 id="SWIG_nn10">5.2.1 Basic type handling</h3>
 
 
 <p>
@@ -789,7 +789,7 @@ will use the same internal representation (e.g., UCS-2 vs. UCS-4).
 You may need to write some special conversion functions.
 </p>
 
-<H3><a name="SWIG_nn11">5.2.2 Global variables</a></H3>
+<h3 id="SWIG_nn11">5.2.2 Global variables</h3>
 
 
 <p>
@@ -844,7 +844,7 @@ Earlier versions of SWIG incorrectly handled <tt>const</tt> and created
 constants instead.
 </p>
 
-<H3><a name="SWIG_nn12">5.2.3 Constants</a></H3>
+<h3 id="SWIG_nn12">5.2.3 Constants</h3>
 
 
 <p>
@@ -959,7 +959,7 @@ is only used when you want to add constants to the scripting language
 interface that are not defined in the original header file.
 </p>
 
-<H3><a name="SWIG_nn13">5.2.4 A brief word about const</a></H3>
+<h3 id="SWIG_nn13">5.2.4 A brief word about const</h3>
 
 
 <p>
@@ -1061,7 +1061,7 @@ const int    spam = 42;
 </pre>
 </div>
 
-<H3><a name="SWIG_nn14">5.2.5 A cautionary tale of char *</a></H3>
+<h3 id="SWIG_nn14">5.2.5 A cautionary tale of char *</h3>
 
 
 <p>
@@ -1100,7 +1100,7 @@ input values.   However, it must be noted that you could change the behavior of 
 using <a href="Typemaps.html#Typemaps">typemaps</a>.
 </p>
 
-<H2><a name="SWIG_nn15">5.3 Pointers and complex objects</a></H2>
+<h2 id="SWIG_nn15">5.3 Pointers and complex objects</h2>
 
 
 <p>
@@ -1108,7 +1108,7 @@ Most C programs manipulate arrays, structures, and other types of objects.  This
 discusses the handling of these datatypes.
 </p>
 
-<H3><a name="SWIG_nn16">5.3.1 Simple pointers</a></H3>
+<h3 id="SWIG_nn16">5.3.1 Simple pointers</h3>
 
 
 <p>
@@ -1174,7 +1174,7 @@ simplified and less prone to error.
 </li>
 </ul>
 
-<H3><a name="SWIG_nn17">5.3.2 Run time pointer type checking</a></H3>
+<h3 id="SWIG_nn17">5.3.2 Run time pointer type checking</h3>
 
 
 <p>
@@ -1196,7 +1196,7 @@ as sentinel values or to denote a missing/empty value.  Therefore,
 SWIG leaves NULL pointer checking up to the application.
 </p>
 
-<H3><a name="SWIG_nn18">5.3.3 Derived types, structs, and classes</a></H3>
+<h3 id="SWIG_nn18">5.3.3 Derived types, structs, and classes</h3>
 
 
 <p>
@@ -1252,7 +1252,7 @@ In this case <tt>f1</tt>, <tt>f2</tt>, and <tt>buffer</tt> are all
 opaque objects containing C pointers. It doesn't matter what value
 they contain--our program works just fine without this knowledge.</p>
 
-<H3><a name="SWIG_nn19">5.3.4 Undefined datatypes</a></H3>
+<h3 id="SWIG_nn19">5.3.4 Undefined datatypes</h3>
 
 
 <p>
@@ -1312,7 +1312,7 @@ The only way to fix this problem is to make sure you properly declare type names
 
 <!-- We might want to add an error reporting flag to swig -->
 
-<H3><a name="SWIG_nn20">5.3.5 Typedef</a></H3>
+<h3 id="SWIG_nn20">5.3.5 Typedef</h3>
 
 
 <p>
@@ -1401,7 +1401,7 @@ The corresponding wrapper function will accept arguments of
 type <tt>unsigned int *</tt> or <tt>size_t *</tt>.
 </p>
 
-<H2><a name="SWIG_nn21">5.4 Other Practicalities</a></H2>
+<h2 id="SWIG_nn21">5.4 Other Practicalities</h2>
 
 
 <p>
@@ -1411,7 +1411,7 @@ more difficult to map to a scripting language interface.  This section describes
 some of these issues.
 </p>
 
-<H3><a name="SWIG_nn22">5.4.1 Passing structures by value</a></H3>
+<h3 id="SWIG_nn22">5.4.1 Passing structures by value</h3>
 
 
 <p>
@@ -1442,7 +1442,7 @@ to Vectors instead of Vectors.  For the most part, this transformation
 is transparent so you might not notice.
 </p>
 
-<H3><a name="SWIG_nn23">5.4.2 Return by value</a></H3>
+<h3 id="SWIG_nn23">5.4.2 Return by value</h3>
 
 
 <p>
@@ -1497,7 +1497,7 @@ don't work correctly if <tt>Vector</tt> doesn't define a default
 constructor.  The section on SWIG and C++ has more information about this case.
 </p>
 
-<H3><a name="SWIG_nn24">5.4.3 Linking to structure variables</a></H3>
+<h3 id="SWIG_nn24">5.4.3 Linking to structure variables</h3>
 
 
 <p>
@@ -1529,7 +1529,7 @@ C++ classes must supply a properly defined copy constructor in order for
 assignment to work correctly.
 </p>
 
-<H3><a name="SWIG_nn25">5.4.4 Linking to char *</a></H3>
+<h3 id="SWIG_nn25">5.4.4 Linking to char *</h3>
 
 
 <p>
@@ -1658,7 +1658,7 @@ value is not released.
 
 
 
-<H3><a name="SWIG_nn26">5.4.5 Arrays</a></H3>
+<h3 id="SWIG_nn26">5.4.5 Arrays</h3>
 
 
 <p>
@@ -1794,7 +1794,7 @@ void pathname_set(char *value) {
 In the target language, the value can be set like a normal variable.
 </p>
 
-<H3><a name="SWIG_readonly_variables">5.4.6 Creating read-only variables</a></H3>
+<h3 id="SWIG_readonly_variables">5.4.6 Creating read-only variables</h3>
 
 
 <p>
@@ -1865,10 +1865,10 @@ char * const version="1.0";  /* Read only variable */
 SWIG will also create read-only variables for non-assignable types, more details in the <a href="SWIGPlus.html#SWIGPlus_member_data">Member data</a> section in the C++ chapter.
 </p>
 
-<H3><a name="SWIG_rename_ignore">5.4.7 Renaming and ignoring declarations</a></H3>
+<h3 id="SWIG_rename_ignore">5.4.7 Renaming and ignoring declarations</h3>
 
 
-<H4><a name="SWIG_nn29">5.4.7.1 Simple renaming of specific identifiers</a></H4>
+<h4 id="SWIG_nn29">5.4.7.1 Simple renaming of specific identifiers</h4>
 
 
 <p>
@@ -1956,7 +1956,7 @@ If you are using the <tt>%rename</tt> directive and C++, make sure you read the
 for method overloading and default arguments.
 </p>
 
-<H4><a name="SWIG_ignore">5.4.7.2 Ignoring identifiers</a></H4>
+<h4 id="SWIG_ignore">5.4.7.2 Ignoring identifiers</h4>
 
 
 <p>
@@ -1982,7 +1982,7 @@ to add conditional compilation to the header.   However, it should be stressed t
 declarations.  If you need to remove a whole section of problematic code, the SWIG preprocessor should be used instead.
 </p>
 
-<H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
+<h4 id="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</h4>
 
 
 <p>
@@ -2178,7 +2178,7 @@ are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
 multiple declarations using the previously described matching possibilities.
 </p>
 
-<H4><a name="SWIG_limiting_renaming">5.4.7.4 Limiting global renaming rules</a></H4>
+<h4 id="SWIG_limiting_renaming">5.4.7.4 Limiting global renaming rules</h4>
 
 
 <p>
@@ -2347,7 +2347,7 @@ wrap C++ overloaded functions and methods or C++ methods which use default argum
 </p>
 
 
-<H4><a name="SWIG_chosen_unignore">5.4.7.5 Ignoring everything then wrapping a few selected symbols</a></H4>
+<h4 id="SWIG_chosen_unignore">5.4.7.5 Ignoring everything then wrapping a few selected symbols</h4>
 
 
 <p>
@@ -2407,7 +2407,7 @@ members of the class, so when the chosen class is unignored, all of its methods 
 </div>
 
 
-<H3><a name="SWIG_default_args">5.4.8 Default/optional arguments</a></H3>
+<h3 id="SWIG_default_args">5.4.8 Default/optional arguments</h3>
 
 
 <p>
@@ -2444,7 +2444,7 @@ Please refer to the section on <a href="SWIGPlus.html#SWIGPlus_default_args">def
 in the C++ chapter for further details.
 </p>
 
-<H3><a name="SWIG_nn30">5.4.9 Pointers to functions and callbacks</a></H3>
+<h3 id="SWIG_nn30">5.4.9 Pointers to functions and callbacks</h3>
 
 
 <p>
@@ -2612,7 +2612,7 @@ let target-language code construct a callable that C++ can invoke - for
 that, use a director (see the cross-reference above).
 </p>
 
-<H2><a name="SWIG_nn31">5.5 Structures and unions</a></H2>
+<h2 id="SWIG_nn31">5.5 Structures and unions</h2>
 
 
 <p>
@@ -2733,7 +2733,7 @@ delete_Vector(v)
 However, most of SWIG's language modules also provide a high-level interface that is more convenient. Keep reading.
 </p>
 
-<H3><a name="SWIG_nn32">5.5.1 Typedef and structures</a></H3>
+<h3 id="SWIG_nn32">5.5.1 Typedef and structures</h3>
 
 
 <p>
@@ -2779,7 +2779,7 @@ vector_struct</tt>, SWIG knows that this is the same as
 <tt>Vector</tt> and it generates the appropriate type-checking code.
 </p>
 
-<H3><a name="SWIG_nn33">5.5.2 Character strings and structures</a></H3>
+<h3 id="SWIG_nn33">5.5.2 Character strings and structures</h3>
 
 
 <p>
@@ -2826,7 +2826,7 @@ Note: If the <tt>-c++</tt> option is used, <tt>new</tt> and <tt>delete</tt> are 
 perform memory allocation.
 </p>
 
-<H3><a name="SWIG_nn34">5.5.3 Array members</a></H3>
+<h3 id="SWIG_nn34">5.5.3 Array members</h3>
 
 
 <p>
@@ -2848,7 +2848,7 @@ discussed in a later chapter.  In many cases, the warning message is
 harmless.
 </p>
 
-<H3><a name="SWIG_structure_data_members">5.5.4 Structure data members</a></H3>
+<h3 id="SWIG_structure_data_members">5.5.4 Structure data members</h3>
 
 
 <p>
@@ -2959,7 +2959,7 @@ class, or union.  This is unlikely to break existing code.  However, if you need
 datatype is really a struct, simply use a forward struct declaration such as <tt>"struct Foo;"</tt>.
 </p>
 
-<H3><a name="SWIG_nn36">5.5.5 C constructors and destructors</a></H3>
+<h3 id="SWIG_nn36">5.5.5 C constructors and destructors</h3>
 
 
 <p>
@@ -3048,7 +3048,7 @@ the target languages, and it is highly recommended you don't use them.
 </p>
 
 
-<H3><a name="SWIG_adding_member_functions">5.5.6 Adding member functions to C structures</a></H3>
+<h3 id="SWIG_adding_member_functions">5.5.6 Adding member functions to C structures</h3>
 
 
 <p>
@@ -3319,7 +3319,7 @@ the allocation of additional storage in the object (e.g., their values must
 be entirely synthesized from existing attributes of the structure or obtained elsewhere).
 </p>
 
-<H3><a name="SWIG_nested_structs">5.5.7 Nested structures</a></H3>
+<h3 id="SWIG_nested_structs">5.5.7 Nested structures</h3>
 
 
 <p>
@@ -3403,7 +3403,7 @@ Finally, note that nesting is handled differently in C++ mode,
 see <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>.
 </p>
 
-<H3><a name="SWIG_nn39">5.5.8 Other things to note about structure wrapping</a></H3>
+<h3 id="SWIG_nn39">5.5.8 Other things to note about structure wrapping</h3>
 
 
 <p>
@@ -3465,7 +3465,7 @@ interface described here, most of SWIG's language modules use it in
 some way or another.
 </p>
 
-<H2><a name="SWIG_nn40">5.6 Code Insertion</a></H2>
+<h2 id="SWIG_nn40">5.6 Code Insertion</h2>
 
 
 <p>
@@ -3475,7 +3475,7 @@ additional C code to perform initialization or other operations.
 There are four common ways to insert code, but it's useful to know how the
 output of SWIG is structured first.</p>
 
-<H3><a name="SWIG_nn41">5.6.1 The output of SWIG</a></H3>
+<h3 id="SWIG_nn41">5.6.1 The output of SWIG</h3>
 
 
 <p>
@@ -3511,7 +3511,7 @@ the module upon loading.
 </li>
 </ul>
 
-<H3><a name="SWIG_nn42">5.6.2 Code insertion blocks</a></H3>
+<h3 id="SWIG_nn42">5.6.2 Code insertion blocks</h3>
 
 
 <p>
@@ -3617,7 +3617,7 @@ static Vector *new_Vector() {
 Vector *new_Vector();
 </pre></div>
 
-<H3><a name="SWIG_nn43">5.6.3 Inlined code blocks</a></H3>
+<h3 id="SWIG_nn43">5.6.3 Inlined code blocks</h3>
 
 
 <p>
@@ -3665,7 +3665,7 @@ SWIG directives inside a <tt>%{ ... %}</tt> block.</p>
 <b>Note:</b> The usual SWIG C preprocessor rules apply to code in <tt>%apply</tt> blocks when SWIG parses this code. For example, as mentioned earlier, <a href="SWIG.html#SWIG_nn6">SWIG's C Preprocessor</a> does not follow <tt>#include</tt> directives by default.
 </p>
 
-<H3><a name="SWIG_nn44">5.6.4 Initialization blocks</a></H3>
+<h3 id="SWIG_nn44">5.6.4 Initialization blocks</h3>
 
 
 <p>
@@ -3692,7 +3692,7 @@ the necessary initialization for them instead:
 %}
 </pre></div>
 
-<H2><a name="SWIG_nn45">5.7 An Interface Building Strategy</a></H2>
+<h2 id="SWIG_nn45">5.7 An Interface Building Strategy</h2>
 
 
 <p>
@@ -3700,7 +3700,7 @@ This section describes the general approach for building interfaces
 with SWIG. The specifics related to a particular scripting language
 are found in later chapters.</p>
 
-<H3><a name="SWIG_nn46">5.7.1 Preparing a C program for SWIG</a></H3>
+<h3 id="SWIG_nn46">5.7.1 Preparing a C program for SWIG</h3>
 
 
 <p>
@@ -3754,7 +3754,7 @@ to the <a href="https://www.swig.org/mail.html">swig-devel mailing list</a> or t
 <a href="https://www.swig.org/bugs.html">SWIG bug tracker</a>.
 </p>
 
-<H3><a name="SWIG_nn47">5.7.2 The SWIG interface file</a></H3>
+<h3 id="SWIG_nn47">5.7.2 The SWIG interface file</h3>
 
 
 <p>
@@ -3807,7 +3807,7 @@ The main advantage of this approach is minimal maintenance of an interface file 
 In more complex projects, an interface file containing numerous <tt>%include</tt> and <tt>#include</tt> statements like this is one of the most common approaches to interface file design due to lower maintenance overhead.
 </p>
 
-<H3><a name="SWIG_nn48">5.7.3 Why use separate interface files?</a></H3>
+<h3 id="SWIG_nn48">5.7.3 Why use separate interface files?</h3>
 
 
 <p>
@@ -3836,7 +3836,7 @@ and immediately see what is available without having to dig it out of
 header files.
 </ul>
 
-<H3><a name="SWIG_nn49">5.7.4 Getting the right header files</a></H3>
+<h3 id="SWIG_nn49">5.7.4 Getting the right header files</h3>
 
 
 <p>
@@ -3856,7 +3856,7 @@ include certain header files by using a <tt>%{ %}</tt> block like this:
 ...
 </pre></div>
 
-<H3><a name="SWIG_nn50">5.7.5 What to do with main()</a></H3>
+<h3 id="SWIG_nn50">5.7.5 What to do with main()</h3>
 
 
 <p>

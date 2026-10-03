@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="CPlusPlus11">7 SWIG and C++11</a></H1>
+<h1 id="CPlusPlus11">7 SWIG and C++11</h1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -71,7 +71,7 @@
 
 
 
-<H2><a name="CPlusPlus11_introduction">7.1 Introduction</a></H2>
+<h2 id="CPlusPlus11_introduction">7.1 Introduction</h2>
 
 
 <p>This chapter gives you a brief overview about the SWIG
@@ -85,10 +85,10 @@ users are welcome to help by adapting the existing container interface files and
 as a patch for inclusion in future versions of SWIG.
 </p>
 
-<H2><a name="CPlusPlus11_core_language_changes">7.2 Core language changes</a></H2>
+<h2 id="CPlusPlus11_core_language_changes">7.2 Core language changes</h2>
 
 
-<H3><a name="CPlusPlus11_rvalue_reference_and_move_semantics">7.2.1 Rvalue reference and move semantics</a></H3>
+<h3 id="CPlusPlus11_rvalue_reference_and_move_semantics">7.2.1 Rvalue reference and move semantics</h3>
 
 
 <p>
@@ -120,7 +120,7 @@ For example, ignore the move constructor:
 %ignore MyClass::MyClass(MyClass &amp;&amp;);
 </pre></div>
 
-<H4><a name="CPlusPlus11_rvalue_reference_inputs">7.2.1.1 Rvalue reference inputs</a></H4>
+<h4 id="CPlusPlus11_rvalue_reference_inputs">7.2.1.1 Rvalue reference inputs</h4>
 
 
 <p>
@@ -200,7 +200,7 @@ SWIG-4.1.0 changed the way that rvalue reference parameters were handled and imp
 proxy class owns the underlying C++ object and transfers ownership of the object when a function/constructor with an rvalue reference parameter is called.
 </p>
 
-<H4><a name="CPlusPlus11_rvalue_reference_outputs">7.2.1.2 Rvalue reference outputs</a></H4>
+<h4 id="CPlusPlus11_rvalue_reference_outputs">7.2.1.2 Rvalue reference outputs</h4>
 
 
 <p>
@@ -241,7 +241,7 @@ Another alternative would be to modify the output rvalue reference typemap to al
 Fortunately you're highly unlikely to have to solve any of these issues!
 </p>
 
-<H4><a name="CPlusPlus11_move_only">7.2.1.3 Movable and move-only types by value</a></H4>
+<h4 id="CPlusPlus11_move_only">7.2.1.3 Movable and move-only types by value</h4>
 
 
 <p>
@@ -498,7 +498,7 @@ SWIG-4.1.0 introduced support for taking advantage of types with move semantics 
 </p>
 
 
-<H3><a name="CPlusPlus11_generalized_constant_expressions">7.2.2 Generalized constant expressions</a></H3>
+<h3 id="CPlusPlus11_generalized_constant_expressions">7.2.2 Generalized constant expressions</h3>
 
 
 <p>SWIG parses and identifies the keyword <tt>constexpr</tt>, but cannot fully utilise it.
@@ -515,7 +515,7 @@ constexpr int YYY = XXX() + 100;
 When either of these is used from a target language, a runtime call is made to obtain the underlying constant.
 </p>
 
-<H3><a name="CPlusPlus11_extern_template">7.2.3 Extern template</a></H3>
+<h3 id="CPlusPlus11_extern_template">7.2.3 Extern template</h3>
 
 
 <p>SWIG correctly parses <tt>extern template</tt> explicit instantiation declarations.
@@ -553,7 +553,7 @@ extern template void Func&lt;int&gt;();       // C++11 template explicit instant
 %template(FuncInt) Func&lt;int&gt;;           // SWIG template instantiation
 </pre></div>
 
-<H3><a name="CPlusPlus11_initializer_lists">7.2.4 Initializer lists</a></H3>
+<h3 id="CPlusPlus11_initializer_lists">7.2.4 Initializer lists</h3>
 
 
 <p>
@@ -685,7 +685,7 @@ Note that the default typemap for <tt>std::initializer_list</tt> does nothing bu
 and hence any user supplied typemaps will override it and suppress the warning.
 </p>
 
-<H3><a name="CPlusPlus11_uniform_initialization">7.2.5 Uniform initialization</a></H3>
+<h3 id="CPlusPlus11_uniform_initialization">7.2.5 Uniform initialization</h3>
 
 
 <p>The curly brackets {} for member initialization are fully
@@ -718,7 +718,7 @@ AltStruct var2{2, 4.3};   // calls the constructor
 142.15
 </pre></div>
 
-<H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
+<h3 id="CPlusPlus11_type_inference">7.2.6 Type inference</h3>
 
 
 <p><tt>decltype()</tt> is supported with a few limitations.  SWIG can parse
@@ -941,13 +941,13 @@ example.i:38: Warning 346: Unable to deduce auto type for variable 'v19' from in
 <p>The usual workaround for any of them is to ignore the variable, or to declare it with its actual type
 in the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
 
-<H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
+<h3 id="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</h3>
 
 
 <p>This feature is part of the implementation block only. SWIG
 ignores it.</p>
 
-<H3><a name="CPlusPlus11_lambda_functions_and_expressions">7.2.8 Lambda functions and expressions</a></H3>
+<h3 id="CPlusPlus11_lambda_functions_and_expressions">7.2.8 Lambda functions and expressions</h3>
 
 
 <p>SWIG correctly parses most of the Lambda functions syntax. For example:</p>
@@ -989,7 +989,7 @@ Lambdas are most useful at the SWIG boundary when returned to the target languag
 <a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphic wrappers for function objects</a>.
 </p>
 
-<H3><a name="CPlusPlus11_alternate_function_syntax">7.2.9 Alternate function syntax</a></H3>
+<h3 id="CPlusPlus11_alternate_function_syntax">7.2.9 Alternate function syntax</h3>
 
 
 <p>SWIG fully supports the new definition of functions. For example:</p>
@@ -1082,7 +1082,7 @@ Earlier versions accepted only a small set of trailing return types and reported
 SWIG-4.6.0 is also the first version to apply the array and function parameter adjustments to a parameter named by a <tt>decltype</tt> in a trailing return type.
 </p>
 
-<H3><a name="CPlusPlus11_object_construction_improvement">7.2.10 Object construction improvement</a></H3>
+<h3 id="CPlusPlus11_object_construction_improvement">7.2.10 Object construction improvement</h3>
 
 
 <p>
@@ -1146,7 +1146,7 @@ public:
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_using_declaration_template_base">7.2.11 Inheriting members through a template parameter base</a></H3>
+<h3 id="CPlusPlus11_using_declaration_template_base">7.2.11 Inheriting members through a template parameter base</h3>
 
 
 <p>
@@ -1207,7 +1207,7 @@ SWIG resolves the typedef qualifier to the base class, so both <tt>CA</tt> and <
 bare type-template parameter or a typedef for the base class, including the inheriting-constructor forms.
 </p>
 
-<H3><a name="CPlusPlus11_explicit_overrides_final">7.2.12 Explicit overrides and final</a></H3>
+<h3 id="CPlusPlus11_explicit_overrides_final">7.2.12 Explicit overrides and final</h3>
 
 
 <p>
@@ -1257,7 +1257,7 @@ method inherited from <tt>BaseStruct</tt> as final.
 SWIG-4.6.0 is the first version to leave a final method out of the director vtable when the final declaration overrides an inherited virtual method; before that the generated director class overrode it and did not compile.
 </p>
 
-<H3><a name="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</a></H3>
+<h3 id="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</h3>
 
 
 <p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. Where it is the default value of a
@@ -1271,7 +1271,7 @@ defaulted to <tt>nil</tt> by Ruby. Elsewhere it is treated like <tt>NULL</tt>.</
 (<i>Unable to deduce auto type for variable 'v' from initialiser 'nullptr' (ignored)</i>) and is dropped,
 the same as for any other initialiser SWIG cannot deduce a type from.</p>
 
-<H3><a name="CPlusPlus11_strongly_typed_enumerations">7.2.14 Strongly typed enumerations</a></H3>
+<h3 id="CPlusPlus11_strongly_typed_enumerations">7.2.14 Strongly typed enumerations</h3>
 
 
 <p>SWIG supports strongly typed enumerations and parses the new <tt>enum class</tt> syntax and forward declarator for the enums, such as:</p>
@@ -1345,7 +1345,7 @@ The C++11 enum base type, such as <tt>unsigned int</tt>, in the example above, i
   }
 </pre></div>
 
-<H3><a name="CPlusPlus11_double_angle_brackets">7.2.15 Double angle brackets</a></H3>
+<h3 id="CPlusPlus11_double_angle_brackets">7.2.15 Double angle brackets</h3>
 
 
 <p>SWIG correctly parses the symbols &gt;&gt; as closing the
@@ -1356,7 +1356,7 @@ shift operator &gt;&gt; otherwise.</p>
 std::vector&lt;std::vector&lt;int&gt;&gt; myIntTable;
 </pre></div>
 
-<H3><a name="CPlusPlus11_explicit_conversion_operators">7.2.16 Explicit conversion operators</a></H3>
+<h3 id="CPlusPlus11_explicit_conversion_operators">7.2.16 Explicit conversion operators</h3>
 
 
 <p>SWIG correctly parses the keyword <tt>explicit</tt> for operators in addition to constructors now.
@@ -1399,7 +1399,7 @@ Conversion operators either with or without <tt>explicit</tt> need renaming to a
 them available as a normal proxy method.
 </p>
 
-<H3><a name="CPlusPlus11_type_aliases">7.2.17 Type aliases</a></H3>
+<h3 id="CPlusPlus11_type_aliases">7.2.17 Type aliases</h3>
 
 
 <p>
@@ -1441,7 +1441,7 @@ template&lt;typename T&gt; using alt_fn_t = auto (*)(T) -&gt; T;
 The equivalent <tt>typedef</tt> spelling was already accepted.
 </p>
 
-<H3><a name="CPlusPlus11_alias_templates">7.2.18 Alias templates</a></H3>
+<h3 id="CPlusPlus11_alias_templates">7.2.18 Alias templates</h3>
 
 
 <p>
@@ -1520,7 +1520,7 @@ For alias templates whose template parameters carry a C++20 concept constraint, 
 in the C++20 chapter.
 </p>
 
-<H3><a name="CPlusPlus11_unrestricted_unions">7.2.19 Unrestricted unions</a></H3>
+<h3 id="CPlusPlus11_unrestricted_unions">7.2.19 Unrestricted unions</h3>
 
 
 <p>SWIG fully supports any type inside a union even if it does not
@@ -1546,7 +1546,7 @@ union P {
 } p1;
 </pre></div>
 
-<H3><a name="CPlusPlus11_variadic_templates">7.2.20 Variadic templates</a></H3>
+<h3 id="CPlusPlus11_variadic_templates">7.2.20 Variadic templates</h3>
 
 
 <p>SWIG supports the variadic templates including the &lt;&gt;
@@ -1614,7 +1614,7 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
-<H3><a name="CPlusPlus11_new_char_literals">7.2.21 New character literals</a></H3>
+<h3 id="CPlusPlus11_new_char_literals">7.2.21 New character literals</h3>
 
 
 <p>
@@ -1631,7 +1631,7 @@ char32_t b = U'b';
 <b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
 </p>
 
-<H3><a name="CPlusPlus11_new_string_literals">7.2.22 New string literals</a></H3>
+<h3 id="CPlusPlus11_new_string_literals">7.2.22 New string literals</h3>
 
 
 <p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
@@ -1661,7 +1661,7 @@ Note: There is a bug currently where SWIG's preprocessor incorrectly parses an o
 inside raw string literals.
 </p>
 
-<H3><a name="CPlusPlus11_user_defined_literals">7.2.23 User-defined literals</a></H3>
+<h3 id="CPlusPlus11_user_defined_literals">7.2.23 User-defined literals</h3>
 
 
 <p>
@@ -1728,7 +1728,7 @@ OutputType var2 = 1234_suffix;
 OutputType var3 = 3.1416_suffix;
 </pre></div>
 
-<H3><a name="CPlusPlus11_thread_local_storage">7.2.24 Thread-local storage</a></H3>
+<h3 id="CPlusPlus11_thread_local_storage">7.2.24 Thread-local storage</h3>
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
@@ -1748,7 +1748,7 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_defaulted_deleted">7.2.25 Explicitly defaulted functions and deleted functions</a></H3>
+<h3 id="CPlusPlus11_defaulted_deleted">7.2.25 Explicitly defaulted functions and deleted functions</h3>
 
 
 <p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
@@ -1786,12 +1786,12 @@ This is a C++ compile time check and SWIG does not make any attempt to detect if
 so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
 </p>
 
-<H3><a name="CPlusPlus11_type_long_long_int">7.2.26 Type long long int</a></H3>
+<h3 id="CPlusPlus11_type_long_long_int">7.2.26 Type long long int</h3>
 
 
 <p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
 
-<H3><a name="CPlusPlus11_static_assertions">7.2.27 Static assertions</a></H3>
+<h3 id="CPlusPlus11_static_assertions">7.2.27 Static assertions</h3>
 
 
 <p>
@@ -1807,7 +1807,7 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_sizeof">7.2.28 Allow sizeof to work on members of classes without an explicit object</a></H3>
+<h3 id="CPlusPlus11_sizeof">7.2.28 Allow sizeof to work on members of classes without an explicit object</h3>
 
 
 <p>
@@ -1828,7 +1828,7 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
-<H3><a name="CPlusPlus11_noexcept">7.2.29 Exception specifications and noexcept</a></H3>
+<h3 id="CPlusPlus11_noexcept">7.2.29 Exception specifications and noexcept</h3>
 
 
 <p>
@@ -1844,7 +1844,7 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
-<H3><a name="CPlusPlus11_alignment">7.2.30 Control and query object alignment</a></H3>
+<h3 id="CPlusPlus11_alignment">7.2.30 Control and query object alignment</h3>
 
 
 <p>
@@ -1876,7 +1876,7 @@ Use the preprocessor to work around this for now:
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_attributes">7.2.31 Attributes</a></H3>
+<h3 id="CPlusPlus11_attributes">7.2.31 Attributes</h3>
 
 
 <p>
@@ -1892,7 +1892,7 @@ int [[attr1]] i [[attr2, attr3]];
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_ref_qualifiers">7.2.32 Methods with ref-qualifiers</a></H3>
+<h3 id="CPlusPlus11_ref_qualifiers">7.2.32 Methods with ref-qualifiers</h3>
 
 
 <p>
@@ -1989,10 +1989,10 @@ resulting in:
 <p>
 <b>Compatibility note:</b> SWIG-4.0.0 was the first version to support ref-qualifiers.
 </p>
-<H2><a name="CPlusPlus11_standard_library_changes">7.3 Standard library changes</a></H2>
+<h2 id="CPlusPlus11_standard_library_changes">7.3 Standard library changes</h2>
 
 
-<H3><a name="CPlusPlus11_threading_facilities">7.3.1 Threading facilities</a></H3>
+<h3 id="CPlusPlus11_threading_facilities">7.3.1 Threading facilities</h3>
 
 
 <p>SWIG does not currently wrap or use any of the new threading
@@ -2000,7 +2000,7 @@ classes introduced (thread, mutex, locks, condition variables, task). The main r
 SWIG target languages offer their own threading facilities so there is limited use for them.
 </p>
 
-<H3><a name="CPlusPlus11_tuple_types">7.3.2 Tuple types</a></H3>
+<h3 id="CPlusPlus11_tuple_types">7.3.2 Tuple types</h3>
 
 
 <p>
@@ -2008,7 +2008,7 @@ SWIG does not provide library files for the new tuple types yet.
 Variadic template support requires further work to provide substantial tuple wrappers.
 </p>
 
-<H3><a name="CPlusPlus11_hash_tables">7.3.3 Hash tables</a></H3>
+<h3 id="CPlusPlus11_hash_tables">7.3.3 Hash tables</h3>
 
 
 <p>
@@ -2017,14 +2017,14 @@ These are not available in all target languages.
 Any missing support can in principle be easily implemented by adapting the current STL containers.
 </p>
 
-<H3><a name="CPlusPlus11_regular_expressions">7.3.4 Regular expressions</a></H3>
+<h3 id="CPlusPlus11_regular_expressions">7.3.4 Regular expressions</h3>
 
 
 <p>
 While SWIG could provide wrappers for the new C++11 regular expressions classes, there is little need as the target languages have their own regular expression facilities.
 </p>
 
-<H3><a name="CPlusPlus11_general_purpose_smart_pointers">7.3.5 General-purpose smart pointers</a></H3>
+<h3 id="CPlusPlus11_general_purpose_smart_pointers">7.3.5 General-purpose smart pointers</h3>
 
 
 <p>
@@ -2035,12 +2035,12 @@ There is no special smart pointer handling available for <tt>std::weak_ptr</tt>.
 
 </p>
 
-<H3><a name="CPlusPlus11_extensible_random_number_facility">7.3.6 Extensible random number facility</a></H3>
+<h3 id="CPlusPlus11_extensible_random_number_facility">7.3.6 Extensible random number facility</h3>
 
 
 <p>This feature extends and standardizes the standard library only and does not affect the C++ language nor SWIG.</p>
 
-<H3><a name="CPlusPlus11_wrapper_reference">7.3.7 Wrapper reference</a></H3>
+<h3 id="CPlusPlus11_wrapper_reference">7.3.7 Wrapper reference</h3>
 
 
 <p>
@@ -2051,7 +2051,7 @@ Users would need to write their own typemaps if wrapper references are being use
 </p>
 
 
-<H3><a name="CPlusPlus11_polymorphous_wrappers_for_function_objects">7.3.8 Polymorphic wrappers for function objects</a></H3>
+<h3 id="CPlusPlus11_polymorphous_wrappers_for_function_objects">7.3.8 Polymorphic wrappers for function objects</h3>
 
 
 <p>
@@ -2095,7 +2095,7 @@ for the C-side <tt>%callback</tt> mechanism, and
 for the C++ director-based mechanism.
 </p>
 
-<H3><a name="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</a></H3>
+<h3 id="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</h3>
 
 
 <p>The type_traits functions to support C++ metaprogramming is useful at compile time and is aimed specifically at C++ development:</p>
@@ -2145,7 +2145,7 @@ Then the appropriate algorithm can be called for the subset of types given by th
 2
 </pre></div>
 
-<H3><a name="CPlusPlus11_uniform_method_for_computing_return_type_of_function_objects">7.3.10 Uniform method for computing return type of function objects</a></H3>
+<h3 id="CPlusPlus11_uniform_method_for_computing_return_type_of_function_objects">7.3.10 Uniform method for computing return type of function objects</h3>
 
 
 <p>
