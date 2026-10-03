@@ -765,6 +765,7 @@ CPP20_TEST_CASES += \
 	cpp20_abbreviated_template_overloads \
 	cpp20_alias_template \
 	cpp20_auto_variable_new_expression \
+	cpp20_class_nontype_template_parameter \
 	cpp20_concepts \
 	cpp20_concepts_class_methods \
 	cpp20_concepts_classes \

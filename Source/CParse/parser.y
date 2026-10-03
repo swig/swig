@@ -6828,10 +6828,21 @@ templateparameter : templcpptype type_id_default {
                     Setattr($$, "value", $type_id_default);
 		  }
                   | cpptype identifier EQUAL type_id {
-                    $$ = NewParmWithoutFileLineInfo($cpptype, $identifier);
+                    if (Equal($cpptype, "struct") || Equal($cpptype, "union")) {
+                      /* Not a type parameter but an unnamed non-type parameter of class type, such as 'struct S = s',
+                         whose default value has been parsed as a type-id */
+                      String *type = NewStringf("%s %s", $cpptype, $identifier);
+                      String *value = SwigType_str($type_id, 0);
+                      $$ = NewParmWithoutFileLineInfo(type, 0);
+                      Setattr($$, "value", value);
+                      Delete(value);
+                      Delete(type);
+                    } else {
+                      $$ = NewParmWithoutFileLineInfo($cpptype, $identifier);
+                      Setattr($$, "value", $type_id);
+                    }
                     Setfile($$, cparse_file);
                     Setline($$, cparse_line);
-                    Setattr($$, "value", $type_id);
                   }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($template_parms), $cpptype, $idcolon), $idcolon);
