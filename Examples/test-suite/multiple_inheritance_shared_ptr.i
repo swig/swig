@@ -8,7 +8,7 @@
 // Note we don't have a way to use $javainterfacename/$csinterfacename (yet),
 // so we improvise somewhat by adding the SwigImpl suffix
 %define SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(CONST, TYPE...)
-#if defined(SWIGJAVA)
+#ifdef SWIGJAVA_SOURCE
 %typemap(javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
@@ -19,6 +19,18 @@
                   SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : ($typemap(jstype, TYPE))new $typemap(jstype, TYPE)SwigImpl(cPtr, true);
+  }
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javain) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                 SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& "if ($javainput == null) 0L else $javainput.$typemap(jstype, TYPE)_GetInterfaceCPtr()"
+%typemap(javaout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *& {
+    var cPtr = $jnicall
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)SwigImpl(cPtr, true)
   }
 #elif defined(SWIGCSHARP)
 %typemap(csin) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
