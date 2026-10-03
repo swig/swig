@@ -1101,6 +1101,10 @@ int Language::cDeclaration(Node *n) {
   }
 }
 
+bool Language::isStaticFunction(Node *n) {
+  return CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
+}
+
 /* ----------------------------------------------------------------------
  * Language::functionHandler()
  * ---------------------------------------------------------------------- */
@@ -1108,7 +1112,7 @@ int Language::cDeclaration(Node *n) {
 int Language::functionHandler(Node *n) {
   String *storage = Getattr(n, "storage");
   int isfriend = CurrentClass && Strstr(storage, "friend");
-  int isstatic = CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
+  int isstatic = Language::isStaticFunction(n);
   Parm *p = Getattr(n, "parms");
   if (GetFlag(n, "feature:del")) {
     /* the method acts like a delete operator, ie, we need to disown the parameter */

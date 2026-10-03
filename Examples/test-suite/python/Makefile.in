@@ -73,6 +73,7 @@ CPP_TEST_CASES += \
 	python_overload_simple_cast \
 	python_pickle \
 	python_pyi \
+	python_pyi_overloads_positional \
 	python_pyi_untyped \
 	python_pythoncode \
 	python_richcompare \
@@ -153,6 +154,7 @@ python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 python_typehints.cpptest: SWIGOPT += -typehints
 python_pyi.cpptest: SWIGOPT += -pyi
+python_pyi_overloads_positional.cpptest: SWIGOPT += -pyi
 python_pyi_untyped.cpptest: SWIGOPT += -pyi
 
 # A stub with no annotations in it, so -typehints and Pyrefly do not apply to this test either.
@@ -169,6 +171,24 @@ python_runtime_data.multicpptest: override SWIGOPT := $(filter-out -builtin,$(SW
 python_runtime_data.multicpptest: swig_and_compile_multi_cpp = \
 	$(call swig_and_compile_cpp_helper,python_runtime_data_builtin,'$(SWIGOPT) -builtin' PY_ABI_VER=) && \
 	$(call swig_and_compile_cpp_helper,python_runtime_data_nobuiltin,'$(SWIGOPT)')
+
+# These failures can be reduced to:
+# class Base {
+# 	void foo(int, int);
+#   void foo(int);
+# };
+# class Derived : public Base {
+# 	void foo(int); // Only overrides one member.
+# };
+# In this case, Swig will not handle Derived::foo(int, int).
+# Thus, we don't generate an overload for it in the type annotations.
+# But this results in a [bad-override] error.
+li_std_wstream.cpptest: PYREFLY_EXTRA_FLAGS := --ignore=bad-override
+li_std_stream.cpptest: PYREFLY_EXTRA_FLAGS := --ignore=bad-override
+director_overload2.cpptest: PYREFLY_EXTRA_FLAGS := --ignore=bad-override
+
+# This may be a bug in pyrefly - all __eq__ overloads have the same signature as the one from the base.
+python_richcompare.cpptest: PYREFLY_EXTRA_FLAGS := --ignore=bad-override
 
 # Rules for the different types of tests
 %.cpptest:
