@@ -5,6 +5,7 @@ require 'li_std_wstring'
 h = "h"
 swig_assert_equal("Li_std_wstring.test_wcvalue(h)", "h", binding)
 swig_assert_equal("Li_std_wstring.wchar_default()", "0x263A", binding)
+swig_assert_equal("Li_std_wstring.wchar_default_ucn()", "0x263A", binding)
 
 x = "abc"
 swig_assert_equal("Li_std_wstring.test_ccvalue(x)", "x", binding)

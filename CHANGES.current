@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-03: wsfulton
+            Fix a universal character name, such as \u263A or \U0001F600, in a character literal or
+            a narrow string literal, which was kept as the text \u263A, giving the wrong value in
+            generated code, such as for a constant or default argument:
+
+              #define SMILE L'\u263A'
+              int f(wchar_t c = L'\u263A');
+
 2026-10-03: olly
 	    [Guile] Guile >= 2.0 is now required, since we haven't been testing
 	    with Guile 1.x for approaching 5 years.  Some internal compatibility

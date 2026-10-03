@@ -386,8 +386,9 @@ static void retract(Scanner *s, int n) {
 /* -----------------------------------------------------------------------------
  * put_escape_value()
  *
- * Append the value of a numeric escape sequence. In a wide character literal, a value that is not ASCII is appended as
- * its UTF-8 encoding, as a UTF-8 source character already is, rather than truncated.
+ * Append the value of a numeric escape sequence. In a wide character literal, and for a universal character name in any
+ * literal, a value that is not ASCII is appended as its UTF-8 encoding, as a UTF-8 source character already is, rather
+ * than truncated.
  * ----------------------------------------------------------------------------- */
 
 static void put_escape_value(Scanner *s, int value, int wide_char) {
@@ -419,6 +420,8 @@ static void put_escape_value(Scanner *s, int value, int wide_char) {
 static void get_escape(Scanner *s, int wide_char) {
   int result = 0;
   int state = 0;
+  int ucn_digits = 0;
+  int ucn_start = 0;
   int c;
 
   while (1) {
@@ -496,6 +499,15 @@ static void get_escape(Scanner *s, int wide_char) {
       } else if (c == 'x') {
         state = 20;
         Delitem(s->text, DOH_END);
+      } else if (c == 'u' || c == 'U') {
+        /* Kept as text unless it is a universal character name, as a SWIG directive string can use '\u' and '\U' for
+           other purposes, such as case conversion in a %rename regex */
+        state = 30;
+        ucn_digits = c == 'u' ? 4 : 8;
+        Delitem(s->text, DOH_END);
+        ucn_start = Len(s->text);
+        Putc('\\', s->text);
+        Putc((char)c, s->text);
       } else {
         Delitem(s->text, DOH_END);
         Putc('\\', s->text);
@@ -531,6 +543,21 @@ static void get_escape(Scanner *s, int wide_char) {
       else
         result = (result << 4) + (10 + tolower(c) - 'a');
       Delitem(s->text, DOH_END);
+      break;
+    case 30:  // Universal character name of 4 or 8 hexadecimal digits
+      if (!isxdigit(c)) {
+        retract(s, 1);
+        return;
+      }
+      if (result <= 0x10FFFF)
+        result = (result << 4) + (isdigit(c) ? c - '0' : 10 + tolower(c) - 'a');
+      if (--ucn_digits == 0) {
+        if (result <= 0x10FFFF) {
+          Delslice(s->text, ucn_start, Len(s->text));
+          put_escape_value(s, result, 1);
+        }
+        return;
+      }
       break;
     }
   }

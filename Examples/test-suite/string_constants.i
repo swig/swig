@@ -7,6 +7,8 @@
 %csconst(1);
 %csconstvalue("\"AEIOU\\n\"") SS1;
 %csconstvalue("\"AEIOU\\n\"") SS2;
+%csconstvalue("\"AEIOU\\n\"") UU1;
+%csconstvalue("\"AEIOU\\n\"") UU2;
 #endif
 #if defined(SWIGJAVA)
 %javaconst(1);
@@ -20,6 +22,8 @@
 #define ES1 ""
 #define QQ1 "\b00! \18\14200!"
 #define PR1 ("paren")
+// Universal character names, the same as SS1 and SS2
+#define UU1 "\u00C6\u00CEOU\n"
 %}
 %constant SS2="ÆÎOU\n";
 %constant AA2="A\rB\nC";
@@ -29,6 +33,7 @@
 %constant ES2="";
 %constant QQ2="\b00! \18\14200!";
 %constant PR2=("paren");
+%constant UU2="\u00C6\u00CEOU\n";
 
 %inline %{
 static const char *SS3 = "ÆÎOU\n";

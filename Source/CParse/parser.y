@@ -3414,17 +3414,17 @@ static void add_array_from_scanner(SwigType *type) {
   Delete(bound);
 }
 
-/* Decode the UTF-8 'text' that the scanner stores for a wide character literal, returning the code point of
-   its single character, or -1 if 'text' is not a single character. A hexadecimal or octal escape sequence in
-   the literal is encoded as UTF-8 by put_escape_value() in scanner.c, while a character written as itself is
-   copied unchanged from the source file, so it is UTF-8 only in a UTF-8 source file. Either way, an ASCII
-   character is a single char. A code point is the number Unicode assigns to a character and is the value of a
-   wide character literal holding it. For example:
+/* Decode the UTF-8 'text' that the scanner stores for a wide character literal, returning the code point of its single
+   character, or -1 if 'text' is not a single character. A hexadecimal or octal escape sequence or a universal
+   character name in the literal is encoded as UTF-8 by put_escape_value() in scanner.c, while a character written as
+   itself is copied unchanged from the source file, so it is UTF-8 only in a UTF-8 source file. Either way, an ASCII
+   character is a single char. A code point is the number Unicode assigns to a character and is the value of a wide
+   character literal holding it. For example:
 
-     Literal                              'text' (UTF-8 bytes)   Returns
-     L'A' or L'\x41'                      41                     0x41
-     L'\xF1' or the n with tilde itself   C3 B1                  0xF1
-     L'\x263A' or the smiley face itself  E2 98 BA               0x263A
+     Literal                                         'text' (UTF-8 bytes)   Returns
+     L'A', L'\x41' or L'\u0041'                      41                     0x41
+     L'\xF1', L'\u00F1' or the n with tilde itself   C3 B1                  0xF1
+     L'\x263A', L'\u263A' or the smiley face itself  E2 98 BA               0x263A
 */
 static long wide_char_code_point(String *text) {
   const unsigned char *s = (const unsigned char *)Char(text);

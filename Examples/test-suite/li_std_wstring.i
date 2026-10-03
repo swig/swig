@@ -21,6 +21,7 @@
 
 // The wrapper is given the default value
 %feature("compactdefaultargs") wchar_default;
+%feature("compactdefaultargs") wchar_default_ucn;
 
 %inline %{
 #include <string>
@@ -45,6 +46,10 @@ wchar_t test_wcvalue(wchar_t x) {
 }
 
 int wchar_default(wchar_t x = L'\x263A') {
+  return (int)x;
+}
+
+int wchar_default_ucn(wchar_t x = L'\u263A') {
   return (int)x;
 }
 
