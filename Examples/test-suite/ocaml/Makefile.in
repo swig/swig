@@ -112,6 +112,7 @@ clean:
 	rm -f clientdata_prop_a.ml clientdata_prop_b.ml
 	rm -f import_share_a.ml import_share_b.ml import_share_c.ml
 	rm -f import_stl_a.ml import_stl_b.ml import_stl_c.ml
+	rm -f import_vector_fwd_a.ml import_vector_fwd_b.ml
 	rm -f imports_a.ml imports_b.ml
 	rm -f mod_a.ml mod_b.ml
 	rm -f multi_import_a.ml multi_import_b.ml multi_import_d.ml

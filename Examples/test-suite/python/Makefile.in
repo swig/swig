@@ -238,6 +238,7 @@ clean:
 	rm -f python_annotations_import_a.py* python_annotations_import_b.py*
 	rm -f import_share_a.py* import_share_b.py* import_share_c.py*
 	rm -f import_stl_a.py* import_stl_b.py* import_stl_c.py*
+	rm -f import_vector_fwd_a.py* import_vector_fwd_b.py*
 	rm -f imports_a.py* imports_b.py* mod_a.py* mod_b.py*
 	rm -f multi_import_a.py* multi_import_b.py* multi_import_d.py*
 	rm -f packageoption_a.py* packageoption_b.py* packageoption_c.py*
