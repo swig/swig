@@ -6844,6 +6844,19 @@ templateparameter : templcpptype type_id_default {
                     Setfile($$, cparse_file);
                     Setline($$, cparse_line);
                   }
+                  | cpptype identifier EQUAL type LBRACE {
+                    /* An unnamed non-type parameter of class type with a braced default, such as 'struct S = S{}' */
+                    String *type = NewStringf("%s %s", $cpptype, $identifier);
+                    String *value = SwigType_str($type, 0);
+                    if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);
+                    append_expr_from_scanner(value);
+                    $$ = NewParmWithoutFileLineInfo(type, 0);
+                    Setfile($$, cparse_file);
+                    Setline($$, cparse_line);
+                    Setattr($$, "value", value);
+                    Delete(value);
+                    Delete(type);
+                  }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($template_parms), $cpptype, $idcolon), $idcolon);
 		    Setfile($$, cparse_file);
