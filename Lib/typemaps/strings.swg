@@ -27,6 +27,7 @@
 			 SWIG_AsCharPtr,
 			 SWIG_FromCharPtr,
 			 SWIG_AsCharArray,
+			 SWIG_AsCharArrayRef,
                          SWIG_NewCopyCharArray,
                          SWIG_DeleteCharArray)
 
@@ -272,9 +273,12 @@
 }
 %typemap(freearg) Char [ANY], const Char [ANY] ""
 
-%typemap(in,noblock=1,fragment=#SWIG_AsCharArray) Char (&)[ANY] (Char temp[$1_dim0], int res), Char (&&)[ANY] (Char temp[$1_dim0], int res)
-{  
-  res = SWIG_AsCharArray($input, temp, $1_dim0);
+%typemap(in,noblock=1,fragment=#SWIG_AsCharArrayRef) Char (&)[ANY] (Char temp[$1_dim0], int res), Char (&&)[ANY] (Char temp[$1_dim0], int res)
+{
+  res = SWIG_AsCharArrayRef($input, temp, $1_dim0);
+  if (res == SWIG_NullReferenceError) {
+    %argument_nullref("$type",$symname, $argnum);
+  }
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
@@ -303,7 +307,16 @@
   }
 }
 
-%typemap(varin) Char (&)[ANY], Char (&&)[ANY] = Char [ANY];
+%typemap(varin,fragment=#SWIG_AsCharArrayRef) Char (&)[ANY], Char (&&)[ANY]
+{
+  int res = SWIG_AsCharArrayRef($input, $1, $1_dim0);
+  if (res == SWIG_NullReferenceError) {
+    %variable_nullref("$type", "$name");
+  }
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  }
+}
 
 /* varout */
 
@@ -558,15 +571,20 @@ SWIG_From##CharName##Array(const Char *cptr, size_t size)
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_AsCharPtrAndSize(obj, val, NULL, alloc))
 }
 
-%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
+/* Copy the string 'obj' into the char array 'val' of 'size' elements, as for a reference to a char array, which cannot be
+ * null: a null string gives SWIG_NullReferenceError. */
+%fragment("SWIG_As" #CharName "ArrayRef","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
-SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
-{ 
+SWIG_As##CharName##ArrayRef(SWIG_Object obj, Char *val, size_t size)
+{
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
-    /* csize includes the NUL terminator, except for a null string */
-    int copied = SWIG_Copy##CharName##Array(val, size, cptr, csize ? csize - 1 : 0);
+    int copied;
+    if (!cptr)
+      return SWIG_NullReferenceError;
+    /* csize includes the NUL terminator */
+    copied = SWIG_Copy##CharName##Array(val, size, cptr, csize - 1);
     if (alloc == SWIG_NEWOBJ) {
       SWIG_DeleteCharArray(cptr);
       res = SWIG_DelNewMask(res);
@@ -575,6 +593,21 @@ SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
       return res;
   }
   return SWIG_TypeError;
+}
+}
+
+/* As SWIG_AsCharArrayRef, but a null string gives a zero filled array, as for a char array passed by value */
+%fragment("SWIG_As" #CharName "Array","header",fragment="SWIG_As" #CharName "ArrayRef") {
+SWIGINTERN int
+SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
+{
+  int res = SWIG_As##CharName##ArrayRef(obj, val, size);
+  if (res == SWIG_NullReferenceError) {
+    if (val)
+      memset(val, 0, size * sizeof(Char));
+    res = SWIG_OK;
+  }
+  return res;
 }
 }
 
@@ -621,6 +654,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		 SWIG_As##CharName##Ptr,
 		 SWIG_From##CharName##Ptr,
 		 SWIG_As##CharName##Array,
+		 SWIG_As##CharName##ArrayRef,
 		 SWIG_NewCopyCharArray,
 		 SWIG_DeleteCharArray)
 

@@ -15,6 +15,14 @@ Arrayref.letters_ref = "xy"
 swig_assert_equal('Arrayref.letters_are', "'xy'", binding)
 swig_assert_equal('Arrayref.frozen_ref', "'xyz'", binding)
 
+# A reference to an array of char cannot be nil.
+swig_assert_equal('Arrayref.length_of("abc")', '3', binding)
+begin
+  Arrayref.length_of(nil)
+  raise RuntimeError, "length_of(nil) did not raise"
+rescue NullReferenceError
+end
+
 member = Arrayref::ArrayRefMember.new
 swig_assert_equal('member.sum', '10', binding)
 swig_assert_equal('member.text_ref', "'hi'", binding)

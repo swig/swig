@@ -14,6 +14,14 @@ check::set("letters_ref", "xy");
 check::equal(letters_are(), "xy", "letters_are");
 check::equal(check::get("frozen_ref"), "xyz", "frozen_ref");
 
+// A reference to an array of char cannot be null.
+check::equal(length_of("abc"), 3, "length_of");
+try {
+  length_of(null);
+  check::fail("length_of(null) did not throw");
+} catch (TypeError $e) {
+}
+
 $member = new ArrayRefMember();
 check::equal($member->sum(), 10, "member sum");
 check::equal($member->text_ref, "hi", "member text_ref");

@@ -18,6 +18,18 @@ if (arrayref.letters_are() !== "xy")
 if (arrayref.frozen_ref !== "xyz")
   throw new Error("frozen_ref");
 
+// A reference to an array of char cannot be null.
+if (arrayref.length_of("abc") !== 3)
+  throw new Error("length_of");
+var threw = false;
+try {
+  arrayref.length_of(null);
+} catch (e) {
+  threw = true;
+}
+if (!threw)
+  throw new Error("length_of(null) did not throw");
+
 var member = new arrayref.ArrayRefMember();
 if (member.sum() !== 10)
   throw new Error("member sum");

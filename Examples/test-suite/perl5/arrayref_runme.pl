@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 15;
 BEGIN { use_ok('arrayref') }
 require_ok('arrayref');
 
@@ -15,6 +15,11 @@ is($arrayref::letters_ref, "abc", "letters_ref");
 $arrayref::letters_ref = "xy";
 is(arrayref::letters_are(), "xy", "letters_are");
 is($arrayref::frozen_ref, "xyz", "frozen_ref");
+
+# A reference to an array of char cannot be undef.
+is(arrayref::length_of("abc"), 3, "length_of");
+eval { arrayref::length_of(undef) };
+like($@, qr/invalid null reference/, "length_of(undef)");
 
 my $member = arrayref::ArrayRefMember->new();
 is($member->sum(), 10, "member sum");

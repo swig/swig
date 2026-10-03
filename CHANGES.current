@@ -13,6 +13,22 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Javascript, Octave, Perl, PHP, Python, Ruby] A NULL argument, such as None in
+            Python, for a parameter that is a reference to a char array, or NULL assigned to a
+            variable or member of that type, is now an error, as a reference cannot be NULL,
+            instead of being converted to an empty string:
+
+              int length_of(const char (&text)[8]);
+
+            The error is the one given for a NULL reference of any other type, such as a
+            TypeError in Python and PHP and a NullReferenceError in Ruby. The other target
+            languages already reject NULL for such a parameter: an ArgumentNullException in C#,
+            an Exception in D, wrong-type-arg in Guile, a NullPointerException in Java, a Lua
+            error, Invalid_argument in OCaml and a TypeError in R and Scilab.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
             [C, C#, D, Go, Guile, Java, Lua, OCaml, PHP]
             Fix setting a char[1] member or global variable to a one char string, which stored
             an empty string. The char is now stored, as for the other target languages, a char[1]

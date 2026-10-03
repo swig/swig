@@ -104,15 +104,18 @@ SWIG_JSC_From##CharName##Array(JSContextRef context, const Char *cptr, size_t si
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_JSC_AsCharPtrAndSize(context, obj, val, NULL, alloc))
 }
 
-%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
+%fragment("SWIG_As" #CharName "ArrayRef","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
-SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
+SWIG_JSC_As##CharName##ArrayRef(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
 {
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_JSC_AsCharPtrAndSize(context, obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
-    /* csize includes the NUL terminator, except for a null string */
-    int copied = SWIG_Copy##CharName##Array(val, size, cptr, csize ? csize - 1 : 0);
+    int copied;
+    if (!cptr)
+      return SWIG_NullReferenceError;
+    /* csize includes the NUL terminator */
+    copied = SWIG_Copy##CharName##Array(val, size, cptr, csize - 1);
     if (alloc == SWIG_NEWOBJ) {
       SWIG_DeleteCharArray(cptr);
       res = SWIG_DelNewMask(res);
@@ -121,6 +124,22 @@ SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, s
       return res;
   }
   return SWIG_TypeError;
+}
+
+#define SWIG_As##CharName##ArrayRef(obj, val, size) SWIG_JSC_As##CharName##ArrayRef(context, obj, val, size)
+}
+
+%fragment("SWIG_As" #CharName "Array","header",fragment="SWIG_As" #CharName "ArrayRef") {
+SWIGINTERN int
+SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
+{
+  int res = SWIG_JSC_As##CharName##ArrayRef(context, obj, val, size);
+  if (res == SWIG_NullReferenceError) {
+    if (val)
+      memset(val, 0, size * sizeof(Char));
+    res = SWIG_OK;
+  }
+  return res;
 }
 
 #define SWIG_As##CharName##Array(obj, val, size) SWIG_JSC_As##CharName##Array(context, obj, val, size)
@@ -169,6 +188,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
                  SWIG_As##CharName##Ptr,
                  SWIG_From##CharName##Ptr,
                  SWIG_As##CharName##Array,
+                 SWIG_As##CharName##ArrayRef,
                  SWIG_NewCopyCharArray,
                  SWIG_DeleteCharArray)
 

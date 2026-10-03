@@ -641,6 +641,20 @@
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
+/* Unlike for a char array, null is not converted to "", as a reference cannot be bound to null */
+%typemap(in, phptype="string", fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
+%{
+   if (Z_TYPE($input) == IS_NULL) {
+     zend_type_error("Invalid null reference for argument $argnum of $symname");
+     SWIG_fail;
+   }
+   convert_to_string(&$input);
+   if (!SWIG_CopyCharArray(temp, $1_dim0, Z_STRVAL($input), Z_STRLEN($input))) {
+     zend_value_error("String too long for char array argument $argnum of $symname");
+     SWIG_fail;
+   }
+   $1 = &temp;
+%}
 %typemap(out, phptype="string") char (&)[ANY]
 {
   size_t len = 0;

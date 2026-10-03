@@ -17,6 +17,15 @@ arrayref.cvar.letters_ref = "xy";
 if (!strcmp(arrayref.letters_are(), "xy")); error("letters_are"); endif
 if (!strcmp(arrayref.cvar.frozen_ref, "xyz")); error("frozen_ref"); endif
 
+# A reference to an array of char cannot be null.
+if (arrayref.length_of("abc") != 3); error("length_of"); endif
+try
+  arrayref.length_of([]);
+  error("length_of([]) did not fail");
+catch e
+  if (isempty(strfind(e.message, "invalid null reference"))); rethrow(e); endif
+end_try_catch
+
 member = arrayref.ArrayRefMember();
 if (member.sum() != 10); error("member sum"); endif
 if (!strcmp(member.text_ref, "hi")); error("member text_ref"); endif
