@@ -469,6 +469,12 @@ static int classify_template_param_type(const SwigType *type) {
     Delete(probe);
     return TPC_KEEP;
   }
+  /* A type named with the 'struct', 'union' or 'class' keyword, such as the 'struct Point' of 'template<struct Point P>',
+   * is a class, never a concept, which the lookup below would not find under that name. */
+  if (Strncmp(probe, "struct ", 7) == 0 || Strncmp(probe, "union ", 6) == 0 || Strncmp(probe, "class ", 6) == 0) {
+    Delete(probe);
+    return TPC_KEEP;
+  }
   /* For a template-id concept-id like 'Pair<(int)>' or 'std::convertible_to<(int)>'
    * the concept declaration is registered under the bare template prefix.  Look that
    * up; for a probe that is not a template-id the prefix is the probe itself. */

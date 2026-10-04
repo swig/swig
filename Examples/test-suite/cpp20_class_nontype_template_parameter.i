@@ -54,3 +54,13 @@ int empty_brace_default_x(const EmptyBraceDefault<Point{}> &e) { return e.get().
 %template(EmptyBraceDefaultDef) EmptyBraceDefault<>;
 %template(NamedBraceDefaultDef) NamedBraceDefault<>;
 %template(NamedBraceDefaultOther) NamedBraceDefault<Point{3, 4}>;
+
+// A named parameter introduced with 'struct' is a value, so this overload with a type parameter is not ambiguous
+%warnfilter(SWIGWARN_PARSE_REDEFINED) kind; // Both are 'int kind()' to SWIG
+%inline %{
+template<typename T> int kind() { return 1; }
+template<struct Point P> int kind() { return 2; }
+%}
+
+%template(kind_type) kind<int>;
+%template(kind_value) kind<origin>;

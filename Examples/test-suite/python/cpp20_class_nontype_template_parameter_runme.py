@@ -25,3 +25,6 @@ swig_check(empty_brace_default_x(EmptyBraceDefaultDef()), 6)
 
 swig_check(xy(NamedBraceDefaultDef().get()), (1, 2))
 swig_check(xy(NamedBraceDefaultOther().get()), (3, 4))
+
+swig_check(kind_type(), 1)
+swig_check(kind_value(), 2)

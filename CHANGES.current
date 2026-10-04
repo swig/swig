@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-04: wsfulton
+            Fix a named non-type template parameter of class type introduced with the 'struct',
+            'union' or 'class' keyword, which was taken to be a type parameter constrained by a
+            C++20 concept of that name, so overloading its template with one taking a type
+            parameter made every instantiation an "Ambiguous template instantiation" error:
+
+              template<typename T> int kind();
+              template<struct Point P> int kind();
+              %template(kind_value) kind<origin>;
+
 2026-10-03: wsfulton
             Fix a universal character name, such as \u263A or \U0001F600, in a character literal or
             a narrow string literal, which was kept as the text \u263A, giving the wrong value in
