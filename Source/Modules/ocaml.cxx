@@ -1258,6 +1258,8 @@ public:
     Replaceall(out, ")", "_xx_rparen");
     Replaceall(out, "[", "_xx_lbrace");
     Replaceall(out, "]", "_xx_rbrace");
+    Replaceall(out, "{", "_xx_lcbrace");
+    Replaceall(out, "}", "_xx_rcbrace");
     Replaceall(out, "~", "_xx_bnot");
     Replaceall(out, "=", "_xx_equals");
     Replaceall(out, "/", "_xx_slash");
