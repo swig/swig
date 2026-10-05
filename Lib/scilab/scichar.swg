@@ -246,8 +246,26 @@ SWIG_SciString_FromCharPtrArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, i
 }
 }
 
-%fragment("SWIG_FromCharPtrAndSize", "header", fragment = "SWIG_SciString_FromCharPtr") {
-%#define SWIG_FromCharPtrAndSize(charPtr, charPtrLength) SWIG_SciString_FromCharPtr(pvApiCtx, SWIG_Scilab_GetOutputPosition(), charPtr)
+%fragment("SWIG_FromCharPtrAndSize", "header", fragment = "SWIG_SciString_FromCharPtrAndSize") {
+%#define SWIG_FromCharPtrAndSize(charPtr, charPtrLength) SWIG_SciString_FromCharPtrAndSize(pvApiCtx, SWIG_Scilab_GetOutputPosition(), charPtr, charPtrLength)
+}
+/* A Scilab string is NUL terminated, so the chars, which need not be, are copied if there is no NUL within 'size' */
+%fragment("SWIG_SciString_FromCharPtrAndSize", "header", fragment = "SWIG_SciString_FromCharPtr", fragment = "<stdlib.h>", fragment = "<string.h>") {
+SWIGINTERN int
+SWIG_SciString_FromCharPtrAndSize(void *pvApiCtx, int iVarOut, const char *pchValue, size_t size) {
+  char *pchCopy;
+  int iRet;
+  if (!pchValue || memchr(pchValue, 0, size))
+    return SWIG_SciString_FromCharPtr(pvApiCtx, iVarOut, pchValue);
+  pchCopy = (char *)malloc(size + 1);
+  if (!pchCopy)
+    return SWIG_ERROR;
+  memcpy(pchCopy, pchValue, size);
+  pchCopy[size] = 0;
+  iRet = SWIG_SciString_FromCharPtr(pvApiCtx, iVarOut, pchCopy);
+  free(pchCopy);
+  return iRet;
+}
 }
 
 

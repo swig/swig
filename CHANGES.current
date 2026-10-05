@@ -13,6 +13,12 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Scilab] Fix reading a fixed size char array holding as many chars as it has
+            elements, so with no NUL terminator, such as a char[4] member set to "abcd" in C,
+            which read past the end of the array. The string read is now limited to the array
+            size, as with the other target languages.
+
+2026-10-05: wsfulton
             [Octave, Perl, PHP, Python, Ruby] A director method parameter that is a reference to
             a char array, such as 'char (&)[4]', is now passed to the target language as a string,
             as for the other target languages, instead of as a pointer. In PHP this also applies to

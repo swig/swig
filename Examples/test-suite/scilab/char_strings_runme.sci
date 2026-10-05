@@ -110,6 +110,10 @@ checkequal(global_char_array2_get(), CPLUSPLUS_MSG + "!", "global_char_array2");
 ierr = execstr("global_char_array2_set(CPLUSPLUS_MSG + ""!!"")", "errcatch");
 if ierr == 0 then swigtesterror("global_char_array2_set() error expected"); end
 
+no_nul = char_array_no_nul_get();
+checkequal(CharArrayNoNul_full_get(no_nul), "abcd", "CharArrayNoNul_full_get()");
+checkequal(CharArrayNoNul_after_get(no_nul), "XYZ", "CharArrayNoNul_after_get()");
+
 for i = 0:count-1
   checkequal(global_const_char_get(), CPLUSPLUS_MSG, "global_const_char");
 end
