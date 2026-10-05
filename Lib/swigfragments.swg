@@ -153,10 +153,14 @@ SWIGINTERN int SWIG_Copy##CharName##Array(Char *buf, size_t size, const Char *st
 %_copy_char_array_fragment(char, Char, "<stddef.h>")
 %_copy_char_array_fragment(wchar_t, WChar, "<wchar.h>")
 
-/* The length of the string in the char array 'buf' of 'size' elements, which has no NUL terminator when it is full. */
+/* The length of the string in the char array 'buf' of 'size' elements, which has no NUL terminator when it is full.
+ * It is 0 for a NULL 'buf'. */
 %fragment("SWIG_CharArrayLength", "header", fragment="<string.h>") {
 SWIGINTERN size_t SWIG_CharArrayLength(const char *buf, size_t size) {
-  const char *nul = (const char *)memchr(buf, 0, size);
+  const char *nul;
+  if (!buf)
+    return 0;
+  nul = (const char *)memchr(buf, 0, size);
   return nul ? (size_t)(nul - buf) : size;
 }
 }

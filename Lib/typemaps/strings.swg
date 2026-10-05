@@ -373,6 +373,8 @@
   $input = SWIG_FromCharPtrAndSize($1, size);
 }
 
+%typemap(directorin) Char (&)[ANY], Char (&&)[ANY] = Char [ANY];
+
 /* directorout */
 
 %typemap(directorout,noblock=1,fragment=#SWIG_AsCharArray)

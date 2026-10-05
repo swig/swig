@@ -386,6 +386,17 @@
     }
 %}
 
+/* The NULL check is of a copy of $1, as checking a char (&)[ANY] reference itself gives a gcc -Waddress warning */
+%typemap(directorin, fragment="SWIG_CharArrayLength") char [ANY]
+%{ {
+    const char *swig_buf = (const char *)$1;
+    if(!swig_buf) {
+      ZVAL_NULL($input);
+    } else {
+      ZVAL_STRINGL($input, swig_buf, SWIG_CharArrayLength(swig_buf, $1_dim0));
+    }
+  } %}
+
 %typemap(out, phptype="bool") bool
 %{
   RETVAL_BOOL(($1) ? 1 : 0);

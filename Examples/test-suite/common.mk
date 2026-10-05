@@ -198,6 +198,7 @@ CPP_TEST_CASES += \
 	director_basic \
 	director_binary_string \
 	director_binary_string_rev_len \
+	director_char_array \
 	director_classes \
 	director_classic \
 	director_constructor \

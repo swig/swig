@@ -785,7 +785,21 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 }
 
-%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char[ANY], char[] {
+/* No NULL check of $1 itself, as it is never NULL for the char (&)[ANY] typemap applied from this one */
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1, fragment="SWIG_CharArrayString") char[ANY] {
+  $input = 0;
+  {
+    const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
+    if (swig_str) {
+      $input = JCALL1(NewStringUTF, jenv, swig_str);
+      SWIG_DeleteCharArrayString(swig_str, (const char *)$1);
+      if (!$input)
+        return $null;
+    }
+  }
+  Swig::LocalRefGuard $1_refguard(jenv, $input);
+}
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) char[] {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);

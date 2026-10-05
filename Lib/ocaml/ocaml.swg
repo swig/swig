@@ -269,7 +269,16 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %char_ptr_out(out);
 %char_ptr_out(varout);
-%char_ptr_out(directorin);
+
+%typemap(directorin)
+    char *, signed char *, unsigned char *,
+    const char *, const signed char *, const unsigned char *,
+    char [], const char [] {
+    args = caml_list_append(args, caml_val_string((char *)$1));
+}
+%typemap(directorin, fragment="SWIG_CharArrayLength") char [ANY], const char [ANY] %{
+    args = caml_list_append(args, caml_val_string_len((char *)$1, (int)SWIG_CharArrayLength((const char *)$1, $1_dim0)));
+%}
 
 %define %swigtype_ptr_in(how)
 %typemap(how) SWIGTYPE * {

@@ -480,11 +480,14 @@ rvrdeleter.reset($1); %}
 %typemap(goout,fragment="CopyString") char *, char *&, char[ANY], char[]
 %{ $result = swigCopyString($1) %}
 
-%apply char[ANY] { char (&)[ANY] }
-
-%typemap(directorin,fragment="AllocateString") char *, char *&, char[ANY], char[]
+%typemap(directorin,fragment="AllocateString") char *, char *&, char[]
 %{
   $input = Swig_AllocateString((char*)$1, $1 ? strlen((char*)$1) : 0);
+%}
+
+%typemap(directorin,fragment="AllocateString",fragment="SWIG_CharArrayLength") char[ANY]
+%{
+  $input = Swig_AllocateString((char*)$1, SWIG_CharArrayLength((const char *)$1, $1_dim0));
 %}
 
 %typemap(godirectorin,fragment="CopyString") char *, char *&, char[ANY], char[]
@@ -505,6 +508,8 @@ rvrdeleter.reset($1); %}
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) char *, char *&, char[ANY], char[]
 %{ $result = ($1_ltype)$input.p; %}
+
+%apply char[ANY] { char (&)[ANY] }
 
 /* String & length */
 

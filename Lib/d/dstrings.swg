@@ -55,9 +55,14 @@
 %typemap(out) char[] %{ $result = SWIG_d_string_callback((const char *)$1); %}
 
 %typemap(directorout) char[ANY], char[] %{ $result = ($1_ltype)$input; %}
-%typemap(directorin) char[ANY], char[] %{ $input = SWIG_d_string_callback((const char *)$1); %}
+%typemap(directorin, fragment="SWIG_CharArrayString") char[ANY] %{ {
+     const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
+     $input = SWIG_d_string_callback(swig_str);
+     SWIG_DeleteCharArrayString(swig_str, (const char *)$1);
+   } %}
+%typemap(directorin) char[] %{ $input = SWIG_d_string_callback((const char *)$1); %}
 
-%typemap(ddirectorin) char[ANY], char[] "$winput"
+%typemap(ddirectorin) char[ANY], char[] "FROM_STRINGZ($winput)"
 %typemap(ddirectorout) char[ANY], char[] "$dcall"
 
 
