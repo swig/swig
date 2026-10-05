@@ -130,11 +130,11 @@ public class char_strings_runme {
         throw new Exception("Test variables 1 failed, iteration " + i);
     }
 
-    for (i=0; i<count; i++) {
-      char_strings.global_char_array1 = OTHERLAND_MSG + i;
-      if (char_strings.global_char_array1 != OTHERLAND_MSG + i)
-        throw new Exception("Test variables 2 failed, iteration " + i);
-    }
+    // global_char_array1 is a char[] with no size, so it is read only
+    if (typeof(char_strings).GetProperty("global_char_array1").CanWrite)
+      throw new Exception("global_char_array1 has a setter");
+    if (char_strings.global_char_array1 != CPLUSPLUS_MSG)
+      throw new Exception("Test variables 2 failed");
 
     for (i=0; i<count; i++) {
       char_strings.global_char_array2 = OTHERLAND_MSG + i;

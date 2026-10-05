@@ -249,10 +249,10 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $1 = ($ltype)caml_string_val($input);
 %}
 
-%typemap(varin) char [] {
-    char *temp = caml_string_val($input);
-    strcpy((char *)$1,temp);
-}
+/* Read only, as there is no size to bound the copy */
+%typemap(varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) char [] %{
+    caml_failwith("read-only $name");
+%}
 
 %define %char_ptr_out(how)
 %typemap(how)

@@ -195,18 +195,6 @@ unsigned char *OUTPUT
 
 %typemap(out) const enum SWIGTYPE & %{ $result = Rf_ScalarInteger((int)*$1); %}
 
-%typemap(memberin) char[] %{
-if ($input) strcpy($1, $input);
-else
-strcpy($1, "");
-%}
-
-%typemap(globalin) char[] %{
-if ($input) strcpy($1, $input);
-else
-strcpy($1, "");
-%}
-
 %typemap(out,noblock=1) char * 
  {  $result = $1 ? Rf_mkString(%reinterpret_cast($1,char *)) : R_NilValue; }
 

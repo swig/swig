@@ -76,11 +76,9 @@ let _ =
     assert (_global_char (C_string msg) as string = msg);
     assert (_global_char C_void as string = msg)
   ) iters;
-  List.iter (fun i ->
-    let msg = other_msg ^ string_of_int i in
-    assert (_global_char_array1 (C_string msg) as string = msg);
-    assert (_global_char_array1 C_void as string = msg)
-  ) iters;
+  (* global_char_array1 is a char[] with no size, so it is read only *)
+  assert (_global_char_array1 C_void as string = cpp_msg);
+  assert (try ignore (_global_char_array1 (C_string other_msg)); false with Failure _ -> true);
   List.iter (fun i ->
     let msg = other_msg ^ string_of_int i in
     assert (_global_char_array2 (C_string msg) as string = msg);

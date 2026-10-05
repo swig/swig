@@ -20,4 +20,12 @@ try {
 check::equal($as->array_c,"a",'$as->array_c=="a"');
 check::equal(isset($as->array_const_i),TRUE,'isset($as->array_const_i)');
 
+// A flexible array member is a char[] with no size, so it is read only
+$fca=new FlexibleCharArray();
+try {
+  $fca->chars="abc";
+  check::fail("set FlexibleCharArray chars");
+} catch (Error $e) {
+}
+
 check::done();

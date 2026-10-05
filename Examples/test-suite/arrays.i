@@ -78,3 +78,13 @@ cartPosition_t p;
 char array_shifted_size[(1<<2)];
 
 %}
+
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) chars;
+
+%inline %{
+/* A flexible array member has no size to bound a copy into it, so is read only */
+typedef struct {
+  int len;
+  char chars[];
+} FlexibleCharArray;
+%}

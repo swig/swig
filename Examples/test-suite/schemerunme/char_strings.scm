@@ -60,6 +60,10 @@
 (check (= (CharArrayDimsLength "Ping") 4))
 (check (= (CharArrayDimsLength "0123456789abcde") 15))
 
+;; global_char_array1 is a char[] with no size, so it is read only
+(expect-throw 'wrong-type-arg (global-char-array1 "x"))
+(check (string=? (global-char-array1) CPLUSPLUS_MSG))
+
 ;; A string that does not fit in a global char array along with its NUL is an error rather than truncated.
 (global-char-array2 (string-append CPLUSPLUS_MSG "!"))
 (check (string=? (global-char-array2) (string-append CPLUSPLUS_MSG "!")))

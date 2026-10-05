@@ -526,15 +526,7 @@ namespace std {
   }
 }
 
-%typemap(memberin,fragment="<string.h>") char [] {
-  if ($input) strcpy((char *)$1, (const char *)$input);
-  else $1[0] = 0;
-}
-
-%typemap(globalin,fragment="<string.h>") char [] {
-  if ($input) strcpy((char *)$1, (const char *)$input);
-  else $1[0] = 0;
-}
+/* No char [] memberin/globalin typemaps, so such a variable is read only, as there is no size to bound the copy */
 
 /* memberin/globalin typemap for arrays. */
 

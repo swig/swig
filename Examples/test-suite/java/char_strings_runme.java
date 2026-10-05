@@ -137,11 +137,14 @@ public class char_strings_runme {
         throw new RuntimeException("Test variables 1 failed, iteration " + i);
     }
 
-    for (i=0; i<count; i++) {
-      char_strings.setGlobal_char_array1(OTHERLAND_MSG + i);
-      if (!char_strings.getGlobal_char_array1().equals(OTHERLAND_MSG + i))
-        throw new RuntimeException("Test variables 2 failed, iteration " + i);
+    // global_char_array1 is a char[] with no size, so it is read only
+    try {
+      char_strings.class.getMethod("setGlobal_char_array1", String.class);
+      throw new RuntimeException("global_char_array1 has a setter");
+    } catch (NoSuchMethodException e) {
     }
+    if (!char_strings.getGlobal_char_array1().equals(CPLUSPLUS_MSG))
+      throw new RuntimeException("Test variables 2 failed");
 
     for (i=0; i<count; i++) {
       char_strings.setGlobal_char_array2(OTHERLAND_MSG + i);

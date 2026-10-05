@@ -13,6 +13,28 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [C, C#, D, Go, Guile, Java, Lua, OCaml, PHP, R]
+            A char array variable or member of unknown size is now read only, giving warning 462,
+            as there is no size to bound a copy into it, for example:
+
+              char name[] = "abc";
+              struct Message {
+                int len;
+                char text[];
+              };
+
+            Setting it used strcpy, writing past the end of the array for a longer string. In Guile,
+            this is for a member, as such a global variable could already not be set.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
+            [Octave, Perl, Python, Ruby, Scilab, Tcl] #1699
+            Fix the wrapper for a char array member of unknown size, such as a flexible array
+            member, which did not compile. The member is now read only, giving warning 462, as a
+            global variable of this type already was.
+
+2026-10-05: wsfulton
             A typemap for a fixed size array, such as 'int [ANY]', is no longer used for an array
             of unknown size, such as 'int []'. An [ANY] typemap can rely on the array size, such as
             by using $1_dim0, which was empty, so the code generated did not compile. A typemap

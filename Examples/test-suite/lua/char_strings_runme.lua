@@ -62,11 +62,9 @@ for i = 0, count - 1 do
   char_strings.global_char = msg
   assert(char_strings.global_char == msg)
 end
-for i = 0, count - 1 do
-  local msg = OTHERLAND_MSG .. i
-  char_strings.global_char_array1 = msg
-  assert(char_strings.global_char_array1 == msg)
-end
+-- global_char_array1 is a char[] with no size, so it is read only
+assert(char_strings.global_char_array1 == CPLUSPLUS_MSG)
+assert(not pcall(function() char_strings.global_char_array1 = OTHERLAND_MSG end))
 for i = 0, count - 1 do
   local msg = OTHERLAND_MSG .. i
   char_strings.global_char_array2 = msg

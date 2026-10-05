@@ -151,12 +151,9 @@ func main() {
 		}
 	}
 
-	for i := uint(0); i < count; i++ {
-		expected := OTHERLAND_MSG + strconv.Itoa(int(i))
-		char_strings.SetGlobal_char_array1(expected)
-		if char_strings.GetGlobal_char_array1() != expected {
-			panic("Test variables 2 failed, iteration " + strconv.Itoa(int(i)))
-		}
+	// global_char_array1 is a char[] with no size, so it is read only
+	if char_strings.GetGlobal_char_array1() != CPLUSPLUS_MSG {
+		panic("Test variables 2 failed")
 	}
 
 	for i := uint(0); i < count; i++ {

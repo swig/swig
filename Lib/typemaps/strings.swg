@@ -232,10 +232,14 @@
 %apply Char * { Char [] };
 %apply const Char * { const Char [] };
 
-%typemap(varin,noblock=1,warning="462:Unable to set variable of type Char []") Char []
+%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) Char []
 {
   %variable_fail(SWIG_AttributeError, "$type", "read-only $name");
 }
+
+/* Clear the memberin/globalin typemaps applied from Char *, which assign to the array, so a member is read only too */
+%typemap(memberin) Char [];
+%typemap(globalin) Char [];
 
 
 /* ------------------------------------------------------------

@@ -178,14 +178,10 @@ int main() {
     }
   }
 
-  for (i=0; i<count; i++) {
-    char str[256];
-    sprintf(str, "%s%d", OTHERLAND_MSG, i);
-    char_strings_global_char_array1_set(str);
-    if (strcmp(char_strings_global_char_array1_get(), str) != 0) {
-      fprintf(stderr, "Test variables 2 failed, iteration %d\n", i);
-      exit(1);
-    }
+  /* global_char_array1 is a char[] with no size, so it is read only */
+  if (strcmp(char_strings_global_char_array1_get(), CPLUSPLUS_MSG) != 0) {
+    fprintf(stderr, "Test variables 2 failed\n");
+    exit(1);
   }
 
   for (i=0; i<count; i++) {

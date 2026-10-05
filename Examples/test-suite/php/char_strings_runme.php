@@ -36,8 +36,9 @@ try {
 Global_char_set($OTHERLAND_MSG_10);
 check::equal(Global_char_get(), $OTHERLAND_MSG_10, "failed Global_char_get");
 
-Global_char_array1_set($OTHERLAND_MSG_10);
-check::equal(Global_char_array1_get(), $OTHERLAND_MSG_10, "failed Global_char_array1_get");
+// global_char_array1 is a char[] with no size, so it is read only
+check::equal(function_exists('global_char_array1_set'), false, "global_char_array1 has a setter");
+check::equal(Global_char_array1_get(), $CPLUSPLUS_MSG, "failed Global_char_array1_get");
 
 Global_char_array2_set($OTHERLAND_MSG_10);
 check::equal(Global_char_array2_get(), $OTHERLAND_MSG_10, "failed Global_char_array2_get");

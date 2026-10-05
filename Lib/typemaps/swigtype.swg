@@ -253,7 +253,7 @@
   $1 = %reinterpret_cast(argp, $ltype);
 }
 
-%typemap(varin,noblock=1,warning="462:Unable to set dimensionless array variable") SWIGTYPE []
+%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE []
 {
   %variable_fail(SWIG_AttributeError, "$type", "read-only $name");
 }
