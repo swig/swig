@@ -119,7 +119,7 @@ Many AI coding tools automatically append a `Co-Authored-By: <tool>` line to com
 
 CHANGES.current entries are the release notes section for users to read what has changed. An entry is only added if a change is visible to users. Internal implementation details is not recorded here. The entries should be concise. If there is no referenced issue, then more detail can be added with a short example.
 
-When an entry affects only certain target languages, tag it with the affected language(s) in square brackets at the start of the entry, e.g. `[Python]` or `[Octave, Python, Ruby]`. Keep the whole bracket tag on one line even when it lists many languages, starting the description on the following line if needed. Omit the bracket tag for changes that affect all (or most) target languages, the parser, or the core.
+When an entry affects only certain target languages, tag it with the affected language(s) in square brackets at the start of the entry, e.g. `[Python]` or `[Octave, Python, Ruby]`. Keep the whole bracket tag on one line even when it lists many languages, starting the description on the following line if needed. Name the affected languages only in the bracket tag, never in the entry text. When a change affects groups of languages differently, write one entry per group, each with its own tag. Omit the tag only for changes that affect all target languages in the same way, the parser, or the core.
 
 If there is an associated issue number or pull request, then put it after any affected languages(s) listed in the square brackets, for example "[Lua] #3493 Restore support for Lua 5.1."
 
