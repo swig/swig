@@ -4,6 +4,9 @@
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) globalints;    /* Unable to set variable of type int [] */
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) ints;          /* Unable to set variable of type int [] */
 
+// An [ANY] typemap can use the array size, so is not used for an array of unknown size, such as arr_int's 'int array[]'
+%typemap(check) int [ANY] "(void)$1_dim0;"
+
 %inline %{
 
 int globalints[] = {100, 200, 300};

@@ -1102,6 +1102,8 @@ If <tt>TYPE</tt> is an array, or a pointer or reference to an array.  The follow
 
 <ul>
 <li>Replace all dimensions to <tt>[ANY]</tt> and look for a generic array typemap.
+An unknown dimension is not replaced, so an array of unknown size, such as <tt>int []</tt>, does not match an <tt>[ANY]</tt> typemap,
+as such a typemap can rely on the array size, such as by using <tt>$1_dim0</tt>.
 </ul>
 
 <p>
@@ -1160,6 +1162,7 @@ void C(const int *x);  // int *x rule       (typemap 1)
 void D(const int *z);  // const int *z rule (typemap 3)
 void E(int x[4]);      // int [4] rule      (typemap 4)
 void F(int x[1000]);   // int [ANY] rule    (typemap 5)
+void G(int x[]);       // none of the above, as typemap 5 needs a size
 </pre>
 </div>
 
@@ -3468,7 +3471,7 @@ When used from Python, the typemap allows the following type of function call:
 </div>
 
 <p>
-If you wanted to generalize the typemap to apply to arrays of all dimensions you might write this:
+If you wanted to generalize the typemap to apply to arrays of any size you might write this:
 </p>
 
 <div class="code">
@@ -3501,6 +3504,7 @@ If you wanted to generalize the typemap to apply to arrays of all dimensions you
 In this example, the special variable <tt>$1_dim0</tt> is expanded with the actual
 array dimensions.   A dimension that is an expression rather than a number or a name, such as
 <tt>FLAGS | 4</tt>, is expanded in parentheses, so that it keeps its meaning as an operand.
+The typemap is not used for an array of unknown size, such as <tt>float value[]</tt>, as there is no size for <tt>$1_dim0</tt>.
 Multidimensional arrays can be matched in a similar manner.  For example:
 </p>
 

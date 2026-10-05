@@ -655,7 +655,8 @@ static String *array_dimension_operand(SwigType *type, int n) {
   return dim;
 }
 
-/* Replace every array dimension with ANY, including behind a pointer or a reference. */
+/* Replace every array dimension with ANY, including behind a pointer or a reference. An unknown dimension, as in
+ * 'char []', is kept, as an [ANY] typemap can rely on the array size, such as by using $1_dim0. */
 static SwigType *strip_arrays(SwigType *type) {
   SwigType *t;
   SwigType *prefix;
@@ -665,7 +666,10 @@ static SwigType *strip_arrays(SwigType *type) {
   prefix = SwigType_pop_to_array(t);
   ndim = SwigType_array_ndim(t);
   for (i = 0; i < ndim; i++) {
-    SwigType_array_setdim(t, i, "ANY");
+    String *dim = SwigType_array_getdim(t, i);
+    if (Len(dim) > 0)
+      SwigType_array_setdim(t, i, "ANY");
+    Delete(dim);
   }
   if (prefix) {
     SwigType_push(t, prefix);
@@ -789,10 +793,12 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     isarray = has_array_dimensions(ctype);
     if (isarray) {
       /* If working with arrays, strip away all of the dimensions and replace with "ANY".
-         See if that generates a match */
+         See if that generates a match. An array of unknown size, such as 'int []', is unchanged, so is not searched again. */
       SwigType *noarrays = strip_arrays(ctype);
-      tm = get_typemap(noarrays);
-      result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+      if (!Equal(noarrays, ctype)) {
+        tm = get_typemap(noarrays);
+        result = typemap_search_helper(debug_display, tm, tm_method, noarrays, cqualifiedname, cname, &backup);
+      }
       Delete(noarrays);
       if (result && Getattr(result, "code"))
         goto ret_result;

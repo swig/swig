@@ -13,6 +13,23 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            A typemap for a fixed size array, such as 'int [ANY]', is no longer used for an array
+            of unknown size, such as 'int []'. An [ANY] typemap can rely on the array size, such as
+            by using $1_dim0, which was empty, so the code generated did not compile. A typemap
+            that does not need the size can be copied for the array of unknown size, for example:
+
+              %typemap(in) int [] = int [ANY];
+
+            Such copies have been added for the SWIG library typemaps that do not need the size.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
+            [R] A parameter that is an array of strings of unknown size, such as 'char *argv[]',
+            is now passed as a pointer, as for other arrays of unknown size. It previously used
+            the 'char *[ANY]' typemap, which passed a copy of the first string in place of the array.
+
+2026-10-05: wsfulton
             [Javascript, Octave, Perl, PHP, Python, Ruby] A NULL argument, such as None in
             Python, for a parameter that is a reference to a char array, or NULL assigned to a
             variable or member of that type, is now an error, as a reference cannot be NULL,

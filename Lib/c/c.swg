@@ -47,8 +47,8 @@ macro_name(TM, size_t);
 %typemap(TM) T, const T "T"
 %typemap(TM) T*, T&, T&&, T[ANY], T[] "T *"
 %typemap(TM) const T*, const T[ANY], const T[] "const T *"
-%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
-%typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T[ANY][ANY] "const T **"
+%typemap(TM) T**, T*&, T*[ANY], T*[], T[ANY][ANY] "T **"
+%typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T*[], const T[ANY][ANY] "const T **"
 // constant pointers
 %typemap(TM) T * const "T *"
 %typemap(TM) T* * const "T* *"
@@ -72,8 +72,8 @@ macro_name(TM, size_t);
 %typemap(TM) const T& ACTION_CREF
 %typemap(TM) T*, T&, T&&, T[ANY], T[] ACTION
 %typemap(TM) const T*, const T[ANY], const T[] ACTION
-%typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] ACTION
-%typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] ACTION
+%typemap(TM) T**, T*&, T*[ANY], T*[], T[ANY][ANY] ACTION
+%typemap(TM) const T**, const T*&, const T*[ANY], const T*[], const T[ANY][ANY] ACTION
 // constant pointers
 %typemap(TM) T * const ACTION
 %typemap(TM) T* * const ACTION
@@ -114,7 +114,7 @@ same_macro_all_primitive_types_but_void(same_type,ctype);
 same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 
 // trivial typemap for arrays of void pointers to avoid applying the object typemaps to them
-%typemap(ctype) void*[ANY] "void **"
+%typemap(ctype) void*[ANY], void*[] "void **"
 
 // objects
 %typemap(ctype) SWIGTYPE      "$&resolved_type*"
