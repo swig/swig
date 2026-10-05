@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 29;
+use Test::More tests => 33;
 BEGIN { use_ok('char_strings') }
 require_ok('char_strings');
 
@@ -51,12 +51,16 @@ ok(char_strings::SetConstCharTypedefString($OTHERLAND_MSG . 9, 9), 'char set 9')
   $char_strings::global_char = $expected;
   is($char_strings::global_char, $expected, 'variables 1 (global_char set+read)');
 }
-# global_char_array1 is read-only in Perl (char[] has no varin typemap), so only read it
+# global_char_array1 is a char[] with no size, so it is read only
 is($char_strings::global_char_array1, $CPLUSPLUS_MSG, 'variables 2 (global_char_array1 read)');
+ok(!eval { $char_strings::global_char_array1 = $OTHERLAND_MSG; 1 }, 'variables 2 (global_char_array1 set fails)');
 {
   my $expected = $OTHERLAND_MSG . 23;
   $char_strings::global_char_array2 = $expected;
   is($char_strings::global_char_array2, $expected, 'variables 3 (global_char_array2 set+read)');
+  ok(!eval { $char_strings::global_char_array2 = $CPLUSPLUS_MSG . $CPLUSPLUS_MSG; 1 }, 'variables 3 (global_char_array2 overlong set fails)');
+  like($@, qr/global_char_array2/, 'variables 3 (global_char_array2 overlong set error)');
+  is($char_strings::global_char_array2, $expected, 'variables 3 (global_char_array2 unchanged)');
 }
 is($char_strings::global_const_char, $CPLUSPLUS_MSG, 'variables 4 (global_const_char read-only)');
 is($char_strings::global_const_char_array1, $CPLUSPLUS_MSG, 'variables 5 (global_const_char_array1 read-only)');

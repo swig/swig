@@ -13,6 +13,13 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [Perl] Setting a global variable to a value that cannot be converted to its type,
+            such as a string too long for a fixed size char array, now dies with the error, as
+            for a function argument, instead of silently leaving the variable unchanged.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-05: wsfulton
             [Scilab] Fix reading a fixed size char array holding as many chars as it has
             elements, so with no NUL terminator, such as a char[4] member set to "abcd" in C,
             which read past the end of the array. The string read is now limited to the array

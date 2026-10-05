@@ -1016,8 +1016,10 @@ public:
         DelWrapper(getf);
         return SWIG_NOWRAP;
       }
+      Printf(setf->code, "    return 1;\n");
       Printf(setf->code, "fail:\n");
-      Printf(setf->code, "    return 1;\n}\n");
+      Printf(setf->code, "    SWIG_croak_null();\n");
+      Printf(setf->code, "    return 0;\n}\n");
       Replaceall(setf->code, "$symname", iname);
       Wrapper_print(setf, magic);
     }
