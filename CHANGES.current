@@ -13,6 +13,11 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-05: wsfulton
+            [R] Fix reading a char array variable or member, such as 'char [4]' or 'char []', or
+            a reference to a char array returned from a function, which failed with an error such
+            as 'undefined class "_p_char"'. The string is now returned, as for 'char *'.
+
+2026-10-05: wsfulton
             [Perl] Setting a global variable to a value that cannot be converted to its type,
             such as a string too long for a fixed size char array, now dies with the error, as
             for a function argument, instead of silently leaving the variable unchanged.
