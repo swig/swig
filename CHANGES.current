@@ -13,6 +13,58 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-06: wsfulton
+            [C#, D, Java, Javascript, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
+            Setting a char array member or global variable, such as 'char [8]', to NULL, such as
+            None in Python, now raises an error, as there is nothing to copy. Previously the array
+            was zero filled, or only its first char was cleared in some target languages.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-06: wsfulton
+            [C#, D, Java, Lua, OCaml, PHP] NULL, such as null in Java, is no longer accepted for a
+            char array parameter of any size, such as 'char [8]' or 'char []'. An error is raised
+            instead. Previously it was passed on as a NULL pointer, or as an empty string in PHP.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-06: wsfulton
+            [Javascript, Octave, Perl, Python, Ruby] NULL, such as None in Python, for a fixed size
+            char array parameter, such as 'char [8]', is now passed on as a NULL pointer, as for
+            any other array parameter, instead of as a zero filled array.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-06: wsfulton
+            [Javascript] Fix a crash with Node-API for a NULL 'char *' result, such as a function
+            returning NULL. It now gives undefined, as with the other Javascript engines.
+
+2026-10-06: wsfulton
+            [Javascript, Octave, Perl, Python, Ruby] NULL, such as None in Python, is no longer
+            accepted for a char parameter, which was converted to '\0'. So with overloads for both
+            char and 'const char *', NULL now calls the 'const char *' overload.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-06: wsfulton
+            [Lua] Fix a crash when nil is passed for a char or 'const char &' parameter. An error
+            is now raised instead.
+
+2026-10-06: wsfulton
+            [R] NULL for a char array parameter, or set on a char array member or global
+            variable, now gives a SWIG TypeError instead of the R internal error "CHAR() can only
+            be applied to a 'CHARSXP', not a 'NULL'".
+
+2026-10-06: wsfulton
+            [C] When wrapping C++, NULL is no longer accepted for a char array parameter of any
+            size, such as 'char [8]' or 'char []', nor when setting a char array member or global
+            variable, as NULL is not a valid input for an array in C. SWIG_exception is called
+            with SWIG_NullReferenceError instead, which raises a SWIG_CException. The wrapped
+            function is not called. Previously NULL was passed on. Setting a member to NULL cleared
+            only its first char.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-06: wsfulton
             Typemap code that is just "pass" is deprecated and now gives warning 128. Support
             for it will be removed in a future release.
 

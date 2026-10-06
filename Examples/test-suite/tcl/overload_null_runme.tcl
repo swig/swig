@@ -50,3 +50,5 @@ check "testX" 20 [$o byval2fwdptr $x]
 check "testX" 21 [$o byval1fwdref $x]
 
 check "testX" 22 [$o byval2fwdref $x]
+
+check "test23" 23 [$o bychar1 "a"]

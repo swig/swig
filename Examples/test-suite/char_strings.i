@@ -163,6 +163,14 @@ struct CharArrayOne {
   char one[1];
 };
 
+// NULL is rejected for a char and when setting a char array member or global variable, which is left unchanged
+struct CharArrayNull {
+  char four[4];
+};
+CharArrayNull char_array_null = {{'q', 'q', 'q', 0}};
+char global_char_array_null[4] = {'q', 'q', 'q', 0};
+char PlainCharPingPong(char c) { return c; }
+
 %}
 
 

@@ -50,3 +50,6 @@ swig_assert(20 == o.byval2fwdptr(x))
 swig_assert(21 == o.byval1fwdref(x))
 
 swig_assert(22 == o.byval2fwdref(x))
+
+swig_assert(23 == o.bychar1("a"))
+swig_assert(24 == o.bychar1(nil))

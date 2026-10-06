@@ -41,4 +41,7 @@ check::equal(21, $o->byval1fwdref($x), "test 21");
 
 check::equal(22, $o->byval2fwdref($x), "test 22");
 
+check::equal(23, $o->bychar1("a"), "test 23");
+check::equal(24, $o->bychar1(null), "test 24");
+
 check::done();

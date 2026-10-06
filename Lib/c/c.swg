@@ -8,6 +8,7 @@
 %include <cheader.swg>
 
 %insert("runtime") "clabels.swg"
+%insert("runtime") "swigerrors.swg"
 
 %insert("runtime") %{
 #include <stdlib.h>
@@ -137,7 +138,7 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 // Typemaps for assigning wrapper parameters to local variables
 same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
 
-%typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
+%typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
 
 %typemap(in, fragment="stdbool_inc") bool, bool *, bool **, const bool, const bool * "$1 = ($1_ltype) $input;"
@@ -348,6 +349,22 @@ typedef struct SwigObj SwigObj;
 #endif
 %}
 #endif // SWIG_C_EXCEPT/!SWIG_C_EXCEPT
+
+/* Defined after SWIG_exception, which these typemaps use */
+%typemap(in, noblock=1) char [ANY] {
+  if (!$input) {
+    SWIG_exception(SWIG_NullReferenceError, "$1_type is NULL");
+    return $null;
+  }
+  $1 = ($1_basetype *) $input;
+}
+%typemap(in, noblock=1) char [] {
+  if (!$input) {
+    SWIG_exception(SWIG_NullReferenceError, "$1_type is NULL");
+    return $null;
+  }
+  $1 = ($1_ltype) $input;
+}
 
 %insert("runtime") %{
 #ifdef __cplusplus

@@ -50,4 +50,8 @@
 
 (check (=~ 22 (Overload-byval2fwdref o x)))
 
+(check (=~ 23 (Overload-bychar1 o #\a)))
+;; NULL is not a char and char * does not accept it either
+(check (not (false-if-exception (Overload-bychar1 o #nil))))
+
 (exit 0)

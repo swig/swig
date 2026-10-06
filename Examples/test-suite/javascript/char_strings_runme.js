@@ -136,6 +136,14 @@ assertIsEqual(CPLUSPLUS_MSG + "!", char_strings.global_char_array2);
 assertThrows(function() { char_strings.global_char_array2 = CPLUSPLUS_MSG + "!!"; });
 assertThrows(function() { char_strings.global_char_array2 = CPLUSPLUS_MSG + CPLUSPLUS_MSG; });
 
+if (char_strings.CharArrayPingPong(null) != null || char_strings.CharArrayDimsPingPong(null) != null)
+  throw new Error("Test char array null failed");
+assertThrows(function() { char_strings.PlainCharPingPong(null); });
+assertThrows(function() { char_strings.char_array_null.four = null; });
+assertThrows(function() { char_strings.global_char_array_null = null; });
+assertIsEqual("qqq", char_strings.char_array_null.four);
+assertIsEqual("qqq", char_strings.global_char_array_null);
+
 assertIsEqual("abcd", char_strings.char_array_no_nul.full);
 assertIsEqual("XYZ", char_strings.char_array_no_nul.after);
 

@@ -124,6 +124,17 @@ one = CharArrayOne()
 one.one = "b"
 check_equal(one.one, "b", "Test char[1] failed")
 
+check_equal(CharArrayPingPong(None), None, "Test char array null failed")
+check_equal(CharArrayDimsPingPong(None), None, "Test char array dims null failed")
+with swig_assert_raises(TypeError):
+    PlainCharPingPong(None)
+with swig_assert_raises(TypeError):
+    char_strings.cvar.char_array_null.four = None
+with swig_assert_raises(TypeError):
+    char_strings.cvar.global_char_array_null = None
+check_equal(char_strings.cvar.char_array_null.four, "qqq", "Test char array member set to null failed")
+check_equal(char_strings.cvar.global_char_array_null, "qqq", "Test char array global set to null failed")
+
 # char *& tests
 for i in range(count):
     check_equal(GetCharPointerRef(), CPLUSPLUS_MSG, "Test char pointer ref get failed, iteration %d" % i)

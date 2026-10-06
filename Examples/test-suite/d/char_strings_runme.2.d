@@ -117,6 +117,11 @@ void main() {
   auto one = new CharArrayOne();
   one.one = "b";
   enforce(global_char_one == "a" && one.one == "b", "Test char[1] failed");
+  enforce(collectException(CharArrayPingPong(null)) !is null, "Test char array null failed");
+  enforce(collectException(CharArrayDimsPingPong(null)) !is null, "Test char array dims null failed");
+  enforce(collectException(char_array_null.four = null) !is null, "Test char array member set to null failed");
+  enforce(collectException(global_char_array_null = null) !is null, "Test char array global set to null failed");
+  enforce(char_array_null.four == "qqq" && global_char_array_null == "qqq", "Test char array set to null changed it");
 
   foreach (i; TEST_RANGE) {
     enforce(global_const_char == CPLUSPLUS_MSG, "Test variables 4 failed, iteration " ~ to!string(i));

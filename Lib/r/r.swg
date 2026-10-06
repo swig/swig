@@ -182,6 +182,9 @@ unsigned char *OUTPUT
 
 /* char[ANY] uses the Lib/typemaps typemaps, which copy the string into a zero filled array of the declared size */
 %typemap(in,noblock=1,fragment="SWIG_strdup") char[] {
+    if (Rf_length($input) == 0) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+    }
     $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
 }
 

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 33;
+use Test::More tests => 40;
 BEGIN { use_ok('char_strings') }
 require_ok('char_strings');
 
@@ -62,6 +62,13 @@ ok(!eval { $char_strings::global_char_array1 = $OTHERLAND_MSG; 1 }, 'variables 2
   like($@, qr/global_char_array2/, 'variables 3 (global_char_array2 overlong set error)');
   is($char_strings::global_char_array2, $expected, 'variables 3 (global_char_array2 unchanged)');
 }
+is(char_strings::CharArrayPingPong(undef), undef, 'char[] null');
+is(char_strings::CharArrayDimsPingPong(undef), undef, 'char[16] null');
+ok(!eval { char_strings::PlainCharPingPong(undef); 1 }, 'char null fails');
+ok(!eval { $char_strings::char_array_null->{four} = undef; 1 }, 'char[4] member set to null fails');
+ok(!eval { $char_strings::global_char_array_null = undef; 1 }, 'char[4] global set to null fails');
+is($char_strings::char_array_null->{four}, 'qqq', 'char[4] member set to null leaves it unchanged');
+is($char_strings::global_char_array_null, 'qqq', 'char[4] global set to null leaves it unchanged');
 is($char_strings::global_const_char, $CPLUSPLUS_MSG, 'variables 4 (global_const_char read-only)');
 is($char_strings::global_const_char_array1, $CPLUSPLUS_MSG, 'variables 5 (global_const_char_array1 read-only)');
 is($char_strings::global_const_char_array2, $CPLUSPLUS_MSG, 'variables 6 (global_const_char_array2 read-only)');

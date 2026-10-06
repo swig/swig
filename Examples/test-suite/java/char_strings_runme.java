@@ -167,6 +167,29 @@ public class char_strings_runme {
     if (!char_strings.getGlobal_char_one().equals("a") || !one.getOne().equals("b"))
       throw new RuntimeException("Test char[1] failed");
 
+    try {
+      char_strings.CharArrayPingPong(null);
+      throw new RuntimeException("Test char array null failed");
+    } catch (NullPointerException e) {
+    }
+    try {
+      char_strings.CharArrayDimsPingPong(null);
+      throw new RuntimeException("Test char array dims null failed");
+    } catch (NullPointerException e) {
+    }
+    try {
+      char_strings.getChar_array_null().setFour(null);
+      throw new RuntimeException("Test char array member set to null failed");
+    } catch (NullPointerException e) {
+    }
+    try {
+      char_strings.setGlobal_char_array_null(null);
+      throw new RuntimeException("Test char array global set to null failed");
+    } catch (NullPointerException e) {
+    }
+    if (!char_strings.getChar_array_null().getFour().equals("qqq") || !char_strings.getGlobal_char_array_null().equals("qqq"))
+      throw new RuntimeException("Test char array set to null changed it");
+
     for (i=0; i<count; i++) {
       if (!char_strings.getGlobal_const_char().equals(CPLUSPLUS_MSG))
         throw new RuntimeException("Test variables 4 failed, iteration " + i);

@@ -92,6 +92,11 @@ let _ =
   let one = new_CharArrayOne C_void in
   ignore ((invoke one) "[one]" (C_string "b"));
   assert ((invoke one) "[one]" C_void as string = "b");
+  assert (try ignore (_CharArrayPingPong (C_list [ C_void ])); false with Invalid_argument _ -> true);
+  assert (try ignore (_CharArrayDimsPingPong (C_list [ C_void ])); false with Invalid_argument _ -> true);
+  let null_member = create_CharArrayNull_from_ptr (_char_array_null C_void) in
+  assert (try ignore ((invoke null_member) "[four]" (C_list [ C_void ])); false with Invalid_argument _ -> true);
+  assert ((invoke null_member) "[four]" C_void as string = "qqq");
 
   (* variables: read-only const globals *)
   assert (_global_const_char C_void as string = cpp_msg);

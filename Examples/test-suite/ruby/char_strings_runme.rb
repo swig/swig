@@ -104,6 +104,23 @@ count.times do |i|
   swig_assert_equal_simple(Char_strings.global_char_array2, expected)
 end
 
+swig_assert_equal_simple(Char_strings.CharArrayPingPong(nil), nil)
+swig_assert_equal_simple(Char_strings.CharArrayDimsPingPong(nil), nil)
+[proc { Char_strings.char_array_null.four = nil }, proc { Char_strings.global_char_array_null = nil }].each do |p|
+  begin
+    p.call
+    raise RuntimeError, "null accepted for a char array"
+  rescue NullReferenceError
+  end
+end
+begin
+  Char_strings.PlainCharPingPong(nil)
+  raise RuntimeError, "null accepted for a char"
+rescue TypeError
+end
+swig_assert_equal_simple(Char_strings.char_array_null.four, "qqq")
+swig_assert_equal_simple(Char_strings.global_char_array_null, "qqq")
+
 count.times do |i|
   swig_assert_equal_simple(Char_strings.global_const_char, CPLUSPLUS_MSG)
 end

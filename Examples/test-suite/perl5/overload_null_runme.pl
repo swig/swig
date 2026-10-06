@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More tests => 26;
 BEGIN { use_ok('overload_null') }
 require_ok('overload_null');
 
@@ -42,3 +42,6 @@ is(20, $o->byval2fwdptr($x));
 is(21, $o->byval1fwdref($x));
 
 is(22, $o->byval2fwdref($x));
+
+is(23, $o->bychar1("a"));
+is(24, $o->bychar1(undef));

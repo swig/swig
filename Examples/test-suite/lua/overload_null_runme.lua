@@ -38,3 +38,6 @@ assert(20 == o:byval2fwdptr(x))
 assert(21 == o:byval1fwdref(x))
 
 assert(22 == o:byval2fwdref(x))
+
+assert(23 == o:bychar1("a"))
+assert(24 == o:bychar1(nil))

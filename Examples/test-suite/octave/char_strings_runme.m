@@ -149,6 +149,30 @@ for i = 0:count-1
   endif
 endfor
 
+null_member = char_strings.cvar.char_array_null;
+if (!isempty(char_strings.CharArrayPingPong([])) || !isempty(char_strings.CharArrayDimsPingPong([])))
+  error("Test char array null failed");
+endif
+null_sets = {@() subsasgn(null_member, substruct(".", "four"), []), ...
+             @() subsasgn(char_strings.cvar, substruct(".", "global_char_array_null"), [])};
+for i = 1:numel(null_sets)
+  try
+    null_sets{i}();
+    error("Test char array null %d failed", i);
+  catch e
+    if (isempty(strfind(e.message, "invalid null reference"))); rethrow(e); endif
+  end_try_catch
+endfor
+try
+  char_strings.PlainCharPingPong([]);
+  error("Test char null failed");
+catch e
+  if (isempty(strfind(e.message, "argument 1 of type 'char'"))); rethrow(e); endif
+end_try_catch
+if (!strcmp(null_member.four, "qqq") || !strcmp(char_strings.cvar.global_char_array_null, "qqq"))
+  error("Test char array set to null changed it");
+endif
+
 for i = 0:count-1
   if (!strcmp(char_strings.cvar.global_const_char, CPLUSPLUS_MSG))
     error("Test variables 4 failed");

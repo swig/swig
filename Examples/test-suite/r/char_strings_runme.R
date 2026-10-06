@@ -121,6 +121,19 @@ one = CharArrayOne()
 one$one <- "b"
 unittest(one$one, "b")
 
+null_message = function(f) {
+  msg = ""
+  tryCatch(f(), error = function(e) msg <<- conditionMessage(e))
+  msg
+}
+null_member = char_array_null_get()
+unittest(grepl("^SWIG:TypeError", null_message(function() CharArrayPingPong(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() CharArrayDimsPingPong(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() null_member$four <- NULL)), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() global_char_array_null_set(NULL))), TRUE)
+unittest(null_member$four, "qqq")
+unittest(global_char_array_null_get(), "qqq")
+
 for (i in 0:(count-1)) {
   unittest(global_const_char_get(), CPLUSPLUS_MSG)
 }

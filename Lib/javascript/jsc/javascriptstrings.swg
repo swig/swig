@@ -104,9 +104,9 @@ SWIG_JSC_From##CharName##Array(JSContextRef context, const Char *cptr, size_t si
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_JSC_AsCharPtrAndSize(context, obj, val, NULL, alloc))
 }
 
-%fragment("SWIG_As" #CharName "ArrayRef","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
+%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
-SWIG_JSC_As##CharName##ArrayRef(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
+SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
 {
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_JSC_AsCharPtrAndSize(context, obj, &cptr, &csize, &alloc);
@@ -124,22 +124,6 @@ SWIG_JSC_As##CharName##ArrayRef(JSContextRef context, SWIG_Object obj, Char *val
       return res;
   }
   return SWIG_TypeError;
-}
-
-#define SWIG_As##CharName##ArrayRef(obj, val, size) SWIG_JSC_As##CharName##ArrayRef(context, obj, val, size)
-}
-
-%fragment("SWIG_As" #CharName "Array","header",fragment="SWIG_As" #CharName "ArrayRef") {
-SWIGINTERN int
-SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
-{
-  int res = SWIG_JSC_As##CharName##ArrayRef(context, obj, val, size);
-  if (res == SWIG_NullReferenceError) {
-    if (val)
-      memset(val, 0, size * sizeof(Char));
-    res = SWIG_OK;
-  }
-  return res;
 }
 
 #define SWIG_As##CharName##Array(obj, val, size) SWIG_JSC_As##CharName##Array(context, obj, val, size)
@@ -163,7 +147,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 {
   int res = SWIG_As##CharName##Array(obj, val, 1);
-  if (!SWIG_IsOK(res)) {
+  /* NULL is not a char, nor is it converted as a number, which gives 0 in Perl for undef. A type error lets an overload
+   * dispatcher that tries each overload in turn, as in Javascript, try the next one. */
+  if (res == SWIG_NullReferenceError) {
+    res = SWIG_TypeError;
+  } else if (!SWIG_IsOK(res)) {
     long v;
     res = SWIG_AddCast(SWIG_AsVal(long)(obj, &v));
     if (SWIG_IsOK(res)) {
@@ -188,7 +176,6 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
                  SWIG_As##CharName##Ptr,
                  SWIG_From##CharName##Ptr,
                  SWIG_As##CharName##Array,
-                 SWIG_As##CharName##ArrayRef,
                  SWIG_NewCopyCharArray,
                  SWIG_DeleteCharArray)
 

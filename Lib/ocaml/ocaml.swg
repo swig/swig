@@ -229,24 +229,30 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 /* Override the above, copying into a zero filled array as the string may be shorter than the array */
 %typemap(in, fragment="SWIG_CopyCharArray") char [ANY] (char temp[$1_dim0]) {
     char *str = caml_string_val($input);
-    $1 = 0;
-    if (str) {
-        if (!SWIG_CopyCharArray(temp, $1_dim0, str, (size_t)caml_string_len($input))) {
-            SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "string too long for char array");
-        }
-        $1 = ($ltype)temp;
+    if (!str) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
     }
+    if (!SWIG_CopyCharArray(temp, $1_dim0, str, (size_t)caml_string_len($input))) {
+        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "string too long for char array");
+    }
+    $1 = ($ltype)temp;
 }
 
 %typemap(varin, fragment="SWIG_CopyCharArray") char [ANY] {
     char *str = caml_string_val($input);
-    if (!SWIG_CopyCharArray((char *)$1, $1_dim0, str, str ? (size_t)caml_string_len($input) : 0)) {
+    if (!str) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
+    }
+    if (!SWIG_CopyCharArray((char *)$1, $1_dim0, str, (size_t)caml_string_len($input))) {
         SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "string too long for char array");
     }
 }
 
 %typemap(in) char [] %{
     $1 = ($ltype)caml_string_val($input);
+    if (!$1) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
+    }
 %}
 
 /* Read only, as there is no size to bound the copy */
@@ -381,17 +387,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [];
 %apply char[ANY] { char (&)[ANY] }
-/* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
-%typemap(in, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]) {
-    char *str = caml_string_val($input);
-    if (!str) {
-        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
-    }
-    if (!SWIG_CopyCharArray(temp, $1_dim0, str, (size_t)caml_string_len($input))) {
-        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "string too long for char array");
-    }
-    $1 = ($1_ltype)temp;
-}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

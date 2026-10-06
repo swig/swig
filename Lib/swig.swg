@@ -510,21 +510,14 @@ namespace std {
 
 /* Character array handling */
 
-%typemap(memberin,fragment="SWIG_AssignCharArray") char [ANY] {
-  if($input) {
-    SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
-  } else {
-    $1[0] = 0;
-  }
-}
+/* No check for NULL, which the in typemaps reject for a char array */
+%typemap(memberin,fragment="SWIG_AssignCharArray") char [ANY] %{
+  SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
+%}
 
-%typemap(globalin,fragment="SWIG_AssignCharArray") char [ANY] {
-  if($input) {
-    SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
-  } else {
-    $1[0] = 0;
-  }
-}
+%typemap(globalin,fragment="SWIG_AssignCharArray") char [ANY] %{
+  SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
+%}
 
 /* No char [] memberin/globalin typemaps, so such a variable is read only, as there is no size to bound the copy */
 

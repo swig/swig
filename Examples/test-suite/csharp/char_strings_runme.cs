@@ -157,6 +157,29 @@ public class char_strings_runme {
     if (char_strings.global_char_one != "a" || one.one != "b")
       throw new Exception("Test char[1] failed");
 
+    try {
+      char_strings.CharArrayPingPong(null);
+      throw new Exception("Test char array null failed");
+    } catch (ArgumentNullException) {
+    }
+    try {
+      char_strings.CharArrayDimsPingPong(null);
+      throw new Exception("Test char array dims null failed");
+    } catch (ArgumentNullException) {
+    }
+    try {
+      char_strings.char_array_null.four = null;
+      throw new Exception("Test char array member set to null failed");
+    } catch (ArgumentNullException) {
+    }
+    try {
+      char_strings.global_char_array_null = null;
+      throw new Exception("Test char array global set to null failed");
+    } catch (ArgumentNullException) {
+    }
+    if (char_strings.char_array_null.four != "qqq" || char_strings.global_char_array_null != "qqq")
+      throw new Exception("Test char array set to null changed it");
+
     for (i=0; i<count; i++) {
       if (char_strings.global_const_char != CPLUSPLUS_MSG)
         throw new Exception("Test variables 4 failed, iteration " + i);

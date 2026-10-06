@@ -78,6 +78,13 @@ assert(char_strings.global_char_one == "a")
 one = char_strings.CharArrayOne()
 one.one = "b"
 assert(one.one == "b")
+assert(not pcall(char_strings.CharArrayPingPong, nil))
+assert(not pcall(char_strings.CharArrayDimsPingPong, nil))
+assert(not pcall(char_strings.PlainCharPingPong, nil))
+assert(not pcall(function() char_strings.char_array_null.four = nil end))
+assert(not pcall(function() char_strings.global_char_array_null = nil end))
+assert(char_strings.char_array_null.four == "qqq")
+assert(char_strings.global_char_array_null == "qqq")
 
 -- variables: read-only const globals
 assert(char_strings.global_const_char == CPLUSPLUS_MSG)

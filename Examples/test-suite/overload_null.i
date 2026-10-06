@@ -48,5 +48,9 @@ struct Overload {
   int byval2fwdref(F& f) { return -22; }
   int byval2fwdref(X x) { return 22; }
 
+  // NULL is not a char
+  int bychar1(char c) { return 23; }
+  int bychar1(const char *s) { return 24; }
+
 };
 %}

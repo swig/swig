@@ -50,3 +50,6 @@ check(20, o.byval2fwdptr(x));
 check(21, o.byval1fwdref(x));
 
 check(22, o.byval2fwdref(x));
+
+check(23, o.bychar1("a"));
+check(24, o.bychar1(null));

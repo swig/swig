@@ -95,8 +95,6 @@ template <typename T> T swig_check(T x) {
 
 #endif // SWIG_CXX_WRAPPERS
 
-%insert("runtime") "swigerrors.swg"
-
 #define SWIG_exception(code, msg)\
   SWIG_CException_Raise(code, msg)
 

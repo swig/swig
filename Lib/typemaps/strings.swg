@@ -27,7 +27,6 @@
 			 SWIG_AsCharPtr,
 			 SWIG_FromCharPtr,
 			 SWIG_AsCharArray,
-			 SWIG_AsCharArrayRef,
                          SWIG_NewCopyCharArray,
                          SWIG_DeleteCharArray)
 
@@ -250,36 +249,54 @@
 
 %typemap(memberin,noblock=1) Char [ANY]
 {
-  if ($input) memcpy($1,$input,$1_dim0*sizeof(Char));
-  else memset($1,0,$1_dim0*sizeof(Char));
+  if ($input) {
+    memcpy($1,$input,$1_dim0*sizeof(Char));
+  } else {
+    %variable_nullref("$type","$name");
+  }
 }
 
 %typemap(globalin,noblock=1) Char [ANY]
 {
-  if ($input) memcpy($1,$input,$1_dim0*sizeof(Char));
-  else memset($1,0,$1_dim0*sizeof(Char));
+  if ($input) {
+    memcpy($1,$input,$1_dim0*sizeof(Char));
+  } else {
+    %variable_nullref("$type","$name");
+  }
 }
 
-%typemap(memberin) Char (&)[ANY], Char (&&)[ANY] = Char [ANY];
-%typemap(globalin) Char (&)[ANY], Char (&&)[ANY] = Char [ANY];
+/* No check for NULL for a reference to a char array, which the in typemap rejects */
+%typemap(memberin,noblock=1) Char (&)[ANY], Char (&&)[ANY]
+{
+  memcpy($1,$input,$1_dim0*sizeof(Char));
+}
+
+%typemap(globalin,noblock=1) Char (&)[ANY], Char (&&)[ANY]
+{
+  memcpy($1,$input,$1_dim0*sizeof(Char));
+}
 
 /* in */
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharArray)
-  Char [ANY] (Char temp[$1_dim0], int res), 
+  Char [ANY] (Char temp[$1_dim0], int res),
   const Char [ANY](Char temp[$1_dim0], int res)
-{  
+{
   res = SWIG_AsCharArray($input, temp, $1_dim0);
-  if (!SWIG_IsOK(res)) {
-    %argument_fail(res,"$type",$symname, $argnum);
+  if (res == SWIG_NullReferenceError) {
+    $1 = 0;
+  } else {
+    if (!SWIG_IsOK(res)) {
+      %argument_fail(res,"$type",$symname, $argnum);
+    }
+    $1 = %reinterpret_cast(temp, $1_ltype);
   }
-  $1 = %reinterpret_cast(temp, $1_ltype);
 }
 %typemap(freearg) Char [ANY], const Char [ANY] ""
 
-%typemap(in,noblock=1,fragment=#SWIG_AsCharArrayRef) Char (&)[ANY] (Char temp[$1_dim0], int res), Char (&&)[ANY] (Char temp[$1_dim0], int res)
+%typemap(in,noblock=1,fragment=#SWIG_AsCharArray) Char (&)[ANY] (Char temp[$1_dim0], int res), Char (&&)[ANY] (Char temp[$1_dim0], int res)
 {
-  res = SWIG_AsCharArrayRef($input, temp, $1_dim0);
+  res = SWIG_AsCharArray($input, temp, $1_dim0);
   if (res == SWIG_NullReferenceError) {
     %argument_nullref("$type",$symname, $argnum);
   }
@@ -303,17 +320,9 @@
 
 /* varin */
 
-%typemap(varin,fragment=#SWIG_AsCharArray) Char [ANY]
+%typemap(varin,fragment=#SWIG_AsCharArray) Char [ANY], Char (&)[ANY], Char (&&)[ANY]
 {
   int res = SWIG_AsCharArray($input, $1, $1_dim0);
-  if (!SWIG_IsOK(res)) {
-    %variable_fail(res, "$type", "$name");
-  }
-}
-
-%typemap(varin,fragment=#SWIG_AsCharArrayRef) Char (&)[ANY], Char (&&)[ANY]
-{
-  int res = SWIG_AsCharArrayRef($input, $1, $1_dim0);
   if (res == SWIG_NullReferenceError) {
     %variable_nullref("$type", "$name");
   }
@@ -396,6 +405,8 @@
 	 fragment=#SWIG_AsCharArray)  
   Char [ANY], const Char[ANY] {
   int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
+  if (res == SWIG_NullReferenceError)
+    res = SWIG_OK;
   $1 = SWIG_CheckState(res);
 }
 
@@ -577,11 +588,10 @@ SWIG_From##CharName##Array(const Char *cptr, size_t size)
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_AsCharPtrAndSize(obj, val, NULL, alloc))
 }
 
-/* Copy the string 'obj' into the char array 'val' of 'size' elements, as for a reference to a char array, which cannot be
- * null: a null string gives SWIG_NullReferenceError. */
-%fragment("SWIG_As" #CharName "ArrayRef","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
+/* Copy the string 'obj' into the char array 'val' of 'size' elements. A NULL string gives SWIG_NullReferenceError. */
+%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
-SWIG_As##CharName##ArrayRef(SWIG_Object obj, Char *val, size_t size)
+SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
 {
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_AsCharPtrAndSize(obj, &cptr, &csize, &alloc);
@@ -599,21 +609,6 @@ SWIG_As##CharName##ArrayRef(SWIG_Object obj, Char *val, size_t size)
       return res;
   }
   return SWIG_TypeError;
-}
-}
-
-/* As SWIG_AsCharArrayRef, but a null string gives a zero filled array, as for a char array passed by value */
-%fragment("SWIG_As" #CharName "Array","header",fragment="SWIG_As" #CharName "ArrayRef") {
-SWIGINTERN int
-SWIG_As##CharName##Array(SWIG_Object obj, Char *val, size_t size)
-{
-  int res = SWIG_As##CharName##ArrayRef(obj, val, size);
-  if (res == SWIG_NullReferenceError) {
-    if (val)
-      memset(val, 0, size * sizeof(Char));
-    res = SWIG_OK;
-  }
-  return res;
 }
 }
 
@@ -635,7 +630,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 {    
   int res = SWIG_As##CharName##Array(obj, val, 1);
-  if (!SWIG_IsOK(res)) {
+  /* NULL is not a char, nor is it converted as a number, which gives 0 in Perl for undef. A type error lets an overload
+   * dispatcher that tries each overload in turn, as in Javascript, try the next one. */
+  if (res == SWIG_NullReferenceError) {
+    res = SWIG_TypeError;
+  } else if (!SWIG_IsOK(res)) {
     long v;
     res = SWIG_AddCast(SWIG_AsVal(long)(obj, &v));
     if (SWIG_IsOK(res)) {
@@ -660,7 +659,6 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 		 SWIG_As##CharName##Ptr,
 		 SWIG_From##CharName##Ptr,
 		 SWIG_As##CharName##Array,
-		 SWIG_As##CharName##ArrayRef,
 		 SWIG_NewCopyCharArray,
 		 SWIG_DeleteCharArray)
 

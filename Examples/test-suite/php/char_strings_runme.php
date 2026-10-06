@@ -54,6 +54,17 @@ $one = new CharArrayOne();
 $one->one = "b";
 check::equal($one->one, "b", "failed CharArrayOne one");
 
+foreach ([fn() => CharArrayPingPong(null), fn() => CharArrayDimsPingPong(null),
+          fn() => Char_array_null_get()->four = null, fn() => Global_char_array_null_set(null)] as $i => $f) {
+  try {
+    $f();
+    check::fail("char array null $i accepted");
+  } catch (TypeError $e) {
+  }
+}
+check::equal(Char_array_null_get()->four, "qqq", "failed char array member set to null");
+check::equal(Global_char_array_null_get(), "qqq", "failed char array global set to null");
+
 check::equal(Global_const_char_get(), $CPLUSPLUS_MSG, "failed Global_const_char");
 check::equal(Global_const_char_array1_get(), $CPLUSPLUS_MSG, "failed Global_const_char_array1");
 check::equal(Global_const_char_array2_get(), $CPLUSPLUS_MSG, "failed Global_const_char_array2");

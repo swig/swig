@@ -41,5 +41,10 @@ checkequal(21, Overload_byval1fwdref(o, x), "test 21");
 
 checkequal(22, Overload_byval2fwdref(o, x), "test 22");
 
+checkequal(23, Overload_bychar1(o, "a"), "test 23");
+// NULL is not a char and char * does not accept it either
+ierr = execstr("Overload_bychar1(o, NULL)", "errcatch");
+if ierr == 0 then swigtesterror("test 24"); end
+
 exec("swigtest.quit", -1);
 

@@ -477,15 +477,21 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 /* char arrays - treat as String, copying into a zero filled array when the size is known */
 %typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char[ANY] (char temp[$1_dim0])
-%{ $1 = 0;
-   if ($input) {
-     if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
-       SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
-       return $null;
-     }
-     $1 = ($1_ltype)temp;
-   } %}
-%typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
+%{ if (!$input) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
+     return $null;
+   }
+   if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
+     return $null;
+   }
+   $1 = ($1_ltype)temp; %}
+%typemap(in, canthrow=1) char[]
+%{ if (!$input) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
+     return $null;
+   }
+   $1 = ($1_ltype)$input; %}
 %typemap(out, fragment="SWIG_CharArrayString") char[ANY] %{ {
      const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
      $result = SWIG_csharp_string_callback(swig_str);
@@ -1098,17 +1104,6 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
-/* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
-%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
-%{ if (!$input) {
-     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
-     return $null;
-   }
-   if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
-     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
-     return $null;
-   }
-   $1 = ($1_ltype)temp; %}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
