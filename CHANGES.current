@@ -12,6 +12,10 @@ Version 4.6.0 (in progress)
 	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
 	    is no longer supported.
 
+2026-10-06: wsfulton
+            Typemap code that is just "pass" is deprecated and now gives warning 128. Support
+            for it will be removed in a future release.
+
 2026-10-05: wsfulton
             [R] Fix reading a char array variable or member, such as 'char [4]' or 'char []', or
             a reference to a char array returned from a function, which failed with an error such

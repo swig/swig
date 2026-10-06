@@ -753,6 +753,10 @@ Doc/Manual/Typemaps.html for complete details.\n");
     }
   }
 
+  if (code && Strcmp(code, "pass") == 0) {
+    Swig_warning(WARN_DEPRECATED_TYPEMAP_PASS, Getfile(n), Getline(n), "Typemap code \"pass\" is deprecated.\n");
+  }
+
   if (Strcmp(method, "except") == 0) {
     Swig_error(Getfile(n), Getline(n), "%%typemap(except) is no longer supported. Use the %%exception directive.\n");
   }
