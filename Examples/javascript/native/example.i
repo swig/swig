@@ -3,15 +3,15 @@
 
 // placeholder() used to help SWIG generate "SWIG_From_int" call
 %{
-int placeholder() { return 0; }
+    int placeholder();
 %}
-int placeholder();
+int placeholder() { return 0; }
 
 // actual demo code
 %wrapper
 %{
 #if defined(SWIG_V8_VERSION) /* Engine: Node || V8 */
-    
+
     static SwigV8ReturnValue JavaScript_do_work(const SwigV8Arguments &args) {
         SWIGV8_HANDLESCOPE();
         const int MY_MAGIC_NUMBER = 5;
