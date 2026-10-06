@@ -13,7 +13,6 @@ extern "C" {
 
 /* forward declarations */
 SWIGRUNTIME int SWIG_QuickJS_IsSwigObject(JSContext *ctx, JSValueConst this_val);
-SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, const char *name);
 
 
 /*
@@ -348,39 +347,6 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
       int newmemory = 0;
       *ptr = SWIG_TypeCast(tc, swig_object->ptr, &newmemory);
       assert(!newmemory); /* newmemory handling not yet implemented */
-    } else if (swig_object->type->clientdata && type->clientdata) {
-      /* this part implements the cross-module inheritance, see
-       * explanation around baseRegistry in javascripthelpers.swg */
-      int found = 0;
-      SWIG_QuickJS_ClassDefinition *clsDef = (SWIG_QuickJS_ClassDefinition*)(swig_object->type->clientdata);
-      SWIG_QuickJS_ClassDefinition *pClsDef = (SWIG_QuickJS_ClassDefinition*)(type->clientdata);
-      JSValueConst base_map = SWIG_QuickJS_baseRegistryClassLookup(ctx, clsDef->class_name);
-#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
-      if (clsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
-        printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", swig_object->type->str);
-        return SWIG_ERROR;
-      }
-      if (pClsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
-        printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", type->str);
-        return SWIG_ERROR;
-      }
-#endif
-#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
-      printf("SWIG_QuickJS_ConvertPtr: check source %s to target %s\n", clsDef->class_name, pClsDef->class_name);
-#endif
-      if (JS_IsObject(base_map)) {
-        JSAtom atom = JS_NewAtom(ctx, pClsDef->class_name);
-        if (atom != JS_ATOM_NULL) {
-          found = JS_HasProperty(ctx, base_map, atom);
-          if (found == -1) { return SWIG_ERROR; } /* exception */
-          JS_FreeAtom(ctx, atom);
-        }
-      }
-      JS_FreeValue(ctx, base_map);
-      if (!found) {
-        return SWIG_ERROR;
-      }
-      *ptr = swig_object->ptr;
     } else {
       return SWIG_ERROR;
     }
