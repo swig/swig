@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-05: vadz
+            Fix classes deriving from an abstract class being wrongly considered abstract, and
+            not getting any constructors, when they override a pure virtual function with
+            default arguments without repeating the defaults.
+
 2026-10-04: wsfulton
             Fix a named non-type template parameter of class type introduced with the 'struct',
             'union' or 'class' keyword, which was taken to be a type parameter constrained by a
