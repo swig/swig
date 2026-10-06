@@ -1952,7 +1952,6 @@ int JSCEmitter::emitNamespaces() {
     String *name_mangled = Getattr(entry, NAME_MANGLED);
     String *parent_mangled = Getattr(entry, PARENT_MANGLED);
     String *functions = Getattr(entry, "functions");
-    String *constants = Getattr(entry, "constants");
     String *variables = Getattr(entry, "values");
 
     // skip the global namespace which is given by the application
@@ -1960,7 +1959,6 @@ int JSCEmitter::emitNamespaces() {
     Template namespace_definition(getTemplate("jsc_nspace_declaration"));
     namespace_definition.replace("$jsglobalvariables", variables)
       .replace("$jsglobalfunctions", functions)
-      .replace("$jsglobalconstants", constants)
       .replace("$jsnspace", name_mangled)
       .replace("$jsmangledname", name_mangled)
       .pretty_print(f_wrap_cpp);
