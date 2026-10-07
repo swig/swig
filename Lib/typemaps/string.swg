@@ -20,6 +20,8 @@ SWIGINTERN size_t
 SWIG_strnlen(const char* s, size_t maxlen)
 {
   const char *p;
+  if (!s)
+    return 0;
   for (p = s; maxlen-- && *p; p++)
     ;
   return (size_t)(p - s);

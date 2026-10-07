@@ -12,6 +12,11 @@ Version 4.6.0 (in progress)
 	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
 	    is no longer supported.
 
+2026-10-07: wsfulton
+            [Octave, Perl, Python, Ruby] Fix a crash when C++ calls a director method that has a
+            char or wchar_t array parameter, such as 'char [4]', with NULL. The target language
+            method is now passed what it is passed for a NULL 'char *'.
+
 2026-10-06: wsfulton
             [C#, D, Java, Javascript, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
             Setting a char array member or global variable, such as 'char [8]', to NULL, such as

@@ -21,6 +21,8 @@ SWIGINTERN size_t
 SWIG_wcsnlen(const wchar_t* s, size_t maxlen)
 {
   const wchar_t *p;
+  if (!s)
+    return 0;
   for (p = s; maxlen-- && *p; p++)
     ;
   return (size_t)(p - s);

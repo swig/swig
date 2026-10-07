@@ -20,6 +20,8 @@ public:
   virtual int take_const_array(const char s[4]) { return -1; }
   virtual int take_array_ref(char (&s)[4]) { return -1; }
   virtual int take_const_array_ref(const char (&s)[4]) { return -1; }
+  // NULL from C++ is passed on as for a NULL char *
+  virtual int is_null_array(char s[4]) { return -1; }
 
   int call_take_array() { return take_array(full_char_array.full); }
   int call_take_const_array() { return take_const_array(full_char_array.full); }
@@ -27,5 +29,6 @@ public:
   int call_take_const_array_ref() { return take_const_array_ref(full_char_array.full); }
   int call_take_array_short() { return take_array(short_char_array.full); }
   int call_take_array_ref_short() { return take_array_ref(short_char_array.full); }
+  int call_is_null_array() { return is_null_array(0); }
 };
 %}

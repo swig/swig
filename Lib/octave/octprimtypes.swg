@@ -244,7 +244,7 @@ SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 SWIGINTERNINLINE octave_value
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-  return std::string(carray,carray+size);
+  return carray ? std::string(carray,carray+size) : std::string();
 }
 }
 
