@@ -13,6 +13,15 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [Tcl] A negative number, such as -1, is no longer accepted for an unsigned long long
+            parameter or variable, where it gave a very large number. An OverflowError is raised
+            instead. Nor is a negative number with spaces before it, such as " -1", for an unsigned
+            long. An unsigned long value too big for a long is now accepted in any form Tcl accepts
+            for an integer, such as with spaces after it, as for a smaller value.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-07: wsfulton
             [Perl] A negative number in a string, such as "-1", or a negative floating point number,
             such as -1.0, is no longer accepted for an unsigned long, unsigned long long or size_t
             parameter or variable, where it gave a very large number. An OverflowError is raised
