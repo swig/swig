@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 BEGIN { use_ok('char_binary_rev_len') }
 require_ok('char_binary_rev_len');
 
@@ -13,3 +13,4 @@ is($t->strlen("hil\0"), 4, "bad multi-arg typemap 2");
 my $t2 = char_binary_rev_len::Test->new('hile');
 is($t2->getisize(), 4, "bad multi-arg typemap 3");
 is($t2->strlen("hil\0a"), 5, "bad multi-arg typemap 4");
+is($t->strlen(undef), 0, "bad multi-arg typemap 5");

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 12;
 BEGIN { use_ok('char_binary') }
 require_ok('char_binary');
 
@@ -11,6 +11,9 @@ is($t->ustrlen('hile'), 4, "unsigned string typemap");
 
 is($t->strlen("hil\0"), 4, "string typemap");
 is($t->ustrlen("hil\0"), 4, "unsigned string typemap");
+
+is($t->strlen(undef), 0, "string typemap undef");
+is($t->ustrlen(undef), 0, "unsigned string typemap undef");
 
 #
 # creating a raw char*

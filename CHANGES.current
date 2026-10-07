@@ -13,6 +13,13 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [Javascript, Octave, Perl, Python, Ruby] Fix NULL, such as None in Python, passed for
+            a string with a length from the '(const char *STRING, size_t LENGTH)' typemaps, the
+            reverse order '(size_t LENGTH, const char *STRING)' typemaps or %cstring_input_binary.
+            The NULL pointer was given a length of -1, converted to the length's type, so a size_t
+            length was its largest value. The length is now 0.
+
+2026-10-07: wsfulton
             [C#] Fix a constant from a wide string or wide character literal holding a character
             that is not ASCII, with %csconst(1), which was given a C# char for each byte of its
             UTF-8 encoding, so that a wide character constant did not compile.

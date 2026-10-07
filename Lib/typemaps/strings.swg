@@ -466,7 +466,7 @@
     %argument_fail(res,"$type",$symname, $argnum);
   }
   $1 = %reinterpret_cast(buf, $1_ltype);
-  $2 = %numeric_cast(size - 1, $2_ltype);
+  $2 = %numeric_cast(size ? size - 1 : 0, $2_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (const Char *STRING, size_t LENGTH) {
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
@@ -513,7 +513,7 @@
     %argument_fail(res,"$type",$symname, $argnum);
   }
   $2 = %reinterpret_cast(buf, $2_ltype);
-  $1 = %numeric_cast(size - 1, $1_ltype);
+  $1 = %numeric_cast(size ? size - 1 : 0, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (size_t LENGTH, const Char *STRING) {
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);

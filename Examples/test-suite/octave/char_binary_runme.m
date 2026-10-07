@@ -18,6 +18,13 @@ if (t.ustrlen("hil\000") != 4)
   error("bad multi-arg typemap");
 endif
 
+if (t.strlen([]) != 0)
+  error("bad multi-arg typemap");
+endif
+if (t.ustrlen([]) != 0)
+  error("bad multi-arg typemap");
+endif
+
 % creating a raw char*
 pc = new_pchar(5);
 pchar_setitem(pc, 0, 'h');

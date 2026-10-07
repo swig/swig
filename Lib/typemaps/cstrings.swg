@@ -33,7 +33,7 @@
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   $1 = ($1_ltype) buf;					       
-  $2 = ($2_ltype) size - 1;				       
+  $2 = ($2_ltype) (size ? size - 1 : 0);
 }
 %typemap(freearg,noblock=1,match="in") (TYPEMAP, SIZE) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);

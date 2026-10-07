@@ -4,6 +4,12 @@ from li_cstring import *
 if count("ab\0ab\0ab\0", 0) != 3:
     raise RuntimeError
 
+if binary_length("abc") != 3:
+    raise RuntimeError
+
+if binary_length(None) != 0:
+    raise RuntimeError
+
 if test1() != "Hello World":
     raise RuntimeError
 

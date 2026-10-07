@@ -17,3 +17,6 @@ endif
 if (t2.strlen("hil\000a") != 5)
  error("bad multi-arg typemap 4");
 endif
+if (t.strlen([]) != 0)
+ error("bad multi-arg typemap 5");
+endif

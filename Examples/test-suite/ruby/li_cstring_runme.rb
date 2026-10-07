@@ -10,6 +10,8 @@ include Li_cstring
 
 swig_assert_each_line <<EOF
 count("hello", 'l'[0]) == 2
+binary_length('abc') == 3
+binary_length(nil) == 0
 test1 == 'Hello World'
 test2
 test3('hello') == 'hello-suffix'
