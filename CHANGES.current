@@ -13,6 +13,14 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [R] Fix a parameter that is a fixed size array of strings, such as 'char *strs[3]',
+            which was given the bytes of the first string in place of the array of pointers,
+            usually crashing. A character vector is now converted to the array, with any elements
+            past the end of a shorter vector set to NULL. A longer vector, or NULL, is an error. A
+            member or global variable of this type, which was set the same way, now keeps copies of
+            the strings, as for 'char *'.
+
+2026-10-07: wsfulton
             [Octave, Perl, Python, Ruby] Fix a crash when C++ calls a director method that has a
             char or wchar_t array parameter, such as 'char [4]', with NULL. The target language
             method is now passed what it is passed for a NULL 'char *'.

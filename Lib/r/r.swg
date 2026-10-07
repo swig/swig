@@ -172,13 +172,52 @@ unsigned char *OUTPUT
    free($1);
 }
 
-%typemap(in,noblock=1,fragment="SWIG_strdup") char *[ANY]  {
-   $1 = %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
+%typemap(in,noblock=1,fragment="SWIG_strdup") char *[ANY] (char *temp[$1_dim0], char *copies[$1_dim0]) {
+  {
+    int i;
+    int len = Rf_length($input);
+    if (!Rf_isString($input) || len == 0) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+    }
+    if (len > (int)($1_dim0)) {
+      %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+    }
+    for (i = 0; i < len; i++) {
+      copies[i] = temp[i] = SWIG_strdup(CHAR(STRING_ELT($input, i)));
+    }
+    for (; i < (int)($1_dim0); i++) {
+      copies[i] = temp[i] = 0;
+    }
+    $1 = temp;
+  }
 }
 
-%typemap(freearg,noblock=1) char *[ANY]  {
-   free($1);
+/* Frees the strings from the in typemap, which the wrapped function may have replaced in the array */
+%typemap(freearg,noblock=1) char *[ANY] {
+  if ($1) {
+    int i;
+    for (i = 0; i < (int)($1_dim0); i++) {
+      free(copies$argnum[i]);
+    }
+  }
 }
+
+/* A variable keeps copies of the strings, as for char *, as freearg frees those from the in typemap */
+%define %r_char_ptr_array_variable(METHOD)
+%typemap(METHOD,canthrow=1,noblock=1,fragment="<string.h>") char *[ANY] {
+  if (!$input) {
+    SWIG_exception_fail(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
+  } else {
+    size_t ii;
+    for (ii = 0; ii < (size_t)$1_dim0; ii++) {
+      %delete_array($1[ii]);
+      $1[ii] = $input[ii] ? strcpy(%new_array(strlen($input[ii]) + 1, char), $input[ii]) : 0;
+    }
+  }
+}
+%enddef
+%r_char_ptr_array_variable(memberin)
+%r_char_ptr_array_variable(globalin)
 
 /* char[ANY] uses the Lib/typemaps typemaps, which copy the string into a zero filled array of the declared size */
 %typemap(in,noblock=1,fragment="SWIG_strdup") char[] {

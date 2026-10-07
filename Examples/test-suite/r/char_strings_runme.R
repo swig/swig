@@ -134,6 +134,17 @@ unittest(grepl("^SWIG:TypeError", null_message(function() global_char_array_null
 unittest(null_member$four, "qqq")
 unittest(global_char_array_null_get(), "qqq")
 
+unittest(CharPtrArrayJoin(c("a", "bc", "def")), "a|bc|def")
+unittest(CharPtrArrayJoin(c("a", "bc")), "a|bc|NULL")
+unittest(grepl("^SWIG:OverflowError", null_message(function() CharPtrArrayJoin(c("a", "b", "c", "d")))), TRUE)
+unittest(CharPtrArrayReplaceFirst(c("a", "b", "c")), "replaced")
+holder <- CharPtrArrayHolder()
+holder$strs <- c("one", "two")
+unittest(CharPtrArrayHolderJoin(holder), "one|two|NULL")
+global_char_ptr_array_set(c("x", "y", "z"))
+unittest(GlobalCharPtrArrayJoin(), "x|y|z")
+unittest(grepl("^SWIG:TypeError", null_message(function() CharPtrArrayJoin(NULL))), TRUE)
+
 for (i in 0:(count-1)) {
   unittest(global_const_char_get(), CPLUSPLUS_MSG)
 }

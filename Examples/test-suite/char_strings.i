@@ -171,6 +171,34 @@ CharArrayNull char_array_null = {{'q', 'q', 'q', 0}};
 char global_char_array_null[4] = {'q', 'q', 'q', 0};
 char PlainCharPingPong(char c) { return c; }
 
+// An array of strings, which R passes as a character vector
+const char *CharPtrArrayJoin(char *strs[3]) {
+  static char joined[64];
+  int i;
+  joined[0] = 0;
+  for (i = 0; i < 3; i++) {
+    if (i)
+      strncat(joined, "|", sizeof(joined) - strlen(joined) - 1);
+    strncat(joined, strs[i] ? strs[i] : "NULL", sizeof(joined) - strlen(joined) - 1);
+  }
+  return joined;
+}
+const char *CharPtrArrayReplaceFirst(char *strs[3]) {
+  static char replacement[] = "replaced";
+  strs[0] = replacement;
+  return strs[0];
+}
+struct CharPtrArrayHolder {
+  char *strs[3];
+};
+char *global_char_ptr_array[3];
+const char *CharPtrArrayHolderJoin(CharPtrArrayHolder *holder) {
+  return CharPtrArrayJoin(holder->strs);
+}
+const char *GlobalCharPtrArrayJoin() {
+  return CharPtrArrayJoin(global_char_ptr_array);
+}
+
 %}
 
 
