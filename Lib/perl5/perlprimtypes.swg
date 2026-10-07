@@ -79,7 +79,7 @@ SWIG_AsVal_dec(long)(SV *obj, long* val)
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
-	if (*endptr == '\0') {
+	if (endptr != nptr && *endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}
@@ -152,7 +152,7 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
-	if (*endptr == '\0') {
+	if (endptr != nptr && *endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}
@@ -234,7 +234,7 @@ SWIG_AsVal_dec(long long)(SV *obj, long long *val)
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
-	if (*endptr == '\0') {
+	if (endptr != nptr && *endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}
@@ -313,7 +313,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
-	if (*endptr == '\0') {
+	if (endptr != nptr && *endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}
@@ -366,7 +366,7 @@ SWIG_AsVal_dec(double)(SV *obj, double *val)
 	errno = 0;
 	return SWIG_OverflowError;
       } else {
-	if (*endptr == '\0') {
+	if (endptr != nptr && *endptr == '\0') {
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}

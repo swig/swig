@@ -13,6 +13,15 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [Perl] An empty string or undef is no longer accepted as 0 for an integer or floating
+            point parameter or variable, such as int or double. A TypeError is raised instead, as it
+            already was for any other string that is not a number. This includes the value returned
+            by a director method implemented in Perl, so a method that returns undef, such as with
+            'return;', for an int now throws Swig::DirectorTypeMismatchException instead of giving 0.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-07: wsfulton
             [R] Fix the reverse order '(size_t LENGTH, const char *STRING)' typemaps. Also fix the
             '(const char *STRING, size_t LENGTH)' typemaps when applied to another char type, such
             as 'unsigned char *'. Both converted the string to an integer, so a string could not be
