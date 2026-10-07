@@ -7,5 +7,7 @@ cacheMetaData(1)
 
 t <- Test()
 unittest(t$strlen("hile"), 4)
+unittest(t$ustrlen("hile"), 4)
 unittest(t$strlen(NULL), 0)
+unittest(t$ustrlen(NULL), 0)
 unittest(t$strlen(character(0)), 0)

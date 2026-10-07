@@ -271,6 +271,18 @@ string &, std::string &
 %typemap(scoerceout) char [ANY], char [], char (&)[ANY]
   %{    %}
 
+/* A string with a length is a string, as for char *, in either order and when applied to another char type */
+%typemap("rtypecheck") (const char *STRING, size_t LENGTH), (char *STRING, size_t LENGTH),
+                       (const char *STRING, int LENGTH), (char *STRING, int LENGTH),
+                       (size_t LENGTH, const char *STRING), (size_t LENGTH, char *STRING),
+                       (int LENGTH, const char *STRING), (int LENGTH, char *STRING)
+  %{ is.character($arg) || is.null($arg) %}
+%typemap(scoercein) (const char *STRING, size_t LENGTH), (char *STRING, size_t LENGTH),
+                    (const char *STRING, int LENGTH), (char *STRING, int LENGTH),
+                    (size_t LENGTH, const char *STRING), (size_t LENGTH, char *STRING),
+                    (int LENGTH, const char *STRING), (int LENGTH, char *STRING)
+  %{  $input = as($input, "character"); %}
+
 %apply int {size_t,
 std::size_t,
 ptrdiff_t,

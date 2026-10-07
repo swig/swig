@@ -13,6 +13,12 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [R] Fix the reverse order '(size_t LENGTH, const char *STRING)' typemaps. Also fix the
+            '(const char *STRING, size_t LENGTH)' typemaps when applied to another char type, such
+            as 'unsigned char *'. Both converted the string to an integer, so a string could not be
+            passed.
+
+2026-10-07: wsfulton
             [Javascript, Octave, Perl, Python, Ruby] Fix NULL, such as None in Python, passed for
             a string with a length from the '(const char *STRING, size_t LENGTH)' typemaps, the
             reverse order '(size_t LENGTH, const char *STRING)' typemaps or %cstring_input_binary.
