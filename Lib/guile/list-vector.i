@@ -201,8 +201,8 @@
 /* We use the macro to define typemaps for some standard types. */
 
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(bool, scm_is_true, scm_from_bool, boolean);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char, SCM_CHAR, SCM_MAKE_CHAR, char);
-TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned char, SCM_CHAR, SCM_MAKE_CHAR, char);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(char, SWIG_scm2char, SCM_MAKE_CHAR, char);
+TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(unsigned char, SWIG_scm2char, SCM_MAKE_CHAR, char);
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(int, scm_to_int, scm_from_long, integer);
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(short, scm_to_int, scm_from_long, integer);
 TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(long, scm_to_long, scm_from_long, integer);
@@ -449,8 +449,8 @@ TYPEMAP_LIST_VECTOR_INPUT_OUTPUT(const char *, SWIG_scm2str, SWIG_str02scm, stri
 /* We use the macro to define typemaps for some standard types. */
 
 TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(bool, scm_is_true, scm_from_bool, boolean);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char, SCM_CHAR, SCM_MAKE_CHAR, char);
-TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned char, SCM_CHAR, SCM_MAKE_CHAR, char);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(char, SWIG_scm2char, SCM_MAKE_CHAR, char);
+TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(unsigned char, SWIG_scm2char, SCM_MAKE_CHAR, char);
 TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(int, scm_to_int, scm_from_long, integer);
 TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(short, scm_to_int, scm_from_long, integer);
 TYPEMAP_PARALLEL_LIST_VECTOR_INPUT_OUTPUT(long, scm_to_long, scm_from_long, integer);

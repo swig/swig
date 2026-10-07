@@ -8,6 +8,8 @@
 %inline %{
   signed char signed_char_identity(signed char x) { return x; }
   unsigned char unsigned_char_identity(unsigned char x) { return x; }
+  int signed_char_to_int(signed char x) { return x; }
+  int unsigned_char_to_int(unsigned char x) { return x; }
   signed short signed_short_identity(signed short x) { return x; }
   unsigned short unsigned_short_identity(unsigned short x) { return x; }
   signed int signed_int_identity(signed int x) { return x; }

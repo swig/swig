@@ -296,9 +296,9 @@
 %enddef
 
  SIMPLE_MAP(bool, scm_is_true, scm_from_bool, boolean);
- SIMPLE_MAP(char, SCM_CHAR, SCM_MAKE_CHAR, char);
- SIMPLE_MAP(unsigned char, SCM_CHAR, SCM_MAKE_CHAR, char);
- SIMPLE_MAP(signed char, SCM_CHAR, SCM_MAKE_CHAR, char);
+ SIMPLE_MAP(char, SWIG_scm2char, SCM_MAKE_CHAR, char);
+ SIMPLE_MAP(unsigned char, SWIG_scm2char, SCM_MAKE_CHAR, char);
+ SIMPLE_MAP(signed char, SWIG_scm2char, SCM_MAKE_CHAR, char);
  SIMPLE_MAP(int, scm_to_int, scm_from_long, integer);
  SIMPLE_MAP(short, scm_to_short, scm_from_long, integer);
  SIMPLE_MAP(long, scm_to_long, scm_from_long, integer);

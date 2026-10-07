@@ -85,4 +85,11 @@
 (check (string=? (CharArrayNull-four-get (char-array-null)) "qqq"))
 (check (string=? (global-char-array-null) "qqq"))
 
+(check (char=? (PlainCharPingPong #\a) #\a))
+(check (char=? (PlainCharPingPong (integer->char 255)) (integer->char 255)))
+(expect-throw 'wrong-type-arg (PlainCharPingPong #nil))
+(expect-throw 'wrong-type-arg (PlainCharPingPong 97))
+(expect-throw 'wrong-type-arg (PlainCharPingPong "a"))
+(expect-throw 'out-of-range (PlainCharPingPong (integer->char 256)))
+
 (exit 0)

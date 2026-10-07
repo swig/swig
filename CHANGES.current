@@ -13,6 +13,15 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [Guile] A char, signed char or unsigned char parameter or variable, including the
+            elements of a list or vector from list-vector.i, now raises wrong-type-arg for
+            anything other than a character, such as #nil, a number or a string, which was
+            converted to an arbitrary char. It raises out-of-range for a character above 255, which
+            was truncated.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-07: wsfulton
             [R] NULL is now accepted for a 'char *' parameter, member or global variable and gives
             a NULL pointer. NULL for a char parameter gives a SWIG TypeError. Both gave the R
             internal error "CHAR() can only be applied to a 'CHARSXP', not a 'NULL'" before. An

@@ -23,4 +23,7 @@
 		 #(0 1 4 9 16)
 		 #(0.0 1.5 3.0 4.5 6.0)))
 
+(check-equality (sum-chars '(#\a #\b)) 195)
+(check-equality (catch 'wrong-type-arg (lambda () (sum-chars '(#\a #nil))) (lambda args 'thrown)) 'thrown)
+
 (exit 0)

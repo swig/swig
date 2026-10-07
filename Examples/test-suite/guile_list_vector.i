@@ -33,6 +33,8 @@ void produce_lists(int *PARALLEL_VECTORLENOUTPUT,
 		   int **PARALLEL_VECTOROUTPUT,
 		   double **PARALLEL_VECTOROUTPUT);
 
+int sum_chars(int LISTLENINPUT, char *LISTINPUT);
+
 %{
   double sum_list(int length, double *item)
   {
@@ -147,6 +149,15 @@ void produce_lists(int *len_p,
     (*list2_p)[i] = i*i;
     (*list3_p)[i] = 1.5*i;
   }
+}
+
+int sum_chars(int len, char *chars)
+{
+  int i;
+  int sum = 0;
+  for (i = 0; i<len; i++)
+    sum += chars[i];
+  return sum;
 }
 
   

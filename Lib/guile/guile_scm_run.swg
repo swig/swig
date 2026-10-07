@@ -29,6 +29,10 @@ typedef struct swig_guile_clientdata {
   SWIG_Guile_scm2newstr(s, NULL)
 #define SWIG_str02scm(str) \
   str ? scm_from_utf8_string(str) : SCM_BOOL_F 
+/* The Guile functions scm_char_to_integer() and scm_to_uint8() raise wrong-type-arg for anything other than a
+ * character and out-of-range for a character outside 0 to 255, the range SCM_MAKE_CHAR gives for a char */
+#define SWIG_scm2char(s) \
+  ((char) scm_to_uint8(scm_char_to_integer(s)))
 # define SWIG_malloc(size) \
   scm_malloc(size)
 # define SWIG_free(mem) \
