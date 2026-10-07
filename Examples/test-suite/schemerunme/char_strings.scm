@@ -78,4 +78,11 @@
 (CharArrayOne-one-set one "b")
 (check (string=? (CharArrayOne-one-get one) "b"))
 
+(expect-throw 'wrong-type-arg (CharArrayPingPong #nil))
+(expect-throw 'wrong-type-arg (CharArrayDimsPingPong #nil))
+(expect-throw 'wrong-type-arg (CharArrayNull-four-set (char-array-null) #nil))
+(expect-throw 'wrong-type-arg (global-char-array-null #nil))
+(check (string=? (CharArrayNull-four-get (char-array-null)) "qqq"))
+(check (string=? (global-char-array-null) "qqq"))
+
 (exit 0)

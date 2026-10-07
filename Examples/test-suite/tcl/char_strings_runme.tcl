@@ -52,6 +52,14 @@ set expected "${OTHERLAND_MSG}23"
 set global_char_array2 $expected
 if {$global_char_array2 != $expected} { error "Test variables 3 failed (global_char_array2 set+read)" }
 
+# Tcl has no null string, so test an empty string is passed as one
+if {[CharArrayPingPong ""] != "" || [CharArrayDimsPingPong ""] != ""} { error "Test char array empty string failed" }
+if {[PlainCharPingPong "a"] != "a"} { error "Test char failed" }
+if {[CharArrayNull_four_get $char_array_null] != "qqq" || $global_char_array_null != "qqq"} { error "Test char array initial value failed" }
+CharArrayNull_four_set $char_array_null ""
+set global_char_array_null ""
+if {[CharArrayNull_four_get $char_array_null] != "" || $global_char_array_null != ""} { error "Test char array set to empty string failed" }
+
 if {$global_const_char != $CPLUSPLUS_MSG} { error "Test variables 4 failed (global_const_char read-only)" }
 if {$global_const_char_array1 != $CPLUSPLUS_MSG} { error "Test variables 5 failed (global_const_char_array1 read-only)" }
 if {$global_const_char_array2 != $CPLUSPLUS_MSG} { error "Test variables 6 failed (global_const_char_array2 read-only)" }

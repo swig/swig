@@ -176,6 +176,23 @@ func main() {
 		panic("Test char[1] failed")
 	}
 
+	// Go has no null string, so test an empty string is passed as one
+	if char_strings.CharArrayPingPong("") != "" || char_strings.CharArrayDimsPingPong("") != "" {
+		panic("Test char array empty string failed")
+	}
+	if char_strings.PlainCharPingPong('a') != 'a' {
+		panic("Test char failed")
+	}
+	nullMember := char_strings.GetChar_array_null()
+	if nullMember.GetFour() != "qqq" || char_strings.GetGlobal_char_array_null() != "qqq" {
+		panic("Test char array initial value failed")
+	}
+	nullMember.SetFour("")
+	char_strings.SetGlobal_char_array_null("")
+	if nullMember.GetFour() != "" || char_strings.GetGlobal_char_array_null() != "" {
+		panic("Test char array set to empty string failed")
+	}
+
 	for i := uint(0); i < count; i++ {
 		if char_strings.GetGlobal_const_char() != CPLUSPLUS_MSG {
 			panic("Test variables 4 failed, iteration " + strconv.Itoa(int(i)))

@@ -110,6 +110,16 @@ checkequal(global_char_array2_get(), CPLUSPLUS_MSG + "!", "global_char_array2");
 ierr = execstr("global_char_array2_set(CPLUSPLUS_MSG + ""!!"")", "errcatch");
 if ierr == 0 then swigtesterror("global_char_array2_set() error expected"); end
 
+// NULL ([]) is rejected for a char array or char
+null_calls = ["CharArrayPingPong([])", "CharArrayDimsPingPong([])", "PlainCharPingPong([])", ..
+              "CharArrayNull_four_set(char_array_null_get(), [])", "global_char_array_null_set([])"];
+for i = 1:size(null_calls, "*")
+  ierr = execstr(null_calls(i), "errcatch");
+  if ierr == 0 then swigtesterror(null_calls(i) + " error expected"); end
+end
+checkequal(CharArrayNull_four_get(char_array_null_get()), "qqq", "CharArrayNull_four_get()");
+checkequal(global_char_array_null_get(), "qqq", "global_char_array_null_get()");
+
 no_nul = char_array_no_nul_get();
 checkequal(CharArrayNoNul_full_get(no_nul), "abcd", "CharArrayNoNul_full_get()");
 checkequal(CharArrayNoNul_after_get(no_nul), "XYZ", "CharArrayNoNul_after_get()");
