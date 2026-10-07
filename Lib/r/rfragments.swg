@@ -34,6 +34,8 @@ SWIG_From_dec(long)(long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long)(SEXP obj, long *val)
 {
+   if (Rf_length(obj) == 0)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -57,6 +59,8 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long long)(SEXP obj, long long *val)
 {
+   if (Rf_length(obj) == 0)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -76,6 +80,8 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(unsigned long)(SEXP obj, unsigned long *val)
 {
+   if (Rf_length(obj) == 0)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -100,6 +106,8 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(unsigned long long)(SEXP obj, unsigned long long *val)
 {
+   if (Rf_length(obj) == 0)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -119,6 +127,8 @@ SWIG_From_dec(double)(double value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(double)(SEXP obj, double *val)
 {
+   if (Rf_length(obj) == 0)
+     return SWIG_TypeError;
    if (val) *val = Rf_asReal(obj);
    return SWIG_OK;
 }

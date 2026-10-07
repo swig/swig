@@ -234,9 +234,13 @@ unsigned char *OUTPUT
     free($1);
 }
 
-%typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
-%{ temp = ($*1_ltype)INTEGER($input)[0];
-   $1 = &temp; %}
+%typemap(in,noblock=1) const enum SWIGTYPE & ($*1_ltype temp) {
+  if (Rf_length($input) == 0) {
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+  }
+  temp = ($*1_ltype)INTEGER($input)[0];
+  $1 = &temp;
+}
 
 %typemap(out) const enum SWIGTYPE & %{ $result = Rf_ScalarInteger((int)*$1); %}
 
@@ -260,6 +264,9 @@ unsigned char *OUTPUT
 
 %typemap(in,noblock=1) int, long
 {
+  if (Rf_length($input) == 0) {
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+  }
   $1 = %static_cast(INTEGER($input)[0], $1_ltype);
 }
 
@@ -267,8 +274,13 @@ unsigned char *OUTPUT
   "$result = Rf_ScalarInteger($1);";
 
 
-%typemap(in,noblock=1) bool 
-  "$1 = LOGICAL($input)[0] ? true : false;";
+%typemap(in,noblock=1) bool
+{
+  if (Rf_length($input) == 0) {
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+  }
+  $1 = LOGICAL($input)[0] ? true : false;
+}
 
 
 %typemap(out,noblock=1) bool 
@@ -278,7 +290,10 @@ unsigned char *OUTPUT
              float, 
              double
 {
-  $1 = %static_cast(REAL($input)[0], $1_ltype); 
+  if (Rf_length($input) == 0) {
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+  }
+  $1 = %static_cast(REAL($input)[0], $1_ltype);
 }
 
 /* Why is this here ? */

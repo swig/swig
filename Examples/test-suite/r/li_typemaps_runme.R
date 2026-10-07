@@ -13,4 +13,9 @@ unittest(in_int_multi(3, 4), 7)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() inr_int(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() inoutr_int(NULL))), TRUE)
 
+# NULL is not a value for a primitive type passed by value
+for (f in c("out_int", "out_bool", "out_float", "out_double")) {
+  unittest(grepl("^SWIG:TypeError", error_message(function() get(f)(NULL))), TRUE)
+}
+
 # The out_int_multi/inout_int_multi tests other languages have are missing as OUTPUT and INOUT fail in SET_VECTOR_ELT

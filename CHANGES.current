@@ -13,6 +13,13 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [R] NULL for a primitive type, such as int, double or bool, passed by value or by
+            const reference, or for a const reference to an enum, now gives a SWIG TypeError. It
+            crashed for int, long and bool passed by value. It gave an R internal error, such as
+            "REAL() can only be applied to a 'numeric', not a 'NULL'", for float and double passed
+            by value and for a const reference to an enum. Otherwise it gave NA, or true for bool.
+
+2026-10-07: wsfulton
             [R] NULL for a reference to a primitive or library type, such as 'int &',
             'std::string &' or 'std::vector<int> &', including the INPUT and INOUT typemaps for a
             reference, now gives SWIG:NullReferenceError, as for a reference to a class, instead
