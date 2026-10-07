@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-07: olly
+	    [Guile] #3194 The default "procdoc" format is now "plain" (which
+	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
+	    is no longer supported.
+
 2026-10-04: wsfulton
             Fix a named non-type template parameter of class type introduced with the 'struct',
             'union' or 'class' keyword, which was taken to be a type parameter constrained by a

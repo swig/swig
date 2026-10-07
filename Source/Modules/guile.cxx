@@ -38,7 +38,7 @@ static const char *usage2 = "\
      -prefix <name>          - Use <name> as prefix [default \"gswig_\"]\n\
      -procdoc <file>         - Output procedure documentation to <file>\n\
      -procdocformat <format> - Output procedure documentation in <format>;\n\
-                               one of `guile-1.4', `plain', `texinfo'\n\
+                               one of `plain', `texinfo' [default `plain']\n\
      -proxy                  - Export GOOPS class definitions\n\
      -primsuffix <suffix>    - Name appended to primitive module when exporting\n\
                                GOOPS classes. (default = \"primitive\")\n\
