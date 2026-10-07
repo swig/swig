@@ -122,6 +122,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 	  fragment="<errno.h>",
 	  fragment="<limits.h>",
 	  fragment="<stdlib.h>",
+	  fragment="<string.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val) 
@@ -153,6 +154,8 @@ SWIG_AsVal_dec(unsigned long)(SV *obj, unsigned long *val)
 	return SWIG_OverflowError;
       } else {
 	if (endptr != nptr && *endptr == '\0') {
+	  if (v != 0 && strchr(nptr, '-'))
+	    return SWIG_OverflowError;
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}
@@ -283,6 +286,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 	  fragment="SWIG_LongLongAvailable",
 	  fragment="<errno.h>",
 	  fragment="<stdlib.h>",
+	  fragment="<string.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
@@ -314,6 +318,8 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
 	return SWIG_OverflowError;
       } else {
 	if (endptr != nptr && *endptr == '\0') {
+	  if (v != 0 && strchr(nptr, '-'))
+	    return SWIG_OverflowError;
 	  if (val) *val = v;
 	  return SWIG_Str2NumCast(SWIG_OK);
 	}

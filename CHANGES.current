@@ -13,6 +13,14 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [Perl] A negative number in a string, such as "-1", or a negative floating point number,
+            such as -1.0, is no longer accepted for an unsigned long, unsigned long long or size_t
+            parameter or variable, where it gave a very large number. An OverflowError is raised
+            instead, as it already was for the integer -1.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-07: wsfulton
             [Perl] An empty string or undef is no longer accepted as 0 for an integer or floating
             point parameter or variable, such as int or double. A TypeError is raised instead, as it
             already was for any other string that is not a number. This includes the value returned
