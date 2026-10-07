@@ -47,21 +47,20 @@ let _ =
   assert (_GetCharStaticStringFixed C_void as string = cpp_msg);
   assert (_GetConstCharStaticStringFixed C_void as string = cpp_msg);
 
-  (* set functions.  The char[] parameter variants (SetCharArrayStaticString,
-     SetConstCharArrayStaticString) are omitted: OCaml's char[] 'in' typemap
-     strcpy's into the (null) argument pointer and crashes - a pre-existing
-     char array limitation unrelated to char *&. *)
+  (* set functions *)
   test_set _SetCharHeapString;
   test_set _SetCharStaticString;
+  test_set _SetCharArrayStaticString;
   test_set _SetConstCharHeapString;
   test_set _SetConstCharStaticString;
+  test_set _SetConstCharArrayStaticString;
   test_set _SetCharConstStaticString;
   test_set _SetConstCharConstStaticString;
   test_set _SetConstCharTypedefString;
 
-  (* get set function.  CharArrayPingPong takes a char[] parameter and is
-     omitted for the same char array limitation as above. *)
+  (* get set function *)
   test_pingpong _CharPingPong;
+  test_pingpong _CharArrayPingPong;
   List.iter (fun i ->
     let msg = "Ping" ^ string_of_int i in
     assert (_CharArrayDimsPingPong (C_string msg) as string = msg)
