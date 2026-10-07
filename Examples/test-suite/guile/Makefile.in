@@ -21,8 +21,8 @@ top_builddir = @top_builddir@
 GUILE        = @GUILE@
 GUILE_RUNTIME=
 
-C_TEST_CASES = long_long \
-	       list_vector \
+C_TEST_CASES = guile_list_vector \
+	       long_long \
 	       multivalue \
 	       pointer_in_out \
 

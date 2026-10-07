@@ -1,6 +1,6 @@
 /* -*- c -*- */
 
-%module list_vector
+%module guile_list_vector
 
 %include "list-vector.i"
 
