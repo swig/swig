@@ -80,7 +80,7 @@ implementation of the C++11 standard.
 <p>SWIG supports the new C++ syntax changes with some minor limitations
 in some areas such as decltype expressions and variadic templates. Wrappers for the
 new STL types (unordered_ containers, result_of, tuples) are incomplete.
-The wrappers for the new containers would work much like the C++03 containers and 
+The wrappers for the new containers would work much like the C++03 containers and
 users are welcome to help by adapting the existing container interface files and submitting them
 as a patch for inclusion in future versions of SWIG.
 </p>
@@ -380,8 +380,8 @@ While the code shown is C# specific, the generated constructor and/or assignment
 SWIGEXPORT void SWIGSTDCALL CSharp_CopyOnly_take(void * jarg1) {
   CopyOnly arg1 ; // (a) Default constructor
   CopyOnly *argp1 ;
-  
-  argp1 = (CopyOnly *)jarg1; 
+
+  argp1 = (CopyOnly *)jarg1;
   if (!argp1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null CopyOnly", 0);
     return ;
@@ -417,8 +417,8 @@ The generated code for <tt>MovableCopyable::take</tt> is the same as for <tt>Cop
 SWIGEXPORT void SWIGSTDCALL CSharp_MovableCopyable_take(void * jarg1) {
   MovableCopyable arg1 ; // (a) Default constructor
   MovableCopyable *argp1 ;
-  
-  argp1 = (MovableCopyable *)jarg1; 
+
+  argp1 = (MovableCopyable *)jarg1;
   if (!argp1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null MovableCopyable", 0);
     return ;
@@ -457,7 +457,7 @@ will result in this optimal code where just one move constructor is invoked:
 SWIGEXPORT void SWIGSTDCALL CSharp_MovableCopyable_take(void * jarg1) {
   SwigValueWrapper&lt; MovableCopyable &gt; arg1 ; // (a) No constructors invoked
   MovableCopyable *argp1 ;
-  
+
   argp1 = (MovableCopyable *)jarg1;
   if (!argp1) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null MovableCopyable", 0);
@@ -696,10 +696,10 @@ struct BasicStruct {
  int x;
  double y;
 };
- 
+
 struct AltStruct {
   AltStruct(int x, double y) : x_{x}, y_{y} {}
- 
+
   int x_;
   double y_;
 };
@@ -1005,7 +1005,7 @@ struct SomeStruct {
 struct SomeStruct {
   auto FuncName(int x, int y) -&gt; int;
 };
- 
+
 auto SomeStruct::FuncName(int x, int y) -&gt; int {
   return x + y;
 }
@@ -1288,7 +1288,7 @@ struct Color {
   enum class RainbowColors : unsigned int {
     Red, Orange, Yellow, Green, Blue, Indigo, Violet
   };
-  
+
   enum class WarmColors {
     Yellow, Orange, Red
   };
@@ -1732,7 +1732,7 @@ OutputType var3 = 3.1416_suffix;
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
-reachable by the current thread can be defined as:</p> 
+reachable by the current thread can be defined as:</p>
 
 <div class="code"><pre>
 struct A {

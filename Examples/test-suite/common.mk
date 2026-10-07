@@ -1,17 +1,17 @@
 #######################################################################
 # SWIG test suite makefile.
 # The test suite comprises many different test cases, which have
-# typically produced bugs in the past. The aim is to have the test 
+# typically produced bugs in the past. The aim is to have the test
 # cases compiling for every language modules. Some testcase have
 # a runtime test which is written in each of the module's language.
 #
 # This makefile runs SWIG on the testcases, compiles the c/c++ code
 # then builds the object code for use by the language.
-# To complete a test in a language follow these guidelines: 
+# To complete a test in a language follow these guidelines:
 # 1) Add testcases to CPP_TEST_CASES (c++) or C_TEST_CASES (c) or
 #    MULTI_CPP_TEST_CASES (multi-module c++ tests)
 # 2) If not already done, create a makefile which:
-#    a) Defines LANGUAGE matching a language rule in Examples/Makefile, 
+#    a) Defines LANGUAGE matching a language rule in Examples/Makefile,
 #       for example LANGUAGE = java
 #    b) Define rules for %.ctest, %.cpptest, %.multicpptest and %.clean.
 #    c) Define srcdir, top_srcdir and top_builddir (these are the
@@ -28,7 +28,7 @@
 # The 'clean' target cleans up.
 #
 # Note that the RUNTOOL, COMPILETOOL and SWIGTOOL variables can be used
-# for invoking tools for the runtime tests and target language 
+# for invoking tools for the runtime tests and target language
 # compiler (eg javac), and on SWIG respectively. For example, valgrind
 # can be used for memory checking of the runtime tests using:
 #   make RUNTOOL="valgrind --leak-check=full"
@@ -58,10 +58,10 @@ SWIGEXE   = $(top_builddir)/swig
 SWIG_LIB_DIR = $(top_srcdir)/Lib
 TEST_SUITE = test-suite
 EXAMPLES   = Examples
-CXXSRCS    = 
-CSRCS      = 
-TARGETPREFIX = 
-TARGETSUFFIX = 
+CXXSRCS    =
+CSRCS      =
+TARGETPREFIX =
+TARGETSUFFIX =
 SWIGOPT    = -outcurrentdir -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
@@ -1123,5 +1123,5 @@ clean: $(ALL_CLEAN)
 distclean: clean
 	@rm -f Makefile
 
-.PHONY: all check partialcheck broken clean distclean 
+.PHONY: all check partialcheck broken clean distclean
 
