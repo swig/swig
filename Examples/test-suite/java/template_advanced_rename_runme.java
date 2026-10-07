@@ -40,5 +40,13 @@ public class template_advanced_rename_runme {
       throw new RuntimeException("BumpyBool failed");
     if (new BumpyPtr() == null)
       throw new RuntimeException("BumpyPtr failed");
+
+    check(1, template_advanced_rename.spinner(10));
+    check(2, template_advanced_rename.spinner(10, 20));
+  }
+
+  static void check(int expected, int actual) {
+    if (expected != actual)
+      throw new RuntimeException("expected " + expected + " but got " + actual);
   }
 }

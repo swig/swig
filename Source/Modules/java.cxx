@@ -1452,14 +1452,12 @@ public:
     // Note that this is used in enumValue() amongst other places
     Setattr(n, "value", tmpValue);
 
-    // Deal with enum values that are not int
-    int swigtype = SwigType_type(Getattr(n, "type"));
-    if (swigtype == T_CHAR) {
-      if (Getattr(n, "enumstringval")) {
-        String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
-        Setattr(n, "enumvalue", val);
-        Delete(val);
-      }
+    // Convert a character literal, including a wide one, or an integer or boolean literal value into a Java literal
+    String *enumstringval = Getattr(n, "enumstringval");
+    if (enumstringval) {
+      String *val = NewStringf("'%(escape)s'", enumstringval);
+      Setattr(n, "enumvalue", val);
+      Delete(val);
     } else {
       String *numval = Getattr(n, "enumnumval");
       if (numval) {

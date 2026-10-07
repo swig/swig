@@ -28,3 +28,24 @@ int sumA(int *nums[3]) {
   return sum;
 }
 %}
+
+// Check $1_size parenthesises array dimensions that are expressions
+%typemap(in) int grid[ANY][ANY] (int temp[$1_dim0][$1_dim1]) {
+  temp[0][0] = $1_size;
+  $1 = temp;
+}
+%typemap(in) int row[ANY] (int temp[$1_dim0]) {
+  temp[0] = 2 * $1_size;
+  $1 = temp;
+}
+%typemap(freearg) int row[ANY] ""
+
+%inline %{
+#define GRID_DIM 2
+int gridSize(int grid[GRID_DIM + 1][GRID_DIM + 2]) {
+  return grid[0][0];
+}
+int rowSize(int row[GRID_DIM + 1]) {
+  return row[0];
+}
+%}

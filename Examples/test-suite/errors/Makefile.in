@@ -54,6 +54,9 @@ $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
 # The argout container consistency check only runs when the return type is being described.
 swig_argout_container.ctest: SWIGOPT += -typehints
 
+# Warnings are reported at the line in the macro definition instead of the macro invocation.
+cpp_macroerrors.cpptest: SWIGOPT += -macroerrors
+
 # Unique module names are obtained from the .i file name (required for parallel make).
 # Note: -module overrides %module in the .i file.
 MODULE_OPTION=-module $*
@@ -81,4 +84,4 @@ STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean
-	@rm -f *.$(ERROR_EXT) *.py
+	@rm -f *.$(ERROR_EXT) *.py *.pyi

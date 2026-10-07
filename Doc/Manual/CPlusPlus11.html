@@ -735,6 +735,20 @@ decltype(i+j) k;
 <tt>i+j</tt> both have type <tt>int</tt>.
 </p>
 
+<p>A parenthesised name is an lvalue rather than the name itself, so a <tt>decltype</tt> of one gives a
+reference to the type the name was declared with:</p>
+
+<div class="code"><pre>
+int gi = 1;
+int *gp = &amp;gi;
+
+decltype(gp) plain = gp;      // int *
+decltype((gp)) lvalue = gp;   // int *&amp;
+</pre></div>
+
+<p>A scalar is wrapped by value either way, so <tt>decltype((gi))</tt> is wrapped as a plain
+<tt>int</tt>, reading and writing the object the reference refers to.</p>
+
 <p>
 Using an expression for the decltype which SWIG can't handle results in a warning:</p>
 <div class="code"><pre>
@@ -783,6 +797,7 @@ int *pg = &amp;g;
 auto&amp; r1 = g;            // int &amp;
 const auto&amp; r2 = g;      // const int &amp;
 auto&amp;&amp; r3 = 42;          // int &amp;&amp;
+auto&amp;&amp; r4 = g;           // int &amp; - a forwarding reference bound to an lvalue
 auto* p1 = &amp;g;           // int *
 auto* const p2 = &amp;g;     // int *const
 auto** p3 = &amp;pg;         // int **
@@ -801,9 +816,37 @@ auto v2 = &amp;fn;                      // int (*)(int)
 auto v3 = static_cast&lt;double&gt;(g);   // double
 </pre></div>
 
+<p>A new-expression deduces a pointer to the type it allocates, or for an array to its first element,
+whatever the placement and initialiser. The allocated type can itself be the <tt>auto</tt> placeholder,
+which is deduced from the initialiser:</p>
+
+<div class="code"><pre>
+struct Widget { Widget(int a, int b); };
+char buffer[64];
+
+auto n1 = new int(5);                  // int *
+auto n2 = new Widget{1, 2};            // Widget *
+auto n3 = new double[g];               // double *
+auto n4 = new int[2][3];               // int (*)[3]
+auto n5 = new (buffer) Widget(1, 2);   // Widget *
+auto n6 = new auto(2.5);               // double *
+</pre></div>
+
 <p>As C++ requires, the top level cv-qualifiers of the initialiser are dropped unless the variable is a
 reference, so <tt>r2</tt> above is a <tt>const int &amp;</tt> while a by value <tt>auto</tt> initialised
-from a <tt>const int</tt> is a plain <tt>int</tt>.</p>
+from a <tt>const int</tt> is a plain <tt>int</tt>. A name that refers to a reference stands for the type
+the reference refers to, and an array decays to a pointer to its first element unless the variable is a
+reference:</p>
+
+<div class="code"><pre>
+int &amp;rg = g;
+int arr[4] = {1, 2, 3, 4};
+
+auto v4 = rg;    // int
+auto&amp; v5 = rg;   // int &amp;
+auto v6 = arr;   // int *
+auto&amp; v7 = arr;  // int (&amp;)[4]
+</pre></div>
 
 <p>A braced initialiser holding a single element deduces the type of that element, which is the C++17
 rule for this form:</p>
@@ -845,8 +888,8 @@ example.i:28: Warning 348: Inconsistent auto type deduction for variable 'v13': 
 declaration is being parsed, so a mismatch involving anything else goes unreported.</p>
 
 <p>The type still has to be deducible from the initialiser. Where no declarator of a declaration deduces
-one, the variables are dropped after issuing warning 346, and the warning says which of the two got in
-the way. An initialiser SWIG understands but cannot deduce a type from, such as a function call or the
+one, the variables are dropped after issuing warning 346, and the warning says what got in the way. An
+initialiser SWIG understands but cannot deduce a type from, such as a function call or the
 <a href="#CPlusPlus11_null_pointer_constant"><tt>nullptr</tt></a> literal, names the initialiser:</p>
 
 <div class="code"><pre>
@@ -857,19 +900,46 @@ auto v14 = nullptr;
 example.i:30: Warning 346: Unable to deduce auto type for variable 'v14' from initialiser 'nullptr' (ignored).
 </pre></div>
 
-<p>while an initialiser in a form SWIG does not support, such as a braced initialiser holding more than
-one element or a new expression, says so instead:</p>
+<p>A braced initialiser list is reported as one. Copy-list-initialisation deduces a
+<tt>std::initializer_list</tt>, which SWIG declares only as a stub that warns rather than
+wrapping it:</p>
 
 <div class="code"><pre>
 auto v15 = {g, 1};
 </pre></div>
 
 <div class="shell"><pre>
-example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from an unsupported initialiser (ignored).
+example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from a braced initialiser list (ignored).
 </pre></div>
 
-<p>The usual workaround for either is to ignore the variable, or to declare it with its actual type in
-the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
+<p>while an initialiser in a form SWIG has no grammar for, such as a throw-expression, says only that:</p>
+
+<div class="code"><pre>
+auto v16 = throw 1;
+</pre></div>
+
+<div class="shell"><pre>
+example.i:34: Warning 346: Unable to deduce auto type for variable 'v16' from an unsupported initialiser (ignored).
+</pre></div>
+
+<p>A new-expression is reported naming the initialiser where it is only part of the initialiser, or where
+SWIG does not parse its type-id, which is the case for a parenthesised type-id and for a placeholder other
+than a plain or cv-qualified <tt>auto</tt>:</p>
+
+<div class="code"><pre>
+auto v17 = new int[3] + 1;
+auto v18 = new (int *[3]);
+auto v19 = new std::integral auto(5);
+</pre></div>
+
+<div class="shell"><pre>
+example.i:36: Warning 346: Unable to deduce auto type for variable 'v17' from initialiser 'new int[3] + 1' (ignored).
+example.i:37: Warning 346: Unable to deduce auto type for variable 'v18' from initialiser 'new (int *[3])' (ignored).
+example.i:38: Warning 346: Unable to deduce auto type for variable 'v19' from initialiser 'new std::integral auto(5)' (ignored).
+</pre></div>
+
+<p>The usual workaround for any of them is to ignore the variable, or to declare it with its actual type
+in the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
 
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
 
@@ -955,6 +1025,40 @@ auto square(float a, float b) -&gt; decltype(a);
 </pre></div>
 
 <p>
+The parameter is seen with the type C++ gives it, so a parameter declared with
+an array type has the type "pointer to element" and one declared with a
+function type has the type "pointer to function":
+</p>
+<div class="code"><pre>
+auto array_parameter(int values[10]) -&gt; decltype(values);  // int *
+auto function_parameter(int fn(int)) -&gt; decltype(fn);      // int (*)(int)
+</pre></div>
+
+<p>
+An arithmetic expression over parameters of arithmetic types is deduced from the parameter types.
+A decltype of any other expression over parameters, such as the common <tt>decltype(t + u)</tt> in a function template,
+cannot be deduced and would not compile in a wrapper, where the parameters are not in scope, so the function is ignored with a warning:
+</p>
+<div class="code"><pre>
+auto sum(int a, double b) -&gt; decltype(a + b);                      // double
+template&lt;class T, class U&gt; auto add(T t, U u) -&gt; decltype(t + u);  // Warning 344: ... (ignored).
+</pre></div>
+
+<p>
+Class members are handled in the same way.
+A data member, <tt>this-&gt;member</tt> and a call to a member function that is not overloaded are deduced,
+and any other expression over members or <tt>this</tt> that cannot be deduced makes the function ignored with a warning:
+</p>
+<div class="code"><pre>
+struct S {
+  int d;
+  int h();
+  auto a() -&gt; decltype(this-&gt;d + 1);  // int
+  auto b() -&gt; decltype(h());          // int
+};
+</pre></div>
+
+<p>
 The trailing return type can be any type, including a pointer, a reference to a primitive type, an array reference or a function pointer:
 </p>
 
@@ -975,6 +1079,7 @@ C++ accepts the unparenthesised <tt>auto member() -&gt; int MoreTrailing::*;</tt
 <p>
 <b>Compatibility note:</b> SWIG-4.6.0 is the first version to accept a pointer or a reference to a primitive type as a trailing return type.
 Earlier versions accepted only a small set of trailing return types and reported a syntax error for the rest.
+SWIG-4.6.0 is also the first version to apply the array and function parameter adjustments to a parameter named by a <tt>decltype</tt> in a trailing return type.
 </p>
 
 <H3><a name="CPlusPlus11_object_construction_improvement">7.2.10 Object construction improvement</a></H3>
@@ -1121,6 +1226,7 @@ struct DerivedStruct : BaseStruct {
   virtual void ab() const override;
   virtual void cd() final;
   virtual void ef() final override;
+  virtual void gh() final;
   virtual ~DerivedStruct() override;
 };
 </pre></div>
@@ -1136,7 +1242,19 @@ struct FinalDerivedStruct final : BaseStruct {
 </pre></div>
 
 <p>
+A method marked <tt>final</tt> cannot be overridden, so when
+<a href="SWIGPlus.html#SWIGPlus_director_classes_introduction">directors</a> are
+enabled no director override is generated for that method and it cannot be overridden from
+the target language either.  In the example above, a director for <tt>DerivedStruct</tt> covers
+<tt>ab</tt>, which is an ordinary override, but not <tt>cd</tt>, <tt>ef</tt> or <tt>gh</tt>.
+Where the <tt>final</tt> appears makes no difference: <tt>gh</tt> is a new virtual method that
+<tt>DerivedStruct</tt> declares and marks final, while <tt>cd</tt> and <tt>ef</tt> mark a virtual
+method inherited from <tt>BaseStruct</tt> as final.
+</p>
+
+<p>
 <b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+SWIG-4.6.0 is the first version to leave a final method out of the director vtable when the final declaration overrides an inherited virtual method; before that the generated director class overrode it and did not compile.
 </p>
 
 <H3><a name="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</a></H3>

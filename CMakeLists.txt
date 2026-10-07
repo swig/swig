@@ -72,7 +72,8 @@ endif ()
 
 option (WITH_PCRE "Enable PCRE" ON)
 if (WITH_PCRE)
-  find_package (PCRE2 10.39 REQUIRED COMPONENTS 8BIT)
+  # No minimum version as SWIG only uses the PCRE2 API available since 10.00, matching configure which accepts any version
+  find_package (PCRE2 REQUIRED COMPONENTS 8BIT)
   set (HAVE_PCRE 1)
 endif()
 

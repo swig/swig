@@ -33,6 +33,21 @@ public:
 };
 %}
 
+// Member functions declared through a function typedef, t2 and t3 are ignored by default like h3
+%inline %{
+typedef string LvalueFunction() &;
+typedef string RvalueFunction() &&;
+typedef RvalueFunction RvalueFunction2;
+struct TypedefHost {
+  LvalueFunction t1;
+  RvalueFunction t2;
+  RvalueFunction2 t3;
+};
+string TypedefHost::t1() & { return string(); }
+string TypedefHost::t2() && { return string(); }
+string TypedefHost::t3() && { return string(); }
+%}
+
 // %feature testing
 %feature("except") F1() & %{ result = "F1"; %}
 %feature("except") F2 %{ result = "F2"; %}
@@ -95,6 +110,22 @@ struct ConversionOperators {
 struct ConversionOperators2 {
   virtual operator string() && { return string(); }
   virtual ~ConversionOperators2() {}
+};
+%}
+
+// Default arguments: the overloads added for the defaulted parameters keep the method's qualifiers
+%feature("except") DefaultArgs::vol(int a = 1, int b = 2) volatile %{ result = 100; %}
+%feature("except") DefaultArgs::lref(int a = 1, int b = 2) & %{ result = 200; %}
+%rename(cvref_renamed) DefaultArgs::cvref(int a = 1, int b = 2) const volatile &;
+%feature("ignore", "0") DefaultArgs::rv(int a = 1, int b = 2) &&;
+
+%inline %{
+struct DefaultArgs {
+  int vol(int a = 1, int b = 2) volatile { return a + b; }
+  int lref(int a = 1, int b = 2) & { return a + b; }
+  int cvref(int a = 1, int b = 2) const volatile & { return a + b; }
+  int rv(int a = 1, int b = 2) && { return a + b; }
+  int crv(int a = 1, int b = 2) const && { return a + b; }
 };
 %}
 

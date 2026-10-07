@@ -121,6 +121,7 @@ CCache/test.*/
 # errors test-suite
 Examples/test-suite/errors/*.newerr
 Examples/test-suite/errors/*.py
+Examples/test-suite/errors/*.pyi
 
 ########## Language specific files ##########
 
@@ -207,6 +208,7 @@ Examples/php/pragmas/example.php
 Examples/test-suite/python/*.py
 Examples/test-suite/python/*.pyi
 !Examples/test-suite/python/*runme.py
+Examples/python/**/*.pyi
 Examples/python/**/bar.py
 Examples/python/**/base.py
 Examples/python/**/example.py

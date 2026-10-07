@@ -5,6 +5,72 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 4.5.1 (04 Sep 2026)
+===========================
+
+2026-09-03: larskanis, wsfulton
+            #3534 Fix configure error "Tools/convertpath: No such file or directory" on
+            MinGW. The removed convertpath tool was still used to compute the SWIG library
+            directory, so a MinGW build installed to a Unix style prefix could not find the
+            SWIG library files. Regression in 4.5.0.
+
+2026-09-03: jschueller, wsfulton
+            #3555 Remove the minimum PCRE2 version required by the CMake build, as SWIG
+            only uses PCRE2 API available since the first PCRE2 release, matching the
+            configure build which accepts any PCRE2 version.
+
+2026-08-28: blowekamp, wsfulton
+            #3546 Fix a %rename using a format string, such as %rename("%(camelcase)s"),
+            being applied to a class template's partial specializations under the name of
+            the primary template, so that all but one were dropped as a redefinition. The
+            template parameter stripping added in ce06e2f is now used only when a format
+            rename is applied to an instantiation created by %template, and not when
+            parsing a template declaration. This was mostly visible in Ruby's -autorename,
+            which applies a format rename to every class, where std::vector's bool and
+            pointer specializations were not wrapped at all when using swig -ruby -autorename:
+
+              %include <std_vector.i>
+              namespace std {
+                %template(VectorBool) vector<bool>;
+              }
+
+            This is a regression fix to restore the behaviour of 4.4.1 and earlier.
+
+2026-08-24: wsfulton
+            [Python] #3537 Fix "'SWIGPY_SLICEOBJECT' was not declared in this scope" when
+            compiling the wrappers for a module that %imports another module which has
+            already included the STL containers, and then instantiates a container of its
+            own:
+
+              %module b
+              %import "a.i"             // a.i already has %include <std_vector.i>
+              %include <std_vector.i>
+              %template(DoubleVector) std::vector<double>;
+
+            The second %include is a no-op, as std_vector.i was read while processing the
+            %import, so the definition of SWIGPY_SLICEOBJECT was emitted into the wrapper
+            for 'a' only, while the slice methods generated for 'b' went on using it. The
+            definition is now a fragment and so is emitted into each wrapper that needs it.
+
+2026-08-12: kwwette
+            #3531 Restore the %typemaps_string_alloc macro for string classes
+            that use custom allocation and deallocation functions. The
+            SWIG_NewCopyCharArray argument now uses the two-argument fragment
+            interface introduced for %typemaps_string in SWIG 4.5.0. Interface
+            files written for earlier SWIG versions must update custom copy
+            allocators from:
+
+              CustomCopy(ptr, size, Char)
+
+            to:
+
+              CustomCopy(ptr, size)
+
+            or write a two-argument version adapter that calls into the original
+            three-argument version.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 Version 4.5.0 (06 Aug 2026)
 ===========================
 
@@ -1348,6 +1414,19 @@ Version 4.5.0 (06 Aug 2026)
                  S(VOID_TYPE);
                  int f(VOID_TYPE) const;
               };
+
+            #3556 A (void) parameter list in a member function is no longer normalized to ()
+            before %ignore, %rename and %feature name matching, so it must now be matched
+            exactly (as has always been the case for global functions):
+
+              %ignore Vec::getValue(void) const;  // matches
+              %ignore Vec::getValue() const;      // does not match
+
+              struct Vec {
+                const short *getValue(void) const;
+              };
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2025-11-06: olly
             [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as

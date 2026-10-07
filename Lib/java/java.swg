@@ -1414,6 +1414,18 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%apply char[ANY] { char (&)[ANY] }
+/* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
+%typemap(in, noblock=1) char (&)[ANY] {
+  if (!$input) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
+    return $null;
+  }
+  $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
+  if (!$1) return $null;
+}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

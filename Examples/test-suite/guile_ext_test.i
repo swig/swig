@@ -13,7 +13,7 @@ SCM test_is_pointer(SCM val);
 %}
 
 %init %{
-  scm_c_define_gsubr("test-create", 0, 0, 0, (swig_guile_proc) test_create);
-  scm_c_define_gsubr("test-is-pointer", 1, 0, 0, (swig_guile_proc) test_is_pointer);
+  scm_c_define_gsubr("test-create", 0, 0, 0, (scm_t_subr) test_create);
+  scm_c_define_gsubr("test-is-pointer", 1, 0, 0, (scm_t_subr) test_is_pointer);
 %}
 

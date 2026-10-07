@@ -13,6 +13,9 @@ assert(enums.globalinstance2==1)
 assert(enums.globalinstance3==30)
 assert(enums.AnonEnum1==0)
 assert(enums.AnonEnum2==100)
+assert(enums.WideCharW==string.byte("w"))
+assert(enums.WideCharE==0xE9)
+assert(enums.WideCharSmile==0x263A)
 
 -- In C enums from struct are exported into global namespace (without prefixing with struct name)
 -- In C++ they are prefixed (as compatibility thing).

@@ -149,6 +149,7 @@ example.i:10: Error: Function not_a_member() is not a member function so cannot 
 An explicit object parameter cannot have a default argument either, and the
 parameter itself has to be declared, so <tt>int m(this S&amp; self = S());</tt>
 and <tt>int m(this);</tt> are errors too.
+It is also an error for it to be anything other than the first parameter.
 </p>
 
 <p>
@@ -165,12 +166,42 @@ auto factorial = [](this auto&amp;&amp; self, int n) -&gt; int { return n &lt;= 
 </div>
 
 <p>
-An explicit object parameter declared as an rvalue reference to the class,
-<tt>this Counter&amp;&amp; self</tt>, can only be called on an rvalue.  SWIG calls
-the member function on the object the wrapper was passed, which is an lvalue,
-so the generated code does not compile and such a member function needs to be
-ignored with <tt>%ignore</tt>.  The deduced <tt>this auto&amp;&amp; self</tt> form
-is a forwarding reference rather than an rvalue reference and is not affected.
+An explicit object parameter declared as an rvalue reference to the class is the
+C++23 way of writing an rvalue ref-qualifier, so the member function can only be
+called on an rvalue.  The deduced forms are forwarding references rather than
+rvalue references, so they bind an lvalue just as well:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+struct Counter {
+  int value;
+  int by_rvalue_ref(this Counter&amp;&amp; self);
+  int deduced(this auto&amp;&amp; self);
+  template&lt;typename Self&gt; int by_template(this Self&amp;&amp; self);
+};
+</pre>
+</div>
+
+<p>
+SWIG calls a member function on the object the wrapper holds, which is an
+lvalue, so <tt>by_rvalue_ref</tt> is ignored in the same way as a method with an
+rvalue ref-qualifier, as described in
+<a href="CPlusPlus11.html#CPlusPlus11_ref_qualifiers">Methods with ref-qualifiers</a>.
+The warning is hidden by default and is shown with the <tt>-Wextra</tt> option:
+</p>
+
+<div class="shell">
+<pre>
+example.i:5: Warning 405: Method with rvalue ref-qualifier by_rvalue_ref() ignored.
+</pre>
+</div>
+
+<p>
+The <tt>deduced</tt> method is wrapped as usual. Similarly for <tt>by_template</tt>
+once instantiated with <tt>%template</tt>.
 </p>
 
 <p>

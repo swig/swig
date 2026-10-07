@@ -45,3 +45,22 @@ check_equal(h.cube(), 64)
 
 # Concept bodies that are ordinary expressions rather than concept-id chains.
 check_equal(pass_through_int(9), 9)
+
+# A boolean literal as the whole constraint.
+check_equal(literal_constraint_int(6), 6)
+
+# A virt-specifier after the trailing requires-clause, both specifiers and both orderings.
+d = VirtDerivedInt()
+check_equal(d.plain(10), 11)
+check_equal(d.arrow(10), 12)
+check_equal(d.over(10), 13)
+check_equal(d.over_arrow(10), 14)
+check_equal(d.both(10), 15)
+check_equal(d.both_reversed(10), 16)
+
+# A type-constraint on an 'auto' variable placeholder, in each of the three initialiser forms.
+check_equal(cvar.constrained_var, 42)
+check_equal(cvar.constrained_braced_var, 1.5)
+check_equal(cvar.constrained_multi1, 7)
+check_equal(cvar.constrained_multi2, 8)
+check_equal(cvar.constrained_decltype_auto_var, 42)

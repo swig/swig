@@ -45,5 +45,13 @@ public:
   int id;
 };
 
+// An overloaded static method is declared with the catch all parameters, which must be wide enough for the one it hides
+class OverloadedWidget : public Widget {
+public:
+  OverloadedWidget(int id): Widget(id) {}
+  static Widget *create(int id) { return new Widget(id); }
+  static Widget *create(int id, int extra) { return new Widget(id + extra); }
+};
+
 Unwrapped *make_unwrapped() { return 0; }
 %}

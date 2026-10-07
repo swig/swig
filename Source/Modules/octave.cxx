@@ -496,6 +496,7 @@ public:
             value = Getattr(lookup, "sym:name");
         }
         Printf(decl_str, " = %s", value);
+        Delete(new_value);
       }
 
       Node *nn = classLookup(Getattr(p, "type"));
@@ -520,7 +521,7 @@ public:
    * ------------------------------------------------------------ */
   String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
     if (stringval) {
-      return stringval;
+      return NewStringf("\"%(escape)s\"", stringval);
     }
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
     SwigType *unqualified_type = NIL;
@@ -545,7 +546,7 @@ public:
       }
       Delete(resolved_type);
       Delete(unqualified_type);
-      return numval;
+      return Copy(numval);
     }
     if (Equal(v, "nullptr")) {
       // nullptr is type nullptr_t which doesn't implicitly convert to 0.

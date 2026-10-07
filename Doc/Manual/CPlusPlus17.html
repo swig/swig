@@ -22,6 +22,7 @@
 <li><a href="#CPlusPlus17_class_template_argument_deduction">Class template argument deduction</a>
 <li><a href="#CPlusPlus17_deduction_guides">User-defined deduction guides</a>
 <li><a href="#CPlusPlus17_structured_bindings">Structured bindings</a>
+<li><a href="#CPlusPlus17_noexcept_function_type">Exception specification in the function type</a>
 </ul>
 <li><a href="#CPlusPlus17_standard_library_changes">Standard library changes</a>
 </ul>
@@ -318,6 +319,16 @@ const auto&amp; [e, f] = global_pt;
 </pre></div>
 
 <p>
+The initialiser may equally be written as a braced or a parenthesised one, the
+latter being C++20:
+</p>
+
+<div class="code"><pre>
+auto [g, h]{global_pt};
+auto [i, j](global_pt);
+</pre></div>
+
+<p>
 SWIG parses all of these, including the <tt>static</tt> and <tt>auto&amp;&amp;</tt>
 spellings, but does not wrap the names.  Giving each name a type means knowing how
 the initialiser decomposes, which for a class type depends on its members and for a
@@ -341,6 +352,33 @@ class scope reaches the parser.
 <p>
 <b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse structured
 bindings; earlier versions reported a syntax error.
+</p>
+
+<H3><a name="CPlusPlus17_noexcept_function_type">9.2.9 Exception specification in the function type</a></H3>
+
+
+<p>
+An exception specification is part of the function type, so a <tt>noexcept</tt> specifier,
+with or without an expression, may appear in an alias declaration or alias template for a
+function type written with the
+<a href="CPlusPlus11.html#CPlusPlus11_alternate_function_syntax">alternate function syntax</a>:
+</p>
+
+<div class="code"><pre>
+using alt_noexcept_callback_t = auto (*)(int) noexcept -&gt; int;
+using alt_noexcept_function_t = auto (int) noexcept -&gt; int;
+using alt_noexcept_expr_callback_t = auto (*)(int) noexcept(true) -&gt; int;
+
+template&lt;typename T&gt; using alt_noexcept_fn_t = auto (*)(T) noexcept -&gt; T;
+</pre></div>
+
+<p>
+SWIG handles each of these as it handles the same alias without the <tt>noexcept</tt> specifier.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to accept a <tt>noexcept</tt>
+specifier in a function type alias written with the alternate function syntax.
 </p>
 
 <H2><a name="CPlusPlus17_standard_library_changes">9.3 Standard library changes</a></H2>

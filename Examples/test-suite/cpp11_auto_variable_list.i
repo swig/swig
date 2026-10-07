@@ -17,6 +17,8 @@ int global_int = 11;
 
 int call_count() { return 1; }
 
+double call_ratio() { return 1.5; }
+
 // Helper proving the deduced type in the target language.
 int deref(int *p) { return *p; }
 
@@ -34,6 +36,11 @@ auto *ptr_first = &global_int, plain_second = 4;
 
 // SWIG cannot deduce from the first initialiser, so the type comes from the second declarator.
 auto late_first = call_count(), late_second = 5;
+
+// The same, with a second initialiser that only the expression parser deduces a type from.
+auto expr_first = call_count(), expr_second = 1 + 2;
+
+auto cast_first = call_ratio(), cast_second = static_cast<double>(3);
 
 auto undeduced_first = call_count(), undeduced_second = call_count();
 %}

@@ -1,12 +1,11 @@
 cpp_decltype_unsupported.i:14: Warning 344: Unable to deduce decltype for 'func_returning_int()'.
 cpp_decltype_unsupported.i:15: Warning 344: Unable to deduce decltype for 'func_returning_int(0)'.
-cpp_decltype_unsupported.i:22: Warning 344: Unable to deduce decltype for '*pointer_to_int'.
-cpp_decltype_unsupported.i:28: Warning 344: Unable to deduce decltype for 'undeclared_variable'.
-cpp_decltype_unsupported.i:32: Warning 344: Unable to deduce decltype for 'A()'.
-cpp_decltype_unsupported.i:36: Warning 344: Unable to deduce decltype for '1 <=> 2'.
-cpp_decltype_unsupported.i:39: Warning 344: Unable to deduce decltype for '("abc"[1])'.
-cpp_decltype_unsupported.i:40: Warning 346: Unable to deduce auto type for variable 'array_deref2' from initialiser '"abc"[1]' (ignored).
-cpp_decltype_unsupported.i:41: Warning 346: Unable to deduce auto type for variable 'array_deref4' from an unsupported initialiser (ignored).
-cpp_decltype_unsupported.i:52: Warning 346: Unable to deduce auto type for variable 'lt_test2' from an unsupported initialiser (ignored).
-cpp_decltype_unsupported.i:53: Warning 346: Unable to deduce auto type for variable 'gt_test2' from an unsupported initialiser (ignored).
-cpp_decltype_unsupported.i:57: Warning 344: Unable to deduce decltype for '(a = true) + 1'.
+cpp_decltype_unsupported.i:21: Warning 344: Unable to deduce decltype for 'undeclared_variable'.
+cpp_decltype_unsupported.i:25: Warning 344: Unable to deduce decltype for '1 <=> 2'.
+cpp_decltype_unsupported.i:28: Warning 346: Unable to deduce auto type for variable 'array_deref2' from initialiser '"abc"[1]' (ignored).
+cpp_decltype_unsupported.i:35: Warning 344: Unable to deduce decltype for '1 < 2'.
+cpp_decltype_unsupported.i:36: Warning 344: Unable to deduce decltype for '1 > 2'.
+cpp_decltype_unsupported.i:37: Warning 346: Unable to deduce auto type for variable 'lt_test2' from an unsupported initialiser (ignored).
+cpp_decltype_unsupported.i:38: Warning 346: Unable to deduce auto type for variable 'gt_test2' from an unsupported initialiser (ignored).
+cpp_decltype_unsupported.i:42: Warning 344: Unable to deduce decltype for '(a = true) + 1'.
+cpp_decltype_unsupported.i:45: Warning 344: Unable to deduce decltype for 'a = true'.

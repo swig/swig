@@ -968,7 +968,11 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
             String *cnt = Getattr(cn, "nodeType");
             int cn_template = Equal(cnt, "template") && Checkattr(cn, "templatetype", "cdecl");
             int cn_plain_cdecl = Equal(cnt, "cdecl");
-            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl))) {
+            /* A requires-clause and a template parameter's type-constraint are part of a function
+             * template's signature ([temp.over.link]), so two function templates whose constraints
+             * differ are distinct overloads rather than a redeclaration. */
+            int constraints_differ = n_template && cn_template && !Constraint_signatures_equal(n, cn);
+            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl)) && !constraints_differ) {
               /* found a conflict */
               return cn;
             }
@@ -1030,27 +1034,38 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
   String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
   String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
   int redefined = Swig_need_redefined_warn(n, c, inclass);
+  int constrained = Constraint_differently_constrained(n, c);
   String *n_name_decl = Swig_name_decl(n);
   String *c_name_decl = Swig_name_decl(c);
-  if (redefined) {
-    Printf(en, "Redefinition of identifier '%s'", symname_stripped);
-    Printf(ec, "previous definition of '%s'", symname_stripped);
+  if (constrained) {
+    /* Two declarations differing by their constraints are distinct C++ overloads, but SWIG does not evaluate a
+     * constraint and so cannot tell which one an instantiation selects. */
+    Printf(en, "Declaration of '%s' as %s differing only by a constraint is ignored,", symname_stripped, n_name_decl);
+    Printf(ec, "previous declaration of '%s' as %s is used instead.", symname_stripped, c_name_decl);
   } else {
-    Printf(en, "Redundant redeclaration of identifier '%s'", symname_stripped);
-    Printf(ec, "previous declaration of '%s'", symname_stripped);
+    if (redefined) {
+      Printf(en, "Redefinition of identifier '%s'", symname_stripped);
+      Printf(ec, "previous definition of '%s'", symname_stripped);
+    } else {
+      Printf(en, "Redundant redeclaration of identifier '%s'", symname_stripped);
+      Printf(ec, "previous declaration of '%s'", symname_stripped);
+    }
+    if (!Equal(symname_stripped, n_name_stripped))
+      Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
+    if (!Equal(symname_stripped, c_name_stripped))
+      Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
+    if (!Equal(n_name_stripped, n_name_decl))
+      Printf(en, " as %s", n_name_decl);
+    if (!Equal(c_name_stripped, c_name_decl))
+      Printf(ec, " as %s", c_name_decl);
+    Printf(en, " ignored,");
+    Printf(ec, ".");
   }
-  if (!Equal(symname_stripped, n_name_stripped))
-    Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
-  if (!Equal(symname_stripped, c_name_stripped))
-    Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
-  if (!Equal(n_name_stripped, n_name_decl))
-    Printf(en, " as %s", n_name_decl);
-  if (!Equal(c_name_stripped, c_name_decl))
-    Printf(ec, " as %s", c_name_decl);
-  Printf(en, " ignored,");
-  Printf(ec, ".");
   SWIG_WARN_NODE_BEGIN(n);
-  if (redefined) {
+  if (constrained) {
+    Swig_warning(WARN_PARSE_CONSTRAINED_REDECLARATION, Getfile(n), Getline(n), "%s\n", en);
+    Swig_warning(WARN_PARSE_CONSTRAINED_REDECLARATION, Getfile(c), Getline(c), "%s\n", ec);
+  } else if (redefined) {
     Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
     Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
   } else if (!Strstr(Getattr(n, "storage"), "friend") && !Strstr(Getattr(c, "storage"), "friend")) {

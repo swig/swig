@@ -1,8 +1,6 @@
 /* File : example.i */
 %module example
 
-%warnfilter(SWIGWARN_SCILAB_TRUNCATED_NAME) std::vector::get_allocator;
-
 %{
 #include "example.h"
 %}

@@ -26,7 +26,7 @@
 
 %typemap(classconsttab) char %{
 {
-  char swig_char = $value;
+  char swig_char = ($1_type)($value);
   zend_declare_class_constant_stringl(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, &swig_char, 1);
 }
 %}
@@ -75,7 +75,7 @@
   "SWIG_DOUBLE_CONSTANT($symname, $value);";
 
 %typemap(consttab) char
-  "SWIG_CHAR_CONSTANT($symname, $value);";
+  "SWIG_CHAR_CONSTANT($symname, ($1_type)($value));";
 
 %typemap(consttab) char *,
                    const char *,

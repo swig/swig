@@ -9,6 +9,8 @@ struct S {
   int ref_qualified(this S& self) &;
   int default_arg(this S& self = S());
   int missing_parm(this);
+  int not_first(int a, this S& self);
+  int not_first_of_three(int a, int b, this S& self);
 };
 
 int not_a_member(this S& self);

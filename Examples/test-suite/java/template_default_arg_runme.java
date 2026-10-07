@@ -151,6 +151,55 @@ public class template_default_arg_runme {
       if (template_default_arg.nsott(new Hello_int()) != 160)
         throw new RuntimeException("nsott test 13 failed");
     }
+
+    if (new ArrayDefaultUShort().count() != 4)
+      throw new RuntimeException("ArrayDefaultUShort failed");
+    if (new ConstArrayDefaultShort().count() != 6)
+      throw new RuntimeException("ConstArrayDefaultShort failed");
+
+    // Pointer type-ids as the default of a type template parameter
+    {
+      PtrDefault_def pd = new PtrDefault_def();
+      if (pd.deref(pd.getT()) != 42)
+        throw new RuntimeException("PtrDefault deref failed");
+      if (template_default_arg.deref_int_ptr(pd.getT()) != 42)
+        throw new RuntimeException("PtrDefault deref_int_ptr failed");
+
+      PtrArrayDefault_def pad = new PtrArrayDefault_def();
+      if (pad.sum(pad.getT()) != 30)
+        throw new RuntimeException("PtrArrayDefault sum failed");
+
+      if (new PtrConstDefault_def().deref(pd.getT()) != 42)
+        throw new RuntimeException("PtrConstDefault deref failed");
+      if (new PtrPtrDefault_def().deref(pad.getT()) != 10)
+        throw new RuntimeException("PtrPtrDefault deref failed");
+      if (new PtrConstPtrDefault_def().deref(pad.getT()) != 10)
+        throw new RuntimeException("PtrConstPtrDefault deref failed");
+      if (new RefDefault_def().deref(pd.getT()) != 42)
+        throw new RuntimeException("RefDefault deref failed");
+
+      PtrArray2dDefault_def pa2d = new PtrArray2dDefault_def();
+      if (pa2d.get(pa2d.getT()) != 6)
+        throw new RuntimeException("PtrArray2dDefault get failed");
+    }
+
+    // Pointer to member and function pointer type-ids as the default of a type template parameter
+    {
+      MemberHolder mh = new MemberHolder();
+      MemberPtrDefault_def mpd = new MemberPtrDefault_def();
+      if (mpd.get(mh, mpd.getT()) != 5)
+        throw new RuntimeException("MemberPtrDefault get failed");
+
+      MemberFuncPtrDefault_def mfpd = new MemberFuncPtrDefault_def();
+      if (mfpd.call(mh, mfpd.getT(), 2) != 7)
+        throw new RuntimeException("MemberFuncPtrDefault call failed");
+
+      FuncPtrDefault_def fpd = new FuncPtrDefault_def();
+      if (fpd.call(fpd.getT(), 4) != 12)
+        throw new RuntimeException("FuncPtrDefault call failed");
+      if (new FuncPtrParmDefault_int().call(fpd.getT(), 5) != 15)
+        throw new RuntimeException("FuncPtrParmDefault call failed");
+    }
   }
 }
 

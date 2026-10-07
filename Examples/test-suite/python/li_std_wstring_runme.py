@@ -1,4 +1,5 @@
 import li_std_wstring
+from swig_test_utils import swig_check
 
 def check_equal(a, b):
     if a != b:
@@ -6,6 +7,8 @@ def check_equal(a, b):
 
 h = "h"
 check_equal(li_std_wstring.test_wcvalue(h), h)
+check_equal(li_std_wstring.wchar_default(), 0x263A)
+check_equal(li_std_wstring.wchar_default_ucn(), 0x263A)
 
 x = "abc"
 check_equal(li_std_wstring.test_ccvalue(x), x)
@@ -58,6 +61,8 @@ ts.wchar_t_member = h
 check_equal(ts.wchar_t_member, h)
 ts.wchar_t_ptr_member = s
 check_equal(ts.wchar_t_ptr_member, s)
+ts.wchar_t_array_member = "xyz"
+swig_check(ts.wchar_t_array_member, "xyz")
 
 ################### Python specific
 

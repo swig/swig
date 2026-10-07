@@ -25,3 +25,13 @@ struct Triple {
 Triple global_triple = {1, 2, 3};
 
 auto [t1, t2, t3] = global_triple;
+
+// Direct-list initialisation (C++17) and parenthesised initialisation (C++20).
+auto [braced_a, braced_b]{global_pt};
+auto [paren_a, paren_b](global_pt);
+
+// An initialiser holding a semicolon of its own - the declaration ends at the semicolon after the
+// call, not at the one inside the lambda body, so the declaration after it is still seen.
+auto [lambda_a, lambda_b] = [] { return Pt{5, 6}; }();
+
+int after = 1;

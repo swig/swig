@@ -19,6 +19,10 @@
 #include "li_std_wstring.h"
 %}
 
+// The wrapper is given the default value
+%feature("compactdefaultargs") wchar_default;
+%feature("compactdefaultargs") wchar_default_ucn;
+
 %inline %{
 #include <string>
 #include <iostream>
@@ -39,6 +43,14 @@ void show_wstring_bytes(const std::wstring &s) {
 
 wchar_t test_wcvalue(wchar_t x) {
   return x;
+}
+
+int wchar_default(wchar_t x = L'\x263A') {
+  return (int)x;
+}
+
+int wchar_default_ucn(wchar_t x = L'\u263A') {
+  return (int)x;
 }
 
 const wchar_t* test_ccvalue(const wchar_t* x) {
@@ -131,11 +143,13 @@ size_t size_wstring(const std::wstring& s) {
   return s.size();
 }
 
+#define WCHAR_ARRAY_LEN 3
 struct wchar_test_struct {
   wchar_t wchar_t_member;
   wchar_t* wchar_t_ptr_member;
   const wchar_t* wchar_t_const_ptr_member;
-  wchar_test_struct() : wchar_t_member(), wchar_t_ptr_member(), wchar_t_const_ptr_member() {}
+  wchar_t wchar_t_array_member[WCHAR_ARRAY_LEN + 1]; // array size is an expression
+  wchar_test_struct() : wchar_t_member(), wchar_t_ptr_member(), wchar_t_const_ptr_member(), wchar_t_array_member() {}
 };
 
 %}

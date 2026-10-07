@@ -65,6 +65,9 @@ struct X {
     return i;
   }
   const auto& forward_decl_cref() const;
+  // A deleted function can have a deduced return type, which is never deduced as there is no
+  // definition to deduce it from.  It is ignored like any other deleted function.
+  auto deleted() = delete;
 };
 }
 // More forward declarations (parse error with SWIG < 4.4).
@@ -73,6 +76,8 @@ auto forward_decl();
 // Cv-qualified forward declarations.
 const auto& global_cref();
 auto const& global_cref2();
+// A deleted function at global scope, also with a deduced return type.
+auto deleted_global() = delete;
 
 %}
 
@@ -90,5 +95,23 @@ struct Deduced {
   int v;
   Deduced(int vv) : v(vv) {}
   operator auto() const { return v; }
+};
+%}
+
+// Likewise with a conversion-declarator after the placeholder.
+%warnfilter(SWIGWARN_CPP14_AUTO) DeducedPtr::operator auto*;
+%warnfilter(SWIGWARN_CPP14_AUTO) DeducedPtr::operator const auto&;
+
+%extend DeducedPtr {
+  int deref() { return *static_cast<int *>(*$self); }
+  int cref() const { return static_cast<const int &>(*$self); }
+}
+
+%inline %{
+struct DeducedPtr {
+  int v;
+  DeducedPtr(int vv) : v(vv) {}
+  operator auto*() { return &v; }
+  operator const auto&() const { return v; }
 };
 %}

@@ -91,6 +91,20 @@ struct iFoo
 %}
 #endif
 
+#ifdef SWIGJAVA
+%javaconst(1) WideCharW;
+%javaconst(1) WideCharE;
+%javaconst(1) WideCharSmile;
+#endif
+
+%inline %{
+enum WideCharEnum {
+  WideCharW = L'w',
+  WideCharE = L'\xE9',
+  WideCharSmile = L'\x263A'
+};
+%}
+
 // enum declaration and initialization
 %inline %{
 enum Exclamation {

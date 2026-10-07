@@ -19,8 +19,43 @@ if annotations_supported:
     }:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
+    # Overloads all returning int * agree, so that is the type annotated
     anno = get_annotations(global_overloaded)
     if anno != {"return": "typing.Optional[SWIGTYPE_p_int]"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # Overloads returning different types can only be annotated typing.Any
+    anno = get_annotations(overloaded_differ)
+    if anno != {"return": "typing.Any"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # The ignored const char * overload is not wrapped, so the rest still agree on int
+    anno = get_annotations(overloaded_ignored)
+    if anno != {"return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # The overload with annotations turned off says nothing about what the rest return
+    anno = get_annotations(overloaded_annotations_off)
+    if anno != {"return": "int"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # The data model requires these to return a string, so char * is not typing.Optional here
+    sd = StringDunders()
+    anno = get_annotations(sd.__str__)
+    if anno != {"return": "str"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    anno = get_annotations(sd.__repr__)
+    if anno != {"return": "str"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    anno = get_annotations(sd.__format__)
+    if anno != {"spec": "typing.Optional[str]", "return": "str"}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # An ordinary char * returning method is unaffected
+    anno = get_annotations(sd.not_a_dunder)
+    if anno != {"return": "typing.Optional[str]"}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
     ts = MakeShort(10)

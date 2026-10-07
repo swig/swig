@@ -44,6 +44,11 @@ public class cpp23_explicit_object_parameter_runme {
     } catch (NoSuchMethodException expected) {
     }
 
+    // An rvalue reference to the class can only be called on an rvalue, so it is not wrapped.
+    for (java.lang.reflect.Method m : Counter.class.getMethods())
+      if (m.getName().startsWith("by_rvalue_ref"))
+        throw new RuntimeException(m.getName() + " should not be wrapped");
+
     // Ordinary and static member functions declared alongside are unaffected.
     if (c.implicit_object() != 18)
       throw new RuntimeException("implicit_object()");

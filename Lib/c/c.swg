@@ -45,7 +45,7 @@ macro_name(TM, size_t);
 // level const doesn't matter anyhow in the function declarations.
 %define same_type(TM, T)
 %typemap(TM) T, const T "T"
-%typemap(TM) T*, T&, T[ANY], T[] "T *"
+%typemap(TM) T*, T&, T&&, T[ANY], T[] "T *"
 %typemap(TM) const T*, const T[ANY], const T[] "const T *"
 %typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] "T **"
 %typemap(TM) const T**, const T*&, T *const &, const T*[ANY], const T[ANY][ANY] "const T **"
@@ -70,7 +70,7 @@ macro_name(TM, size_t);
 %define same_action(TM, T, ACTION, ACTION_CREF)
 %typemap(TM) T, const T ACTION
 %typemap(TM) const T& ACTION_CREF
-%typemap(TM) T*, T&, T[ANY], T[] ACTION
+%typemap(TM) T*, T&, T&&, T[ANY], T[] ACTION
 %typemap(TM) const T*, const T[ANY], const T[] ACTION
 %typemap(TM) T**, T*&, T*[ANY], T[ANY][ANY] ACTION
 %typemap(TM) const T**, const T*&, const T*[ANY], const T[ANY][ANY] ACTION
@@ -121,6 +121,7 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 %typemap(ctype) SWIGTYPE *    "$resolved_type*"
 %typemap(ctype) SWIGTYPE * const & "$resolved_type*"
 %typemap(ctype) SWIGTYPE &    "$*resolved_type*"
+%typemap(ctype) SWIGTYPE &&   "$*resolved_type*"
 %typemap(ctype) SWIGTYPE [ANY] "$resolved_type*"
 %typemap(ctype) SWIGTYPE * [ANY] "$resolved_type**"
 
@@ -194,7 +195,7 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     free($input);
 }
 
-%typemap(in) SWIGTYPE & %{
+%typemap(in) SWIGTYPE &, SWIGTYPE && %{
     $1 = ($1_ltype) $input;
 %}
 
@@ -215,7 +216,7 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 
 %typemap(out) SWIGTYPE "$result = (SwigObj*)new $1_ltype($1);"
 
-%typemap(out) SWIGTYPE *, SWIGTYPE & "$result = (SwigObj*) $1;"
+%typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && "$result = (SwigObj*) $1;"
 
 %typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
   static SwigObj **_temp = 0;

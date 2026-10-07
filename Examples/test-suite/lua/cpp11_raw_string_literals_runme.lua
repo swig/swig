@@ -15,4 +15,5 @@ assert(v.xx == ")I'm an \"ascii\" \\ string.")
 assert(v.ee == ")I'm an \"ascii\" \\ string.")
 -- assert(v.ff == "I'm a \"raw wide\" \\ string.") TODO Lua do not support wide string
 assert(v.gg == "I'm a \"raw UTF-8\" \\ string.")
+assert(v.raw_wide_default_length() == 4)
 assert(v.mm == ")I'm an \"ascii\" \\ string constant with multiple\n\nlines.")

@@ -155,6 +155,8 @@ public class overload_template_runme {
     if (overload_template.nsoverload() != 1050)
       throw new RuntimeException ("nsoverload(const char *)");
 
+    if (overload_template.redeclared(1) != 2)
+      throw new RuntimeException ("redeclared");
   }
 }
 

@@ -390,3 +390,55 @@ int nasty_default_expression(int x = someobject.d(sizeof - sizeof 1)) { return x
 // means SWIG can now handle any expression as the subscript.
 int subscripted_default_arg(int x = "abcdefghij"[sizeof - sizeof 1]) { return x; }
 %}
+
+%{
+static const int count_array[] = {1, 2, 3, 4, 5};
+%}
+%feature("compactdefaultargs") new_subscript_default_arg;
+%inline %{
+// A subscript after 'sizeof(...)' is part of its operand, as in the array count idiom.
+int sizeof_subscript_default_arg(int n = sizeof(count_array) / sizeof(count_array)[0]) { return n; }
+const int sizeof_subscript_count = sizeof (count_array) / sizeof (count_array)[0];
+int number_subscript_default_arg(int x = 2[count_array]) { return x; }
+// The ']' of the subscript is followed by the ']' of the array bound, which compactdefaultargs puts in the wrapper.
+int new_subscript_default_arg(int *p = new int[count_array[1]]) { delete [] p; return count_array[1]; }
+%}
+
+%{
+struct SizeofMember {
+  char c[3];
+};
+static SizeofMember sizeof_member_object;
+static SizeofMember *sizeof_member_pointer = &sizeof_member_object;
+%}
+%inline %{
+// sizeof applied to a member access of a parenthesised operand, as in 'sizeof ((x).m)'
+const unsigned long sizeof_member_constant = sizeof (sizeof_member_object).c + sizeof (sizeof_member_pointer)->c;
+unsigned long sizeof_member_default(unsigned long x = sizeof (sizeof_member_object).c, unsigned long y = sizeof (sizeof_member_pointer)->c) { return x + y; }
+unsigned long sizeof_member_size() { return sizeof(sizeof_member_object.c); }
+%}
+
+%{
+struct SizeofChainInner {
+  char c[5];
+};
+struct SizeofChainMiddle {
+  SizeofChainInner inner;
+  SizeofChainInner *pinner;
+};
+struct SizeofChainOuter {
+  SizeofChainMiddle middle;
+  SizeofChainMiddle *pmiddle;
+};
+static SizeofChainOuter sizeof_chain_object;
+static SizeofChainOuter *sizeof_chain_pointer = &sizeof_chain_object;
+%}
+%inline %{
+// sizeof applied to any number of '.' or '->' member accesses of a parenthesised operand
+bool sizeof_member_chain(unsigned long x = sizeof (sizeof_chain_object).middle.inner.c,
+                         unsigned long y = sizeof (sizeof_chain_pointer)->pmiddle->pinner->c,
+                         unsigned long z = sizeof (sizeof_chain_object).pmiddle->inner.c) {
+  const unsigned long expected = sizeof(sizeof_chain_object.middle.inner.c);
+  return x == expected && y == expected && z == expected;
+}
+%}

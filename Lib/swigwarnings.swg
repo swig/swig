@@ -96,7 +96,7 @@
 %define SWIGWARN_IGNORE_OPERATOR_LOR_MSG        "382:operator|| ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_PLUSPLUS_MSG   "383:operator++ ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_MINUSMINUS_MSG "384:operator-- ignored"  %enddef
-%define SWIGWARN_IGNORE_OPERATOR_COMMA_MSG      "385:operator-- ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_COMMA_MSG      "385:operator, ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_ARROWSTAR_MSG  "386:operator->* ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_ARROW_MSG      "387:operator-> ignored" %enddef
 %define SWIGWARN_IGNORE_OPERATOR_CALL_MSG       "388:operator() ignored" %enddef

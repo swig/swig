@@ -60,7 +60,7 @@
       strcpy(data, "This string represents a large block of memory.");
     }
 #ifdef SWIGPYTHON_BUILTIN
-    static int getbuffer(PyObject *exporter, Py_buffer *view, int flags, bool readonly) {
+    static int getbufferimpl(PyObject *exporter, Py_buffer *view, int flags, bool readonly) {
 #if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
       goto fail;
 #endif
@@ -81,7 +81,7 @@ fail:
       self->released = true;
     }
 #else
-    PyObject* __buffer__(int flags, bool readonly) {
+    PyObject* bufferimpl(int flags, bool readonly) {
       Py_buffer view;
       if (PyBuffer_FillInfo(&view, NULL, data, sizeof(data), readonly ? 1 : 0, flags)) {
         PyErr_SetNone(PyExc_BufferError);
@@ -100,11 +100,11 @@ fail:
   public:
 #ifdef SWIGPYTHON_BUILTIN
     static int getbuffer(PyObject *exporter, Py_buffer *view, int flags) {
-      return BaseClassData::getbuffer(exporter, view, flags, true);
+      return BaseClassData::getbufferimpl(exporter, view, flags, true);
     }
 #else
     PyObject* __buffer__(int flags) {
-      return BaseClassData::__buffer__(flags, true);
+      return BaseClassData::bufferimpl(flags, true);
     }
 #endif
   };
@@ -113,11 +113,11 @@ fail:
   public:
 #ifdef SWIGPYTHON_BUILTIN
     static int getbuffer(PyObject *exporter, Py_buffer *view, int flags) {
-      return BaseClassData::getbuffer(exporter, view, flags, false);
+      return BaseClassData::getbufferimpl(exporter, view, flags, false);
     }
 #else
     PyObject* __buffer__(int flags) {
-      return BaseClassData::__buffer__(flags, false);
+      return BaseClassData::bufferimpl(flags, false);
     }
 #endif
   };

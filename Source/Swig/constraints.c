@@ -35,6 +35,13 @@
  * the rendered constraint text in C++20 syntax.  The renderer is the only
  * supported path for materialising constraint text: the structured tree is
  * the source of truth.
+ *
+ * Constraints also decide whether two declarations are the same declaration,
+ * as two function templates alike in all else are different templates when
+ * their constraints differ.  A declaration's constraint signature, built by
+ * Constraint_signature_str, is the rendered text of every constraint that is
+ * part of its signature, normalised and arranged so that two of them can be
+ * compared.  It is never shown to a user.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -297,12 +304,233 @@ static void render_node(String *out, Node *n) {
  * Constraint_str()
  *
  * Render a constraint subtree (constraint, requires-expression, or requirement
- * node) as the C++20 source text it represents.  The returned String must be
- * freed by the caller.
+ * node) as the C++20 source text it represents.
  * ----------------------------------------------------------------------------- */
 
 String *Constraint_str(Node *n) {
   String *out = NewStringEmpty();
   render_node(out, n);
+  return out;
+}
+
+/* Append constraint 'c' to the signature 'out' without the whitespace between its tokens and with the names of
+ * 'templateparms' replaced by their positions, as C++ compares two declarations' constraints token by token after
+ * renaming their template parameters ([temp.over.link]). */
+static void append_signature_constraint(String *out, Node *c, ParmList *templateparms) {
+  String *rendered = Constraint_str(c);
+  String *normalised = Swig_squeeze_c_whitespace(rendered);
+  ParmList_replace_names_positional(normalised, templateparms, 0);
+  Append(out, normalised);
+  Delete(normalised);
+  Delete(rendered);
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_signature_str()
+ *
+ * Render every constraint that is part of the signature of declaration 'n' into a slot for
+ * each place a constraint can be written: first the requires-clause on the declaration
+ * itself, then the type-constraint on each template parameter, which is where a C++20
+ * abbreviated 'Concept auto' parameter puts it.
+ *
+ * Each constraint is rendered without the whitespace between its tokens and with every template
+ * parameter name replaced by its position, $1 for the first, so a declaration and a definition
+ * spelling a constraint differently only in these ways compare equal, as they do in C++
+ * ([temp.over.link]).  'requires (sizeof(T) > 4)' after 'template<class T>' and
+ * 'requires (sizeof(U)>4)' after 'template<class U>' both render as '(sizeof($1)>4)'.
+ *
+ * Every slot is terminated by a semicolon whether or not a constraint went into it, so the
+ * position of an entry says which slot it came from:
+ *
+ *   template<typename T> requires std::integral<T> T f(T);            std::integral<$1>;;
+ *   template<std::integral T> T f(T);                                 ;std::integral;
+ *   template<typename T, std::integral U> T f(T, U);                  ;;std::integral;
+ *   template<std::integral T, typename U, typename V> T f(T, U, V);   ;std::integral;;;
+ *
+ * A semicolon therefore terminates a slot rather than separating one from the next, and ";;"
+ * is two empty slots rather than a doubled separator.  A declaration with no constraint in
+ * any slot renders as nothing but terminators, one for itself and one for each template
+ * parameter, so ";" is a plain declaration, ";;" a template taking one parameter and ";;;;"
+ * one taking three.
+ *
+ * A constrained and an unconstrained declaration never compare equal, and the same concept
+ * on different parameters compares unequal too.
+ * ----------------------------------------------------------------------------- */
+
+String *Constraint_signature_str(Node *n) {
+  String *out = NewStringEmpty();
+  Node *constraint = Getattr(n, "constraint");
+  ParmList *templateparms = Getattr(n, "templateparms");
+  Parm *tp;
+  if (constraint)
+    append_signature_constraint(out, constraint, templateparms);
+  Append(out, ";");
+  for (tp = templateparms; tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint)
+      append_signature_constraint(out, tconstraint, templateparms);
+    Append(out, ";");
+  }
+  return out;
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_signatures_equal()
+ *
+ * Whether two declarations carry identical constraints.  SWIG does not evaluate a constraint, so two
+ * written differently, other than in whitespace or template parameter names, are taken to be different
+ * even where they mean the same thing.
+ * ----------------------------------------------------------------------------- */
+
+int Constraint_signatures_equal(Node *a, Node *b) {
+  String *ca = Constraint_signature_str(a);
+  String *cb = Constraint_signature_str(b);
+  int equal = Equal(ca, cb);
+  Delete(ca);
+  Delete(cb);
+  return equal;
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_has_any()
+ *
+ * Whether declaration 'n' carries any constraint: a requires-clause, or a type-constraint on one of its
+ * template parameters.
+ * ----------------------------------------------------------------------------- */
+
+int Constraint_has_any(Node *n) {
+  Parm *tp;
+  if (Getattr(n, "constraint"))
+    return 1;
+  for (tp = Getattr(n, "templateparms"); tp; tp = nextSibling(tp)) {
+    if (Getattr(tp, "constraint"))
+      return 1;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_differently_constrained()
+ *
+ * Whether a constraint is what tells two declarations apart, which needs one of them to carry a
+ * constraint as well as the signatures to differ.  Two unconstrained declarations can have different
+ * signatures simply by having different numbers of template parameters, as ";" against ";;".
+ * ----------------------------------------------------------------------------- */
+
+int Constraint_differently_constrained(Node *a, Node *b) {
+  return (Constraint_has_any(a) || Constraint_has_any(b)) && !Constraint_signatures_equal(a, b);
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_display_str()
+ *
+ * Render every constraint of declaration 'n', which Constraint_signature_str() puts in slots, as written and
+ * joined by '&&' for a diagnostic, or as "no constraint" when it has none.
+ * ----------------------------------------------------------------------------- */
+
+String *Constraint_display_str(Node *n) {
+  String *out = NewStringEmpty();
+  Node *constraint = Getattr(n, "constraint");
+  Parm *tp;
+  if (constraint)
+    render_node(out, constraint);
+  for (tp = Getattr(n, "templateparms"); tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint) {
+      if (Len(out) > 0)
+        Append(out, " && ");
+      render_node(out, tconstraint);
+    }
+  }
+  if (Len(out) == 0)
+    Append(out, "no constraint");
+  return out;
+}
+
+/* Append 's' to 'conjuncts' without the whitespace between its tokens, as a parenthesised primary keeps the text as written. */
+static void add_conjunct(List *conjuncts, String *s) {
+  String *squeezed = Swig_squeeze_c_whitespace(s);
+  Append(conjuncts, squeezed);
+  Delete(squeezed);
+}
+
+/* Append each operand of constraint 'n' that a top level '&&' joins to the others to 'conjuncts'. */
+static void add_conjuncts(List *conjuncts, Node *n) {
+  if (Equal(Getattr(n, "op"), "and")) {
+    Node *c;
+    for (c = firstChild(n); c; c = nextSibling(c))
+      add_conjuncts(conjuncts, c);
+  } else {
+    String *s = NewStringEmpty();
+    render_node(s, n);
+    add_conjunct(conjuncts, s);
+    Delete(s);
+  }
+}
+
+static int compare_conjuncts(const DOH *a, const DOH *b) {
+  return Cmp((DOH *)a, (DOH *)b);
+}
+
+/* -----------------------------------------------------------------------------
+ * Constraint_match_str()
+ *
+ * Render requires-clause 'constraint' and the type-constraints on 'templateparms', either of
+ * which may be 0, as the requires-clause that %rename, %ignore and %feature match them with.
+ * Returns 0 when there is no constraint.
+ *
+ * A type-constraint is written as the concept-id it stands for, 'IsInt T' as 'IsInt<T>' and
+ * 'IsInt... Ts' as '(IsInt<Ts> && ...)', and the operands of a top level '&&' are sorted and
+ * lose the whitespace between their tokens, so each of these is 'IsInt<T>&&Small<T>':
+ *
+ *   template<typename T> requires IsInt<T> && Small<T> void f(T);
+ *   template<typename T> requires Small<T> void f(T) requires IsInt<T>;
+ *   template<IsInt T> requires Small<T> void f(T);
+ *
+ * The type-constraint on a parameter invented for an abbreviated 'Concept auto' parameter is
+ * left out, as it is written in the declarator that a directive already names.
+ * ----------------------------------------------------------------------------- */
+
+String *Constraint_match_str(Node *constraint, ParmList *templateparms) {
+  List *conjuncts = NewList();
+  String *out = 0;
+  Parm *tp;
+  Iterator ci;
+  if (constraint)
+    add_conjuncts(conjuncts, constraint);
+  for (tp = templateparms; tp; tp = nextSibling(tp)) {
+    Node *tconstraint = Getattr(tp, "constraint");
+    if (tconstraint && Equal(Getattr(tconstraint, "kind"), "concept-id") && !GetFlag(tp, "abbreviated_auto")) {
+      SwigType *id = Copy(Getattr(tconstraint, "type"));
+      String *s;
+      if (SwigType_istemplate(id)) {
+        String *first = NewStringf("<(%s,", Getattr(tp, "name"));
+        Replace(id, "<(", first, DOH_REPLACE_FIRST);
+        Delete(first);
+      } else {
+        Printf(id, "<(%s)>", Getattr(tp, "name"));
+      }
+      s = SwigType_str(id, 0);
+      if (SwigType_isvariadic(Getattr(tp, "type"))) {
+        String *fold = NewStringf("(%s && ...)", s);
+        add_conjunct(conjuncts, fold);
+        Delete(fold);
+      } else {
+        add_conjunct(conjuncts, s);
+      }
+      Delete(s);
+      Delete(id);
+    }
+  }
+  if (Len(conjuncts) > 0) {
+    SortList(conjuncts, compare_conjuncts);
+    out = NewStringEmpty();
+    for (ci = First(conjuncts); ci.item; ci = Next(ci)) {
+      if (Len(out) > 0)
+        Append(out, "&&");
+      Append(out, ci.item);
+    }
+  }
+  Delete(conjuncts);
   return out;
 }

@@ -7,6 +7,10 @@ if w.getId() != 42:
     raise RuntimeError("Widget.getId() returned the wrong value")
 if python_pyi.Widget.create(7).getId() != 7:
     raise RuntimeError("Widget.create() returned the wrong value")
+if python_pyi.OverloadedWidget.create(7).getId() != 7:
+    raise RuntimeError("OverloadedWidget.create() returned the wrong value")
+if python_pyi.OverloadedWidget.create(7, 3).getId() != 10:
+    raise RuntimeError("OverloadedWidget.create() returned the wrong value for the second overload")
 
 with open("python_pyi.pyi") as f:
     source = f.read()
@@ -27,6 +31,18 @@ missing = expected - names
 if missing:
     raise RuntimeError("python_pyi.pyi is missing expected declarations: %s" % sorted(missing))
 
+# An overloaded method is declared with **kwargs as well as *args, so that it stays assignable to the one it hides.
+for node in ast.walk(tree):
+    if isinstance(node, ast.ClassDef) and node.name == "OverloadedWidget":
+        for method in node.body:
+            if isinstance(method, ast.FunctionDef) and method.name == "create" and method.args.kwarg is None:
+                raise RuntimeError("python_pyi.pyi should declare OverloadedWidget.create with **kwargs")
+
+# The opaque type wrapper class is only ever generated into the .pyi file.
+classes = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}
+if "SWIGTYPE_p_Unwrapped" not in classes:
+    raise RuntimeError("python_pyi.pyi should declare the SWIGTYPE_p_Unwrapped class")
+
 # %pythonstubcode inserted the import needed by the collections.abc base class.
 if "import collections.abc" not in source:
     raise RuntimeError("python_pyi.pyi is missing the collections.abc import")
@@ -43,20 +59,27 @@ if source.index(marker) > source.index("import typing"):
 if "TYPE_CHECKING" in source:
     raise RuntimeError("python_pyi.pyi should not guard anything with typing.TYPE_CHECKING")
 
+# The low-level module stub declares everything the module exports, so it must not be marked incomplete.
+with open("_python_pyi.pyi") as f:
+    if "__getattr__" in f.read():
+        raise RuntimeError("_python_pyi.pyi should declare every export instead of a catch-all __getattr__")
+
 with open("python_pyi.py") as f:
     py_source = f.read()
 py_tree = ast.parse(py_source, filename="python_pyi.py")
 
-# Once -pyi is generating the same information, the .py shadow file's own
-# annotations are dead weight (a type checker never looks at them once a
-# .pyi exists for the same module), so they must be suppressed entirely.
+# The .py file keeps just the guarded 'this' declaration, which __disown__ needs to type check.
+# There are no proxy classes at all to declare it in when -builtin is used.
+py_classes = [node for node in ast.walk(py_tree) if isinstance(node, ast.ClassDef)]
+if py_classes and "if typing.TYPE_CHECKING:" not in py_source:
+    raise RuntimeError("python_pyi.py should declare 'this' guarded by typing.TYPE_CHECKING")
 for node in ast.walk(py_tree):
-    if isinstance(node, ast.AnnAssign):
-        raise RuntimeError("python_pyi.py should have no variable annotations when -pyi is used")
-    if isinstance(node, ast.FunctionDef) and (node.returns is not None or any(a.annotation is not None for a in node.args.args)):
+    if isinstance(node, ast.AnnAssign) and getattr(node.target, "id", None) != "this":
+        raise RuntimeError("python_pyi.py should have no variable annotations except 'this' when -pyi is used")
+    # _swig_dispatch is type checker plumbing for the overload dispatchers in this file, not an annotation of the wrapped API.
+    if isinstance(node, ast.FunctionDef) and node.name != "_swig_dispatch" and (node.returns is not None or any(a.annotation is not None for a in node.args.args)):
         raise RuntimeError("python_pyi.py should have no function annotations when -pyi is used")
 
-# SWIGTYPE_p_Unwrapped must still exist in the .py file (guarded by
-# TYPE_CHECKING there, since it must not exist at runtime).
-if "SWIGTYPE_p_Unwrapped" not in py_source or "TYPE_CHECKING" not in py_source:
-    raise RuntimeError("python_pyi.py is missing the TYPE_CHECKING-guarded SWIGTYPE_p_Unwrapped class")
+# The type wrapper classes only exist to give an annotation a name, and the annotations are in the stub.
+if "SWIGTYPE_p_Unwrapped" in py_source:
+    raise RuntimeError("python_pyi.py should not declare SWIGTYPE_p_Unwrapped when -pyi is used")

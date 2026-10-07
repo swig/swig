@@ -9,6 +9,7 @@
 typedef struct Foo {
     char   text[8]; 
     int    data[8];
+    char   text_shift[1 << 3]; // array size is an expression
 } Foo;
 
 int global_data[8] = { 0,1,2,3,4,5,6,7 };

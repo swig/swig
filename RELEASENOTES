@@ -7,6 +7,15 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.5.1 summary:
+- Regression fix for %rename using a format string, such as Ruby's
+  -autorename, dropping a class template's partial specializations.
+- Regression fix restoring the %typemaps_string_alloc macro for string
+  classes using custom allocators.
+- Python fix for compile errors in a module that %imports another
+  module already using the STL containers.
+- MinGW configure and CMake PCRE2 version build fixes.
+
 SWIG-4.5.0 summary:
 - New C++20 support: concepts, requires-clauses and
   requires-expressions, type-constrained template parameters,

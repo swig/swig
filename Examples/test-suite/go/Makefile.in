@@ -28,6 +28,7 @@ abs_top_srcdir = @abs_top_srcdir@
 BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 
 CPP_TEST_CASES = \
+	callback \
 	go_inout \
 	go_director_inout \
 

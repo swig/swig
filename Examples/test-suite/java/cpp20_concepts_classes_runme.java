@@ -55,6 +55,14 @@ public class cpp20_concepts_classes_runme {
     if (cbd.get() != 2.5)
       throw new RuntimeException("CheckedBoxDouble.get");
 
+    // Members that differ only by a trailing requires-clause
+    SelectBoxInt sbi = new SelectBoxInt(10);
+    if (sbi.get() != 11 || sbi.kind() != 1)
+      throw new RuntimeException("SelectBoxInt");
+    SelectBoxDouble sbd = new SelectBoxDouble(10.0);
+    if (sbd.get() != 12.0 || sbd.kind() != 2)
+      throw new RuntimeException("SelectBoxDouble");
+
     // Class template whose member function template is defined out of line with a prefix requires-clause.
     OutOfLineBoxInt ob = new OutOfLineBoxInt(3);
     if (ob.get() != 3)

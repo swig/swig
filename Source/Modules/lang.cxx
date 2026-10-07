@@ -1009,8 +1009,12 @@ int Language::cDeclaration(Node *n) {
       Delete(ty);
       ty = fullty;
       fullty = 0;
-      ParmList *parms = SwigType_function_parms(ty, n);
+      /* Skip a leading ref-qualifier or cv-qualifier, such as the reference in 'Fn &fnref = f;' where 'Fn' is a function typedef */
+      SwigType *fty = Copy(ty);
+      Delete(SwigType_pop_function_qualifiers(fty));
+      ParmList *parms = SwigType_function_parms(fty, n);
       Setattr(n, "parms", parms);
+      Delete(fty);
     }
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {
@@ -1917,11 +1921,29 @@ static String *vtable_method_id(Node *n) {
  * Language::unrollOneVirtualMethod()
  * ---------------------------------------------------------------------- */
 
+/* Drop the director vtable entry for the virtual method 'n', if there is one.  Used when a declaration of it is
+   final, which leaves the entry an overridden base declaration added no longer overridable. */
+static void remove_vtable_entry(List *vm, Node *n) {
+  String *method_id = vtable_method_id(n);
+  int len = Len(vm);
+  if (!method_id)
+    return;
+  for (int i = 0; i < len; i++) {
+    if (Strcmp(method_id, Getattr(Getitem(vm, i), "vmid")) == 0) {
+      Delitem(vm, i);
+      break;
+    }
+  }
+  Delete(method_id);
+}
+
 void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase) {
   if (!checkAttribute(n, "storage", "virtual"))
     return;
-  if (GetFlag(n, "final"))
+  if (GetFlag(n, "final")) {
+    remove_vtable_entry(vm, n);
     return;
+  }
 
   String *nodeType = Getattr(n, "nodeType");
 
@@ -1953,12 +1975,7 @@ void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, 
       Node *m = Copy(n);
 
       /* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
-      SwigType *ty = NewString(Getattr(m, "type"));
-      SwigType_push(ty, decl);
-      if (SwigType_isqualifier(ty)) {
-        Delete(SwigType_pop(ty));
-      }
-      Delete(SwigType_pop_function(ty));
+      SwigType *ty = Swig_function_return_type(m);
       Setattr(m, "returntype", ty);
 
       String *mname = NewStringf("%s::%s", Getattr(parent, "name"), name);

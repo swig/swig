@@ -541,10 +541,11 @@ static DOH *name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigT
   return rn;
 }
 
-DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl) {
+/* Lookup for Swig_name_object_get(), where 'ncdecl', if not 0, is a less specific declarator tried after 'decl' and
+ * before the name alone. */
+static DOH *name_object_get_decls(Hash *namehash, String *prefix, String *name, SwigType *decl, SwigType *ncdecl) {
   String *tname = NewStringEmpty();
   DOH *rn = 0;
-  char *ncdecl = 0;
 
   if (!namehash)
     return 0;
@@ -581,7 +582,7 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
       if (!rn) {
         String *t_name = SwigType_istemplate_templateprefix(name);
         if (t_name)
-          rn = Swig_name_object_get(namehash, prefix, t_name, decl);
+          rn = name_object_get_decls(namehash, prefix, t_name, decl, ncdecl);
         Delete(t_name);
       }
     }
@@ -616,6 +617,45 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
   Printf(stdout, "Swig_name_object_get:  found %d\n", rn ? 1 : 0);
 #endif
 
+  return rn;
+}
+
+DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType *decl) {
+  return name_object_get_decls(namehash, prefix, name, decl, 0);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_constrained_decl()
+ *
+ * Return declarator 'decl' keyed on requires-clause 'constraint' and the type-constraints on
+ * 'templateparms' as well, for a %rename, %ignore or %feature that names a function template
+ * with a requires-clause, such as:
+ *
+ *   %ignore classify(T) requires IsInt<T>;
+ *
+ * Returns 0 when there is no constraint.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *Swig_name_constrained_decl(const SwigType *decl, Node *constraint, ParmList *templateparms) {
+  String *match = Constraint_match_str(constraint, templateparms);
+  SwigType *constrained = match ? NewStringf("%srequires(%s).", decl, match) : 0;
+  Delete(match);
+  return constrained;
+}
+
+/* The declarator of function template 'n' keyed on its constraints, or 0 if it has none or is not a template. */
+static SwigType *node_constrained_decl(Node *n, SwigType *decl) {
+  if (!n || !decl || !Equal(nodeType(n), "template"))
+    return 0;
+  return Swig_name_constrained_decl(decl, Getattr(n, "constraint"), Getattr(n, "templateparms"));
+}
+
+/* Swig_name_object_get() for node 'n', whose constraints, if it is a constrained function template, are matched
+ * before its declarator alone. */
+static DOH *node_object_get(Hash *namehash, Node *n, String *prefix, String *name, SwigType *decl) {
+  SwigType *constrained = node_constrained_decl(n, decl);
+  DOH *rn = constrained ? name_object_get_decls(namehash, prefix, name, constrained, decl) : Swig_name_object_get(namehash, prefix, name, decl);
+  Delete(constrained);
   return rn;
 }
 
@@ -724,19 +764,12 @@ static void features_get(Hash *features, const String *tname, SwigType *decl, Sw
 }
 
 void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
-  char *ncdecl = 0;
+  SwigType *plain_decl = 0;
+  SwigType *constrained = 0;
   String *rdecl = 0;
   String *rname = 0;
   if (!features)
     return;
-
-  /* MM: This removed to more tightly control feature/name matching */
-  /*
-     if ((decl) && (SwigType_isqualifier(decl))) {
-     ncdecl = strchr(Char(decl),'.');
-     ncdecl++;
-     }
-   */
 
   /* very specific hack for template constructors/destructors */
   if (name && SwigType_istemplate(name)) {
@@ -764,6 +797,13 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     }
   }
 
+  /* For a constrained function template, features for its declarator with constraints override those for 'plain_decl' */
+  constrained = node_constrained_decl(node, decl);
+  if (constrained) {
+    plain_decl = decl;
+    decl = constrained;
+  }
+
 #ifdef SWIG_DEBUG
   Printf(stdout, "Swig_features_get: '%s' '%s' '%s'\n", prefix, name, decl);
 #endif
@@ -775,21 +815,21 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     /* add features for 'root' template */
     String *dname = SwigType_istemplate_templateprefix(name);
     if (dname) {
-      features_get(features, dname, decl, ncdecl, node);
+      features_get(features, dname, decl, plain_decl, node);
     }
     /* Catch-all */
-    features_get(features, name, decl, ncdecl, node);
+    features_get(features, name, decl, plain_decl, node);
     /* Perform a class-based lookup (if class prefix supplied) */
     if (prefix) {
       /* A class-generic feature */
       if (Len(prefix)) {
         Printf(tname, "%s::", prefix);
-        features_get(features, tname, decl, ncdecl, node);
+        features_get(features, tname, decl, plain_decl, node);
       }
       /* A wildcard-based class lookup */
       Clear(tname);
       Printf(tname, "*::%s", name);
-      features_get(features, tname, decl, ncdecl, node);
+      features_get(features, tname, decl, plain_decl, node);
       /* A specific class lookup */
       if (Len(prefix)) {
         /* A template-based class lookup */
@@ -797,18 +837,18 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
         if (tprefix) {
           Clear(tname);
           Printf(tname, "%s::%s", tprefix, name);
-          features_get(features, tname, decl, ncdecl, node);
+          features_get(features, tname, decl, plain_decl, node);
         }
         Clear(tname);
         Printf(tname, "%s::%s", prefix, name);
-        features_get(features, tname, decl, ncdecl, node);
+        features_get(features, tname, decl, plain_decl, node);
         Delete(tprefix);
       }
     } else {
       /* Lookup in the global namespace only */
       Clear(tname);
       Printf(tname, "::%s", name);
-      features_get(features, tname, decl, ncdecl, node);
+      features_get(features, tname, decl, plain_decl, node);
     }
     Delete(tname);
     Delete(dname);
@@ -817,7 +857,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     /* add features for complete template type */
     String *dname = Swig_symbol_template_deftype(name, 0);
     if (!Equal(dname, name)) {
-      Swig_features_get(features, prefix, dname, decl, node);
+      Swig_features_get(features, prefix, dname, constrained ? plain_decl : decl, node);
     }
     Delete(dname);
   }
@@ -826,6 +866,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     Delete(rname);
   if (rdecl)
     Delete(rdecl);
+  Delete(constrained);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1365,10 +1406,11 @@ static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *
     int len = Len(namelist);
     int i;
     int match = 0;
+    SwigType *constrained = node_constrained_decl(n, decl);
     for (i = 0; !match && (i < len); i++) {
       Hash *rn = Getitem(namelist, i);
       String *rdecl = Getattr(rn, "decl");
-      if (rdecl && (!decl || !Equal(rdecl, decl))) {
+      if (rdecl && (!decl || !(Equal(rdecl, decl) || (constrained && Equal(rdecl, constrained))))) {
         continue;
       } else if (name_match_nameobj(rn, n)) {
         String *tname = Getattr(rn, "targetname");
@@ -1410,6 +1452,7 @@ static Hash *name_nameobj_lget(List *namelist, Node *n, String *prefix, String *
         break;
       }
     }
+    Delete(constrained);
   }
   return res;
 }
@@ -1451,7 +1494,7 @@ static Hash *name_namewarn_get(Node *n, String *prefix, String *name, SwigType *
   }
   if (name) {
     /* Check to see if the name is in the hash */
-    Hash *wrn = Swig_name_object_get(name_namewarn_hash(), prefix, name, decl);
+    Hash *wrn = node_object_get(name_namewarn_hash(), n, prefix, name, decl);
     if (wrn && !name_match_nameobj(wrn, n))
       wrn = 0;
     if (!wrn) {
@@ -1506,7 +1549,6 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 
   /* Add extra names if there are default parameters in the parameter list */
   if (decl) {
-    int constqualifier = SwigType_isconst(decl);
     while (declparms) {
       if (ParmList_has_defaultargs(declparms)) {
 
@@ -1515,11 +1557,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
         ParmList *newparms = CopyParmListMax(declparms, ParmList_len(declparms) - 1);
 
         /* Create new declaration - with the last parameter removed */
-        SwigType *newdecl = Copy(decl);
-        Delete(SwigType_pop_function(newdecl)); /* remove the old parameter list from newdecl */
-        SwigType_add_function(newdecl, newparms);
-        if (constqualifier)
-          SwigType_add_qualifier(newdecl, "const");
+        SwigType *newdecl = SwigType_replace_function_parms(Copy(decl), newparms);
 
         single_rename_add(prefix, name, newdecl, newname);
         declparms = newparms;
@@ -1621,7 +1659,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
   }
 
   if (rename_hash || rename_list || namewarn_hash || namewarn_list) {
-    Hash *rn = Swig_name_object_get(name_rename_hash(), prefix, name, decl);
+    Hash *rn = node_object_get(name_rename_hash(), n, prefix, name, decl);
     if (!rn || !name_match_nameobj(rn, n)) {
       rn = name_nameobj_lget(name_rename_list(), n, prefix, name, decl);
       if (rn) {
@@ -1665,8 +1703,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
       if (rename) {
         String *msg = Getattr(wrn, "name");
         int fullname = GetFlag(wrn, "fullname");
-        if (result)
-          Delete(result);
+        String *replaced = result;
         result = apply_rename(n, rename, fullname, prefix, name);
         if ((msg) && (Len(msg))) {
           if (!Getmeta(nname, "already_warned")) {
@@ -1696,6 +1733,7 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
             Delete(suffix);
           }
         }
+        Delete(replaced);
       }
     }
   }

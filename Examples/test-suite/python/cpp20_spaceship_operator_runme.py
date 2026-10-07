@@ -23,6 +23,12 @@ check_equal(f(), 42)
 check_equal(hasattr(Defaulted, "spaceship"), False)
 check_equal(Defaulted(1).is_equal(Defaulted(1)), True)
 check_equal(Defaulted(1).is_equal(Defaulted(2)), False)
+check_equal(DefaultedTrailing(1).is_equal(DefaultedTrailing(1)), True)
+check_equal(DefaultedTrailing(1).is_equal(DefaultedTrailing(2)), False)
+
+# The defaulted friend operator<=> is ignored too, so its rename never takes effect.
+check_equal("friend_spaceship" in globals(), False)
+check_equal(DefaultedFriend(1).v, 1)
 
 # Deleted functions with a deduced return type are ignored.
 check_equal(hasattr(Deleted, "spaceship"), False)

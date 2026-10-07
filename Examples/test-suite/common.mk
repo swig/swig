@@ -94,7 +94,6 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_boost_shared_ptr_template \
 	nested_private \
-	template_default_pointer \
 	$(CPP11_TEST_BROKEN) \
 	$(CPP14_TEST_BROKEN) \
 	$(CPP17_TEST_BROKEN) \
@@ -179,6 +178,7 @@ CPP_TEST_CASES += \
 	cpp_basic \
 	cpp_enum \
 	cpp_namespace \
+	cpp_new_expression \
 	cpp_nodefault \
 	cpp_parameters \
 	cpp_static \
@@ -483,6 +483,7 @@ CPP_TEST_CASES += \
 	template_default_class_parms \
 	template_default_class_parms_typedef \
 	template_default_inherit \
+	template_default_pointer \
 	template_default_qualify \
 	template_default_vw \
 	template_duplicate \
@@ -645,11 +646,14 @@ CPP11_TEST_CASES += \
 	cpp11_auto_variable \
 	cpp11_auto_variable_decorated \
 	cpp11_auto_variable_list \
+	cpp11_auto_variable_new_expression \
+	cpp11_auto_variable_template_parameter \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
 	cpp11_constexpr_friend \
 	cpp11_copyctor_delete \
 	cpp11_decltype \
+	cpp11_decltype_nontype_template_parameter \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \
 	cpp11_director_enums \
@@ -731,6 +735,7 @@ CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_auto_nontype_template_parameter \
 	cpp17_auto_variable_braced \
 	cpp17_class_template_argument_deduction \
 	cpp17_director_string_view \
@@ -739,6 +744,7 @@ CPP17_TEST_CASES += \
 	cpp17_inheriting_constructors_pack \
 	cpp17_map_no_default_ctor \
 	cpp17_nested_namespaces \
+	cpp17_noexcept_function_type_alias \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_structured_bindings \
@@ -754,18 +760,25 @@ CPP17_TEST_BROKEN = \
 CPP20_TEST_CASES += \
 	cpp20_abbreviated_template \
 	cpp20_abbreviated_template_decorated \
+	cpp20_abbreviated_template_directives \
 	cpp20_abbreviated_template_mixed \
+	cpp20_abbreviated_template_overloads \
 	cpp20_alias_template \
+	cpp20_auto_variable_new_expression \
+	cpp20_class_nontype_template_parameter \
 	cpp20_concepts \
 	cpp20_concepts_class_methods \
 	cpp20_concepts_classes \
 	cpp20_concepts_constrained_param \
+	cpp20_concepts_directors \
 	cpp20_concepts_extra \
 	cpp20_concepts_lambda \
 	cpp20_concepts_overloads \
 	cpp20_constexpr_destructor \
+	cpp20_constrained_template_directives \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
+	cpp20_structured_bindings \
 	cpp20_variable_templates \
 
 # Broken C++20 test cases.
@@ -883,6 +896,7 @@ endif
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
+	arrays_dimension_expression \
 	bom_utf8 \
 	c_delete \
 	c_delete_function \

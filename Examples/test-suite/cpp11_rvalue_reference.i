@@ -18,4 +18,11 @@ public:
 private:
   int _a;
 };
+
+// An rvalue reference type-id as the default of a template type parameter
+template<class T = int &&> struct RvalueRefDefault {
+  T move(int &i) { return std::move(i); }
+};
 %}
+
+%template(RvalueRefDefault_def) RvalueRefDefault<>;

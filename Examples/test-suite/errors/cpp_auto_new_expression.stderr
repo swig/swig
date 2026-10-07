@@ -1,0 +1,12 @@
+cpp_auto_new_expression.i:7: Warning 346: Unable to deduce auto type for variable 'after_initialiser' from initialiser 'new int(5) + 0' (ignored).
+cpp_auto_new_expression.i:8: Warning 346: Unable to deduce auto type for variable 'after_type_id' from initialiser 'new int [3] + 1' (ignored).
+cpp_auto_new_expression.i:9: Warning 346: Unable to deduce auto type for variable 'parenthesised' from initialiser 'new (int *[3])' (ignored).
+cpp_auto_new_expression.i:10: Warning 346: Unable to deduce auto type for variable 'constrained' from initialiser 'new Numeric auto(5)' (ignored).
+cpp_auto_new_expression.i:11: Warning 344: Unable to deduce decltype for 'auto'.
+cpp_auto_new_expression.i:11: Warning 346: Unable to deduce auto type for variable 'placeholder' from initialiser 'new decltype(auto)(1)' (ignored).
+cpp_auto_new_expression.i:14: Warning 346: Unable to deduce auto type for variable 'assignment' from initialiser 'new auto(count = 1)' (ignored).
+cpp_auto_new_expression.i:15: Warning 346: Unable to deduce auto type for variable 'nested_assignment' from initialiser 'new auto((count = 1) * 2)' (ignored).
+cpp_auto_new_expression.i:16: Warning 346: Unable to deduce auto type for variable 'braced_assignment' from initialiser 'new auto{count = 1}' (ignored).
+cpp_auto_new_expression.i:17: Warning 346: Unable to deduce auto type for variable 'lambda_closure' from initialiser 'new auto([](int x) { return x; })' (ignored).
+cpp_auto_new_expression.i:18: Warning 344: Unable to deduce decltype for '(count = 1) + 0'.
+cpp_auto_new_expression.i:18: Warning 346: Unable to deduce auto type for variable 'decltype_operand' from initialiser 'new auto(decltype((count = 1) + 0)(1))' (ignored).

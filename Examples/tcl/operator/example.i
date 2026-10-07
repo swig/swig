@@ -5,15 +5,11 @@
 #include "example.h"
 %}
 
-/* This header file is a little tough to handle because it has overloaded
-   operators and constructors.  We're going to try and deal with that here */
+// The overloaded operators and constructors are mostly handled automatically
 
-/* This turns the copy constructor in a function ComplexCopy() that can
-   be called */
+// Ensure copy constructor is wrapped
+%copyctor Complex;
 
-%rename(ComplexCopy) Complex::Complex(Complex const &);
-
-/* Now grab the original header file */
 %include "example.h"
 
 /* An output method that turns a complex into a short string */
@@ -24,5 +20,3 @@
        return temp;
    }
 };
-
-

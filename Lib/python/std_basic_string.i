@@ -44,6 +44,9 @@ SWIGINTERNINLINE PyObject*
 %include <std/std_basic_string.i>
 %typemaps_asptrfromn(%checkcode(STRING), std::basic_string<char>);
 
+// Only the instantiation converted by the typemaps above is a Python str
+%typemap(pytyping) std::basic_string<char> "str"
+
 #endif
 
 
@@ -85,5 +88,8 @@ SWIGINTERNINLINE PyObject*
 }
 
 %typemaps_asptrfromn(%checkcode(UNISTRING), std::basic_string<wchar_t>);
+
+// As above, the only wide instantiation that is a Python str
+%typemap(pytyping) std::basic_string<wchar_t> "str"
 
 #endif

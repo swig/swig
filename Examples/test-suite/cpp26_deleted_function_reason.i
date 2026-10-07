@@ -23,6 +23,9 @@ struct Widget {
 
   static void oldFactory() = delete("no replacement");
 
+  /* A deleted function with a deduced return type takes a reason too */
+  auto oldDeduced() = delete("use value() instead");
+
   void overloaded(int i) {
     (void)i;
   }

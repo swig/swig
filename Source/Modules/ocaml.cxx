@@ -954,7 +954,11 @@ public:
       value = qname;
 
     if (!name) {
-      name = mangleNameForCaml(Getattr(n, "name"));
+      /* The name of a member of a class template instance includes the template arguments, and the quotes of a
+         character literal argument, which mangleNameForCaml() leaves, cannot be in the C variable name either. */
+      String *caml_name = mangleNameForCaml(Getattr(n, "name"));
+      name = Swig_name_mangle_string(caml_name);
+      Delete(caml_name);
       Insert(name, 0, "_swig_wrap_");
       Setattr(n, "feature:symname", name);
     }
@@ -1254,6 +1258,8 @@ public:
     Replaceall(out, ")", "_xx_rparen");
     Replaceall(out, "[", "_xx_lbrace");
     Replaceall(out, "]", "_xx_rbrace");
+    Replaceall(out, "{", "_xx_lcbrace");
+    Replaceall(out, "}", "_xx_rcbrace");
     Replaceall(out, "~", "_xx_bnot");
     Replaceall(out, "=", "_xx_equals");
     Replaceall(out, "/", "_xx_slash");

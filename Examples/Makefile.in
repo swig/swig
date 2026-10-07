@@ -1312,7 +1312,7 @@ PYFLAGS           = -Werror
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
 PYREFLY           = @PYREFLY@
-PYREFLY_FLAGS     = --summary=none --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import
+PYREFLY_FLAGS     = --summary=none --preset=default --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import
 PYABI3AUDIT	  = @PYABI3AUDIT@
 
 # ----------------------------------------------------------------
@@ -1381,7 +1381,7 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
-	rm -f $(TARGET).py*
+	rm -f $(TARGET).py* _$(TARGET).pyi
 	rm -f *_abi3_report.json
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 

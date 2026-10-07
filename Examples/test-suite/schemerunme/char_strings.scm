@@ -29,14 +29,24 @@
   (check (SetCharConstStaticString (msg i) i))
   (check (SetConstCharConstStaticString (msg i) i))
   (check (SetConstCharTypedefString (msg i) i))
+  (check (SetCharArrayStaticString (msg i) i))
+  (check (SetConstCharArrayStaticString (msg i) i))
 
   ;; get set function (ping pong round-trip)
   (check (string=? (CharPingPong (msg i)) (msg i)))
+  (check (string=? (CharArrayPingPong (msg i)) (msg i)))
+  (let ((ping (string-append "Ping" (number->string i))))
+    (check (string=? (CharArrayDimsPingPong ping) ping)))
 
   ;; variables
   (global-char (msg i))
   (check (string=? (global-char) (msg i)))
   (check (string=? (global-const-char) CPLUSPLUS_MSG))
+  (check (string=? (global-char-array1) CPLUSPLUS_MSG))
+  (global-char-array2 (msg i))
+  (check (string=? (global-char-array2) (msg i)))
+  (check (string=? (global-const-char-array1) CPLUSPLUS_MSG))
+  (check (string=? (global-const-char-array2) CPLUSPLUS_MSG))
 
   ;; char *& tests
   (check (string=? (GetCharPointerRef) CPLUSPLUS_MSG))
@@ -44,12 +54,8 @@
   (check (string=? (GetConstCharPointerRef) CPLUSPLUS_MSG))
   (check (SetConstCharPointerRef (msg i) i)))
 
-;; Omitted from the canonical parity set - char[] arrays are not usable from
-;; Guile.  char[] function parameters (SetCharArrayStaticString,
-;; SetConstCharArrayStaticString, CharArrayPingPong, CharArrayDimsPingPong)
-;; raise "Wrong type argument" when passed a Scheme string, and the char[]
-;; global variables (global-char-array1/2 and global-const-char-array1/2)
-;; are exposed as raw swig-pointer values with no string accessor, so they
-;; cannot be set from a string nor compared against one.
+;; A string too long for a char[16] argument is an error rather than read past the end of the array.
+(check (string=? (CharArrayDimsPingPong "fifteen chars..") "fifteen chars.."))
+(expect-throw 'wrong-type-arg (CharArrayDimsPingPong "sixteen chars..."))
 
 (exit 0)

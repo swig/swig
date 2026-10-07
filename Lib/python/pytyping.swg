@@ -33,4 +33,8 @@
 
 %typemap(pytyping) char * "typing.Optional[str]"
 
+/* The Python data model requires these to return a string, so they are not annotated with the
+   typing.Optional that a char * is given for the null pointer it can otherwise return. */
+%typemap(pytyping) char *__str__, char *__repr__, char *__format__ "str"
+
 %typemap(pytyping) void "None"

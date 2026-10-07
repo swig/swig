@@ -165,6 +165,40 @@
   }
 }
 
+/* memberin/globalin/varin, for a reference to a fix array.  These also match a reference to an array of arrays, such
+   as an int (&)[2][3], so all $1_size elements are copied rather than the $1_dim0 of the first dimension. */
+
+%typemap(memberin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  if ($input) {
+    size_t ii = 0;
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
+  } else {
+    %variable_nullref("$type","$name");
+  }
+}
+
+%typemap(globalin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  if ($input) {
+    size_t ii = 0;
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
+  } else {
+    %variable_nullref("$type","$name");
+  }
+}
+
+%typemap(varin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  $basetype *inp = 0;
+  int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $*1_descriptor, %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  } else if (inp) {
+    size_t ii = 0;
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)inp + ii);
+  } else {
+    %variable_nullref("$type", "$name");
+  }
+}
+
 
 /* memberin/globalin/varin, for fix double arrays. */
 
@@ -293,6 +327,10 @@
 }
 
 /* References */
+%typemap(varout, noblock=1) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $*1_descriptor, %newpointer_flags));
+}
+
 %typemap(varout, noblock=1) SWIGTYPE & {
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr(&$1), $descriptor, %newpointer_flags));
 }
@@ -637,6 +675,31 @@
 #endif
 
 %apply SWIGTYPE ((*)(ANY)) { SWIGTYPE ((* const)(ANY)) }
+
+/* ------------------------------------------------------------
+ * --- function reference typemaps ---
+ * A reference to a function is passed and returned as a function pointer.
+ * ------------------------------------------------------------ */
+
+%typemap(in) SWIGTYPE ((&)(ANY)) {
+  int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum);
+  }
+  if (!$1) {
+    %argument_nullref("$type", $symname, $argnum);
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)) {
+  void *ptr = 0;
+  int res = SWIG_ConvertFunctionPtr($input, &ptr, $descriptor);
+  $1 = ptr ? SWIG_CheckState(res) : 0;
+}
+
+%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)) {
+  %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
+}
 
 %apply SWIGTYPE * { SWIGTYPE *const }
 

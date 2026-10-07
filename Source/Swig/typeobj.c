@@ -428,6 +428,7 @@ int SwigType_ispointer(const SwigType *t) {
  *
  * Add, remove, and test if a type is a reference.  The deletion and query
  * functions take into account qualifiers (if any).
+ * SwigType_del_reference() requires a reference, SwigType_remove_reference() removes either kind if there is one.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_reference(SwigType *t) {
@@ -465,6 +466,7 @@ int SwigType_isreference(const SwigType *t) {
  *
  * Add, remove, and test if a type is a rvalue reference.  The deletion and query
  * functions take into account qualifiers (if any).
+ * SwigType_del_rvalue_reference() requires one, SwigType_remove_reference() removes either kind if there is one.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_rvalue_reference(SwigType *t) {
@@ -543,6 +545,8 @@ int SwigType_isvariadic(const SwigType *t) {
  * is alphabetical---meaning that "const volatile" and "volatile const" are
  * stored in exactly the same way as "q(const volatile)".
  * 'qual' can be a list of multiple qualifiers in any order, separated by spaces.
+ * SwigType_del_qualifier() requires a qualifier, SwigType_remove_qualifier() removes the top level ones if there are
+ * any and SwigType_strip_qualifiers() those at every level.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
@@ -619,6 +623,68 @@ int SwigType_isqualifier(const SwigType *t) {
     return 1;
   }
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ *                    Top level reference and cv-qualifiers
+ *
+ * SwigType_isanyreference()
+ * SwigType_remove_reference()
+ * SwigType_remove_qualifier()
+ * SwigType_remove_qualifier_reference()
+ *
+ * Counterparts of std::is_reference, std::remove_reference, std::remove_cv and
+ * std::remove_cvref.  Each remove function modifies t in place and returns it.
+ * Unlike SwigType_del_reference() and SwigType_del_qualifier(), t need not have
+ * the element being removed.  SwigType_strip_qualifiers() removes the qualifiers
+ * at every level instead of the top level ones.
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_isanyreference()
+ *
+ * Returns 1 if t is an lvalue or an rvalue reference, which SwigType_isreference()
+ * and SwigType_isrvalue_reference() each test for one of.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isanyreference(const SwigType *t) {
+  return SwigType_isreference(t) || SwigType_isrvalue_reference(t);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_reference()
+ *
+ * Removes a top level lvalue or rvalue reference from t, if it has one.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_reference(SwigType *t) {
+  if (SwigType_isanyreference(t))
+    Delete(SwigType_pop(t));
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_qualifier()
+ *
+ * Removes all top level cv-qualifiers from t, so 'q(const).q(volatile).int'
+ * becomes 'int'.  Qualifiers under a pointer or reference are kept.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_qualifier(SwigType *t) {
+  while (SwigType_isqualifier(t))
+    Delete(SwigType_pop(t));
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_qualifier_reference()
+ *
+ * Removes a top level reference from t and then the top level cv-qualifiers of
+ * the type referred to, so 'r.q(const).int' becomes 'int'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_remove_qualifier_reference(SwigType *t) {
+  return SwigType_remove_qualifier(SwigType_remove_reference(t));
 }
 
 /* -----------------------------------------------------------------------------
@@ -704,6 +770,7 @@ int SwigType_ismemberpointer(const SwigType *t) {
  * SwigType_array_setdim()      - Set array dimension
  * SwigType_array_type()        - Return array type
  * SwigType_pop_arrays()        - Remove all arrays
+ * SwigType_pop_to_array()      - Remove the pointer or reference to an array
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
@@ -763,6 +830,22 @@ SwigType *SwigType_pop_arrays(SwigType *t) {
     Delete(td);
   }
   return ta;
+}
+
+/* Remove the pointer, reference or rvalue reference that t is to an array, so that t is the array, and return the element
+ * removed for the caller to push back.  Return 0, leaving t unchanged, when t is not a pointer or reference to an array.
+ * A pointer that is itself qualified, as in 'q(const).p.a(4).int', is not looked through. */
+SwigType *SwigType_pop_to_array(SwigType *t) {
+  SwigType *ptr_or_ref;
+  if (!SwigType_ispointer(t) && !SwigType_isanyreference(t))
+    return 0;
+  ptr_or_ref = SwigType_pop(t);
+  if (!SwigType_isarray(t)) {
+    SwigType_push(t, ptr_or_ref);
+    Delete(ptr_or_ref);
+    ptr_or_ref = 0;
+  }
+  return ptr_or_ref;
 }
 
 /* Return number of array dimensions */
@@ -964,6 +1047,26 @@ SwigType *SwigType_pop_function_qualifiers(SwigType *t) {
   assert(Strncmp(t, "f(", 2) == 0);
 
   return qualifiers;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_replace_function_parms()
+ *
+ * Replace the parameter list of the function type t with parms, keeping the cv-qualifier and ref-qualifier of a
+ * member function and everything after the parameter list.  Returns t.
+ * For example, with parms (double):
+ *   t in:   r.q(const).f(int,int).p.
+ *   t out:  r.q(const).f(double).p.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_replace_function_parms(SwigType *t, ParmList *parms) {
+  SwigType *function = SwigType_pop_function(t);
+  SwigType *qualifiers = SwigType_pop_function_qualifiers(function);
+  SwigType_add_function(t, parms);
+  SwigType_push(t, qualifiers);
+  Delete(qualifiers);
+  Delete(function);
+  return t;
 }
 
 int SwigType_isfunction(const SwigType *t) {
@@ -1409,6 +1512,65 @@ SwigType *SwigType_replace_auto_base(const SwigType *t, const String *new_base) 
 }
 
 /* -----------------------------------------------------------------------------
+ *                                  Decltype
+ *
+ * SwigType_new_decltype()
+ * SwigType_isdecltype()
+ * SwigType_decltype_expr()
+ *
+ * A decltype SWIG has not deduced a type for is stored as the base element
+ * 'decltype(<expr>)', holding the text of the expression, so 'decltype(x + 1) *'
+ * is 'p.decltype(x + 1)'.  The parentheses are balanced, so the element is
+ * always kept whole by SwigType_split() and friends.
+ * ----------------------------------------------------------------------------- */
+
+/* -----------------------------------------------------------------------------
+ * SwigType_new_decltype()
+ *
+ * Creates the SwigType for 'decltype(expr)'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_new_decltype(const_String_or_char_ptr expr) {
+  return NewStringf("decltype(%s)", expr);
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_isdecltype()
+ *
+ * Tests whether the base of t is a decltype, as in 'q(const).decltype(x)'.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isdecltype(const SwigType *t) {
+  SwigType *base;
+  int isdecltype;
+  if (!t)
+    return 0;
+  base = SwigType_base(t);
+  isdecltype = Strncmp(base, "decltype(", 9) == 0;
+  Delete(base);
+  return isdecltype;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_decltype_expr()
+ *
+ * Returns a newly allocated String holding the expression of the decltype that
+ * is the base of t, so 'x + 1' for 'p.decltype(x + 1)'.  Returns NULL if the
+ * base of t is not a decltype.
+ * ----------------------------------------------------------------------------- */
+
+String *SwigType_decltype_expr(const SwigType *t) {
+  SwigType *base;
+  String *expr;
+  if (!SwigType_isdecltype(t))
+    return 0;
+  base = SwigType_base(t);
+  expr = SwigType_parm(base);
+  Delete(base);
+  return expr;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_base()
  *
  * This function returns the base of a type.  For example, if you have a
@@ -1516,7 +1678,8 @@ String *SwigType_prefix(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_strip_qualifiers()
  *
- * Strip all qualifiers from a type and return a new type
+ * Strip all qualifiers from a type and return a new type.
+ * SwigType_remove_qualifier() removes only the top level ones, in place.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_strip_qualifiers(const SwigType *t) {

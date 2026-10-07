@@ -136,6 +136,9 @@
   }
 }
 
+// A map keyed by Python objects takes anything, so the catch-all __contains__ overload is redundant
+%ignore std::map<swig::SwigPtr_PyObject,swig::SwigPtr_PyObject>::__contains__(PyObject *);
+
 %define %swig_map_common(Map...)
   %swig_sequence_iterator(Map);
   %swig_container_methods(Map)
@@ -254,6 +257,10 @@
     
     bool __contains__(const key_type& key) {
       return self->find(key) != self->end();
+    }
+
+    bool __contains__(PyObject *) {
+      return false;
     }
 
     %newobject key_iterator(PyObject **PYTHON_SELF);

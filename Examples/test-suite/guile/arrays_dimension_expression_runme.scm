@@ -1,0 +1,27 @@
+(dynamic-call "scm_init_arrays_dimension_expression_module" (dynamic-link "./libarrays_dimension_expression"))
+
+(define-macro (check test)
+  `(if (not ,test) (error "Error in test" ',test)))
+
+; Setting an array with a dimension such as 'DIM_FLAGS | 4' copies all of its elements, and no more.
+(or-array (or-source))
+(check (= (or-array-sum) 28))
+(or-grid (or-grid-source))
+(check (= (or-grid-sum) 21))
+(or-text "abcdef")
+(check (string=? (or-text) "abcdef"))
+(check (= (or-text-length "abcdef") 6))
+(and-array (and-source))
+(check (= (and-array-sum) 3))
+(and-grid (and-grid-source))
+(check (= (and-grid-sum) 10))
+(xor-array (xor-source))
+(check (= (xor-array-sum) 28))
+(xor-grid (xor-grid-source))
+(check (= (xor-grid-sum) 105))
+(eq-array (eq-source))
+(check (= (eq-array-sum) 5))
+(eq-grid (eq-grid-source))
+(check (= (eq-grid-sum) 11))
+
+(exit 0)

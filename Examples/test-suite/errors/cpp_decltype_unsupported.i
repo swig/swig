@@ -14,44 +14,32 @@ static int global_int = 42;
 decltype(func_returning_int()) func_return;
 decltype(func_returning_int(0)) func_return2;
 
-// Pointer dereference (other than of char* or wchar_t*).
-#ifdef SWIG
-%ignore pointer_to_int;
-#endif
-int* pointer_to_int;
-decltype(*pointer_to_int) pointer_dereference = *pointer_to_int;
-
 // Variable SWIG doesn't know about.
 #ifndef SWIG
 static int undeclared_variable = 1;
 #endif
 decltype(undeclared_variable) unknown_to_swig;
 
-// Constructed object.
-struct A {};
-decltype(A()) constructed_object;
-
 // Spaceship operator.
 #include <compare>
 decltype(1 <=> 2) spaceship = (1 <=> 2);
 
-// Array dereference.
-decltype(("abc"[1])) array_deref = 0;
+// Array dereference in a braced initialiser, which SWIG keeps as text.
 constexpr auto array_deref2{"abc"[1]};
-constexpr auto array_deref4 = ("abc"[1]);
-// FIXME: SWIG fails to parse these cases:
+// FIXME: SWIG parses no parenthesised direct initialisation, of any type, see issue #869.
 #ifndef SWIG
-decltype("abc"[1]) array_deref3 = 0;
 constexpr auto array_deref5("abc"[1]);
 #endif
 
 // Comparisons.
-// FIXME SWIG fails to parse both these with `Error: Missing ')'. Reached end of input.`
-//decltype(1 < 2) lt_test = 0;
-//decltype(1 > 2) gt_test = 0;
+decltype(1 < 2) lt_test = 0;
+decltype(1 > 2) gt_test = 0;
 constexpr auto lt_test2 = 1 < 2;
 constexpr auto gt_test2 = 1 > 2;
 
 // Assignment.
 bool a;
 decltype((a = true) + 1) assignment = true;
+
+// Parameter.
+void take_assignment(decltype(a = true) c, int n);

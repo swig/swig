@@ -58,3 +58,22 @@ for x in [cpp11_hash_tables.MultiSetInt([1]),
 	x.append(1)
 	swig_assert_equal(x.count(1), 2)
 	swig_assert_equal(len(x), 2)
+
+# An object that cannot be converted to the key type is not in the container, rather than
+# raising a TypeError, as the containers implement collections.abc.Container.
+for x in [cpp11_hash_tables.SetInt([1]),
+		  cpp11_hash_tables.MultiSetInt([1]),
+		  cpp11_hash_tables.UnorderedSetInt([1]),
+		  cpp11_hash_tables.UnorderedMultiSetInt([1]),
+		  cpp11_hash_tables.MapIntInt({1: 7}),
+		  cpp11_hash_tables.MultiMapIntInt({1: 7}),
+		  cpp11_hash_tables.UnorderedMapIntInt({1: 7}),
+		  cpp11_hash_tables.UnorderedMultiMapIntInt({1: 7})
+         ]:
+
+	swig_assert_equal(1 in x, True)
+	swig_assert_equal(2 in x, False)
+	swig_assert_equal("not an int" in x, False)
+	swig_assert_equal(None in x, False)
+	swig_assert_equal(1.5 in x, False)
+	swig_assert_equal(2 ** 70 in x, False)

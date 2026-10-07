@@ -629,6 +629,15 @@
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%apply char[ANY] { char (&)[ANY] }
+%typemap(out, phptype="string") char (&)[ANY]
+{
+  size_t len = 0;
+  while (len < $1_dim0 && (*$1)[len]) ++len;
+  RETVAL_STRINGL(*$1, len);
+}
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

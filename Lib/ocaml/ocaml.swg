@@ -20,11 +20,11 @@
 }
 
 %typemap(out) void * {
-    $result = caml_val_ptr($1,$descriptor);
+    $result = caml_val_ptr((void *)$1,$descriptor);
 }
 
 %typemap(varout) void * {
-    $result = caml_val_ptr($1,$descriptor);
+    $result = caml_val_ptr((void *)$1,$descriptor);
 }
 
 %typemap(in) char *& (char *temp), const char *& ($*1_ltype temp) {
@@ -345,6 +345,10 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [];
+%apply char[ANY] { char (&)[ANY] }
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */

@@ -1097,7 +1097,7 @@ For example <tt>int const*const</tt> is first stripped to <tt>int *const</tt> th
 </p>
 
 <p>
-If <tt>TYPE</tt> is an array.  The following transformation is made:
+If <tt>TYPE</tt> is an array, or a pointer or reference to an array.  The following transformation is made:
 </p>
 
 <ul>
@@ -3499,7 +3499,9 @@ If you wanted to generalize the typemap to apply to arrays of all dimensions you
 
 <p>
 In this example, the special variable <tt>$1_dim0</tt> is expanded with the actual
-array dimensions.   Multidimensional arrays can be matched in a similar manner.  For example:
+array dimensions.   A dimension that is an expression rather than a number or a name, such as
+<tt>FLAGS | 4</tt>, is expanded in parentheses, so that it keeps its meaning as an operand.
+Multidimensional arrays can be matched in a similar manner.  For example:
 </p>
 
 <div class="code">

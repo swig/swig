@@ -154,10 +154,6 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
-          VER: '8.0'
-        - SWIGLANG: php
-          VER: '8.1'
-        - SWIGLANG: php
           VER: '8.2'
         - SWIGLANG: php
           VER: '8.3'
@@ -169,6 +165,10 @@ jobs:
         - SWIGLANG: php
           VER: '8.5'
           CPPSTD: c++11 # C++98 not supported by PHP.
+        - SWIGLANG: php
+          VER: '8.6'
+          CPPSTD: c++11 # C++98 not supported by PHP.
+          continue-on-error: true # PHP 8.6 currently RC.
         #- SWIGLANG: python
         #  VER: '3.5'
         #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
@@ -627,20 +627,11 @@ jobs:
           set -x
 
           if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-warnings
             make $SWIGJOBS check-ccache
             make $SWIGJOBS check-errors-test-suite
           else
             case "$SWIGLANG" in
-              ocaml)
-                # `make check-ocaml-test-suite` fails with parallel make with:
-                #
-                # File "swig.ml", line 1:
-                # Error: Could not find the .cmi file for interface swig.mli.
-                #
-                # Apparently we ought to be using `ocamldep` to generate make
-                # dependencies.
-                unset SWIGJOBS
-                ;;
               scilab)
                 case $VER in
                   ""|6.*|2023.*|2024.0.*|2024.1.*)

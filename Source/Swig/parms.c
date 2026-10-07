@@ -174,6 +174,22 @@ Parm *ParmList_nth_parm(ParmList *p, unsigned int n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_find_name()
+ *
+ * Return the first parameter in the list named name, NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_name(ParmList *p, const_String_or_char_ptr name) {
+  while (p) {
+    String *pname = Getattr(p, "name");
+    if (pname && Equal(pname, name))
+      break;
+    p = nextSibling(p);
+  }
+  return p;
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_variadic_parm()
  *
  * Return the variadic parm (last in list if it is variadic), NULL otherwise
@@ -216,6 +232,41 @@ Parm *ParmList_find_variadic_parm(ParmList *p, int *position) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_expanded_pack()
+ *
+ * Return the first template parameter pack in 'packs', skipping the parms that are not packs, that the variadic type
+ * 't' is an expansion of, such as the 'typename... Ts' that 'v.r.Ts' expands.  NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_expanded_pack(ParmList *packs, const SwigType *t) {
+  for (; packs; packs = nextSibling(packs)) {
+    if (SwigType_isvariadic(Getattr(packs, "type")) && SwigType_variadic_expands(t, Getattr(packs, "name")))
+      return packs;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_find_pack_expansion()
+ *
+ * Return the first parm in the list whose type is an expansion of the template parameter pack named 'pack', such as
+ * the 'Ts &... args' of the pack 'Ts', NULL otherwise.  As for ParmList_find_variadic_parm(), the zero based index of
+ * the parm is written through 'position' if it is non-NULL (left unchanged when no parm is found).
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_pack_expansion(ParmList *p, const String *pack, int *position) {
+  int i = 0;
+  for (; p; p = nextSibling(p), ++i) {
+    if (SwigType_variadic_expands(Getattr(p, "type"), pack)) {
+      if (position)
+        *position = i;
+      return p;
+    }
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_numrequired()
  *
  * Return number of required arguments - the number of arguments excluding
@@ -247,6 +298,21 @@ int ParmList_len(ParmList *p) {
   while (p) {
     i++;
     p = nextSibling(p);
+  }
+  return i;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_len_nonvariadic()
+ *
+ * Return the number of parms in the list that are not variadic, such as the template parameters that are not packs.
+ * ----------------------------------------------------------------------------- */
+
+int ParmList_len_nonvariadic(ParmList *p) {
+  int i = 0;
+  for (; p; p = nextSibling(p)) {
+    if (!SwigType_isvariadic(Getattr(p, "type")))
+      i++;
   }
   return i;
 }
@@ -375,4 +441,28 @@ int ParmList_has_varargs(ParmList *p) {
     p = nextSibling(p);
   }
   return lastparm ? SwigType_isvarargs(Getattr(lastparm, "type")) : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_replace_names_positional()
+ *
+ * Replace each identifier in 's' naming one of the parameters in 'p' with that parameter's position as a $ variable,
+ * $1 for the first parameter, $2 for the second and so on, such as 'X<(T1,p.T2)>' into 'X<($1,p.$2)>' for template
+ * parameters T1 and T2.  Only the parameters before 'end' are replaced, or all of them when 'end' is 0.  An unnamed
+ * parameter still takes up a position.  Nothing is done when 's' is 0.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
+  int position = 0;
+  if (!s)
+    return;
+  for (; p && p != end; p = nextSibling(p)) {
+    String *name = Getattr(p, "name");
+    ++position;
+    if (name) {
+      String *dollar = NewStringf("$%d", position);
+      Replaceid(s, name, dollar);
+      Delete(dollar);
+    }
+  }
 }

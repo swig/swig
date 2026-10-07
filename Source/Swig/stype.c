@@ -157,6 +157,7 @@ SwigType *NewSwigType(int t) {
   case T_WSTRING:
     {
       SwigType *t = NewString("wchar_t");
+      SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
       return t;
     }
@@ -254,13 +255,9 @@ int SwigType_isconst(const SwigType *t) {
 
 int SwigType_ismutable(const SwigType *t) {
   int r;
-  SwigType *qt = SwigType_typedef_resolve_all(t);
-  if (SwigType_isreference(qt) || SwigType_isrvalue_reference(qt)) {
+  SwigType *qt = SwigType_remove_reference(SwigType_typedef_resolve_all(t));
+  while (SwigType_isarray(qt)) {
     Delete(SwigType_pop(qt));
-  } else {
-    while (SwigType_isarray(qt)) {
-      Delete(SwigType_pop(qt));
-    }
   }
   r = SwigType_isconst(qt);
   Delete(qt);
@@ -282,17 +279,18 @@ int SwigType_issimple(const SwigType *t) {
   if (!t)
     return 0;
   while (*c) {
-    if (*c == '<') {
-      int nest = 1;
-      c++;
-      while (*c && nest) {
-        if (*c == '<')
-          nest++;
-        if (*c == '>')
-          nest--;
+    if (c[0] == '<' && c[1] == '(') {
+      /* Skip a template argument list "<(...)>", but not a '<' operator such as in an array dimension "a(2 << 1)" */
+      int nparen = 1;
+      c += 2;
+      while (*c && nparen) {
+        if (*c == '(')
+          nparen++;
+        else if (*c == ')')
+          nparen--;
         c++;
       }
-      c--;
+      continue;
     }
     if (*c == '.')
       return 0;
@@ -703,11 +701,8 @@ SwigType *SwigType_ltype(const SwigType *s) {
   int ignore_member_function_qualifiers = 0;
 
   result = NewStringEmpty();
-  tc = Copy(s);
   /* Nuke all leading qualifiers */
-  while (SwigType_isqualifier(tc)) {
-    Delete(SwigType_pop(tc));
-  }
+  tc = SwigType_remove_qualifier(Copy(s));
   if (SwigType_issimple(tc)) {
     /* Resolve any typedef definitions */
     SwigType *tt = Copy(tc);
@@ -1325,7 +1320,20 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
   ilen = Len(elem);
   for (i = 0; i < ilen; i++) {
     String *e = Getitem(elem, i);
-    if (SwigType_issimple(e)) {
+    if (SwigType_isdecltype(e)) {
+      /* The expression is C++ text rather than a type, so a name in it becomes the C++ spelling of rep, as in
+       * 'decltype(N + 1)' becoming 'decltype(3 + 1)' or 'decltype(T())' becoming 'decltype(double())' */
+      String *expr = SwigType_decltype_expr(e);
+      String *repstr = SwigType_str(rep, 0);
+      SwigType *replaced;
+      Replace(expr, pat, repstr, DOH_REPLACE_ID);
+      replaced = SwigType_new_decltype(expr);
+      Clear(e);
+      Append(e, replaced);
+      Delete(replaced);
+      Delete(repstr);
+      Delete(expr);
+    } else if (SwigType_issimple(e)) {
       if (Equal(e, pat)) {
         /* Replaces a type of the form 'pat' with 'rep<args>' */
         if (SwigType_isconst(rep) && i > 0 && SwigType_isconst(Getitem(elem, i - 1))) {
@@ -1432,10 +1440,31 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_variadic_expands()
+ *
+ * Whether the variadic type 't' is an expansion of the pack named 'pack_name', such as 'v.r.Ts' of 'Ts'.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_variadic_expands(const SwigType *t, const String *pack_name) {
+  String *copy;
+  int found;
+  if (!SwigType_isvariadic(t) || !pack_name)
+    return 0;
+  copy = Copy(t);
+  found = Replace(copy, pack_name, "", DOH_REPLACE_ID) > 0;
+  Delete(copy);
+  return found;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_variadic_replace()
  *
  * Replaces variadic parameter with a list of (zero or more) parameters.
  * Needed for variadic templates.
+ *
+ * Explicitly written template arguments all go to the first pack, so a pack declared after it in the same
+ * template parameter list, the variadic entries following 'unexpanded_variadic_parm', is replaced by none.
+ * A pack of any other template, such as a member template's own, is left for that template's instantiation.
  * ----------------------------------------------------------------------------- */
 
 void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
@@ -1443,6 +1472,13 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
   int i, ilen;
   List *elem;
   if (!unexpanded_variadic_parm)
+    return;
+
+  if (SwigType_isvariadic(t) && ParmList_expanded_pack(nextSibling(unexpanded_variadic_parm), t)) {
+    Clear(t);
+    return;
+  }
+  if (SwigType_isvariadic(t) && !SwigType_variadic_expands(t, Getattr(unexpanded_variadic_parm, "name")))
     return;
 
   if (SwigType_isvariadic(t)) {
@@ -1471,7 +1507,7 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
   for (i = 0; i < ilen; i++) {
     String *e = Getitem(elem, i);
     if (SwigType_isfunction(e)) {
-      int j, jlen;
+      int j, jlen, first = 1;
       List *fparms = SwigType_parmlist(e);
       Clear(e);
       Append(e, "f(");
@@ -1479,19 +1515,19 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
       for (j = 0; j < jlen; j++) {
         SwigType *type = Getitem(fparms, j);
         SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
+        /* A pack replaced by no parms leaves nothing, wherever it is in the list */
         if (Len(type) > 0) {
-          if (j != 0)
+          if (!first)
             Putc(',', e);
           Append(e, type);
-        } else {
-          assert(j == jlen - 1); /* A variadic parm was replaced with zero parms, variadic parms are only changed at the end of the list */
+          first = 0;
         }
       }
       Append(e, ").");
       Delete(fparms);
     }
     if (SwigType_istemplate(e)) {
-      int j, jlen;
+      int j, jlen, first = 1;
       List *tparms = SwigType_templateargslist(e);
       String *tprefix = SwigType_templateprefix(e);
       String *tsuffix = SwigType_templatesuffix(e);
@@ -1503,11 +1539,10 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
         SwigType *type = Getitem(tparms, j);
         SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
         if (Len(type) > 0) {
-          if (j != 0)
+          if (!first)
             Putc(',', e);
           Append(e, type);
-        } else {
-          assert(j == jlen - 1); /* A variadic parm was replaced with zero parms, variadic parms are only changed at the end of the list */
+          first = 0;
         }
       }
       Append(e, ")>");

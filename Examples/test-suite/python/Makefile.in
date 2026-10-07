@@ -11,7 +11,7 @@ PY_VER_3_DIGIT    = @PY_VER_3_DIGIT@
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,E741,W291,W391
 PYREFLY           = @PYREFLY@
-PYREFLY_FLAGS     = --summary=none --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import --error=bad-function-definition
+PYREFLY_FLAGS     = --summary=none --preset=default --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -73,6 +73,7 @@ CPP_TEST_CASES += \
 	python_overload_simple_cast \
 	python_pickle \
 	python_pyi \
+	python_pyi_untyped \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -80,6 +81,7 @@ CPP_TEST_CASES += \
 	python_typehints \
 	python_typemap_macro \
 	python_typemap_numoutputs \
+	python_typemap_ref_array \
 	python_various \
 	simutry \
 	std_containers \
@@ -112,6 +114,7 @@ endif
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
+	cpp11_python_abstractbase \
 	cpp11_std_unordered_map \
 	cpp11_std_unordered_multimap \
 	cpp11_std_unordered_multiset \
@@ -150,6 +153,10 @@ python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 python_typehints.cpptest: SWIGOPT += -typehints
 python_pyi.cpptest: SWIGOPT += -pyi
+python_pyi_untyped.cpptest: SWIGOPT += -pyi
+
+# A stub with no annotations in it, so -typehints and Pyrefly do not apply to this test either.
+python_pyi_untyped.cpptest: override SWIG_FEATURES := $(filter-out -typehints,$(SWIG_FEATURES))
 
 # C/C++ annotations are not PEP 484 type hints, so -typehints and Pyrefly do not apply to these tests.
 python_annotations_c.cpptest: override SWIG_FEATURES := $(filter-out -typehints,$(SWIG_FEATURES))
@@ -219,10 +226,11 @@ run_testcase = \
 
 # Clean: remove the generated Python files
 %.clean:
-	@rm -f $*.py*
+	@rm -f $*.py* _$*.pyi
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean
+	rm -f _*.pyi
 	rm -f ../hugemod.h ../hugemod_a.i ../hugemod_b.i hugemod_a.py* hugemod_b.py* $(hugemod_runme)
 	rm -f clientdata_prop_a.py* clientdata_prop_b.py*
 	rm -f import_callback_x.py* import_callback_y.py*

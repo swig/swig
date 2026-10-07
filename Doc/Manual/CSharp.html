@@ -3451,6 +3451,21 @@ Note that SWIG uses the cstype typemap to lookup the C# type for any given C++ t
 Using the csbase typemap, as described above, overrides the default cstype for looking up the C# integral base type.
 </p>
 
+<p>
+The csbase typemap is also needed for a C++ enum base of <tt>bool</tt>, <tt>char</tt> or <tt>wchar_t</tt>,
+as C# does not accept its <tt>bool</tt> or <tt>char</tt> types, nor a type wrapper class, as an enum underlying type.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(csbase, replace="1") Letter "int"
+%inline %{
+  enum class Letter : wchar_t { A = L'a', B };
+%}
+</pre>
+</div>
+
 </body>
 </html>
 

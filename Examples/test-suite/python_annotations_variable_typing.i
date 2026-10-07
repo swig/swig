@@ -6,6 +6,7 @@
 %feature("python:annotations", "typing");
 %feature("python:annotations:novar") member_variable_not_annotated;
 %feature("python:annotations:novar") A_CONSTANT_NOVAR;
+%feature("python:annotations:novar") Space::StructNovar;
 
 %inline %{
 namespace Space {
@@ -19,6 +20,9 @@ struct StructWithVar{
 };
 struct StructWithVarNotAnnotated {
   int member_variable_not_annotated;
+};
+struct StructNovar {
+  int member_variable;
 };
 short global_variable;
 }

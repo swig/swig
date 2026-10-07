@@ -35,3 +35,15 @@ if sys.version_info[0:2] >= (3, 6):
         anno = get_annotations(StructWithVarNotAnnotated)
         if anno != {}:
             raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # C/C++ annotations are not type hints and are never type checked, so none of the PEP 484 machinery is generated.
+    # A quoted "typing.Any" is an annotation; the unquoted one is the placeholder a .pyi needs for an unannotated name.
+    generated = ["python_annotations_variable_c.py"]
+    if swig_annotations_in_stub():
+        generated.append("python_annotations_variable_c.pyi")
+    for filename in generated:
+        with open(filename) as f:
+            source = f.read()
+        for unwanted in ("_swig_property", "_swig_dispatch", "TYPE_CHECKING", '"typing.Any"'):
+            if unwanted in source:
+                raise RuntimeError("{} should not contain {}".format(filename, unwanted))

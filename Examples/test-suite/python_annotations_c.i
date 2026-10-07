@@ -7,6 +7,8 @@
 %feature("python:annotations", "c") global_ints;
 %feature("python:annotations", "c") suppressed_none;
 %feature("python:annotations", "c") suppressed_one;
+%feature("python:annotations", "c") global_overloaded;
+%feature("python:annotations", "c") global_overloaded_differ;
 
 %inline %{
 namespace Space {
@@ -22,6 +24,9 @@ Space::Template<T> makeT(int x) {
 int *global_ints(int &ri, Space::Template<short> t) { return &ri; }
 int *global_overloaded(int &ri) { return &ri; }
 int *global_overloaded() { return NULL; }
+/* Overloads returning different types have no one C/C++ type to annotate them with. */
+int global_overloaded_differ(int x) { return x; }
+double global_overloaded_differ(double x, double y) { return x + y; }
 int *no_annotations(int &ri, const char *c) { return NULL; }
 %}
 %template(TemplateShort) Space::Template<short>;

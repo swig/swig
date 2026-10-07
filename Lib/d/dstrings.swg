@@ -71,3 +71,11 @@ static import std.conv;
 static import std.string;
 %}
 #undef SWIGD_STRING_TYPEMAPS
+
+%apply char[ANY] { char (&)[ANY] }
+/* Unlike the string typemaps, null is not accepted, as a reference cannot be bound to null */
+%typemap(in, canthrow=1) char (&)[ANY] %{ $1 = ($1_ltype)$input;
+  if (!$1) {
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
+    return $null;
+  } %}

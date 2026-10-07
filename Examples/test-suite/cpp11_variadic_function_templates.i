@@ -94,3 +94,25 @@ template<typename... T> int variadicmix1(T... t) { return 20; }
 %template(variadicmix1) variadicmix1<A,B>;
 %template(variadicmix1) variadicmix1<A,B,C>;
 %template(variadicmix1) variadicmix1<int, int>;
+
+// A pack followed by another template parameter, which the call can only deduce
+%inline %{
+template<typename... T, typename U> int pack_then_deduced(T... t, U u) { return int(sizeof...(T)) * 10 + int(sizeof(U) == sizeof(double)); }
+%}
+
+%template(pack_then_deduced) pack_then_deduced<int, int, double>;
+%template(pack_then_deduced) pack_then_deduced<double>;
+
+// A member template's own pack inside a variadic class template is left for the member template's instantiation
+%inline %{
+template<typename... T> struct PackHolder {
+  template<typename... U> int both(T... t, U... u) { return int(sizeof...(T)) * 10 + int(sizeof...(U)); }
+  template<typename... U> int own(U... u) { return int(sizeof...(U)); }
+};
+%}
+
+%template(PackHolderIS) PackHolder<int, short>;
+%extend PackHolder<int, short> {
+  %template(both) both<double>;
+  %template(own) own<double, double, double>;
+}

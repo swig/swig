@@ -28,6 +28,9 @@
   }
 %}
 
+// A set of Python objects takes anything, so the catch-all __contains__ overload is redundant
+%ignore std::unordered_set<swig::SwigPtr_PyObject>::__contains__(PyObject *);
+
 %define %swig_unordered_set_methods(unordered_set...)
   %swig_sequence_forward_iterator(unordered_set);
   %swig_container_methods(unordered_set);
@@ -47,8 +50,20 @@
        return self->find(x) != self->end();
      }
 
+     bool __contains__(PyObject *) {
+       return false;
+     }
+
      value_type __getitem__(difference_type i) const throw (std::out_of_range) {
        return *(swig::cgetpos(self, i));
+     }
+
+     void add(value_type x) {
+       self->insert(x);
+     }
+
+     void discard(value_type x) {
+       self->erase(x);
      }
   }
 %enddef

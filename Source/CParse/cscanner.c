@@ -52,8 +52,12 @@ static const struct Define default_dtype;
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
+static int num_paren = 0;
 static int last_id = 0;
 static int rename_active = 0;
+/* Set while the last tokens yylex() returned are an '=', optionally followed by the '::' of '::new', as the grammar
+ * only parses a new-expression as the whole of an initialiser or a default argument. */
+static int new_expression_can_start = 0;
 
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
@@ -168,17 +172,65 @@ int skip_balanced(int startchar, int endchar) {
   Append(scanner_ccode, Scanner_text(scan));
   if (endchar == '}')
     num_brace--;
+  else if (endchar == ')')
+    num_paren--;
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * bracket_depth_outside()
+ *
+ * Returns the bracket depth outside a group whose opening bracket, startchar,
+ * is the last token the parser has read, for skip_to_bracket_depth().  Only the
+ * difference between two counts of '(' brackets is meaningful.
+ * ----------------------------------------------------------------------------- */
+
+struct BracketDepth bracket_depth_outside(int startchar) {
+  struct BracketDepth depth;
+  depth.paren = num_paren - (startchar == '(');
+  depth.brace = num_brace - (startchar == '{');
+  return depth;
+}
+
+/* -----------------------------------------------------------------------------
+ * skip_to_bracket_depth()
+ *
+ * Recovers from a syntax error inside a group enclosed in startchar/endchar by
+ * skipping the rest of it, however deeply nested inside it the error was, until
+ * the count of brackets endchar closes is back down to that in depth, taken by
+ * bracket_depth_outside() at the group's opening bracket.  Nothing is skipped if
+ * the group is closed.  As the code skipped may close brackets of the other
+ * kind that the parser has read inside the group, such as a '{' the error was
+ * found at, both counts are set back to depth.  The code skipped is not kept.
+ *
+ * Returns 0 if successfully skipped, -1 if EOF found first.
+ * ----------------------------------------------------------------------------- */
+
+int skip_to_bracket_depth(int startchar, int endchar, struct BracketDepth depth) {
+  const int *count = endchar == '}' ? &num_brace : &num_paren;
+  int outside = endchar == '}' ? depth.brace : depth.paren;
+  while (*count > outside) {
+    if (skip_balanced(startchar, endchar) < 0)
+      return -1;
+  }
+  num_paren = depth.paren;
+  num_brace = depth.brace;
+  Clear(scanner_ccode);
   return 0;
 }
 
 /* -----------------------------------------------------------------------------
  * get_raw_text_balanced()
  *
- * Returns raw text between 2 braces
+ * Returns raw text between 2 braces, or NULL when the closing bracket is missing
  * ----------------------------------------------------------------------------- */
 
 String *get_raw_text_balanced(int startchar, int endchar) {
-  return Scanner_get_raw_text_balanced(scan, startchar, endchar);
+  int start_line = Scanner_line(scan);
+  String *code = Scanner_get_raw_text_balanced(scan, startchar, endchar);
+  if (!code)
+    Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
+  return code;
 }
 
 /* -----------------------------------------------------------------------------
@@ -189,6 +241,34 @@ String *get_raw_text_balanced(int startchar, int endchar) {
 
 String *get_raw_text_to_semicolon(void) {
   return Scanner_get_raw_text_to_semicolon(scan);
+}
+
+/* -----------------------------------------------------------------------------
+ * skip_to_initializer_end()
+ *
+ * Skips the rest of an initializer or default argument, up to but not including
+ * the ',', ';' or ')' that ends it, and returns its raw text, or NULL after
+ * reporting an error if the end of input is reached first.  If 'after_token' is
+ * set, the rest starts with the token scanned last, which the parser read ahead
+ * and discarded, and the text returned starts with that token's text.
+ * ----------------------------------------------------------------------------- */
+
+String *skip_to_initializer_end(int after_token) {
+  int start_line = Scanner_line(scan);
+  String *token = after_token ? Copy(Scanner_text(scan)) : 0;
+  String *code = Scanner_skip_to_initializer_end(scan);
+  if (!code) {
+    Swig_error(cparse_file, start_line, "Missing ';' or ')'. Reached end of input.\n");
+    Delete(token);
+    return NULL;
+  }
+  if (token) {
+    Insert(code, 0, token);
+    Delete(token);
+  }
+  cparse_line = Scanner_line(scan);
+  cparse_file = Scanner_file(scan);
+  return code;
 }
 
 /* The literal tokens the scanner returns, each with the token the grammar is given for it and the T_* type code
@@ -240,11 +320,28 @@ static const struct literal_token *parser_literal_token(int tok) {
 }
 
 /* -----------------------------------------------------------------------------
+ * promote_type()
+ *
+ * The C++ integral promotion of the T_* type code 't', which is the type an operand of an arithmetic
+ * operator has after promotion.  Used by the expression grammar for its operators and by
+ * literal_type_code() for a literal written with a unary '+' or '-'.
+ * ----------------------------------------------------------------------------- */
+
+int promote_type(int t) {
+  if ((t >= T_BOOL && t <= T_USHORT) || t == T_CHAR || t == T_WCHAR)
+    return T_INT;
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
  * literal_type_code()
  *
  * Returns the T_* type code of 'text' when the text is a single literal, optionally preceded by a unary '+' or '-',
  * such as the '42' of the braced initialiser in 'auto v{42}'.  Returns T_UNKNOWN for anything else, including an
  * identifier, an empty text and an expression made up of more than one token.
+ *
+ * A unary '+' or '-' promotes its operand, so '+'a'' is an int rather than a char, in the same way as the
+ * expression grammar's unary operators promote theirs.
  *
  * A private scanner is used so that reading the text cannot disturb the scanner the parser reads its input from.
  * ----------------------------------------------------------------------------- */
@@ -254,21 +351,57 @@ int literal_type_code(String *text) {
   String *copy = Copy(text);
   const struct literal_token *entry;
   int code = T_UNKNOWN;
+  int unary = 0;
   int tok;
 
   Seek(copy, 0, SEEK_SET);
   Scanner_push(literal, copy);
   tok = Scanner_token(literal);
-  if (tok == SWIG_TOKEN_PLUS || tok == SWIG_TOKEN_MINUS)
+  if (tok == SWIG_TOKEN_PLUS || tok == SWIG_TOKEN_MINUS) {
+    unary = 1;
     tok = Scanner_token(literal);
+  }
   entry = scanner_literal_token(tok);
   /* A token following the literal means the text is an expression rather than a text a type can be read off. */
   if (entry && Scanner_token(literal) <= 0)
-    code = entry->type_code;
+    code = unary ? promote_type(entry->type_code) : entry->type_code;
 
   DelScanner(literal);
   Delete(copy);
   return code;
+}
+
+/* ----------------------------------------------------------------------------
+ * int skip_balanced_to_semicolon(void)
+ *
+ * Skip the input up to and including the ';' that ends the current declaration.
+ * A ';' nested inside '(...)', '[...]' or '{...}' does not end it, so an
+ * initialiser containing one - the body of a lambda, say - is stepped over
+ * rather than taken for the end of the declaration.
+ *
+ * Returns 0 on success and -1 when the end of input is reached first, which is
+ * reported as a missing semicolon.
+ * ------------------------------------------------------------------------- */
+
+int skip_balanced_to_semicolon(void) {
+  int num_levels = 0;
+  int start_line = Scanner_line(scan);
+
+  while (1) {
+    int tok = Scanner_token(scan);
+    int delta = Scanner_bracket_depth_delta(tok);
+    if (tok <= 0) {
+      if (!Swig_error_count())
+        Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
+      return -1;
+    } else if (delta) {
+      num_levels += delta;
+    } else if (tok == SWIG_TOKEN_SEMI && num_levels <= 0) {
+      cparse_file = Scanner_file(scan);
+      cparse_line = Scanner_line(scan);
+      return 0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------------
@@ -570,8 +703,10 @@ static int yylook(void) {
     case SWIG_TOKEN_ID:
       return ID;
     case SWIG_TOKEN_LPAREN:
+      num_paren++;
       return LPAREN;
     case SWIG_TOKEN_RPAREN:
+      num_paren--;
       return RPAREN;
     case SWIG_TOKEN_SEMI:
       return SEMI;
@@ -688,15 +823,20 @@ static int yylook(void) {
 
     case SWIG_TOKEN_STRING:
     case SWIG_TOKEN_WSTRING:
-      yylval.str = NewString(Scanner_text(scan));
+      yylval.literal.text = NewString(Scanner_text(scan));
+      /* The decoded text says nothing about which character type the literal has, so its encoding prefix goes with it,
+         for the parser to read where the character type matters. */
+      yylval.literal.prefix = Scanner_literal_prefix(scan);
       return scanner_literal_token(tok)->parser_token;
 
     case SWIG_TOKEN_CHAR:
     case SWIG_TOKEN_WCHAR:
-      yylval.str = NewString(Scanner_text(scan));
-      if (Len(yylval.str) == 0) {
+      yylval.literal.text = NewString(Scanner_text(scan));
+      if (Len(yylval.literal.text) == 0) {
         Swig_error(cparse_file, cparse_line, "Empty character constant\n");
       }
+      /* Every prefixed character literal is scanned as a wide one, so its encoding prefix says which it is. */
+      yylval.literal.prefix = Scanner_literal_prefix(scan);
       return scanner_literal_token(tok)->parser_token;
 
       /* Numbers */
@@ -876,12 +1016,12 @@ String *scanner_get_main_input_file(void) {
 }
 
 /* ----------------------------------------------------------------------------
- * int yylex()
+ * int scan_token()
  *
  * Gets the lexene and returns tokens.
  * ------------------------------------------------------------------------- */
 
-int yylex(void) {
+static int scan_token(void) {
 
   int l;
   char *yytext;
@@ -1131,6 +1271,10 @@ int yylex(void) {
             int needspace = 1;
             int termtoken = 0;
             const char *termvalue = 0;
+            /* Set while the last token read is the keyword 'decltype' itself, so that a parenthesis opening its
+             * operand is told apart from the one opening the parameter list.  A type merely ending in those eight
+             * characters, such as the user defined 'mydecltype', is not the keyword. */
+            int after_decltype = strcmp(Char(Scanner_text(scan)), "decltype") == 0;
 
             Append(s, Scanner_text(scan));
             while (1) {
@@ -1139,7 +1283,7 @@ int yylex(void) {
               if (nexttok <= 0) {
                 Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
               }
-              if (nexttok == SWIG_TOKEN_LPAREN && Len(s) >= 8 && strcmp(Char(s) + Len(s) - 8, "decltype") == 0) {
+              if (nexttok == SWIG_TOKEN_LPAREN && after_decltype) {
                 /* A conversion function to a type written with decltype, such as 'operator decltype(auto)()'.
                  * This parenthesis opens the operand of decltype and belongs to the name, unlike the one that
                  * ends the name and opens the parameter list.  Consuming it into the name keeps a declaration
@@ -1159,6 +1303,7 @@ int yylex(void) {
                   Append(s, Scanner_text(scan));
                 }
                 needspace = 0;
+                after_decltype = 0;
                 continue;
               }
               if (nexttok == SWIG_TOKEN_LPAREN) {
@@ -1185,12 +1330,14 @@ int yylex(void) {
                 if (needspace) {
                   Append(s, " ");
                 }
+                after_decltype = strcmp(Char(Scanner_text(scan)), "decltype") == 0;
                 Append(s, Scanner_text(scan));
               } else if (nexttok == SWIG_TOKEN_ENDLINE) {
               } else if (nexttok == SWIG_TOKEN_COMMENT) {
               } else {
                 Append(s, Scanner_text(scan));
                 needspace = 0;
+                after_decltype = 0;
               }
             }
             yylval.str = s;
@@ -1249,6 +1396,12 @@ int yylex(void) {
         }
         if (strcmp(yytext, "delete") == 0)
           return (DELETE_KW);
+        /* 'new' is a keyword in C++ only, being an ordinary identifier in C.  Even in C++ it is only a keyword where
+           a new-expression can start, so that it can still be a name elsewhere, as in '%rename(new) create;' or
+           '%constant int new = 5;'.  The 'operator new' path above reads the word straight from the scanner rather
+           than through yylex(), so it never sees this token. */
+        if (strcmp(yytext, "new") == 0 && new_expression_can_start)
+          return (NEW_KW);
         if (strcmp(yytext, "default") == 0)
           return (DEFAULT);
         if (strcmp(yytext, "using") == 0)
@@ -1414,4 +1567,16 @@ int yylex(void) {
   default:
     return (l);
   }
+}
+
+/* ----------------------------------------------------------------------------
+ * int yylex()
+ *
+ * Returns the next token to the parser, noting whether a new-expression can start after it.
+ * ------------------------------------------------------------------------- */
+
+int yylex(void) {
+  int tok = scan_token();
+  new_expression_can_start = tok == EQUAL || (new_expression_can_start && (tok == NONID || tok == DCOLON));
+  return tok;
 }

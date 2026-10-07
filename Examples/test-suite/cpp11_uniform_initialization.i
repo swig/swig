@@ -6,6 +6,8 @@
 
 %template(VectorInt) std::vector<int>;
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) new_braced;
+
 %inline %{
 struct BasicStruct {
  int x;
@@ -45,5 +47,10 @@ const int arr1[] = {1,2,3};
 const int arr2[]{1,2,3};
 const int arr3[][3]{ {1,2,3}, {4,5,6} };
 const int arr4[][3] = { {1,2,3}, {4,5,6} };
+
+// A braced new-expression as an initializer and as a default argument.
+int *new_braced = new int{7};
+int after_new_braced = 4;
+int new_braced_default(int *b = new int{9}) { int v = *b; delete b; return v; }
 %}
 

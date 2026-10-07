@@ -285,3 +285,29 @@ ps = {11, 22, 33}
 iv = vector_int(ps)
 il = vector_int(ps)
 compare_containers(list(ps), iv, il)
+
+# pop removes and returns the last element, or the one at the index given, like a Python list
+pythonlist = [11, 22, 33, 44]
+iv = vector_int(pythonlist)
+il = list_int(pythonlist)
+
+if iv.pop() != pythonlist.pop() or il.pop() != 44:
+    raise RuntimeError("pop did not return the last element")
+compare_containers(pythonlist, iv, il)
+
+if iv.pop(0) != pythonlist.pop(0) or il.pop(0) != 11:
+    raise RuntimeError("pop(0) did not return the first element")
+compare_containers(pythonlist, iv, il)
+
+# The last element is reached without walking the container, by the default index and by a given one
+pythonlist = [11, 22, 33, 44]
+iv = vector_int(pythonlist)
+il = list_int(pythonlist)
+
+if iv.pop(len(pythonlist) - 1) != pythonlist.pop(len(pythonlist) - 1) or il.pop(3) != 44:
+    raise RuntimeError("pop did not return the element at the last index")
+compare_containers(pythonlist, iv, il)
+
+if iv.pop(-2) != pythonlist.pop(-2) or il.pop(-2) != 22:
+    raise RuntimeError("pop(-2) did not return the second to last element")
+compare_containers(pythonlist, iv, il)

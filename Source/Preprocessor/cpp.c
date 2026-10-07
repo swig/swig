@@ -594,17 +594,49 @@ int Preprocessor_defined(const_String_or_char_ptr str) {
   return Getattr(symbols, str) != NULL;
 }
 
+/* The locator comments that expand_macro() puts round a multiline macro expansion */
+typedef enum {
+  LOCATOR_NONE,  /* Not a locator comment */
+  LOCATOR_START, /* The locator comment before the expansion */
+  LOCATOR_END    /* The locator comment after the expansion */
+} LocatorComment;
+
+/* -----------------------------------------------------------------------------
+ * locator_comment()
+ *
+ * Returns which locator comment, if any, the 'len' characters at 'comment' are.
+ * ----------------------------------------------------------------------------- */
+
+static LocatorComment locator_comment(const char *comment, long len) {
+  if (len >= 10 && strncmp(comment, "/*@SWIG", 7) == 0 && strncmp(comment + len - 3, "@*/", 3) == 0)
+    return comment[7] == '@' ? LOCATOR_END : LOCATOR_START;
+  return LOCATOR_NONE;
+}
+
 /* -----------------------------------------------------------------------------
  * find_args()
  *
  * Isolates macro arguments and returns them in a list.   For each argument,
  * leading and trailing whitespace is stripped (ala K&R, pg. 230).
+ *
+ * Comments are stripped too, except for the locator comments round a multiline
+ * macro expanded in an argument, which keep the lines in the expansion numbered
+ * from the macro definition. They are stripped from an argument holding a
+ * locator comment without its partner, as when a ',' in an expansion splits the
+ * arguments. If 'lines' is not NULL, it is set to the number of lines the
+ * arguments span, less the lines between locator comments, which are lines in
+ * the macro definition.
  * ----------------------------------------------------------------------------- */
-static List *find_args(String *s, int ismacro, String *macro_name) {
+static List *find_args(String *s, int ismacro, String *macro_name, int *lines) {
   List *args;
   String *str;
+  String *str_nolocators; /* The argument without any locator comments */
   int c, level;
   long pos;
+  int start_line = Getline(s);
+  int locator_level = 0; /* Nesting level of the locator comments */
+  int locator_line = 0;  /* Line of the outermost start locator comment */
+  int locator_lines = 0; /* Number of lines within the locator comments */
 
   /* Create a new list */
   args = NewList();
@@ -621,27 +653,30 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
     assert(pos != -1);
     (void)Seek(s, pos, SEEK_SET);
     Delete(args);
+    if (lines)
+      *lines = 0;
     return 0;
   }
   c = Getc(s);
   /* Okay.  This appears to be a macro so we will start isolating arguments */
   while (c != EOF) {
+    int arg_locator_level = 0;      /* Locator comment nesting level in this argument */
+    int arg_locator_unbalanced = 0; /* Set if this argument has an unmatched end locator */
     if (isspace(c)) {
       skip_whitespace(s, 0); /* Skip leading whitespace */
       c = Getc(s);
     }
     str = NewStringEmpty();
     copy_location(s, str);
+    str_nolocators = NewStringEmpty();
+    copy_location(s, str_nolocators);
     level = 0;
     while (c != EOF) {
-      if (c == '\"') {
+      if (c == '\"' || c == '\'') {
+        int len = Len(str);
         Putc(c, str);
-        skip_tochar(s, '\"', str);
-        c = Getc(s);
-        continue;
-      } else if (c == '\'') {
-        Putc(c, str);
-        skip_tochar(s, '\'', str);
+        skip_tochar(s, c, str);
+        Append(str_nolocators, Char(str) + len);
         c = Getc(s);
         continue;
       } else if (c == '/') {
@@ -649,6 +684,8 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
         c = Getc(s);
         /* Handle / * ... * / type comments (multi-line) */
         if (c == '*') {
+          long start = Tell(s) - 2;
+          LocatorComment locator;
           while ((c = Getc(s)) != EOF) {
             if (c == '*') {
 another_star:
@@ -657,6 +694,24 @@ another_star:
                 break;
               if (c == '*')
                 goto another_star;
+            }
+          }
+          locator = locator_comment(Char(s) + start, Tell(s) - start);
+          if (locator != LOCATOR_NONE) {
+            String *comment = NewStringWithSize(Char(s) + start, (int)(Tell(s) - start));
+            Append(str, comment);
+            Delete(comment);
+            if (locator == LOCATOR_START) {
+              if (locator_level++ == 0)
+                locator_line = Getline(s);
+              arg_locator_level++;
+            } else {
+              if (locator_level > 0 && --locator_level == 0)
+                locator_lines += Getline(s) - locator_line;
+              if (arg_locator_level > 0)
+                arg_locator_level--;
+              else
+                arg_locator_unbalanced = 1;
             }
           }
           c = Getc(s);
@@ -681,6 +736,7 @@ another_star:
       if ((c == ')') && (level == 0))
         break;
       Putc(c, str);
+      Putc(c, str_nolocators);
       if (c == '(')
         level++;
       if (c == ')')
@@ -688,20 +744,36 @@ another_star:
       c = Getc(s);
     }
     if (level > 0) {
-      goto unterm;
+      Delete(str);
+      Delete(str_nolocators);
+      break;
+    }
+    if (arg_locator_level > 0 || arg_locator_unbalanced) {
+      /* An expansion is split between arguments */
+      Delete(str);
+      str = str_nolocators;
+    } else {
+      Delete(str_nolocators);
     }
     Chop(str);
     Append(args, str);
     Delete(str);
     if (c == ')')
-      return args;
+      break;
     c = Getc(s);
   }
-unterm:
-  if (ismacro)
-    Swig_error(Getfile(args), Getline(args), "Unterminated call invoking macro '%s'\n", macro_name);
-  else
-    Swig_error(Getfile(args), Getline(args), "Unterminated call to '%s'\n", macro_name);
+  if (c != ')') {
+    if (ismacro)
+      Swig_error(Getfile(args), Getline(args), "Unterminated call invoking macro '%s'\n", macro_name);
+    else
+      Swig_error(Getfile(args), Getline(args), "Unterminated call to '%s'\n", macro_name);
+  }
+  if (lines) {
+    if (locator_level > 0)
+      locator_lines += Getline(s) - locator_line;
+    *lines = Getline(s) - start_line - locator_lines;
+    assert(*lines >= 0);
+  }
   return args;
 }
 
@@ -1188,7 +1260,7 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
             c = Getc(s);
             if (c == '(') {
               Ungetc(c, s);
-              args = find_args(s, 0, kpp_defined);
+              args = find_args(s, 0, kpp_defined, 0);
             } else if (isidchar(c)) {
               DOH *arg = NewStringEmpty();
               args = NewList();
@@ -1283,10 +1355,7 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
           /* See if the macro expects arguments */
           if (Getattr(m, kpp_args)) {
             /* Yep.  We need to go find the arguments and do a substitution */
-            int line = Getline(s);
-            args = find_args(s, 1, id);
-            macro_additional_lines = Getline(s) - line;
-            assert(macro_additional_lines >= 0);
+            args = find_args(s, 1, id, &macro_additional_lines);
           } else {
             args = 0;
           }
@@ -1365,10 +1434,7 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
       /* See if the macro expects arguments */
       if (Getattr(m, kpp_args) && line_file) {
         /* Yep.  We need to go find the arguments and do a substitution */
-        int line = Getline(line_file);
-        args = find_args(line_file, 1, id);
-        macro_additional_lines = Getline(line_file) - line;
-        assert(macro_additional_lines >= 0);
+        args = find_args(line_file, 1, id, &macro_additional_lines);
       } else {
         args = 0;
       }

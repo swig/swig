@@ -4316,7 +4316,7 @@ private:
       int count = Replaceall(code, "$excode", excode);
       if (count < 1 || !excode) {
         Swig_warning(
-          WARN_D_EXCODE_MISSING, input_file, line_number, "D exception may not be thrown – no $excode or excode attribute in '%s' typemap.\n", typemap);
+          WARN_D_EXCODE_MISSING, input_file, line_number, "D exception may not be thrown - no $excode or excode attribute in '%s' typemap.\n", typemap);
       }
     } else {
       Replaceall(code, "$excode", "");

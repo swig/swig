@@ -34,6 +34,16 @@ if annotations_supported:
     if anno != {}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
+    # Overloads are called with *args, so only what they all return is annotated
+    anno = get_annotations(global_overloaded)
+    if anno != {'return': 'int *'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # Overloads returning different types have no one C/C++ type to be annotated with
+    anno = get_annotations(global_overloaded_differ)
+    if anno != {}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
     # numoutputs=0 in the out typemap leaves nothing to return, annotated as void
     anno = get_annotations(suppressed_none)
     if anno != {'code': 'int', 'return': 'void'}:
@@ -45,3 +55,18 @@ if annotations_supported:
     if anno != {'code': 'int', 'return': 'short *'}:
         raise RuntimeError("annotations mismatch: {}".format(anno))
     swig_check(suppressed_one(0), 42)
+
+# C/C++ annotations are not type hints and are never type checked, so none of the PEP 484 machinery is generated.
+# A quoted "typing.Any" is an annotation; the unquoted one is the placeholder a .pyi needs for an unannotated name.
+# The feature is applied per declaration here rather than to the whole module, so the class is not itself C/C++
+# annotated and declares thisown with the catch-all type as any other class does. python_annotations_variable_c
+# applies the feature to the whole module and so has no such declaration to skip.
+generated = ["python_annotations_c.py"]
+if swig_annotations_in_stub():
+    generated.append("python_annotations_c.pyi")
+for filename in generated:
+    with open(filename) as f:
+        source = "".join(line for line in f if "thisown" not in line)
+    for unwanted in ("_swig_property", "_swig_dispatch", "TYPE_CHECKING", '"typing.Any"'):
+        if unwanted in source:
+            raise RuntimeError("{} should not contain {}".format(filename, unwanted))

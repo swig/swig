@@ -18,7 +18,7 @@ puts "a*b  = [$d str]"
 set e [Complex_- $a $c]
 puts "a-c  = [Complex_str $e]"
 
-set f [new_ComplexCopy $e]
+set f [Complex -args $e]
 puts "f    = [$f str]"
 
 # Call assignment operator

@@ -19,15 +19,14 @@ CPP11_TEST_CASES := \
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
+    arrays_dimension_expression \
     funcptr \
     function_typedef \
     lextype \
     li_carrays \
-    li_cdata_bytes \
     nested \
     nested_extend_c \
     nested_structs \
-    register_par \
     typedef_struct \
     union_parameter \
     unions \
@@ -92,9 +91,7 @@ FAILING_CPP_TESTS := \
     cpp11_ref_qualifiers \
     cpp11_ref_qualifiers_typemaps \
     cpp11_result_of \
-    cpp11_rvalue_reference \
     cpp11_rvalue_reference2 \
-    cpp11_rvalue_reference3 \
     cpp11_template_pack \
     cpp11_type_aliasing \
 
@@ -119,6 +116,7 @@ contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with mul
 conversion.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
 conversion_namespace.cpptest: SWIG_NOCXX = -nocxx # Conversion operator name not handled correctly.
 conversion_ns_template.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return not handled specially.
+cpp11_decltype_nontype_template_parameter.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
 cpp11_explicit_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
 cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.

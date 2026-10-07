@@ -55,6 +55,8 @@ extern int    gcd(int x, int y);
   }
 }
 
+%typemap(pytyping) (int argc, char *argv[]) "typing.List[str]"
+
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(in) (char *bytes, int len) {
@@ -79,6 +81,8 @@ extern int gcdmain(int argc, char *argv[]);
 %typemap(freearg) (char *bytes, int len) {
   free($1);
 }
+
+%typemap(pytyping) (char *bytes, int len) "str"
 
 extern int count(char *bytes, int len, char c);
 
@@ -111,6 +115,8 @@ extern int count(char *bytes, int len, char c);
    $result = SWIG_AppendOutput($result, o);
    free($1);
 }   
+
+%typemap(pytyping) (char *str, int len) "str"
 
 extern void capitalize(char *str, int len);
 

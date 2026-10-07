@@ -22,4 +22,12 @@ func main() {
 	if enums.GetThigh() != 12 {
 		panic(0)
 	}
+
+	if enums.WideCharW != 'w' {
+		panic(0)
+	}
+
+	if enums.WideCharE != 0xE9 || enums.WideCharSmile != 0x263A {
+		panic(0)
+	}
 }

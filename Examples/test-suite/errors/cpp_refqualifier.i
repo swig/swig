@@ -26,3 +26,8 @@ public:
 struct Unignore {
   void k_unignored() const &&;
 };
+
+typedef void RvalueFunction() &&;
+struct TypedefHost {
+  RvalueFunction t1;
+};

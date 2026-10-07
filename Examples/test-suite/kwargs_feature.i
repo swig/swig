@@ -1,5 +1,17 @@
 %module kwargs_feature
 
+// The 'str' member variable shadows the str builtin in the class scope of the generated Python proxy class, so the
+// annotations that name it are qualified with the builtins module.
+#ifdef SWIGPYTHON
+%typemap(pytyping) char *fmt "typing.Optional[builtins.str]"
+%pythoncode %{
+import builtins
+%}
+%pythonstubcode %{
+import builtins
+%}
+#endif
+
 %nocopyctor;
 %feature("kwargs");
 

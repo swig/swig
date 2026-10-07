@@ -165,7 +165,7 @@ to provide additional diagnostics.  These warnings can be turned on using the
 </div>
 
 <p>
-Preprocessor warning 202 ("Could not evaluate expression <em>expr</em>.") was
+Preprocessor warning 202 ("Could not evaluate expression '<em>expr</em>'.") was
 formally off by default and enabled by <tt>-Wextra</tt>, but since SWIG 4.1.0
 this warning is on by default because suppressing it tends to hide genuine
 problems.  If you really don't want to see it, you can suppress it with
@@ -180,7 +180,7 @@ previous section--simply add a "+" to all warning numbers.  For example:
 
 <div class="shell">
 <pre>
-% swig -w+309,+452 example.i
+% swig -w+309,+512 example.i
 </pre>
 </div>
 
@@ -190,7 +190,7 @@ or in your interface file use either
 
 <div class="code">
 <pre>
-#pragma SWIG nowarn=+309,+452
+#pragma SWIG nowarn=+309,+512
 </pre>
 </div>
 
@@ -200,7 +200,7 @@ or
 
 <div class="code">
 <pre>
-%warnfilter(+309,+452) foo;
+%warnfilter(+309,+512) foo;
 </pre>
 </div>
 
@@ -215,12 +215,12 @@ You can of course also enable all warnings and suppress a select few, for exampl
 
 <div class="shell">
 <pre>
-% swig -Wextra -w309,452 example.i
+% swig -Wextra -w309,512 example.i
 </pre>
 </div>
 
 <p>
-The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309,452</tt> overrides this and so 452 is suppressed.
+The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 512, but then <tt>-w309,512</tt> overrides this and so 512 is suppressed.
 </p>
 
 <p>
@@ -371,18 +371,20 @@ example.i(4) : Syntax error in input(1).
 <H3><a name="Warnings_nn10">21.9.1 Deprecated features (100-199)</a></H3>
 
 
-<p>None currently.</p>
+<ul>
+<li>127. %typedef directive is deprecated, use plain typedef instead.
+</ul>
 
 
 <H3><a name="Warnings_nn11">21.9.2 Preprocessor (200-299)</a></H3>
 
 
 <ul>
-<li>201. Unable to find <em>filename</em>.
-<li>202. Could not evaluate expression <em>expr</em>.
+<li>201. Unable to find '<em>filename</em>'.
+<li>202. Could not evaluate expression '<em>expr</em>'.
 <li>203. Both includeall and importall are defined: using includeall.
 <li>204. CPP #warning, "<em>warning</em>".
-<li>205. CPP #error, "<em>error</em>".
+<li>205. CPP #error "<em>error</em>".
 <li>206. Unexpected tokens after #<em>directive</em> directive.
 </ul>
 
@@ -392,20 +394,20 @@ example.i(4) : Syntax error in input(1).
 <ul>
 <li>301. <tt>class</tt> keyword used, but not in C++ mode.
 <li>302. Redefinition of identifier '<em>name</em>' as <em>decl</em> ignored.
-<li>303. <tt>%extend</tt> defined for an undeclared class '<em>name</em>'.
+<li>303. <tt>%extend</tt> defined for an undeclared class <em>name</em>.
 <li>304. Unsupported constant value (ignored).
 <li>305. Bad constant value (ignored).
 <li>308. Namespace alias '<em>name</em>' not allowed here. Assuming '<em>name</em>'
-<li>309. [private | protected] inheritance ignored.
-<li>312. Unnamed nested class not currently supported (ignored).
-<li>313. Unrecognized extern type "<em>name</em>" (ignored).
+<li>309. [private | protected] inheritance from base '<em>name</em>' (ignored).
+<li>312. Nested <em>kind</em> not currently supported (ignored).
+<li>313. Unrecognized extern type "<em>name</em>".
 <li>314. '<em>identifier</em>' is a <em>lang</em> keyword.
 <li>315. Nothing known about '<em>identifier</em>'.
 <li>317. Specialization of non-template '<em>name</em>'.
 <li>318. Instantiation of template '<em>name</em>' is ambiguous, instantiation <em>templ</em> used, instantiation <em>templ</em> ignored.
-<li>319. No access specifier given for base class <em>name</em> (ignored).
+<li>319. No access specifier given for base class '<em>name</em>' (ignored).
 <li>320. Explicit template instantiation ignored.
-<li>321. <em>identifier</em> conflicts with a built-in name.
+<li>321. '<em>identifier</em>' conflicts with a built-in name in <em>lang</em>.
 <li>322. Redundant redeclaration of identifier '<em>name</em>' as <em>decl</em> ignored.
 <li>323. Recursive scope inheritance of '<em>name</em>'.
 <li>324. Named nested template instantiations not supported. Processing as if no name was given to %template().
@@ -416,12 +418,11 @@ example.i(4) : Syntax error in input(1).
 <li>329. Using declaration '<em>name</em>' for inheriting constructors uses base '<em>name</em>' which is not an immediate base of '<em>name</em>'.
 <li>330. Template forward class '<em>name</em>' cannot be used to instantiate a full template class with name '<em>name</em>'.
 <li>331. Unsupported template nested class '<em>name</em>' cannot be used to instantiate a full template class with name '<em>name</em>'.
-<li>332. Reserved.
-<!-- 332. In instantiation of template '<em>name</em>' with name '<em>name</em>', nothing known about type-constraint '<em>name</em>' - treated as 'typename'. -->
+<li>333. Declaration of '<em>name</em>' as <em>decl</em> differing only by a constraint is ignored, previous declaration of '<em>name</em>' as <em>decl</em> is used instead.
 <li>340. Lambda expressions and closures are not fully supported yet.
 <li>344. Unable to deduce decltype for '<em>expr</em>'.
 <li>345. Unable to deduce auto return type for '<em>name</em>' [without a trailing return type] (ignored).
-<li>346. Unable to deduce auto type for variable '<em>name</em>' from initialiser '<em>expr</em>' (ignored).
+<li>346. Unable to deduce auto type for variable '<em>name</em>' from [initialiser '<em>expr</em>' | a braced initialiser list | a string literal with a '<em>prefix</em>' prefix | an unsupported initialiser] (ignored).
 <li>347. Unable to deduce class template arguments for variable '<em>name</em>' of type '<em>name</em>' (ignored).
 <li>348. Inconsistent auto type deduction for variable '<em>name</em>': initialiser '<em>expr</em>' deduces '<em>type</em>', not '<em>type</em>'.
 <li>349. Structured binding '<em>names</em>' is not supported (ignored).
@@ -449,7 +450,7 @@ example.i(4) : Syntax error in input(1).
 <li>371. operator&amp;= ignored.
 <li>372. operator|= ignored.
 <li>373. operator&lt;&lt; ignored.
-<li>374. operator&gt;&gt;ignored.
+<li>374. operator&gt;&gt; ignored.
 <li>375. operator&lt;&lt;= ignored.
 <li>376. operator&gt;&gt;= ignored.
 <li>377. operator== ignored.
@@ -461,10 +462,10 @@ example.i(4) : Syntax error in input(1).
 <li>383. operator++ ignored.
 <li>384. operator-- ignored.
 <li>385. operator, ignored.
-<li>386. operator-&lt;* ignored.
-<li>387. operator-&lt; ignored.
+<li>386. operator-&gt;* ignored.
+<li>387. operator-&gt; ignored.
 <li>388. operator() ignored.
-<li>389. operator[] ignored.
+<li>389. operator[] ignored (consider using %extend).
 <li>390. operator+ ignored (unary).
 <li>391. operator- ignored (unary).
 <li>392. operator* ignored (unary).
@@ -478,15 +479,13 @@ example.i(4) : Syntax error in input(1).
 
 
 <ul>
-<li>401. Nothing known about class 'name'. Ignored.
+<li>401. Nothing known about base class '<em>name</em>'. Ignored.
 <li>402. Base class 'name' is incomplete.
 <li>403. Class 'name' might be abstract.
 <li>404. Duplicate template instantiation of '<em>type</em>' with name '<em>name</em>' ignored, previous instantiation of '<em>type</em>' with name '<em>name</em>'.
 <li>405. Method with rvalue ref-qualifier <em>name</em> ignored.
 <li>406. Ignoring nspace setting (<em>setting</em>) for '<em>type</em>', as it conflicts with the nspace setting (<em>setting</em>) for outer class '<em>type</em>'
-<li>450. Reserved
-<li>451. Setting const char * variable may leak memory.
-<li>452. Reserved
+<li>451. Setting a const char * variable may leak memory.
 <li>453. Can't apply (pattern). No typemaps are defined.
 <li>454. Setting a pointer/reference variable may leak memory
 <li>455. Setting a const wchar_t * variable may leak memory.
@@ -496,9 +495,8 @@ example.i(4) : Syntax error in input(1).
 <li>463. Unable to read variable of type <em>type</em>.
 <li>464. Unsupported constant value.
 <li>465. Unable to handle type <em>type</em>.
-<li>466. Unsupported variable type <em>type</em>.
-<li>467. Overloaded <em>declaration</em> not supported (incomplete type checking rule - no precedence level in typecheck typemap for '<em>type</em>')
-<li>468. No 'throw' typemap defined for exception type <em>type</em>
+<li>467. Overloaded method <em>method</em> not supported (incomplete type checking rule - no precedence level in typecheck typemap for '<em>type</em>').
+<li>468. No 'throws' typemap defined for exception type '<em>type</em>'
 <li>469. No or improper directorin typemap defined for <em>type</em>
 <li>470. Thread/reentrant unsafe wrapping, consider returning by value instead.
 <li>471. Unable to use return type <em>type</em> in director method
@@ -525,16 +523,15 @@ example.i(4) : Syntax error in input(1).
 <li>505. Variable length arguments discarded.
 <li>506. Can't wrap varargs with keyword arguments enabled.
 <li>507. Adding native function <em>name</em> not supported (ignored).
-<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator-&gt;(), previous declaration of'<em>declaration</em>'.
+<li>508. Declaration of '<em>name</em>' shadows declaration accessible via operator-&gt;(), previous declaration of '<em>declaration</em>'.
 <li>509. Overloaded method <em>declaration</em> effectively ignored, as it is shadowed by <em>declaration</em>.
-<li>510. Friend function '<em>name</em>' ignored.
-<li>511. Can't use keyword arguments with overloaded functions.
+<li>511. Can't use keyword arguments with overloaded functions (<em>name</em>).
 <li>512. Overloaded method <em>declaration</em> ignored, using non-const method <em>declaration</em> instead.
 <li>513. Can't generate wrappers for unnamed struct/class.
-<li>514. 
-<li>515. 
+<li>514. Director base class <em>name</em> has no virtual destructor.
+<li>515. Target language argument '<em>name</em>' discards const in director method <em>classname</em>::<em>name</em>.
 <li>516. Overloaded method <em>declaration</em> ignored, using <em>declaration</em> instead.
-<li>517. 
+<li>517. Director class '<em>name</em>' is abstract, abstract method '<em>name</em>' is not accessible, maybe due to multiple inheritance or 'nodirector' feature.
 <li>518. Portability warning: File <em>file1</em> will be overwritten by <em>file2</em> on case insensitive filesystems such as Windows' FAT32 and NTFS unless the class/module name is renamed.
 <li>519. %template() contains no name. Template method ignored: <em>declaration</em>
 <li>520. <em>Base/Derived</em> class '<em>classname1</em>' of '<em>classname2</em>' is not similarly marked as a smart pointer.
@@ -544,7 +541,7 @@ example.i(4) : Syntax error in input(1).
 <li>524. Experimental target language. Target language <em>language</em> specified by <em>lang</em> is an experimental language. See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.
 <li>525. Destructor <em>declaration</em> is final, <em>name</em> cannot be a director class.
 <li>526. Using declaration <em>declaration</em>, with name '<em>name</em>', is not actually using the method from <em>declaration</em>, with name '<em>name</em>', as the names are different.
-<li>527. Deprecated target language. Target language <em>language</em> specified by <em>lang</em> is a deprecated language. It will be removed in the next release of SWIG unless a new maintainer steps forward to bring it up to at least experimental status. See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.
+<li>527. Deprecated target language. Target language <em>language</em> specified by <em>lang</em> is a deprecated target language. It will be removed in the next release of SWIG unless a new maintainer steps forward to bring it up to at least experimental status. See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.
 </ul>
 
 <H3><a name="Warnings_doxygen">21.9.6 Doxygen comments (560-599)</a></H3>
@@ -555,14 +552,49 @@ example.i(4) : Syntax error in input(1).
   <li>561: Unexpected end of Doxygen comment encountered.</li>
   <li>562: Expected Doxygen command: <em>command</em></li>
   <li>563: Doxygen HTML error for tag <em>tag</em>: <em>error text</em>.</li>
-  <li>564: Error parsing Doxygen command <em>command</em>: <em>error text</em>. Command ignored."</li>
+  <li>564: Error parsing Doxygen command <em>command</em>: <em>error text</em>. Command ignored.</li>
+  <li>565: Unknown special character in Doxygen comment: <em>character</em>.</li>
+  <li>566: Unexpected iterator value in DoxygenParser::parse</li>
+  <li>567: Feature "doxygen:ignore" value ignored for Doxygen command "<em>command</em>".</li>
 </ul>
 
 <H3><a name="Warnings_nn15">21.9.7 Language module specific (700-899) </a></H3>
 
 
 <ul>
-<li>801. Wrong name (corrected to '<em>name</em>').  (Ruby).
+<li>700. No ctype typemap defined for <em>type</em>  (D).
+<li>701. No imtype typemap defined for <em>type</em>  (D).
+<li>702. No dtype typemap defined for <em>type</em>  (D).
+<li>703. Base <em>baseclass</em> of class <em>classname</em> ignored: multiple inheritance is not supported in D.  (D).
+<li>704. No dclassmodifiers typemap defined for <em>type</em>  (D).
+<li>705. No dbody typemap defined for <em>type</em>  (D).
+<li>706. No dout typemap defined for <em>type</em>  (D).
+<li>707. No din typemap defined for <em>type</em>  (D).
+<li>708. No ddirectorin typemap defined for <em>type</em> for use in <em>classname</em>::<em>name</em> (skipping director method)  (D).
+<li>709. No dconstructor typemap defined for <em>type</em>  (D).
+<li>710. D exception may not be thrown - no $excode or excode attribute in '<em>typemap</em>' typemap.  (D).
+<li>711. C code contains a call to SWIG_exception and D code does not handle pending exceptions via the canthrow attribute.  (D).
+<li>712. "directorconnect" attribute missing in <em>type</em> "dconstructor" typemap.  (D).
+<li>713. <em>classname</em>::<em>name</em> might collide with the package name, consider using %rename to resolve the ambiguity.  (D).
+</ul>
+
+<ul>
+<li>740. Whitespace indentation is inconsistent compared to earlier lines (line <em>number</em> of <em>file</em>)  (Python).
+<li>741. Missing required entry in pytyping typemap for <em>type</em>  (Python).
+</ul>
+
+<ul>
+<li>751. No rtypecheck typemap defined for <em>type</em>  (R).
+</ul>
+
+<ul>
+<li>760. No ctype typemap defined for <em>type</em>  (C).
+<li>761. Unsupported typemap "<em>typemap</em>" used for type "<em>type</em>" of "<em>name</em>"  (C).
+</ul>
+
+<ul>
+<li>801. Wrong <em>kind</em> name (corrected to '<em>name</em>').  (Ruby).
+<li>802. Warning for <em>classname</em>, base <em>baseclass</em> ignored. Multiple inheritance is not supported in Ruby.  (Ruby).
 </ul>
 
 <ul>
@@ -570,43 +602,46 @@ example.i(4) : Syntax error in input(1).
 <li>811. No jtype typemap defined for <em>type</em>  (Java).
 <li>812. No jstype typemap defined for <em>type</em>  (Java).
 <li>813. Warning for <em>classname</em>, base <em>baseclass</em> ignored. Multiple inheritance is not supported in Java.   (Java).
-<li>814. 
-<li>815. No javafinalize typemap defined for <em>type</em>  (Java).
+<li>815. No javaclassmodifiers typemap defined for <em>type</em>  (Java).
 <li>816. No javabody typemap defined for <em>type</em>  (Java).
 <li>817. No javaout typemap defined for <em>type</em>  (Java).
 <li>818. No javain typemap defined for <em>type</em>  (Java).
 <li>819. No javadirectorin typemap defined for <em>type</em>  (Java).
-<li>820. No javadirectorout typemap defined for <em>type</em>  (Java).
-<li>821. 
+<li>821. No javainterfacecode typemap defined for <em>type</em>  (Java).
 <li>822. Covariant return types not supported in Java. Proxy method will return <em>basetype</em>  (Java).
 <li>823. No javaconstruct typemap defined for <em>type</em>  (Java).
 <li>824. Missing JNI descriptor in directorin typemap defined for <em>type</em> (Java).
 <li>825. "directorconnect" attribute missing in <em>type</em> "javaconstruct" typemap. (Java).
 <li>826. The nspace feature is used on '<em>type</em>' without -package. The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package. (Java).
+<li>827. No javainterfacemodifiers typemap defined for <em>type</em>  (Java).
 </ul>
 
 <ul>
 <li>830. No ctype typemap defined for <em>type</em>  (C#).
-<li>831. No cstype typemap defined for <em>type</em>  (C#).
-<li>832. No cswtype typemap defined for <em>type</em>  (C#).
+<li>831. No imtype typemap defined for <em>type</em>  (C#).
+<li>832. No cstype typemap defined for <em>type</em>  (C#).
 <li>833. Warning for <em>classname</em>, base <em>baseclass</em> ignored. Multiple inheritance is not supported in C#.   (C#).
-<li>834. 
-<li>835. No csfinalize typemap defined for <em>type</em>  (C#).
+<li>835. No csclassmodifiers typemap defined for <em>type</em>  (C#).
 <li>836. No csbody typemap defined for <em>type</em>  (C#).
 <li>837. No csout typemap defined for <em>type</em>  (C#).
 <li>838. No csin typemap defined for <em>type</em>  (C#).
-<li>839. 
-<li>840. 
-<li>841. 
+<li>839. No csdirectorin typemap defined for <em>type</em>  (C#).
+<li>841. No csinterfacecode typemap defined for <em>type</em>  (C#).
 <li>842. Covariant return types not supported in C#. Proxy method will return <em>basetype</em>  (C#).
 <li>843. No csconstruct typemap defined for <em>type</em>  (C#).
 <li>844. C# exception may not be thrown - no $excode or excode attribute in <em>typemap</em> typemap. (C#).
 <li>845. Unmanaged code contains a call to a SWIG_CSharpSetPendingException method and C# code does not handle pending exceptions via the canthrow attribute. (C#).
+<li>846. "directorconnect" attribute missing in <em>type</em> "csconstruct" typemap.  (C#).
+<li>847. No csinterfacemodifiers typemap defined for <em>type</em>  (C#).
 </ul>
 
 <ul>
-<li>870. Warning for <em>classname</em>: Base <em>baseclass</em> ignored. Multiple inheritance is not supported in PHP.   (Php).
-<li>871. Unrecognized pragma <em>pragma</em>.   (Php).
+<li>870. Warning for <em>classname</em>, base <em>baseclass</em> ignored. Multiple inheritance is not supported in PHP.   (PHP).
+<li>871. Unrecognized pragma &lt;<em>pragma</em>&gt;.   (PHP).
+</ul>
+
+<ul>
+<li>890. Ignoring '<em>name</em>' due to Go name ('<em>name</em>') conflict with '<em>name</em>'  (Go).
 </ul>
 
 <H3><a name="Warnings_nn16">21.9.8 User defined (900-999)</a></H3>

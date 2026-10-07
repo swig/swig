@@ -3,7 +3,7 @@
 require "tests.php";
 
 check::functions(array('f', 'spaceship'));
-check::classes(array('cpp20_spaceship_operator','A','Defaulted','Deleted'));
+check::classes(array('cpp20_spaceship_operator','A','Defaulted','DefaultedFriend','Deleted'));
 check::globals(array('v', 'SPACE'));
 
 //check::equal(ALIEN, true);
@@ -24,6 +24,9 @@ check::equal(f(), 42);
 // defaulted operator== returns bool and is wrapped.
 check::classmethods("Defaulted", array("__construct","__set","__isset","__get","is_equal"));
 check::classmethods("Deleted", array("__construct","__set","__isset","__get"));
+
+// Same for the defaulted friend operator<=>, so its rename never takes effect.
+check::equal(function_exists('friend_spaceship'), false, "friend_spaceship should not be wrapped");
 
 $d1 = new Defaulted(1);
 $d2 = new Defaulted(2);

@@ -21,4 +21,10 @@ extern template void Func<int>();      // C++11 template explicit instantiation 
 %}
 %template(FuncInt) Func<int>;          // SWIG template instantiation
 
-
+%inline %{
+// Function template with a trailing return type
+template<typename T> auto Trailing(T t) -> T { return t; }
+template auto Trailing<int>(int) -> int;
+extern template auto Trailing<int>(int) -> int;
+template auto Trailing<const int *>(const int *) -> const int *;
+%}

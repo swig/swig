@@ -114,6 +114,47 @@ concept NonEmpty = sizeof(T) > 0;
 
 template<typename T>
 T pass_through(T x) requires Anything<T> && NonEmpty<T> { return x; }
+
+// A literal is a primary-expression, so a boolean literal is a constraint on its own.
+template<typename T>
+T literal_constraint(T x) requires true { return x; }
+
+// GCC accepts a virt-specifier after the trailing requires-clause, in both the plain and the trailing return
+// type spellings of the member.  Both virt-specifiers are covered, in both orderings, and with and
+// without the virtual keyword the declaration may repeat.  Standard C++ does not allow a trailing requires-clause on a
+// virtual function, so other compilers see the members without one.
+#if defined(SWIG) || (defined(__GNUC__) && !defined(__clang__))
+#define REQUIRES_NUMERIC(T) requires Numeric<T>
+#else
+#define REQUIRES_NUMERIC(T)
+#endif
+template<typename T>
+struct VirtBase {
+  virtual T plain(T x) { return x; }
+  virtual T arrow(T x) { return x; }
+  virtual T over(T x) { return x; }
+  virtual T over_arrow(T x) { return x; }
+  virtual T both(T x) { return x; }
+  virtual T both_reversed(T x) { return x; }
+  virtual ~VirtBase() {}
+};
+
+template<typename T>
+struct VirtDerived : VirtBase<T> {
+  T plain(T x) REQUIRES_NUMERIC(T) final { return x + 1; }
+  auto arrow(T x) -> T REQUIRES_NUMERIC(T) final { return x + 2; }
+  virtual T over(T x) REQUIRES_NUMERIC(T) override { return x + 3; }
+  virtual auto over_arrow(T x) -> T REQUIRES_NUMERIC(T) override { return x + 4; }
+  T both(T x) REQUIRES_NUMERIC(T) final override { return x + 5; }
+  auto both_reversed(T x) -> T REQUIRES_NUMERIC(T) override final { return x + 6; }
+};
+
+// A type-constraint on an 'auto' variable placeholder, in each of the three initialiser forms, and on 'decltype(auto)'.  The
+// constraint is kept on the variable and the type is deduced from the initialiser as for a plain 'auto'.
+Numeric auto constrained_var = 42;
+Numeric auto constrained_braced_var{1.5};
+Numeric auto constrained_multi1 = 7, constrained_multi2 = 8;
+Numeric decltype(auto) constrained_decltype_auto_var = constrained_var;
 %}
 
 %template(identity_non_numeric_tag) identity_non_numeric<Tag>;
@@ -128,3 +169,6 @@ T pass_through(T x) requires Anything<T> && NonEmpty<T> { return x; }
 %template(succ_int)                 succ<int>;
 %template(ConstrainedHolderInt)     ConstrainedHolder<int>;
 %template(pass_through_int)         pass_through<int>;
+%template(literal_constraint_int)   literal_constraint<int>;
+%template(VirtBaseInt)              VirtBase<int>;
+%template(VirtDerivedInt)           VirtDerived<int>;

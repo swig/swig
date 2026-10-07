@@ -126,6 +126,27 @@ def swig_get_annotations(obj, module_name, fastproxy=False):
     return annotations
 
 
+def swig_check_stub_declares(module_name, *names):
+    """Check the generated .pyi stub declares each module scope name, when a stub is being generated.
+
+    A name missing from a stub is not an error on its own, as the stub shadows the module only for a
+    type checker reading it, so the check has to be made explicitly rather than left to pyrefly.
+
+    Args:
+        module_name: Generated module name used to locate its .pyi file.
+        names: Module scope names that the stub is expected to declare.
+    """
+    if not swig_annotations_in_stub():
+        return
+
+    with open(module_name + ".pyi") as stub_file:
+        tree = ast.parse(stub_file.read(), filename=stub_file.name)
+
+    for name in names:
+        if _swig_stub_lookup(tree, [name]) is None:
+            raise RuntimeError("{} is missing from the generated {}.pyi stub".format(name, module_name))
+
+
 @contextlib.contextmanager
 def swig_assert_raises(exc_cls):
     """Reimplementation of pytest.raises context manager."""

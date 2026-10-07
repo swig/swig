@@ -35,6 +35,15 @@ swig_check(cb.get(), 11)
 cbd = CheckedBoxDouble(2.5)
 swig_check(cbd.get(), 2.5)
 
+# Members that differ only by a trailing requires-clause
+sbi = SelectBoxInt(10)
+swig_check(sbi.get(), 11)
+swig_check(sbi.kind(), 1)
+
+sbd = SelectBoxDouble(10.0)
+swig_check(sbd.get(), 12.0)
+swig_check(sbd.kind(), 2)
+
 # Class template whose member function template is defined out of line with a prefix requires-clause.
 ob = OutOfLineBoxInt(3)
 swig_check(ob.get(), 3)

@@ -204,7 +204,7 @@ namespace std {
     %std_sequence_methods_val(basic_string);    
 
 
-    %ignore pop();
+    %ignore pop;
 
 
 #ifdef %swig_basic_string

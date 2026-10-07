@@ -12,3 +12,6 @@ assert(c == 42, "x.cref")
 
 local d = v.Deduced(7)
 assert(d:toInt() == 7, "Deduced.toInt")
+local dp = v.DeducedPtr(8)
+assert(dp:deref() == 8, "DeducedPtr.deref")
+assert(dp:cref() == 8, "DeducedPtr.cref")

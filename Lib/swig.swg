@@ -552,6 +552,11 @@ namespace std {
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
 }
 
+%typemap(memberin) SWIGTYPE (&)[ANY] = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE (&)[ANY] = SWIGTYPE [ANY];
+%typemap(memberin) SWIGTYPE (&&)[ANY] = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE (&&)[ANY] = SWIGTYPE [ANY];
+
 /* memberin/globalin typemap for double arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY][ANY] {

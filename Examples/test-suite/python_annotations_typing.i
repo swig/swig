@@ -23,6 +23,11 @@
 
 %feature("python:annotations", "0") no_annotations;
 
+/* Overloads which do not all return the same type are annotated typing.Any, but an overload which
+   is not wrapped, or which has annotations turned off, says nothing about what the others return. */
+%ignore overloaded_ignored(const char *);
+%feature("python:annotations", "0") overloaded_annotations_off(int);
+
 %typemap(pytyping) OptionalInt "typing.Optional[int]";
 %typemap(pytyping, out = "$typemap(pytyping, short)") MyType "typing.Union[int, float]";
 
@@ -55,6 +60,25 @@ int *global_ints(int &ri, Space::Template<short> t) { return &ri; }
 int *global_overloaded(int &ri) { return &ri; }
 int *global_overloaded() { return NULL; }
 int *no_annotations(int &ri, const char *c) { return NULL; }
+
+int    overloaded_differ(int x) { return x; }
+double overloaded_differ(double x, double y) { return x + y; }
+
+int         overloaded_ignored(int x) { return x; }
+int         overloaded_ignored(int x, int y) { return x + y; }
+const char *overloaded_ignored(const char *s) { return s; }
+
+int overloaded_annotations_off(int x) { return x; }
+int overloaded_annotations_off(int x, int y) { return x + y; }
+
+/* The Python data model requires these to return a string, so they are annotated str rather
+   than the typing.Optional a char * is otherwise given. */
+struct StringDunders {
+  const char *__str__() const { return "s"; }
+  const char *__repr__() const { return "r"; }
+  const char *__format__(const char *spec) const { return spec; }
+  const char *not_a_dunder() const { return "n"; }
+};
 %}
 %template(TemplateShort) Space::Template<short>;
 %template(MakeShort) makeT<short>;

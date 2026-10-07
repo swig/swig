@@ -5,6 +5,8 @@
 // .././../li_std_string_extra.i:12: Warning 402: Base class 'std::string' is incomplete.
 // ../../../../Lib/typemaps/std_string.swg:16: Warning 402: Only forward declaration 'std::string' was found.
 %warnfilter(SWIGWARN_TYPE_INCOMPLETE) A;
+
+%ignore std::basic_string<char, MyTraits>::operator+=;
 #endif
 
 %naturalvar A;
@@ -12,6 +14,17 @@
 
 %include <std_basic_string.i>
 %include <std_string.i>
+
+// Distinct traits give a basic_string instantiation that the typemaps do not convert to a str
+%{
+struct MyTraits : std::char_traits<char> {};
+%}
+struct MyTraits;
+
+// Streaming needs an ostream with matching traits, which there is not one of
+%ignore std::basic_string<char, MyTraits>::__rlshift__;
+
+%template(MyString) std::basic_string<char, MyTraits>;
 
 
 %inline %{
@@ -68,6 +81,12 @@ std::basic_string<char,std::char_traits<char>,std::allocator<char> > test_value_
 bool is_python_builtin() { return true; }
 #else
 bool is_python_builtin() { return false; }
+#endif
+
+#ifdef SWIGPYTHON_FASTPROXY
+bool is_python_fastproxy() { return true; }
+#else
+bool is_python_fastproxy() { return false; }
 #endif
 
 %}

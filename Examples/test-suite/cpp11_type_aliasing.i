@@ -111,6 +111,9 @@ using callback_t = int(*)(int);
 
 callback_t get_callback() { return mult2; }
 int call(callback_t funk, int param) { return funk(param); }
+
+using callback_ref_t = int(&)(int);
+int call_ref(callback_ref_t funk, int param) { return funk(param); }
 %}
 
 // The same function pointer type written with the alternate function syntax

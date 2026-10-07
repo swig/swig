@@ -2629,7 +2629,7 @@ public:
       } else {
         // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
         if (CPlusPlus) {
-          if (SwigType_isreference(type))
+          if (SwigType_isanyreference(type))
             return NIL;
 
           if (!SwigType_isbuiltin(btype))

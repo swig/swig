@@ -176,6 +176,115 @@ String *Swig_strip_c_comments(const String *s) {
   return stripped;
 }
 
+/* Whether 'c' can be part of an identifier or a number. */
+static int is_word_char(char c) {
+  return isalnum((unsigned char)c) || c == '_' || c == '$' || (unsigned char)c >= 0x80;
+}
+
+/* Whether 'next' continues the number whose last character is 'last', as in '1.5e+3', '0x1p-3' or '1'000'. */
+static int continues_number(char last, char next) {
+  return is_word_char(next) || next == '.' || next == '\'' || ((next == '+' || next == '-') && (last == 'e' || last == 'E' || last == 'p' || last == 'P'));
+}
+
+/* Whether the token ending in 'last' and the one starting at 'next' would run together into different tokens without a
+ * space between them, such as two identifiers, '-' and '-', or an identifier and the literal it would then prefix.
+ * 'number' is whether 'last' ends a number.  Digraphs are not recognised, so '< ::' can become '<::', which C++11 also
+ * reads as '<' and '::'.  A space between two '>' is not kept either: '> >' is only valid where it closes two template
+ * argument lists, and there C++11 reads '>>' as two '>' too. */
+static int tokens_run_together(char last, int number, const char *next) {
+  static const char *const punctuators[] = {"::", "->", ".*", "..", "++", "--", "<<", "<=", ">=", "==", "!=", "&&",
+                                            "||", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "//", "/*", 0};
+  const char *const *p;
+  if (number && continues_number(last, *next))
+    return 1;
+  if (is_word_char(last) && (is_word_char(*next) || *next == '"' || *next == '\''))
+    return 1;
+  if ((last == '"' || last == '\'') && is_word_char(*next))
+    return 1;
+  if (last == '.' && isdigit((unsigned char)*next))
+    return 1;
+  for (p = punctuators; *p; p++) {
+    if (last == (*p)[0] && *next == (*p)[1])
+      return 1;
+  }
+  return 0;
+}
+
+/* Copy the string or character literal starting at quote 'c' to 'out' as written, taking it to be a raw string literal
+ * R"delimiter(...)delimiter" if 'raw', and return the position after it. */
+static const char *copy_literal(String *out, const char *c, int raw) {
+  const char *open = raw ? strchr(c, '(') : 0;
+  const char *end;
+  if (open) {
+    size_t delimiter_len = (size_t)(open - c - 1);
+    for (end = open + 1; *end; end++) {
+      if (*end == ')' && strncmp(end + 1, c + 1, delimiter_len) == 0 && end[delimiter_len + 1] == '"') {
+        end += delimiter_len + 2;
+        break;
+      }
+    }
+  } else {
+    for (end = c + 1; *end && *end != *c; end++) {
+      if (*end == '\\' && end[1])
+        end++;
+    }
+    if (*end)
+      end++;
+  }
+  while (c < end)
+    Putc(*c++, out);
+  return end;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_squeeze_c_whitespace()
+ *
+ * Return a copy of C/C++ source text 's' without the whitespace and comments between its tokens, other than a single
+ * space where two tokens would otherwise run together, as in 'unsigned int', 'a - -b' or 'x / *p'.  String and
+ * character literals are copied as written.  Two spellings of the same token sequence therefore give the same result,
+ * such as '(sizeof(T)>4)' for both '(sizeof(T) > 4)' and '( sizeof( T )>4 )'.  So do '> >' and '>>' closing template
+ * argument lists, as both give '>>'.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_squeeze_c_whitespace(const String *s) {
+  String *out = NewStringEmpty();
+  const char *c = Char(s);
+  char last = 0;   /* the last character copied, 0 before the first */
+  int number = 0;  /* whether 'last' is part of a number */
+  int skipped = 0; /* whether whitespace or a comment was skipped after 'last' */
+  while (*c) {
+    if (isspace((unsigned char)*c)) {
+      c++;
+      skipped = 1;
+    } else if (c[0] == '/' && c[1] == '*') {
+      const char *end = strstr(c + 2, "*/");
+      c = end ? end + 2 : c + strlen(c);
+      skipped = 1;
+    } else if (c[0] == '/' && c[1] == '/') {
+      c += strcspn(c, "\n");
+      skipped = 1;
+    } else {
+      if (skipped && last && tokens_run_together(last, number, c))
+        Putc(' ', out);
+      /* A quote directly after a number is a digit separator rather than the start of a character literal */
+      if (*c == '"' || (*c == '\'' && (skipped || !number))) {
+        c = copy_literal(out, c, !skipped && last == 'R');
+        number = 0;
+      } else {
+        if (skipped || !number || !continues_number(last, *c)) {
+          int in_identifier = !skipped && is_word_char(last) && is_word_char(*c);
+          number = !in_identifier && (isdigit((unsigned char)*c) || (*c == '.' && isdigit((unsigned char)c[1])));
+        }
+        Putc(*c, out);
+        c++;
+      }
+      last = c[-1];
+      skipped = 0;
+    }
+  }
+  return out;
+}
+
 /* -----------------------------------------------------------------------------
  * is_directory()
  * ----------------------------------------------------------------------------- */
@@ -721,6 +830,7 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
   if (!strstr(c, "::")) {
     *rprefix = 0;
     *rlast = Copy(s);
+    return;
   }
 
   co = strstr(cc, "operator ");

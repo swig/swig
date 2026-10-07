@@ -676,11 +676,17 @@ namespace swig {
 %define %swig_sequence_methods(Sequence...)
   %swig_sequence_methods_non_resizable(%arg(Sequence))
   %extend {
-    value_type pop() throw (std::out_of_range) {
+    value_type pop(difference_type i = -1) throw (std::out_of_range) {
       if (self->size() == 0)
 	throw std::out_of_range("pop from empty container");
-      Sequence::value_type x = self->back();
-      self->pop_back();
+      if (i == -1 || i == static_cast<Sequence::difference_type>(self->size()) - 1) {
+	Sequence::value_type last = self->back();
+	self->pop_back();
+	return last;
+      }
+      Sequence::iterator pos = swig::getpos(self, i);
+      Sequence::value_type x = *pos;
+      swig::erase(self, pos);
       return x;
     }
 
@@ -713,11 +719,17 @@ namespace swig {
 %define %swig_sequence_methods_val(Sequence...)
   %swig_sequence_methods_non_resizable_val(%arg(Sequence))
   %extend {
-    value_type pop() throw (std::out_of_range) {
+    value_type pop(difference_type i = -1) throw (std::out_of_range) {
       if (self->size() == 0)
 	throw std::out_of_range("pop from empty container");
-      Sequence::value_type x = self->back();
-      self->pop_back();
+      if (i == -1 || i == static_cast<Sequence::difference_type>(self->size()) - 1) {
+	Sequence::value_type last = self->back();
+	self->pop_back();
+	return last;
+      }
+      Sequence::iterator pos = swig::getpos(self, i);
+      Sequence::value_type x = *pos;
+      swig::erase(self, pos);
       return x;
     }
 

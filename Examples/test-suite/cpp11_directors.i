@@ -11,6 +11,7 @@ class Foo {
     virtual int pang() const& noexcept = 0;
     virtual int peng() & noexcept = 0;
     virtual int pung() & = 0;
+    virtual auto pyng() const noexcept -> int = 0;
 };
 
 %}

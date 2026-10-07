@@ -624,7 +624,8 @@ private:
 
     Printv(f_go_wrappers, "\n", NULL);
     for (Iterator p = First(undefined_types); p.key; p = Next(p)) {
-      String *ty = goType(NULL, p.key);
+      /* The module node stands in for the undefined type, the top node having no file or line. */
+      String *ty = goType(Getattr(n, "module"), p.key);
       if (!Getattr(defined_types, ty)) {
         String *cp = goCPointerType(p.key, false);
         if (!Getattr(defined_types, cp)) {
@@ -2024,6 +2025,8 @@ private:
 
       if (SwigType_type(type) == T_STRING) {
         Printv(get, "(char *)", NULL);
+      } else if (SwigType_type(type) == T_WSTRING) {
+        Printv(get, "(wchar_t *)", NULL);
       }
 
       Printv(get, Getattr(n, "value"), NULL);
@@ -2371,12 +2374,7 @@ private:
     }
     Append(wname, unique_id);
 
-    String *result = NewString(Getattr(method, "type"));
-    SwigType_push(result, Getattr(method, "decl"));
-    if (SwigType_isqualifier(result)) {
-      Delete(SwigType_pop(result));
-    }
-    Delete(SwigType_pop_function(result));
+    String *result = Swig_function_return_type(method);
 
     // If the base method is imported, wrap:action may not be set.
     Swig_save("goBaseMethod", method, "wrap:name", "wrap:action", "parms", NULL);
@@ -3882,7 +3880,7 @@ private:
         bool result_is_interface = false;
         String *goout = NULL;
         if (!is_void) {
-          result_is_interface = goTypeIsInterface(NULL, returntype);
+          result_is_interface = goTypeIsInterface(n, returntype);
           Printv(f_go_wrappers, "\tvar swig_r ", NULL);
           if (!result_is_interface) {
             Printv(f_go_wrappers, goType(n, returntype), NULL);
@@ -4932,7 +4930,7 @@ private:
     String *ret = NULL;
     if (use_imtype) {
       if (n && Cmp(type, Getattr(n, "type")) == 0) {
-        if (Strcmp(Getattr(n, "nodeType"), "parm") == 0) {
+        if (Equal(Getattr(n, "nodeType"), "parm")) {
           ret = Getattr(n, "tmap:imtype");
         }
         if (!ret) {
@@ -4946,7 +4944,7 @@ private:
     }
     if (!ret) {
       if (n && Cmp(type, Getattr(n, "type")) == 0) {
-        if (Strcmp(Getattr(n, "nodeType"), "parm") == 0) {
+        if (Equal(Getattr(n, "nodeType"), "parm")) {
           ret = Getattr(n, "tmap:gotype");
         }
         if (!ret) {
@@ -5126,7 +5124,7 @@ private:
     Delete(t);
 
     if (!ret) {
-      Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number, "No Go typemap defined for %s\n", SwigType_str(type, 0));
+      Swig_warning(WARN_TYPEMAP_UNDEF, input_file, line_number, "No Go typemap defined for %s\n", SwigType_str(type, 0));
       ret = NewString("uintptr");
     }
 

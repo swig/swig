@@ -1,4 +1,10 @@
-cpp_concept_redefinition.i:15: Warning 302: Redefinition of identifier 'process' ignored,
-cpp_concept_redefinition.i:12: Warning 302: previous definition of 'process'.
-cpp_concept_redefinition.i:22: Warning 302: Redefinition of identifier 'Box' as Box::Box(T) ignored,
-cpp_concept_redefinition.i:21: Warning 302: previous definition of 'Box' as Box::Box(T).
+cpp_concept_redefinition.i:26: Warning 333: Declaration of 'Box' as Box::Box(T) differing only by a constraint is ignored,
+cpp_concept_redefinition.i:25: Warning 333: previous declaration of 'Box' as Box::Box(T) is used instead.
+cpp_concept_redefinition.i:28: Warning 333: Declaration of 'kind' as Box::kind() differing only by a constraint is ignored,
+cpp_concept_redefinition.i:27: Warning 333: previous declaration of 'kind' as Box::kind() is used instead.
+cpp_concept_redefinition.i:36: Warning 302: Redefinition of identifier 'size' as Spaced::size() ignored,
+cpp_concept_redefinition.i:35: Warning 302: previous definition of 'size' as Spaced::size().
+cpp_concept_redefinition.i:28: Warning 333: Declaration of 'kind' as Box< int >::kind() differing only by a constraint is ignored,
+cpp_concept_redefinition.i:27: Warning 333: previous declaration of 'kind' as Box< int >::kind() is used instead.
+cpp_concept_redefinition.i:36: Warning 302: Redefinition of identifier 'size' as Spaced< double >::size() ignored,
+cpp_concept_redefinition.i:35: Warning 302: previous definition of 'size' as Spaced< double >::size().

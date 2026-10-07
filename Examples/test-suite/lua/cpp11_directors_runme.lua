@@ -25,6 +25,9 @@ function MyFoo:new()
       end,
       pung = function(self)
         return 5
+      end,
+      pyng = function(self)
+        return 6
       end
     })
     return obj
@@ -68,6 +71,7 @@ assert(f:pong() == 2)
 assert(f:pang() == 3)
 assert(f:peng() == 4)
 assert(f:pung() == 5)
+assert(f:pyng() == 6)
 
 local m = MyMoveNode:new()
 -- m:rvalues_int(11) TODO convert to 'int&&'
