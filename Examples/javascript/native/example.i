@@ -3,9 +3,9 @@
 
 // placeholder() used to help SWIG generate "SWIG_From_int" call
 %{
-    int placeholder();
-%}
 int placeholder() { return 0; }
+%}
+int placeholder();
 
 // actual demo code
 %wrapper
