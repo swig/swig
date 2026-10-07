@@ -42,7 +42,9 @@
 
 %typemap("rtypecheck") char
   %{ is.character($arg) && length($arg) == 1 %}
-%typemap("rtypecheck") char *, char **
+%typemap("rtypecheck") char *
+  %{ is.character($arg) || is.null($arg) %}
+%typemap("rtypecheck") char **
   %{ is.character($arg) %}
 
 %typemap("rtypecheck") string, string &

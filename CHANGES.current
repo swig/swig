@@ -13,6 +13,14 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [R] NULL is now accepted for a 'char *' parameter, member or global variable and gives
+            a NULL pointer. NULL for a char parameter gives a SWIG TypeError. Both gave the R
+            internal error "CHAR() can only be applied to a 'CHARSXP', not a 'NULL'" before. An
+            overload taking 'char *' is now selected for NULL. Errors for NULL, such as an invalid
+            null reference, are now reported as SWIG:NullReferenceError instead of
+            SWIG:UnknownError.
+
+2026-10-07: wsfulton
             [R] Fix a parameter that is a fixed size array of strings, such as 'char *strs[3]',
             which was given the bytes of the first string in place of the array of pointers,
             usually crashing. A character vector is now converted to the array, with any elements
@@ -63,9 +71,11 @@ Version 4.6.0 (in progress)
             is now raised instead.
 
 2026-10-06: wsfulton
-            [R] NULL for a char array parameter, or set on a char array member or global
-            variable, now gives a SWIG TypeError instead of the R internal error "CHAR() can only
-            be applied to a 'CHARSXP', not a 'NULL'".
+            [R] NULL for a fixed size char array parameter, such as 'char [8]', or a
+            'const char []' one, is now passed on as a NULL pointer, as for any other array
+            parameter, instead of giving an R error. NULL for a 'char []' parameter, or set on a
+            char array member or global variable, now gives a SWIG NullReferenceError instead of the
+            R internal error "CHAR() can only be applied to a 'CHARSXP', not a 'NULL'".
 
 2026-10-06: wsfulton
             [C] When wrapping C++, NULL is no longer accepted for a char array parameter of any

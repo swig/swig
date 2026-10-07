@@ -46,10 +46,7 @@ unittest(21, o$byval1fwdref(x))
 unittest(22, o$byval2fwdref(x))
 
 unittest(23, o$bychar1("a"))
-# NULL is not a char and char * does not accept it either
-exception_thrown = FALSE
-tryCatch(o$bychar1(NULL), error = function(e) exception_thrown <<- TRUE)
-unittest(exception_thrown, TRUE)
+unittest(24, o$bychar1(NULL))
 
 q(save="no")
 

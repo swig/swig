@@ -66,6 +66,8 @@ SWIGRUNTIME const char *SWIG_ErrorType(int code) {
     return "SWIG:SystemError";
   case SWIG_AttributeError:
     return "SWIG:AttributeError";
+  case SWIG_NullReferenceError:
+    return "SWIG:NullReferenceError";
   }
   return "SWIG:UnknownError";
 }
