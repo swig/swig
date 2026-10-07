@@ -972,6 +972,7 @@ MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
 	import_share \
 	import_stl \
+	import_vector_fwd \
 	imports \
 	mod \
 	multi_import \
