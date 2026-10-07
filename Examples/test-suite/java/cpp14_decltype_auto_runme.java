@@ -60,6 +60,9 @@ public class cpp14_decltype_auto_runme {
       throw new RuntimeException("var_string_parens");
     if (cpp14_decltype_auto.getVar_string_wide() == null)
       throw new RuntimeException("var_string_wide");
+    SWIGTYPE_p_a_4__wchar_t notAscii = cpp14_decltype_auto.getVar_string_wide_not_ascii();
+    if (notAscii == null)
+      throw new RuntimeException("var_string_wide_not_ascii");
 
     // A cast of a string literal is not a literal, so this 'const char *' can be set to a longer string.
     if (!cpp14_decltype_auto.getVar_string_cast().equals("text"))

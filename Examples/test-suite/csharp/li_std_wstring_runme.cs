@@ -43,6 +43,9 @@ public class runme
     {
         char h = 'h';
         check_equal(li_std_wstring.test_wcvalue(h), h);
+        check_equal(li_std_wstring.WSTRING_CONSTANT, "\u263Aa\u00E9f\U0001F600");
+        check_equal(li_std_wstring.WSTRING_CONSTANT_GET, "\u263Aa\u00E9f");
+        check_equal(li_std_wstring.WCHAR_CONSTANT, '\u00E9');
 
         string x = "abc";
         check_equal(li_std_wstring.test_ccvalue(x), x);

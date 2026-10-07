@@ -22,6 +22,13 @@
 // The wrapper is given the default value
 %feature("compactdefaultargs") wchar_default;
 %feature("compactdefaultargs") wchar_default_ucn;
+%feature("compactdefaultargs") wstring_default;
+
+#if defined(SWIGCSHARP)
+// Initialised in C# rather than read from the C++ constant
+%csconst(1) WSTRING_CONSTANT;
+%csconst(1) WCHAR_CONSTANT;
+#endif
 
 %inline %{
 #include <string>
@@ -52,6 +59,14 @@ int wchar_default(wchar_t x = L'\x263A') {
 int wchar_default_ucn(wchar_t x = L'\u263A') {
   return (int)x;
 }
+
+bool wstring_default(const wchar_t *s = L"\x263A" L"a\u00E9f\U0001F600") {
+  return std::wstring(s) == L"\x263A" L"a\u00E9f\U0001F600";
+}
+
+#define WSTRING_CONSTANT L"\x263A" L"a\u00E9f\U0001F600"
+#define WSTRING_CONSTANT_GET L"\x263A" L"a\u00E9f"
+#define WCHAR_CONSTANT L'\u00E9'
 
 const wchar_t* test_ccvalue(const wchar_t* x) {
   return x;

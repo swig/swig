@@ -13,6 +13,20 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [C#] Fix a constant from a wide string or wide character literal holding a character
+            that is not ASCII, with %csconst(1), which was given a C# char for each byte of its
+            UTF-8 encoding, so that a wide character constant did not compile.
+
+2026-10-07: wsfulton
+            Fix the value of a wide string literal holding a character that is not ASCII, such as
+            L"\x263A", L"\u00E9" or the character written as itself, used for a constant or
+            default argument. A hexadecimal escape sequence from 0x100 to 0x10FFFF was truncated to a
+            single byte. An octal one above \377 gave an "octal escape sequence out of range" error. Any
+            other such character became a wide character for each byte of its UTF-8 encoding. Also
+            fix the array size deduced for an auto or decltype(auto) variable initialised by such a
+            literal, such as 'auto &s = L"\u00E9";', which counted the UTF-8 bytes.
+
+2026-10-07: wsfulton
             [Guile] A char, signed char or unsigned char parameter or variable, including the
             elements of a list or vector from list-vector.i, now raises wrong-type-arg for
             anything other than a character, such as #nil, a number or a string, which was

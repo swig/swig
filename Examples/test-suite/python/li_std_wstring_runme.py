@@ -9,6 +9,8 @@ h = "h"
 check_equal(li_std_wstring.test_wcvalue(h), h)
 check_equal(li_std_wstring.wchar_default(), 0x263A)
 check_equal(li_std_wstring.wchar_default_ucn(), 0x263A)
+check_equal(li_std_wstring.wstring_default(), True)
+check_equal(li_std_wstring.WSTRING_CONSTANT_GET, "\u263Aa\u00E9f")
 
 x = "abc"
 check_equal(li_std_wstring.test_ccvalue(x), x)

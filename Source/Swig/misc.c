@@ -464,20 +464,122 @@ int Swig_storage_isstatic(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_utf8_encode()
+ *
+ * Append the UTF-8 encoding of 'code_point', the code point of a character that is not ASCII, from 0x80 to 0x10FFFF,
+ * to 's'. The scanner stores a numeric escape sequence that is not ASCII in a wide character or wide string literal
+ * this way, as a character written as itself in a UTF-8 source file already is. So is a universal character name in
+ * any literal. For example:
+ *
+ *   code_point   Character               Bytes appended
+ *   0xE9         e with an acute accent  C3 A9
+ *   0x263A       smiley face             E2 98 BA
+ *   0x1F600      grinning face           F0 9F 98 80
+ * ----------------------------------------------------------------------------- */
+
+void Swig_utf8_encode(String *s, long code_point) {
+  if (code_point <= 0x7FF) {
+    Putc((char)(0xC0 | (code_point >> 6)), s);
+  } else {
+    if (code_point <= 0xFFFF) {
+      Putc((char)(0xE0 | (code_point >> 12)), s);
+    } else {
+      Putc((char)(0xF0 | (code_point >> 18)), s);
+      Putc((char)(0x80 | ((code_point >> 12) & 0x3F)), s);
+    }
+    Putc((char)(0x80 | ((code_point >> 6) & 0x3F)), s);
+  }
+  Putc((char)(0x80 | (code_point & 0x3F)), s);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_utf8_decode()
+ *
+ * Decode the UTF-8 encoding of a character that is not ASCII at offset 'pos' in 's', setting 'code_point' to its code
+ * point and returning the number of bytes in the encoding, or return 0 if there is no such encoding at 'pos', such as
+ * for an ASCII character. 's' is expected to be the text the scanner stores for a wide character or wide string
+ * literal, which holds each character that is not ASCII as its UTF-8 encoding, from Swig_utf8_encode() for an escape
+ * sequence or as written in a UTF-8 source file. Any other byte, such as one from a narrow string literal joined to a
+ * wide one, is not decoded. For example:
+ *
+ *   Bytes of 's'   pos   Returns   code_point
+ *   61 C3 A9 62    1     2         0xE9, an e with an acute accent
+ *   61 C3 A9 62    0     0         not set, as 61 is an ASCII 'a'
+ *   E2 98 BA       0     3         0x263A, a smiley face
+ *   E9 62          0     0         not set, as E9 62 is not a UTF-8 encoding
+ * ----------------------------------------------------------------------------- */
+
+int Swig_utf8_decode(String *s, int pos, long *code_point) {
+  const unsigned char *u = (const unsigned char *)Char(s) + pos;
+  int len = Len(s) - pos;
+  int extra;
+  int i;
+  long value;
+  if (len < 1)
+    return 0;
+  if ((u[0] & 0xE0) == 0xC0) {
+    value = u[0] & 0x1F;
+    extra = 1;
+  } else if ((u[0] & 0xF0) == 0xE0) {
+    value = u[0] & 0x0F;
+    extra = 2;
+  } else if ((u[0] & 0xF8) == 0xF0) {
+    value = u[0] & 0x07;
+    extra = 3;
+  } else {
+    return 0;
+  }
+  if (len < extra + 1)
+    return 0;
+  for (i = 1; i <= extra; i++) {
+    if ((u[i] & 0xC0) != 0x80)
+      return 0;
+    value = (value << 6) | (u[i] & 0x3F);
+  }
+  *code_point = value;
+  return extra + 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_utf8_length()
+ *
+ * The number of characters in 's', a UTF-8 encoding decoded by Swig_utf8_decode() being one character, as is any other
+ * byte. For the text of a wide string literal, this is the number of wchar_t in it, although a compiler with a 16 bit
+ * wchar_t stores a character outside the Basic Multilingual Plane as two. For example, it is 3 for the bytes
+ * 61 C3 A9 62, an 'a', an e with an acute accent and a 'b'. It is 1 for F0 9F 98 80, a grinning face.
+ * ----------------------------------------------------------------------------- */
+
+int Swig_utf8_length(String *s) {
+  int len = Len(s);
+  int count = 0;
+  int pos = 0;
+  while (pos < len) {
+    long code_point;
+    int n = Swig_utf8_decode(s, pos, &code_point);
+    pos += n ? n : 1;
+    count++;
+  }
+  return count;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
- * Takes a string object and produces a string with escape codes added to it.
- * Octal escaping is used.  The result is used for literal strings and characters
- * in C/C++ and also Java, Python, R and Ruby.
+ * Takes a string object and produces a string with escape codes added to it, for use in a string or character literal
+ * in C/C++ and also Java, Python, R and Ruby. A character that is not printable ASCII is given as an octal escape
+ * sequence, one for each byte of a UTF-8 encoding, using three octal digits when an octal digit follows. The result is
+ * suitable for wrapping in single or double quotes to form a character or string literal. For example:
  *
- * The result is suitable for wrapping in single or double quotes to form a
- * character or string literal.
+ *   Bytes of 's'                         Result
+ *   61 22 62, a"b                        a\"b
+ *   09 0A, a tab and a newline           \t\n
+ *   01 78, 01 and an 'x'                 \1x
+ *   01 37, 01 and a '7'                  \0017
+ *   C3 A9, an e with an acute accent     \303\251
  *
- * Note that it's not safe to concatenate the results of escaping two strings
- * - you need to concatenate first and escape second.  The problem case is
- * when the first string ends with a character which gets escaped using one or
- * two octal digits and the second string starts with a character which is an
- * octal digit.
+ * Note that it's not safe to concatenate the results of escaping two strings - you need to concatenate first and escape
+ * second. The problem case is when the first string ends with a character which gets escaped using one or two octal
+ * digits and the second string starts with a character which is an octal digit.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_escape(String *s) {
@@ -516,10 +618,70 @@ String *Swig_string_escape(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_wideescape()
+ *
+ * Takes the text of a wide string literal and produces a string with escape codes added to it, as Swig_string_escape()
+ * does, for use as a C/C++ wide string literal L"...". A character that is not ASCII, which the text holds as its UTF-8
+ * encoding, is given as a hexadecimal escape sequence of its code point rather than as a wide character for each byte
+ * of the encoding, or as a universal character name if it is outside the Basic Multilingual Plane, as a compiler with a
+ * 16 bit wchar_t stores it as two wchar_t. A hexadecimal digit after a hexadecimal escape sequence would be taken as
+ * part of it, so the literal is ended and another started before the digit. The result is only for a literal with
+ * the L prefix. For example:
+ *
+ *   Bytes of 's'                                    Result       L"%(wideescape)s"
+ *   61 22 62, a"b                                   a\"b         L"a\"b"
+ *   C3 A9 7A, an e with an acute accent and a 'z'   \xE9z        L"\xE9z"
+ *   C3 A9 62, an e with an acute accent and a 'b'   \xE9" L"b    L"\xE9" L"b"
+ *   E2 98 BA, a smiley face                         \x263A       L"\x263A"
+ *   F0 9F 98 80, a grinning face                    \U0001F600   L"\U0001F600"
+ * ----------------------------------------------------------------------------- */
+
+static String *Swig_string_wideescape(String *s) {
+  String *ns = NewStringEmpty();
+  String *ascii = NewStringEmpty();
+  const char *text = Char(s);
+  int len = Len(s);
+  int after_hex_escape = 0;
+  int pos = 0;
+  while (pos < len) {
+    long code_point;
+    int n = Swig_utf8_decode(s, pos, &code_point);
+    if (n) {
+      Printf(ns, "%(escape)s", ascii);
+      Clear(ascii);
+      if (code_point > 0xFFFF) {
+        Printf(ns, "\\U%08lX", code_point);
+        after_hex_escape = 0;
+      } else {
+        Printf(ns, "\\x%lX", code_point);
+        after_hex_escape = 1;
+      }
+      pos += n;
+    } else {
+      if (after_hex_escape && isxdigit((unsigned char)text[pos]))
+        Append(ns, "\" L\"");
+      after_hex_escape = 0;
+      Putc(text[pos], ascii);
+      pos++;
+    }
+  }
+  Printf(ns, "%(escape)s", ascii);
+  Delete(ascii);
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_csharpescape()
  *
- * Takes a string object and produces a string with escape codes added to it
- * suitable for use as a C# string or character literal.
+ * Takes a string object and produces a string with escape codes added to it, for use as a C# string or character
+ * literal. A character that is not printable ASCII is given as a four digit hexadecimal escape sequence, so that a
+ * hexadecimal digit after it is not taken as part of it. Each byte of a UTF-8 encoding is a C# char. For example:
+ *
+ *   Bytes of 's'                         Result
+ *   61 22 62, a"b                        a\"b
+ *   09 0A, a tab and a newline           \t\n
+ *   01 41, 01 and an 'A'                 \x0001A
+ *   C3 A9, an e with an acute accent     \x00C3\x00A9
  * ----------------------------------------------------------------------------- */
 
 static String *Swig_string_csharpescape(String *s) {
@@ -548,6 +710,47 @@ static String *Swig_string_csharpescape(String *s) {
       Printf(ns, "\\x%04X", c);
     }
   }
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_csharpwideescape()
+ *
+ * Takes the text of a wide string or wide character literal and produces a string with escape codes added to it, as
+ * Swig_string_csharpescape() does, for use as a C# string or character literal. A character that is not ASCII, which
+ * the text holds as its UTF-8 encoding, is given as a \u or \U escape sequence of its code point rather than as a C#
+ * char for each byte of the encoding. For example:
+ *
+ *   Bytes of 's'                                    Result
+ *   61 22 62, a"b                                   a\"b
+ *   C3 A9 62, an e with an acute accent and a 'b'   \u00E9b
+ *   F0 9F 98 80, a grinning face                    \U0001F600
+ * ----------------------------------------------------------------------------- */
+
+static String *Swig_string_csharpwideescape(String *s) {
+  String *ns = NewStringEmpty();
+  String *ascii = NewStringEmpty();
+  const char *text = Char(s);
+  int len = Len(s);
+  int pos = 0;
+  while (pos < len) {
+    long code_point;
+    int n = Swig_utf8_decode(s, pos, &code_point);
+    if (n) {
+      Printf(ns, "%(csharpescape)s", ascii);
+      Clear(ascii);
+      if (code_point > 0xFFFF)
+        Printf(ns, "\\U%08lX", code_point);
+      else
+        Printf(ns, "\\u%04lX", code_point);
+      pos += n;
+    } else {
+      Putc(text[pos], ascii);
+      pos++;
+    }
+  }
+  Printf(ns, "%(csharpescape)s", ascii);
+  Delete(ascii);
   return ns;
 }
 
@@ -1523,7 +1726,9 @@ Node *Swig_item_in_list(List *list, const DOH *item) {
 void Swig_init(void) {
   /* Set some useful string encoding methods */
   DohEncoding("escape", Swig_string_escape);
+  DohEncoding("wideescape", Swig_string_wideescape);
   DohEncoding("csharpescape", Swig_string_csharpescape);
+  DohEncoding("csharpwideescape", Swig_string_csharpwideescape);
   DohEncoding("goescape", Swig_string_goescape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);

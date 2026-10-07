@@ -56,6 +56,8 @@ decltype(auto) var_const = global_const;
 // characters and not the 'const char *' that ordinary 'auto' deduces.
 decltype(auto) var_string = "text";
 decltype(auto) var_string_wide = L"text";
+// Each character that is not ASCII is one wchar_t, giving 'const wchar_t (&)[4]'
+decltype(auto) var_string_wide_not_ascii = L"\xE9t\u263A";
 decltype(auto) var_string_utf8 = u8"text";
 decltype(auto) var_string_char16 = u"text";
 decltype(auto) var_string_char32 = U"text";

@@ -386,35 +386,23 @@ static void retract(Scanner *s, int n) {
 /* -----------------------------------------------------------------------------
  * put_escape_value()
  *
- * Append the value of a numeric escape sequence. In a wide character literal, and for a universal character name in any
- * literal, a value that is not ASCII is appended as its UTF-8 encoding, as a UTF-8 source character already is, rather
- * than truncated.
+ * Append the value of a numeric escape sequence. A value that is not ASCII, in a wide character or wide string literal
+ * or for a universal character name in any literal, is appended as its UTF-8 encoding by Swig_utf8_encode(), as a
+ * UTF-8 source character already is, rather than truncated.
  * ----------------------------------------------------------------------------- */
 
 static void put_escape_value(Scanner *s, int value, int wide_char) {
-  if (wide_char && value > 0x7F && value <= 0x10FFFF) {
-    if (value <= 0x7FF) {
-      Putc((char)(0xC0 | (value >> 6)), s->text);
-    } else {
-      if (value <= 0xFFFF) {
-        Putc((char)(0xE0 | (value >> 12)), s->text);
-      } else {
-        Putc((char)(0xF0 | (value >> 18)), s->text);
-        Putc((char)(0x80 | ((value >> 12) & 0x3F)), s->text);
-      }
-      Putc((char)(0x80 | ((value >> 6) & 0x3F)), s->text);
-    }
-    Putc((char)(0x80 | (value & 0x3F)), s->text);
-  } else {
+  if (wide_char && value > 0x7F && value <= 0x10FFFF)
+    Swig_utf8_encode(s->text, value);
+  else
     Putc((char)value, s->text);
-  }
 }
 
 /* -----------------------------------------------------------------------------
  * get_escape()
  *
  * Get escape sequence.  Called when a backslash is found in a string or character literal, 'wide_char' being set for a
- * wide character literal.
+ * wide character or wide string literal.
  * ----------------------------------------------------------------------------- */
 
 static void get_escape(Scanner *s, int wide_char) {
@@ -1151,7 +1139,7 @@ static int look(Scanner *s) {
         return SWIG_TOKEN_WSTRING;
       } else if (c == '\\') {
         Delitem(s->text, DOH_END);
-        get_escape(s, 0);
+        get_escape(s, 1);
       }
       break;
 

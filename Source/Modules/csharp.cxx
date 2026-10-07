@@ -1619,7 +1619,10 @@ public:
       if (quote) {
         // Escape character literal for C#.
         Delete(csvalue);
-        csvalue = NewStringf("%c%(csharpescape)s%c", quote, Getattr(n, "stringval"), quote);
+        if (SwigType_type(t) == T_WSTRING || SwigType_type(t) == T_WCHAR)
+          csvalue = NewStringf("%c%(csharpwideescape)s%c", quote, Getattr(n, "stringval"), quote);
+        else
+          csvalue = NewStringf("%c%(csharpescape)s%c", quote, Getattr(n, "stringval"), quote);
       }
     }
 

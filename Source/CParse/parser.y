@@ -3057,7 +3057,7 @@ static SwigType *string_literal_type(const struct Define *dtype) {
   if (unsupported_literal_prefix(dtype->literalprefix))
     return 0;
   type = NewString(dtype->type == T_WSTRING ? "wchar_t" : "char");
-  bound = NewStringf("%d", Len(dtype->stringval) + 1);
+  bound = NewStringf("%d", (dtype->type == T_WSTRING ? Swig_utf8_length(dtype->stringval) : Len(dtype->stringval)) + 1);
   SwigType_add_qualifier(type, "const");
   SwigType_add_array(type, bound);
   Delete(bound);
@@ -3422,7 +3422,7 @@ static void add_array_from_scanner(SwigType *type) {
 
 /* Decode the UTF-8 'text' that the scanner stores for a wide character literal, returning the code point of its single
    character, or -1 if 'text' is not a single character. A hexadecimal or octal escape sequence or a universal
-   character name in the literal is encoded as UTF-8 by put_escape_value() in scanner.c, while a character written as
+   character name in the literal is encoded as UTF-8 by Swig_utf8_encode() in the scanner, while a character written as
    itself is copied unchanged from the source file, so it is UTF-8 only in a UTF-8 source file. Either way, an ASCII
    character is a single char. A code point is the number Unicode assigns to a character and is the value of a wide
    character literal holding it. For example:
@@ -3433,33 +3433,11 @@ static void add_array_from_scanner(SwigType *type) {
      L'\x263A', L'\u263A' or the smiley face itself  E2 98 BA               0x263A
 */
 static long wide_char_code_point(String *text) {
-  const unsigned char *s = (const unsigned char *)Char(text);
   int len = Len(text);
-  int extra;
-  int i;
   long code_point;
   if (len == 1)
-    return s[0];
-  if ((s[0] & 0xE0) == 0xC0) {
-    code_point = s[0] & 0x1F;
-    extra = 1;
-  } else if ((s[0] & 0xF0) == 0xE0) {
-    code_point = s[0] & 0x0F;
-    extra = 2;
-  } else if ((s[0] & 0xF8) == 0xF0) {
-    code_point = s[0] & 0x07;
-    extra = 3;
-  } else {
-    return -1;
-  }
-  if (len != extra + 1)
-    return -1;
-  for (i = 1; i <= extra; i++) {
-    if ((s[i] & 0xC0) != 0x80)
-      return -1;
-    code_point = (code_point << 6) | (s[i] & 0x3F);
-  }
-  return code_point;
+    return (unsigned char)Char(text)[0];
+  return len > 0 && Swig_utf8_decode(text, 0, &code_point) == len ? code_point : -1;
 }
 
 static Node *new_enum_node(SwigType *enum_base_type) {
@@ -9808,7 +9786,7 @@ exprstring     : string_literal {
                | wstring {
                  $$ = default_dtype;
                  $$.stringval = $wstring.text;
-                 $$.val = NewStringf("L\"%(escape)s\"", $wstring.text);
+                 $$.val = NewStringf("L\"%(wideescape)s\"", $wstring.text);
                  $$.type = T_WSTRING;
                  $$.literal = LITERAL_STRING;
                  $$.literalprefix = $wstring.prefix;

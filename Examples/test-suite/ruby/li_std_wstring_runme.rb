@@ -6,6 +6,8 @@ h = "h"
 swig_assert_equal("Li_std_wstring.test_wcvalue(h)", "h", binding)
 swig_assert_equal("Li_std_wstring.wchar_default()", "0x263A", binding)
 swig_assert_equal("Li_std_wstring.wchar_default_ucn()", "0x263A", binding)
+swig_assert_equal("Li_std_wstring.wstring_default()", "true", binding)
+swig_assert_equal("Li_std_wstring::WSTRING_CONSTANT_GET", '"\u263Aa\u00E9f"', binding)
 
 x = "abc"
 swig_assert_equal("Li_std_wstring.test_ccvalue(x)", "x", binding)
