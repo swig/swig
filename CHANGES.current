@@ -13,6 +13,14 @@ Version 4.6.0 (in progress)
 	    is no longer supported.
 
 2026-10-07: wsfulton
+            [R] NULL for a reference to a primitive or library type, such as 'int &',
+            'std::string &' or 'std::vector<int> &', including the INPUT and INOUT typemaps for a
+            reference, now gives SWIG:NullReferenceError, as for a reference to a class, instead
+            of an R internal error, "R_ExternalPtrAddr: argument of type INTSXP is not an external
+            pointer" in R 4.5. A number for the INPUT and INOUT typemaps for a reference, such as
+            'int &INPUT', which gave the same R error, is now accepted.
+
+2026-10-07: wsfulton
             [Tcl] A negative number, such as -1, is no longer accepted for an unsigned long long
             parameter or variable, where it gave a very large number. An OverflowError is raised
             instead. Nor is a negative number with spaces before it, such as " -1", for an unsigned

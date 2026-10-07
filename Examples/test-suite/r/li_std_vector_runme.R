@@ -13,6 +13,9 @@ unittest(average(testvec), mean(testvec))
 vlen <- 13
 stringvec <- paste(letters[1:vlen], as.character(rnorm(vlen)))
 unittest(rev(stringvec), RevStringVec(stringvec))
+
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() halve_in_place(NULL))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() vector_append(NULL, 1))), TRUE)
 q(save="no")
 
 

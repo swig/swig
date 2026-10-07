@@ -4,23 +4,13 @@ source(file.path(clargs[1], "unittest.R"))
 dyn.load(paste("li_typemaps", .Platform$dynlib.ext, sep=""))
 source("li_typemaps.R")
 
-# A reference cannot be bound to a null pointer, so NULL is rejected rather than dereferenced in the call.
-# The proxy coerces with as.integer(), turning NULL into integer(0), so call the wrapper directly instead.
-check_nullref_rejected <- function(wrapper, name) {
-  tryCatch({
-      .Call(wrapper, NULL, FALSE, PACKAGE = "li_typemaps")
-      # force an error if the previous line doesn't raise an exception
-      stop("Test Failure")
-    }, error = function(e) {
-      if (e$message == "Test Failure") {
-        stop(paste(name, "accepted NULL for a reference"))
-      }
-    }
-  )
-}
+unittest(inr_int(3), 3)
+unittest(inr_double(2.5), 2.5)
+unittest(inr_bool(TRUE), TRUE)
+unittest(in_int_multi(3, 4), 7)
 
-check_nullref_rejected("R_swig_inr_int", "inr_int")
-check_nullref_rejected("R_swig_inoutr_int", "inoutr_int")
+# A reference cannot be bound to a null pointer, so NULL is rejected rather than dereferenced in the call
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() inr_int(NULL))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() inoutr_int(NULL))), TRUE)
 
-# The in_int_multi/out_int_multi/inout_int_multi tests other languages have are missing here as R cannot call them:
-# INPUT and INOUT reject a plain value and OUTPUT fails in SET_VECTOR_ELT, both of which predate this test.
+# The out_int_multi/inout_int_multi tests other languages have are missing as OUTPUT and INOUT fail in SET_VECTOR_ELT
