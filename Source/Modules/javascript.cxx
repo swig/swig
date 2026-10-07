@@ -56,6 +56,7 @@ static bool js_template_enable_debug = false;
 #define MEMBER_FUNCTIONS               "member_functions"
 #define STATIC_FUNCTIONS               "static_functions"
 #define STATIC_VARIABLES               "static_variables"
+#define CONSTANTS                      "constants"
 
 /*
  * A convenience class to manage state variables for emitters.
@@ -3443,15 +3444,15 @@ int QuickJSEmitter::exitClass(Node *n) {
 
   Template t_class_tables(getTemplate("quickjs_class_tables"));
   t_class_tables.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jsclassconstants", state.clazz(CONSTANTS))
-      .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
-      .replace("$jsclassfunctions", state.clazz(MEMBER_FUNCTIONS))
-      .replace("$jsstaticclassfunctions", state.clazz(STATIC_FUNCTIONS))
-      .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
-      .replace("$jsclassbases", jsclass_inheritance)
-      .replace("$jsctor", state.clazz(CTOR))
-      .replace("$jsdtor", state.clazz(DTOR))
-      .pretty_print(f_wrappers);
+    .replace("$jsclassconstants", state.clazz(CONSTANTS))
+    .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
+    .replace("$jsclassfunctions", state.clazz(MEMBER_FUNCTIONS))
+    .replace("$jsstaticclassfunctions", state.clazz(STATIC_FUNCTIONS))
+    .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
+    .replace("$jsclassbases", jsclass_inheritance)
+    .replace("$jsctor", state.clazz(CTOR))
+    .replace("$jsdtor", state.clazz(DTOR))
+    .pretty_print(f_wrappers);
   Delete(jsclass_inheritance);
 
   /* Note: this makes sure that there is a swig_type added for this class */
