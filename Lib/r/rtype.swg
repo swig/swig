@@ -3,7 +3,7 @@
    for use in class representations. 
  */
 
-%typemap("rtype") bool, bool * "logical"
+%typemap("rtype") bool, bool *, bool &, const bool & "logical"
 %typemap("rtype") int, int *, int & "integer"
 %typemap("rtype") long, long *, long & "integer"
 %typemap("rtype") float, float*, float & "numeric"

@@ -30,6 +30,14 @@ SWIG_From_dec(long)(long value)
 }
 }
 
+%fragment(SWIG_From_frag(bool),"header") {
+SWIGINTERNINLINE SEXP
+SWIG_From_dec(bool)(bool value)
+{
+	return Rf_ScalarLogical(value ? TRUE : FALSE);
+}
+}
+
 %fragment(SWIG_AsVal_frag(long),"header") {
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long)(SEXP obj, long *val)
