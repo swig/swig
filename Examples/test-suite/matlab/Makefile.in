@@ -1,0 +1,87 @@
+#######################################################################
+# Makefile for matlab test-suite
+#######################################################################
+
+LANGUAGE        = matlab
+MATLAB          = @MATLAB@
+MATLAB_OPTS     = @MATLAB_OPTS@
+MATLAB_EXEC     = @MATLAB_EXEC@
+SCRIPTSUFFIX    = _runme.m
+
+srcdir       = @srcdir@
+top_srcdir   = @top_srcdir@
+top_builddir = @top_builddir@
+
+
+CPP_TEST_CASES += \
+	callback \
+	li_cstring \
+	li_std_pair_extra \
+	li_std_string_extra \
+	matlab_director \
+	matlab_enum \
+	matlab_features
+
+C_TEST_CASES += matlab_enum_c
+
+CPP11_TEST_CASES += cpp11_matlab_enum_widths
+
+include $(srcdir)/../common.mk
+
+SWIGOPT += -w524
+
+# Run the tests with MATLAB scripts, including newly added runtime regressions.
+.PHONY: check-runtime
+check-runtime: $(foreach name,$(CPP_TEST_CASES),$(if $(wildcard $(srcdir)/$(name)_runme.m),$(name).cpptest)) \
+               $(foreach name,$(C_TEST_CASES),$(if $(wildcard $(srcdir)/$(name)_runme.m),$(name).ctest)) \
+               $(foreach name,$(MULTI_CPP_TEST_CASES),$(if $(wildcard $(srcdir)/$(name)_runme.m),$(name).multicpptest))
+
+# Custom tests - tests with additional commandline options
+# none!
+
+# Rules for the different types of tests
+%.cpptest:
+	$(setup)
+	+$(swig_and_compile_cpp)
+	$(run_testcase)
+
+%.ctest:
+	$(setup)
+	+$(swig_and_compile_c)
+	$(run_testcase)
+
+%.multicpptest:
+	$(setup)
+	+$(swig_and_compile_multi_cpp)
+	$(run_testcase)
+
+# Runs the testcase. A testcase is only run if
+# a file is found which has _runme.m appended after the testcase name.
+run_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	 RUNSCRIPT="\
+	  try; \
+	    $(SCRIPTPREFIX)$*_runme; \
+	  catch err; \
+	    disp(err.message); \
+	    for k = 1:numel(err.stack); disp(err.stack(k)); end; \
+	    exit(1); \
+	    end; \
+	  exit(0)" ; \
+	 env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" MATLABPATH="$(srcdir):$(SCRIPTDIR):$$MATLABPATH" \
+	 $(RUNTOOL) "$(MATLAB)" $(MATLAB_OPTS) $(MATLAB_EXEC) "$$RUNSCRIPT"  $(RUNPIPE); \
+	 if [ $$? -ne 0 ] ; then \
+	   echo "   $* failed" $(RUNPIPE) ; exit 1; \
+	 else \
+	   echo "   $* passed" $(RUNPIPE) ; \
+	 fi \
+	else \
+	   echo "   $* build passed (no runme test present)" $(RUNPIPE) ; \
+	fi
+
+# Clean: remove the generated .m file
+%.clean:
+	@rm -rf $*.m +$*;
+
+clean:
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR="$(SRCDIR)" matlab_clean

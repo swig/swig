@@ -1,0 +1,6 @@
++*/
+*.mex*
+SwigGet.m
+SwigMem.m
+SwigRef.m
+SwigStorage.m

@@ -1782,6 +1782,125 @@ AC_SUBST(OCTAVE_CXXFLAGS)
 AC_SUBST(OCTAVE_LDFLAGS)
 
 #----------------------------------------------------------------
+# Look for MATLAB or Octave
+#----------------------------------------------------------------
+
+MATLABBIN=
+AC_ARG_WITH([matlab], AS_HELP_STRING([--without-matlab], [Disable Matlab])
+AS_HELP_STRING([--with-matlab=path], [specify MATLAB installation directory or Octave executable]),[MATLABBIN="$withval"], [MATLABBIN="$alllang_default"])
+
+# Do we want to use Octave to test the MATLAB module?
+AC_ARG_ENABLE([octave-for-matlab],
+	AS_HELP_STRING([--enable-octave-for-matlab], [Use Octave to test the MATLAB/Octave bilingual module (default disabled)]), [enable_octave_for_matlab=$enableval], [enable_octave_for_matlab=no])
+
+# Unset by default
+MATLAB=
+MATLAB_MEX=
+MATLAB_EXT=
+MATLAB_CFLAGS=
+MATLAB_CXXFLAGS=
+MATLAB_LDFLAGS=
+MATLAB_OPTS=
+MATLAB_EXEC=
+
+# First, check for "--without-matlab" or "--with-matlab=no".
+if test x"${MATLABBIN}" = xno; then
+   AC_MSG_NOTICE([Disabling MATLAB/Octave bilingual module])
+elif test "x$enable_octave_for_matlab" = "xyes"; then
+   AC_MSG_NOTICE([Using Octave to test the MATLAB/Octave module])
+   MATLAB_OPTS="--no-gui --quiet"
+   MATLAB_EXEC="--eval"
+
+    # First figure out what the name of Octave is
+    if test "x$MATLABBIN" = xyes; then
+       AC_PATH_PROG(MATLAB, [octave])
+    else
+       MATLAB="$MATLABBIN"
+    fi
+
+    if test -n "$MATLAB"; then
+       AC_MSG_CHECKING([for mkoctfile])
+       mkoctfile="$(dirname $MATLAB)/$(basename $MATLAB | sed -e 's/octave/mkoctfile/')"
+       AS_IF([test -x "${mkoctfile}"],[
+	  AC_MSG_RESULT([${mkoctfile}])
+       ],[
+	  AC_MSG_RESULT([not found, disabling MATLAB/Octave bilingual module])
+          MATLAB=
+       ])
+    fi
+    if test -n "$MATLAB"; then
+       MATLAB_EXT=mex
+       MATLAB_CFLAGS=`${mkoctfile} -p ALL_CFLAGS`
+       MATLAB_CXXFLAGS=`${mkoctfile} -p ALL_CXXFLAGS`
+       MATLAB_LDFLAGS=`${mkoctfile} -p ALL_LDFLAGS`
+    fi
+
+else
+  AC_MSG_NOTICE([Using MATLAB to test the MATLAB/Octave module])
+  MATLAB_OPTS="-nodisplay -nojvm"
+  MATLAB_EXEC="-r"
+
+   if test "x$MATLABBIN" = xyes; then
+    # Try to detect matlab home automatically
+    AC_MSG_CHECKING([for matlab installation])
+    # First figure out what the name of Matlab is
+    AC_PATH_PROG(MATLAB, [matlab], [])
+    if test  x"$MATLAB" = x; then
+      AC_MSG_RESULT([no, Disabling Matlab])
+    else
+      # follow symbolic link
+      # JDK defined a macro BASIC_REMOVE_SYMBOLIC_LINKS that might be more portable
+      if test -L "$MATLAB"; then
+	# matlab is a symbolic link, follow it
+	MATLAB=`ls -l "$MATLAB" | awk '{print $NF}'`
+      fi
+      # strip matlab and bin to find home
+      MATLAB_HOME=`dirname "$MATLAB"`
+      MATLAB_HOME=`dirname "$MATLAB_HOME"`
+      AC_MSG_RESULT([found matlab home: $MATLAB_HOME])
+    fi
+  else
+    MATLAB_HOME="$MATLABBIN"
+    AC_MSG_RESULT([looking for matlab in: $MATLAB_HOME])
+    AC_PATH_PROG(MATLAB, [matlab], [notfound], [$MATLAB_HOME/bin])
+    if test  x"$MATLAB" = xnotfound; then
+      AC_MSG_RESULT([matlab executable not found, Disabling Matlab])
+      MATLAB=
+    fi
+  fi
+  if test x"$MATLAB" != x; then
+      AC_MSG_CHECKING([for Matlab mex command])
+      AC_PATH_PROG(MATLAB_MEX, [mex], [], [$MATLAB_HOME/bin$PATH_SEPARATOR$PATH])
+      if test x"$MATLAB_MEX" = x; then
+	AC_MSG_WARN([Cannot find mex command. Disabling matlab])
+	MATLAB=
+      fi
+    fi
+
+    if test x"$MATLAB" != x; then
+      AC_MSG_CHECKING([for Matlab mexext command])
+      AC_PATH_PROG(MATLAB_MEXEXT, [mexext], [], [$MATLAB_HOME/bin$PATH_SEPARATOR$PATH])
+      if test x"$MATLAB_MEXEXT" = x; then
+	AC_MSG_WARN([Cannot find mexext command. Disabling matlab])
+	MATLAB=
+      else
+	MATLAB_EXT=`"$MATLAB_MEXEXT"`
+	AC_MSG_RESULT([matlab mex suffix: $MATLAB_EXT])
+      fi
+    fi
+fi
+
+AC_SUBST(MATLAB)
+AC_SUBST(MATLAB_OPTS)
+AC_SUBST(MATLAB_EXEC)
+AC_SUBST(MATLAB_HOME)
+AC_SUBST(MATLAB_MEX)
+AC_SUBST(MATLAB_EXT)
+AC_SUBST(MATLAB_CFLAGS)
+AC_SUBST(MATLAB_CXXFLAGS)
+AC_SUBST(MATLAB_LDFLAGS)
+
+#----------------------------------------------------------------
 # Look for Perl5
 #----------------------------------------------------------------
 
@@ -2640,6 +2759,11 @@ if test -z "$OCTAVE" ; then
     SKIP_OCTAVE="1"
 fi
 AC_SUBST(SKIP_OCTAVE)
+SKIP_MATLAB=
+if test -z "$MATLAB"; then
+    SKIP_MATLAB="1"
+fi
+AC_SUBST(SKIP_MATLAB)
 
 
 SKIP_PHP=
@@ -2770,6 +2894,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/lua/Makefile
+    Examples/test-suite/matlab/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
@@ -2832,6 +2957,7 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
+test -n "$SKIP_MATLAB" || langs="${langs}matlab "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
