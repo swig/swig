@@ -1409,6 +1409,19 @@ Version 4.6.0 (in progress)
 
             now declares both MakeFoo and value in the stub, after the Foo class body.
 
+2026-09-11: sparcyu
+            [C#] Add support for setting the C# namespace via the 'csnamespace' option of
+            the %module directive, as an alternative to the -namespace command line
+            option. This is convenient for build system integration where the interface
+            file is the natural place to keep the module settings, eg:
+
+              %module(csnamespace="Example.Net") example
+
+            The -namespace command line option takes precedence over the csnamespace
+            module option when both are specified.
+
+            Fixes #3495.
+
 2026-09-06: wsfulton
             [Python] #3528 %feature("python:annotations", "c") no longer generates the PEP 484
             support code that only applies to %feature("python:annotations", "typing"). The
