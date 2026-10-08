@@ -48,6 +48,9 @@ if annotations_supported:
     check(get_annotations(Widget.describe), {"prefix": "str", "return": "str"})
     check(get_annotations(Widget.create), {"id": "int", "return": "typing.Any"})
 
+    # The slice object is annotated as a slice
+    check(get_annotations(IntVector.get_slice), {"slice": "slice", "return": "typing.Any"})
+
     # %feature("python:annotations", "0") overrides -typehints for a single function
     check(get_annotations(no_typehints), {})
 
@@ -71,3 +74,5 @@ if divide_checked(7, 2) != [True, 3, 1]:
     raise RuntimeError("divide_checked does not return a list")
 if join("a", "b") != "ab":
     raise RuntimeError("join is not a str")
+if list(IntVector([1, 2, 3]).get_slice(slice(1, 3))) != [2, 3]:
+    raise RuntimeError("get_slice does not return the slice")
