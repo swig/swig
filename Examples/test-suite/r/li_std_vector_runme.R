@@ -16,6 +16,11 @@ unittest(rev(stringvec), RevStringVec(stringvec))
 
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() halve_in_place(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() vector_append(NULL, 1))), TRUE)
+
+# An empty vector is an empty std::vector and an empty list, which R does not convert, is not NULL
+unittest(length(vecintptr(integer(0))), 0)
+unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(list()))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() vecstruct(NULL))), TRUE)
 q(save="no")
 
 

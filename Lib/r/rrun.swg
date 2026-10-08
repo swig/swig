@@ -323,8 +323,8 @@ SWIG_R_ConvertPtrAndOwn(SEXP obj, void **ptr, swig_type_info *ty, int flags, int
   if (own)
     *own = 0;
   if (TYPEOF(obj) != EXTPTRSXP) {
-    /* NULL is R_NilValue, or a zero length vector after a scoercein coercion such as as.integer, both of length 0 */
-    if (Rf_length(obj) != 0)
+    /* NULL is R_NilValue, or a zero length atomic vector after a scoercein coercion such as as.integer */
+    if (obj != R_NilValue && !(Rf_isVectorAtomic(obj) && Rf_length(obj) == 0))
       return SWIG_ERROR;
     if (ptr) *ptr = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
