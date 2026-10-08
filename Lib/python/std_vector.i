@@ -32,3 +32,5 @@
 #define %swig_vector_methods_val(Type...) %swig_sequence_methods_val(Type);
 
 %include <std/std_vector.i>
+
+%typemap(pytyping, out="typing.Tuple[$typemap(pytyping:out?, $targ1), ...]") std::vector< _Tp, _Alloc >, std::vector< _Tp, _Alloc > const & "collections.abc.Iterable[$typemap(pytyping, $targ1)]"

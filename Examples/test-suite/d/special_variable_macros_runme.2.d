@@ -5,6 +5,7 @@ import special_variable_macros.special_variable_macros;
 import special_variable_macros.Name;
 import special_variable_macros.NewName;
 import special_variable_macros.PairIntBool;
+import special_variable_macros.OptionalAttrTest;
 
 void main() {
   auto name = new Name();
@@ -22,4 +23,7 @@ void main() {
   enforce(makeStringInt("stringint", 999) == "stringint");
   enforce(provideStringInt(999) == "1000");
   enforce(shortFunction(1, 1) == (200*2 + 200*3));
+
+  enforce(OptionalAttrTest.OptionalAttrResult == "int");
+  enforce(OptionalAttrTest.OptionalAttrFallback == "NoAttrType");
 }
