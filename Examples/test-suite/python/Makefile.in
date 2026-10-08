@@ -102,6 +102,12 @@ ifeq (1,$(PY_ABI_311))
 CPP_TEST_CASES += pyabi311_bufferinterface
 endif
 
+# Test requiring python-3.15 minimum, to exercise -abi3t (the free-threaded stable ABI, PEP 803)
+PY_315:=$(shell test $(PY_VER_3_DIGIT) -ge 315 && echo "1")
+ifeq (1,$(PY_315))
+CPP_TEST_CASES += python_abi3t python_abi3t_nogil
+endif
+
 # Test requiring python-3.11 minimum if using Py_LIMITED_API if and only if python>=3.13
 ifeq (1,$(PY_ABI_311))
 CPP_TEST_CASES += python_pybuffer
@@ -149,6 +155,19 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 SWIGOPT += -Werror
 
 # Custom tests - tests with additional commandline options
+# -builtin does not support the stable ABI (abi3t or otherwise), so drop it from the
+# globally-configured SWIG_FEATURES/SWIGOPT (e.g. the CI "-builtin" job) for this test.
+python_abi3t.cpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
+python_abi3t.cpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT)) -abi3t
+# Actually compile against the limited API (opaque PyObject etc.), rather than
+# relying on PY_ABI_VER, so the test exercises the same restrictions a real
+# -abi3t build is compiled under, regardless of the configured interpreter.
+python_abi3t.cpptest: INCLUDES += -DPy_LIMITED_API=0x030f0000
+# Same as python_abi3t.cpptest above, but also passes -nogil to exercise -abi3t's
+# independent, explicit opt-in to declaring the module GIL-free.
+python_abi3t_nogil.cpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
+python_abi3t_nogil.cpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT)) -abi3t -nogil
+python_abi3t_nogil.cpptest: INCLUDES += -DPy_LIMITED_API=0x030f0000
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
 python_typehints.cpptest: SWIGOPT += -typehints

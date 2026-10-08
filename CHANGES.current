@@ -1568,6 +1568,16 @@ Version 4.6.0 (in progress)
             runtime, so the generated code behaves exactly as before. Member variables that
             are not annotated, such as when -typehints is not used, are unchanged.
 
+2026-08-26: blowekamp
+            [Python] Add the -abi3t command line option to generate wrapper code
+            targeting the free-threaded stable ABI added in Python 3.15 (PEP 803).
+            -abi3t only selects the ABI (module export shape and opaque object
+            layout); it does not by itself declare the module GIL-free, since
+            that is a separate thread-safety claim about the wrapped library
+            that SWIG cannot infer. Combine with -nogil to also declare the
+            module GIL-free. Not supported together with -builtin, -fastproxy/-O,
+            or directors, all of which are rejected on the command line.
+
 2026-08-24: wsfulton
             [Python] #3528 The proxy classes generated with -typehints now declare the 'this'
             attribute, which is added to each instance by the C code and so was not visible
