@@ -43,7 +43,7 @@ SWIG_InitializeModule(0);
 
 %include <typemaps/swigmacros.swg>
 %typemap(in) (double *x, int len) %{
-   $1 = Rf_length(x) ? REAL(x) : 0;
+   $1 = Rf_isNull(x) ? 0 : REAL(x);
    $2 = Rf_length(x);
 %}
 
@@ -75,7 +75,7 @@ SWIG_InitializeModule(0);
 {
 { int _rswigi;
   int _rswiglen = Rf_length($input);
-  $1 = _rswiglen ? %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype) : 0;
+  $1 = Rf_isNull($input) ? 0 : %static_cast(calloc(sizeof($1_basetype), _rswiglen ? _rswiglen : 1), $1_ltype);
   for (_rswigi=0; _rswigi< _rswiglen; _rswigi++) {
      $1[_rswigi] = INTEGER($input)[_rswigi];
   }
@@ -88,7 +88,7 @@ SWIG_InitializeModule(0);
 {
 {  int _rswigi;
   int _rswiglen = Rf_length($input);
-  $1 = _rswiglen ? %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype) : 0;
+  $1 = Rf_isNull($input) ? 0 : %static_cast(calloc(sizeof($1_basetype), _rswiglen ? _rswiglen : 1), $1_ltype);
   for (_rswigi=0; _rswigi<_rswiglen; _rswigi++) {
      $1[_rswigi] = REAL($input)[_rswigi];
   }
@@ -172,7 +172,7 @@ unsigned char *OUTPUT
     temp[i] = ($1_basetype)ELEMENT($input)[i];
   for (; i < (int)($1_dim0); i++)
     temp[i] = ($1_basetype)0;
-  $1 = len ? temp : 0;
+  $1 = Rf_isNull($input) ? 0 : temp;
 }
 %typemap(freearg) TYPE [ANY] ""
 %typemap(out,noblock=1) TYPE [ANY] (int i) {
@@ -205,7 +205,10 @@ unsigned char *OUTPUT
 %r_fixed_size_array(double, REALSXP, REAL, double)
 
 %typemap(in,noblock=1,fragment="SWIG_strdup") char * {
-   $1 = Rf_length($input) ? %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype) : 0;
+  if (!Rf_isNull($input) && Rf_length($input) == 0) {
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+  }
+  $1 = Rf_isNull($input) ? 0 : %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
 %typemap(freearg,noblock=1) char * {
@@ -216,7 +219,7 @@ unsigned char *OUTPUT
   {
     int i;
     int len = Rf_length($input);
-    if (len == 0) {
+    if (Rf_isNull($input)) {
       %argument_nullref("$type", $symname, $argnum);
     }
     if (!Rf_isString($input)) {
@@ -264,8 +267,11 @@ unsigned char *OUTPUT
 
 /* char[ANY] uses the Lib/typemaps typemaps, which copy the string into a zero filled array of the declared size */
 %typemap(in,noblock=1,fragment="SWIG_strdup") char[] {
-    if (Rf_length($input) == 0) {
+    if (Rf_isNull($input)) {
       %argument_nullref("$type", $symname, $argnum);
+    }
+    if (Rf_length($input) == 0) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
     $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
 }

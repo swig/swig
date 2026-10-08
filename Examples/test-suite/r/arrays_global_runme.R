@@ -20,6 +20,8 @@ array_enum_set(c("Two", "Five"))
 unittest(array_enum_get(), c("Two", "Five"))
 array_enum_set("Three")
 unittest(array_enum_get(), c("Three", "One"))
+array_i_set(integer(0))
+unittest(array_i_get(), c(0L, 0L))
 unittest(array_const_i_get(), c(10L, 20L))
 
 unittest(grepl("^SWIG:OverflowError", error_message(function() array_i_set(1:3))), TRUE)

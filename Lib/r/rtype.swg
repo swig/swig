@@ -106,18 +106,18 @@
    integer using an R numercal literal */
 
 %typemap(scoercein) int, int *, int &
-  %{  $input = as.integer($input);     %}
+  %{  if (!is.null($input)) $input = as.integer($input);     %}
 %typemap(scoercein) long, long *, long &
-  %{  $input = as.integer($input);     %}
+  %{  if (!is.null($input)) $input = as.integer($input);     %}
 %typemap(scoercein) float, float*, float &,
   double, double *, double &
   %{ %}
 %typemap(scoercein) char, char *, char &
-  %{  $input = as($input, "character");     %}
+  %{  if (!is.null($input)) $input = as($input, "character");     %}
 %typemap(scoercein) string, string *, string &
-  %{  $input = as($input, "character");     %}
+  %{  if (!is.null($input)) $input = as($input, "character");     %}
 %typemap(scoercein) std::string, std::string *, std::string &
-  %{  $input = as($input, "character");     %}
+  %{  if (!is.null($input)) $input = as($input, "character");     %}
 %typemap(scoercein) enum SWIGTYPE 
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE &
@@ -172,18 +172,18 @@
 /* **************************************************************** */
 
 %typemap(scoercein) bool, bool *, bool & 
-		    "$input = as.logical($input);";
+		    "if (!is.null($input)) $input = as.logical($input);";
 %typemap(scoercein) int, 
                     int *, 
 		    int &,
 		    long,
 		    long *,
 		    long &
-  "$input = as.integer($input);";
+  "if (!is.null($input)) $input = as.integer($input);";
 
 %typemap(scoercein) char *, string, std::string,
 string &, std::string &
-%{  $input = as($input, "character"); %}
+%{  if (!is.null($input)) $input = as($input, "character"); %}
 
 %typemap(scoerceout) enum SWIGTYPE 
   %{  $result = enumFromInteger($result, "$R_class"); %}
@@ -281,11 +281,11 @@ string &, std::string &
 %typemap("rtypecheck") char *[ANY]
   %{ is.character($arg) %}
 %typemap(scoercein) char *[ANY]
-  %{  $input = as($input, "character"); %}
+  %{  if (!is.null($input)) $input = as($input, "character"); %}
 %typemap("rtypecheck") char [ANY], char [], char (&)[ANY]
   %{ is.character($arg) %}
 %typemap(scoercein) char [ANY], char [], char (&)[ANY]
-  %{  $input = as($input, "character"); %}
+  %{  if (!is.null($input)) $input = as($input, "character"); %}
 %typemap(scoerceout) char [ANY], char [], char (&)[ANY]
   %{    %}
 
@@ -299,7 +299,7 @@ string &, std::string &
                     (const char *STRING, int LENGTH), (char *STRING, int LENGTH),
                     (size_t LENGTH, const char *STRING), (size_t LENGTH, char *STRING),
                     (int LENGTH, const char *STRING), (int LENGTH, char *STRING)
-  %{  $input = as($input, "character"); %}
+  %{  if (!is.null($input)) $input = as($input, "character"); %}
 
 %apply int {size_t,
 std::size_t,

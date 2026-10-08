@@ -140,7 +140,7 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
   int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
-  if ((Rf_isString(obj) || Rf_isNull(obj)) && Rf_length(obj) == 0) {
+  if (Rf_isNull(obj)) {
     if (cptr)
       *cptr = 0;
     if (psize)
@@ -149,7 +149,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
       *alloc = SWIG_OLDOBJ;
     return SWIG_OK;
   }
-  if (cptr && Rf_isString(obj)) {
+  if (cptr && Rf_isString(obj) && Rf_length(obj) > 0) {
     char *cstr = %const_cast(CHAR(STRING_ELT(obj, 0)), char *);
     int len = strlen(cstr);
 

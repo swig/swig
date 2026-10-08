@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-08: wsfulton
+            [R] NULL and an empty vector, such as integer(0) or character(0), are now told apart,
+            as the R wrappers no longer convert NULL to an empty vector before passing it to C/C++.
+            NULL for a 'const std::vector<T> &' parameter now gives SWIG:NullReferenceError rather
+            than an empty std::vector. NULL for a 'std::vector<T>' passed by value gives a SWIG
+            TypeError. An empty vector is an empty std::vector, an array of zeros for a fixed size
+            array and a pointer to no elements for a pointer to numbers. It gives a SWIG TypeError
+            for a 'char *' string, a char array or a reference. A user scoercein typemap that
+            converts its argument should leave NULL unchanged, as described in the new "NULL and
+            empty vectors" section of the R chapter.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-08: wsfulton
             [R] Fix reading a fixed size array member or global variable of a numeric or enum type,
             such as 'int values[4]'. Reading an integer or enum array failed with an R error such
             as '"_p_int" is not a defined class'. Reading a float or double array gave an R external
