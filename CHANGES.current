@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-08: wsfulton
+            [R] Fix a fixed size array parameter, member or global variable of a numeric type or an
+            enum, such as 'int [4]', given a vector with fewer elements than the array, which read
+            past the end of the vector. The remaining elements are now 0. A vector with more
+            elements than the array now gives a SWIG OverflowError.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-08: wsfulton
             [R] Enum names, such as c("One", "Two"), can now be passed for an enum array parameter,
             such as 'enum Finger [2]', which gave the R internal error "INTEGER() can only be
             applied to a 'integer', not a 'character'". An integer vector is still accepted.

@@ -59,18 +59,18 @@ SWIG_InitializeModule(0);
 
 %typemap(out) void ""
 
-%typemap(in) int *, int[ANY],
-	     signed int *, signed int[ANY],
-	     unsigned int *, unsigned int[ANY],
-             short *, short[ANY],
-             signed short *, signed short[ANY],
-             unsigned short *, unsigned short[ANY],
-             long *, long[ANY],
-             signed long *, signed long[ANY],
-             unsigned long *, unsigned long[ANY],
-             long long *, long long[ANY],
-             signed long long *, signed long long[ANY],
-             unsigned long long *, unsigned long long[ANY]
+%typemap(in) int *,
+	     signed int *,
+	     unsigned int *,
+             short *,
+             signed short *,
+             unsigned short *,
+             long *,
+             signed long *,
+             unsigned long *,
+             long long *,
+             signed long long *,
+             unsigned long long *
              
 {
 { int _rswigi;
@@ -82,8 +82,8 @@ SWIG_InitializeModule(0);
 }
 } 
 
-%typemap(in) float *, float[ANY],
-             double *, double[ANY]
+%typemap(in) float *,
+             double *
              
 {
 {  int _rswigi;
@@ -95,20 +95,20 @@ SWIG_InitializeModule(0);
 }
 }
 
-%typemap(freearg,noblock=1) int *, int[ANY], 
-	     signed int *, signed int[ANY],
-	     unsigned int *, unsigned int[ANY],
-             short *, short[ANY],
-             signed short *, signed short[ANY],
-             unsigned short *, unsigned short[ANY],
-             long *, long[ANY],
-             signed long *, signed long[ANY],
-             unsigned long *, unsigned long[ANY],
-             long long *, long long[ANY],
-             signed long long *, signed long long[ANY],
-             unsigned long long *, unsigned long long[ANY],
-             float *, float[ANY],
-             double *, double[ANY]
+%typemap(freearg,noblock=1) int *, 
+	     signed int *,
+	     unsigned int *,
+             short *,
+             signed short *,
+             unsigned short *,
+             long *,
+             signed long *,
+             unsigned long *,
+             long long *,
+             signed long long *,
+             unsigned long long *,
+             float *,
+             double *
 %{             
   free($1);
 %}
@@ -160,9 +160,43 @@ unsigned char *OUTPUT
 %include <typemaps/swigtypemaps.swg>
 %include <rtype.swg>
 
-%typemap(in,noblock=1) enum SWIGTYPE[ANY] {
-   $1 = Rf_length($input) ? %reinterpret_cast(INTEGER($input), $1_ltype) : 0;
+/* A fixed size array is copied from a vector of up to that many elements, any after a shorter vector being 0 */
+%define %r_fixed_size_array(TYPE, ELEMENT)
+%typemap(in,noblock=1) TYPE [ANY] ($1_basetype temp[$1_dim0], int i, int len) {
+  len = Rf_length($input);
+  if (len > (int)($1_dim0)) {
+    %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+  }
+  for (i = 0; i < len; i++)
+    temp[i] = ($1_basetype)ELEMENT($input)[i];
+  for (; i < (int)($1_dim0); i++)
+    temp[i] = ($1_basetype)0;
+  $1 = len ? temp : 0;
 }
+%typemap(freearg) TYPE [ANY] ""
+%enddef
+
+%r_fixed_size_array(int, INTEGER)
+%r_fixed_size_array(signed int, INTEGER)
+%r_fixed_size_array(unsigned int, INTEGER)
+%r_fixed_size_array(short, INTEGER)
+%r_fixed_size_array(signed short, INTEGER)
+%r_fixed_size_array(unsigned short, INTEGER)
+%r_fixed_size_array(long, INTEGER)
+%r_fixed_size_array(signed long, INTEGER)
+%r_fixed_size_array(unsigned long, INTEGER)
+%r_fixed_size_array(long long, INTEGER)
+%r_fixed_size_array(signed long long, INTEGER)
+%r_fixed_size_array(unsigned long long, INTEGER)
+%r_fixed_size_array(signed char, INTEGER)
+%r_fixed_size_array(unsigned char, INTEGER)
+%r_fixed_size_array(size_t, INTEGER)
+%r_fixed_size_array(std::size_t, INTEGER)
+%r_fixed_size_array(ptrdiff_t, INTEGER)
+%r_fixed_size_array(std::ptrdiff_t, INTEGER)
+%r_fixed_size_array(enum SWIGTYPE, INTEGER)
+%r_fixed_size_array(float, REAL)
+%r_fixed_size_array(double, REAL)
 
 %typemap(in,noblock=1,fragment="SWIG_strdup") char * {
    $1 = Rf_length($input) ? %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype) : 0;
