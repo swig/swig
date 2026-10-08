@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-08: wsfulton
+            [R] Fix the OUTPUT and INOUT typemaps for a function returning void, which gave the R
+            error "attempt to set index 0/0 in SET_VECTOR_ELT". Also fix the INOUT typemaps for a
+            pointer, such as 'int *INOUT', which crashed. Fix a function returning a class pointer
+            and with OUTPUT or INOUT parameters, which failed to make an object of the returned
+            list. A list is returned holding the return value, if not void, followed by the output
+            values.
+
+2026-10-08: wsfulton
             [R] A wrapped object of the wrong type passed for a pointer or reference parameter now
             gives a SWIG TypeError, as in the other target languages. Any pointer was accepted and
             used as the type of the parameter, so for example passing a 'Foo' for a 'Foo *&'

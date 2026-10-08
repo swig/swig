@@ -2021,14 +2021,15 @@ int R::functionWrapper(Node *n) {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), fname);
   }
 
-  if (Len(outargs)) {
+  bool hasOutputs = Len(outargs) > 0;
+  if (hasOutputs) {
     Wrapper_add_local(f, "R_OutputValues", "SEXP R_OutputValues");
 
     String *tmp = NewString("");
     if (!isVoidReturnType)
       Printf(tmp, "Rf_protect(r_ans);\n");
 
-    Printf(tmp, "Rf_protect(R_OutputValues = Rf_allocVector(VECSXP,%d));\nr_nprotect += %d;\n", numOutArgs + !isVoidReturnType, isVoidReturnType ? 1 : 2);
+    Printf(tmp, "Rf_protect(R_OutputValues = Rf_allocVector(VECSXP,%d));\nr_nprotect += %d;\n", numOutArgs + 1, isVoidReturnType ? 1 : 2);
 
     if (!isVoidReturnType)
       Printf(tmp, "SET_VECTOR_ELT(R_OutputValues, 0, r_ans);\n");
@@ -2074,12 +2075,18 @@ int R::functionWrapper(Node *n) {
 
   Printv(sfun->code, ";", (Len(tm) ? "ans = " : ""), ".Call('", wname, "', ", sargs, "PACKAGE='", Rpackage, "');\n", NIL);
   if (Len(tm)) {
+    // With output parameters the return value is the first element of the list returned
+    bool convertFirst = hasOutputs && !isVoidReturnType;
+    if (convertFirst)
+      Printf(sfun->code, "swig_outputs = ans;\nans = swig_outputs[[1]];\n");
     Printf(sfun->code, "%s\n\n", tm);
     if (constructor) {
       String *finalizer = NewString(iname);
       Replace(finalizer, "new_", "", DOH_REPLACE_FIRST);
       Printf(sfun->code, "reg.finalizer(ans@ref, delete_%s);\n", finalizer);
     }
+    if (convertFirst)
+      Printf(sfun->code, "swig_outputs[1] = list(ans);\nans = swig_outputs;\n");
     Printf(sfun->code, "ans\n");
   }
 
