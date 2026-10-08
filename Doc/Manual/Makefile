@@ -61,8 +61,7 @@ check-fonts:
 #     handful of over long lines make the text smaller on every one of the 500+ pages. The
 #     check target rejects lines longer than 130 characters, see checklines.py.
 generate: check-fonts SWIGDocumentation.html
-	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from https://wkhtmltopdf.org/downloads.html" && false)
-	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' --allow . SWIGDocumentation.html SWIGDocumentation.pdf
+	htmldoc -t pdf SWIGDocumentation.html --titleimage swig16.png -f SWIGDocumentation.pdf
 
 SWIGDocumentation.html: swightml.book
 	htmldoc --batch swightml.book || true
