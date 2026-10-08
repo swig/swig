@@ -32,6 +32,12 @@ double arr_ull(unsigned long long array[], int length)   { double sum=0.0; int i
 double arr_float(float array[], int length)              { double sum=0.0; int i=0; for(; i<length; i++) { sum += array[i]; array[i]*=2; } return sum; }
 double arr_double(double array[], int length)            { double sum=0.0; int i=0; for(; i<length; i++) { sum += array[i]; array[i]*=2; } return sum; }
 
+int arr_int_isnull(int array[])                          { return array == 0; }
+int arr_double_isnull(double array[])                    { return array == 0; }
+enum arr_enum { arr_enum1, arr_enum2 };
+int arr_enum_isnull(enum arr_enum array[2])              { return array == 0; }
+int arr_x_isnull(double *x, int len)                     { return x == 0 && len == 0; }
+
 %}
 
 %apply SWIGTYPE[] {

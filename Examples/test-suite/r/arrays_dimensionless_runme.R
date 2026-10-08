@@ -16,6 +16,14 @@ unittest(arr_ull(1:4, 3), 6)
 unittest(arr_float(as.numeric(1:4), 3), 6)
 unittest(arr_double(as.numeric(1:4), 3), 6)
 
+unittest(arr_int_isnull(1:2), 0)
+unittest(arr_int_isnull(NULL), 1)
+unittest(arr_double_isnull(c(1.5, 2.5)), 0)
+unittest(arr_double_isnull(NULL), 1)
+unittest(arr_enum_isnull(NULL), 1)
+unittest(arr_x_isnull(c(1.5, 2.5)), 0)
+unittest(arr_x_isnull(NULL), 1)
+
 q(save="no")
 
 

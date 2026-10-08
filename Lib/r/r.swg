@@ -43,7 +43,7 @@ SWIG_InitializeModule(0);
 
 %include <typemaps/swigmacros.swg>
 %typemap(in) (double *x, int len) %{
-   $1 = REAL(x);
+   $1 = Rf_length(x) ? REAL(x) : 0;
    $2 = Rf_length(x);
 %}
 
@@ -74,8 +74,8 @@ SWIG_InitializeModule(0);
              
 {
 { int _rswigi;
-  int _rswiglen = LENGTH($input);
-  $1 = %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype);
+  int _rswiglen = Rf_length($input);
+  $1 = _rswiglen ? %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype) : 0;
   for (_rswigi=0; _rswigi< _rswiglen; _rswigi++) {
      $1[_rswigi] = INTEGER($input)[_rswigi];
   }
@@ -87,8 +87,8 @@ SWIG_InitializeModule(0);
              
 {
 {  int _rswigi;
-  int _rswiglen = LENGTH($input);
-  $1 = %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype);
+  int _rswiglen = Rf_length($input);
+  $1 = _rswiglen ? %static_cast(calloc(sizeof($1_basetype), _rswiglen), $1_ltype) : 0;
   for (_rswigi=0; _rswigi<_rswiglen; _rswigi++) {
      $1[_rswigi] = REAL($input)[_rswigi];
   }
@@ -161,7 +161,7 @@ unsigned char *OUTPUT
 %include <rtype.swg>
 
 %typemap(in,noblock=1) enum SWIGTYPE[ANY] {
-   $1 = %reinterpret_cast(INTEGER($input), $1_ltype);
+   $1 = Rf_length($input) ? %reinterpret_cast(INTEGER($input), $1_ltype) : 0;
 }
 
 %typemap(in,noblock=1,fragment="SWIG_strdup") char * {

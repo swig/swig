@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-08: wsfulton
+            [R] NULL for a pointer to or an array of a numeric type or an enum, such as 'int *',
+            'double [3]' or 'int []', is now passed as a NULL pointer, as in the other target
+            languages, rather than as a pointer to a zero length array, or for an array of enums,
+            giving an R internal error.
+
+2026-10-08: wsfulton
             [R] NULL can now be passed to an overloaded function or method taking a reference to
             a pointer, such as 'Foo *const &', which gave "cannot find overloaded function".
 
