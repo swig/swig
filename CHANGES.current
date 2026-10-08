@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-08: wsfulton
+            [R] Fix reading a fixed size array member or global variable of a numeric or enum type,
+            such as 'int values[4]'. Reading an integer or enum array failed with an R error such
+            as '"_p_int" is not a defined class'. Reading a float or double array gave an R external
+            pointer, which could not be used in R. The array is now read as an R vector of all its
+            elements, of integers, numbers or enum names, which is also what is used to set it. For
+            example, for a struct member 'int values[4]':
+
+              s$values <- c(1L, 2L, 3L, 4L)
+              s$values
+              [1] 1 2 3 4
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-08: wsfulton
             [R] Fix a fixed size array parameter, member or global variable of a numeric type or an
             enum, such as 'int [4]', given a vector with fewer elements than the array, which read
             past the end of the vector. The remaining elements are now 0. A vector with more

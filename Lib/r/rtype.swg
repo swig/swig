@@ -128,6 +128,22 @@
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE [ANY]
   %{  if (is.character($input)) $input = enumToInteger($input, "$*R_class"); %}
+%typemap("rtype") enum SWIGTYPE [ANY] "character"
+%typemap("rtype") int [ANY], signed int [ANY], unsigned int [ANY], short [ANY], signed short [ANY],
+                 unsigned short [ANY], long [ANY], signed long [ANY], unsigned long [ANY], long long [ANY],
+                 signed long long [ANY], unsigned long long [ANY],
+                 signed char [ANY], unsigned char [ANY], size_t [ANY], std::size_t [ANY], ptrdiff_t [ANY],
+                 std::ptrdiff_t [ANY] "integer"
+%typemap("rtype") float [ANY], double [ANY] "numeric"
+%typemap(scoerceout) enum SWIGTYPE [ANY]
+  %{  $result = enumFromInteger($result, "$*R_class"); %}
+%typemap(scoerceout) int [ANY], signed int [ANY], unsigned int [ANY], short [ANY], signed short [ANY],
+                      unsigned short [ANY], long [ANY], signed long [ANY], unsigned long [ANY], long long [ANY],
+                      signed long long [ANY], unsigned long long [ANY],
+                      signed char [ANY], unsigned char [ANY], size_t [ANY], std::size_t [ANY], ptrdiff_t [ANY],
+                      std::ptrdiff_t [ANY],
+                      float [ANY], double [ANY]
+  %{    %}
 
 %typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE *const&, SWIGTYPE &, SWIGTYPE &&
  %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}

@@ -160,8 +160,9 @@ unsigned char *OUTPUT
 %include <typemaps/swigtypemaps.swg>
 %include <rtype.swg>
 
-/* A fixed size array is copied from a vector of up to that many elements, any after a shorter vector being 0 */
-%define %r_fixed_size_array(TYPE, ELEMENT)
+/* A fixed size array is copied from a vector of up to that many elements, any after a shorter vector being 0. It is
+   returned as a vector of that many elements */
+%define %r_fixed_size_array(TYPE, SEXPTYPE, ELEMENT, ELEMENT_TYPE)
 %typemap(in,noblock=1) TYPE [ANY] ($1_basetype temp[$1_dim0], int i, int len) {
   len = Rf_length($input);
   if (len > (int)($1_dim0)) {
@@ -174,29 +175,34 @@ unsigned char *OUTPUT
   $1 = len ? temp : 0;
 }
 %typemap(freearg) TYPE [ANY] ""
+%typemap(out,noblock=1) TYPE [ANY] (int i) {
+  $result = Rf_allocVector(SEXPTYPE, $1_dim0);
+  for (i = 0; i < (int)($1_dim0); i++)
+    ELEMENT($result)[i] = (ELEMENT_TYPE)$1[i];
+}
 %enddef
 
-%r_fixed_size_array(int, INTEGER)
-%r_fixed_size_array(signed int, INTEGER)
-%r_fixed_size_array(unsigned int, INTEGER)
-%r_fixed_size_array(short, INTEGER)
-%r_fixed_size_array(signed short, INTEGER)
-%r_fixed_size_array(unsigned short, INTEGER)
-%r_fixed_size_array(long, INTEGER)
-%r_fixed_size_array(signed long, INTEGER)
-%r_fixed_size_array(unsigned long, INTEGER)
-%r_fixed_size_array(long long, INTEGER)
-%r_fixed_size_array(signed long long, INTEGER)
-%r_fixed_size_array(unsigned long long, INTEGER)
-%r_fixed_size_array(signed char, INTEGER)
-%r_fixed_size_array(unsigned char, INTEGER)
-%r_fixed_size_array(size_t, INTEGER)
-%r_fixed_size_array(std::size_t, INTEGER)
-%r_fixed_size_array(ptrdiff_t, INTEGER)
-%r_fixed_size_array(std::ptrdiff_t, INTEGER)
-%r_fixed_size_array(enum SWIGTYPE, INTEGER)
-%r_fixed_size_array(float, REAL)
-%r_fixed_size_array(double, REAL)
+%r_fixed_size_array(int, INTSXP, INTEGER, int)
+%r_fixed_size_array(signed int, INTSXP, INTEGER, int)
+%r_fixed_size_array(unsigned int, INTSXP, INTEGER, int)
+%r_fixed_size_array(short, INTSXP, INTEGER, int)
+%r_fixed_size_array(signed short, INTSXP, INTEGER, int)
+%r_fixed_size_array(unsigned short, INTSXP, INTEGER, int)
+%r_fixed_size_array(long, INTSXP, INTEGER, int)
+%r_fixed_size_array(signed long, INTSXP, INTEGER, int)
+%r_fixed_size_array(unsigned long, INTSXP, INTEGER, int)
+%r_fixed_size_array(long long, INTSXP, INTEGER, int)
+%r_fixed_size_array(signed long long, INTSXP, INTEGER, int)
+%r_fixed_size_array(unsigned long long, INTSXP, INTEGER, int)
+%r_fixed_size_array(signed char, INTSXP, INTEGER, int)
+%r_fixed_size_array(unsigned char, INTSXP, INTEGER, int)
+%r_fixed_size_array(size_t, INTSXP, INTEGER, int)
+%r_fixed_size_array(std::size_t, INTSXP, INTEGER, int)
+%r_fixed_size_array(ptrdiff_t, INTSXP, INTEGER, int)
+%r_fixed_size_array(std::ptrdiff_t, INTSXP, INTEGER, int)
+%r_fixed_size_array(enum SWIGTYPE, INTSXP, INTEGER, int)
+%r_fixed_size_array(float, REALSXP, REAL, double)
+%r_fixed_size_array(double, REALSXP, REAL, double)
 
 %typemap(in,noblock=1,fragment="SWIG_strdup") char * {
    $1 = Rf_length($input) ? %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype) : 0;
