@@ -41,6 +41,10 @@ int overloading(int i) {
 int overloading(Struct *const& s) {
   return 222;
 }
+// A non-const reference to a pointer takes a pointer to a pointer, not a pointer
+int pointer_reference_value(Struct *& s) {
+  return s ? s->value : -1;
+}
 %}
 
 %{

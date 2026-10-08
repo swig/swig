@@ -21,6 +21,7 @@ unittest(grepl("^SWIG:NullReferenceError", error_message(function() vector_appen
 unittest(length(vecintptr(integer(0))), 0)
 unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(list()))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() vecstruct(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(Structure()))), TRUE)
 unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(integer(0)))), TRUE)
 unittest(grepl("^SWIG:TypeError", error_message(function() halve_in_place(numeric(0)))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() RevStringVec(NULL))), TRUE)

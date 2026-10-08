@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-08: wsfulton
+            [R] A wrapped object of the wrong type passed for a pointer or reference parameter now
+            gives a SWIG TypeError, as in the other target languages. Any pointer was accepted and
+            used as the type of the parameter, so for example passing a 'Foo' for a 'Foo *&'
+            parameter crashed. An object of a class that only another module knows, such as a class
+            derived in a module that %imports this one, is still accepted, as R modules do not share
+            their type information.
+
+2026-10-08: wsfulton
             [R] NULL and an empty vector, such as integer(0) or character(0), are now told apart,
             as the R wrappers no longer convert NULL to an empty vector before passing it to C/C++.
             NULL for a 'const std::vector<T> &' parameter now gives SWIG:NullReferenceError rather
