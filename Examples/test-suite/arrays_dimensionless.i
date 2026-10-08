@@ -36,6 +36,7 @@ int arr_int_isnull(int array[])                          { return array == 0; }
 int arr_double_isnull(double array[])                    { return array == 0; }
 enum arr_enum { arr_enum1, arr_enum2 };
 int arr_enum_isnull(enum arr_enum array[2])              { return array == 0; }
+int arr_enum_second(enum arr_enum array[2])              { return array[1]; }
 int arr_x_isnull(double *x, int len)                     { return x == 0 && len == 0; }
 
 %}

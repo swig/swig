@@ -54,13 +54,15 @@ static String *getRTypeName(SwigType *t, int *outCount = NULL) {
 /* --------------------------------------------------------------
  * Tries to get the resolved name, with options of adding
  * or removing a layer of references. Take care not
- * to request both
+ * to request both. Removing a layer from an array gives
+ * the element type.
  * --------------------------------------------------------------*/
 
 static String *getRClassName(String *retType, int deRef = 0, int upRef = 0) {
   SwigType *resolved = SwigType_typedef_resolve_all(retType);
   int ispointer = SwigType_ispointer(resolved);
   int isreference = SwigType_isreference(resolved);
+  int isarray = SwigType_isarray(resolved);
   if (upRef) {
     SwigType_add_pointer(resolved);
   }
@@ -70,6 +72,9 @@ static String *getRClassName(String *retType, int deRef = 0, int upRef = 0) {
     }
     if (isreference) {
       SwigType_del_reference(resolved);
+    }
+    if (isarray) {
+      SwigType_del_array(resolved);
     }
   }
   String *tmp = NewString("");

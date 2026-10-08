@@ -21,6 +21,8 @@ unittest(arr_int_isnull(NULL), 1)
 unittest(arr_double_isnull(c(1.5, 2.5)), 0)
 unittest(arr_double_isnull(NULL), 1)
 unittest(arr_enum_isnull(NULL), 1)
+unittest(arr_enum_second(c("arr_enum1", "arr_enum2")), 1)
+unittest(arr_enum_second(c(1L, 0L)), 0)
 unittest(arr_x_isnull(c(1.5, 2.5)), 0)
 unittest(arr_x_isnull(NULL), 1)
 

@@ -126,6 +126,8 @@
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *const
   %{  $input = enumToInteger($input, "$R_class"); %}
+%typemap(scoercein) enum SWIGTYPE [ANY]
+  %{  if (is.character($input)) $input = enumToInteger($input, "$*R_class"); %}
 
 %typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE *const&, SWIGTYPE &, SWIGTYPE &&
  %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}
