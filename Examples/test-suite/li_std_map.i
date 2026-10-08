@@ -1,7 +1,7 @@
 %module("templatereduce") li_std_map
 %feature("trackobjects");
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 

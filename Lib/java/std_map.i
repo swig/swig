@@ -28,6 +28,10 @@
   }
 }
 
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::map::empty "override";
+%javamethodmodifiers std::map::clear "override";
+#endif
 %javamethodmodifiers std::map::sizeImpl "private";
 %javamethodmodifiers std::map::containsImpl "private";
 %javamethodmodifiers std::map::putUnchecked "private";
@@ -38,11 +42,19 @@
 
 %rename(Iterator) std::map::iterator;
 %nodefaultctor std::map::iterator;
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %javamethodmodifiers std::map::iterator::getNextUnchecked "private";
 %javamethodmodifiers std::map::iterator::isNot "private";
 %javamethodmodifiers std::map::iterator::getKey "private";
 %javamethodmodifiers std::map::iterator::getValue "private";
 %javamethodmodifiers std::map::iterator::setValue "private";
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::map::iterator::getNextUnchecked "internal";
+%javamethodmodifiers std::map::iterator::isNot "internal";
+%javamethodmodifiers std::map::iterator::getKey "internal";
+%javamethodmodifiers std::map::iterator::getValue "internal";
+%javamethodmodifiers std::map::iterator::setValue "internal";
+#endif /* SWIGJAVA_TARGET */
 
 namespace std {
 
@@ -51,6 +63,7 @@ template<class K, class T, class C = std::less< K> > class map {
 %typemap(javabase) std::map< K, T, C >
     "java.util.AbstractMap<$typemap(jboxtype, K), $typemap(jboxtype, T)>"
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %proxycode %{
 
   public int size() {
@@ -140,6 +153,94 @@ template<class K, class T, class C = std::less< K> > class map {
     return setToReturn;
   }
 %}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%proxycode %{
+
+  override val size: Int
+    get() = sizeImpl()
+
+  @Suppress("REDUNDANT_NULLABLE")
+  override fun containsKey(key: $typemap(jboxtype, K)?): Boolean {
+    @Suppress("USELESS_IS_CHECK")
+    if (key !is $typemap(jboxtype, K)) {
+      return false;
+    }
+
+    return containsImpl(key)
+  }
+
+  @Suppress("REDUNDANT_NULLABLE")
+  override fun get(key: $typemap(jboxtype, K)?): $typemap(jboxtype, T)? {
+    @Suppress("USELESS_IS_CHECK")
+    if (key !is $typemap(jboxtype, K)) {
+      return null;
+    }
+    val itr = find(key)
+    if (itr.isNot(end())) {
+      return itr.getValue();
+    }
+
+    return null;
+  }
+
+  @Suppress("REDUNDANT_NULLABLE")
+  override fun put(key: $typemap(jboxtype, K), value: $typemap(jboxtype, T)): $typemap(jboxtype, T)? {
+    val itr = find(key)
+    if (itr.isNot(end())) {
+      val oldValue = itr.getValue()
+      itr.setValue(value);
+      return oldValue;
+    } else {
+      putUnchecked(key, value);
+      return null;
+    }
+  }
+
+  @Suppress("REDUNDANT_NULLABLE")
+  override fun remove(key: $typemap(jboxtype, K)?): $typemap(jboxtype, T)? {
+    @Suppress("USELESS_IS_CHECK")
+    if (key !is $typemap(jboxtype, K)) {
+      return null;
+    }
+
+    val itr = find(key)
+    if (itr.isNot(end())) {
+      val oldValue = itr.getValue()
+      removeUnchecked(itr);
+      return oldValue;
+    } else {
+      return null;
+    }
+  }
+
+  override val entries: MutableSet<MutableMap.MutableEntry<$typemap(jboxtype, K), $typemap(jboxtype, T)>>
+    get() {
+      val setToReturn = HashSet<MutableMap.MutableEntry<$typemap(jboxtype, K), $typemap(jboxtype, T)>>()
+      var itr = begin()
+      val endItr = end()
+      while (itr.isNot(endItr)) {
+        setToReturn.add(object : MutableMap.MutableEntry<$typemap(jboxtype, K), $typemap(jboxtype, T)> {
+          private val iterator = itr
+
+          override val key: $typemap(jboxtype, K)
+            get() = iterator.getKey()
+
+          override val value: $typemap(jboxtype, T)
+            get() = iterator.getValue()
+
+          override fun setValue(newValue: $typemap(jboxtype, T)): $typemap(jboxtype, T) {
+            val oldValue = iterator.getValue()
+            iterator.setValue(newValue)
+            return oldValue
+          }
+        })
+        itr = itr.getNextUnchecked()
+      }
+
+      return setToReturn;
+    }
+%}
+#endif /* SWIGJAVA_TARGET */
 
   public:
     typedef size_t size_type;
@@ -156,7 +257,11 @@ template<class K, class T, class C = std::less< K> > class map {
     map(const map& other);
 
     struct iterator {
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
       %typemap(javaclassmodifiers) iterator "public class"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+      %typemap(javaclassmodifiers) iterator "class"
+#endif
       %extend {
         std::map< K, T, C >::iterator getNextUnchecked() {
           std::map< K, T, C >::iterator copy = (*$self);

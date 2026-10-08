@@ -4,15 +4,12 @@
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGCSHARP) || defined(SWIGJAVA_SOURCE)
 %include <swiginterface.i>
 %interface(IA)
-#endif
-
-#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+#else
 %feature ("flatnested");
 #endif
-
 
 %inline %{
 struct IA {};

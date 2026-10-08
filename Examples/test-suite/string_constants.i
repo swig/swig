@@ -24,6 +24,7 @@
 #define PR1 ("paren")
 // Universal character names, the same as SS1 and SS2
 #define UU1 "\u00C6\u00CEOU\n"
+#define AR1 "\342\206\222"
 %}
 %constant SS2="ÆÎOU\n";
 %constant AA2="A\rB\nC";
@@ -34,6 +35,7 @@
 %constant QQ2="\b00! \18\14200!";
 %constant PR2=("paren");
 %constant UU2="\u00C6\u00CEOU\n";
+%constant AR2="\342\206\222";
 
 %inline %{
 static const char *SS3 = "ÆÎOU\n";
@@ -44,6 +46,7 @@ static const char *ZS3 = "\0";
 static const char *ES3 = "";
 static const char *QQ3 = "\b00! \18\14200!";
 static const char *PR3 = ("paren");
+static const char *AR3 = "\342\206\222";
 struct things {
   const char * defarguments1(const char *SS4 = "ÆÎOU\n") { return SS4; }
   const char * defarguments2(const char *AA4 = "A\rB\nC") { return AA4; }
@@ -53,5 +56,6 @@ struct things {
   const char * defarguments6(const char *ES4 = "") { return ES4; }
   const char * defarguments7(const char *QQ4 = "\b00! \18\14200!") { return QQ4; }
   const char * defarguments8(const char *PR4 = ("paren")) { return PR4; }
+  const char * defarguments9(const char *AR4 = "\342\206\222") { return AR4; }
 };
 %}

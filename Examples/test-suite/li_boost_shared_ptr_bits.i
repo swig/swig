@@ -4,7 +4,7 @@
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 

@@ -143,8 +143,13 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %define JAVA_ARRAYS_TYPEMAPS(CTYPE, JTYPE, JNITYPE, JFUNCNAME, JNIDESC)
 
 %typemap(jni) CTYPE[ANY], CTYPE[]               %{JNITYPE##Array%}
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) CTYPE[ANY], CTYPE[]             %{JTYPE[]%}
 %typemap(jstype) CTYPE[ANY], CTYPE[]            %{JTYPE[]%}
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) CTYPE[ANY], CTYPE[]             %{JTYPE%}
+%typemap(jstype) CTYPE[ANY], CTYPE[]            %{JTYPE%}
+#endif
 
 %typemap(in) CTYPE[] (JNITYPE *jarr)
 %{  if (!SWIG_JavaArrayIn##JFUNCNAME(jenv, &jarr, ($&1_ltype)&$1, $input)) return $null; %}
@@ -176,6 +181,7 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 %typemap(globalin) CTYPE[ANY], CTYPE[];
 %enddef
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 JAVA_ARRAYS_TYPEMAPS(bool, boolean, jboolean, Bool, "[Z")       /* bool[ANY] */
 JAVA_ARRAYS_TYPEMAPS(signed char, byte, jbyte, Schar, "[B")     /* signed char[ANY] */
 JAVA_ARRAYS_TYPEMAPS(unsigned char, short, jshort, Uchar, "[S") /* unsigned char[ANY] */
@@ -188,6 +194,20 @@ JAVA_ARRAYS_TYPEMAPS(unsigned long, long, jlong, Ulong, "[J")   /* unsigned long
 JAVA_ARRAYS_TYPEMAPS(long long, long, jlong, Longlong, "[J")    /* long long[ANY] */
 JAVA_ARRAYS_TYPEMAPS(float, float, jfloat, Float, "[F")         /* float[ANY] */
 JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] */
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+JAVA_ARRAYS_TYPEMAPS(bool, BooleanArray, jboolean, Bool, "[Z")       /* bool[ANY] */
+JAVA_ARRAYS_TYPEMAPS(signed char, ByteArray, jbyte, Schar, "[B")     /* signed char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned char, ShortArray, jshort, Uchar, "[S") /* unsigned char[ANY] */
+JAVA_ARRAYS_TYPEMAPS(short, ShortArray, jshort, Short, "[S")         /* short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned short, IntArray, jint, Ushort, "[I")   /* unsigned short[ANY] */
+JAVA_ARRAYS_TYPEMAPS(int, IntArray, jint, Int, "[I")                 /* int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned int, LongArray, jlong, Uint, "[J")     /* unsigned int[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long, IntArray, jint, Long, "[I")               /* long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(unsigned long, LongArray, jlong, Ulong, "[J")   /* unsigned long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(long long, LongArray, jlong, Longlong, "[J")    /* long long[ANY] */
+JAVA_ARRAYS_TYPEMAPS(float, FloatArray, jfloat, Float, "[F")         /* float[ANY] */
+JAVA_ARRAYS_TYPEMAPS(double, DoubleArray, jdouble, Double, "[D")     /* double[ANY] */
+#endif /* SWIGJAVA_TARGET */
 
 
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */
@@ -242,8 +262,13 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 %define JAVA_ARRAYSOFCLASSES(ARRAYSOFCLASSES)
 
 %typemap(jni) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "jlongArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "long[]"
 %typemap(jstype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$javaclassname[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "LongArray"
+%typemap(jstype) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "Array<$javaclassname>"
+#endif
 
 %typemap(javain) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] "$javaclassname.cArrayUnwrap($javainput)"
 %typemap(javaout) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[] {
@@ -341,6 +366,7 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 %{ free($1); %}
 #endif
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 /* Add some code to the proxy class of the array type for converting between type used in 
  * JNI class (long[]) and type used in proxy class ( ARRAYSOFCLASSES[] ) */
 %extend ARRAYSOFCLASSES {
@@ -360,6 +386,39 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
   }
 %}
 }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+/* Add some code to the companion object of the array type for converting between the type
+ * used in the JNI object (LongArray) and the type used in the proxy class (Array<CLASS>).
+ * This replaces the default kcompanion typemap so the getCPtr helpers are repeated here. */
+%typemap(javacompanion) ARRAYSOFCLASSES %{
+    internal fun getCPtr(obj: $javaclassname?): Long {
+      return if (obj == null) 0L else obj.swigCPtr
+    }
+
+    internal fun swigRelease(obj: $javaclassname?): Long {
+      var ptr = 0L
+      if (obj != null) {
+        if (!obj.swigCMemOwn)
+          throw IllegalStateException("Cannot release ownership as memory is not owned")
+        ptr = obj.swigCPtr
+        obj.swigCMemOwn = false
+        obj.delete()
+      }
+      return ptr
+    }
+
+    internal fun cArrayUnwrap(arrayWrapper: Array<$javaclassname>): LongArray {
+      val cArray = LongArray(arrayWrapper.size)
+      for (i in arrayWrapper.indices)
+        cArray[i] = getCPtr(arrayWrapper[i])
+      return cArray
+    }
+
+    internal fun cArrayWrap(cArray: LongArray, cMemoryOwn: Boolean): Array<$javaclassname> {
+      return Array(cArray.size) { i -> $javaclassname(cArray[i], cMemoryOwn) }
+    }
+%}
+#endif /* SWIGJAVA_TARGET */
 
 %enddef /* JAVA_ARRAYSOFCLASSES */
 
@@ -368,8 +427,13 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
  * Use the following to use these typemaps for an array of enums called name:
  * %apply ARRAYSOFENUMS[ANY] { name[ANY] }; */
 %typemap(jni) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "jintArray"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "int[]"
 %typemap(jstype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "int[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "IntArray"
+%typemap(jstype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "IntArray"
+#endif
 
 %typemap(javain) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "$javainput"
 %typemap(javaout) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] {
