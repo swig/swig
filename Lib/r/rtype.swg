@@ -69,7 +69,7 @@
   %{ extends($argtype, '$R_class') && length($arg) == 1 %}
 
 %typemap("rtypecheck") SWIGTYPE *const&
-  %{ extends($argtype, '$*R_class') && length($arg) == 1 %}
+  %{ (extends($argtype, '$*R_class') && length($arg) == 1) || is.null($arg) %}
 
 %typemap("rtypecheck") SWIGTYPE
   %{ extends($argtype, '$&R_class') && length($arg) == 1 %}
