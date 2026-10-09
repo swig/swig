@@ -26,8 +26,6 @@ cpp11_director_enums \
 cpp11_strongly_typed_enumerations \
 cpp_enum \
 default_constructor \
-director_enum \
-director_primitives \
 enum_thorough \
 smart_pointer_inherit \
 

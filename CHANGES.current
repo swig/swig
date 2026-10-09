@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [OCaml] An enum passed or returned by const reference, such as 'const Color &', is now
+            converted to and from an OCaml enum value, as when passed by value, rather than being
+            handled as a pointer. So is a global variable of such a type. An enum value could not be
+            passed for such a parameter. A director method returning one crashed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-09: wsfulton
+            [OCaml] Fix director methods with an enum or a member pointer parameter, which gave
+            wrapper code that did not compile.
+
+2026-10-09: wsfulton
             [OCaml] Fix a crash when C_void is passed for an array with the carray.i typemaps,
             such as 'int [4]'. A NULL pointer is now passed for a parameter. Setting a member
             variable now raises Invalid_argument.

@@ -310,7 +310,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swigtype_ptr_in(directorout);
 %swigtype_ptr_out(out);
 %swigtype_ptr_out(varout);
-%swigtype_ptr_out(directorin);
+
+%typemap(directorin) SWIGTYPE (CLASS::*) {
+    void *v;
+    memcpy(&v,& $1, sizeof(void *));
+    args = caml_list_append(args, caml_val_ptr(v,$1_descriptor));
+}
 
 %define %swigtype_array_fail(how,msg)
 %typemap(how) SWIGTYPE [] {
@@ -345,7 +350,29 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swig_enum_in(directorout)
 %swig_enum_out(out)
 %swig_enum_out(varout)
-%swig_enum_out(directorin)
+
+%typemap(directorin) enum SWIGTYPE %{
+    args = caml_list_append(args, caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$type_marker"),Val_int((int)$1)));
+%}
+
+%typemap(in) const enum SWIGTYPE & ($*1_ltype temp) %{
+    temp = ($*1_ltype)caml_long_val_full($input,"$*1_ltype_marker");
+    $1 = &temp;
+%}
+%typemap(out) const enum SWIGTYPE & %{
+    $result = caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$*1_ltype_marker"),Val_int((int)*$1));
+%}
+%typemap(varout) const enum SWIGTYPE & %{
+    $result = caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$*1_ltype_marker"),Val_int((int)$1));
+%}
+%typemap(directorin) const enum SWIGTYPE & %{
+    args = caml_list_append(args, caml_callback2(*caml_named_value(SWIG_MODULE "_int_to_enum"),*caml_named_value("$*1_ltype_marker"),Val_int((int)$1)));
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE & %{
+    static $*1_ltype temp;
+    temp = ($*1_ltype)caml_long_val_full($input,"$*1_ltype_marker");
+    $result = &temp;
+%}
 
 /* String & length typemap */
 

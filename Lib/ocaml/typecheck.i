@@ -47,7 +47,7 @@
 // XXX arty 
 // Will move enum SWIGTYPE later when I figure out what to do with it...
 
-%typecheck(SWIG_TYPECHECK_INT32) int, signed int, const int &, const signed int &, enum SWIGTYPE {
+%typecheck(SWIG_TYPECHECK_INT32) int, signed int, const int &, const signed int &, enum SWIGTYPE, const enum SWIGTYPE & {
   if( !Is_block($input) ) $1 = 0;
   else {
       switch( Tag_val($input) ) {
