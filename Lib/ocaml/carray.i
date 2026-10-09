@@ -16,12 +16,17 @@ type _value = c_obj
 }
 %enddef
 
-%define %array_tmap_in(type,what,in_f)
+/* C_void is a NULL pointer, but is not accepted for a variable, as the array is copied from it */
+%define %array_tmap_in(type,what,in_f,null_action)
 %typemap(type) what [ANY] {
     int i;
-    $1 = ($*1_type *)malloc( $1_size * sizeof($*1_type) );
-    for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
-	$1[i] = in_f(caml_array_nth($input,i));
+    if (!Is_block($input)) {
+        null_action;
+    } else {
+        $1 = ($*1_type *)malloc( $1_size * sizeof($*1_type) );
+        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+            $1[i] = in_f(caml_array_nth($input,i));
+        }
     }
 }
 
@@ -35,9 +40,9 @@ type _value = c_obj
 %array_tmap_out(varout,type,out_f);
 %array_tmap_out(directorin,type,out_f);
 
-%array_tmap_in(in,type,in_f);
-%array_tmap_in(varin,type,in_f);
-%array_tmap_in(directorout,type,in_f);
+%array_tmap_in(in,type,in_f,$1 = 0);
+%array_tmap_in(varin,type,in_f,SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null"));
+%array_tmap_in(directorout,type,in_f,$1 = 0);
 %enddef
 
 %make_simple_array_typemap(bool,caml_val_bool,caml_long_val);
@@ -57,22 +62,26 @@ type _value = c_obj
 %typemap(in) SWIGTYPE [] {
     int i;
 
-    $1 = new $*1_type [$1_dim0];
-    for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
-	$1[i] = *(($*1_ltype *) 
-		caml_ptr_val(caml_array_nth($input,i),
-			     $*1_descriptor)) ;
+    if (!Is_block($input)) {
+        $1 = 0;
+    } else {
+        $1 = new $*1_type [$1_dim0];
+        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+            $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $*1_descriptor));
+        }
     }
 }
 #else
 %typemap(in) SWIGTYPE [] {
     int i;
 
-    $1 = ($*1_type *)malloc( $1_size );
-    for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
-	$1[i] = *(($*1_ltype)
-		caml_ptr_val(caml_array_nth($input),
-			     $*1_descriptor));
+    if (!Is_block($input)) {
+        $1 = 0;
+    } else {
+        $1 = ($*1_type *)malloc( $1_size );
+        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+            $1[i] = *(($*1_ltype)caml_ptr_val(caml_array_nth($input), $*1_descriptor));
+        }
     }
 }
 #endif
@@ -100,11 +109,13 @@ type _value = c_obj
 %typemap(in) enum SWIGTYPE [] {
     int i;
 
-    $1 = ($*1_type *)malloc( $1_size );
-    for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
-	$1[i] = ($type)
-		caml_long_val_full(caml_array_nth($input),
-			           "$type_marker");
+    if (!Is_block($input)) {
+        $1 = 0;
+    } else {
+        $1 = ($*1_type *)malloc( $1_size );
+        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+            $1[i] = ($type)caml_long_val_full(caml_array_nth($input), "$type_marker");
+        }
     }
 }
 

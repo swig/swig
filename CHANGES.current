@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [OCaml] Fix a crash when C_void is passed for an array with the carray.i typemaps,
+            such as 'int [4]'. A NULL pointer is now passed for a parameter. Setting a member
+            variable now raises Invalid_argument.
+
+2026-10-09: wsfulton
             [Scilab] An empty matrix for a parameter that is an array of numbers, bools or strings,
             such as 'int [4]', 'double []', 'bool [4]' or 'char *[]', is now passed as a NULL
             pointer, as NULL is in the other target languages. It was passed as memory for no
