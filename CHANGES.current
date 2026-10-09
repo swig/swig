@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [R] An object can now be passed for an array of its class, such as a Shape for a
+            'Shape [3]' parameter, as a pointer to the first element, as in the other target
+            languages. Any argument other than NULL for an array of a class gave an R internal
+            error such as "R_ExternalPtrAddr: argument of type S4SXP is not an external pointer".
+
+2026-10-09: wsfulton
             [R] A vector of more than one value, such as c(6, 7), now gives a SWIG TypeError for a
             number, bool or enum parameter passed by value or by const reference, such as 'short'
             or 'const double &', which takes one value. The first value was used. An integer type or

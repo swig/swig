@@ -423,6 +423,7 @@ The errors are described in <a href="#R_null_errors">Handling NULL errors</a>.
 <tr><td>Pointer to numbers, <tt>int *</tt>, <tt>double []</tt></td><td>NULL pointer</td>
     <td>Pointer to an array holding a single 0</td></tr>
 <tr><td>Fixed size array of numbers or enums, <tt>int [3]</tt></td><td>NULL pointer</td><td>Array of zeros</td></tr>
+<tr><td>Array of a class, <tt>Shape [3]</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
 <tr><td><tt>const std::vector&lt;int&gt; &amp;</tt></td><td>SWIG:NullReferenceError</td>
     <td>Empty <tt>std::vector</tt></td></tr>
 <tr><td><tt>std::vector&lt;int&gt;</tt> by value</td><td>SWIG:TypeError</td><td>Empty <tt>std::vector</tt></td></tr>
@@ -441,6 +442,8 @@ values to read.
 <p>
 A vector shorter than a fixed size array, such as <tt>int [3]</tt>, fills the start of the array and the remaining
 elements are zero, while a longer vector gives SWIG:OverflowError.
+An array of a class, such as <tt>Shape [3]</tt>, takes an object of the class, which is passed as a pointer to it, as
+in the other target languages.
 Setting a fixed size array member or global variable to <tt>NULL</tt> gives SWIG:NullReferenceError.
 </p>
 

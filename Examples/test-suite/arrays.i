@@ -43,6 +43,10 @@ typedef struct {
 
 void fn_taking_arrays(SimpleStruct array_struct[ARRAY_LEN]) {}
 
+double first_double_field(SimpleStruct array_struct[ARRAY_LEN]) {
+  return array_struct[0].double_field;
+}
+
 /* Pointer helper functions used in the Java run test */
 int* newintpointer() {
     return (int*)malloc(sizeof(int));

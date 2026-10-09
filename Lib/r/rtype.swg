@@ -162,11 +162,8 @@
   %{ $input = coerceIfNotSubclass($input, "$&R_class"); %}
 */
 
-%typemap(scoercein) SWIGTYPE[ANY]  
- %{
-    if(is.list($input))
-      assert(all(sapply($input, class) == "$R_class"));
- %}
+%typemap(scoercein) SWIGTYPE[ANY]
+ %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}
 
 
 /* **************************************************************** */
