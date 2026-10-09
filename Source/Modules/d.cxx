@@ -1738,6 +1738,12 @@ public:
       }
       String *actioncode = emit_action(n);
 
+      // The action of a variable setter is the memberin or globalin typemap
+      if (Getattr(n, "memberset"))
+        canThrow(n, "memberin", n);
+      else if (Getattr(n, "varset"))
+        canThrow(n, "globalin", n);
+
       /* Return value if necessary  */
       if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
         canThrow(n, "out", n);

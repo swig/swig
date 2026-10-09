@@ -413,8 +413,7 @@ The errors are described in <a href="#R_null_errors">Handling NULL errors</a>.
 <tr><td>String, <tt>char *</tt>, <tt>const char *</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
 <tr><td>String and length, <tt>(const char *STRING, size_t LENGTH)</tt></td><td>NULL pointer and length 0</td>
     <td>SWIG:TypeError</td></tr>
-<tr><td>Fixed size char array, <tt>char [8]</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
-<tr><td>Char array of unknown size, <tt>char []</tt></td><td>SWIG:NullReferenceError</td><td>SWIG:TypeError</td></tr>
+<tr><td>Char array, <tt>char [8]</tt>, <tt>char []</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
 <tr><td>Array of strings, <tt>char *[3]</tt></td><td>SWIG:NullReferenceError</td><td>Array of NULL pointers</td></tr>
 <tr><td>Number, bool or enum, by value or const reference, <tt>int</tt>, <tt>const double &amp;</tt></td>
     <td>SWIG:TypeError</td><td>SWIG:TypeError</td></tr>

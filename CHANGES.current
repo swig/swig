@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [C#, D, Go, Guile, Java, Lua, PHP] Fix a crash when setting an array member or global
+            variable, such as 'int [4]', 'Foo [2]' or 'int [2][3]', to NULL, such as null in Java,
+            as the array was copied from it. An error is now raised instead, as in the other target
+            languages. NULL for an array parameter is still passed as a NULL pointer.
+
+2026-10-09: wsfulton
+            [C] When wrapping C++, fix a crash when setting an array member or global variable,
+            such as 'int [4]' or 'int [2][3]', to NULL. SWIG_exception is now called with
+            SWIG_NullReferenceError instead, which raises a SWIG_CException.
+
+2026-10-09: wsfulton
+            [C#, D] The canthrow attribute now works in memberin and globalin typemaps, so that a
+            pending exception set in one of these typemaps is thrown when setting the variable.
+
+2026-10-09: wsfulton
             Fix a string literal with characters after an embedded NUL, such as "a\0bc" or
             L"a\0bc", where SWIG copies the literal into the generated code, such as for a
             constant from '#define S "a\0bc"' or %constant, or for a default argument used by
@@ -244,16 +259,10 @@ Version 4.6.0 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2026-10-06: wsfulton
-            [C#, D, Java, Lua, OCaml, PHP] NULL, such as null in Java, is no longer accepted for a
-            char array parameter of any size, such as 'char [8]' or 'char []'. An error is raised
-            instead. Previously it was passed on as a NULL pointer, or as an empty string in PHP.
-
-            *** POTENTIAL INCOMPATIBILITY ***
-
-2026-10-06: wsfulton
-            [Javascript, Octave, Perl, Python, Ruby] NULL, such as None in Python, for a fixed size
-            char array parameter, such as 'char [8]', is now passed on as a NULL pointer, as for
-            any other array parameter, instead of as a zero filled array.
+            [Javascript, Octave, Perl, PHP, Python, Ruby] NULL, such as None in Python, for a fixed
+            size char array parameter, such as 'char [8]', is now passed on as a NULL pointer, as
+            for any other array parameter, instead of as a zero filled array. In PHP NULL is also
+            passed on for a 'char []' parameter, which was given an empty string.
 
             *** POTENTIAL INCOMPATIBILITY ***
 
@@ -273,19 +282,17 @@ Version 4.6.0 (in progress)
             is now raised instead.
 
 2026-10-06: wsfulton
-            [R] NULL for a fixed size char array parameter, such as 'char [8]', or a
-            'const char []' one, is now passed on as a NULL pointer, as for any other array
-            parameter, instead of giving an R error. NULL for a 'char []' parameter, or set on a
-            char array member or global variable, now gives a SWIG NullReferenceError instead of the
-            R internal error "CHAR() can only be applied to a 'CHARSXP', not a 'NULL'".
+            [R] NULL for a char array parameter, such as 'char [8]' or 'char []', is now passed on
+            as a NULL pointer, as for any other array parameter, instead of giving an R error. NULL
+            set on a char array member or global variable now gives a SWIG NullReferenceError
+            instead of the R internal error "CHAR() can only be applied to a 'CHARSXP', not a
+            'NULL'".
 
 2026-10-06: wsfulton
-            [C] When wrapping C++, NULL is no longer accepted for a char array parameter of any
-            size, such as 'char [8]' or 'char []', nor when setting a char array member or global
-            variable, as NULL is not a valid input for an array in C. SWIG_exception is called
-            with SWIG_NullReferenceError instead, which raises a SWIG_CException. The wrapped
-            function is not called. Previously NULL was passed on. Setting a member to NULL cleared
-            only its first char.
+            [C] When wrapping C++, setting a char array member or global variable, such as
+            'char [8]', to NULL now calls SWIG_exception with SWIG_NullReferenceError, which raises
+            a SWIG_CException, as there is nothing to copy. Previously only its first char was
+            cleared.
 
             *** POTENTIAL INCOMPATIBILITY ***
 

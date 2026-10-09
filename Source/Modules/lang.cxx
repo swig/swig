@@ -1536,6 +1536,11 @@ int Language::membervariableHandler(Node *n) {
         // otherwise qualification is done on the parameter name for the setter function
         Parm *nin = NewParm(type, name, n);
         tm = Swig_typemap_lookup("memberin", nin, target, 0);
+        // Keep the typemap attributes, such as canthrow, for the setter, as for the globalin typemap of a global variable
+        for (Iterator ki = First(nin); ki.key; ki = Next(ki)) {
+          if (Strncmp(ki.key, "tmap:memberin:", 14) == 0)
+            Setattr(n, ki.key, ki.item);
+        }
         Delete(nin);
       }
 

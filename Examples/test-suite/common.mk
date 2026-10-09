@@ -135,6 +135,7 @@ CPP_TEST_CASES += \
 	arrays_dimensionless \
 	arrays_global \
 	arrays_global_twodim \
+	arrays_null \
 	arrays_scope \
 	assign_const \
 	assign_reference \

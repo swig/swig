@@ -202,10 +202,11 @@ int main() {
     }
   }
 
-  char_strings_CharArrayPingPong(NULL);
-  check_null_rejected("char array");
-  char_strings_CharArrayDimsPingPong(NULL);
-  check_null_rejected("char array dims");
+  if (char_strings_CharArrayPingPong(NULL) != NULL || char_strings_CharArrayDimsPingPong(NULL) != NULL ||
+      char_strings_SWIG_CException_get_pending()) {
+    fprintf(stderr, "Test char array NULL parameter failed\n");
+    exit(1);
+  }
   char_strings_CharArrayNull_four_set(char_strings_char_array_null_get(), NULL);
   check_null_rejected("char array member set");
   char_strings_global_char_array_null_set(NULL);

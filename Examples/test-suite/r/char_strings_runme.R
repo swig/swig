@@ -127,7 +127,7 @@ null_message = function(f) {
   msg
 }
 null_member = char_array_null_get()
-unittest(grepl("^SWIG:NullReferenceError", null_message(function() CharArrayPingPong(NULL))), TRUE)
+unittest(is.null(CharArrayPingPong(NULL)), TRUE)
 unittest(is.null(CharArrayDimsPingPong(NULL)), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", null_message(function() null_member$four <- NULL)), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", null_message(function() global_char_array_null_set(NULL))), TRUE)

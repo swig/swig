@@ -167,16 +167,8 @@ public class char_strings_runme {
     if (!char_strings.getGlobal_char_one().equals("a") || !one.getOne().equals("b"))
       throw new RuntimeException("Test char[1] failed");
 
-    try {
-      char_strings.CharArrayPingPong(null);
+    if (char_strings.CharArrayPingPong(null) != null || char_strings.CharArrayDimsPingPong(null) != null)
       throw new RuntimeException("Test char array null failed");
-    } catch (NullPointerException e) {
-    }
-    try {
-      char_strings.CharArrayDimsPingPong(null);
-      throw new RuntimeException("Test char array dims null failed");
-    } catch (NullPointerException e) {
-    }
     try {
       char_strings.getChar_array_null().setFour(null);
       throw new RuntimeException("Test char array member set to null failed");

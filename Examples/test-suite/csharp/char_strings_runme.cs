@@ -157,16 +157,8 @@ public class char_strings_runme {
     if (char_strings.global_char_one != "a" || one.one != "b")
       throw new Exception("Test char[1] failed");
 
-    try {
-      char_strings.CharArrayPingPong(null);
+    if (char_strings.CharArrayPingPong(null) != null || char_strings.CharArrayDimsPingPong(null) != null)
       throw new Exception("Test char array null failed");
-    } catch (ArgumentNullException) {
-    }
-    try {
-      char_strings.CharArrayDimsPingPong(null);
-      throw new Exception("Test char array dims null failed");
-    } catch (ArgumentNullException) {
-    }
     try {
       char_strings.char_array_null.four = null;
       throw new Exception("Test char array member set to null failed");

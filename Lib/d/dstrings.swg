@@ -38,21 +38,15 @@
  */
 
 %typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char[ANY] (char temp[$1_dim0])
-%{ if (!$input) {
-     SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
-     return $null;
-   }
-   if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
-     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "string too long for char array");
-     return $null;
-   }
-   $1 = ($1_ltype)temp; %}
-%typemap(in, canthrow=1) char[]
-%{ if (!$input) {
-     SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
-     return $null;
-   }
-   $1 = ($1_ltype)$input; %}
+%{ $1 = 0;
+   if ($input) {
+     if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+       SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "string too long for char array");
+       return $null;
+     }
+     $1 = ($1_ltype)temp;
+   } %}
+%typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
 %typemap(out, fragment="SWIG_CharArrayString") char[ANY] %{ {
      const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
      $result = SWIG_d_string_callback(swig_str);
@@ -98,3 +92,14 @@ static import std.string;
 #undef SWIGD_STRING_TYPEMAPS
 
 %apply char[ANY] { char (&)[ANY] }
+/* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
+%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
+%{ if (!$input) {
+     SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
+     return $null;
+   }
+   if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "string too long for char array");
+     return $null;
+   }
+   $1 = ($1_ltype)temp; %}

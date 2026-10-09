@@ -54,8 +54,9 @@ $one = new CharArrayOne();
 $one->one = "b";
 check::equal($one->one, "b", "failed CharArrayOne one");
 
-foreach ([fn() => CharArrayPingPong(null), fn() => CharArrayDimsPingPong(null),
-          fn() => Char_array_null_get()->four = null, fn() => Global_char_array_null_set(null)] as $i => $f) {
+check::equal(CharArrayPingPong(null), null, "failed CharArrayPingPong null");
+check::equal(CharArrayDimsPingPong(null), null, "failed CharArrayDimsPingPong null");
+foreach ([fn() => Char_array_null_get()->four = null, fn() => Global_char_array_null_set(null)] as $i => $f) {
   try {
     $f();
     check::fail("char array null $i accepted");

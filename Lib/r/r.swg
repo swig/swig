@@ -281,12 +281,13 @@ std::ptrdiff_t *INOUT
 /* char[ANY] uses the Lib/typemaps typemaps, which copy the string into a zero filled array of the declared size */
 %typemap(in,noblock=1,fragment="SWIG_strdup") char[] {
     if (Rf_isNull($input)) {
-      %argument_nullref("$type", $symname, $argnum);
+      $1 = 0;
+    } else {
+      if (Rf_length($input) != 1) {
+        %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+      }
+      $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
     }
-    if (Rf_length($input) != 1) {
-      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
-    }
-    $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
 }
 
 %typemap(freearg,noblock=1) char[] {

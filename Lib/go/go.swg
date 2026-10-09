@@ -15,6 +15,11 @@
 %}
 %include <swigcommon.swg>
 
+%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%typemap(memberin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
+%typemap(globalin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
+
 /* Basic types */
 
 %typemap(gotype) bool,               const bool &               "bool"

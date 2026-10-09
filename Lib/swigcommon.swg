@@ -112,58 +112,59 @@ namespace std {
 
 /* Character array handling */
 
-/* No check for NULL, which the in typemaps reject for a char array */
-%typemap(memberin,fragment="SWIG_AssignCharArray") char [ANY] %{
-  SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
-%}
-
-%typemap(globalin,fragment="SWIG_AssignCharArray") char [ANY] %{
-  SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
-%}
-
-/* No char [] memberin/globalin typemaps, so such a variable is read only, as there is no size to bound the copy */
-
-/* memberin/globalin typemap for arrays. */
-
-%typemap(memberin) SWIGTYPE [ANY] {
-  size_t ii;
-  $1_basetype *b = ($1_basetype *) $1;
-  for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
-}
-
-%typemap(globalin) SWIGTYPE [ANY] {
-  size_t ii;
-  $1_basetype *b = ($1_basetype *) $1;
-  for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
-}
-
-%typemap(memberin) SWIGTYPE (&)[ANY] = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE (&)[ANY] = SWIGTYPE [ANY];
-%typemap(memberin) SWIGTYPE (&&)[ANY] = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE (&&)[ANY] = SWIGTYPE [ANY];
-
-/* memberin/globalin typemap for double arrays. */
-
-%typemap(memberin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
-  $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
-  size_t ii = 0;
-  for (; ii < $1_dim0; ++ii) {
-    $basetype *ip = inp[ii];
-    $basetype *dp = dest[ii];
-    size_t jj = 0;
-    for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
+%typemap(memberin, canthrow=1, noblock=1, fragment="SWIG_exception_fail", fragment="SWIG_AssignCharArray") char [ANY] {
+  if (!$input) {
+    SWIG_exception_fail(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
+  } else {
+    SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
   }
 }
 
-%typemap(globalin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
-  $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
-  size_t ii = 0;
-  for (; ii < $1_dim0; ++ii) {
-    $basetype *ip = inp[ii];
-    $basetype *dp = dest[ii];
-    size_t jj = 0;
-    for (; jj < $1_dim1; ++jj) dp[jj] = ip[jj];
+%typemap(globalin, canthrow=1, noblock=1, fragment="SWIG_exception_fail", fragment="SWIG_AssignCharArray") char [ANY] {
+  if (!$input) {
+    SWIG_exception_fail(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
+  } else {
+    SWIG_AssignCharArray((char *)$1, $1_dim0, (const char *)$input);
+  }
+}
+
+/* No char [] memberin/globalin typemaps, so such a variable is read only, as there is no size to bound the copy */
+
+/* memberin/globalin typemaps for arrays, which copy all $1_size elements, so also those of an array of arrays */
+%typemap(memberin, canthrow=1, noblock=1, fragment="SWIG_exception_fail") SWIGTYPE [ANY], SWIGTYPE [ANY][ANY] {
+  if (!$input) {
+    SWIG_exception_fail(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
+  } else {
+    size_t ii;
+    for (ii = 0; ii < (size_t)$1_size; ii++) {
+      (($1_basetype *)$1)[ii] = (($1_basetype *)$input)[ii];
+    }
+  }
+}
+
+%typemap(globalin, canthrow=1, noblock=1, fragment="SWIG_exception_fail") SWIGTYPE [ANY], SWIGTYPE [ANY][ANY] {
+  if (!$input) {
+    SWIG_exception_fail(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
+  } else {
+    size_t ii;
+    for (ii = 0; ii < (size_t)$1_size; ii++) {
+      (($1_basetype *)$1)[ii] = (($1_basetype *)$input)[ii];
+    }
+  }
+}
+
+/* No check for NULL for a reference to an array, as the in typemap for a reference rejects it. A target language
+ * whose in typemap does not, copies the typemaps above for a reference to an array instead. */
+%typemap(memberin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  size_t ii;
+  for (ii = 0; ii < (size_t)$1_size; ii++) {
+    (($1_basetype *)$1)[ii] = (($1_basetype *)$input)[ii];
+  }
+}
+
+%typemap(globalin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  size_t ii;
+  for (ii = 0; ii < (size_t)$1_size; ii++) {
+    (($1_basetype *)$1)[ii] = (($1_basetype *)$input)[ii];
   }
 }

@@ -63,6 +63,8 @@
   int ii;
   $1_basetype *b = 0;
   temp = SWIG_MustGetPtr($input, $1_descriptor, 1, 0);
+  if (!temp)
+    scm_misc_error(FUNC_NAME, "invalid null reference in variable '$name' of type '$1_type'", SCM_EOL);
   b = ($1_basetype *) $1;
   for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
 }
@@ -553,8 +555,6 @@ typedef unsigned long SCM;
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }

@@ -166,24 +166,17 @@
 }
 
 /* memberin/globalin/varin, for a reference to a fix array.  These also match a reference to an array of arrays, such
-   as an int (&)[2][3], so all $1_size elements are copied rather than the $1_dim0 of the first dimension. */
+   as an int (&)[2][3], so all $1_size elements are copied rather than the $1_dim0 of the first dimension. memberin and
+   globalin do not check for NULL, which the in typemap for a reference rejects. */
 
 %typemap(memberin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
-  if ($input) {
-    size_t ii = 0;
-    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
-  } else {
-    %variable_nullref("$type","$name");
-  }
+  size_t ii = 0;
+  for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
 }
 
 %typemap(globalin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
-  if ($input) {
-    size_t ii = 0;
-    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
-  } else {
-    %variable_nullref("$type","$name");
-  }
+  size_t ii = 0;
+  for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
 }
 
 %typemap(varin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
