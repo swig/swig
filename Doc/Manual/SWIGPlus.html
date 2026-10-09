@@ -3566,6 +3566,30 @@ This will generate two overloaded wrapper methods, the first will take a single 
 and the second will take two integer arguments.
 </p>
 
+<p>
+As in C++, only the overloads whose template parameters take the template arguments are instantiated.
+That is, the arguments must cover each template parameter without a default and each must be the kind
+of argument its parameter takes: a type for a type template parameter, a value for a non-type template parameter
+and a template for a template template parameter.
+A name that SWIG has not seen declared is assumed to be the right kind of argument for any template parameter.
+Likewise, a template parameter with a type that SWIG has not seen declared, such as <tt>std::size_t N</tt> without a
+typedef for <tt>size_t</tt>, takes any kind of argument, as the name could also be a concept constraining a type
+template parameter.
+For example:
+</p>
+
+<div class="code">
+<pre>
+template&lt;class T&gt; int kind() { return 1; }
+template&lt;int N&gt; int kind() { return 2; }
+template&lt;class T, class U&gt; int kind() { return 3; }
+
+%template(kind_int) kind&lt;int&gt;;                 // instantiates the first kind only
+%template(kind_10) kind&lt;10&gt;;                   // instantiates the second kind only
+%template(kind_int_double) kind&lt;int, double&gt;;  // instantiates the third kind only
+</pre>
+</div>
+
 <H3><a name="SWIGPlus_template_classes">6.18.3 Default template arguments</a></H3>
 
 

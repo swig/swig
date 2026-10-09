@@ -39,6 +39,7 @@
 <li><a href="#CPlusPlus11_alias_templates">Alias templates</a>
 <li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
+<li><a href="#CPlusPlus11_function_template_default_arguments">Default template arguments for function templates</a>
 <li><a href="#CPlusPlus11_new_char_literals">New character literals</a>
 <li><a href="#CPlusPlus11_new_string_literals">New string literals</a>
 <li><a href="#CPlusPlus11_user_defined_literals">User-defined literals</a>
@@ -1623,7 +1624,57 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
-<H3><a name="CPlusPlus11_new_char_literals">7.2.21 New character literals</a></H3>
+<H3><a name="CPlusPlus11_function_template_default_arguments">7.2.21 Default template arguments for function templates</a></H3>
+
+
+<p>
+C++11 allows default template arguments in a function template, which C++03 only allowed in a class template.
+As for a class template, <tt>%template</tt> can leave out the template arguments that have defaults.
+For example:
+</p>
+
+<div class="code"><pre>
+template&lt;typename T, typename U = int&gt; U convert(T t) { return static_cast&lt;U&gt;(t); }
+template&lt;typename T, int N = 2&gt; T scale(T t) { return t * N; }
+
+%template(convert_double) convert&lt;double&gt;;   // convert&lt;double, int&gt;
+%template(scale_int) scale&lt;int&gt;;             // scale&lt;int, 2&gt;
+%template(scale_int_10) scale&lt;int, 10&gt;;
+</pre></div>
+
+<p>
+Example usage from Python:
+</p>
+
+<div class="targetlang"><pre>
+&gt;&gt;&gt; convert_double(2.7)
+2
+&gt;&gt;&gt; scale_int(3)
+6
+&gt;&gt;&gt; scale_int_10(3)
+30
+</pre></div>
+
+<p>
+When every template parameter has a default, all the template arguments can be left out:
+</p>
+
+<div class="code"><pre>
+template&lt;typename T = double&gt; T zero() { return T(); }
+
+%template(zero) zero&lt;&gt;;  // zero&lt;double&gt;
+</pre></div>
+
+<p>
+The defaults are also used to choose which overloads of an overloaded function template are instantiated,
+see <a href="SWIGPlus.html#SWIGPlus_template_functions">Function templates</a>.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to support default template arguments in function templates.
+</p>
+
+<H3><a name="CPlusPlus11_new_char_literals">7.2.22 New character literals</a></H3>
 
 
 <p>
@@ -1640,7 +1691,7 @@ char32_t b = U'b';
 <b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
 </p>
 
-<H3><a name="CPlusPlus11_new_string_literals">7.2.22 New string literals</a></H3>
+<H3><a name="CPlusPlus11_new_string_literals">7.2.23 New string literals</a></H3>
 
 
 <p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
@@ -1670,7 +1721,7 @@ Note: There is a bug currently where SWIG's preprocessor incorrectly parses an o
 inside raw string literals.
 </p>
 
-<H3><a name="CPlusPlus11_user_defined_literals">7.2.23 User-defined literals</a></H3>
+<H3><a name="CPlusPlus11_user_defined_literals">7.2.24 User-defined literals</a></H3>
 
 
 <p>
@@ -1737,7 +1788,7 @@ OutputType var2 = 1234_suffix;
 OutputType var3 = 3.1416_suffix;
 </pre></div>
 
-<H3><a name="CPlusPlus11_thread_local_storage">7.2.24 Thread-local storage</a></H3>
+<H3><a name="CPlusPlus11_thread_local_storage">7.2.25 Thread-local storage</a></H3>
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
@@ -1757,7 +1808,7 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_defaulted_deleted">7.2.25 Explicitly defaulted functions and deleted functions</a></H3>
+<H3><a name="CPlusPlus11_defaulted_deleted">7.2.26 Explicitly defaulted functions and deleted functions</a></H3>
 
 
 <p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
@@ -1795,12 +1846,12 @@ This is a C++ compile time check and SWIG does not make any attempt to detect if
 so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
 </p>
 
-<H3><a name="CPlusPlus11_type_long_long_int">7.2.26 Type long long int</a></H3>
+<H3><a name="CPlusPlus11_type_long_long_int">7.2.27 Type long long int</a></H3>
 
 
 <p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
 
-<H3><a name="CPlusPlus11_static_assertions">7.2.27 Static assertions</a></H3>
+<H3><a name="CPlusPlus11_static_assertions">7.2.28 Static assertions</a></H3>
 
 
 <p>
@@ -1816,7 +1867,7 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_sizeof">7.2.28 Allow sizeof to work on members of classes without an explicit object</a></H3>
+<H3><a name="CPlusPlus11_sizeof">7.2.29 Allow sizeof to work on members of classes without an explicit object</a></H3>
 
 
 <p>
@@ -1837,7 +1888,7 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
-<H3><a name="CPlusPlus11_noexcept">7.2.29 Exception specifications and noexcept</a></H3>
+<H3><a name="CPlusPlus11_noexcept">7.2.30 Exception specifications and noexcept</a></H3>
 
 
 <p>
@@ -1853,7 +1904,7 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
-<H3><a name="CPlusPlus11_alignment">7.2.30 Control and query object alignment</a></H3>
+<H3><a name="CPlusPlus11_alignment">7.2.31 Control and query object alignment</a></H3>
 
 
 <p>
@@ -1885,7 +1936,7 @@ Use the preprocessor to work around this for now:
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_attributes">7.2.31 Attributes</a></H3>
+<H3><a name="CPlusPlus11_attributes">7.2.32 Attributes</a></H3>
 
 
 <p>
@@ -1901,7 +1952,7 @@ int [[attr1]] i [[attr2, attr3]];
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_ref_qualifiers">7.2.32 Methods with ref-qualifiers</a></H3>
+<H3><a name="CPlusPlus11_ref_qualifiers">7.2.33 Methods with ref-qualifiers</a></H3>
 
 
 <p>

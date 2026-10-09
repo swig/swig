@@ -163,6 +163,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       /* Called when template appears inside another template */
       /* Member templates */
 
+      /* The types and defaults of its template parameters, such as the default 'T' of 'template<class U, class V = T>' */
+      add_parms(Getattr(n, "templateparms"), patchlist, typelist, 0);
       set_nodeType(n, Getattr(n, "templatetype"));
       cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
       set_nodeType(n, "template");
@@ -1888,6 +1890,150 @@ static int already_matched(List *matches, Node *n) {
   return 0;
 }
 
+/* The kinds of template parameter, so also of the template arguments they take. */
+typedef enum { TemplateKindUnknown, TemplateKindType, TemplateKindNonType, TemplateKindTemplate } ETemplateKind;
+
+/* -----------------------------------------------------------------------------
+ * template_parameter_kind()
+ *
+ * The kind of template parameter 'tp': a type parameter such as 'typename T' or 'class... Ts', a template template
+ * parameter such as 'template<class> class TT' or a non-type parameter such as 'int N' or 'auto... Vs'. Unknown for a
+ * parameter with a type not declared to SWIG, such as 'std::size_t N' or the 'T V' of 'template<typename T, T V>',
+ * which the parser takes to be a type parameter constrained by a concept of that name.
+ * ----------------------------------------------------------------------------- */
+
+static ETemplateKind template_parameter_kind(Parm *tp) {
+  if (GetFlag(tp, "templatetemplate"))
+    return TemplateKindTemplate;
+  if (GetFlag(tp, "undeclaredconstraint"))
+    return TemplateKindUnknown;
+  return Parm_is_template_type_parm(tp) ? TemplateKindType : TemplateKindNonType;
+}
+
+/* -----------------------------------------------------------------------------
+ * any_declaration()
+ *
+ * Checkfunc for Swig_symbol_clookup_check() that matches any declaration.  Unlike a lookup without a checkfunc, it
+ * does not repeat Warning 315 for a using-declaration of a name that is not declared.
+ * ----------------------------------------------------------------------------- */
+
+static Node *any_declaration(Node *n) {
+  return n;
+}
+
+/* -----------------------------------------------------------------------------
+ * declaration_argument_kind()
+ *
+ * The kind of template argument, if known, that a name declared by 'n' makes: a type for a class, enum or typedef,
+ * a template for a class or alias template and a value for a variable, function, enumerator or constant.
+ * ----------------------------------------------------------------------------- */
+
+static ETemplateKind declaration_argument_kind(Node *n) {
+  String *nodetype = nodeType(n);
+  if (Equal(nodetype, "class") || Equal(nodetype, "classforward") || Equal(nodetype, "enum") || Equal(nodetype, "enumforward"))
+    return TemplateKindType;
+  if (Equal(nodetype, "cdecl"))
+    return Checkattr(n, "storage", "typedef") ? TemplateKindType : TemplateKindNonType;
+  if (Equal(nodetype, "enumitem") || Equal(nodetype, "constant"))
+    return TemplateKindNonType;
+  if (Equal(nodetype, "template")) {
+    /* A class or alias template is named as a template, a function template as a function */
+    String *templatetype = Getattr(n, "templatetype");
+    if (Equal(templatetype, "class") || Equal(templatetype, "classforward") || Checkattr(n, "storage", "typedef"))
+      return TemplateKindTemplate;
+    if (Equal(templatetype, "cdecl"))
+      return TemplateKindNonType;
+  }
+  return TemplateKindUnknown;
+}
+
+/* -----------------------------------------------------------------------------
+ * template_argument_kind()
+ *
+ * The kind of template parameter that 'p', an explicit template argument of a %template, is for: a type, a non-type
+ * parameter for an expression or the name of a variable, function or enumerator, or a template template parameter for
+ * the name of a class or alias template.  Unknown for a name that is not declared to SWIG, which could be any of them.
+ * ----------------------------------------------------------------------------- */
+
+static ETemplateKind template_argument_kind(Parm *p, Symtab *tscope) {
+  SwigType *type = Getattr(p, "type");
+  ETemplateKind kind = TemplateKindUnknown;
+  Node *n;
+  if (!type)
+    return Getattr(p, "value") ? TemplateKindNonType : TemplateKindUnknown;
+  if (GetFlag(p, "variablevalue"))
+    return TemplateKindNonType;
+  if (SwigType_type(type) != T_USER)
+    return TemplateKindType;
+  n = Swig_symbol_clookup_check(type, tscope, any_declaration);
+  if (n) {
+    kind = declaration_argument_kind(n);
+  } else if (SwigType_istemplate(type)) {
+    /* A template-id is a type when it names a specialization of a class or alias template */
+    SwigType *prefix = SwigType_templateprefix(type);
+    Node *tn = Swig_symbol_clookup_check(prefix, tscope, any_declaration);
+    kind = tn ? declaration_argument_kind(tn) : TemplateKindUnknown;
+    if (kind == TemplateKindTemplate)
+      kind = TemplateKindType;
+    Delete(prefix);
+  } else if (SwigType_istypedef(type)) {
+    kind = TemplateKindType;
+  }
+  return kind;
+}
+
+/* -----------------------------------------------------------------------------
+ * template_argument_kind_accepted()
+ *
+ * Whether template parameter 'tp' takes 'p', an explicit template argument of a %template, that is whether 'p' is
+ * for a template parameter of the same kind as 'tp' or could be, as for a name that is not declared to SWIG or a
+ * parameter of unknown kind.
+ * ----------------------------------------------------------------------------- */
+
+static int template_argument_kind_accepted(Parm *tp, Parm *p, Symtab *tscope) {
+  ETemplateKind kind = template_argument_kind(p, tscope);
+  ETemplateKind parameter_kind = template_parameter_kind(tp);
+  return kind == TemplateKindUnknown || parameter_kind == TemplateKindUnknown || kind == parameter_kind;
+}
+
+/* -----------------------------------------------------------------------------
+ * template_arguments_accepted()
+ *
+ * Whether template parameters 'tparms' take the explicit template arguments 'instantiated_parms' of a %template, as
+ * C++ requires of a function template for it to be considered: an argument of the parameter's kind for each parameter
+ * up to the last without a default. There must be no more arguments than parameters, other than those a pack takes.
+ * ----------------------------------------------------------------------------- */
+
+static int template_arguments_accepted(ParmList *tparms, ParmList *instantiated_parms, Symtab *tscope) {
+  Parm *pack = ParmList_find_variadic_parm(tparms, NULL);
+  Parm *p = instantiated_parms;
+  Parm *tp;
+  if (pack) {
+    /* The pack takes the arguments left over by the other parameters, which each take one */
+    int absorbed = ParmList_len(instantiated_parms) - ParmList_len(tparms) + 1;
+    if (absorbed < 0)
+      return 0;
+    for (tp = tparms; tp; tp = nextSibling(tp)) {
+      int count = tp == pack ? absorbed : 1;
+      for (; count > 0; count--, p = nextSibling(p)) {
+        if (!template_argument_kind_accepted(tp, p, tscope))
+          return 0;
+      }
+    }
+    return 1;
+  }
+  for (tp = tparms; tp; tp = nextSibling(tp)) {
+    if (p) {
+      if (!template_argument_kind_accepted(tp, p, tscope))
+        return 0;
+      p = nextSibling(p);
+    } else if (!Getattr(tp, "value")) {
+      return 0;
+    }
+  }
+  return !p;
+}
+
 /* -----------------------------------------------------------------------------
  * collect_function_template_matches()
  *
@@ -1896,7 +2042,8 @@ static int already_matched(List *matches, Node *n) {
  * is walked, as the target language one leaves ignored declarations out, where one could hide those still to be wrapped.
  * ----------------------------------------------------------------------------- */
 
-static void collect_function_template_matches(Node *firstn, String *name, ParmList *instantiated_parms, int variadic, int ignored, List *matches) {
+static void collect_function_template_matches(Node *firstn, String *name, ParmList *instantiated_parms, Symtab *tscope, int variadic, int ignored,
+                                              List *matches) {
   Node *n;
   for (n = firstn; n; n = Getattr(n, "csym:nextSibling")) {
     ParmList *tparmsfound;
@@ -1907,7 +2054,7 @@ static void collect_function_template_matches(Node *firstn, String *name, ParmLi
     tparmsfound = Getattr(n, "templateparms");
     if ((ParmList_find_variadic_parm(tparmsfound, NULL) != 0) != (variadic != 0))
       continue;
-    if (variadic ? ParmList_len(instantiated_parms) < ParmList_len(tparmsfound) - 1 : ParmList_len(instantiated_parms) != ParmList_len(tparmsfound))
+    if (!template_arguments_accepted(tparmsfound, instantiated_parms, tscope))
       continue;
     /* A friend declaration and the definition it refers to are the same function template, so the chain
      * holds two nodes for it and only the first is instantiated. */
@@ -1983,9 +2130,9 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       {
         int ignored;
         for (ignored = 0; ignored < 2 && Len(matches) == 0; ignored++) {
-          collect_function_template_matches(firstn, name, instantiated_parms, 0, ignored, matches);
+          collect_function_template_matches(firstn, name, instantiated_parms, tscope, 0, ignored, matches);
           if (Len(matches) == 0)
-            collect_function_template_matches(firstn, name, instantiated_parms, 1, ignored, matches);
+            collect_function_template_matches(firstn, name, instantiated_parms, tscope, 1, ignored, matches);
         }
         if (Len(matches) > 0)
           match = Getitem(matches, 0);
@@ -2150,26 +2297,20 @@ static void expand_defaults(ParmList *expanded_templateparms) {
 ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *primary, Node *templ) {
   ParmList *expanded_templateparms = CopyParmList(instantiated_parms);
   String *templatetype = Getattr(primary, "templatetype");
+  /* A class template's parameters are those of the primary template, a function template's those of the overload */
+  int classtemplate = Equal(templatetype, "class") || Equal(templatetype, "classforward");
+  ParmList *templateparms = Getattr(classtemplate ? primary : templ, "templateparms");
+  int variadic = merge_parameters(expanded_templateparms, templateparms);
 
-  if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
-    /* Class template */
-    ParmList *templateparms = Getattr(primary, "templateparms");
-    int variadic = merge_parameters(expanded_templateparms, templateparms);
-    /* Add default arguments from primary template */
-    if (!variadic) {
-      ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parms));
-      if (defaults_start) {
-        ParmList *defaults = CopyParmList(defaults_start);
-        use_mark_defaults(defaults);
-        expanded_templateparms = ParmList_join(expanded_templateparms, defaults);
-        expand_defaults(expanded_templateparms);
-      }
+  /* Add default arguments from the template */
+  if (!variadic) {
+    ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parms));
+    if (defaults_start) {
+      ParmList *defaults = CopyParmList(defaults_start);
+      use_mark_defaults(defaults);
+      expanded_templateparms = ParmList_join(expanded_templateparms, defaults);
+      expand_defaults(expanded_templateparms);
     }
-  } else {
-    /* Function template */
-    /* TODO: Default template parameters support was only added in C++11 */
-    ParmList *templateparms = Getattr(templ, "templateparms");
-    merge_parameters(expanded_templateparms, templateparms);
   }
 
   return expanded_templateparms;

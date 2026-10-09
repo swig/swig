@@ -420,9 +420,7 @@ static int is_operator(String *name) {
  *
  *   TPC_REMAP    candidate and the symbol resolves to a concept (for a
  *                template-id like 'Pair<int>' the bare prefix 'Pair' is the
- *                symbol that must resolve to a concept), or is not declared
- *                in the current scope, being almost certainly a concept that
- *                has not been made visible to SWIG
+ *                symbol that must resolve to a concept)
  *                -> rewrite the parm to 'typename T' (or 'v.typename Ts...')
  *                   and attach a concept-id constraint atom carrying the full
  *                   (possibly template-id) concept-id string
@@ -432,8 +430,17 @@ static int is_operator(String *name) {
  *                  template<Numeric... Ts>              int count(Ts...);
  *                  template<std::convertible_to<int> T> T as_int(T x);    // template-id is a concept, whether or not SWIG has parsed its definition
  *                  template<Pair<int> T>                T first_int(T x); // template-id is a concept (not a class)
+ *   TPC_REMAP_UNDECLARED
+ *                candidate and the symbol is not declared in the current scope,
+ *                most likely a concept that has not been made visible to SWIG
+ *                -> as for TPC_REMAP, but the name could instead be the type of a
+ *                   non-type parameter, such as a typedef SWIG has not seen or an
+ *                   earlier template parameter
+ *                Examples:
  *                  template<MisspeltConcept T>          T f(T);           // not declared, such as a typo
  *                  template<UndeclaredConcept<int> T>   T g(T);           // template-id, prefix not declared
+ *                  template<std::size_t N>              int h();          // typedef not declared
+ *                  template<typename T, T V>            T k();            // type of an earlier template parameter
  *   TPC_KEEP     not a candidate, or the symbol resolves to a type (non-concept)
  *                (typedef, class, enum) -> leave as a non-type parameter
  *                Examples:
@@ -446,7 +453,8 @@ static int is_operator(String *name) {
  */
 enum {
   TPC_KEEP = 0,
-  TPC_REMAP = 1
+  TPC_REMAP = 1,
+  TPC_REMAP_UNDECLARED = 2
 };
 static int classify_template_param_type(const SwigType *type) {
   SwigType *probe;
@@ -486,7 +494,9 @@ static int classify_template_param_type(const SwigType *type) {
     n = Swig_symbol_clookup(probe, 0);
   }
   templatetype = n ? Getattr(n, "templatetype") : 0;
-  if (!n || (templatetype && Equal(templatetype, "concept"))) {
+  if (!n) {
+    verdict = TPC_REMAP_UNDECLARED;
+  } else if (templatetype && Equal(templatetype, "concept")) {
     verdict = TPC_REMAP;
   } else {
     verdict = TPC_KEEP;
@@ -6907,7 +6917,7 @@ templateparameter : templcpptype type_id_default {
                        * parameter. */
                       SwigType *t = Getattr(p, "type");
                       int verdict = t ? classify_template_param_type(t) : TPC_KEEP;
-                      if (verdict == TPC_REMAP) {
+                      if (verdict != TPC_KEEP) {
                         /* In keeping with SWIG's "best effort wrap on partial type information" policy,
                          * an identifier that is not declared is handled the same way as a confirmed concept:
                          * rewrite the parm to 'typename T' and attach the captured concept-id as a constraint
@@ -6932,6 +6942,9 @@ templateparameter : templcpptype type_id_default {
                         Setattr(atom, "type", concept_name);
                         Setattr(p, "constraint", atom);
                         Setattr(p, "type", new_type);
+                        /* Not known to be a type parameter, as the name may be the type of a non-type parameter */
+                        if (verdict == TPC_REMAP_UNDECLARED)
+                          SetFlag(p, "undeclaredconstraint");
                         Delete(new_type);
                         Delete(concept_name);
                       }
@@ -7839,6 +7852,8 @@ valparm        : parm {
 			  if (value) {
 			    String *v = Copy(value);
 			    Setattr($parm,"type",v);
+                            /* The "type" is now the variable's value, an argument for a non-type template parameter */
+                            SetFlag($parm, "variablevalue");
 			    Delete(v);
 			    n = 0;
 			  }

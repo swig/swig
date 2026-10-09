@@ -17,6 +17,7 @@ extern Parm *NewParm(SwigType *type, const_String_or_char_ptr name, Node *from_n
 extern Parm *NewParmWithoutFileLineInfo(SwigType *type, const_String_or_char_ptr name);
 extern Parm *NewParmNode(SwigType *type, Node *from_node);
 extern Parm *CopyParm(Parm *p);
+extern int Parm_is_template_type_parm(Parm *p);
 
 /* Parameter lists */
 extern ParmList *CopyParmList(ParmList *p);

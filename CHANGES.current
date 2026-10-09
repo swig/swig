@@ -19,6 +19,48 @@ Version 4.6.0 (in progress)
             [Python] Setting a property of a class using the nondynamic feature no longer calls its
             getter, so it works even when the getter throws, e.g. because the value is not set yet.
 
+2026-10-15: wsfulton
+            Add support for C++11 default template arguments in function templates. %template can now
+            leave out the template arguments that have defaults, as for a class template, such as:
+
+              template<typename T, typename U = int> int value(T t) { return 1; }
+              %template(value_int) value<int>;
+
+            Previously %template gave the error "No matching function template" unless every template
+            argument was given. For an overloaded function template, an overload needing a default was
+            left out instead, with no error if another overload took the template arguments.
+
+2026-10-15: wsfulton
+            %template on an overloaded function template now instantiates only the overloads whose
+            template parameters take the template arguments: a type for a type template parameter, a
+            value for a non-type template parameter and a template for a template template parameter.
+            Previously every overload with as many template parameters as template arguments was
+            instantiated, whatever the kind of argument. The wrapper did not compile when the parameter
+            or return types of such an overload used a template parameter given the wrong kind of
+            argument, such as the value 10 for the type template parameter T in:
+
+              template<typename T> T kindp(T t) { return t; }
+              template<int N> int kindp(int i) { return N + i; }
+              %template(kindp_10) kindp<10>;
+
+            which also instantiated the first kindp as '10 kindp(10 t)'. A type for a non-type template
+            parameter failed in the same way, such as int for N in an 'int (&a)[N]' parameter.
+
+            A template parameter with a type not declared to SWIG, such as 'std::size_t N' without a
+            typedef for size_t, takes any template argument, as the name could also be a concept
+            constraining a type template parameter.
+
+2026-10-15: wsfulton
+            Function templates differing only in their template parameters are now overloads, as in C++.
+            They were taken to be a redefinition, giving Warning 302 and ignoring the later function
+            template, so %template instantiated the earlier one instead. For example:
+
+              template<typename T> T make() { return T(); }
+              template<int N> int make() { return N; }
+              %template(make_5) make<5>;
+
+            instantiated the first make as '5 make()', which did not compile.
+
 2026-10-14: wsfulton
             [C, C#, D, Go, Guile, Java, Lua, PHP] An exception caught by the catch all handler that
             %catches(...) adds is now raised as a SWIG_RuntimeError with the message "unknown exception",

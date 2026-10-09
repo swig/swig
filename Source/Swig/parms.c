@@ -79,6 +79,25 @@ Parm *CopyParm(Parm *p) {
   return np;
 }
 
+/* -----------------------------------------------------------------------------
+ * Parm_is_template_type_parm()
+ *
+ * Whether template parameter 'p' is a type template parameter or a pack of them, such as 'class T' or 'typename... Ts'.
+ * An unnamed non-type parameter of a dependent type, such as 'typename std::enable_if<B, int>::type = 0', is not one,
+ * although it is parsed as a 'typename' parameter with a qualified name.
+ * ----------------------------------------------------------------------------- */
+
+int Parm_is_template_type_parm(Parm *p) {
+  SwigType *type = Copy(Getattr(p, "type"));
+  String *name = Getattr(p, "name");
+  int istype;
+  if (SwigType_isvariadic(type))
+    SwigType_del_variadic(type);
+  istype = (Equal(type, "typename") || Equal(type, "class")) && !(name && Swig_scopename_check(name));
+  Delete(type);
+  return istype;
+}
+
 /* ------------------------------------------------------------------
  * CopyParmListMax()
  * CopyParmList()

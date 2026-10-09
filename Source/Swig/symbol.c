@@ -763,6 +763,34 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * template_parameter_lists_equivalent()
+ *
+ * Whether function templates 'a' and 'b' have template parameter lists of the same length and kinds, in which each
+ * pack is a pack and each non-type parameter has the same type.  The names of the parameters and their defaults play
+ * no part, so 'template<class T>' is equivalent to 'template<typename U = int>' but not to 'template<int N>'.  The
+ * rest of a template head, the type-constraints and the requires-clause, is compared by Constraint_signatures_equal().
+ * ----------------------------------------------------------------------------- */
+
+static int template_parameter_lists_equivalent(Node *a, Node *b) {
+  Parm *pa = Getattr(a, "templateparms");
+  Parm *pb = Getattr(b, "templateparms");
+  for (; pa && pb; pa = nextSibling(pa), pb = nextSibling(pb)) {
+    SwigType *ta = Getattr(pa, "type");
+    SwigType *tb = Getattr(pb, "type");
+    int istype = Parm_is_template_type_parm(pa);
+    if (GetFlag(pa, "templatetemplate") != GetFlag(pb, "templatetemplate"))
+      return 0;
+    if (GetFlag(pa, "templatetemplate"))
+      continue;
+    if (istype != Parm_is_template_type_parm(pb) || SwigType_isvariadic(ta) != SwigType_isvariadic(tb))
+      return 0;
+    if (!istype && !Equal(ta, tb))
+      return 0;
+  }
+  return !pa && !pb;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_add()
  *
  * Adds a node to the symbol table.  Returns the node itself if successfully
@@ -972,7 +1000,10 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
              * template's signature ([temp.over.link]), so two function templates whose constraints
              * differ are distinct overloads rather than a redeclaration. */
             int constraints_differ = n_template && cn_template && !Constraint_signatures_equal(n, cn);
-            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl)) && !constraints_differ) {
+            /* Function templates with different template parameter lists, such as 'template<class T> int f()' and
+             * 'template<int N> int f()', are distinct overloads too. */
+            int template_parameter_lists_differ = n_template && cn_template && !template_parameter_lists_equivalent(n, cn);
+            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl)) && !constraints_differ && !template_parameter_lists_differ) {
               /* found a conflict */
               return cn;
             }

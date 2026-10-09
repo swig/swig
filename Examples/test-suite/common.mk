@@ -501,6 +501,7 @@ CPP_TEST_CASES += \
 	template_extend2 \
 	template_extend_overload \
 	template_extend_overload_2 \
+	template_function_overload_kind \
 	template_function_parm \
 	template_forward \
 	template_inherit \
@@ -703,6 +704,7 @@ CPP11_TEST_CASES += \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_function_overload_kind \
 	cpp11_template_pack \
 	cpp11_template_pack_specialization \
 	cpp11_template_parameters_decltype \

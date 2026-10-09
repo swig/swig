@@ -179,7 +179,7 @@ int nested_pair(T x) { return (int)x; }
 %template(count_pair_1)     count_pair<int>;
 %template(count_pair_3)     count_pair<int, double, char>;
 %template(with_default_int) with_default<int>;
-%template(with_default_d)   with_default<double>; // TODO exact argument count needed. Does not work: with_default<>;
+%template(with_default_d)   with_default<>;
 %template(CrateInt)         Crate<int>;
 %template(CrateDouble)      Crate<double>;
 %template(nested_pair_d)    nested_pair<double>;

@@ -10,8 +10,7 @@ void A() { }
 %ignore x1589;
 int x1589(int y = std::declval<M>().begin()->first) { return y; }
 
-// %template(A) A<>; // not working
-%template(A) A<true>; // workaround
+%template(A) A<>;  // Test C++11 function template default
 
 
 %include <std_string.i>
@@ -95,17 +94,15 @@ void tester(bool show) {
 %template(VectorString) std::vector<std::string>;
 %template(MapStringString) std::map<std::string, std::string>;
 
-// There is quite a bit of inconsistency about providing or not providing default
-// template parameters that needs investigating. Below is a combination that works.
+// Only the enable_if templates take 0, a value.
 
 // Note that instantiating the two Json constructors (or the two mmm methods) that
 // use enable_if is ambiguous given the enable_if is not evaluated by SWIG.
 
-// %template(Json) Json::Json<Converter>; // not working
-%template(Json) Json::Json<Converter, std::string>; // workaround
+%template(Json) Json::Json<Converter>;  // Test C++11 function template default
 %template(Json) Json::Json<std::map<std::string, std::string>, 0>;
 %template(Json) Json::Json<std::vector<std::string>, 0>;
 
-%template(mmm) Json::mmm<Converter, std::string>;
+%template(mmm) Json::mmm<Converter>;  // Test C++11 function template default
 %template(mmm) Json::mmm<std::map<std::string, std::string>, 0>;
 %template(mmm) Json::mmm<std::vector<std::string>, 0>;
