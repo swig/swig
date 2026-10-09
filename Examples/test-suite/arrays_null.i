@@ -47,6 +47,7 @@ int arrays_null_ints[4];
 ArraysNullItem arrays_null_items[2];
 int arrays_null_grid[2][3];
 int (&arrays_null_ints_ref)[4] = arrays_null_ints;
+bool arrays_null_bools[2];
 
 int arrays_null_globals_check(int start) {
   ArraysNull s;
@@ -62,6 +63,18 @@ int arrays_null_globals_check(int start) {
 
 // NULL is still passed on as a NULL pointer for an array parameter
 int arrays_null_isnull(int a[4]) {
+  return a == 0;
+}
+int arrays_null_bools_isnull(bool a[4]) {
+  return a == 0;
+}
+int arrays_null_bools_unsized_isnull(bool a[]) {
+  return a == 0;
+}
+int arrays_null_strings_isnull(char *a[3]) {
+  return a == 0;
+}
+int arrays_null_strings_unsized_isnull(char *a[]) {
   return a == 0;
 }
 %}

@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [Scilab] An empty matrix for a parameter that is an array of numbers, bools or strings,
+            such as 'int [4]', 'double []', 'bool [4]' or 'char *[]', is now passed as a NULL
+            pointer, as NULL is in the other target languages. It was passed as memory for no
+            elements, which the function read past the end of, or rejected for bools and strings.
+            Setting an array member or global variable, such as 'int [4]', to an empty matrix now
+            gives a SWIG NullReferenceError rather than copying from it. The matrix.i typemaps for
+            'char **' and a std::vector<bool> parameter also now accept an empty matrix.
+
+2026-10-09: wsfulton
             [C#, D, Go, Guile, Java, Lua, PHP] Fix a crash when setting an array member or global
             variable, such as 'int [4]', 'Foo [2]' or 'int [2][3]', to NULL, such as null in Java,
             as the array was copied from it. An error is now raised instead, as in the other target

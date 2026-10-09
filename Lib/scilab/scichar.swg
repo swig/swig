@@ -201,6 +201,13 @@ SWIG_SciString_AsCharPtrArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *
     return SWIG_ERROR;
   }
 
+  if (isEmptyMatrix(pvApiCtx, piAddrVar)) {
+    *iRows = 0;
+    *iCols = 0;
+    *charPtrArray = NULL;
+    return SWIG_OK;
+  }
+
   sciErr = getMatrixOfString(pvApiCtx, piAddrVar, iRows, iCols, NULL, NULL);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
