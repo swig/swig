@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 32;
+use Test::More tests => 35;
 BEGIN { use_ok 'director_classes' }
 require_ok 'director_classes';
 
@@ -10,6 +10,7 @@ require_ok 'director_classes';
   sub Val { $_[1] }
   sub Ref { $_[1] }
   sub Ptr { $_[1] }
+  sub ConstPtr { $_[1] }
   sub ConstPtrRef { $_[1] }
   sub FullyOverloaded {
     my $rv = shift->SUPER::FullyOverloaded(@_);
@@ -17,11 +18,20 @@ require_ok 'director_classes';
     return $rv;
   }
   sub SemiOverloaded {
-    # this is going to be awkward because we can't really
-    # semi-overload in Perl, but we can sort of fake it.
-    return shift->SUPER::SemiOverloaded(@_) unless $_[0] =~ /^\d+/;
-    my $rv = shift->SUPER::SemiOverloaded(@_);
-    $rv =~ s/Base/__PACKAGE__/sge;
+    my $self = shift;
+    my $val = shift;
+    # Perl use one callback for both SemiOverloaded() methods.
+    # Usually we use the values type and number of values to distinguish.
+    # But as Perl tread boolean as number (as old C does),
+    # We fake it by detecting the value itself.
+    my $rv = $self->SUPER::SemiOverloaded($val);
+    if($val eq "") { # detect SemiOverloaded(bool)
+        # Convert SemiOverloaded(int) to SemiOverloaded(bool)
+        $rv =~ s/int/bool/;
+    } else { # detect SemiOverloaded(int)
+        # Convert Base::SemiOverloaded(int) to PerlDerived::SemiOverloaded(int)
+        $rv =~ s/Base/__PACKAGE__/se;
+    }
     return $rv;
   }
   sub DefaultParms {
@@ -46,6 +56,7 @@ sub makeCalls { my($caller, $base) = @_;
   is($caller->ValCall($dh)->{val}, $dh->{val}, "$bname.Val");
   is($caller->RefCall($dh)->{val}, $dh->{val}, "$bname.Ref");
   is($caller->PtrCall($dh)->{val}, $dh->{val}, "$bname.Ptr");
+  is($caller->ConstPtrCall($dh)->{val}, $dh->{val}, "$bname.ConstPtr");
   is($caller->ConstPtrRefCall($dh)->{val}, $dh->{val}, "$bname.ConstPtrRef");
   is($caller->FullyOverloadedCall(1),
       "${bname}::FullyOverloaded(int)",
@@ -53,12 +64,9 @@ sub makeCalls { my($caller, $base) = @_;
   is($caller->FullyOverloadedCall(''),
       "${bname}::FullyOverloaded(bool)",
       "$bname.FullyOverloaded(bool)");
-TODO: {
-  local $TODO = 'investigation needed here' if $bname eq 'PerlDerived';
   is($caller->SemiOverloadedCall(-678),
       "${bname}::SemiOverloaded(int)",
       "$bname.SemiOverloaded(int)");
-}
   is($caller->SemiOverloadedCall(''),
       "Base::SemiOverloaded(bool)",
       "$bname.SemiOverloaded(bool)");

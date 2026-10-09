@@ -12,55 +12,45 @@ class PHPDerived extends Base {
   function Val(DoubleHolder $x) { return $x; }
   function Ref(DoubleHolder $x) { return $x; }
   function Ptr(?DoubleHolder $x) { return $x; }
+  function ConstPtr(?DoubleHolder $x) { return $x; }
   function ConstPtrRef(?DoubleHolder $x) { return $x; }
   function FullyOverloaded($x) {
-    $rv = parent::FullyOverloaded($x);
-    $rv = preg_replace('/Base/', 'PHPDerived', $rv);
-    return $rv;
+    return preg_replace('/Base/', 'PHPDerived', parent::FullyOverloaded($x));
   }
   function SemiOverloaded($x) {
-    # this is going to be awkward because we can't really
-    # semi-overload in PHP, but we can sort of fake it.
-    if (!is_int($x)) {
-      return parent::SemiOverloaded($x);
+    # PHP use one callback for both types!
+    if (is_int($x)) {
+        # PHPDerived::SemiOverloaded(int) overload
+        return preg_replace('/Base/', 'PHPDerived', parent::SemiOverloaded($x));
     }
-    $rv = parent::SemiOverloaded($x);
-    $rv = preg_replace('/Base/', 'PHPDerived', $rv);
-    return $rv;
+    # Call Base::SemiOverloaded(bool)
+    return parent::SemiOverloaded($x);
   }
-  function DefaultParms(int $x, float $y = 1.125) {
-    $rv = parent::DefaultParms($x, $y);
-    $rv = preg_replace('/Base/', 'PHPDerived', $rv);
-    return $rv;
+  function DefaultParms(int $x, float $y = 1.125) { /* Same default as C++! */
+    return preg_replace('/Base/', 'PHPDerived', parent::DefaultParms($x, $y));
   }
 }
 
-{
-  $c = new Caller();
-  makeCalls($c, new Base(100.0));
-  makeCalls($c, new Derived(200.0));
-  makeCalls($c, new PHPDerived(300.0));
-}
 
-function makeCalls($caller, $base) {
+function makeCalls($caller, $base, $TODO) {
   $bname = get_class($base);
-  if ($bname == 'PHPDerived') {
-      // TODO: Debug and make this work:
-      return;
-  }
   $caller->set($base);
   $dh = new DoubleHolder(444.555);
   check::equal($caller->ValCall($dh)->val, $dh->val, "$bname.Val");
   check::equal($caller->RefCall($dh)->val, $dh->val, "$bname.Ref");
   check::equal($caller->PtrCall($dh)->val, $dh->val, "$bname.Ptr");
+  check::equal($caller->ConstPtrCall($dh)->val, $dh->val, "$bname.ConstPtr");
+  if (!$TODO) {
+  # TODO Need fixing!
+  # Use SWIGTYPE_p_p_DoubleHolder instead of SWIGTYPE_p_DoubleHolder!
   check::equal($caller->ConstPtrRefCall($dh)->val, $dh->val, "$bname.ConstPtrRef");
+  }
   check::equal($caller->FullyOverloadedCall(1),
 	       "{$bname}::FullyOverloaded(int)",
 	       "$bname.FullyOverloaded(int)");
   check::equal($caller->FullyOverloadedCall(false),
 	       "{$bname}::FullyOverloaded(bool)",
 	       "$bname.FullyOverloaded(bool)");
-  // This next one is TODO for Perl with PerlDerived.
   check::equal($caller->SemiOverloadedCall(-678),
 	       "{$bname}::SemiOverloaded(int)",
 	       "$bname.SemiOverloaded(int)");
@@ -75,5 +65,10 @@ function makeCalls($caller, $base) {
 	       "$bname.DefaultParms(int)");
   $caller->reset();
 }
+
+$c = new Caller();
+makeCalls($c, new Base(100.0), false);
+makeCalls($c, new Derived(200.0), false);
+makeCalls($c, new PHPDerived(300.0), true);
 
 check::done();
