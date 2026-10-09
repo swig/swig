@@ -18,6 +18,7 @@ unittest(grepl("^SWIG:TypeError", error_message(function() inr_int(integer(0))))
 # NULL is not a value for a primitive type passed by value
 for (f in c("out_int", "out_bool", "out_float", "out_double")) {
   unittest(grepl("^SWIG:TypeError", error_message(function() get(f)(NULL))), TRUE)
+  unittest(grepl("^SWIG:TypeError", error_message(function() get(f)(c(1, 2)))), TRUE)
 }
 
 # The output values are returned in a list, after the return value if there is one

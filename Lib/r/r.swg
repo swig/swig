@@ -166,18 +166,6 @@ std::ptrdiff_t *INOUT
 #  assert(length($input) >= $1_dim0)
 %}
 
-/* Handling vector case to avoid warnings,
-   although we just use the first one. */
-%typemap(scheck) unsigned int %{
-  assert(length($input) == 1 && $input >= 0, "All values must be non-negative");
-%}
-
-
-%typemap(scheck) int, long %{
-  if(length($input) > 1) {
-     warning("using only the first element of $input");
-  };
-%}
 
 %include <typemaps/fragments.swg>
 %include <rfragments.swg>
@@ -306,7 +294,7 @@ std::ptrdiff_t *INOUT
 }
 
 %typemap(in,noblock=1) const enum SWIGTYPE & ($*1_ltype temp) {
-  if (Rf_length($input) == 0) {
+  if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
   temp = ($*1_ltype)INTEGER($input)[0];
@@ -335,7 +323,7 @@ std::ptrdiff_t *INOUT
 
 %typemap(in,noblock=1) int, long
 {
-  if (Rf_length($input) == 0) {
+  if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
   $1 = %static_cast(INTEGER($input)[0], $1_ltype);
@@ -347,7 +335,7 @@ std::ptrdiff_t *INOUT
 
 %typemap(in,noblock=1) bool
 {
-  if (Rf_length($input) == 0) {
+  if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
   $1 = LOGICAL($input)[0] ? true : false;
@@ -361,7 +349,7 @@ std::ptrdiff_t *INOUT
              float, 
              double
 {
-  if (Rf_length($input) == 0) {
+  if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
   $1 = %static_cast(REAL($input)[0], $1_ltype);

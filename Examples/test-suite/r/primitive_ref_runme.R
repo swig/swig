@@ -26,4 +26,8 @@ for (f in c("ref_int", "ref_uint", "ref_short", "ref_ushort", "ref_long", "ref_u
   unittest(grepl("^SWIG:TypeError", error_message(function() get(f)(NULL))), TRUE)
 }
 
+unittest(grepl("^SWIG:TypeError", error_message(function() ref_int(c(1, 2)))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() ref_double(c(1.5, 2.5)))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() ref_bool(c(TRUE, FALSE)))), TRUE)
+
 q(save="no")

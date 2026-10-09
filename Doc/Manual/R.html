@@ -451,9 +451,10 @@ all.
 </p>
 
 <p>
-A <tt>char *</tt>, a char array, a <tt>char</tt> or a <tt>std::string</tt> takes one string, so a character vector of
-more than one string, such as <tt>c("ab", "cd")</tt>, gives SWIG:TypeError, whereas an array of strings, such as
-<tt>char *[3]</tt>, takes a vector of up to that many strings.
+A parameter that takes a single value, such as a number, a bool, an enum, a <tt>char</tt>, a <tt>char *</tt>, a char
+array or a <tt>std::string</tt>, takes exactly one value, so a vector of more than one value, such as <tt>c(6, 7)</tt>
+for an <tt>int</tt> or <tt>c("ab", "cd")</tt> for a <tt>char *</tt>, gives SWIG:TypeError, whereas an array, such as
+<tt>int [3]</tt> or <tt>char *[3]</tt>, takes a vector of up to that many values.
 </p>
 
 <H3><a name="R_null_examples">36.8.2 NULL examples</a></H3>

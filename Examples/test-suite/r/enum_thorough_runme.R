@@ -55,6 +55,8 @@ unittest(v, s$speedTest7(v))
 unittest(v, s$speedTest8(v))
 unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest1(NULL))), TRUE)
 unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest7(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest1(c("slow", "medium")))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest7(c("slow", "medium")))), TRUE)
 
 ## speedTest methods not in the class
 

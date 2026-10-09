@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [R] A vector of more than one value, such as c(6, 7), now gives a SWIG TypeError for a
+            number, bool or enum parameter passed by value or by const reference, such as 'short'
+            or 'const double &', which takes one value. The first value was used. An integer type or
+            an enum passed by value gave the warning "using only the first element". The other types
+            gave no warning.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-09: wsfulton
             [R] A character vector of more than one string, such as c("ab", "cd"), now gives a SWIG
             TypeError for a 'char *', char array, 'char' or std::string parameter, which takes one
             string, rather than the first string being used and the others ignored. An array of
