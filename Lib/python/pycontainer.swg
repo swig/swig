@@ -595,6 +595,7 @@ namespace swig {
     %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) SWIGPY_SLICEOBJECT* {
       $1 = PySlice_Check($input);
     }
+    %typemap(pytyping) SWIGPY_SLICEOBJECT* "slice"
 
     void __delitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
       swig::erase(self, swig::getpos(self, i));
