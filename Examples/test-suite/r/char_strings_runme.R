@@ -132,6 +132,8 @@ unittest(is.null(CharArrayDimsPingPong(NULL)), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", null_message(function() null_member$four <- NULL)), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", null_message(function() global_char_array_null_set(NULL))), TRUE)
 unittest(grepl("^SWIG:TypeError", null_message(function() CharArrayPingPong(character(0)))), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() CharArrayPingPong(c("a", "b")))), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() CharArrayDimsPingPong(c("a", "b")))), TRUE)
 unittest(null_member$four, "qqq")
 unittest(global_char_array_null_get(), "qqq")
 
@@ -149,9 +151,11 @@ unittest(grepl("^SWIG:NullReferenceError", null_message(function() CharPtrArrayJ
 
 unittest(is.null(CharPingPong(NULL)), TRUE)
 unittest(grepl("^SWIG:TypeError", null_message(function() CharPingPong(character(0)))), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() CharPingPong(c("a", "b")))), TRUE)
 global_char_set(NULL)
 unittest(is.null(global_char_get()), TRUE)
 unittest(grepl("^SWIG:TypeError", null_message(function() PlainCharPingPong(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", null_message(function() PlainCharPingPong(c("a", "b")))), TRUE)
 
 for (i in 0:(count-1)) {
   unittest(global_const_char_get(), CPLUSPLUS_MSG)

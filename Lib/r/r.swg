@@ -230,7 +230,7 @@ std::ptrdiff_t *INOUT
 %r_fixed_size_array(double, REALSXP, REAL, double)
 
 %typemap(in,noblock=1,fragment="SWIG_strdup") char * {
-  if (!Rf_isNull($input) && Rf_length($input) == 0) {
+  if (!Rf_isNull($input) && Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
   $1 = Rf_isNull($input) ? 0 : %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
@@ -295,7 +295,7 @@ std::ptrdiff_t *INOUT
     if (Rf_isNull($input)) {
       %argument_nullref("$type", $symname, $argnum);
     }
-    if (Rf_length($input) == 0) {
+    if (Rf_length($input) != 1) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
     $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
@@ -319,7 +319,7 @@ std::ptrdiff_t *INOUT
  {  $result = $1 ? Rf_mkString(%reinterpret_cast($1,char *)) : R_NilValue; }
 
 %typemap(in,noblock=1) char {
-  if (Rf_length($input) == 0) {
+  if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
   $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);

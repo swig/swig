@@ -157,7 +157,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
       *alloc = SWIG_OLDOBJ;
     return SWIG_OK;
   }
-  if (cptr && Rf_isString(obj) && Rf_length(obj) > 0) {
+  if (cptr && Rf_isString(obj) && Rf_length(obj) == 1) {
     char *cstr = %const_cast(CHAR(STRING_ELT(obj, 0)), char *);
     int len = strlen(cstr);
 

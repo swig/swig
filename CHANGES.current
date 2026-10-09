@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-09: wsfulton
+            [R] A character vector of more than one string, such as c("ab", "cd"), now gives a SWIG
+            TypeError for a 'char *', char array, 'char' or std::string parameter, which takes one
+            string, rather than the first string being used and the others ignored. An array of
+            strings, such as 'char *[3]', still takes a vector of up to that many strings.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-10-08: wsfulton
             [R] A bool returned by reference, such as 'const bool &', or by an OUTPUT or INOUT
             typemap is now an R logical rather than an integer.

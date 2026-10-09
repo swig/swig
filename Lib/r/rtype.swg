@@ -43,7 +43,7 @@
 %typemap("rtypecheck") char
   %{ is.character($arg) && length($arg) == 1 %}
 %typemap("rtypecheck") char *
-  %{ is.character($arg) || is.null($arg) %}
+  %{ (is.character($arg) && length($arg) == 1) || is.null($arg) %}
 %typemap("rtypecheck") char **
   %{ is.character($arg) %}
 
@@ -283,7 +283,7 @@ string &, std::string &
 %typemap(scoercein) char *[ANY]
   %{  if (!is.null($input)) $input = as($input, "character"); %}
 %typemap("rtypecheck") char [ANY], char [], char (&)[ANY]
-  %{ is.character($arg) %}
+  %{ is.character($arg) && length($arg) == 1 %}
 %typemap(scoercein) char [ANY], char [], char (&)[ANY]
   %{  if (!is.null($input)) $input = as($input, "character"); %}
 %typemap(scoerceout) char [ANY], char [], char (&)[ANY]
@@ -294,7 +294,7 @@ string &, std::string &
                        (const char *STRING, int LENGTH), (char *STRING, int LENGTH),
                        (size_t LENGTH, const char *STRING), (size_t LENGTH, char *STRING),
                        (int LENGTH, const char *STRING), (int LENGTH, char *STRING)
-  %{ is.character($arg) || is.null($arg) %}
+  %{ (is.character($arg) && length($arg) == 1) || is.null($arg) %}
 %typemap(scoercein) (const char *STRING, size_t LENGTH), (char *STRING, size_t LENGTH),
                     (const char *STRING, int LENGTH), (char *STRING, int LENGTH),
                     (size_t LENGTH, const char *STRING), (size_t LENGTH, char *STRING),

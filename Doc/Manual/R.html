@@ -450,6 +450,12 @@ valid for <tt>char *</tt> and for a char array, whereas <tt>character(0)</tt> is
 all.
 </p>
 
+<p>
+A <tt>char *</tt>, a char array, a <tt>char</tt> or a <tt>std::string</tt> takes one string, so a character vector of
+more than one string, such as <tt>c("ab", "cd")</tt>, gives SWIG:TypeError, whereas an array of strings, such as
+<tt>char *[3]</tt>, takes a vector of up to that many strings.
+</p>
+
 <H3><a name="R_null_examples">36.8.2 NULL examples</a></H3>
 
 
