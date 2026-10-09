@@ -500,16 +500,18 @@ void Swig_utf8_encode(String *s, long code_point) {
  * for an ASCII character. 's' is expected to be the text the scanner stores for a wide character or wide string
  * literal, which holds each character that is not ASCII as its UTF-8 encoding, from Swig_utf8_encode() for an escape
  * sequence or as written in a UTF-8 source file. Any other byte, such as one from a narrow string literal joined to a
- * wide one, is not decoded. For example:
+ * wide one, is not decoded, nor is an overlong encoding, which UTF-8 does not allow. For example:
  *
  *   Bytes of 's'   pos   Returns   code_point
  *   61 C3 A9 62    1     2         0xE9, an e with an acute accent
  *   61 C3 A9 62    0     0         not set, as 61 is an ASCII 'a'
  *   E2 98 BA       0     3         0x263A, a smiley face
  *   E9 62          0     0         not set, as E9 62 is not a UTF-8 encoding
+ *   C0 A2          0     0         not set, as C0 A2 is an overlong encoding of a '"'
  * ----------------------------------------------------------------------------- */
 
 int Swig_utf8_decode(String *s, int pos, long *code_point) {
+  static const long min_code_point[] = {0, 0x80, 0x800, 0x10000};
   const unsigned char *u = (const unsigned char *)Char(s) + pos;
   int len = Len(s) - pos;
   int extra;
@@ -536,6 +538,8 @@ int Swig_utf8_decode(String *s, int pos, long *code_point) {
       return 0;
     value = (value << 6) | (u[i] & 0x3F);
   }
+  if (value < min_code_point[extra] || value > 0x10FFFF)
+    return 0;
   *code_point = value;
   return extra + 1;
 }
@@ -714,22 +718,24 @@ static String *Swig_string_csharpescape(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_string_csharpwideescape()
+ * string_unicode_escape()
  *
- * Takes the text of a wide string or wide character literal and produces a string with escape codes added to it, as
- * Swig_string_csharpescape() does, for use as a C# string or character literal. A character that is not ASCII, which
- * the text holds as its UTF-8 encoding, is given as a \u or \U escape sequence of its code point rather than as a C#
- * char for each byte of the encoding. For example:
+ * Takes the text of a string or character literal and produces a string with escape codes added to it, for use as a
+ * string or character literal in a target language with \u escape sequences. A character that is not ASCII, which the
+ * text holds as its UTF-8 encoding, is given as a \u escape sequence of its code point rather than as a character for
+ * each byte of the encoding. One outside the Basic Multilingual Plane is given as a \U escape sequence, or as two \u
+ * escape sequences of a UTF-16 surrogate pair if 'surrogates' is set. Any other byte is escaped with the 'encoding'.
+ * For example, with the 'escape' encoding:
  *
- *   Bytes of 's'                                    Result
- *   61 22 62, a"b                                   a\"b
- *   C3 A9 62, an e with an acute accent and a 'b'   \u00E9b
- *   F0 9F 98 80, a grinning face                    \U0001F600
+ *   Bytes of 's'                                    Result         Result if 'surrogates' is set
+ *   61 22 62, a"b                                   a\"b           a\"b
+ *   C3 A9 62, an e with an acute accent and a 'b'   \u00E9b        \u00E9b
+ *   F0 9F 98 80, a grinning face                    \U0001F600     \uD83D\uDE00
  * ----------------------------------------------------------------------------- */
 
-static String *Swig_string_csharpwideescape(String *s) {
+static String *string_unicode_escape(String *s, const char *encoding, int surrogates) {
   String *ns = NewStringEmpty();
-  String *ascii = NewStringEmpty();
+  String *other = NewStringEmpty();
   const char *text = Char(s);
   int len = Len(s);
   int pos = 0;
@@ -737,21 +743,35 @@ static String *Swig_string_csharpwideescape(String *s) {
     long code_point;
     int n = Swig_utf8_decode(s, pos, &code_point);
     if (n) {
-      Printf(ns, "%(csharpescape)s", ascii);
-      Clear(ascii);
-      if (code_point > 0xFFFF)
-        Printf(ns, "\\U%08lX", code_point);
-      else
+      Printf(ns, encoding, other);
+      Clear(other);
+      if (code_point <= 0xFFFF)
         Printf(ns, "\\u%04lX", code_point);
+      else if (surrogates)
+        Printf(ns, "\\u%04lX\\u%04lX", 0xD800 + ((code_point - 0x10000) >> 10), 0xDC00 + ((code_point - 0x10000) & 0x3FF));
+      else
+        Printf(ns, "\\U%08lX", code_point);
       pos += n;
     } else {
-      Putc(text[pos], ascii);
+      Putc(text[pos], other);
       pos++;
     }
   }
-  Printf(ns, "%(csharpescape)s", ascii);
-  Delete(ascii);
+  Printf(ns, encoding, other);
+  Delete(other);
   return ns;
+}
+
+static String *Swig_string_csharpunicodeescape(String *s) {
+  return string_unicode_escape(s, "%(csharpescape)s", 0);
+}
+
+static String *Swig_string_javaunicodeescape(String *s) {
+  return string_unicode_escape(s, "%(escape)s", 1);
+}
+
+static String *Swig_string_dunicodeescape(String *s) {
+  return string_unicode_escape(s, "%(escape)s", 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -1728,7 +1748,9 @@ void Swig_init(void) {
   DohEncoding("escape", Swig_string_escape);
   DohEncoding("wideescape", Swig_string_wideescape);
   DohEncoding("csharpescape", Swig_string_csharpescape);
-  DohEncoding("csharpwideescape", Swig_string_csharpwideescape);
+  DohEncoding("csharpunicodeescape", Swig_string_csharpunicodeescape);
+  DohEncoding("javaunicodeescape", Swig_string_javaunicodeescape);
+  DohEncoding("dunicodeescape", Swig_string_dunicodeescape);
   DohEncoding("goescape", Swig_string_goescape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);

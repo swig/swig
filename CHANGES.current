@@ -8,6 +8,31 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            [C#, Java] #3559 Fix a constant from a string literal holding a character that is not
+            ASCII, with %csconst(1) or %javaconst(1), which was given a char for each byte of its
+            UTF-8 encoding. It now holds the characters that the literal encodes.
+
+2026-10-09: wsfulton
+            [C#] Fix a static member constant initialised by a string or wide character literal
+            with %csconst(1), which was given the C++ escape sequences of the literal, so did not
+            compile for a character that is not printable ASCII or for a wide literal, such as:
+
+              struct S {
+                static constexpr const char *ESC = "\033";
+              };
+
+2026-10-09: wsfulton
+            [C#, D, Java] A constant from a wide string or wide character literal, such as
+            '#define WS L"abc"', with %csconst(1), %dmanifestconst or %javaconst(1), is now read
+            from C/C++, as without the feature, when it is wrapped as a pointer, as it is without
+            typemaps for wchar_t. The literal it was initialised with did not compile.
+
+2026-10-09: wsfulton
+            [D, Java] Fix a constant from a wide string or wide character literal with
+            %dmanifestconst or %javaconst(1) and typemaps giving it a string or character type. It
+            was initialised with the C++ wide literal, such as L"abc", so did not compile.
+
+2026-10-09: wsfulton
             [R] An object can now be passed for an array of its class, such as a Shape for a
             'Shape [3]' parameter, as a pointer to the first element, as in the other target
             languages. Any argument other than NULL for an array of a class gave an R internal

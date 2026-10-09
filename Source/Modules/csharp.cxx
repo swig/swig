@@ -1604,8 +1604,8 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    char quote = 0;
     if (Getattr(n, "stringval")) {
-      char quote = 0;
       switch (SwigType_type(t)) {
       case T_STRING:
       case T_WSTRING:
@@ -1619,11 +1619,14 @@ public:
       if (quote) {
         // Escape character literal for C#.
         Delete(csvalue);
-        if (SwigType_type(t) == T_WSTRING || SwigType_type(t) == T_WCHAR)
-          csvalue = NewStringf("%c%(csharpwideescape)s%c", quote, Getattr(n, "stringval"), quote);
-        else
+        if (SwigType_type(t) == T_CHAR)
           csvalue = NewStringf("%c%(csharpescape)s%c", quote, Getattr(n, "stringval"), quote);
+        else
+          csvalue = NewStringf("%c%(csharpunicodeescape)s%c", quote, Getattr(n, "stringval"), quote);
       }
+      // A literal cannot initialise a constant wrapped as a class, such as a wide string without typemaps for wchar_t *
+      if (classname_substituted_flag)
+        const_feature_flag = 0;
     }
 
     const String *outattributes = Getattr(n, "tmap:cstype:outattributes");
@@ -1673,16 +1676,11 @@ public:
       enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true C# constant and hope that it compiles as C# code
-      if (Getattr(n, "wrappedasconstant")) {
-        if (SwigType_type(t) == T_CHAR) {
-          String *stringval = Getattr(n, "stringval");
-          if (stringval)
-            Printf(constants_code, "'%(csharpescape)s';\n", stringval);
-          else
-            Printf(constants_code, "(char)%s;\n", Getattr(n, "staticmembervariableHandler:value"));
-        } else {
+      if (Getattr(n, "wrappedasconstant") && !quote) {
+        if (SwigType_type(t) == T_CHAR)
+          Printf(constants_code, "(char)%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+        else
           Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
-        }
       } else {
         Printf(constants_code, "%s;\n", csvalue);
       }

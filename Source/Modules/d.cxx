@@ -1080,7 +1080,7 @@ public:
    * D::staticmembervariableHandler()
    * --------------------------------------------------------------------------- */
   virtual int staticmembervariableHandler(Node *n) {
-    if (GetFlag(n, "feature:d:manifestconst") != 1) {
+    if (!isManifestConstant(n)) {
       Delattr(n, "value");
     }
 
@@ -1438,7 +1438,7 @@ public:
 
     // The %dmanifestconst feature determines if a D manifest constant
     // (const/enum) or a getter function is created.
-    if (GetFlag(n, "feature:d:manifestconst") != 1) {
+    if (!isManifestConstant(n)) {
       // Default constant handling will work with any type of C constant. It
       // generates a getter function (which is the same as a read only property
       // in D) which retrieves the value via by calling the C wrapper.
@@ -1494,7 +1494,14 @@ public:
       Printf(constants_code, "%s;\n", override_value);
     } else {
       // Just take the value from the C definition and hope it compiles in D.
-      if (Getattr(n, "wrappedasconstant")) {
+      String *stringval = Getattr(n, "stringval");
+      int type = SwigType_type(t);
+      if (stringval && type == T_WSTRING) {
+        // Without the L prefix of a wide string
+        Printf(constants_code, "\"%(dunicodeescape)s\";\n", stringval);
+      } else if (stringval && type == T_WCHAR) {
+        Printf(constants_code, "'%(dunicodeescape)s';\n", stringval);
+      } else if (Getattr(n, "wrappedasconstant")) {
         Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
         Printf(constants_code, "%s;\n", Getattr(n, "value"));
@@ -4753,6 +4760,24 @@ private:
       }
     }
     return result;
+  }
+
+  /* ---------------------------------------------------------------------------
+   * D::isManifestConstant()
+   *
+   * Returns true if the %dmanifestconst feature makes a constant a D manifest constant. A string or character literal
+   * cannot initialise one of a class type, such as a wide string without typemaps for wchar_t *, so a getter is used.
+   * --------------------------------------------------------------------------- */
+  bool isManifestConstant(Node *n) {
+    if (GetFlag(n, "feature:d:manifestconst") != 1)
+      return false;
+    if (!Getattr(n, "stringval"))
+      return true;
+    String *dtype = Swig_typemap_lookup("dtype", n, "", 0);
+    String *dtypeout = Getattr(n, "tmap:dtype:out");
+    if (dtypeout)
+      dtype = dtypeout;
+    return !(dtype && Strstr(dtype, "dclassname"));
   }
 
   /* ---------------------------------------------------------------------------

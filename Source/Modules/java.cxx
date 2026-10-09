@@ -1660,6 +1660,11 @@ public:
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, "No jstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    // A literal cannot initialise a constant wrapped as a class, such as a wide string without typemaps for wchar_t *
+    String *stringval = Getattr(n, "stringval");
+    if (stringval && classname_substituted_flag)
+      const_feature_flag = 0;
+
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
@@ -1700,7 +1705,13 @@ public:
       enum_constant_flag = false;
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
-      if (Getattr(n, "wrappedasconstant")) {
+      int type = SwigType_type(t);
+      if (stringval && (type == T_STRING || type == T_WSTRING)) {
+        // Decoded from UTF-8, as JNI decodes a char * string. A wide string has no L prefix in Java
+        Printf(constants_code, "\"%(javaunicodeescape)s\";\n", stringval);
+      } else if (stringval && type == T_WCHAR) {
+        Printf(constants_code, "'%(javaunicodeescape)s';\n", stringval);
+      } else if (Getattr(n, "wrappedasconstant")) {
         Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
         Printf(constants_code, "%s;\n", Getattr(n, "value"));
