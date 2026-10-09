@@ -21,6 +21,8 @@
 #define ES1 ""
 #define QQ1 "\b00! \18\14200!"
 #define PR1 ("paren")
+// Characters after an embedded NUL
+#define EN1 "a\0bc"
 // Universal character names, the same as SS1 and SS2
 #define UU1 "\u00C6\u00CEOU\n"
 %}
@@ -32,7 +34,11 @@
 %constant ES2="";
 %constant QQ2="\b00! \18\14200!";
 %constant PR2=("paren");
+%constant EN2="a\0bc";
 %constant UU2="\u00C6\u00CEOU\n";
+
+// The wrapper is given the default value
+%feature("compactdefaultargs") things::embedded_nul_default;
 
 %inline %{
 static const char *SS3 = "ÆÎOU\n";
@@ -52,6 +58,7 @@ struct things {
   const char * defarguments6(const char *ES4 = "") { return ES4; }
   const char * defarguments7(const char *QQ4 = "\b00! \18\14200!") { return QQ4; }
   const char * defarguments8(const char *PR4 = ("paren")) { return PR4; }
+  bool embedded_nul_default(const char *s = "a\0bc") { return s[0] == 'a' && s[1] == '\0' && s[2] == 'b' && s[3] == 'c'; }
 };
 %}
 
@@ -67,6 +74,7 @@ struct things {
 
 %extend things {
   static const char *const SS5 = "ÆÎOU\n";
+  static const char *const EN5 = "a\0bc";
 #if !defined(SWIGD)
   // TODO: Fix D calling an undefined accessor for an %extend static member constant that is not a manifest constant
   static const wchar_t *const WS5 = L"\u00C6\u00CEOU\n";

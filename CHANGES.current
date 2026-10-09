@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-09: wsfulton
+            Fix a string literal with characters after an embedded NUL, such as "a\0bc" or
+            L"a\0bc", where SWIG copies the literal into the generated code, such as for a
+            constant from '#define S "a\0bc"' or %constant, or for a default argument used by
+            the wrapper with compactdefaultargs. The characters after the NUL were lost, usually
+            becoming NULs, as in "a\0\0\0".
+
+2026-10-09: wsfulton
             [C#, Java] #3559 Fix a constant from a string literal holding a character that is not
             ASCII, with %csconst(1) or %javaconst(1), which was given a char for each byte of its
             UTF-8 encoding. It now holds the characters that the literal encodes.

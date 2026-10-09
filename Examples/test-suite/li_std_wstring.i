@@ -23,11 +23,13 @@
 %feature("compactdefaultargs") wchar_default;
 %feature("compactdefaultargs") wchar_default_ucn;
 %feature("compactdefaultargs") wstring_default;
+%feature("compactdefaultargs") wstring_nul_default;
 
 #if defined(SWIGCSHARP)
 // Initialised in C# rather than read from the C++ constant
 %csconst(1) WSTRING_CONSTANT;
 %csconst(1) WCHAR_CONSTANT;
+%csconst(1) WSTRING_NUL_CONSTANT;
 #endif
 
 %inline %{
@@ -64,9 +66,14 @@ bool wstring_default(const wchar_t *s = L"\x263A" L"a\u00E9f\U0001F600") {
   return std::wstring(s) == L"\x263A" L"a\u00E9f\U0001F600";
 }
 
+bool wstring_nul_default(const wchar_t *s = L"a\0bc") {
+  return s[0] == L'a' && s[1] == L'\0' && s[2] == L'b' && s[3] == L'c';
+}
+
 #define WSTRING_CONSTANT L"\x263A" L"a\u00E9f\U0001F600"
 #define WSTRING_CONSTANT_GET L"\x263A" L"a\u00E9f"
 #define WCHAR_CONSTANT L'\u00E9'
+#define WSTRING_NUL_CONSTANT L"a\0bc"
 
 const wchar_t* test_ccvalue(const wchar_t* x) {
   return x;

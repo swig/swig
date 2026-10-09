@@ -20,6 +20,9 @@ public class string_constants_runme {
       throw new RuntimeException("fail");
     if (!string_constants.ZS2.equals("\000"))
       throw new RuntimeException("fail");
+    for (String s : new String[] { string_constants.EN1, string_constants.EN2, things.EN5 })
+      if (!s.equals("a\000bc"))
+        throw new RuntimeException("fail: " + s);
     for (String s : new String[] { string_constants.SS1, string_constants.SS2, string_constants.UU1, string_constants.UU2, things.SS5 })
       if (!s.equals("\u00C6\u00CEOU\n"))
         throw new RuntimeException("fail: " + s);

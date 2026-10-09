@@ -1168,7 +1168,9 @@ DOHString *DohNewString(const DOHString_or_char *so) {
   str->str = (char *)DohMalloc(max);
   str->maxsize = max;
   if (s) {
-    strcpy(str->str, s);
+    /* Copy all 'l' bytes, not just up to the first zero byte, as a String can hold zero bytes, such as from "a\0bc" */
+    memcpy(str->str, s, l);
+    str->str[l] = 0;
     str->len = l;
     str->sp = l;
   } else {

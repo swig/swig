@@ -16,5 +16,6 @@ check::equal(string_constants::UU1, string_constants::SS1);
 check::equal(string_constants::UU2, string_constants::SS2);
 $t = new things();
 check::equal($t->defarguments7(), "\01000! \0018b00!");
+check::equal($t->embedded_nul_default(), true);
 
 check::done();
