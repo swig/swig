@@ -47,5 +47,27 @@ unittest(22, o$byval2fwdref(x))
 unittest(23, o$bychar1("a"))
 unittest(24, o$bychar1(NULL))
 
+unittest(25, o$byintarray(x))
+unittest(26, o$byintarray(NULL))
+unittest(26, o$byintarray(c(1L, 2L)))
+
+unittest(27, o$bydoublearray(x))
+unittest(28, o$bydoublearray(NULL))
+unittest(28, o$bydoublearray(c(1.5, 2.5)))
+
+unittest(29, o$byenumarray(x))
+unittest(30, o$byenumarray(NULL))
+unittest(30, o$byenumarray(c("OverloadNullEnumValue", "OverloadNullEnumValue")))
+
+unittest(31, o$bystringarray(x))
+unittest(32, o$bystringarray(NULL))
+unittest(32, o$bystringarray(c("a", "b")))
+
+unittest(33, o$byboolptr(x))
+unittest(34, o$byboolptr(NULL))
+
+unittest(35, o$byenumptr(x))
+unittest(36, o$byenumptr(NULL))
+
 q(save="no")
 

@@ -183,6 +183,9 @@ const char *CharPtrArrayJoin(char *strs[3]) {
   }
   return joined;
 }
+int CharPtrArrayIsNull(char *strs[3]) {
+  return strs == 0;
+}
 const char *CharPtrArrayReplaceFirst(char *strs[3]) {
   static char replacement[] = "replaced";
   strs[0] = replacement;

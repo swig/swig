@@ -229,12 +229,9 @@ std::ptrdiff_t *INOUT
 }
 
 %typemap(in,noblock=1,fragment="SWIG_strdup") char *[ANY] (char *temp[$1_dim0], char *copies[$1_dim0]) {
-  {
+  if (!Rf_isNull($input)) {
     int i;
     int len = Rf_length($input);
-    if (Rf_isNull($input)) {
-      %argument_nullref("$type", $symname, $argnum);
-    }
     if (!Rf_isString($input)) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
