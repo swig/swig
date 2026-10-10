@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-10: wsfulton
+            [PHP] NULL is now passed as a NULL pointer for a 'char INPUT[ANY]' parameter with the
+            typemaps.i typemaps, as for a 'char *' parameter, rather than as an empty string.
+
+2026-10-10: wsfulton
             [C#] The arrays_csharp.i FIXED[] typemaps for 'long' and 'unsigned long' now use a C#
             int[] or uint[], as the INPUT[], OUTPUT[] and INOUT[] typemaps do, unless SWIGWORDSIZE64
             is defined. They always used long[] or ulong[], which passed the wrong data where long
