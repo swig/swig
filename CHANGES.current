@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-10: wsfulton
+            [C#] Fix the arrays_csharp.i 'long' and 'unsigned long' INPUT[], OUTPUT[] and INOUT[]
+            typemaps when typemaps.i is included after arrays_csharp.i. typemaps.i replaced them with
+            typemaps that crashed for null and passed only the first element, so these arrays now
+            behave as for the other primitive types.
+
+2026-10-10: wsfulton
             [R] NULL now selects an overloaded function or method taking a pointer to or an array
             of numbers, bools or enums, such as 'int *', 'double []' or 'bool [3]', or an array of
             strings, such as 'char *[3]', where it gave "cannot find overloaded function". A
