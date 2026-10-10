@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-10: wsfulton
+            [C#] The arrays_csharp.i FIXED[] typemaps for 'long' and 'unsigned long' now use a C#
+            int[] or uint[], as the INPUT[], OUTPUT[] and INOUT[] typemaps do, unless SWIGWORDSIZE64
+            is defined. They always used long[] or ulong[], which passed the wrong data where long
+            is 32 bits, such as on Windows.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-10: wsfulton
             [C#] Fix the arrays_csharp.i 'long' and 'unsigned long' INPUT[], OUTPUT[] and INOUT[]
             typemaps when typemaps.i is included after arrays_csharp.i. typemaps.i replaced them with
             typemaps that crashed for null and passed only the first element, so these arrays now

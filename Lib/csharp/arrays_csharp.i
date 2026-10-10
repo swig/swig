@@ -192,7 +192,7 @@ CSHARP_ARRAYS_FIXED(double, double)
 CSHARP_ARRAYS_FIXED(bool, bool)
 
 // 32-bit/64-bit architecture specific typemaps - special handling to ensure sizeof(long) on C side matches size used on C# side
-#ifdef !SWIGWORDSIZE64
+#if !defined(SWIGWORDSIZE64)
 CSHARP_ARRAYS_FIXED(long, int)
 CSHARP_ARRAYS_FIXED(unsigned long, uint)
 #else
