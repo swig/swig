@@ -2442,6 +2442,9 @@ protected:
   /* class declarations */
   String *f_class_declarations;
 
+  /* declarations of the wrappers, which are all members of a single class */
+  String *f_wrapper_declarations;
+
   /* parts for initilizer */
   String *f_init_namespaces;
   String *f_init_wrappers;
@@ -2488,6 +2491,7 @@ int NAPIEmitter::initialize(Node *n) {
   f_post_init = NewString("");
 
   f_class_declarations = NewString("");
+  f_wrapper_declarations = NewString("");
 
   f_init_namespaces = NewString("");
   f_init_wrappers = NewString("");
@@ -2521,6 +2525,9 @@ int NAPIEmitter::dump(Node *n) {
   initializer_define.replace("$jsname", module).pretty_print(f_header);
 
   SwigType_emit_type_table(f_runtime, f_wrappers);
+
+  Template t_wrappers_class(getTemplate("jsnapi_wrappers_class"));
+  t_wrappers_class.replace("$jswrapperdeclarations", f_wrapper_declarations).pretty_print(f_header);
 
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
   Printv(f_wrap_cpp, f_header, "\n", 0);
@@ -2558,6 +2565,7 @@ int NAPIEmitter::close() {
   Delete(f_runtime);
   Delete(f_header);
   Delete(f_class_declarations);
+  Delete(f_wrapper_declarations);
   Delete(f_init_namespaces);
   Delete(f_init_wrappers);
   Delete(f_init_inheritance);
@@ -2676,14 +2684,21 @@ int NAPIEmitter::exitClass(Node *n) {
     .trim()
     .pretty_print(f_class_declarations);
 
+  /* There is no destructor to call for the classes not owning their objects. */
+  String *destruct = Cmp(state.clazz(DTOR), "0") == 0 ? NewString("nullptr") : NewStringf("&%s_destruct", state.clazz(NAME_MANGLED));
+
   Template t_class_template = getTemplate("jsnapi_getclass");
   t_class_template.replace("$jsname", state.clazz(NAME))
     .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+    .replace("$jsdestruct", destruct)
+    .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
     .replace("$jsnapiwrappers", f_init_wrappers)
     .replace("$jsnapistaticwrappers", f_init_static_wrappers)
     .replace("$jsparent", state.clazz(PARENT_MANGLED))
     .trim()
     .pretty_print(f_class_declarations);
+
+  Delete(destruct);
 
   /* Save these to be reused in the child classes */
   Setattr(n, MEMBER_FUNCTIONS, f_init_wrappers);
@@ -2743,7 +2758,7 @@ int NAPIEmitter::exitVariable(Node *n) {
       .replace("$jswrapper", state.variable(GETTER))
       .replace("$jsstatic", modifier)
       .trim()
-      .pretty_print(f_class_declarations);
+      .pretty_print(f_wrapper_declarations);
     if (state.variable(SETTER) != VETO_SET) {
       Template t_setter = getTemplate("jsnapi_class_setter_declaration");
       t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -2753,7 +2768,7 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jswrapper", state.variable(SETTER))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_class_declarations);
+        .pretty_print(f_wrapper_declarations);
     }
     Delete(modifier);
   } else {
@@ -2769,8 +2784,17 @@ int NAPIEmitter::exitVariable(Node *n) {
   return SWIG_OK;
 }
 
-int NAPIEmitter::emitClassMethodDeclaration(Node *) {
+int NAPIEmitter::emitClassMethodDeclaration(Node *n) {
+  // the constructor wrappers are functions and not members of anything
+  if (n && Equal(Getattr(n, "nodeType"), "constructor")) {
+    Template t_ctor_decl = getTemplate("jsnapi_class_ctor_declaration");
+    t_ctor_decl.replace("$jswrapper", state.function(WRAPPER_NAME)).trim().pretty_print(f_class_declarations);
+
+    return SWIG_OK;
+  }
+
   // emit declaration of a class member function
+  String *target = f_wrapper_declarations;
   Template t_def_class = getTemplate("jsnapi_class_method_declaration");
   t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
     .replace("$jsname", state.clazz(NAME))
@@ -2779,7 +2803,7 @@ int NAPIEmitter::emitClassMethodDeclaration(Node *) {
     .replace("$jswrapper", state.function(WRAPPER_NAME))
     .replace("$jsstatic", GetFlag(state.function(), IS_STATIC) ? "static" : "")
     .trim()
-    .pretty_print(f_class_declarations);
+    .pretty_print(target);
 
   return SWIG_OK;
 }
@@ -2962,13 +2986,8 @@ int NAPIEmitter::emitCtor(Node *n) {
   if (r != SWIG_OK)
     return r;
 
-  Template t_getter = getTemplate("jsnapi_class_method_declaration");
-  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-    .replace("$jswrapper", Getattr(n, "wrap:name"))
-    .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
-    .replace("$jsstatic", "")
-    .trim()
-    .pretty_print(f_class_declarations);
+  Template t_getter = getTemplate("jsnapi_class_ctor_declaration");
+  t_getter.replace("$jswrapper", Getattr(n, "wrap:name")).trim().pretty_print(f_class_declarations);
   return SWIG_OK;
 }
 

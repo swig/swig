@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-11: wangito33
+            [JavaScript] The Node-API wrappers now use a single class deriving from
+            Napi::ObjectWrap<> for all the wrapped classes instead of a class per wrapped
+            class. This fixes undefined behaviour, reported by UBSAN, when converting the
+            wrapped objects and greatly reduces the time and memory needed to compile the
+            wrappers of modules with many classes.
+
 2026-10-07: olly
 	    [Guile] #3194 The default "procdoc" format is now "plain" (which
 	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
