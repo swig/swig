@@ -2571,6 +2571,12 @@ which expands to
 </div>
 
 <p>
+The <tt>out</tt> attribute only overrides the typemap for the output values, so
+if the found typemap doesn't have this attribute, <tt>$typemap(cstype:out, XClass)</tt>
+expands to the typemap itself i.e. just <tt>$typemap(cstype, XClass)</tt>.
+</p>
+
+<p>
 <b>Compatibility note: </b> Support for typemap attributes in <tt>$typemap</tt>
 was introduced in SWIG-4.1.0.
 </p>

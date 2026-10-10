@@ -2209,6 +2209,13 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
             /* Look for the typemap code */
             attr = NewStringf("tmap:%s", tmap_method);
             tm = Getattr(to_match_parms, attr);
+            if (!tm && found_colon && strcmp(found_colon + 1, "out") == 0) {
+              /* The "out" attribute only overrides the typemap for the output values, so use the typemap itself without it. */
+              Delete(attr);
+              attr = NewStringf("tmap:%s", tmap_method);
+              Delslice(attr, Len(attr) - 4, DOH_END);
+              tm = Getattr(to_match_parms, attr);
+            }
             if (tm) {
               Printf(attr, "%s", ":next");
               /* fail if multi-argument lookup requested in $typemap(...) and the lookup failed */

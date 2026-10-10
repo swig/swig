@@ -12,6 +12,8 @@ if cvar.accessed_examplekw != 1:
     raise "Postcondition failed"
 if special_variable_macros.testJill(name) != "jilly":
     raise "test failed"
+if special_variable_macros.testJenny(name) != "jenny":
+    raise "test failed"
 if special_variable_macros.testMary(name) != "SWIGTYPE_p_NameWrap":
     raise "test failed"
 if special_variable_macros.testJames(name) != "SWIGTYPE_Name":
