@@ -488,12 +488,20 @@ values using the swig_val function before sharing them with another module.
 <H3><a name="Ocaml_nn12">41.2.3 Arrays</a></H3>
 
 
+<p>
+By default, an array, such as <tt>int [4]</tt> or <tt>Foo [2]</tt>, is wrapped as a pointer to its first element,
+as it is in the other target languages.
+<tt>C_void</tt> is passed as a NULL pointer for an array parameter.
+Setting an array member or global variable copies the elements from such a pointer, so NULL is an error.
+A global variable that is an array of unknown size, such as <tt>int []</tt>, is read only.
+</p>
+
 <H4><a name="Ocaml_nn13">41.2.3.1 Simple types of bounded arrays</a></H4>
 
 
 <p>
-SWIG has support for array types, but you generally will need to provide
-a typemap to handle them.  You can currently roll your own, or expand
+To pass an OCaml array (<tt>C_array</tt>) instead, you will need to provide
+a typemap.  You can currently roll your own, or expand
 some of the macros provided (but not included by default) with the SWIG
 distribution.
 </p>

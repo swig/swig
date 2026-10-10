@@ -129,7 +129,7 @@
     args = caml_list_append(args, swig_result);
 }
 
-%typemap(directorin) SWIGTYPE *, SWIGTYPE [], SWIGTYPE &, SWIGTYPE && {
+%typemap(directorin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && {
     swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)&$1, $&1_descriptor);
     args = caml_list_append(args, swig_result);
 }
@@ -317,18 +317,29 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     args = caml_list_append(args, caml_val_ptr(v,$1_descriptor));
 }
 
-%define %swigtype_array_fail(how,msg)
-%typemap(how) SWIGTYPE [] {
-    caml_failwith(msg);
-}
-%enddef
+/* Arrays, as a pointer to the first element */
+%typemap(in) SWIGTYPE [] = SWIGTYPE *;
+%typemap(out) SWIGTYPE [] = SWIGTYPE *;
+%typemap(varout) SWIGTYPE [] = SWIGTYPE *;
 
-%swigtype_array_fail(in,"Array arguments for arbitrary types need a typemap");
-%swigtype_array_fail(varin,"Assignment to global arrays for arbitrary types need a typemap");
-%swigtype_array_fail(out,"Array arguments for arbitrary types need a typemap");
-%swigtype_array_fail(varout,"Array variables need a typemap");
-%swigtype_array_fail(directorin,"Array results with arbitrary types need a typemap");
-%swigtype_array_fail(directorout,"Array arguments with arbitrary types need a typemap");
+%typemap(directorin) SWIGTYPE [] %{
+    args = caml_list_append(args, caml_val_ptr((void *)$1, $1_descriptor));
+%}
+
+%typemap(varin) SWIGTYPE [ANY] %{
+    void *inp = caml_ptr_val($input,$1_descriptor);
+    if (!inp) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
+    } else {
+        size_t ii;
+        for (ii = 0; ii < (size_t)$1_size; ii++)
+            (($1_basetype *)$1)[ii] = (($1_basetype *)inp)[ii];
+    }
+%}
+
+%typemap(varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [] %{
+    caml_failwith("read-only $name");
+%}
 
 /* C++ References */
 
@@ -409,7 +420,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
-%typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [];
+%typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
 /* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
 %typemap(in, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]) {
