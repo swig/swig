@@ -18,5 +18,5 @@ namespace swig {
 }
 
 namespace std {
-  template <class T> class unique_ptr {};
+  template <class T, class D = std::default_delete<T>> class unique_ptr {};
 }
