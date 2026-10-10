@@ -56,10 +56,37 @@ public class arrays_null_runme {
       throw new Exception("Test ints_ref global set to null failed");
     } catch (ArgumentNullException) {
     }
+    try {
+      arrays_null.arrays_null_bools = null;
+      throw new Exception("Test bools global set to null failed");
+    } catch (ArgumentNullException) {
+    }
     if (arrays_null.arrays_null_globals_check(10) != 1)
       throw new Exception("Test global set to null changed it");
 
-    if (arrays_null.arrays_null_isnull(null) != 1)
-      throw new Exception("Test null array parameter failed");
+    if (arrays_null.arrays_null_ints_isnull(null) != 1)
+      throw new Exception("Test null ints parameter failed");
+    if (arrays_null.arrays_null_ints_unsized_isnull(null) != 1)
+      throw new Exception("Test null ints unsized parameter failed");
+    if (arrays_null.arrays_null_enums_isnull(null) != 1)
+      throw new Exception("Test null enums parameter failed");
+    if (arrays_null.arrays_null_enums_unsized_isnull(null) != 1)
+      throw new Exception("Test null enums unsized parameter failed");
+    if (arrays_null.arrays_null_items_isnull(null) != 1)
+      throw new Exception("Test null items parameter failed");
+    if (arrays_null.arrays_null_items_unsized_isnull(null) != 1)
+      throw new Exception("Test null items unsized parameter failed");
+    if (arrays_null.arrays_null_bools_isnull(null) != 1)
+      throw new Exception("Test null bools parameter failed");
+    if (arrays_null.arrays_null_bools_unsized_isnull(null) != 1)
+      throw new Exception("Test null bools unsized parameter failed");
+    if (arrays_null.arrays_null_chars_isnull(null) != 1)
+      throw new Exception("Test null chars parameter failed");
+    if (arrays_null.arrays_null_chars_unsized_isnull(null) != 1)
+      throw new Exception("Test null chars unsized parameter failed");
+    if (arrays_null.arrays_null_strings_isnull(null) != 1)
+      throw new Exception("Test null strings parameter failed");
+    if (arrays_null.arrays_null_strings_unsized_isnull(null) != 1)
+      throw new Exception("Test null strings unsized parameter failed");
   }
 }

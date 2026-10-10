@@ -30,8 +30,25 @@ unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_items_set(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_grid_set(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_ints_ref_set(NULL))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_bools_set(NULL))), TRUE)
 unittest(arrays_null_globals_check(10), 1)
 
-unittest(arrays_null_isnull(NULL), 1)
+unittest(arrays_null_ints_isnull(NULL), 1)
+unittest(arrays_null_ints_unsized_isnull(NULL), 1)
+unittest(arrays_null_enums_isnull(NULL), 1)
+unittest(arrays_null_enums_unsized_isnull(NULL), 1)
+unittest(arrays_null_items_isnull(NULL), 1)
+unittest(arrays_null_items_unsized_isnull(NULL), 1)
+unittest(arrays_null_bools_isnull(NULL), 1)
+unittest(arrays_null_bools_unsized_isnull(NULL), 1)
+unittest(arrays_null_chars_isnull(NULL), 1)
+unittest(arrays_null_chars_unsized_isnull(NULL), 1)
+unittest(arrays_null_strings_isnull(NULL), 1)
+unittest(arrays_null_strings_unsized_isnull(NULL), 1)
+
+# An empty vector is not NULL
+unittest(arrays_null_ints_isnull(integer(0)), 0)
+unittest(arrays_null_ints_unsized_isnull(integer(0)), 0)
+unittest(arrays_null_enums_isnull(character(0)), 0)
 
 q(save="no")

@@ -62,13 +62,36 @@ int arrays_null_globals_check(int start) {
 }
 
 // NULL is still passed on as a NULL pointer for an array parameter
-int arrays_null_isnull(int a[4]) {
+enum ArraysNullEnum { ArraysNullEnumValue };
+
+int arrays_null_ints_isnull(int a[4]) {
+  return a == 0;
+}
+int arrays_null_ints_unsized_isnull(int a[]) {
+  return a == 0;
+}
+int arrays_null_enums_isnull(ArraysNullEnum a[4]) {
+  return a == 0;
+}
+int arrays_null_enums_unsized_isnull(ArraysNullEnum a[]) {
+  return a == 0;
+}
+int arrays_null_items_isnull(ArraysNullItem a[2]) {
+  return a == 0;
+}
+int arrays_null_items_unsized_isnull(ArraysNullItem a[]) {
   return a == 0;
 }
 int arrays_null_bools_isnull(bool a[4]) {
   return a == 0;
 }
 int arrays_null_bools_unsized_isnull(bool a[]) {
+  return a == 0;
+}
+int arrays_null_chars_isnull(char a[4]) {
+  return a == 0;
+}
+int arrays_null_chars_unsized_isnull(char a[]) {
   return a == 0;
 }
 int arrays_null_strings_isnull(char *a[3]) {

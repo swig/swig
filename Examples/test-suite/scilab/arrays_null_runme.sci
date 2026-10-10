@@ -38,7 +38,13 @@ end
 checkequal(arrays_null_check(s, 10), 1, "arrays_null_check() after member set to NULL");
 checkequal(arrays_null_globals_check(10), 1, "arrays_null_globals_check() after global set to NULL");
 
-checkequal(arrays_null_isnull([]), 1, "arrays_null_isnull([])");
+// NULL is an empty matrix for an array of numbers and a NULL pointer for an array of enums or classes
+checkequal(arrays_null_ints_isnull([]), 1, "arrays_null_ints_isnull([])");
+checkequal(arrays_null_ints_unsized_isnull([]), 1, "arrays_null_ints_unsized_isnull([])");
+checkequal(arrays_null_enums_isnull(NULL), 1, "arrays_null_enums_isnull(NULL)");
+checkequal(arrays_null_enums_unsized_isnull(NULL), 1, "arrays_null_enums_unsized_isnull(NULL)");
+checkequal(arrays_null_items_isnull(NULL), 1, "arrays_null_items_isnull(NULL)");
+checkequal(arrays_null_items_unsized_isnull(NULL), 1, "arrays_null_items_unsized_isnull(NULL)");
 
 delete_ArraysNull(other);
 delete_ArraysNull(s);

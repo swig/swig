@@ -30,7 +30,17 @@ check_null_rejected "ints global" { set arrays_null_ints NULL }
 check_null_rejected "items global" { set arrays_null_items NULL }
 check_null_rejected "grid global" { set arrays_null_grid NULL }
 check_null_rejected "ints_ref global" { set arrays_null_ints_ref NULL }
+check_null_rejected "bools global" { set arrays_null_bools NULL }
 if {[arrays_null_globals_check 10] != 1} { error "global set to NULL changed it" }
 
 # NULL is passed on as a NULL pointer for an array parameter.
-if {[arrays_null_isnull NULL] != 1} { error "ints parameter" }
+if {[arrays_null_ints_isnull NULL] != 1} { error "ints parameter" }
+if {[arrays_null_ints_unsized_isnull NULL] != 1} { error "unsized ints parameter" }
+if {[arrays_null_enums_isnull NULL] != 1} { error "enums parameter" }
+if {[arrays_null_enums_unsized_isnull NULL] != 1} { error "unsized enums parameter" }
+if {[arrays_null_items_isnull NULL] != 1} { error "items parameter" }
+if {[arrays_null_items_unsized_isnull NULL] != 1} { error "unsized items parameter" }
+if {[arrays_null_bools_isnull NULL] != 1} { error "bools parameter" }
+if {[arrays_null_bools_unsized_isnull NULL] != 1} { error "unsized bools parameter" }
+if {[arrays_null_strings_isnull NULL] != 1} { error "strings parameter" }
+if {[arrays_null_strings_unsized_isnull NULL] != 1} { error "unsized strings parameter" }

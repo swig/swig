@@ -64,10 +64,37 @@ public class arrays_null_runme {
       throw new RuntimeException("Test ints_ref global set to null failed");
     } catch (NullPointerException e) {
     }
+    try {
+      arrays_null.setArrays_null_bools(null);
+      throw new RuntimeException("Test bools global set to null failed");
+    } catch (NullPointerException e) {
+    }
     if (arrays_null.arrays_null_globals_check(10) != 1)
       throw new RuntimeException("Test global set to null changed it");
 
-    if (arrays_null.arrays_null_isnull(null) != 1)
-      throw new RuntimeException("Test null array parameter failed");
+    if (arrays_null.arrays_null_ints_isnull(null) != 1)
+      throw new RuntimeException("Test null ints parameter failed");
+    if (arrays_null.arrays_null_ints_unsized_isnull(null) != 1)
+      throw new RuntimeException("Test null ints unsized parameter failed");
+    if (arrays_null.arrays_null_enums_isnull(null) != 1)
+      throw new RuntimeException("Test null enums parameter failed");
+    if (arrays_null.arrays_null_enums_unsized_isnull(null) != 1)
+      throw new RuntimeException("Test null enums unsized parameter failed");
+    if (arrays_null.arrays_null_items_isnull(null) != 1)
+      throw new RuntimeException("Test null items parameter failed");
+    if (arrays_null.arrays_null_items_unsized_isnull(null) != 1)
+      throw new RuntimeException("Test null items unsized parameter failed");
+    if (arrays_null.arrays_null_bools_isnull(null) != 1)
+      throw new RuntimeException("Test null bools parameter failed");
+    if (arrays_null.arrays_null_bools_unsized_isnull(null) != 1)
+      throw new RuntimeException("Test null bools unsized parameter failed");
+    if (arrays_null.arrays_null_chars_isnull(null) != 1)
+      throw new RuntimeException("Test null chars parameter failed");
+    if (arrays_null.arrays_null_chars_unsized_isnull(null) != 1)
+      throw new RuntimeException("Test null chars unsized parameter failed");
+    if (arrays_null.arrays_null_strings_isnull(null) != 1)
+      throw new RuntimeException("Test null strings parameter failed");
+    if (arrays_null.arrays_null_strings_unsized_isnull(null) != 1)
+      throw new RuntimeException("Test null strings unsized parameter failed");
   }
 }

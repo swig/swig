@@ -38,8 +38,31 @@ check_set_null_fails(arrays_null, "arrays_null_ints");
 check_set_null_fails(arrays_null, "arrays_null_items");
 check_set_null_fails(arrays_null, "arrays_null_grid");
 check_set_null_fails(arrays_null, "arrays_null_ints_ref");
+check_set_null_fails(arrays_null, "arrays_null_bools");
 if (arrays_null.arrays_null_globals_check(10) !== 1)
   throw new Error("global set to null changed it");
 
-if (arrays_null.arrays_null_isnull(null) !== 1)
-  throw new Error("isnull");
+if (arrays_null.arrays_null_ints_isnull(null) !== 1)
+  throw new Error("ints_isnull");
+if (arrays_null.arrays_null_ints_unsized_isnull(null) !== 1)
+  throw new Error("ints_unsized_isnull");
+if (arrays_null.arrays_null_enums_isnull(null) !== 1)
+  throw new Error("enums_isnull");
+if (arrays_null.arrays_null_enums_unsized_isnull(null) !== 1)
+  throw new Error("enums_unsized_isnull");
+if (arrays_null.arrays_null_items_isnull(null) !== 1)
+  throw new Error("items_isnull");
+if (arrays_null.arrays_null_items_unsized_isnull(null) !== 1)
+  throw new Error("items_unsized_isnull");
+if (arrays_null.arrays_null_bools_isnull(null) !== 1)
+  throw new Error("bools_isnull");
+if (arrays_null.arrays_null_bools_unsized_isnull(null) !== 1)
+  throw new Error("bools_unsized_isnull");
+if (arrays_null.arrays_null_chars_isnull(null) !== 1)
+  throw new Error("chars_isnull");
+if (arrays_null.arrays_null_chars_unsized_isnull(null) !== 1)
+  throw new Error("chars_unsized_isnull");
+if (arrays_null.arrays_null_strings_isnull(null) !== 1)
+  throw new Error("strings_isnull");
+if (arrays_null.arrays_null_strings_unsized_isnull(null) !== 1)
+  throw new Error("strings_unsized_isnull");

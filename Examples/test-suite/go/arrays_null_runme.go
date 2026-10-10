@@ -40,11 +40,39 @@ func main() {
 	checkNullRejected("items global", func() { SetArrays_null_items(SwigcptrArraysNullItem(0)) })
 	checkNullRejected("grid global", func() { SetArrays_null_grid(nil) })
 	checkNullRejected("ints_ref global", func() { SetArrays_null_ints_ref(nil) })
+	checkNullRejected("bools global", func() { SetArrays_null_bools(nil) })
 	if Arrays_null_globals_check(10) != 1 {
 		panic("Test global set to nil changed it")
 	}
 
-	if Arrays_null_isnull(nil) != 1 {
-		panic("Test nil array parameter failed")
+	if Arrays_null_ints_isnull(nil) != 1 {
+		panic("Test nil ints parameter failed")
+	}
+	if Arrays_null_ints_unsized_isnull(nil) != 1 {
+		panic("Test nil ints unsized parameter failed")
+	}
+	if Arrays_null_enums_isnull(nil) != 1 {
+		panic("Test nil enums parameter failed")
+	}
+	if Arrays_null_enums_unsized_isnull(nil) != 1 {
+		panic("Test nil enums unsized parameter failed")
+	}
+	if Arrays_null_items_isnull(nil) != 1 {
+		panic("Test nil items parameter failed")
+	}
+	if Arrays_null_items_unsized_isnull(nil) != 1 {
+		panic("Test nil items unsized parameter failed")
+	}
+	if Arrays_null_bools_isnull(nil) != 1 {
+		panic("Test nil bools parameter failed")
+	}
+	if Arrays_null_bools_unsized_isnull(nil) != 1 {
+		panic("Test nil bools unsized parameter failed")
+	}
+	if Arrays_null_strings_isnull(nil) != 1 {
+		panic("Test nil strings parameter failed")
+	}
+	if Arrays_null_strings_unsized_isnull(nil) != 1 {
+		panic("Test nil strings unsized parameter failed")
 	}
 }

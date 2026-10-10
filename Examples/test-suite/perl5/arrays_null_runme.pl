@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 26;
 BEGIN { use_ok('arrays_null') }
 require_ok('arrays_null');
 
@@ -35,7 +35,20 @@ eval { $arrays_null::arrays_null_grid = undef };
 like($@, qr/invalid null reference/, "grid global set to undef");
 eval { $arrays_null::arrays_null_ints_ref = undef };
 like($@, qr/invalid null reference/, "ints_ref global set to undef");
+eval { $arrays_null::arrays_null_bools = undef };
+like($@, qr/invalid null reference/, "bools global set to undef");
 is(arrays_null::arrays_null_globals_check(10), 1, "global set to undef unchanged");
 
 # undef is passed on as a NULL pointer for an array parameter.
-is(arrays_null::arrays_null_isnull(undef), 1, "ints parameter");
+is(arrays_null::arrays_null_ints_isnull(undef), 1, "ints parameter");
+is(arrays_null::arrays_null_ints_unsized_isnull(undef), 1, "unsized ints parameter");
+is(arrays_null::arrays_null_enums_isnull(undef), 1, "enums parameter");
+is(arrays_null::arrays_null_enums_unsized_isnull(undef), 1, "unsized enums parameter");
+is(arrays_null::arrays_null_items_isnull(undef), 1, "items parameter");
+is(arrays_null::arrays_null_items_unsized_isnull(undef), 1, "unsized items parameter");
+is(arrays_null::arrays_null_bools_isnull(undef), 1, "bools parameter");
+is(arrays_null::arrays_null_bools_unsized_isnull(undef), 1, "unsized bools parameter");
+is(arrays_null::arrays_null_chars_isnull(undef), 1, "chars parameter");
+is(arrays_null::arrays_null_chars_unsized_isnull(undef), 1, "unsized chars parameter");
+is(arrays_null::arrays_null_strings_isnull(undef), 1, "strings parameter");
+is(arrays_null::arrays_null_strings_unsized_isnull(undef), 1, "unsized strings parameter");

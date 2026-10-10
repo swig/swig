@@ -34,7 +34,19 @@ check_nil_rejected("ints global") { Arrays_null.arrays_null_ints = nil }
 check_nil_rejected("items global") { Arrays_null.arrays_null_items = nil }
 check_nil_rejected("grid global") { Arrays_null.arrays_null_grid = nil }
 check_nil_rejected("ints_ref global") { Arrays_null.arrays_null_ints_ref = nil }
+check_nil_rejected("bools global") { Arrays_null.arrays_null_bools = nil }
 swig_assert_equal('Arrays_null.arrays_null_globals_check(10)', '1', binding)
 
 # nil is passed on as a NULL pointer for an array parameter.
-swig_assert_equal('Arrays_null.arrays_null_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_ints_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_ints_unsized_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_enums_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_enums_unsized_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_items_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_items_unsized_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_bools_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_bools_unsized_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_chars_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_chars_unsized_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_strings_isnull(nil)', '1', binding)
+swig_assert_equal('Arrays_null.arrays_null_strings_unsized_isnull(nil)', '1', binding)

@@ -39,9 +39,22 @@ int main() {
   check_null_rejected("ints global");
   arrays_null_arrays_null_grid_set(NULL);
   check_null_rejected("grid global");
+  arrays_null_arrays_null_bools_set(NULL);
+  check_null_rejected("bools global");
   check(arrays_null_arrays_null_ints_get()[3] == 13, "global set to NULL changed it");
 
-  check(arrays_null_arrays_null_isnull(NULL), "NULL array parameter");
+  check(arrays_null_arrays_null_ints_isnull(NULL), "NULL ints parameter");
+  check(arrays_null_arrays_null_ints_unsized_isnull(NULL), "NULL ints unsized parameter");
+  check(arrays_null_arrays_null_enums_isnull(NULL), "NULL enums parameter");
+  check(arrays_null_arrays_null_enums_unsized_isnull(NULL), "NULL enums unsized parameter");
+  check(arrays_null_arrays_null_items_isnull(NULL), "NULL items parameter");
+  check(arrays_null_arrays_null_items_unsized_isnull(NULL), "NULL items unsized parameter");
+  check(arrays_null_arrays_null_bools_isnull(NULL), "NULL bools parameter");
+  check(arrays_null_arrays_null_bools_unsized_isnull(NULL), "NULL bools unsized parameter");
+  check(arrays_null_arrays_null_chars_isnull(NULL), "NULL chars parameter");
+  check(arrays_null_arrays_null_chars_unsized_isnull(NULL), "NULL chars unsized parameter");
+  check(arrays_null_arrays_null_strings_isnull(NULL), "NULL strings parameter");
+  check(arrays_null_arrays_null_strings_unsized_isnull(NULL), "NULL strings unsized parameter");
 
   arrays_null_ArraysNull_delete(other);
   arrays_null_ArraysNull_delete(s);

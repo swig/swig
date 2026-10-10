@@ -31,7 +31,20 @@ with swig_assert_raises(TypeError):
     arrays_null.cvar.arrays_null_grid = None
 with swig_assert_raises(TypeError):
     arrays_null.cvar.arrays_null_ints_ref = None
+with swig_assert_raises(TypeError):
+    arrays_null.cvar.arrays_null_bools = None
 swig_check(arrays_null.arrays_null_globals_check(10), 1)
 
 # None is passed on as a NULL pointer for an array parameter.
-swig_check(arrays_null.arrays_null_isnull(None), 1)
+swig_check(arrays_null.arrays_null_ints_isnull(None), 1)
+swig_check(arrays_null.arrays_null_ints_unsized_isnull(None), 1)
+swig_check(arrays_null.arrays_null_enums_isnull(None), 1)
+swig_check(arrays_null.arrays_null_enums_unsized_isnull(None), 1)
+swig_check(arrays_null.arrays_null_items_isnull(None), 1)
+swig_check(arrays_null.arrays_null_items_unsized_isnull(None), 1)
+swig_check(arrays_null.arrays_null_bools_isnull(None), 1)
+swig_check(arrays_null.arrays_null_bools_unsized_isnull(None), 1)
+swig_check(arrays_null.arrays_null_chars_isnull(None), 1)
+swig_check(arrays_null.arrays_null_chars_unsized_isnull(None), 1)
+swig_check(arrays_null.arrays_null_strings_isnull(None), 1)
+swig_check(arrays_null.arrays_null_strings_unsized_isnull(None), 1)
