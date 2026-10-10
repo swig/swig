@@ -94,6 +94,24 @@ $typemap(in, Name *GENERIC, specialname=jilly)
 // %typemap(in) Name *jill end
 }
 
+// check that $typemap(in:out) expands to the typemap itself if it has no "out" attribute
+%{
+Name jenny_name("jenny");
+%}
+
+%typemap(in) Name *NOOUT %{
+  /*%typemap(in) Name *NOOUT start */
+  (void)$input;
+  $1 = &jenny_name;
+  /*%typemap(in) Name *NOOUT end */
+%}
+
+%typemap(in) Name *jenny {
+// %typemap(in) Name *jenny start
+$typemap(in:out, Name *NOOUT)
+// %typemap(in) Name *jenny end
+}
+
 %typemap(in) Name *mary {
 // %typemap(in) Name *mary start
 $typemap(in, NameWrap *NAMEWRAP)
@@ -117,6 +135,9 @@ const char * testJack(Name *jack) {
 }
 const char * testJill(Name *jill) {
   return jill->getName();
+}
+const char * testJenny(Name *jenny) {
+  return jenny->getName();
 }
 const char * testMary(Name *mary) {
   return mary->getName();

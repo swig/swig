@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-11: vadz
+            $typemap(method:out, type) now expands to the typemap itself if the typemap
+            found for the type has no "out" attribute, instead of failing with a "No typemap
+            found" error, as the typemap applies to the output values too in this case.
+            For example, $typemap(cstype:out, int) now gives "int".
+
 2026-10-07: olly
 	    [Guile] #3194 The default "procdoc" format is now "plain" (which
 	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
