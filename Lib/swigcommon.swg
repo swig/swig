@@ -1,15 +1,17 @@
 /* -----------------------------------------------------------------------------
  * swigcommon.swg
  *
- * Typemaps common to all target languages. A target language includes this file after its runtime and error support
- * code, but before its own typemaps, which can then override or copy these typemaps. Before including it, the target
- * language defines:
+ * Typemaps common to all target languages. A target language includes this file after its runtime support code, but
+ * before its own typemaps, which can then override or copy these typemaps. It first includes the target language's
+ * exception.swg, which defines:
  *   SWIG_exception(code, msg)    - raises the target language error for the SWIG error code with the message and
  *                                  leaves the wrapper function.
  *   %fragment("SWIG_exception")  - any support code that SWIG_exception needs, which is always brought in.
  * A typemap here that raises an error uses canthrow=1 (for C# and D). Its code is in a noblock=1 { } body, as
  * SWIG_exception is a SWIG preprocessor macro in some target languages.
  * ----------------------------------------------------------------------------- */
+
+%include <exception.swg>
 
 %insert("runtime") "swigerrors.swg"
 

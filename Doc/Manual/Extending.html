@@ -289,10 +289,10 @@ or <tt>perl5.swg</tt>.
 <p>
 The <em><tt>langconfig.swg</tt></em> file also includes <tt>swigcommon.swg</tt>, which contains the typemaps common to
 all target languages, such as the default <tt>memberin</tt> and <tt>globalin</tt> typemaps for <tt>char *</tt>.
-It is included after the runtime support code for raising errors, but before the target language's own typemaps, so
+It is included after the runtime support code, but before the target language's own typemaps, so
 that these can override or copy the common typemaps.
-Before including it, the target language defines the <tt>SWIG_exception(code, msg)</tt> macro, which raises the
-target language error for a SWIG error code and leaves the wrapper function.
+It first includes the target language's <tt>exception.swg</tt>, which defines the <tt>SWIG_exception(code, msg)</tt>
+macro to raise the target language error for a SWIG error code and leave the wrapper function.
 It also defines a code fragment called <tt>SWIG_exception</tt> for any support code that the macro needs.
 This fragment is always brought in.
 <tt>swigcommon.swg</tt> defines <tt>SWIG_exception_fail</tt> as the same macro.
@@ -2772,12 +2772,15 @@ be parsed before any part of the user-supplied input file.
 Before proceeding any further, create a directory for your module in the SWIG
 library (The <tt>Lib</tt> directory).   Now, create a configuration file in the
 directory.  For example, <tt>python.swg</tt>.
+The configuration file includes <tt>swigcommon.swg</tt>, the typemaps common to all target languages, which in turn
+includes <tt>exception.swg</tt> from the module's directory, so also create this file, as described in
+<a href="#Extending_nn40">Runtime support</a>.
 </p>
 
 <p>
-Just to review, your language module should now consist of two files--
-an implementation file <tt>python.cxx</tt> and a configuration file
-<tt>python.swg</tt>.
+Just to review, your language module should now consist of three files--
+an implementation file <tt>python.cxx</tt>, a configuration file
+<tt>python.swg</tt> and <tt>exception.swg</tt>.
 </p>
 
 <H3><a name="Extending_nn36">42.10.5 Entry point to code generation</a></H3>
@@ -3291,6 +3294,18 @@ politely displays the ignoring language message.
 Discuss the kinds of functions typically needed for SWIG runtime support (e.g.
 <tt>SWIG_ConvertPtr()</tt> and <tt>SWIG_NewPointerObj()</tt>) and the names of
 the SWIG files that implement those functions.
+</p>
+
+<p>
+The <tt>exception.swg</tt> file in the module's directory defines <tt>SWIG_exception(code, msg)</tt>, which raises the
+target language error for one of the SWIG error codes, such as <tt>SWIG_ValueError</tt>, with the message and then
+leaves the wrapper function, as described in
+<a href="Customization.html#Customization_nn7">Using The SWIG exception library</a>.
+It also defines a code fragment called <tt>SWIG_exception</tt> with any support code that the macro needs, such as a
+function mapping the error codes to the target language's exceptions.
+The fragment is always brought in, so <tt>SWIG_exception</tt> can be used anywhere.
+Define the macro as a SWIG preprocessor macro if it needs a special variable, such as <tt>$null</tt>, otherwise as a C
+macro in the fragment.
 </p>
 
 <H3><a name="Extending_nn41">42.10.10 Standard library files</a></H3>

@@ -9,10 +9,6 @@
 /* Code insertion directives */
 #define %go_import(...) %insert(go_imports) %{__VA_ARGS__%}
 
-/* Raise the error, which panics. In the runtime section, where go.cxx looks for _swig_gopanic. */
-%fragment("SWIG_exception", "runtime") %{
-#define SWIG_exception(code, msg) _swig_gopanic(msg)
-%}
 %include <swigcommon.swg>
 
 %typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
