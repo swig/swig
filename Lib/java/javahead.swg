@@ -90,7 +90,7 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 #define SWIG_contract_assert(nullreturn, expr, msg) do { if (!(expr)) {SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, msg); return nullreturn; } } while (0)
 %}
 
-/* Map a SWIG error code to a Java exception, as for SWIG_exception in exception.i */
+/* Map a SWIG error code to a Java exception */
 %fragment("SWIG_JavaException", "header") %{
 SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
   SWIG_JavaExceptionCodes exception_code = SWIG_JavaUnknownError;
@@ -129,6 +129,6 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 }
 %}
 
-/* For swigcommon.swg: raise the error and leave the wrapper */
-#define SWIG_exception_fail(code, msg) { SWIG_JavaException(jenv, code, msg); return $null; }
-%fragment("SWIG_exception_fail", "header", fragment="SWIG_JavaException") {}
+/* Raise the error for a SWIG error code and leave the wrapper */
+#define SWIG_exception(code, msg) { SWIG_JavaException(jenv, code, msg); return $null; }
+%fragment("SWIG_exception", "header", fragment="SWIG_JavaException") {}

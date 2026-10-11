@@ -647,6 +647,8 @@ private:
 
     /* Write and cleanup */
 
+    // _swig_gopanic is inserted before the header code, which may use it, and after SWIGUNUSED is defined
+    int c_header_start = Len(f_c_runtime);
     Dump(f_c_header, f_c_runtime);
 
     if (Swig_directors_enabled()) {
@@ -686,14 +688,18 @@ private:
       Printv(f_go_header, "\tpanic(string(s))\n", NULL);
       Printv(f_go_header, "}\n\n", NULL);
 
-      Printv(f_c_begin, "\nextern\n", NULL);
-      Printv(f_c_begin, "#ifdef __cplusplus\n", NULL);
-      Printv(f_c_begin, "  \"C\"\n", NULL);
-      Printv(f_c_begin, "#endif\n", NULL);
-      Printv(f_c_begin, "  void cgo_panic_", unique_id, "(const char*);\n", NULL);
-      Printv(f_c_begin, "static void _swig_gopanic(const char *p) {\n", NULL);
-      Printv(f_c_begin, "  cgo_panic_", unique_id, "(p);\n", NULL);
-      Printv(f_c_begin, "}\n\n", NULL);
+      String *panic_code = NewString("");
+      Printv(panic_code, "\nextern\n", NULL);
+      Printv(panic_code, "#ifdef __cplusplus\n", NULL);
+      Printv(panic_code, "  \"C\"\n", NULL);
+      Printv(panic_code, "#endif\n", NULL);
+      Printv(panic_code, "  void cgo_panic_", unique_id, "(const char*);\n", NULL);
+      // Unused unless SWIG_exception or a throws typemap is used, but the SWIG_exception macro is always defined
+      Printv(panic_code, "static SWIGUNUSED void _swig_gopanic(const char *p) {\n", NULL);
+      Printv(panic_code, "  cgo_panic_", unique_id, "(p);\n", NULL);
+      Printv(panic_code, "}\n\n", NULL);
+      Insert(f_c_runtime, c_header_start, panic_code);
+      Delete(panic_code);
     }
 
     Dump(f_c_runtime, f_c_begin);

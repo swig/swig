@@ -595,8 +595,23 @@ SWIG_NullReferenceError
 </pre></div>
 
 <p>
-The <tt>SWIG_exception()</tt> function can also be used in typemaps.
+<tt>SWIG_exception()</tt> raises the exception and leaves the wrapper function, so none of the code after it in the
+wrapper is run. <tt>SWIG_exception_fail()</tt>, used by many of the typemaps in the SWIG library, is the same.
 </p>
+
+<p>
+<tt>SWIG_exception()</tt> is always available, even without <tt>%include exception.i</tt>, so it can also be used in a
+typemap or in <tt>%exception</tt> code:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) int positive {
+  if ($1 &lt;= 0)
+    SWIG_exception(SWIG_ValueError, "Expected a positive value.");
+}
+</pre>
+</div>
 
 <H2><a name="Customization_ownership">17.2 Object ownership and %newobject</a></H2>
 

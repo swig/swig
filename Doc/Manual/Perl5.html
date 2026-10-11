@@ -2446,7 +2446,7 @@ is usually accessed as follows:
 <pre>
 Foo *f;
 if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;f, SWIGTYPE_p_Foo, 0))) {
-  SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+  SWIG_exception(SWIG_TypeError, "in method '$symname', expecting type Foo");
 }
 
 SV *sv = sv_newmortal();
@@ -2463,7 +2463,7 @@ variable <tt>$1_descriptor</tt>.  For example:
 <pre>
 %typemap(in) Foo * {
   if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
-    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+    SWIG_exception(SWIG_TypeError, "in method '$symname', expecting type Foo");
   }
 }
 </pre>
@@ -2478,7 +2478,7 @@ For example:
 <pre>
 %typemap(in) Foo * {
   if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $descriptor(Foo *), 0))) {
-    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+    SWIG_exception(SWIG_TypeError, "in method '$symname', expecting type Foo");
   }
 }
 </pre>

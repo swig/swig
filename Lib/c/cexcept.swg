@@ -95,9 +95,8 @@ template <typename T> T swig_check(T x) {
 
 #endif // SWIG_CXX_WRAPPERS
 
-// For swigcommon.swg: raise the error and leave the wrapper
-#define SWIG_exception_fail(code, msg) { SWIG_CException_Raise(code, msg); return $null; }
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
+// Raise the error for a SWIG error code and leave the wrapper
+#define SWIG_exception(code, msg) { SWIG_CException_Raise(code, msg); return $null; }
 
 %typemap(throws, noblock="1") char *, const char * {
   SWIG_exception(SWIG_RuntimeError, $1);

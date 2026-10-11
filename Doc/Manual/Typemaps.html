@@ -3074,7 +3074,7 @@ and the only other supported value is 0, for a typemap that returns nothing:
 %typemap(argout, numoutputs=0) int *ERRCHECK {
   if (*$1 != 0) {
     /* turn the error code into an exception */
-    SWIG_exception_fail(SWIG_RuntimeError, "call failed");
+    SWIG_exception(SWIG_RuntimeError, "call failed");
   }
 }
 </pre>
@@ -4763,7 +4763,7 @@ if you look at the wrapper code for Python, you will see code similar to the fol
 <div class="code">
 <pre>
 if (!SWIG_IsOK(SWIG_ConvertPtr(obj0, (void **) &amp;arg1, SWIGTYPE_p_Foo, 0))) {
-  SWIG_exception_fail(SWIG_TypeError, "in method 'GrabVal', expecting type Foo");
+  SWIG_exception(SWIG_TypeError, "in method 'GrabVal', expecting type Foo");
 }
 </pre>
 </div>
@@ -4778,7 +4778,7 @@ The <tt>SWIG_ConvertPtr()</tt> function is simply a utility function
 that takes a pointer object in the target language and a
 type-descriptor object and uses this information to generate a C++ pointer.
 The <tt>SWIG_IsOK</tt> macro checks the return value for errors and
-<tt>SWIG_exception_fail</tt> can be called to raise an exception in the target language.
+<tt>SWIG_exception</tt> can be called to raise an exception in the target language.
 However, the exact name and calling conventions of the conversion
 function depends on the target language (see language specific chapters for details). 
 </p>
@@ -4886,7 +4886,7 @@ similar to this:
 <pre>
 %typemap(in) Foo * {
   if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
-    SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo");
+    SWIG_exception(SWIG_TypeError, "in method '$symname', expecting type Foo");
   }
 }
 </pre>
@@ -4923,7 +4923,7 @@ descriptor name for any C datatype.  For example:
   if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;$1, $1_descriptor, 0))) {
     Bar *temp;
     if (!SWIG_IsOK(SWIG_ConvertPtr($input, (void **) &amp;temp, $descriptor(Bar *), 0))) {
-      SWIG_exception_fail(SWIG_TypeError, "in method '$symname', expecting type Foo or Bar");
+      SWIG_exception(SWIG_TypeError, "in method '$symname', expecting type Foo or Bar");
     }
     $1 = (Foo *)temp;
   }

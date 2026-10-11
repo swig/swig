@@ -414,6 +414,6 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 }
 %}
 
-/* For swigcommon.swg: raise the error and leave the wrapper */
-%fragment("SWIG_exception_fail", "header", fragment="SWIG_CSharpException") {}
-#define SWIG_exception_fail(code, msg) { SWIG_CSharpException(code, msg); return $null; }
+/* Raise the error for a SWIG error code and leave the wrapper */
+#define SWIG_exception(code, msg) { SWIG_CSharpException(code, msg); return $null; }
+%fragment("SWIG_exception", "header", fragment="SWIG_CSharpException") {}

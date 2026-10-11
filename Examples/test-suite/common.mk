@@ -962,6 +962,7 @@ C_TEST_CASES += \
 	string_simple \
 	struct_rename \
 	struct_initialization \
+	swig_exception_default \
 	typedef_classforward_same_name \
 	typedef_struct \
 	typemap_subst \

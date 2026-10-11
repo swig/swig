@@ -3368,7 +3368,7 @@ versions do not, but return a status value to indicate success (<tt>SWIG_OK</tt>
 %typemap(in) size_t (int ok)
   ok = SWIG_AsVal_size_t($input, &amp;$1);
   if (!SWIG_IsOK(ok)) {
-    SWIG_exception_fail(SWIG_ArgError(ok), Ruby_Format_TypeError( "$1_name", "$1_type", "$symname", $argnum, $input));
+    SWIG_exception(SWIG_ArgError(ok), Ruby_Format_TypeError( "$1_name", "$1_type", "$symname", $argnum, $input));
   }
 }
 </pre>

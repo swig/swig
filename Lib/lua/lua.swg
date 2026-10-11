@@ -9,8 +9,8 @@
  *                          includes
  * ----------------------------------------------------------------------------- */
 
-/* For swigcommon.swg: raise the error with a message starting with the error code name, then leave the wrapper */
-%fragment("SWIG_exception_fail", "header") %{
+/* Raise the error with a message starting with the error code name, then leave the wrapper */
+%fragment("SWIG_exception", "header") %{
 SWIGINTERN const char *SWIG_Lua_ErrorType(int code) {
   switch (code) {
   case SWIG_MemoryError:        return "SWIG_MemoryError";
@@ -28,7 +28,7 @@ SWIGINTERN const char *SWIG_Lua_ErrorType(int code) {
   default:                      return "SWIG_UnknownError";
   }
 }
-#define SWIG_exception_fail(code, msg) { lua_pushfstring(L, "%s:%s", SWIG_Lua_ErrorType(code), msg); SWIG_fail; }
+#define SWIG_exception(code, msg) { lua_pushfstring(L, "%s:%s", SWIG_Lua_ErrorType(code), msg); SWIG_fail; }
 %}
 %include <swigcommon.swg>
 %include <luatypemaps.swg>         /* The typemaps */

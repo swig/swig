@@ -21,7 +21,6 @@
  * These must be functions instead of macros to use the C++ overloading to
  * resolve the arguments
  */
-#define SWIG_exception(code, msg)               SWIG_Error(code, msg)
 #define SWIG_fail                               goto fail
 
 #ifdef NAPI_CPP_EXCEPTIONS

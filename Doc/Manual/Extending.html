@@ -291,9 +291,11 @@ The <em><tt>langconfig.swg</tt></em> file also includes <tt>swigcommon.swg</tt>,
 all target languages, such as the default <tt>memberin</tt> and <tt>globalin</tt> typemaps for <tt>char *</tt>.
 It is included after the runtime support code for raising errors, but before the target language's own typemaps, so
 that these can override or copy the common typemaps.
-Before including it, the target language defines the <tt>SWIG_exception_fail(code, msg)</tt> macro, which raises the
+Before including it, the target language defines the <tt>SWIG_exception(code, msg)</tt> macro, which raises the
 target language error for a SWIG error code and leaves the wrapper function.
-It also defines a code fragment called <tt>SWIG_exception_fail</tt> for any support code that the macro needs.
+It also defines a code fragment called <tt>SWIG_exception</tt> for any support code that the macro needs.
+This fragment is always brought in.
+<tt>swigcommon.swg</tt> defines <tt>SWIG_exception_fail</tt> as the same macro.
 </p>
 
 <p>

@@ -12,9 +12,9 @@
 
 %runtime "guile_scm_run.swg"
 
-/* For swigcommon.swg: raise the error. NULL is a misc-error, as for the other null checks in the Guile typemaps. */
-%fragment("SWIG_exception_fail", "header") %{
-SWIGINTERN void SWIG_Guile_ExceptionFail(int code, const char *msg, const char *subr) {
+/* Raise the error for a SWIG error code. NULL is a misc-error, as for the other null checks in the Guile typemaps. */
+%fragment("SWIG_exception", "header") %{
+SWIGINTERN void SWIG_Guile_Exception(int code, const char *msg, const char *subr) {
   const char *key;
   switch (code) {
   case SWIG_NullReferenceError:
@@ -34,7 +34,7 @@ SWIGINTERN void SWIG_Guile_ExceptionFail(int code, const char *msg, const char *
   }
   scm_error(scm_from_locale_symbol(key), subr, "~A", scm_list_1(scm_from_locale_string(msg)), SCM_BOOL_F);
 }
-#define SWIG_exception_fail(code, msg) SWIG_Guile_ExceptionFail(code, msg, FUNC_NAME)
+#define SWIG_exception(code, msg) SWIG_Guile_Exception(code, msg, FUNC_NAME)
 %}
 %include <swigcommon.swg>
 %include <guile.i>

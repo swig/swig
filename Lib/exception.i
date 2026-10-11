@@ -11,27 +11,6 @@
 
 %insert("runtime") "swigerrors.swg"
 
-
-#ifdef SWIGPHP
-%fragment("SWIG_exception_fail");
-%{
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
-%}
-#endif
-
-#ifdef SWIGGUILE
-%fragment("SWIG_exception_fail");
-%{
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
-%}
-#endif
-
-#ifdef SWIGJAVA
-%fragment("SWIG_exception_fail");
-
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
-#endif // SWIGJAVA
-
 #ifdef SWIGOCAML
 %{
 SWIGINTERN void SWIG_OCamlException(int code, const char *msg) {
@@ -74,32 +53,9 @@ SWIGINTERN void SWIG_OCamlException(int code, const char *msg) {
   SWIG_OCamlThrowException(exception_code, msg);
   CAMLreturn0;
 }
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 %}
-%fragment("SWIG_exception_fail");
 #endif
 
-
-#ifdef SWIGCSHARP
-%fragment("SWIG_exception_fail");
-
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
-#endif // SWIGCSHARP
-
-#ifdef SWIGLUA
-
-%fragment("SWIG_exception_fail");
-%{
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
-%}
-
-#endif // SWIGLUA
-
-#ifdef SWIGD
-%fragment("SWIG_exception_fail");
-
-#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
-#endif // SWIGD
 
 #ifdef __cplusplus
 /*

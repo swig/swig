@@ -262,7 +262,7 @@ std::ptrdiff_t *INOUT
 %define %r_char_ptr_array_variable(METHOD)
 %typemap(METHOD,canthrow=1,noblock=1,fragment="<string.h>") char *[ANY] {
   if (!$input) {
-    SWIG_exception_fail(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
+    SWIG_exception(SWIG_NullReferenceError, "invalid null reference in variable '$name' of type '$1_type'");
   } else {
     size_t ii;
     for (ii = 0; ii < (size_t)$1_dim0; ii++) {

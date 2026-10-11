@@ -2583,8 +2583,8 @@ flexibility in what errors/exceptions can be thrown.
 <div class="indent">
 
 <p>
-Raises an exception in the target language.  <tt>code</tt> is one of the following symbolic
-constants:
+Raises an exception in the target language and leaves the wrapper function.  <tt>code</tt> is one of the following
+symbolic constants:
 </p>
 
 <div class="code">
@@ -2599,7 +2599,9 @@ SWIG_OverflowError
 SWIG_SyntaxError
 SWIG_ValueError
 SWIG_SystemError
+SWIG_AttributeError
 SWIG_NullReferenceError
+SWIG_UnknownError
 </pre>
 </div>
 
