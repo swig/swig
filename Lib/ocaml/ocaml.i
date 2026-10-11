@@ -33,6 +33,12 @@
 
 %insert(classtemplate) "class.swg"
 
+/* For swigcommon.swg: raise the error, using SWIG_OCamlException from exception.i, which is always included */
+%fragment("SWIG_exception_fail", "header") %{
+#define SWIG_exception_fail(code, msg) SWIG_OCamlException(code, msg)
+%}
+%include <swigcommon.swg>
+
 /* Read in standard typemaps. */
 %include <swig.swg>
 %include <ocaml.swg>

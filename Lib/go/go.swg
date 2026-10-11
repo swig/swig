@@ -9,6 +9,12 @@
 /* Code insertion directives */
 #define %go_import(...) %insert(go_imports) %{__VA_ARGS__%}
 
+/* For swigcommon.swg: raise the error, which panics. In the runtime section, where go.cxx looks for _swig_gopanic. */
+%fragment("SWIG_exception_fail", "runtime") %{
+#define SWIG_exception_fail(code, msg) _swig_gopanic(msg)
+%}
+%include <swigcommon.swg>
+
 /* Basic types */
 
 %typemap(gotype) bool,               const bool &               "bool"

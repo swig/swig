@@ -13,15 +13,9 @@
 
 
 #ifdef SWIGPHP
+%fragment("SWIG_exception_fail");
 %{
-#define SWIG_exception(code, msg) do { zend_throw_exception( \
-    code == SWIG_TypeError ? zend_ce_type_error : \
-    code == SWIG_ValueError ? zend_ce_value_error : \
-    code == SWIG_DivisionByZero ? zend_ce_division_by_zero_error : \
-    code == SWIG_SyntaxError ? zend_ce_parse_error : \
-    code == SWIG_OverflowError ? zend_ce_arithmetic_error : \
-    code == SWIG_NullReferenceError ? zend_ce_type_error : \
-    NULL, msg, code); SWIG_fail; } while (0)
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 %}
 #endif
 
@@ -60,43 +54,7 @@
 #endif
 
 #ifdef SWIGJAVA
-%{
-SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
-  SWIG_JavaExceptionCodes exception_code = SWIG_JavaUnknownError;
-  switch(code) {
-  case SWIG_MemoryError:
-    exception_code = SWIG_JavaOutOfMemoryError;
-    break;
-  case SWIG_IOError:
-    exception_code = SWIG_JavaIOException;
-    break;
-  case SWIG_SystemError:
-  case SWIG_RuntimeError:
-    exception_code = SWIG_JavaRuntimeException;
-    break;
-  case SWIG_OverflowError:
-  case SWIG_IndexError:
-    exception_code = SWIG_JavaIndexOutOfBoundsException;
-    break;
-  case SWIG_DivisionByZero:
-    exception_code = SWIG_JavaArithmeticException;
-    break;
-  case SWIG_SyntaxError:
-  case SWIG_ValueError:
-  case SWIG_TypeError:
-    exception_code = SWIG_JavaIllegalArgumentException;
-    break;
-  case SWIG_NullReferenceError:
-    exception_code = SWIG_JavaNullPointerException;
-    break;
-  case SWIG_UnknownError:
-  default:
-    exception_code = SWIG_JavaUnknownError;
-    break;
-  }
-  SWIG_JavaThrowException(jenv, exception_code, msg);
-}
-%}
+%fragment("SWIG_JavaException");
 
 #define SWIG_exception(code, msg)\
 { SWIG_JavaException(jenv, code, msg); return $null; }
@@ -150,45 +108,7 @@ SWIGINTERN void SWIG_OCamlException(int code, const char *msg) {
 
 
 #ifdef SWIGCSHARP
-%{
-SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
-  if (code == SWIG_ValueError) {
-    SWIG_CSharpExceptionArgumentCodes exception_code = SWIG_CSharpArgumentOutOfRangeException;
-    SWIG_CSharpSetPendingExceptionArgument(exception_code, msg, 0);
-  } else {
-    SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpApplicationException;
-    switch(code) {
-    case SWIG_MemoryError:
-      exception_code = SWIG_CSharpOutOfMemoryException;
-      break;
-    case SWIG_IndexError:
-      exception_code = SWIG_CSharpIndexOutOfRangeException;
-      break;
-    case SWIG_DivisionByZero:
-      exception_code = SWIG_CSharpDivideByZeroException;
-      break;
-    case SWIG_IOError:
-      exception_code = SWIG_CSharpIOException;
-      break;
-    case SWIG_OverflowError:
-      exception_code = SWIG_CSharpOverflowException;
-      break;
-    case SWIG_NullReferenceError:
-      exception_code = SWIG_CSharpNullReferenceException;
-      break;
-    case SWIG_RuntimeError:
-    case SWIG_TypeError:
-    case SWIG_SyntaxError:
-    case SWIG_SystemError:
-    case SWIG_UnknownError:
-    default:
-      exception_code = SWIG_CSharpApplicationException;
-      break;
-    }
-    SWIG_CSharpSetPendingException(exception_code, msg);
-  }
-}
-%}
+%fragment("SWIG_CSharpException");
 
 #define SWIG_exception(code, msg)\
 { SWIG_CSharpException(code, msg); return $null; }
@@ -204,37 +124,7 @@ SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
 #endif // SWIGLUA
 
 #ifdef SWIGD
-%{
-SWIGINTERN void SWIG_DThrowException(int code, const char *msg) {
-  SWIG_DExceptionCodes exception_code;
-  switch(code) {
-  case SWIG_IndexError:
-    exception_code = SWIG_DNoSuchElementException;
-    break;
-  case SWIG_IOError:
-    exception_code = SWIG_DIOException;
-    break;
-  case SWIG_ValueError:
-    exception_code = SWIG_DIllegalArgumentException;
-    break;
-  case SWIG_NullReferenceError:
-    exception_code = SWIG_DNullReferenceException;
-    break;
-  case SWIG_DivisionByZero:
-  case SWIG_MemoryError:
-  case SWIG_OverflowError:
-  case SWIG_RuntimeError:
-  case SWIG_TypeError:
-  case SWIG_SyntaxError:
-  case SWIG_SystemError:
-  case SWIG_UnknownError:
-  default:
-    exception_code = SWIG_DException;
-    break;
-  }
-  SWIG_DSetPendingException(exception_code, msg);
-}
-%}
+%fragment("SWIG_DThrowException");
 
 #define SWIG_exception(code, msg)\
 { SWIG_DThrowException(code, msg); return $null; }

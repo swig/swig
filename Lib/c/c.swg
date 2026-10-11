@@ -350,6 +350,11 @@ typedef struct SwigObj SwigObj;
 %}
 #endif // SWIG_C_EXCEPT/!SWIG_C_EXCEPT
 
+// For swigcommon.swg: raise the error and leave the wrapper
+#define SWIG_exception_fail(code, msg) { SWIG_exception(code, msg); return $null; }
+%fragment("SWIG_exception_fail", "header") {}
+%include <swigcommon.swg>
+
 /* Defined after SWIG_exception, which these typemaps use */
 %typemap(in, noblock=1) char [ANY] {
   if (!$input) {

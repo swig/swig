@@ -8,6 +8,10 @@
 // excode if exceptions can be thrown.
 %define SWIGEXCODE "\n  if ($imdmodule.SwigPendingException.isPending) throw $imdmodule.SwigPendingException.retrieve();" %enddef
 
+// For swigcommon.swg: raise the error and leave the wrapper
+#define SWIG_exception_fail(code, msg) { SWIG_DThrowException(code, msg); return $null; }
+%fragment("SWIG_exception_fail", "header", fragment="SWIG_DThrowException") {}
+
 %typemap(throws, canthrow=1) int,
                  long,
                  short,

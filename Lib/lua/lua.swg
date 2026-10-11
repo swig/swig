@@ -9,6 +9,11 @@
  *                          includes
  * ----------------------------------------------------------------------------- */
 
+/* For swigcommon.swg: raise the error and leave the wrapper */
+%fragment("SWIG_exception_fail", "header") %{
+#define SWIG_exception_fail(code, msg) { SWIG_Lua_pusherrstring(L, msg); SWIG_fail; }
+%}
+%include <swigcommon.swg>
 %include <luatypemaps.swg>         /* The typemaps */
 %include <luaruntime.swg>          /* The runtime stuff */
 %include <luakw.swg>               /* Warnings for Lua keywords */

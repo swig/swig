@@ -239,7 +239,7 @@ static void Swig_csharp_UTF16ToWCharPtrFree(wchar_t *str) {
    return $null; %}
 
 
-/* Default typemap for handling wchar_t * members (based on char * in swig.swg) */
+/* Default typemap for handling wchar_t * members (based on char * in swigcommon.swg) */
 
 #ifdef __cplusplus
 %typemap(memberin,fragment="<wchar.h>") wchar_t * {

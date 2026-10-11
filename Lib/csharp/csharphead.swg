@@ -372,3 +372,56 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpString
 
 #define SWIG_contract_assert(nullreturn, expr, msg) do { if (!(expr)) {SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentOutOfRangeException, msg, ""); return nullreturn; } } while (0)
 %}
+
+/* Map a SWIG error code to a C# exception, as for SWIG_exception in exception.i */
+%fragment("SWIG_CSharpException", "header") %{
+SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
+  if (code == SWIG_ValueError) {
+    SWIG_CSharpExceptionArgumentCodes exception_code = SWIG_CSharpArgumentOutOfRangeException;
+    SWIG_CSharpSetPendingExceptionArgument(exception_code, msg, 0);
+  } else {
+    SWIG_CSharpExceptionCodes exception_code = SWIG_CSharpApplicationException;
+    switch(code) {
+    case SWIG_MemoryError:
+      exception_code = SWIG_CSharpOutOfMemoryException;
+      break;
+    case SWIG_IndexError:
+      exception_code = SWIG_CSharpIndexOutOfRangeException;
+      break;
+    case SWIG_DivisionByZero:
+      exception_code = SWIG_CSharpDivideByZeroException;
+      break;
+    case SWIG_IOError:
+      exception_code = SWIG_CSharpIOException;
+      break;
+    case SWIG_OverflowError:
+      exception_code = SWIG_CSharpOverflowException;
+      break;
+    case SWIG_NullReferenceError:
+      exception_code = SWIG_CSharpNullReferenceException;
+      break;
+    case SWIG_RuntimeError:
+    case SWIG_TypeError:
+    case SWIG_SyntaxError:
+    case SWIG_SystemError:
+    case SWIG_UnknownError:
+    default:
+      exception_code = SWIG_CSharpApplicationException;
+      break;
+    }
+    SWIG_CSharpSetPendingException(exception_code, msg);
+  }
+}
+%}
+
+/* For swigcommon.swg: raise the error and leave the wrapper. NULL is an ArgumentNullException, as for the other null
+ * checks in the C# typemaps. */
+%fragment("SWIG_exception_fail", "header", fragment="SWIG_CSharpException") %{
+SWIGINTERN void SWIG_CSharpExceptionFail(int code, const char *msg) {
+  if (code == SWIG_NullReferenceError)
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, msg, 0);
+  else
+    SWIG_CSharpException(code, msg);
+}
+%}
+#define SWIG_exception_fail(code, msg) { SWIG_CSharpExceptionFail(code, msg); return $null; }

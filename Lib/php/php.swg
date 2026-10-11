@@ -17,6 +17,19 @@
 
 %include <phpinit.swg> // PHP initialization routine.
 
+/* For swigcommon.swg: raise the error and leave the wrapper */
+%fragment("SWIG_exception_fail", "header") %{
+#define SWIG_exception_fail(code, msg) do { zend_throw_exception( \
+    code == SWIG_TypeError ? zend_ce_type_error : \
+    code == SWIG_ValueError ? zend_ce_value_error : \
+    code == SWIG_DivisionByZero ? zend_ce_division_by_zero_error : \
+    code == SWIG_SyntaxError ? zend_ce_parse_error : \
+    code == SWIG_OverflowError ? zend_ce_arithmetic_error : \
+    code == SWIG_NullReferenceError ? zend_ce_type_error : \
+    NULL, msg, code); SWIG_fail; } while (0)
+%}
+%include <swigcommon.swg>
+
 %include <const.i>
 
 // use %init %{ "/*code goes here*/ " %}

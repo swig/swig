@@ -279,11 +279,21 @@ easier to have a few basic primitives such as <tt>%feature</tt> or
 <p>
 The <em><tt>langconfig.swg</tt></em> file is supplied by the target
 language. This file contains language-specific configuration
-information.  More often than not, this file provides run-time wrapper
+information.  More often than not, this file provides runtime wrapper
 support code (e.g., the type-checker) as well as a collection of
 typemaps that define the default wrapping behavior.  Note: the name of this
 file depends on the target language and is usually something like <tt>python.swg</tt>
 or <tt>perl5.swg</tt>.
+</p>
+
+<p>
+The <em><tt>langconfig.swg</tt></em> file also includes <tt>swigcommon.swg</tt>, which contains the typemaps common to
+all target languages, such as the default <tt>memberin</tt> and <tt>globalin</tt> typemaps for <tt>char *</tt>.
+It is included after the runtime support code for raising errors, but before the target language's own typemaps, so
+that these can override or copy the common typemaps.
+Before including it, the target language defines the <tt>SWIG_exception_fail(code, msg)</tt> macro, which raises the
+target language error for a SWIG error code and leaves the wrapper function.
+It also defines a code fragment called <tt>SWIG_exception_fail</tt> for any support code that the macro needs.
 </p>
 
 <p>

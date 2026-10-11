@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 %include <javahead.swg>
+%include <swigcommon.swg>
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 
  * The jni typemap contains the JNI type used in the JNI (C/C++) code. 

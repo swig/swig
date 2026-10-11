@@ -5408,7 +5408,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Delete($storage_class);
 	   }
            /* C++11 copy-list-initialisation, as in 'auto values = {1, 2};', deduces a 'std::initializer_list', which is only a
-              stub in Lib/swig.swg, so the variable is ignored.  The warning names no element type, as an empty or mixed list
+              stub in Lib/swigcommon.swg, so the variable is ignored.  The warning names no element type, as an empty or mixed list
               and a 'decltype(auto)' variable, being ill-formed, deduce none. */
            | storage_class auto_type_holder declarator cpp_const EQUAL LBRACE {
               if (skip_balanced('{', '}') < 0) Exit(EXIT_FAILURE);

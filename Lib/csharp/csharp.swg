@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 %include <csharphead.swg>
+%include <swigcommon.swg>
 
 /* The ctype, imtype and cstype typemaps work together and so there should be one of each. 
  * The ctype typemap contains the PInvoke type used in the PInvoke (C/C++) code. 

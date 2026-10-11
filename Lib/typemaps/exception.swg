@@ -35,6 +35,9 @@
 
 }
 
+/* For the swigcommon.swg typemaps, which use this fragment as the other target languages need it */
+%fragment("SWIG_exception_fail", "header") {}
+
 #ifdef __cplusplus
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
