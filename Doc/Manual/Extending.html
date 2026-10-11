@@ -295,7 +295,8 @@ It first includes the target language's <tt>exception.swg</tt>, which defines th
 macro to raise the target language error for a SWIG error code and leave the wrapper function.
 It also defines a code fragment called <tt>SWIG_exception</tt> for any support code that the macro needs.
 This fragment is always brought in.
-<tt>swigcommon.swg</tt> defines <tt>SWIG_exception_fail</tt> as the same macro.
+It then includes <tt>swigexceptions.swg</tt>, with the error handling common to all target languages, such as the SWIG
+error codes and <tt>SWIG_exception_fail</tt>, the same macro as <tt>SWIG_exception</tt>.
 </p>
 
 <p>

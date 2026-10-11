@@ -101,6 +101,10 @@
 #include <type_traits>
 %}
 
+%fragment("<typeinfo>", "header") %{
+#include <typeinfo>
+%}
+
 %fragment("<iostream>", "header") %{
 #include <iostream>
 %}

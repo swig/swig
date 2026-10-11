@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
- * exceptions.swg
+ * exception.swg
  *
- * This SWIG library file provides language independent exception handling
+ * SWIG_exception and the other error handling macros for the target languages that use the unified typemap library.
  * ----------------------------------------------------------------------------- */
 
 %include <typemaps/swigmacros.swg>
@@ -39,52 +39,7 @@
 %fragment("SWIG_exception", "header") {}
 
 #ifdef __cplusplus
-/*
-  You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
-  directive as follows:
-
-  %exception {
-    try {
-      $action
-    }
-    catch (my_except& e) {
-      ...
-    }
-    SWIG_CATCH_STDEXCEPT // catch std::exception
-    catch (...) {
-     SWIG_exception_fail(SWIG_UnknownError, "Unknown exception");
-    }
-  }
-*/
-
+/* For SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN from swigexceptions.swg */
 %fragment("<stdexcept>");
-
-%define SWIG_CATCH_STDEXCEPT
-  /* catching std::exception  */
-  catch (std::invalid_argument& e) {
-    SWIG_exception_fail(SWIG_ValueError, e.what() );
-  } catch (std::domain_error& e) {
-    SWIG_exception_fail(SWIG_ValueError, e.what() );
-  } catch (std::overflow_error& e) {
-    SWIG_exception_fail(SWIG_OverflowError, e.what() );
-  } catch (std::out_of_range& e) {
-    SWIG_exception_fail(SWIG_IndexError, e.what() );
-  } catch (std::length_error& e) {
-    SWIG_exception_fail(SWIG_IndexError, e.what() );
-  } catch (std::runtime_error& e) {
-    SWIG_exception_fail(SWIG_RuntimeError, e.what() );
-  } catch (std::exception& e) {
-    SWIG_exception_fail(SWIG_SystemError, e.what() );
-  }
-%enddef
-%define SWIG_CATCH_UNKNOWN
-  catch (std::exception& e) {
-    SWIG_exception_fail(SWIG_SystemError, e.what() );
-  }
-  catch (...) {
-    SWIG_exception_fail(SWIG_UnknownError, "unknown exception");
-  }
-%enddef
-
-
+%fragment("<typeinfo>");
 #endif /* __cplusplus */

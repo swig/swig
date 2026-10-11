@@ -26,7 +26,7 @@ cmalloc.swg		Implement the cmalloc.i library
 cpointer.swg		Implement the cpointer.i library
 cstring.swg		Implement the cstring.i library typemaps for char *
 cwstring.swg		Implement the cstring.i library typemaps for wchar_t *
-exception.swg		Implement the exception.i library
+exception.swg		SWIG_exception and the other error handling macros
 implicit.swg		Allow the use of implicit C++ constructors
 
 string.swg		Typemaps for char * string

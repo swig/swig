@@ -8,6 +8,35 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-11: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] SWIG_CATCH_STDEXCEPT now catches
+            std::bad_cast and raises SWIG_TypeError, as it already did in the other target languages,
+            instead of SWIG_SystemError from catching std::exception. This is for better consistency of
+            the error handling common to all target languages, which now has a single definition of
+            SWIG_CATCH_STDEXCEPT. To raise SWIG_SystemError as before, redefine SWIG_CATCH_STDEXCEPT in the
+            interface file:
+
+              #undef SWIG_CATCH_STDEXCEPT
+              %define SWIG_CATCH_STDEXCEPT
+                catch (std::invalid_argument& e) {
+                  SWIG_exception(SWIG_ValueError, e.what());
+                } catch (std::domain_error& e) {
+                  SWIG_exception(SWIG_ValueError, e.what());
+                } catch (std::overflow_error& e) {
+                  SWIG_exception(SWIG_OverflowError, e.what());
+                } catch (std::out_of_range& e) {
+                  SWIG_exception(SWIG_IndexError, e.what());
+                } catch (std::length_error& e) {
+                  SWIG_exception(SWIG_IndexError, e.what());
+                } catch (std::runtime_error& e) {
+                  SWIG_exception(SWIG_RuntimeError, e.what());
+                } catch (std::exception& e) {
+                  SWIG_exception(SWIG_SystemError, e.what());
+                }
+              %enddef
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
             SWIG_exception can now be used anywhere without %include <exception.i>, such as in a typemap or
             in %exception code, as its support code is now always included, for example:
 

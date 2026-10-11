@@ -6,7 +6,6 @@
  * ----------------------------------------------------------------------------- */
 
 // Typemaps for exception handling.
-%include <dexception.swg>
 %include <swigcommon.swg>
 
 // Typemaps for primitive types.

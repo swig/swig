@@ -460,6 +460,7 @@ CPP_TEST_CASES += \
 	string_constants \
 	struct_initialization_cpp \
 	struct_value \
+	swig_catch_stdexcept \
 	swig_exception \
 	symbol_clash \
 	sym \

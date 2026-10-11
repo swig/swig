@@ -7,25 +7,14 @@
  *   SWIG_exception(code, msg)    - raises the target language error for the SWIG error code with the message and
  *                                  leaves the wrapper function.
  *   %fragment("SWIG_exception")  - any support code that SWIG_exception needs, which is always brought in.
+ * Then it includes swigexceptions.swg, with the error handling common to all target languages, such as the SWIG error
+ * codes and SWIG_exception_fail, the same macro as SWIG_exception.
  * A typemap here that raises an error uses canthrow=1 (for C# and D). Its code is in a noblock=1 { } body, as
  * SWIG_exception is a SWIG preprocessor macro in some target languages.
  * ----------------------------------------------------------------------------- */
 
 %include <exception.swg>
-
-%insert("runtime") "swigerrors.swg"
-
-/* SWIG_exception_fail is the same as SWIG_exception, as a SWIG preprocessor macro if SWIG_exception is one */
-#ifdef SWIG_exception
-#define SWIG_exception_fail(code, msg) SWIG_exception(code, msg)
-#else
-%insert("runtime") %{
-#define SWIG_exception_fail(code, msg) SWIG_exception(code, msg)
-%}
-#endif
-
-/* The support code for SWIG_exception is always brought in, so SWIG_exception can be used anywhere */
-%fragment("SWIG_exception");
+%include <swigexceptions.swg>
 
 #ifdef __cplusplus
 /* Define std namespace */
