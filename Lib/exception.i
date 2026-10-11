@@ -20,44 +20,16 @@
 #endif
 
 #ifdef SWIGGUILE
+%fragment("SWIG_exception_fail");
 %{
-  SWIGINTERN void SWIG_exception_ (int code, const char *msg,
-                               const char *subr) {
-#define ERROR(scmerr)					\
-	scm_error(scm_from_locale_string(scmerr),	\
-		  subr, msg, SCM_EOL, SCM_BOOL_F)
-#define MAP(swigerr, scmerr)			\
-	case swigerr:				\
-	  ERROR(scmerr);			\
-	  break
-    switch (code) {
-      MAP(SWIG_MemoryError,	    "swig-memory-error");
-      MAP(SWIG_IOError,		    "swig-io-error");
-      MAP(SWIG_RuntimeError,	    "swig-runtime-error");
-      MAP(SWIG_IndexError,	    "swig-index-error");
-      MAP(SWIG_TypeError,	    "swig-type-error");
-      MAP(SWIG_DivisionByZero,	    "swig-division-by-zero");
-      MAP(SWIG_OverflowError,	    "swig-overflow-error");
-      MAP(SWIG_SyntaxError,	    "swig-syntax-error");
-      MAP(SWIG_ValueError,	    "swig-value-error");
-      MAP(SWIG_SystemError,	    "swig-system-error");
-      MAP(SWIG_NullReferenceError,  "swig-null-reference-error");
-    default:
-      ERROR("swig-error");
-    }
-#undef ERROR
-#undef MAP
-  }
-
-#define SWIG_exception(a,b) SWIG_exception_(a, b, FUNC_NAME)
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 %}
 #endif
 
 #ifdef SWIGJAVA
-%fragment("SWIG_JavaException");
+%fragment("SWIG_exception_fail");
 
-#define SWIG_exception(code, msg)\
-{ SWIG_JavaException(jenv, code, msg); return $null; }
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 #endif // SWIGJAVA
 
 #ifdef SWIGOCAML
@@ -102,32 +74,31 @@ SWIGINTERN void SWIG_OCamlException(int code, const char *msg) {
   SWIG_OCamlThrowException(exception_code, msg);
   CAMLreturn0;
 }
-#define SWIG_exception(code, msg) SWIG_OCamlException(code, msg)
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 %}
+%fragment("SWIG_exception_fail");
 #endif
 
 
 #ifdef SWIGCSHARP
-%fragment("SWIG_CSharpException");
+%fragment("SWIG_exception_fail");
 
-#define SWIG_exception(code, msg)\
-{ SWIG_CSharpException(code, msg); return $null; }
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 #endif // SWIGCSHARP
 
 #ifdef SWIGLUA
 
+%fragment("SWIG_exception_fail");
 %{
-#define SWIG_exception(a,b)\
-{ lua_pushfstring(L,"%s:%s",#a,b);SWIG_fail; }
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 %}
 
 #endif // SWIGLUA
 
 #ifdef SWIGD
-%fragment("SWIG_DThrowException");
+%fragment("SWIG_exception_fail");
 
-#define SWIG_exception(code, msg)\
-{ SWIG_DThrowException(code, msg); return $null; }
+#define SWIG_exception(code, msg) SWIG_exception_fail(code, msg)
 #endif // SWIGD
 
 #ifdef __cplusplus

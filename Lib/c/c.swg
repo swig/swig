@@ -344,10 +344,12 @@ typedef struct SwigObj SwigObj;
 #define SWIG_exception(code, msg)
 #endif
 %}
-#endif // SWIG_C_EXCEPT/!SWIG_C_EXCEPT
 
-// For swigcommon.swg: raise the error and leave the wrapper
-#define SWIG_exception_fail(code, msg) { SWIG_exception(code, msg); return $null; }
+// Call any SWIG_exception defined in C above, which is not expanded again inside this macro, then leave the wrapper
+#define SWIG_exception(code, msg) { SWIG_exception(code, msg); return $null; }
+// For swigcommon.swg: the same as SWIG_exception
+#define SWIG_exception_fail(code, msg) SWIG_exception(code, msg)
+#endif // SWIG_C_EXCEPT/!SWIG_C_EXCEPT
 %fragment("SWIG_exception_fail", "header") {}
 %include <swigcommon.swg>
 

@@ -7,6 +7,125 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-11: wsfulton
+            [R] SWIG_exception now raises an R error for SWIG_IndexError, as for the other error codes,
+            instead of returning NA. This is part of a refactor for consistent error handling, including
+            in the typemaps common to all target languages. To return NA as before, redefine
+            SWIG_exception in the interface file. Also redefine SWIG_exception_fail, which the SWIG
+            library typemaps use, to keep its behaviour:
+
+              %{
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) do { if ((code) == SWIG_IndexError) \
+                return Rf_ScalarLogical(NA_LOGICAL); SWIG_Error(code, msg); SWIG_fail; } while (0)
+              #undef SWIG_exception_fail
+              #define SWIG_exception_fail(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
+            [Ruby] SWIG_exception now jumps to the wrapper's fail label after raising the error, as
+            SWIG_exception_fail does, so it can only be used in a wrapper function, as in the other target
+            languages. As rb_raise does not return, it could be used elsewhere before, such as in the body
+            of an %extend method or in a %{ %} function. This is part of a refactor for consistent error
+            handling, including in the typemaps common to all target languages. To use it elsewhere as
+            before, redefine SWIG_exception in the interface file. Also redefine SWIG_exception_fail, which
+            the SWIG library typemaps use, to keep its behaviour:
+
+              %{
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) do { SWIG_Error(code, msg); } while (0)
+              #undef SWIG_exception_fail
+              #define SWIG_exception_fail(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
+            [Tcl] SWIG_exception now leaves the wrapper through its cleanup code, as SWIG_fail does, so any
+            memory allocated for the arguments is freed. It returned TCL_ERROR directly before. This
+            corrects the error handling as part of a refactor for consistent error handling, including in
+            the typemaps common to all target languages. To return directly as before, redefine
+            SWIG_exception in the interface file. Also redefine SWIG_exception_fail, which the SWIG library
+            typemaps use, to keep its behaviour:
+
+              %{
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) do { SWIG_Error(code, msg); return TCL_ERROR; } while (0)
+              #undef SWIG_exception_fail
+              #define SWIG_exception_fail(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
+            [Scilab] SWIG_exception now leaves the wrapper after setting the error. It carried on with the
+            rest of the wrapper before. This corrects the error handling as part of a refactor for
+            consistent error handling, including in the typemaps common to all target languages. To carry
+            on after the error as before, redefine SWIG_exception in the interface file. Also redefine
+            SWIG_exception_fail, which the SWIG library typemaps use, to keep its behaviour:
+
+              %{
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) SWIG_Scilab_Error(code, msg)
+              #undef SWIG_exception_fail
+              #define SWIG_exception_fail(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
+            [C] SWIG_exception now returns from the wrapper after raising the error. It carried on with the
+            rest of the wrapper before, after raising the SWIG_CException when wrapping C++ code, or after
+            calling any SWIG_exception defined in C by the user when wrapping C code or using -noexcept. This
+            corrects the error handling as part of a refactor for consistent error handling, including in the
+            typemaps common to all target languages. To carry on as before, redefine SWIG_exception in the
+            interface file before using it:
+
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) SWIG_CException_Raise(code, msg)
+
+            When wrapping C code or using -noexcept, only the #undef is needed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
+            [C#] SWIG_exception now throws an ArgumentNullException for SWIG_NullReferenceError, as the null
+            checks in the C# typemaps do, instead of a NullReferenceException. This is part of a refactor for
+            consistent error handling, including in the typemaps common to all target languages. To throw a
+            NullReferenceException as before, redefine SWIG_exception in the interface file before using it:
+
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) { if ((code) == SWIG_NullReferenceError) \
+                SWIG_CSharpSetPendingException(SWIG_CSharpNullReferenceException, msg); \
+                else SWIG_CSharpException(code, msg); return $null; }
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-11: wsfulton
+            [Guile] SWIG_exception now raises an error with a symbol as its key, such as swig-type-error,
+            so it can be caught by name. It used a string as the key before, which Guile does not accept,
+            so a wrong-type-arg error was raised instead. SWIG_NullReferenceError now gives misc-error, as
+            for the null checks in the Guile typemaps. This is part of a refactor for consistent error
+            handling, including in the typemaps common to all target languages. To raise the same errors
+            as before, redefine SWIG_exception in the interface file:
+
+              %{
+              SWIGINTERN void SWIG_exception_string_key(int code, const char *msg, const char *subr) {
+                static const char *keys[] = { "swig-error", "swig-io-error", "swig-runtime-error",
+                  "swig-index-error", "swig-type-error", "swig-division-by-zero", "swig-overflow-error",
+                  "swig-syntax-error", "swig-value-error", "swig-system-error", "swig-error",
+                  "swig-memory-error", "swig-null-reference-error" };
+                const char *key = code <= -1 && code >= -13 ? keys[-code - 1] : "swig-error";
+                scm_error(scm_from_locale_string(key), subr, msg, SCM_EOL, SCM_BOOL_F);
+              }
+              #undef SWIG_exception
+              #define SWIG_exception(code, msg) SWIG_exception_string_key(code, msg, FUNC_NAME)
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-10-10: wsfulton
             [OCaml] An array, such as 'int [4]', 'Foo [2]' or 'int [2][3]', is now wrapped as a
             pointer to its first element by default, as in the other target languages. An array

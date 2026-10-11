@@ -452,28 +452,38 @@ In addition to SWIG smob pointers, <a href="https://www.gnu.org/software/guile/m
 
 
 <p>
-SWIG code calls <code>scm_error</code> on exception, using the following
-mapping:
+<tt>SWIG_exception</tt> raises a Guile error by calling <code>scm_error</code>, with a key that is a symbol, using the
+following mapping from the SWIG error code:
+</p>
 
-<div class="code">
+<div class="diagram">
 <pre>
-      MAP(SWIG_MemoryError,         "swig-memory-error");
-      MAP(SWIG_IOError,             "swig-io-error");
-      MAP(SWIG_RuntimeError,        "swig-runtime-error");
-      MAP(SWIG_IndexError,          "swig-index-error");
-      MAP(SWIG_TypeError,           "swig-type-error");
-      MAP(SWIG_DivisionByZero,      "swig-division-by-zero");
-      MAP(SWIG_OverflowError,       "swig-overflow-error");
-      MAP(SWIG_SyntaxError,         "swig-syntax-error");
-      MAP(SWIG_ValueError,          "swig-value-error");
-      MAP(SWIG_SystemError,         "swig-system-error");
-      MAP(SWIG_NullReferenceError,  "swig-null-reference-error");
+SWIG_MemoryError         swig-memory-error
+SWIG_IOError             swig-io-error
+SWIG_RuntimeError        swig-runtime-error
+SWIG_IndexError          swig-index-error
+SWIG_TypeError           swig-type-error
+SWIG_DivisionByZero      swig-division-by-zero
+SWIG_OverflowError       swig-overflow-error
+SWIG_SyntaxError         swig-syntax-error
+SWIG_ValueError          swig-value-error
+SWIG_SystemError         swig-system-error
+SWIG_NullReferenceError  misc-error
 </pre>
 </div>
 
 <p>
-The default when not specified here is to use "swig-error".
-See Lib/exception.i for details.
+Any other error code gives <tt>swig-error</tt>. <tt>SWIG_NullReferenceError</tt> gives <tt>misc-error</tt>, as for the
+other null checks in the Guile typemaps. The error can be caught by its key, for example:
+</p>
+
+<div class="targetlang">
+<pre>
+(catch 'swig-index-error
+  (lambda () (get-item 10))
+  (lambda (key . args) (display "index out of range")))
+</pre>
+</div>
 
 <H2><a name="Guile_nn18">28.10 Procedure documentation</a></H2>
 

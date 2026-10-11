@@ -2177,6 +2177,17 @@ public:
       Printf(wrapper->code, "return result;\n");
     Printf(wrapper->code, "}");
 
+    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+    if (!is_void_return && SwigType_type(resolved_type) == T_USER && Strstr(wrapper->code, "$null")) {
+      // A struct returned by value cannot be 0, so a zero initialised one is returned
+      String *null_result = NewStringf("static %s swig_null_result;\n", return_type);
+      Insert(wrapper->code, 0, null_result);
+      Replaceall(wrapper->code, "$null", "swig_null_result");
+      Delete(null_result);
+    }
+    Delete(resolved_type);
+    Replaceall(wrapper->code, "$null", is_void_return ? "" : "0");
+
     Wrapper_print(wrapper, sect_wrappers);
 
     emit_wrapper_func_decl(n, wname);
