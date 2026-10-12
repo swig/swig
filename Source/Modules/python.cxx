@@ -4044,6 +4044,12 @@ public:
       Replaceall(tm, "$result", "resultobj");
       if (builtin_ctor) {
         Replaceall(tm, "$owner", "SWIG_BUILTIN_INIT");
+        /* Bypass the SWIG_NewPointerObj macro so that 'self' (the
+           tp_init argument) is passed directly to the underlying
+           function.  The macro now passes NULL (for user %inline code)
+           but tp_init must pass self to reuse the pre-allocated object.
+           See issue #2613. */
+        Replaceall(tm, "SWIG_NewPointerObj(", "SWIG_Python_NewPointerObj(self, ");
       } else if (handled_as_init) {
         Replaceall(tm, "$owner", "SWIG_POINTER_NEW");
       } else {

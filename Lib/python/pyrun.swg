@@ -18,11 +18,10 @@
 #define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_Python_ConvertPtr(obj, pptr, type, flags)
 #define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_Python_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 
-#ifdef SWIGPYTHON_BUILTIN
-#define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(self, ptr, type, flags)
-#else
+/* always passes NULL for self -- user code (%inline, etc.) does not have
+   'self' in scope.  The tp_init path passes it via the SWIG_BUILTIN_INIT flag,
+   handled in SWIG_Python_NewPointerObj.  See issue #2613. */
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_Python_NewPointerObj(NULL, ptr, type, flags)
-#endif
 
 #define SWIG_InternalNewPointerObj(ptr, type, flags)	SWIG_Python_NewPointerObj(NULL, ptr, type, flags)
 
@@ -1630,7 +1629,7 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
   own = (flags & SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
   if (clientdata && clientdata->pytype) {
     SwigPyObject *newobj;
-    if (flags & SWIG_BUILTIN_TP_INIT) {
+    if ((flags & SWIG_BUILTIN_TP_INIT) && self) {
       newobj = (SwigPyObject*) self;
       if (newobj->ptr) {
 #ifndef Py_LIMITED_API
@@ -1663,7 +1662,13 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
     return SWIG_Py_Void();
   }
 
-  assert(!(flags & SWIG_BUILTIN_TP_INIT));
+  /* When self is NULL (call from user code via %inline) the BUILTIN_TP_INIT
+   * flag is meaningless - just create a new object.  See issue #2613. */
+  if (!(flags & SWIG_BUILTIN_TP_INIT) || !self) {
+    flags &= ~SWIG_BUILTIN_TP_INIT;
+  } else {
+    assert(0);
+  }
 
   robj = SwigPyObject_New(ptr, type, own);
   if (robj && clientdata && !(flags & SWIG_POINTER_NOSHADOW)) {
