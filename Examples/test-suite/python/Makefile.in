@@ -233,6 +233,7 @@ clean:
 	rm -f _*.pyi
 	rm -f ../hugemod.h ../hugemod_a.i ../hugemod_b.i hugemod_a.py* hugemod_b.py* $(hugemod_runme)
 	rm -f clientdata_prop_a.py* clientdata_prop_b.py*
+	rm -f clientdata_teardown_a.py* clientdata_teardown_b.py*
 	rm -f import_callback_x.py* import_callback_y.py*
 	rm -f python_crossmod_a.py* python_crossmod_b.py*
 	rm -f python_annotations_import_a.py* python_annotations_import_b.py*
