@@ -5635,6 +5635,23 @@ When arrays are used in functions like <tt>populate</tt>, the size of the C arra
 </p>
 
 <p>
+A <tt>null</tt> Java array is passed to the function as a NULL pointer, as for any other array parameter.
+Setting an array variable to <tt>null</tt> throws a <tt>NullPointerException</tt>, as there is no array to copy from.
+To throw a <tt>NullPointerException</tt> for a <tt>null</tt> array parameter too, add a <tt>check</tt> typemap for the array type:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) int[], int[ANY] %{
+  if (!$1) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
+    return $null;
+  }
+%}
+</pre>
+</div>
+
+<p>
 Please be aware that the typemaps in this library are not efficient as all the elements are copied from the Java array to a C array whenever the array is passed to and from JNI code.
 There is an alternative approach using the SWIG array library and this is covered in the next section.
 </p>

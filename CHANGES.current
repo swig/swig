@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [Java] A null Java array for an array parameter using the arrays_java.i typemaps, such as
+            'int []' or an array of classes from JAVA_ARRAYSOFCLASSES, is now passed on to the function as
+            a NULL pointer, as for any other array parameter, instead of throwing a NullPointerException.
+            Setting an array variable to null still throws a NullPointerException. To throw one for a null
+            array parameter as before, add a check typemap for each array type, for example:
+
+              %typemap(check) int[], int[ANY] %{
+                if (!$1) {
+                  SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
+                  return $null;
+                }
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-13: wsfulton
             An rvalue reference to an array, such as 'int (&&)[4]', is now wrapped as a reference to an
             array, as a parameter or as a member or global variable. The wrapper code did not compile,
             except for an array of char in some target languages. As for a reference to an array, NULL
