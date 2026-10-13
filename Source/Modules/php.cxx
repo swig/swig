@@ -2102,11 +2102,21 @@ public:
 
     String *v_name = GetChar(n, "name");
 
+    wrapperType = membervar;
+    Language::membervariableHandler(n);
+    wrapperType = standard;
+
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_set, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", v_name);
-    Append(magic_set, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
-    Append(magic_set, "zend_string_release(swig_funcname);\n");
-    Printf(magic_set, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
+    if (GetFlag(n, "feature:immutable")) {
+      // No set method was generated
+      Printf(magic_set, "zend_throw_error(NULL, \"Cannot modify readonly property %%s::$%s\", ZSTR_VAL(Z_OBJCE_P(ZEND_THIS)->name));\n", v_name);
+      Append(magic_set, "RETURN_THROWS();\n");
+    } else {
+      Printf(magic_set, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", v_name);
+      Append(magic_set, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+      Append(magic_set, "zend_string_release(swig_funcname);\n");
+      Printf(magic_set, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
+    }
     Printf(magic_set, "}\n");
 
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
@@ -2118,10 +2128,6 @@ public:
 
     Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_isset, "RETVAL_TRUE;\n}\n");
-
-    wrapperType = membervar;
-    Language::membervariableHandler(n);
-    wrapperType = standard;
 
     return SWIG_OK;
   }

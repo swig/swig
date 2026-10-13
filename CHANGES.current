@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [PHP] Setting a read only member variable now throws an Error "Cannot modify readonly property
+            Foo::$x", as for a PHP readonly property, instead of "Invalid callback , no array or string
+            given".
+
+2026-10-13: wsfulton
             [C] Fix a derived class having a set function for an inherited read only member variable. The
             wrapper code did not compile for a const member variable and a member variable made read only
             with %immutable could be set.
