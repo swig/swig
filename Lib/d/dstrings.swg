@@ -91,9 +91,9 @@ static import std.string;
 %}
 #undef SWIGD_STRING_TYPEMAPS
 
-%apply char[ANY] { char (&)[ANY] }
+%apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
 /* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
-%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
+%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]), char (&&)[ANY] (char temp[$1_dim0])
 %{ if (!$input) {
      SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
      return $null;

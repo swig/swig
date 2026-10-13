@@ -425,9 +425,9 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
-%apply char[ANY] { char (&)[ANY] }
+%apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
 /* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
-%typemap(in, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]) {
+%typemap(in, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]), char (&&)[ANY] (char temp[$1_dim0]) {
     char *str = caml_string_val($input);
     if (!str) {
         SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
@@ -437,7 +437,9 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     }
     $1 = ($1_ltype)temp;
 }
-%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
+%typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

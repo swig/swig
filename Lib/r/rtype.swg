@@ -273,17 +273,17 @@ string &, std::string &
  %{    %}
 
 /* A char array is a string, as for char *. An array of strings is a character vector */
-%typemap("rtype") char [ANY], char [], char (&)[ANY] "character"
+%typemap("rtype") char [ANY], char [], char (&)[ANY], char (&&)[ANY] "character"
 %typemap("rtype") char *[ANY] "character"
 %typemap("rtypecheck") char *[ANY]
   %{ is.character($arg) || is.null($arg) %}
 %typemap(scoercein) char *[ANY]
   %{  if (!is.null($input)) $input = as($input, "character"); %}
-%typemap("rtypecheck") char [ANY], char [], char (&)[ANY]
+%typemap("rtypecheck") char [ANY], char [], char (&)[ANY], char (&&)[ANY]
   %{ is.character($arg) && length($arg) == 1 %}
-%typemap(scoercein) char [ANY], char [], char (&)[ANY]
+%typemap(scoercein) char [ANY], char [], char (&)[ANY], char (&&)[ANY]
   %{  if (!is.null($input)) $input = as($input, "character"); %}
-%typemap(scoerceout) char [ANY], char [], char (&)[ANY]
+%typemap(scoerceout) char [ANY], char [], char (&)[ANY], char (&&)[ANY]
   %{    %}
 
 /* A string with a length is a string, as for char *, in either order and when applied to another char type */

@@ -73,6 +73,7 @@
   rvrdeleter.reset($1);
 }
 %typemap(freearg) SWIGTYPE && ""
+%typemap(in) SWIGTYPE (&&)[ANY], SWIGTYPE (&&)[] = SWIGTYPE &;
 
 /* By value */
 #if defined(__cplusplus) && defined(%implicitconv_flag)

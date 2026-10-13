@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            An rvalue reference to an array, such as 'int (&&)[4]', is now wrapped as a reference to an
+            array, as a parameter or as a member or global variable. The wrapper code did not compile,
+            except for an array of char in some target languages. As for a reference to an array, NULL
+            gives a NULL reference error, an array of char is a string and no ownership is taken.
+
+2026-10-13: wsfulton
             [C] NULL for a reference to a primitive type, bool or an enum, such as 'int &' or 'int *&', now
             gives a NULL reference error instead of passing a NULL reference to the wrapped function.
 

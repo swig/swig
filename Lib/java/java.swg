@@ -1455,9 +1455,9 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply char[ANY] { char (&)[ANY] }
+%apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
 /* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
-%typemap(in, noblock=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]) {
+%typemap(in, noblock=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]), char (&&)[ANY] (char temp[$1_dim0]) {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
     return $null;
@@ -1475,7 +1475,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
     $1 = ($1_ltype)temp;
   }
 }
-%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

@@ -195,6 +195,15 @@ For scripting languages, this would be for the 'in' typemap and for the non-scri
 </p>
 
 <p>
+An rvalue reference to an array, such as the parameter below, is instead wrapped in the same way as a <a href="SWIGPlus.html#SWIGPlus_nn18">reference to an array</a>.
+No ownership is passed to the function, as the target language does not own an array it has a pointer to:
+</p>
+
+<div class="code"><pre>
+int sum(int (&amp;&amp;values)[4]);
+</pre></div>
+
+<p>
 <b>Compatibility note:</b>
 SWIG-4.1.0 changed the way that rvalue reference parameters were handled and implemented typemaps assuming that the
 proxy class owns the underlying C++ object and transfers ownership of the object when a function/constructor with an rvalue reference parameter is called.

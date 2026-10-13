@@ -659,9 +659,9 @@
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply char[ANY] { char (&)[ANY] }
+%apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
 /* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
-%typemap(in, phptype="string", fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0])
+%typemap(in, phptype="string", fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]), char (&&)[ANY] (char temp[$1_dim0])
 %{
    if (Z_TYPE($input) == IS_NULL) {
      zend_type_error("Invalid null reference for argument $argnum of $symname");
@@ -674,13 +674,13 @@
    }
    $1 = &temp;
 %}
-%typemap(out, phptype="string") char (&)[ANY]
+%typemap(out, phptype="string") char (&)[ANY], char (&&)[ANY]
 {
   size_t len = 0;
   while (len < $1_dim0 && (*$1)[len]) ++len;
   RETVAL_STRINGL(*$1, len);
 }
-%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
