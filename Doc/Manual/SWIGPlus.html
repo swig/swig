@@ -1456,6 +1456,11 @@ double Foo_bar(Foo *obj, double *a) {
 </pre></div>
 
 <p>
+A reference cannot be NULL, so NULL, such as <tt>None</tt> in Python, is not accepted for a reference to a class or an array.
+It gives an error instead of being passed on as a NULL pointer would be.
+</p>
+
+<p>
 As a special case, most language modules pass <tt>const</tt> references to primitive datatypes (<tt>int</tt>, <tt>short</tt>,
 <tt>float</tt>, etc.) by value instead of pointers.  For example, if you have a function like this,
 </p>
