@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [C] Fix a derived class having a set function for an inherited read only member variable. The
+            wrapper code did not compile for a const member variable and a member variable made read only
+            with %immutable could be set.
+
+2026-10-13: wsfulton
             [Scilab] Remove the extra ';' after the gateway function in the generated code for Scilab 6 and
             later, which gives an "extra ';' outside of a function" warning with -Wextra-semi in C++.
 

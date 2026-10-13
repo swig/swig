@@ -326,6 +326,7 @@ CPP_TEST_CASES += \
 	long_long_apply \
 	memberin_extend \
 	member_funcptr_galore \
+	member_immutable_vars \
 	member_pointer \
 	member_pointer_const \
 	member_template \

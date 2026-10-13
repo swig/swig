@@ -2571,6 +2571,8 @@ public:
     Setattr(new_node, "parms", Copy(Getattr(node, "parms")));
     Setattr(new_node, "type", Copy(Getattr(node, "type")));
     Setattr(new_node, "decl", Copy(Getattr(node, "decl")));
+    if (GetFlag(node, "feature:immutable"))
+      SetFlag(new_node, "feature:immutable");
 
     Node *const parent = parentNode(node);
     Setattr(new_node, "c:inherited_from", Getattr(parent, "name"));
