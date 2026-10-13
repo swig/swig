@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            A global or member variable that is a reference to an array of unknown size, such as
+            'int (&)[]', is now read only with warning 462, as is an array of unknown size, since there is
+            no size to bound a copy of the elements. The wrapper code for setting it did not compile.
+
+2026-10-13: wsfulton
             [C, Go, OCaml] NULL for a reference parameter, such as 'Foo &' or 'int (&)[4]', now gives a
             NULL reference error, as in the other target languages, instead of passing a NULL reference to
             the wrapped function.

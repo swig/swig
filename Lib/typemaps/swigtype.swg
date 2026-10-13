@@ -246,7 +246,7 @@
   $1 = %reinterpret_cast(argp, $ltype);
 }
 
-%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE []
+%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[]
 {
   %variable_fail(SWIG_AttributeError, "$type", "read-only $name");
 }

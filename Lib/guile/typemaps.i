@@ -54,7 +54,7 @@
   $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
 }
 
-%typemap(varin) SWIGTYPE [] {
+%typemap(varin) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[] {
   scm_wrong_type_arg(FUNC_NAME, 1, $input);
 }
 

@@ -3,6 +3,17 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) globalints;    /* Unable to set variable of type int [] */
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) ints;          /* Unable to set variable of type int [] */
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) globalints_ref;      /* Unable to set variable of type int (&)[] */
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) globalchars_ref;     /* Unable to set variable of type char (&)[] */
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) BarRef::ints_ref;    /* Unable to set variable of type int (&)[] */
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) BarRef::chars_ref;   /* Unable to set variable of type char (&)[] */
+
+#ifdef SWIGC
+// TODO: references to arrays do not compile in the C target language
+%ignore globalints_ref;
+%ignore globalchars_ref;
+%ignore BarRef;
+#endif
 
 // An [ANY] typemap can use the array size, so is not used for an array of unknown size, such as arr_int's 'int array[]'
 %typemap(check) int [ANY] "(void)$1_dim0;"
@@ -16,6 +27,22 @@ struct Bar {
     static int ints[];
 };
 int Bar::ints[] = {700, 800, 900};
+%}
+
+%{
+char globalchars[] = "abc";
+%}
+
+%inline %{
+// A variable that is a reference to an array of unknown size is read only, as is an array of unknown size
+int (&globalints_ref)[] = *reinterpret_cast<int (*)[]>(globalints);
+char (&globalchars_ref)[] = *reinterpret_cast<char (*)[]>(globalchars);
+
+struct BarRef {
+    int (&ints_ref)[];
+    char (&chars_ref)[];
+    BarRef() : ints_ref(globalints_ref), chars_ref(globalchars_ref) {}
+};
 
 double arr_bool(bool array[], int length)                { double sum=0.0; int i=0; for(; i<length; i++) { sum += array[i]; array[i]=!array[i]; } return sum; }
 double arr_char(char array[], int length)                { double sum=0.0; int i=0; for(; i<length; i++) { sum += array[i]; array[i]*=2; } return sum; }

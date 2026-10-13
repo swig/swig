@@ -343,7 +343,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     }
 %}
 
-%typemap(varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [] %{
+%typemap(varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[] %{
     caml_failwith("read-only $name");
 %}
 

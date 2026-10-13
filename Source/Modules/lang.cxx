@@ -1554,10 +1554,12 @@ int Language::membervariableHandler(Node *n) {
         /* Check for a member in typemap here */
 
         if (!tm) {
-          if (SwigType_isarray(type)) {
+          SwigType *vartype = SwigType_remove_reference(Copy(type));
+          if (SwigType_isarray(vartype)) {
             Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
             make_set_wrapper = 0;
           }
+          Delete(vartype);
         } else {
           String *pname0 = Swig_cparm_name(0, 0);
           String *pname1 = Swig_cparm_name(0, 1);
@@ -2994,10 +2996,12 @@ int Language::variableWrapper(Node *n) {
     Delete(sname);
 
     if (!tm) {
-      if (SwigType_isarray(type)) {
+      SwigType *vartype = SwigType_remove_reference(Copy(type));
+      if (SwigType_isarray(vartype)) {
         Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s.\n", SwigType_str(type, 0));
         make_set_wrapper = 0;
       }
+      Delete(vartype);
     } else {
       String *pname0 = Swig_cparm_name(0, 0);
       Replace(tm, "$input", pname0, DOH_REPLACE_ANY);
