@@ -374,6 +374,18 @@ x
 setAs('ExternalReference', 'character',
 function(from) {if (!is.null(from$"__str__")) from$"__str__"()})
 
+# A class's $ and $<- methods call these for a name that is not a member variable or method, or is read only
+setMethod('$', "ExternalReference",
+function(x, name) NULL)
+
+setMethod('$<-', "ExternalReference",
+function(x, name, value)
+stop("Unable to set '", name, "' of ", class(x)[1], ", as it is read only or not a member variable"))
+
+setMethod('[[<-', c("ExternalReference", "character"),
+function(x, i, j, ..., value)
+stop("Unable to set '", i, "' of ", class(x)[1], ", as it is read only or not a member variable"))
+
 suppressMessages(suppressWarnings(setMethod('print', 'ExternalReference',
 function(x) {print(as(x, "character"))})))
 %}

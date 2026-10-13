@@ -1081,7 +1081,7 @@ int R::OutputMemberReferenceMethod(String *className, int isSet, List *memberLis
   }
 
   Printv(f->code, ";", tab8, "idx = pmatch(name, names(accessorFuns));\n", tab8, "if(is.na(idx)) \n", tab8, tab4, NIL);
-  Printf(f->code, "return(callNextMethod(x, name%s));\n", isSet ? ", value" : "");
+  Printf(f->code, "return(callNextMethod(x, name%s));\n", isSet ? ", value = value" : "");
   Printv(f->code, tab8, "f = accessorFuns[[idx]];\n", NIL);
   if (isSet) {
     Printv(f->code, tab8, "f(x, value);\n", NIL);

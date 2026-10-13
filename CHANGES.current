@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [R] Setting a read only member variable, or a name that is not a member variable, with $<- or
+            [[<- now gives an error instead of a stack overflow ("C stack usage" or "node stack overflow").
+            Getting a name that is not a member variable or method with $ now gives NULL, also instead of a
+            stack overflow.
+
+2026-10-13: wsfulton
             [PHP] Setting a read only member variable now throws an Error "Cannot modify readonly property
             Foo::$x", as for a PHP readonly property, instead of "Invalid callback , no array or string
             given".
