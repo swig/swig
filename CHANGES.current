@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [Javascript] null for an array parameter using the arrays_javascript.i typemaps, such as
+            'int []' or 'double [4]', is now passed on to the function as a NULL pointer, as for any other
+            array parameter, instead of raising an error. Setting an array variable to null still raises
+            an error. To raise an error for a null array parameter as before, add a check typemap for each
+            array type, for example:
+
+              %typemap(check) int[], int[ANY] %{
+                if (!$1) {
+                  SWIG_exception(SWIG_ERROR, "null array");
+                }
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-13: wsfulton
             [Java] A null Java array for an array parameter using the arrays_java.i typemaps, such as
             'int []' or an array of classes from JAVA_ARRAYSOFCLASSES, is now passed on to the function as
             a NULL pointer, as for any other array parameter, instead of throwing a NullPointerException.

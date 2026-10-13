@@ -51,6 +51,8 @@
       }
       arg$argnum[i] = temp;
     }
+  } else if ($input.IsNull()) {
+    $1 = 0;
   } else {
     Napi::Env env = $input.Env();
     SWIG_Error(SWIG_ERROR, "$input is not an array");

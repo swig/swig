@@ -18,3 +18,19 @@ function check_array(a, b) {
 check(15, javascript_lib_arrays.sum1(arr, arr.length));
 check(6, javascript_lib_arrays.sum2(arr));
 check_array([1, 2, 3, 4], javascript_lib_arrays.data3)
+
+// null is passed on as a NULL pointer for an array parameter
+check(1, javascript_lib_arrays.isnull(null));
+check(1, javascript_lib_arrays.isnull_sized(null));
+check(0, javascript_lib_arrays.isnull(arr));
+
+// Setting an array variable to null throws, leaving the array unchanged
+var threw = false;
+try {
+  javascript_lib_arrays.data3 = null;
+} catch (e) {
+  threw = true;
+}
+if (!threw)
+  throw new Error("data3 = null did not throw");
+check_array([1, 2, 3, 4], javascript_lib_arrays.data3)
