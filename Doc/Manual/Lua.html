@@ -1777,6 +1777,21 @@ and Lua tables to be 1..N, (the indexing follows the norm for the language). In 
 
 <p>Note: SWIG also can support arrays of pointers in a similar manner.</p>
 
+<p>
+<tt>nil</tt> instead of a table is passed to the function as a NULL array, as for any other array parameter.
+The length of a variable size array is then 0 and an INOUT array gives back <tt>nil</tt>.
+To raise an error for <tt>nil</tt> instead, add a <tt>check</tt> typemap for the array parameter:
+</p>
+
+<div class="code"><pre>
+%typemap(check) double *arr %{
+  if (!$1) {
+    SWIG_Lua_pusherrstring(L, "expected a table");
+    SWIG_fail;
+  }
+%}
+</pre></div>
+
 <H3><a name="Lua_typemaps_ptr_ptr_functions">31.4.4 Typemaps and pointer-pointer functions</a></H3>
 
 

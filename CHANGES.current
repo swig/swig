@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [Lua] nil for an INPUT or INOUT array parameter using the typemaps.i array typemaps, such as
+            'int INPUT[ANY]' or '(double *INOUT, int)', is now passed on to the function as a NULL
+            pointer, as for any other array parameter, instead of raising an error. The length of a
+            variable size array is then 0 and an INOUT array gives back nil. To raise an error for nil as
+            before, add a check typemap for each array parameter, for example:
+
+              %typemap(check) double *arr %{
+                if (!$1) {
+                  SWIG_Lua_pusherrstring(L, "expected a table");
+                  SWIG_fail;
+                }
+              %}
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-13: wsfulton
             [Javascript] null for an array parameter using the arrays_javascript.i typemaps, such as
             'int []' or 'double [4]', is now passed on to the function as a NULL pointer, as for any other
             array parameter, instead of raising an error. Setting an array variable to null still raises

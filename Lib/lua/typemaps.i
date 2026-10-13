@@ -144,6 +144,8 @@ a few things of note:
 	if you want just use
 	arr={...}
 	arr=process_var_array_inout(arr)	-- arr is replaced by the new version
+* nil is passed on as a NULL array (with a length of 0 for a variable size array)
+	and an INOUT array then returns nil
 
 The following are not yet supported:
 * variable length output only array (inout works ok)
@@ -179,7 +181,7 @@ TYPE* SWIG_get_NAME_num_array_fixed(lua_State* L, int index, int size);
 	// but reads the entire table & creates an array of the correct size
 	// (if the table is empty, it returns an error rather than a zero length array)
 TYPE* SWIG_get_NAME_num_array_var(lua_State* L, int index, int* size);
-	// writes a table to Lua with all the specified numbers
+	// writes a table to Lua with all the specified numbers, or nil for a NULL array
 void SWIG_write_NAME_num_array(lua_State* L,TYPE *array,int size);
 	// read the specified table, and fills the array with numbers
 	// returns 1 of ok (only fails if it doesn't find numbers)
@@ -273,6 +275,10 @@ SWIGINTERN int SWIG_table_size(lua_State* L, int index)
 	}\
 	SWIGINTERN void SWIG_write_##NAME##_num_array(lua_State* L,TYPE *array,int size){\
 		int i;\
+		if (!array) {\
+			lua_pushnil(L);\
+			return;\
+		}\
 		lua_newtable(L);\
 		for (i = 0; i < size; i++){\
 			lua_pushnumber(L,(lua_Number)array[i]);\
@@ -290,16 +296,27 @@ for array handling
 
 // fixed size array's
 %typemap(in) TYPE INPUT[ANY]
-%{	$1 = SWIG_get_##NAME##_num_array_fixed(L,$input,$1_dim0);
-	if (!$1) SWIG_fail;%}
+%{	if (lua_isnil(L,$input)) {
+		$1 = 0;
+	} else {
+		$1 = SWIG_get_##NAME##_num_array_fixed(L,$input,$1_dim0);
+		if (!$1)
+			SWIG_fail;
+	}%}
 
 %typemap(freearg) TYPE INPUT[ANY]
 %{	SWIG_FREE_ARRAY($1);%}
 
 // variable size array's
 %typemap(in) (TYPE *INPUT,int)
-%{	$1 = SWIG_get_##NAME##_num_array_var(L,$input,&$2);
-	if (!$1) SWIG_fail;%}
+%{	if (lua_isnil(L,$input)) {
+		$1 = 0;
+		$2 = 0;
+	} else {
+		$1 = SWIG_get_##NAME##_num_array_var(L,$input,&$2);
+		if (!$1)
+			SWIG_fail;
+	}%}
 
 %typemap(freearg) (TYPE *INPUT,int)
 %{	SWIG_FREE_ARRAY($1);%}
@@ -351,16 +368,27 @@ SWIG_TYPEMAP_NUM_ARR(double,double);
 // again enums are a problem so they need their own type
 // we use the int conversion routine & recast it
 %typemap(in) enum SWIGTYPE INPUT[ANY]
-%{	$1 = ($ltype)SWIG_get_int_num_array_fixed(L,$input,$1_dim0);
-	if (!$1) SWIG_fail;%}
+%{	if (lua_isnil(L,$input)) {
+		$1 = 0;
+	} else {
+		$1 = ($ltype)SWIG_get_int_num_array_fixed(L,$input,$1_dim0);
+		if (!$1)
+			SWIG_fail;
+	}%}
 
 %typemap(freearg) enum SWIGTYPE INPUT[ANY]
 %{	SWIG_FREE_ARRAY($1);%}
 
 // variable size arrays
 %typemap(in) (enum SWIGTYPE *INPUT,int)
-%{	$1 = ($ltype)SWIG_get_int_num_array_var(L,$input,&$2);
-	if (!$1) SWIG_fail;%}
+%{	if (lua_isnil(L,$input)) {
+		$1 = 0;
+		$2 = 0;
+	} else {
+		$1 = ($ltype)SWIG_get_int_num_array_var(L,$input,&$2);
+		if (!$1)
+			SWIG_fail;
+	}%}
 
 %typemap(freearg) (enum SWIGTYPE *INPUT,int)
 %{	SWIG_FREE_ARRAY($1);%}
@@ -400,7 +428,7 @@ void** SWIG_get_ptr_array_fixed(lua_State* L, int index, int size,swig_type_info
 	// but reads the entire table & creates an array of the correct size
 	// (if the table is empty, it returns an error rather than a zero length array)
 void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig_type_info *type);
-	// writes a table to Lua with all the specified pointers
+	// writes a table to Lua with all the specified pointers, or nil for a NULL array
 	// all pointers have the ownership value 'own' (normally 0)
 void SWIG_write_ptr_array(lua_State* L,void **array,int size,int own);
 	// read the specified table, and fills the array with ptrs
@@ -473,6 +501,10 @@ SWIGINTERN void** SWIG_get_ptr_array_var(lua_State* L, int index, int* size,swig
 }
 SWIGINTERN void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_type_info *type,int own){
 	int i;
+	if (!array) {
+		lua_pushnil(L);
+		return;
+	}
 	lua_newtable(L);
 	for (i = 0; i < size; i++){
 		SWIG_NewPointerObj(L,array[i],type,own);
@@ -483,16 +515,27 @@ SWIGINTERN void SWIG_write_ptr_array(lua_State* L,void **array,int size,swig_typ
 
 // fixed size array's
 %typemap(in) SWIGTYPE* INPUT[ANY]
-%{	$1 = ($ltype)SWIG_get_ptr_array_fixed(L,$input,$1_dim0,$*1_descriptor);
-	if (!$1) SWIG_fail;%}
+%{	if (lua_isnil(L,$input)) {
+		$1 = 0;
+	} else {
+		$1 = ($ltype)SWIG_get_ptr_array_fixed(L,$input,$1_dim0,$*1_descriptor);
+		if (!$1)
+			SWIG_fail;
+	}%}
 
 %typemap(freearg) SWIGTYPE* INPUT[ANY]
 %{	SWIG_FREE_ARRAY($1);%}
 
 // variable size array's
 %typemap(in) (SWIGTYPE **INPUT,int)
-%{	$1 = ($ltype)SWIG_get_ptr_array_var(L,$input,&$2,$*1_descriptor);
-	if (!$1) SWIG_fail;%}
+%{	if (lua_isnil(L,$input)) {
+		$1 = 0;
+		$2 = 0;
+	} else {
+		$1 = ($ltype)SWIG_get_ptr_array_var(L,$input,&$2,$*1_descriptor);
+		if (!$1)
+			SWIG_fail;
+	}%}
 
 %typemap(freearg) (SWIGTYPE **INPUT,int)
 %{	SWIG_FREE_ARRAY($1);%}
