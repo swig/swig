@@ -85,16 +85,16 @@ if (argvi >= items) EXTEND(sp, argvi+1);
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
-    "sv_setiv(SvRV($result),PTR2IV($1));"; 
+    "SWIG_SetPtrVariable($result, PTR2IV($1), $1_descriptor);";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
-    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+    "SWIG_SetPtrVariable($result, PTR2IV(&$1), $1_descriptor);";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &&
-    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+    "SWIG_SetPtrVariable($result, PTR2IV(&$1), $1_descriptor);";
 
 %typemap(varout,type="$&1_descriptor") SWIGTYPE
-    "sv_setiv(SvRV($result), PTR2IV(&$1));";
+    "SWIG_SetPtrVariable($result, PTR2IV(&$1), $&1_descriptor);";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1), $1_descriptor);

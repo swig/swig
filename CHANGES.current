@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [Perl] Fix a crash reading a global variable of pointer, array, reference or class type after
+            setting it to undef or after a failed set, such as setting a read only array variable.
+
+2026-10-13: wsfulton
             A global or member variable that is a reference to an array of unknown size, such as
             'int (&)[]', is now read only with warning 462, as is an array of unknown size, since there is
             no size to bound a copy of the elements. The wrapper code for setting it did not compile.
