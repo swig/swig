@@ -145,7 +145,7 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
 
 %typemap(in) enum SWIGTYPE "$1 = ($1_ltype) $input;"
-%typemap(in) enum SWIGTYPE &,enum SWIGTYPE * "$1 = ($1_ltype) $input;"
+%typemap(in) enum SWIGTYPE * "$1 = ($1_ltype) $input;"
 
 %typemap(in) SWIGTYPE [] "$1 = ($1_ltype) $input;"
 
@@ -337,6 +337,13 @@ typedef struct SwigObj SwigObj;
     SWIG_exception(SWIG_NullReferenceError, "$1_type reference is null");
   }
 }
+
+%define null_checked_reference_in(TM, T, ATTRS)
+%typemap(TM) T &, T &&, T *&, const T *& = SWIGTYPE &;
+%enddef
+
+same_macro_all_primitive_types_but_void(null_checked_reference_in, in);
+%typemap(in) enum SWIGTYPE & = SWIGTYPE &;
 
 %insert("runtime") %{
 #ifdef __cplusplus

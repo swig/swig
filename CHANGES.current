@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [C] NULL for a reference to a primitive type, bool or an enum, such as 'int &' or 'int *&', now
+            gives a NULL reference error instead of passing a NULL reference to the wrapped function.
+
+2026-10-13: wsfulton
             [Perl] Fix a crash reading a global variable of pointer, array, reference or class type after
             setting it to undef or after a failed set, such as setting a read only array variable.
 
