@@ -46,4 +46,7 @@
 (check (= (arrays-null-strings-isnull #nil) 1))
 (check (= (arrays-null-strings-unsized-isnull #nil) 1))
 
+;; A reference to an array cannot be NULL
+(check-null-rejected (arrays-null-ints-ref-first #nil))
+
 (exit 0)

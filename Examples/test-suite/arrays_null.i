@@ -5,6 +5,7 @@
 %ignore ArraysNull::items;
 %ignore arrays_null_items;
 %ignore arrays_null_ints_ref;
+%ignore arrays_null_ints_ref_first;
 #endif
 
 // Setting an array member or global variable to NULL is an error, as there is nothing to copy from
@@ -99,5 +100,10 @@ int arrays_null_strings_isnull(char *a[3]) {
 }
 int arrays_null_strings_unsized_isnull(char *a[]) {
   return a == 0;
+}
+
+// A reference to an array cannot be NULL
+int arrays_null_ints_ref_first(int (&a)[4]) {
+  return a[0];
 }
 %}

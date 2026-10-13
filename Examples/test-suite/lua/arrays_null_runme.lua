@@ -38,3 +38,6 @@ assert(an.arrays_null_chars_isnull(nil) == 1)
 assert(an.arrays_null_chars_unsized_isnull(nil) == 1)
 assert(an.arrays_null_strings_isnull(nil) == 1)
 assert(an.arrays_null_strings_unsized_isnull(nil) == 1)
+
+-- A reference to an array cannot be nil
+assert(not pcall(function() an.arrays_null_ints_ref_first(nil) end))

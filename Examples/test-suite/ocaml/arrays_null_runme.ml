@@ -44,5 +44,8 @@ let _ =
   assert (_arrays_null_chars_isnull (C_list [ C_void ]) as int = 1);
   assert (_arrays_null_chars_unsized_isnull (C_list [ C_void ]) as int = 1);
   assert (_arrays_null_strings_isnull (C_list [ C_void ]) as int = 1);
-  assert (_arrays_null_strings_unsized_isnull (C_list [ C_void ]) as int = 1)
+  assert (_arrays_null_strings_unsized_isnull (C_list [ C_void ]) as int = 1);
+
+  (* A reference to an array cannot be NULL *)
+  assert (null_rejected (fun () -> _arrays_null_ints_ref_first (C_list [ C_void ])))
 ;;

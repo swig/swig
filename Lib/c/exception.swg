@@ -20,6 +20,8 @@ extern "C" SWIGEXPORTC void SWIG_CException_Raise(int code, const char* msg);
 //
 // It has to be seen by SWIG because we want to generate wrappers for its
 // public functions to be able to use it from the application code.
+// It is wrapped before c.swg defines the 'SWIGTYPE &' in typemap, which uses SWIG_exception from this file.
+%typemap(in) const SWIG_CException & "$1 = ($1_ltype) $input;"
 %inline %{
 #ifndef SWIG_CException_DEFINED
 class SWIG_CException {

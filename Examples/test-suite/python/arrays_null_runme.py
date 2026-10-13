@@ -48,3 +48,7 @@ swig_check(arrays_null.arrays_null_chars_isnull(None), 1)
 swig_check(arrays_null.arrays_null_chars_unsized_isnull(None), 1)
 swig_check(arrays_null.arrays_null_strings_isnull(None), 1)
 swig_check(arrays_null.arrays_null_strings_unsized_isnull(None), 1)
+
+# A reference to an array cannot be NULL.
+with swig_assert_raises(TypeError):
+    arrays_null.arrays_null_ints_ref_first(None)

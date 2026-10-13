@@ -54,3 +54,11 @@ if (arrays_null.arrays_null_chars_isnull(null) != 1); error("chars_isnull"); end
 if (arrays_null.arrays_null_chars_unsized_isnull(null) != 1); error("chars_unsized_isnull"); endif
 if (arrays_null.arrays_null_strings_isnull(null) != 1); error("strings_isnull"); endif
 if (arrays_null.arrays_null_strings_unsized_isnull(null) != 1); error("strings_unsized_isnull"); endif
+
+# A reference to an array cannot be NULL
+try
+  arrays_null.arrays_null_ints_ref_first(null);
+  error("ints_ref_first(null) did not fail");
+catch e
+  if (isempty(strfind(e.message, "invalid null reference"))); rethrow(e); endif
+end_try_catch

@@ -48,4 +48,7 @@ check::equal(arrays_null_chars_unsized_isnull(null), 1, "failed null unsized cha
 check::equal(arrays_null_strings_isnull(null), 1, "failed null strings array parameter");
 check::equal(arrays_null_strings_unsized_isnull(null), 1, "failed null unsized strings array parameter");
 
+// A reference to an array cannot be null
+check_null_rejected("ints_ref parameter", fn() => arrays_null_ints_ref_first(null));
+
 check::done();

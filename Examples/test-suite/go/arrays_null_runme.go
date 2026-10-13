@@ -75,4 +75,7 @@ func main() {
 	if Arrays_null_strings_unsized_isnull(nil) != 1 {
 		panic("Test nil strings unsized parameter failed")
 	}
+
+	// A reference to an array cannot be nil
+	checkNullRejected("ints_ref parameter", func() { Arrays_null_ints_ref_first(nil) })
 }

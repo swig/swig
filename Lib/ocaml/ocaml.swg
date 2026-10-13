@@ -42,10 +42,16 @@
 
 %typemap(in) SWIGTYPE & {
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
+    if (!$1) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
+    }
 }
 
 %typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
+    if (!$1) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null");
+    }
     rvrdeleter.reset($1);
 %}
 
@@ -418,8 +424,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY] }
 /* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
@@ -434,8 +438,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $1 = ($1_ltype)temp;
 }
 %apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
-%typemap(memberin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

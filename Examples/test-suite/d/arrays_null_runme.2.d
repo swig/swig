@@ -42,4 +42,7 @@ void main() {
   enforce(arrays_null_chars_unsized_isnull(null) == 1, "Test null chars unsized parameter failed");
   enforce(arrays_null_strings_isnull(null) == 1, "Test null strings parameter failed");
   enforce(arrays_null_strings_unsized_isnull(null) == 1, "Test null strings unsized parameter failed");
+
+  // A reference to an array cannot be null
+  enforce(collectException(arrays_null_ints_ref_first(null)) !is null, "Test null ints_ref parameter failed");
 }

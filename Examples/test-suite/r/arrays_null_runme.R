@@ -51,4 +51,7 @@ unittest(arrays_null_ints_isnull(integer(0)), 0)
 unittest(arrays_null_ints_unsized_isnull(integer(0)), 0)
 unittest(arrays_null_enums_isnull(character(0)), 0)
 
+# A reference to an array cannot be NULL
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_ints_ref_first(NULL))), TRUE)
+
 q(save="no")

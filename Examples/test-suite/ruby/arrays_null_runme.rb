@@ -50,3 +50,6 @@ swig_assert_equal('Arrays_null.arrays_null_chars_isnull(nil)', '1', binding)
 swig_assert_equal('Arrays_null.arrays_null_chars_unsized_isnull(nil)', '1', binding)
 swig_assert_equal('Arrays_null.arrays_null_strings_isnull(nil)', '1', binding)
 swig_assert_equal('Arrays_null.arrays_null_strings_unsized_isnull(nil)', '1', binding)
+
+# A reference to an array cannot be nil.
+check_nil_rejected("ints_ref parameter") { Arrays_null.arrays_null_ints_ref_first(nil) }

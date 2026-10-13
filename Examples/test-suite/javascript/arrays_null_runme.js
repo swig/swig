@@ -66,3 +66,15 @@ if (arrays_null.arrays_null_strings_isnull(null) !== 1)
   throw new Error("strings_isnull");
 if (arrays_null.arrays_null_strings_unsized_isnull(null) !== 1)
   throw new Error("strings_unsized_isnull");
+
+// A reference to an array cannot be null
+var threw = false;
+try {
+  arrays_null.arrays_null_ints_ref_first(null);
+} catch (e) {
+  if (e.message.indexOf("invalid null reference") === -1)
+    throw e;
+  threw = true;
+}
+if (!threw)
+  throw new Error("ints_ref_first(null) did not throw");

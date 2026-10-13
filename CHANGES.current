@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-13: wsfulton
+            [C, Go, OCaml] NULL for a reference parameter, such as 'Foo &' or 'int (&)[4]', now gives a
+            NULL reference error, as in the other target languages, instead of passing a NULL reference to
+            the wrapped function.
+
 2026-10-11: wsfulton
             [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] SWIG_CATCH_STDEXCEPT now catches
             std::bad_cast and raises SWIG_TypeError, as it already did in the other target languages,

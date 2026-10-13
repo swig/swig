@@ -44,3 +44,6 @@ if {[arrays_null_bools_isnull NULL] != 1} { error "bools parameter" }
 if {[arrays_null_bools_unsized_isnull NULL] != 1} { error "unsized bools parameter" }
 if {[arrays_null_strings_isnull NULL] != 1} { error "strings parameter" }
 if {[arrays_null_strings_unsized_isnull NULL] != 1} { error "unsized strings parameter" }
+
+# A reference to an array cannot be NULL.
+check_null_rejected "ints_ref parameter" { arrays_null_ints_ref_first NULL }

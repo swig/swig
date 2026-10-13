@@ -27,10 +27,10 @@ arrays_null_items_set(ArraysNull_items_get(s));
 arrays_null_grid_set(ArraysNull_grid_get(s));
 checkequal(arrays_null_globals_check(10), 1, "arrays_null_globals_check() after global set");
 
-// NULL, an empty matrix for an array of numbers, is rejected
+// NULL, an empty matrix for an array of numbers, is rejected, as is NULL for a reference to an array
 null_calls = ["ArraysNull_ints_set(s, [])", "ArraysNull_items_set(s, NULL)", "ArraysNull_grid_set(s, NULL)", ..
               "arrays_null_ints_set([])", "arrays_null_items_set(NULL)", "arrays_null_grid_set(NULL)", ..
-              "arrays_null_ints_ref_set(NULL)"];
+              "arrays_null_ints_ref_set(NULL)", "arrays_null_ints_ref_first(NULL)"];
 for i = 1:size(null_calls, "*")
   ierr = execstr(null_calls(i), "errcatch");
   if ierr == 0 then swigtesterror(null_calls(i) + " error expected"); end

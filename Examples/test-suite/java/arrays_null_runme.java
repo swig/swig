@@ -96,5 +96,12 @@ public class arrays_null_runme {
       throw new RuntimeException("Test null strings parameter failed");
     if (arrays_null.arrays_null_strings_unsized_isnull(null) != 1)
       throw new RuntimeException("Test null strings unsized parameter failed");
+
+    // A reference to an array cannot be null
+    try {
+      arrays_null.arrays_null_ints_ref_first(null);
+      throw new RuntimeException("Test null ints_ref parameter failed");
+    } catch (NullPointerException e) {
+    }
   }
 }

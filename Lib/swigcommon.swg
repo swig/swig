@@ -156,8 +156,7 @@ namespace std {
   }
 }
 
-/* No check for NULL for a reference to an array, as the in typemap for a reference rejects it. A target language
- * whose in typemap does not, copies the typemaps above for a reference to an array instead. */
+/* No check for NULL for a reference to an array, as the in typemap for a reference rejects it */
 %typemap(memberin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
   size_t ii;
   for (ii = 0; ii < (size_t)$1_size; ii++) {

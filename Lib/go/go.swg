@@ -11,11 +11,6 @@
 
 %include <swigcommon.swg>
 
-%typemap(memberin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
-%typemap(memberin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
-%typemap(globalin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
-
 /* Basic types */
 
 %typemap(gotype) bool,               const bool &               "bool"
@@ -372,7 +367,12 @@
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE &
-%{ $1 = *($&1_ltype)&$input; %}
+%{
+  $1 = *($&1_ltype)&$input;
+  if (!$1) {
+    _swig_gopanic("Attempt to dereference null $1_type");
+  }
+%}
 
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %}
@@ -396,8 +396,13 @@
 %{$gotypename%}
 
 %typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter)
-%{ $1 = *($&1_ltype)&$input;
-rvrdeleter.reset($1); %}
+%{
+  $1 = *($&1_ltype)&$input;
+  if (!$1) {
+    _swig_gopanic("Attempt to dereference null $1_type");
+  }
+  rvrdeleter.reset($1);
+%}
 
 %typemap(out) SWIGTYPE &&
 %{ *($&1_ltype)&$result = $1; %}

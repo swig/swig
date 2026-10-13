@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 27;
 BEGIN { use_ok('arrays_null') }
 require_ok('arrays_null');
 
@@ -52,3 +52,7 @@ is(arrays_null::arrays_null_chars_isnull(undef), 1, "chars parameter");
 is(arrays_null::arrays_null_chars_unsized_isnull(undef), 1, "unsized chars parameter");
 is(arrays_null::arrays_null_strings_isnull(undef), 1, "strings parameter");
 is(arrays_null::arrays_null_strings_unsized_isnull(undef), 1, "unsized strings parameter");
+
+# A reference to an array cannot be undef.
+eval { arrays_null::arrays_null_ints_ref_first(undef) };
+like($@, qr/invalid null reference/, "ints_ref parameter");
