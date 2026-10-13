@@ -169,4 +169,4 @@ Useful background for contributors: C API design, the C++ type system, and SWIG'
 
 ### Authoring the user manual
 
-For editing chapters under `Doc/Manual/` — chapter conventions, manual heading anchors (always use `<filebase>_topic`-style anchors, never the auto generated `_nnN`), the `code` / `targetlang` / `shell` / `diagram` `<div>` classes, link/anchor rules, and the `make maketoc check` cycle that renumbers headings and validates HTML — read `.agents/skills/swig-doc/SKILL.md` rather than working from memory.
+For editing chapters under `Doc/Manual/` — chapter conventions, manual heading anchors (always use `<filebase>_topic`-style anchors for a new heading, never the auto generated `_nnN`, and never modify an existing anchor as it may be a publicly used link), the `code` / `targetlang` / `shell` / `diagram` `<div>` classes, link/anchor rules, and the `make maketoc check` cycle that renumbers headings and validates HTML — read `.agents/skills/swig-doc/SKILL.md` rather than working from memory.
