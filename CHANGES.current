@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [Perl] Fix reading a global variable of pointer, array, reference or class type changing a
+            pointer object assigned to it. After a failed set, such as setting an 'int *' variable to a
+            'double *' pointer object, reading the variable changed that object to hold the variable's
+            pointer and gave it as the variable's value. After a successful set, a later change to the
+            variable in C changed the assigned pointer object too. The variable no longer holds a
+            reference to the assigned pointer object, so, as in the other target languages, the object
+            must be kept alive for as long as C uses the pointer.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-13: wsfulton
             [Lua] nil for an INPUT or INOUT array parameter using the typemaps.i array typemaps, such as
             'int INPUT[ANY]' or '(double *INOUT, int)', is now passed on to the function as a NULL
             pointer, as for any other array parameter, instead of raising an error. The length of a

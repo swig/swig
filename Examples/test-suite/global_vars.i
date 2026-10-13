@@ -36,5 +36,7 @@
 
   int read_x() { return x; }
 
+  void clear_xp() { xp = 0; }
+
   std::string read_b() { return b; }
 %}

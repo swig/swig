@@ -357,9 +357,10 @@ SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int
   return result;
 }
 
-/* Set the pointer value of a global variable linked as a pointer object. It is made a pointer object again if it is no
-   longer a reference, such as after setting it to undef or after a failed set. The new pointer object is copied into the
-   variable, as making it in the variable with sv_setref_pv() would remove the variable's magic. */
+/* Set the pointer value of a global variable linked as a pointer object. A set of the variable with a pointer object
+   leaves it undefined, so it is made a pointer object again here, rather than changing the one assigned to it. The new
+   pointer object is copied into the variable, as making it in the variable with sv_setref_pv() would remove the
+   variable's magic. */
 SWIGRUNTIME void
 SWIG_Perl_SetPtrVariable(SWIG_MAYBE_PERL_OBJECT SV *sv, IV value, swig_type_info *t) {
   if (!SvROK(sv)) {

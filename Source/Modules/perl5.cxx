@@ -448,8 +448,10 @@ public:
     Printv(magic,
            "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n",
            "#define MAGIC_CLASS\n",
-           "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SWIGUNUSEDPARM(mg)) {\n",
+           "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n",
            "  MAGIC_PPERL\n",
+           "  if (SvROK(sv))\n",
+           "    sv_setsv(sv, &PL_sv_undef);\n",
            "  croak(\"Value is read-only.\");\n",
            "  return 0;\n",
            "}\n",
@@ -1016,8 +1018,15 @@ public:
         DelWrapper(getf);
         return SWIG_NOWRAP;
       }
+      /* Perl leaves the variable holding the assigned value. When that is a reference, such as to another pointer object
+         for a variable linked as a pointer object, reading the variable would change what it refers to. The variable is
+         left undefined instead, whether the set succeeds or fails, so reading it makes its own value again. */
+      Printf(setf->code, "    if (SvROK(sv))\n");
+      Printf(setf->code, "      sv_setsv(sv, &PL_sv_undef);\n");
       Printf(setf->code, "    return 1;\n");
       Printf(setf->code, "fail:\n");
+      Printf(setf->code, "    if (SvROK(sv))\n");
+      Printf(setf->code, "      sv_setsv(sv, &PL_sv_undef);\n");
       Printf(setf->code, "    SWIG_croak_null();\n");
       Printf(setf->code, "    return 0;\n}\n");
       Replaceall(setf->code, "$symname", iname);
