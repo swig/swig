@@ -455,9 +455,10 @@ public:
     } else {
       Printf(f_class_ctors,
              "    \"[%s]\", (fun args -> "
-             "if args = (C_list [ raw_ptr ]) then _%s args else C_void) ;\n",
+             "if args = (C_list [ raw_ptr ]) then _%s args else failwith \"Unable to set '%s', as it is read only\") ;\n",
              symname,
-             mangled_getname);
+             mangled_getname,
+             symname);
     }
     Delete(mangled_getname);
     Delete(mname);
@@ -884,6 +885,10 @@ public:
       } else {
         throw_unhandled_ocaml_type_error(t, "varin/in");
       }
+      Printf(f->code, "}\n");
+    } else {
+      Printf(f->code, "if (args != Val_int(0)) {\n");
+      Printf(f->code, "caml_failwith(\"Unable to set '%s', as it is read only\");\n", iname);
       Printf(f->code, "}\n");
     }
     // Now return the value of the variable (regardless

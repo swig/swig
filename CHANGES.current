@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [OCaml] Setting a read only member or global variable now raises Failure "Unable to set 'x', as
+            it is read only" instead of being silently ignored.
+
+2026-10-13: wsfulton
             [R] Setting a read only member variable, or a name that is not a member variable, with $<- or
             [[<- now gives an error instead of a stack overflow ("C stack usage" or "node stack overflow").
             Getting a name that is not a member variable or method with $ now gives NULL, also instead of a
