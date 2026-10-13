@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-14: wsfulton
+            [Python] Fix a memory leak with -castmode of a std::pair made from a tuple whose first element
+            is converted with a cast of higher rank than its second, such as a float for an int.
+
 2026-10-13: wsfulton
             [R] NULL now selects an overloaded function taking a char array, such as 'char [4]' or
             'char []', as it does for any other array.

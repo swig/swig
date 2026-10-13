@@ -76,6 +76,7 @@ CPP_TEST_CASES += \
 	python_pyi_untyped \
 	python_pythoncode \
 	python_richcompare \
+	python_std_pair_castmode \
 	python_strict_unicode \
 	python_threads \
 	python_typehints \

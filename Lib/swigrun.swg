@@ -136,8 +136,8 @@
 /* Errors < -200 are generic runtime specific errors */
 #define SWIG_ERROR_RELEASE_NOT_OWNED (-200)
 
-#define SWIG_IsOK(r)               (r >= 0)
-#define SWIG_ArgError(r)           ((r != SWIG_ERROR) ? r : SWIG_TypeError)
+#define SWIG_IsOK(r)               ((r) >= 0)
+#define SWIG_ArgError(r)           (((r) != SWIG_ERROR) ? (r) : SWIG_TypeError)
 
 /* The CastRankLimit says how many bits are used for the cast rank */
 #define SWIG_CASTRANKLIMIT         (1 << 8)
@@ -154,15 +154,15 @@
 #define SWIG_TMPOBJ                (SWIG_OK | SWIG_TMPOBJMASK)
 #define SWIG_BINARYSTR             (SWIG_OK | SWIG_BINARYSTRMASK)
 /* Check, add and del object mask methods */
-#define SWIG_AddNewMask(r)         (SWIG_IsOK(r) ? (r | SWIG_NEWOBJMASK) : r)
-#define SWIG_DelNewMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_NEWOBJMASK) : r)
-#define SWIG_IsNewObj(r)           (SWIG_IsOK(r) && (r & SWIG_NEWOBJMASK))
-#define SWIG_AddTmpMask(r)         (SWIG_IsOK(r) ? (r | SWIG_TMPOBJMASK) : r)
-#define SWIG_DelTmpMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_TMPOBJMASK) : r)
-#define SWIG_IsTmpObj(r)           (SWIG_IsOK(r) && (r & SWIG_TMPOBJMASK))
-#define SWIG_AddBinaryStrMask(r)   (SWIG_IsOK(r) ? (r | SWIG_BINARYSTRMASK) : r)
-#define SWIG_DelBinaryStrMask(r)   (SWIG_IsOK(r) ? (r & ~SWIG_BINARYSTRMASK) : r)
-#define SWIG_IsBinaryStr(r)        (SWIG_IsOK(r) && (r & SWIG_BINARYSTRMASK))
+#define SWIG_AddNewMask(r)         (SWIG_IsOK(r) ? ((r) | SWIG_NEWOBJMASK) : (r))
+#define SWIG_DelNewMask(r)         (SWIG_IsOK(r) ? ((r) & ~SWIG_NEWOBJMASK) : (r))
+#define SWIG_IsNewObj(r)           (SWIG_IsOK(r) && ((r) & SWIG_NEWOBJMASK))
+#define SWIG_AddTmpMask(r)         (SWIG_IsOK(r) ? ((r) | SWIG_TMPOBJMASK) : (r))
+#define SWIG_DelTmpMask(r)         (SWIG_IsOK(r) ? ((r) & ~SWIG_TMPOBJMASK) : (r))
+#define SWIG_IsTmpObj(r)           (SWIG_IsOK(r) && ((r) & SWIG_TMPOBJMASK))
+#define SWIG_AddBinaryStrMask(r)   (SWIG_IsOK(r) ? ((r) | SWIG_BINARYSTRMASK) : (r))
+#define SWIG_DelBinaryStrMask(r)   (SWIG_IsOK(r) ? ((r) & ~SWIG_BINARYSTRMASK) : (r))
+#define SWIG_IsBinaryStr(r)        (SWIG_IsOK(r) && ((r) & SWIG_BINARYSTRMASK))
 
 /* Cast-Rank Mode */
 #if defined(SWIG_CASTRANK_MODE)
@@ -173,7 +173,7 @@
 #    define SWIG_MAXCASTRANK          (2)
 #  endif
 #  define SWIG_CASTRANKMASK          ((SWIG_CASTRANKLIMIT) -1)
-#  define SWIG_CastRank(r)           (r & SWIG_CASTRANKMASK)
+#  define SWIG_CastRank(r)           ((r) & SWIG_CASTRANKMASK)
 SWIGINTERNINLINE int SWIG_AddCast(int r) {
   return SWIG_IsOK(r) ? ((SWIG_CastRank(r) < SWIG_MAXCASTRANK) ? (r + 1) : SWIG_ERROR) : r;
 }
