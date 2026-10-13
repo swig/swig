@@ -1104,7 +1104,7 @@ public:
     Printf(gatewayHeaderV5, "#endif\n");
 
     Printf(gatewayHeaderV6, "return 1;\n");
-    Printf(gatewayHeaderV6, "};\n");
+    Printf(gatewayHeaderV6, "}\n");
 
     Printf(gatewayHeader, "#if SCI_VERSION_MAJOR < 6\n");
     Printv(gatewayHeader, gatewayHeaderV5, NIL);

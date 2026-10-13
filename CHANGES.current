@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [Scilab] Remove the extra ';' after the gateway function in the generated code for Scilab 6 and
+            later, which gives an "extra ';' outside of a function" warning with -Wextra-semi in C++.
+
+2026-10-13: wsfulton
             [Perl] Fix reading a global variable of pointer, array, reference or class type changing a
             pointer object assigned to it. After a failed set, such as setting an 'int *' variable to a
             'double *' pointer object, reading the variable changed that object to hold the variable's
