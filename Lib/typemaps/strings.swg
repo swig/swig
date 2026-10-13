@@ -410,6 +410,11 @@
   $1 = SWIG_CheckState(res);
 }
 
+%typemap(typecheck,noblock=1,precedence=StringCode,fragment=#SWIG_AsCharArray) Char (&)[ANY], Char (&&)[ANY] {
+  int res = SWIG_AsCharArray($input, (Char *)0, $1_dim0);
+  $1 = SWIG_CheckState(res);
+}
+
 
 /* throws */
 

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 32;
 BEGIN { use_ok('overload_null') }
 require_ok('overload_null');
 
@@ -45,3 +45,12 @@ is(22, $o->byval2fwdref($x));
 
 is(23, $o->bychar1("a"));
 is(24, $o->bychar1(undef));
+
+# NULL is a NULL pointer for an array of char too
+is(37, $o->bychararray($x));
+is(-38, $o->bychararray(undef));
+is(38, $o->bychararray("ab"));
+
+is(39, $o->byunsizedchararray($x));
+is(-40, $o->byunsizedchararray(undef));
+is(40, $o->byunsizedchararray("ab"));

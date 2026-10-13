@@ -525,7 +525,7 @@ typedef unsigned long SCM;
   $1 = SCM_CHARP($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char *, char [], char [ANY] {
   $1 = scm_is_string($input) ? 1 : 0;
 }
 

@@ -69,5 +69,14 @@ unittest(34, o$byboolptr(NULL))
 unittest(35, o$byenumptr(x))
 unittest(36, o$byenumptr(NULL))
 
+# NULL is a NULL pointer for an array of char too
+unittest(37, o$bychararray(x))
+unittest(-38, o$bychararray(NULL))
+unittest(38, o$bychararray("ab"))
+
+unittest(39, o$byunsizedchararray(x))
+unittest(-40, o$byunsizedchararray(NULL))
+unittest(40, o$byunsizedchararray("ab"))
+
 q(save="no")
 

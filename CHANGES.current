@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-13: wsfulton
+            [R] NULL now selects an overloaded function taking a char array, such as 'char [4]' or
+            'char []', as it does for any other array.
+
+2026-10-13: wsfulton
+            [Octave, Perl, Python, Ruby, Scilab, Tcl] A string now selects an overloaded function taking a
+            reference to a char array, such as 'char (&)[4]' or 'char (&&)[4]', as it does for 'char [4]'.
+
+2026-10-13: wsfulton
+            [Guile, Lua, PHP] A string now selects an overloaded function taking a char array, such as
+            'char [4]', as it does for 'char *'. In Guile it now does for 'char []' too. In PHP, null now
+            selects one too, as for any other array.
+
+2026-10-13: wsfulton
             [OCaml] Setting a read only member or global variable now raises Failure "Unable to set 'x', as
             it is read only" instead of being silently ignored.
 

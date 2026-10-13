@@ -596,8 +596,8 @@
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char *, char *&
  " $1 = (Z_TYPE($input) == IS_STRING || Z_TYPE($input) == IS_NULL); "
 
-%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char []
- " $1 = (Z_TYPE($input) == IS_STRING); "
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char [], char [ANY]
+ " $1 = (Z_TYPE($input) == IS_STRING || Z_TYPE($input) == IS_NULL); "
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
 {
@@ -680,6 +680,8 @@
   while (len < $1_dim0 && (*$1)[len]) ++len;
   RETVAL_STRINGL(*$1, len);
 }
+%typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char (&)[ANY], char (&&)[ANY]
+ " $1 = (Z_TYPE($input) == IS_STRING); "
 %apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
 
 /* const pointers */

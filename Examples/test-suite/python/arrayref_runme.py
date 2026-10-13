@@ -39,6 +39,9 @@ swig_check(member.text_ref, "hi")
 member.text_ref = "bye"
 swig_check(member.text_is(), "bye")
 
+swig_check(arrayref.char_ref_overload("abc"), 3)
+swig_check(arrayref.char_ref_overload(arrayref.ArrayRefOther()), -1)
+
 # Setting a reference to an array of arrays copies every element.
 arrayref.cvar.grid_ref = arrayref.cvar.other_grid
 swig_check(arrayref.grid_element(0, 1), 20)

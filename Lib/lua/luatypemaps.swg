@@ -342,7 +342,7 @@ parameters match which function
   $1 = SWIG_lua_isnilstring(L,$input) && (lua_rawlen(L,$input)==1);
 }
 
-%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[], char *&, const char *& {
+%typecheck(SWIG_TYPECHECK_STRING,fragment="SWIG_lua_isnilstring") char *, char[], char[ANY], char *&, const char *& {
   $1 = SWIG_lua_isnilstring(L,$input);
 }
 
@@ -422,6 +422,9 @@ parameters match which function
     }
     $1 = ($ltype)temp;
   }%}
+%typecheck(SWIG_TYPECHECK_STRING) char (&)[ANY], char (&&)[ANY] {
+  $1 = lua_isstring(L,$input);
+}
 %apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
 
 /* const pointers */

@@ -279,7 +279,9 @@ string &, std::string &
   %{ is.character($arg) || is.null($arg) %}
 %typemap(scoercein) char *[ANY]
   %{  if (!is.null($input)) $input = as($input, "character"); %}
-%typemap("rtypecheck") char [ANY], char [], char (&)[ANY], char (&&)[ANY]
+%typemap("rtypecheck") char [ANY], char []
+  %{ (is.character($arg) && length($arg) == 1) || is.null($arg) %}
+%typemap("rtypecheck") char (&)[ANY], char (&&)[ANY]
   %{ is.character($arg) && length($arg) == 1 %}
 %typemap(scoercein) char [ANY], char [], char (&)[ANY], char (&&)[ANY]
   %{  if (!is.null($input)) $input = as($input, "character"); %}

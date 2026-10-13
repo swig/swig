@@ -72,5 +72,12 @@ struct Overload {
   int byenumptr(X x) { return 35; }
   int byenumptr(OverloadNullEnum *e) { return 36; }
 
+  // NULL is a NULL pointer for an array of char too, although the array is otherwise a string
+  int bychararray(X x) { return 37; }
+  int bychararray(char a[4]) { return a ? 38 : -38; }
+
+  int byunsizedchararray(X x) { return 39; }
+  int byunsizedchararray(char a[]) { return a ? 40 : -40; }
+
 };
 %}

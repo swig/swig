@@ -42,6 +42,11 @@ const char *letters_are() { return letters; }
 int length_of(const char (&text)[8]) { return (int)strlen(text); }
 int length_of_writable(char (&text)[8]) { return (int)strlen(text); }
 
+// A string selects an overload taking a reference to an array of char.
+struct ArrayRefOther {};
+int char_ref_overload(ArrayRefOther) { return -1; }
+int char_ref_overload(const char (&text)[8]) { return (int)strlen(text); }
+
 struct ArrayRefMember {
   int backing[4];
   int (&member_ref)[4];

@@ -46,5 +46,16 @@ checkequal(23, Overload_bychar1(o, "a"), "test 23");
 ierr = execstr("Overload_bychar1(o, NULL)", "errcatch");
 if ierr == 0 then swigtesterror("test 24"); end
 
+// An array of char is a string, which cannot be NULL here, as for char *
+checkequal(37, Overload_bychararray(o, x), "test 37");
+checkequal(38, Overload_bychararray(o, "ab"), "test 38");
+ierr = execstr("Overload_bychararray(o, NULL)", "errcatch");
+if ierr == 0 then swigtesterror("test 38 NULL"); end
+
+checkequal(39, Overload_byunsizedchararray(o, x), "test 39");
+checkequal(40, Overload_byunsizedchararray(o, "ab"), "test 40");
+ierr = execstr("Overload_byunsizedchararray(o, NULL)", "errcatch");
+if ierr == 0 then swigtesterror("test 40 NULL"); end
+
 exec("swigtest.quit", -1);
 

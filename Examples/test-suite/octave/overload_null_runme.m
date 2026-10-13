@@ -53,3 +53,12 @@ check(22, o.byval2fwdref(x));
 
 check(23, o.bychar1("a"));
 check(24, o.bychar1(null));
+
+# NULL is a NULL pointer for an array of char too
+check(37, o.bychararray(x));
+check(-38, o.bychararray(null));
+check(38, o.bychararray("ab"));
+
+check(39, o.byunsizedchararray(x));
+check(-40, o.byunsizedchararray(null));
+check(40, o.byunsizedchararray("ab"));
