@@ -3420,24 +3420,26 @@ static void add_array_from_scanner(SwigType *type) {
   Delete(bound);
 }
 
-/* Decode the UTF-8 'text' that the scanner stores for a wide character literal, returning the code point of its single
-   character, or -1 if 'text' is not a single character. A hexadecimal or octal escape sequence or a universal
+/* Decode the UTF-8 'text' that the scanner stores for a wide character literal, setting 'code_point' to the code point
+   of its single character and returning 1, or returning 0 if 'text' is not a single character. A hexadecimal escape
+   sequence can also give a value beyond Unicode, up to 0xFFFFFFFF. A hexadecimal or octal escape sequence or a universal
    character name in the literal is encoded as UTF-8 by Swig_utf8_encode() in the scanner, while a character written as
    itself is copied unchanged from the source file, so it is UTF-8 only in a UTF-8 source file. Either way, an ASCII
    character is a single char. A code point is the number Unicode assigns to a character and is the value of a wide
    character literal holding it. For example:
 
-     Literal                                         'text' (UTF-8 bytes)   Returns
+     Literal                                         'text' (UTF-8 bytes)   code_point
      L'A', L'\x41' or L'\u0041'                      41                     0x41
      L'\xF1', L'\u00F1' or the n with tilde itself   C3 B1                  0xF1
      L'\x263A', L'\u263A' or the smiley face itself  E2 98 BA               0x263A
 */
-static long wide_char_code_point(String *text) {
+static int wide_char_code_point(String *text, unsigned long *code_point) {
   int len = Len(text);
-  long code_point;
-  if (len == 1)
-    return (unsigned char)Char(text)[0];
-  return len > 0 && Swig_utf8_decode(text, 0, &code_point) == len ? code_point : -1;
+  if (len == 1) {
+    *code_point = (unsigned char)Char(text)[0];
+    return 1;
+  }
+  return len > 0 && Swig_utf8_decode(text, 0, code_point) == len;
 }
 
 static Node *new_enum_node(SwigType *enum_base_type) {
@@ -9149,14 +9151,16 @@ edecl          :  identifier {
 		   SetFlag($$,"feature:immutable");
 		   Setattr($$,"enumvalue", $etype.val);
 		   if ($etype.stringval) {
-                     long code_point = $etype.type == T_WCHAR ? wide_char_code_point($etype.stringval) : -1;
-                     if (code_point >= 0) {
-                       /* A wide character is also given as a number, the only portable form when it is not ASCII */
-                       String *numval = NewStringf("%ld", code_point);
+                     unsigned long code_point = 0;
+                     int one_char = $etype.type == T_WCHAR && wide_char_code_point($etype.stringval, &code_point);
+                     /* A wide character is also given as a number, the only portable form when it is not ASCII, but
+                        not above 0x7FFFFFFF, which is negative with a signed 32 bit wchar_t */
+                     if (one_char && code_point <= 0x7FFFFFFF) {
+                       String *numval = NewStringf("%lu", code_point);
                        Setattr($$, "enumnumval", numval);
                        Delete(numval);
                      }
-                     if (code_point <= 0x7F)
+                     if (!one_char || code_point <= 0x7F)
                        Setattr($$, "enumstringval", $etype.stringval);
 		   }
 		   if ($etype.numval) {
@@ -9475,10 +9479,11 @@ exprsimple     : exprnum
 		  }
 	       }
 	       | WCHARCONST {
-                  long code_point = wide_char_code_point($WCHARCONST.text);
+                  unsigned long code_point;
+                  int one_char = wide_char_code_point($WCHARCONST.text, &code_point);
 		  $$ = default_dtype;
                   $$.stringval = $WCHARCONST.text;
-                  if (code_point > 0x7F) {
+                  if (one_char && code_point > 0x7F) {
                     /* Not ASCII, so the scanned text is a UTF-8 encoding that must not be escaped byte by byte */
                     $$.val = NewStringf("L'\\x%lX'", code_point);
                   } else {

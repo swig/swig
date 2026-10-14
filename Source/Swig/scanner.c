@@ -388,11 +388,12 @@ static void retract(Scanner *s, int n) {
  *
  * Append the value of a numeric escape sequence. A value that is not ASCII, in a wide character or wide string literal
  * or for a universal character name in any literal, is appended as its UTF-8 encoding by Swig_utf8_encode(), as a
- * UTF-8 source character already is, rather than truncated.
+ * UTF-8 source character already is, rather than truncated. In a wide literal, this includes a value beyond Unicode, up
+ * to 0xFFFFFFFF.
  * ----------------------------------------------------------------------------- */
 
-static void put_escape_value(Scanner *s, int value, int wide_char) {
-  if (wide_char && value > 0x7F && value <= 0x10FFFF)
+static void put_escape_value(Scanner *s, unsigned long value, int wide_char) {
+  if (wide_char && value > 0x7F)
     Swig_utf8_encode(s->text, value);
   else
     Putc((char)value, s->text);
@@ -406,7 +407,7 @@ static void put_escape_value(Scanner *s, int value, int wide_char) {
  * ----------------------------------------------------------------------------- */
 
 static void get_escape(Scanner *s, int wide_char) {
-  int result = 0;
+  unsigned long result = 0;
   int state = 0;
   int ucn_digits = 0;
   int ucn_start = 0;
@@ -526,10 +527,8 @@ static void get_escape(Scanner *s, int wide_char) {
         put_escape_value(s, result, wide_char);
         return;
       }
-      if (isdigit(c))
-        result = (result << 4) + (c - '0');
-      else
-        result = (result << 4) + (10 + tolower(c) - 'a');
+      /* Only the low 32 bits of a value too big for a wchar_t are kept, as GCC does */
+      result = ((result << 4) + (isdigit(c) ? c - '0' : 10 + tolower(c) - 'a')) & 0xFFFFFFFFUL;
       Delitem(s->text, DOH_END);
       break;
     case 30:  // Universal character name of 4 or 8 hexadecimal digits

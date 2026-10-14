@@ -24,6 +24,17 @@
 %feature("compactdefaultargs") wchar_default_ucn;
 %feature("compactdefaultargs") wstring_default;
 %feature("compactdefaultargs") wstring_nul_default;
+%feature("compactdefaultargs") wstring_beyond_unicode_default;
+%feature("compactdefaultargs") wchar_beyond_unicode_default;
+
+%{
+// A wchar_t beyond Unicode needs 32 bits, so the literal is only used where wchar_t is not 16 bits
+#if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#define BEYOND_UNICODE(literal, other) other
+#else
+#define BEYOND_UNICODE(literal, other) literal
+#endif
+%}
 
 #if defined(SWIGCSHARP)
 // Initialised in C# rather than read from the C++ constant
@@ -68,6 +79,14 @@ bool wstring_default(const wchar_t *s = L"\x263A" L"a\u00E9f\U0001F600") {
 
 bool wstring_nul_default(const wchar_t *s = L"a\0bc") {
   return s[0] == L'a' && s[1] == L'\0' && s[2] == L'b' && s[3] == L'c';
+}
+
+bool wstring_beyond_unicode_default(const wchar_t *s = BEYOND_UNICODE(L"a\x110000\x7FFFFFFF\x80000000\xFFFFFFFF", L"a")) {
+  return std::wstring(s) == BEYOND_UNICODE(L"a\x110000\x7FFFFFFF\x80000000\xFFFFFFFF", L"a");
+}
+
+bool wchar_beyond_unicode_default(wchar_t x = BEYOND_UNICODE(L'\x110000', L'a')) {
+  return x == BEYOND_UNICODE(L'\x110000', L'a');
 }
 
 #define WSTRING_CONSTANT L"\x263A" L"a\u00E9f\U0001F600"
@@ -175,6 +194,7 @@ struct wchar_test_struct {
 };
 
 %}
+
 
 #endif
 

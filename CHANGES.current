@@ -582,10 +582,11 @@ Version 4.6.0 (in progress)
 2026-10-07: wsfulton
             Fix the value of a wide string literal holding a character that is not ASCII, such as
             L"\x263A", L"\u00E9" or the character written as itself, used for a constant or
-            default argument. A hexadecimal escape sequence from 0x100 to 0x10FFFF was truncated to a
-            single byte. An octal one above \377 gave an "octal escape sequence out of range" error. Any
-            other such character became a wide character for each byte of its UTF-8 encoding. Also
-            fix the array size deduced for an auto or decltype(auto) variable initialised by such a
+            default argument. A hexadecimal escape sequence above 0xFF was truncated to a single
+            byte, including one beyond Unicode, such as L"\x110000", which a 32 bit wchar_t holds.
+            An octal one above \377 gave an "octal escape sequence out of range" error. Any other
+            such character became a wide character for each byte of its UTF-8 encoding. Also fix
+            the array size deduced for an auto or decltype(auto) variable initialised by such a
             literal, such as 'auto &s = L"\u00E9";', which counted the UTF-8 bytes.
 
 2026-10-07: wsfulton
