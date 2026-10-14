@@ -177,7 +177,7 @@ Default to plain ASCII characters in prose: ` - ` rather than `&mdash;` for inli
 
 ## Hyphenation
 
-Only hyphenate compounds the C++ standard hyphenates (`using-declaration`, `type-constraint`, `requires-clause`, etc.). Drop the hyphen on everything else. See **Hyphenation** in `AGENTS.md`.
+Only hyphenate compounds the C++ standard hyphenates (`using-declaration`, `type-constraint`, `requires-clause`, etc.). Drop the hyphen on everything else, such as `language independent` and `runtime`, also in an existing line that a change rewrites. See **Hyphenation** in `.agents/skills/swig-conventions/SKILL.md`.
 
 ## Compatibility notes
 

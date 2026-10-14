@@ -137,7 +137,9 @@ Show a code, interface or generated-output example as an indented block, not squ
 
 ## Hyphenation
 
-Only hyphenate compounds the C++ standard hyphenates (grammar productions like `using-declaration`, `type-constraint`, `requires-clause`, `simple-template-id`). Drop the hyphen everywhere else: `pack expansion`, `deduction guide`, `parameter pack`, `read only`, `compile time`, `runtime`, `before C++20`. When in doubt, drop it.
+Only hyphenate compounds the C++ standard hyphenates (grammar productions like `using-declaration`, `type-constraint`, `requires-clause`, `simple-template-id`). Drop the hyphen everywhere else: `pack expansion`, `deduction guide`, `parameter pack`, `read only`, `compile time`, `runtime`, `language independent`, `before C++20`. When in doubt, drop it.
+
+`runtime` is one word, never `run-time` or `run time`. Older text, notably in `Doc/Manual`, still has needless hyphens such as `language-independent` and `run-time`. Drop them in any line that a change writes or rewrites, rather than copying them.
 
 ## Disclosing AI assistance in source code contributions
 
