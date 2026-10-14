@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-14: wsfulton
+            [Guile] A global variable that is an array of unknown size, such as 'extern int b[];' or
+            'extern char name[];', now gives warning 462, as in the other target languages. Setting it
+            still raises wrong-type-arg.
+
+2026-10-14: wsfulton
             [Python] Fix a memory leak with -castmode of a std::pair made from a tuple whose first element
             is converted with a cast of higher rank than its second, such as a float for an int.
 
@@ -711,8 +716,7 @@ Version 4.6.0 (in progress)
                 char text[];
               };
 
-            Setting it used strcpy, writing past the end of the array for a longer string. In Guile,
-            this is for a member, as such a global variable could already not be set.
+            Setting it used strcpy, writing past the end of the array for a longer string.
 
             *** POTENTIAL INCOMPATIBILITY ***
 

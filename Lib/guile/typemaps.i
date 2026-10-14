@@ -54,7 +54,7 @@
   $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
 }
 
-%typemap(varin) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[] {
+%typemap(varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[] {
   scm_wrong_type_arg(FUNC_NAME, 1, $input);
 }
 
@@ -363,8 +363,8 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    if (!swig_copied)
      scm_wrong_type_arg(FUNC_NAME, 1, $input);
  }
- /* An array of unknown size is read-only, as for SWIGTYPE [], there being no size to bound the copy by. */
- %typemap (varin)                                char [] {
+ /* An array of unknown size is read only, as for SWIGTYPE [], there being no size to bound the copy by. */
+ %typemap (varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) char [] {
    scm_wrong_type_arg(FUNC_NAME, 1, $input);
  }
  %typemap (in, doc="$NAME is a string")          char *&($*1_ltype temp, int must_free = 0), const char *&($*1_ltype temp, int must_free = 0) {
