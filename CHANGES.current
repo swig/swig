@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-14: ysheikh2
+            [Python] #3061 Fix seg fault importing a module if creating one of the SWIG
+            runtime Python types fails during module initialization. The import now raises
+            the Python exception instead, for example a MemoryError.
+
 2026-10-07: olly
 	    [Guile] #3194 The default "procdoc" format is now "plain" (which
 	    works with Guile 1.4.1 and later), and the old "guile-1.4" format
