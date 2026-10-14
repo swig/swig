@@ -20,12 +20,6 @@
 #error "This version of std_except.i should not be used"
 #endif
 
-%{
-#include <typeinfo>
-#include <stdexcept>
-%}
-
-
 %define %std_exception_map(Exception, Code)
   %typemap(throws,noblock=1) Exception {
     SWIG_exception(Code, $1.what());

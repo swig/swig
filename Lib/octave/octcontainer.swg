@@ -21,8 +21,6 @@
 
 // The Octave C++ Wrap
 
-%fragment("<stdexcept>");
-
 %include <std_except.i>
 
 %fragment(SWIG_Traits_frag(octave_value),"header",fragment="StdTraits") {

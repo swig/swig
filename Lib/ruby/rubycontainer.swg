@@ -26,8 +26,6 @@
 
 /**** The RubySequence C++ Wrap ***/
 
-%fragment("<stdexcept>");
-
 %include <std_except.i>
 
 

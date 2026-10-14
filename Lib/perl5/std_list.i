@@ -37,7 +37,6 @@
 #include <list>
 %}
 %fragment("<algorithm>");
-%fragment("<stdexcept>");
 
 // exported class
 

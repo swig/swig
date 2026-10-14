@@ -7,7 +7,6 @@
 
 %{
 #include <unordered_set>
-#include <stdexcept>
 %}
 
 %include <std_common.i>

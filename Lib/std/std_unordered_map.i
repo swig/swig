@@ -56,7 +56,6 @@
 #include <unordered_map>
 %}
 %fragment("<algorithm>");
-%fragment("<stdexcept>");
 
 // exported class
 

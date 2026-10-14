@@ -33,7 +33,6 @@
 %{
 #include <vector>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 // exported class

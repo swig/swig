@@ -4,7 +4,6 @@
 
 %{
 #include <list>
-#include <stdexcept>
 %}
 
 namespace std {

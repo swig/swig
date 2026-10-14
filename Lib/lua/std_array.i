@@ -8,7 +8,6 @@
 %{
 #include <array>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 %include <std_common.i>

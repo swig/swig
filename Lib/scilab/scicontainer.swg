@@ -33,10 +33,6 @@
 %include <sciiterators.swg>
 %include <scisequence.swg>
 
-%{
-#include <stdexcept>
-%}
-
 %include <std_except.i>
 
 %fragment("SciSequence_Cont", "header",

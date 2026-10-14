@@ -9,10 +9,6 @@
  *   size_t at() const throw (std::out_of_range);
  * ----------------------------------------------------------------------------- */
 
-%{
-#include <stdexcept>
-%}
-
 namespace std 
 {
   %ignore exception;

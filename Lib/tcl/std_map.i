@@ -13,7 +13,6 @@
 #include <map>
 %}
 %fragment("<algorithm>");
-%fragment("<stdexcept>");
 
 // exported class
 

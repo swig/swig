@@ -10,7 +10,6 @@
 
 %{
 #include <list>
-#include <stdexcept>
 %}
 
 %fragment("SWIG_ListSize", "header", fragment="SWIG_JavaIntFromSize_t") {

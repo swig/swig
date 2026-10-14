@@ -234,7 +234,6 @@
 %{
 #include <array>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 %csmethodmodifiers std::array::empty "private"

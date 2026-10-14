@@ -6,7 +6,6 @@
 
 %{
 #include <vector>
-#include <stdexcept>
 %}
 
 

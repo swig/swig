@@ -12,7 +12,6 @@
 
 %{
 #include <set>
-#include <stdexcept>
 %}
 
 namespace std {

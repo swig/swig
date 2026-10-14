@@ -26,8 +26,6 @@
 
 /**** The PySequence C++ Wrap ***/
 
-%fragment("<stdexcept>");
-
 %include <std_except.i>
 
 %fragment("SWIGPY_SLICEOBJECT", "header") %{

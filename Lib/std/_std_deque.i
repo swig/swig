@@ -10,7 +10,6 @@
 
 %{
 #include <deque>
-#include <stdexcept>
 %}
 
 

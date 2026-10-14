@@ -20,7 +20,6 @@
 %{
 #include <map>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 /* K is the C++ key type, T is the C++ value type */

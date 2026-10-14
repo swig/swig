@@ -14,7 +14,6 @@
 %{
 #include <unordered_map>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 // exported class

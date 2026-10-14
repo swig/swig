@@ -13,7 +13,6 @@
 %{
 #include <map>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 namespace std {
