@@ -24,6 +24,9 @@
 %feature("compactdefaultargs") wchar_default_ucn;
 %feature("compactdefaultargs") wstring_default;
 %feature("compactdefaultargs") wstring_nul_default;
+%feature("compactdefaultargs") wstring_joined_default;
+%feature("compactdefaultargs") wstring_joined_first_default;
+%feature("compactdefaultargs") wstring_joined_escapes_default;
 %feature("compactdefaultargs") wstring_beyond_unicode_default;
 %feature("compactdefaultargs") wchar_beyond_unicode_default;
 
@@ -34,7 +37,11 @@
 #else
 #define BEYOND_UNICODE(literal, other) literal
 #endif
+#define JOINED_ESCAPES L"\x100x\x263A"
 %}
+
+// SWIG gets joined literals and the compiler the wide literal above, which need not accept a narrow escape above 0xFF
+%define JOINED_ESCAPES "\x100" L"x" L"" "\x263A" %enddef
 
 #if defined(SWIGCSHARP)
 // Initialised in C# rather than read from the C++ constant
@@ -79,6 +86,19 @@ bool wstring_default(const wchar_t *s = L"\x263A" L"a\u00E9f\U0001F600") {
 
 bool wstring_nul_default(const wchar_t *s = L"a\0bc") {
   return s[0] == L'a' && s[1] == L'\0' && s[2] == L'b' && s[3] == L'c';
+}
+
+// An ordinary string literal joined to a wide one is wide, so each numeric escape sequence in it is one wchar_t
+bool wstring_joined_default(const wchar_t *s = L"a" "\xC3\xA9") {
+  return std::wstring(s) == L"a" "\xC3\xA9";
+}
+
+bool wstring_joined_first_default(const wchar_t *s = "\xC3\xA9" "\351" L"b") {
+  return std::wstring(s) == "\xC3\xA9" "\351" L"b";
+}
+
+bool wstring_joined_escapes_default(const wchar_t *s = JOINED_ESCAPES) {
+  return std::wstring(s) == L"\x100x\x263A";
 }
 
 bool wstring_beyond_unicode_default(const wchar_t *s = BEYOND_UNICODE(L"a\x110000\x7FFFFFFF\x80000000\xFFFFFFFF", L"a")) {

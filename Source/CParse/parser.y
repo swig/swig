@@ -2118,10 +2118,12 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String     *text;
     struct BracketDepth depth;
   } group;
-  /* A string or character literal: its decoded text and its encoding prefix, a SWIG_LITERAL_* value. */
+  /* A string or character literal: its decoded text, its encoding prefix, a SWIG_LITERAL_* value, and for an ordinary
+   * string literal, its text as a wide literal, from Scanner_literal_wide_text(), or 0 if that is the same. */
   struct Literal {
     String     *text;
     int         prefix;
+    String     *widetext;
   } literal;
   Parm         *p;
   ParmList     *pl;
@@ -3040,12 +3042,26 @@ static int literal_prefix_rank(int prefix) {
 }
 
 /* Append the string literal 'piece' to 'run', the adjacent string literals before it, which make one literal.  Its
-   prefix is the first of the highest rank, the u8 of both u8"a" u8"b" and R"(a)" u8"b". */
+   prefix is the first of the highest rank, the u8 of both u8"a" u8"b" and R"(a)" u8"b". Ordinary string literals
+   joined to a wide one make a wide literal, so their wide text is used, in which a numeric escape sequence above 0x7F
+   is one wide character, as it is in a wide literal, rather than one byte of a UTF-8 encoding. */
 static void append_string_literal(struct Literal *run, struct Literal piece) {
-  Append(run->text, piece.text);
+  int run_wide = literal_encoding(run->prefix) == SWIG_LITERAL_WIDE;
+  int piece_wide = literal_encoding(piece.prefix) == SWIG_LITERAL_WIDE;
+  if (piece_wide && !run_wide && run->widetext) {
+    Delete(run->text);
+    run->text = run->widetext;
+    run->widetext = 0;
+  } else if (!piece_wide && !run_wide && (run->widetext || piece.widetext)) {
+    if (!run->widetext)
+      run->widetext = Copy(run->text);
+    Append(run->widetext, piece.widetext ? piece.widetext : piece.text);
+  }
+  Append(run->text, run_wide && piece.widetext ? piece.widetext : piece.text);
   if (literal_prefix_rank(piece.prefix) > literal_prefix_rank(run->prefix))
     run->prefix = piece.prefix;
   Delete(piece.text);
+  Delete(piece.widetext);
 }
 
 /* The array type of the string literal initialiser 'dtype', such as 'const char [5]' for "text", the bound counting the
@@ -9782,6 +9798,7 @@ exprnum        :  NUM_INT
 
 exprstring     : string_literal {
                  $$ = default_dtype;
+                 Delete($string_literal.widetext);
                  $$.stringval = $string_literal.text;
                  $$.val = NewStringf("\"%(escape)s\"", $string_literal.text);
                  $$.type = T_STRING;
@@ -10535,6 +10552,7 @@ idcolontailnt   : DCOLON identifier idcolontailnt[in] {
 
 /* Concatenated strings.  A directive only needs the text, while an expression also needs the encoding prefix. */
 string         : string_literal {
+                   Delete($string_literal.widetext);
                    $$ = $string_literal.text;
                }
                ;

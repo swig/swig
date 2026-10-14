@@ -36,6 +36,10 @@ struct Scanner {
   int error_line;  /* Error line number */
   int freeze_line; /* Suspend line number updates */
   List *brackets;  /* Current level of < > brackets on each level */
+  /* An ordinary literal's text as a wide literal's, once it has a numeric escape above 0x7F, and the length of the text
+     already copied to it */
+  String *widetext;
+  int widetext_pos;
 };
 
 typedef struct Locator {
@@ -70,6 +74,8 @@ Scanner *NewScanner(void) {
   s->error_line = 0;
   s->freeze_line = 0;
   s->brackets = NewList();
+  s->widetext = 0;
+  s->widetext_pos = 0;
   brackets_push(s);
   return s;
 }
@@ -88,6 +94,7 @@ void DelScanner(Scanner *s) {
   Delete(s->error);
   Delete(s->str);
   Free(s->idstart);
+  Delete(s->widetext);
   Free(s);
 }
 
@@ -389,14 +396,26 @@ static void retract(Scanner *s, int n) {
  * Append the value of a numeric escape sequence. A value that is not ASCII, in a wide character or wide string literal
  * or for a universal character name in any literal, is appended as its UTF-8 encoding by Swig_utf8_encode(), as a
  * UTF-8 source character already is, rather than truncated. In a wide literal, this includes a value beyond Unicode, up
- * to 0xFFFFFFFF.
+ * to 0xFFFFFFFF. Otherwise the value is appended as a byte. For one that is not ASCII, the text before it and the value's
+ * UTF-8 encoding are also appended to the wide text for Scanner_literal_wide_text().
  * ----------------------------------------------------------------------------- */
 
 static void put_escape_value(Scanner *s, unsigned long value, int wide_char) {
-  if (wide_char && value > 0x7F)
+  if (wide_char && value > 0x7F) {
     Swig_utf8_encode(s->text, value);
-  else
+  } else {
+    if (value > 0x7F) {
+      if (!s->widetext) {
+        s->widetext = NewStringEmpty();
+        s->widetext_pos = 0;
+      }
+      /* Write, not Append, as the text can hold a NUL */
+      Write(s->widetext, Char(s->text) + s->widetext_pos, Len(s->text) - s->widetext_pos);
+      Swig_utf8_encode(s->widetext, value);
+      s->widetext_pos = Len(s->text) + 1;
+    }
     Putc((char)value, s->text);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -584,6 +603,8 @@ static int look(Scanner *s) {
   int wide_raw_string = 0; /* LR"XXXX(value)XXXX" rather than R"XXXX(value)XXXX" */
 
   Clear(s->text);
+  Delete(s->widetext);
+  s->widetext = 0;
   s->start_line = s->line;
   Setfile(s->text, Getfile(s->str));
 
@@ -1585,6 +1606,26 @@ String *Scanner_text(Scanner *s) {
 
 int Scanner_literal_prefix(Scanner *s) {
   return s->prefix;
+}
+
+/* -----------------------------------------------------------------------------
+ * Scanner_literal_wide_text()
+ *
+ * The text of the ordinary string literal just scanned as the text of a wide string literal with the same characters,
+ * or 0 if it has no numeric escape sequence above 0x7F, which is the only difference. Such an escape sequence gives one
+ * byte in an ordinary literal, but one wide character in a wide literal, held as its UTF-8 encoding like any other
+ * character that is not ASCII. The parser needs it for an ordinary string literal joined to a wide one, which makes
+ * one wide literal. For example, L"a" "\xC3\xA9" holds three wide characters, as L"a\xC3\xA9" does, but its ordinary
+ * part's text is C3 A9, the UTF-8 encoding of one character, an e with an acute accent, while its wide text is
+ * C3 83 C2 A9, the encodings of the two characters 0xC3 and 0xA9.
+ * ----------------------------------------------------------------------------- */
+
+String *Scanner_literal_wide_text(Scanner *s) {
+  String *wide = s->widetext;
+  if (wide)
+    Write(wide, Char(s->text) + s->widetext_pos, Len(s->text) - s->widetext_pos);
+  s->widetext = 0;
+  return wide;
 }
 
 /* -----------------------------------------------------------------------------

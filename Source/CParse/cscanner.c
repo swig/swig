@@ -827,6 +827,7 @@ static int yylook(void) {
       /* The decoded text says nothing about which character type the literal has, so its encoding prefix goes with it,
          for the parser to read where the character type matters. */
       yylval.literal.prefix = Scanner_literal_prefix(scan);
+      yylval.literal.widetext = tok == SWIG_TOKEN_STRING ? Scanner_literal_wide_text(scan) : 0;
       return scanner_literal_token(tok)->parser_token;
 
     case SWIG_TOKEN_CHAR:
@@ -837,6 +838,7 @@ static int yylook(void) {
       }
       /* Every prefixed character literal is scanned as a wide one, so its encoding prefix says which it is. */
       yylval.literal.prefix = Scanner_literal_prefix(scan);
+      yylval.literal.widetext = 0;
       return scanner_literal_token(tok)->parser_token;
 
       /* Numbers */
