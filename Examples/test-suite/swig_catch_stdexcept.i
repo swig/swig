@@ -1,6 +1,6 @@
 %module swig_catch_stdexcept
 
-%include <exception.i>
+// SWIG_CATCH_STDEXCEPT without %include <exception.i> or #include <stdexcept>
 
 %exception {
   try {
@@ -13,9 +13,6 @@
 }
 
 %inline %{
-#include <stdexcept>
-#include <typeinfo>
-
 void throw_invalid_argument() {
   throw std::invalid_argument("invalid argument");
 }

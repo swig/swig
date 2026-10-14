@@ -2,8 +2,6 @@
  * Exception typemaps (throws)
  */
 
-%include <exception.i>
-
 %typemap(throws, noblock=1) int, unsigned int, signed int,
                             int&,unsigned int&, signed int&,
                             long, unsigned long, signed long,
@@ -54,8 +52,4 @@
                             SWIGTYPE [ANY],
                             SWIGTYPE & {
   SWIG_Scilab_Raise_Ex((char*)NULL, "$type", $descriptor);
-}
-
-%typemap(throws, noblock=1) (...) {
-  SWIG_exception(SWIG_RuntimeError, "unknown exception");
 }

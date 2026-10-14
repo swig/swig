@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-14: wsfulton
+            [C, C#, D, Go, Guile, Java, Lua, PHP] An exception caught by the catch all handler that
+            %catches(...) adds is now raised as a SWIG_RuntimeError with the message "unknown exception",
+            as in the other target languages. Before, it was rethrown with warning 468 unless the interface
+            file included exception.i. To rethrow it as before, add this to the interface file:
+
+              %typemap(throws) (...) "throw;"
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-14: wsfulton
+            %include <exception.i> is no longer needed and the file now does nothing. The 'throws' typemap
+            for '...' used by %catches(...) is now always available. Every C++ wrapper now includes the
+            <stdexcept> and <typeinfo> headers needed by SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN.
+
+2026-10-14: wsfulton
             [Guile] A global variable that is an array of unknown size, such as 'extern int b[];' or
             'extern char name[];', now gives warning 462, as in the other target languages. Setting it
             still raises wrong-type-arg.

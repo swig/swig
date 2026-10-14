@@ -5357,7 +5357,7 @@ public:
 For the <tt>Foo::bar()</tt> method, which can throw anything,
 SWIG will generate catch handlers for <tt>Error1</tt>, <tt>Error2</tt> as well as a catch all handler (...).
 Each catch handler will convert the caught exception and convert it into a target language error/exception.
-The catch all handler will convert the caught exception into an unknown error/exception.
+The catch all handler raises a <tt>SWIG_RuntimeError</tt> error/exception with the message "unknown exception".
 </p>
 
 <p>

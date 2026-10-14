@@ -37,7 +37,6 @@
 #include <stdexcept>
 %}
 
-%include <exception.i>
 %include <std_except.i>
 
 %fragment("SciSequence_Cont", "header",

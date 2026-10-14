@@ -37,9 +37,3 @@
 
 /* SWIG_exception needs no support code, but this fragment is always brought in, as other target languages need it */
 %fragment("SWIG_exception", "header") {}
-
-#ifdef __cplusplus
-/* For SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN from swigexceptions.swg */
-%fragment("<stdexcept>");
-%fragment("<typeinfo>");
-#endif /* __cplusplus */

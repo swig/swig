@@ -1,20 +1,6 @@
 /* -----------------------------------------------------------------------------
  * exception.i
  *
- * SWIG library file providing language independent exception handling
+ * The functionality in this file is now available by default, having migrated to swigexceptions.swg. This file is kept
+ * so that interface files that include it still work.
  * ----------------------------------------------------------------------------- */
-
-#ifdef __cplusplus
-/* For SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN from swigexceptions.swg */
-%fragment("<typeinfo>");
-%fragment("<stdexcept>");
-
-/* rethrow the unknown exception */
-
-%typemap(throws,noblock=1, canthrow=1) (...) {
-  SWIG_exception(SWIG_RuntimeError,"unknown exception");
-}
-
-#endif /* __cplusplus */
-
-/* exception.i ends here */

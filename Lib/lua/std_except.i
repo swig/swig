@@ -11,7 +11,6 @@
 #include <typeinfo>
 #include <stdexcept>
 %}
-%include <exception.i>
 
 namespace std 
 {

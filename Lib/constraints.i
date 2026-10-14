@@ -58,8 +58,6 @@
 //   Real sqrt(Real NONNEGATIVE);
 //   Real log(Real POSITIVE);
 
-%include <exception.i>
-
 #if defined(SWIGCSHARP) || defined(SWIGD)
 // Required attribute for C# and D exception handling
 #define SWIGCSHARPCANTHROW , canthrow=1

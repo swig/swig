@@ -1,4 +1,3 @@
-%include <exception.i>
 %include <std_container.i>
 %include <std_alloc.i>
 %include <std_char_traits.i>

@@ -552,10 +552,6 @@
   %raise(SWIG_NewPointerObj(%as_voidptr(&$1),$descriptor,0), "$type", $descriptor);
 }
 
-%typemap(throws,noblock=1) (...) {
-  SWIG_exception_fail(SWIG_RuntimeError,"unknown exception");
-}
-
 /* ------------------------------------------------------------
  * --- CLASS::* typemaps --- 
  * ------------------------------------------------------------ */

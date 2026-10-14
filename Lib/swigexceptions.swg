@@ -2,8 +2,8 @@
  * swigexceptions.swg
  *
  * Error handling common to all target languages, included by swigcommon.swg after the target language's
- * exception.swg, which defines SWIG_exception: the SWIG error codes, SWIG_exception_fail and the
- * SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN macros.
+ * exception.swg, which defines SWIG_exception: the SWIG error codes, SWIG_exception_fail, the 'throws' typemap for
+ * '...' and the SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN macros.
  * ----------------------------------------------------------------------------- */
 
 %insert("runtime") "swigerrors.swg"
@@ -21,6 +21,14 @@
 %fragment("SWIG_exception");
 
 #ifdef __cplusplus
+/* For SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN */
+%fragment("<stdexcept>");
+%fragment("<typeinfo>");
+
+%typemap(throws, noblock=1, canthrow=1) (...) {
+  SWIG_exception(SWIG_RuntimeError, "unknown exception");
+}
+
 /*
   You can use the SWIG_CATCH_STDEXCEPT macro with the %exception
   directive as follows:
@@ -37,8 +45,6 @@
      SWIG_exception(SWIG_UnknownError, "Unknown exception");
     }
   }
-
-  The wrapper needs the <stdexcept> and <typeinfo> headers, which exception.i includes.
 */
 %define SWIG_CATCH_STDEXCEPT
   /* catching std::exception  */

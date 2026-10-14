@@ -1916,8 +1916,6 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 
 <div class="code">
 <pre>
-%include "exception.i"
-
 %exception {
   try {
     $action
@@ -2570,10 +2568,10 @@ or
 
 
 <p>
-The <tt>exception.i</tt> library provides a language-independent function for raising a run-time
-exception in the target language. This library is largely used by the SWIG library writers.
-If possible, use the error handling scheme available to your target language as there is greater
-flexibility in what errors/exceptions can be thrown.
+The <tt>exception.i</tt> library file is no longer needed and does nothing, as the language independent function it
+provided for raising a runtime exception in the target language is always available. This function is largely used by
+the SWIG library writers. If possible, use the error handling scheme available to your target language as there is
+greater flexibility in what errors/exceptions can be thrown.
 </p>
 
 <p>
@@ -2612,13 +2610,12 @@ SWIG_UnknownError
 </div>
 
 <p>
-The primary use of this module is in writing language-independent exception handlers.
+The primary use of this function is in writing language independent exception handlers.
 For example:
 </p>
 
 <div class="code">
 <pre>
-%include "exception.i"
 %exception std::vector::getitem {
   try {
     $action
@@ -2628,6 +2625,11 @@ For example:
 }
 </pre>
 </div>
+
+<p>
+See <a href="Customization.html#Customization_nn7">Using The SWIG exception library</a> for more details, including the
+<tt>SWIG_CATCH_STDEXCEPT</tt> macro for the C++ standard exceptions.
+</p>
 
 
 <H3><a name="Library_attributes">14.6.2 attribute.i</a></H3>
