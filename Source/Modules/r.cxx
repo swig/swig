@@ -591,7 +591,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     if (isVoidParm)
       Printf(f->def, "%s", SwigType_str(tt, 0));
     else
-      Printf(f->def, "%s %s", SwigType_str(tt, 0), swig_parm_name);
+      Printf(f->def, "%s", SwigType_str(tt, swig_parm_name));
     if (tm) {
       String *lstr = SwigType_lstr(tt, 0);
       if (SwigType_isreference(rpt) || SwigType_isrvalue_reference(rpt)) {

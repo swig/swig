@@ -213,6 +213,12 @@ Version 4.6.0 (in progress)
             instantiated the first make as '5 make()', which did not compile.
 
 2026-10-14: wsfulton
+            [R] Fix the wrapper for a function pointer type with an array parameter, which did
+            not compile:
+
+              typedef int (*summer)(const int a[3]);
+
+2026-10-14: wsfulton
             [C, C#, D, Go, Guile, Java, Lua, PHP] An exception caught by the catch all handler that
             %catches(...) adds is now raised as a SWIG_RuntimeError with the message "unknown exception",
             as in the other target languages. Before, it was rethrown with warning 468 unless the interface
