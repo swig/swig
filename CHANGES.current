@@ -2640,6 +2640,11 @@ Version 4.6.0 (in progress)
 
             instantiated the first make as '5 make()', which did not compile.
 
+2026-10-14: ysheikh2
+            [Python] #3061 Fix seg fault importing a module if creating one of the SWIG
+            runtime Python types fails during module initialization. The import now raises
+            the Python exception instead, for example a MemoryError.
+
 2026-10-14: wsfulton
             Add support for 'static', type qualifiers and '*' in the brackets of a function
             parameter's array, as allowed by C99, which were a syntax error.  They do not change
