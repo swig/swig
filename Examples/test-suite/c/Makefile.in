@@ -23,6 +23,7 @@ C_TEST_CASES := \
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
+    c99_parameter_array_declarators \
     funcptr \
     function_typedef \
     nested \

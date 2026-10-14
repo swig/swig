@@ -70,6 +70,11 @@
 <li><a href="#SWIG_nested_structs">Nested structures</a>
 <li><a href="#SWIG_nn39">Other things to note about structure wrapping</a>
 </ul>
+<li><a href="#SWIG_c99">C99 support</a>
+<ul>
+<li><a href="#SWIG_c99_parameter_array_declarators">Static and type qualifiers in parameter array declarators</a>
+<li><a href="#SWIG_c99_variable_length_arrays">Variable length arrays</a>
+</ul>
 <li><a href="#SWIG_nn40">Code Insertion</a>
 <ul>
 <li><a href="#SWIG_nn41">The output of SWIG</a>
@@ -1694,6 +1699,12 @@ Like C, SWIG does not perform array bounds checking.
 It is up to the
 user to make sure the pointer points to a suitably allocated region of memory.
 As for any other pointer, NULL can be passed for an array parameter.
+</p>
+
+<p>
+The C99 keyword <tt>static</tt> and type qualifiers in the brackets of a parameter's array, such as
+<tt>int a[static 40]</tt>, are accepted and ignored, see
+<a href="#SWIG_c99_parameter_array_declarators">Static and type qualifiers in parameter array declarators</a>.
 </p>
 
 <p>
@@ -3520,7 +3531,87 @@ interface described here, most of SWIG's language modules use it in
 some way or another.
 </p>
 
-<H2><a name="SWIG_nn40">5.6 Code Insertion</a></H2>
+<H2><a name="SWIG_c99">5.6 C99 support</a></H2>
+
+
+<p>
+This section covers how SWIG handles some of the features added to C by the C99 standard.
+</p>
+
+<H3><a name="SWIG_c99_parameter_array_declarators">5.6.1 Static and type qualifiers in parameter array declarators</a></H3>
+
+
+<p>
+C99 allows the keyword <tt>static</tt> and the type qualifiers <tt>const</tt>, <tt>volatile</tt> and <tt>restrict</tt>
+in the brackets of the outermost array of a function parameter.
+<tt>static</tt> promises that the argument points to at least as many elements as the size gives.
+A type qualifier applies to the pointer that the parameter is adjusted to:
+</p>
+
+<div class="code">
+<pre>
+double average(const double values[static 3]);
+void clear(int buffer[const 10]);
+void scale(double factor, double values[static restrict 4]);
+</pre>
+</div>
+
+<p>
+Neither changes the type of the function, so SWIG parses and then ignores <tt>static</tt> and the type qualifiers.
+The declarations above are wrapped exactly as if they had been written as follows, with the arrays handled as
+pointers as described in the <a href="#SWIG_nn26">Arrays</a> section:
+</p>
+
+<div class="code">
+<pre>
+double average(const double values[3]);
+void clear(int buffer[10]);
+void scale(double factor, double values[4]);
+</pre>
+</div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse <tt>static</tt> and type qualifiers in the
+brackets of a parameter's array.
+Earlier versions reported a syntax error, except for <tt>restrict</tt>, which was already ignored when parsing C.
+</p>
+
+<H3><a name="SWIG_c99_variable_length_arrays">5.6.2 Variable length arrays</a></H3>
+
+
+<p>
+C99 added variable length arrays.
+An array has a <i>variable length array type</i> when its size is not an integer constant expression, so that the
+size is only known at runtime.
+In a function prototype, the size can be given as <tt>*</tt> instead of an expression, as the parameter that holds
+the size need not be named in a prototype.
+C99 calls this a <i>variable length array type of unspecified size</i> and it can only be used in a function
+prototype:
+</p>
+
+<div class="code">
+<pre>
+int total(size_t, const int [*]);
+</pre>
+</div>
+
+<p>
+SWIG wraps a parameter declared with <tt>*</tt> as an array of unknown size, so the declaration above is wrapped as
+if it had been written as follows:
+</p>
+
+<div class="code">
+<pre>
+int total(size_t, const int []);
+</pre>
+</div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse <tt>*</tt> as the size of an array.
+Earlier versions reported a syntax error.
+</p>
+
+<H2><a name="SWIG_nn40">5.7 Code Insertion</a></H2>
 
 
 <p>
@@ -3530,7 +3621,7 @@ additional C code to perform initialization or other operations.
 There are four common ways to insert code, but it's useful to know how the
 output of SWIG is structured first.</p>
 
-<H3><a name="SWIG_nn41">5.6.1 The output of SWIG</a></H3>
+<H3><a name="SWIG_nn41">5.7.1 The output of SWIG</a></H3>
 
 
 <p>
@@ -3566,7 +3657,7 @@ the module upon loading.
 </li>
 </ul>
 
-<H3><a name="SWIG_nn42">5.6.2 Code insertion blocks</a></H3>
+<H3><a name="SWIG_nn42">5.7.2 Code insertion blocks</a></H3>
 
 
 <p>
@@ -3672,7 +3763,7 @@ static Vector *new_Vector() {
 Vector *new_Vector();
 </pre></div>
 
-<H3><a name="SWIG_nn43">5.6.3 Inlined code blocks</a></H3>
+<H3><a name="SWIG_nn43">5.7.3 Inlined code blocks</a></H3>
 
 
 <p>
@@ -3720,7 +3811,7 @@ SWIG directives inside a <tt>%{ ... %}</tt> block.</p>
 <b>Note:</b> The usual SWIG C preprocessor rules apply to code in <tt>%apply</tt> blocks when SWIG parses this code. For example, as mentioned earlier, <a href="SWIG.html#SWIG_nn6">SWIG's C Preprocessor</a> does not follow <tt>#include</tt> directives by default.
 </p>
 
-<H3><a name="SWIG_nn44">5.6.4 Initialization blocks</a></H3>
+<H3><a name="SWIG_nn44">5.7.4 Initialization blocks</a></H3>
 
 
 <p>
@@ -3747,7 +3838,7 @@ the necessary initialization for them instead:
 %}
 </pre></div>
 
-<H2><a name="SWIG_nn45">5.7 An Interface Building Strategy</a></H2>
+<H2><a name="SWIG_nn45">5.8 An Interface Building Strategy</a></H2>
 
 
 <p>
@@ -3755,7 +3846,7 @@ This section describes the general approach for building interfaces
 with SWIG. The specifics related to a particular scripting language
 are found in later chapters.</p>
 
-<H3><a name="SWIG_nn46">5.7.1 Preparing a C program for SWIG</a></H3>
+<H3><a name="SWIG_nn46">5.8.1 Preparing a C program for SWIG</a></H3>
 
 
 <p>
@@ -3809,7 +3900,7 @@ to the <a href="https://www.swig.org/mail.html">swig-devel mailing list</a> or t
 <a href="https://www.swig.org/bugs.html">SWIG bug tracker</a>.
 </p>
 
-<H3><a name="SWIG_nn47">5.7.2 The SWIG interface file</a></H3>
+<H3><a name="SWIG_nn47">5.8.2 The SWIG interface file</a></H3>
 
 
 <p>
@@ -3862,7 +3953,7 @@ The main advantage of this approach is minimal maintenance of an interface file 
 In more complex projects, an interface file containing numerous <tt>%include</tt> and <tt>#include</tt> statements like this is one of the most common approaches to interface file design due to lower maintenance overhead.
 </p>
 
-<H3><a name="SWIG_nn48">5.7.3 Why use separate interface files?</a></H3>
+<H3><a name="SWIG_nn48">5.8.3 Why use separate interface files?</a></H3>
 
 
 <p>
@@ -3891,7 +3982,7 @@ and immediately see what is available without having to dig it out of
 header files.
 </ul>
 
-<H3><a name="SWIG_nn49">5.7.4 Getting the right header files</a></H3>
+<H3><a name="SWIG_nn49">5.8.4 Getting the right header files</a></H3>
 
 
 <p>
@@ -3911,7 +4002,7 @@ include certain header files by using a <tt>%{ %}</tt> block like this:
 ...
 </pre></div>
 
-<H3><a name="SWIG_nn50">5.7.5 What to do with main()</a></H3>
+<H3><a name="SWIG_nn50">5.8.5 What to do with main()</a></H3>
 
 
 <p>

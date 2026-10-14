@@ -2173,6 +2173,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token OVERRIDE FINAL /* C++11 identifiers with special meaning */
 %token CONCEPT REQUIRES /* C++20 keywords */
 %token THIS /* C++ keyword, for the C++23 explicit object parameter and for 'this' in an expression */
+%token ARRAY_QUALIFIER /* C99 'static' or type qualifier at the start of an array declarator's brackets */
 %token USING
 %token NAMESPACE
 %token NATIVE INLINE
@@ -2283,6 +2284,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
+%type <str>      array_dimension;
 %type <autotype> auto_type_holder;
 %type <str>      ref_qualifier;
 %type <node>     requires_clause_opt;
@@ -8413,27 +8415,16 @@ notso_direct_declarator : idcolon {
 		    }
 		    $$.type = t;
 		    }
-                  | notso_direct_declarator[in] LBRACKET RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,"");
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
-                  }
-                  | notso_direct_declarator[in] LBRACKET expr RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,$expr.val);
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+                  | notso_direct_declarator[in] LBRACKET array_dimension RBRACKET {
+                    SwigType *t;
+                    $$ = $in;
+                    t = NewStringEmpty();
+                    SwigType_add_array(t, $array_dimension);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
                   }
                   | notso_direct_declarator[in] LPAREN fn_parms RPAREN {
                     $$ = $in;
@@ -8535,27 +8526,16 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = t;
 		  }
-                  | direct_declarator[in] LBRACKET RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,"");
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
-                  }
-                  | direct_declarator[in] LBRACKET expr RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,$expr.val);
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+                  | direct_declarator[in] LBRACKET array_dimension RBRACKET {
+                    SwigType *t;
+                    $$ = $in;
+                    t = NewStringEmpty();
+                    SwigType_add_array(t, $array_dimension);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
                   }
                   /* C++23 explicit object parameter: 'this' declares the first parameter of a member function to be
                    * the object the function is called on, in place of the implicit object parameter.  It is not one
@@ -8686,38 +8666,22 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
                   }
                   ;
 
-direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,"");
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimension RBRACKET {
+                    SwigType *t;
+                    $$ = $in;
+                    t = NewStringEmpty();
+                    SwigType_add_array(t, $array_dimension);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
                   }
-                  | direct_abstract_declarator[in] LBRACKET expr RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,$expr.val);
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+                  | LBRACKET array_dimension RBRACKET {
+                    $$ = default_decl;
+                    $$.type = NewStringEmpty();
+                    SwigType_add_array($$.type, $array_dimension);
                   }
-                  | LBRACKET RBRACKET { 
-		    $$ = default_decl;
-		    $$.type = NewStringEmpty();
-		    SwigType_add_array($$.type,"");
-                  }
-                  | LBRACKET expr RBRACKET { 
-		    $$ = default_decl;
-		    $$.type = NewStringEmpty();
-		    SwigType_add_array($$.type,$expr.val);
-		  }
                   | LPAREN abstract_declarator RPAREN {
                     $$ = $abstract_declarator;
 		  }
@@ -8735,6 +8699,23 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
                   }
                   ;
 
+/* The contents of an array declarator's brackets: the array's dimension, or "" if it is not specified.  C99 also allows
+   'static', type qualifiers and '*' (a variable length array of unspecified size) in the brackets of a function
+   parameter's array, such as 'int a[static const 3]'.  None of them change the function's type, so they are dropped. */
+array_dimension : array_qualifiers_opt {
+                    $$ = NewStringEmpty();
+                  }
+                | array_qualifiers_opt expr {
+                    $$ = $expr.val;
+                  }
+                | array_qualifiers_opt STAR {
+                    $$ = NewStringEmpty();
+                  }
+                ;
+
+array_qualifiers_opt : array_qualifiers_opt ARRAY_QUALIFIER
+                | %empty
+                ;
 
 pointer    : pointer[in] STAR type_qualifier {
 	     $$ = $in;

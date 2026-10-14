@@ -58,6 +58,9 @@ static int rename_active = 0;
 /* Set while the last tokens yylex() returned are an '=', optionally followed by the '::' of '::new', as the grammar
  * only parses a new-expression as the whole of an initialiser or a default argument. */
 static int new_expression_can_start = 0;
+/* Set while the last tokens yylex() returned are a '[' optionally followed by array qualifiers, as C99 only allows
+ * 'static' and type qualifiers at the start of an array declarator's brackets, as in 'int a[static const 3]'. */
+static int array_qualifier_can_start = 0;
 
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
@@ -168,6 +171,8 @@ int skip_balanced(int startchar, int endchar) {
 
   cparse_line = Scanner_line(scan);
   cparse_file = Scanner_file(scan);
+  /* The skipped code ends with endchar, so a '[' that yylex() returned is no longer the last token */
+  array_qualifier_can_start = 0;
 
   Append(scanner_ccode, Scanner_text(scan));
   if (endchar == '}')
@@ -1122,6 +1127,10 @@ static int scan_token(void) {
     if (yytext[0] != '%') {
       /* Look for keywords now */
 
+      /* A distinct token, as 'const' or 'volatile' would otherwise start a type in the expression for the dimension */
+      if (array_qualifier_can_start && (strcmp(yytext, "static") == 0 || strcmp(yytext, "const") == 0 || strcmp(yytext, "volatile") == 0))
+        return (ARRAY_QUALIFIER);
+
       if (strcmp(yytext, "int") == 0) {
         yylval.type = NewSwigType(T_INT);
         return (TYPE_INT);
@@ -1580,5 +1589,6 @@ static int scan_token(void) {
 int yylex(void) {
   int tok = scan_token();
   new_expression_can_start = tok == EQUAL || (new_expression_can_start && (tok == NONID || tok == DCOLON));
+  array_qualifier_can_start = tok == LBRACKET || (array_qualifier_can_start && tok == ARRAY_QUALIFIER);
   return tok;
 }

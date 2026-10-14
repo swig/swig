@@ -213,6 +213,16 @@ Version 4.6.0 (in progress)
             instantiated the first make as '5 make()', which did not compile.
 
 2026-10-14: wsfulton
+            Add support for 'static', type qualifiers and '*' in the brackets of a function
+            parameter's array, as allowed by C99, which were a syntax error.  They do not change
+            the function's type, so they are ignored and the parameter is wrapped as if they were
+            not there:
+
+              double average(const double values[static 3]);
+              void clear(int buffer[const 10]);
+              int total(size_t, const int [*]);
+
+2026-10-14: wsfulton
             [R] Fix the wrapper for a function pointer type with an array parameter, which did
             not compile:
 

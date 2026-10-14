@@ -908,6 +908,7 @@ C_TEST_CASES += \
 	c_delete \
 	c_delete_function \
 	c_this_identifier \
+	c99_parameter_array_declarators \
 	char_constant \
 	charptr_fragment \
 	command_line_define \
