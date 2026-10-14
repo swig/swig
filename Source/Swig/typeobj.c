@@ -128,6 +128,8 @@
  * This utility function finds the size of a single type element in a type string.
  * Type elements are always delimited by periods, but may be nested with
  * parentheses.  A nested element is always handled as a single item.
+ * Only a type constructor such as 'p.' or 'q(const).' ends at a period, so the text of a
+ * template value argument such as '1.5', 's.x' or 'S{.x = 1}' is also a single item.
  *
  * Returns the integer size of the element (which can be used to extract a
  * substring, to chop the element off, or for other purposes).
@@ -136,11 +138,17 @@
 static int element_size(char *c) {
   int nparen;
   char *s = c;
+  char *group_end = 0; /* The ')' closing a '(' that follows the first character */
   while (*c) {
     if (*c == '.') {
-      c++;
-      return (int)(c - s);
+      int len = (int)(c - s);
+      if ((len == 1 && (*s == 'p' || *s == 'r' || *s == 'v' || *s == 'z')) || (len == 4 && strncmp(s, "auto", 4) == 0) ||
+          (group_end == c - 1 && (*s == 'a' || *s == 'f' || *s == 'm' || *s == 'q'))) {
+        c++;
+        return (int)(c - s);
+      }
     } else if (*c == '(') {
+      char *open = c;
       nparen = 1;
       c++;
       while (*c) {
@@ -153,6 +161,8 @@ static int element_size(char *c) {
         }
         c++;
       }
+      if (open == s + 1 && *c)
+        group_end = c;
     }
     if (*c)
       c++;
@@ -210,7 +220,7 @@ SwigType *SwigType_pop(SwigType *t) {
  *   result: p.
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_last(SwigType *t) {
+SwigType *SwigType_last(const SwigType *t) {
   SwigType *result;
   char *c;
   char *last;
@@ -1578,43 +1588,8 @@ String *SwigType_decltype_expr(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_base(const SwigType *t) {
-  char *c;
-  char *lastop = 0;
-  c = Char(t);
-
-  lastop = c;
-
-  /* Search for the last type constructor separator '.' */
-  while (*c) {
-    if (*c == '.') {
-      if (*(c + 1)) {
-        lastop = c + 1;
-      }
-      c++;
-      continue;
-    }
-    if (*c == '<' && *(c + 1) == '(') {
-      /* start of template parameters --- the remainder is part of the base */
-      break;
-    }
-    if (*c == '(') {
-      /* Skip over params */
-      int nparen = 1;
-      c++;
-      while ((*c) && (nparen > 0)) {
-        if (*c == '(')
-          nparen++;
-        else if (*c == ')')
-          nparen--;
-        c++;
-      }
-      if (nparen)
-        break;
-      continue;
-    }
-    c++;
-  }
-  return NewString(lastop);
+  SwigType *base = SwigType_last(t);
+  return base ? base : NewStringEmpty();
 }
 
 /* -----------------------------------------------------------------------------
@@ -1625,54 +1600,10 @@ SwigType *SwigType_base(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_prefix(const SwigType *t) {
-  char *c, *d;
-  String *r = 0;
-
-  c = Char(t);
-  d = c + strlen(c);
-
-  /* Check for a type constructor */
-  if ((d > c) && (*(d - 1) == '.'))
-    d--;
-
-  while (d > c) {
-    d--;
-    if (*d == '>' && (d > c) && *(d - 1) == ')') {
-      /* skip over template parameters */
-      int nest = 1;
-      d--;
-      d--;
-      while ((d > c) && (nest)) {
-        if (*d == '>' && *(d - 1) == ')')
-          nest++;
-        if (*d == '<' && *(d + 1) == '(')
-          nest--;
-        d--;
-      }
-    }
-
-    if (*d == ')') {
-      /* Skip over params */
-      int nparen = 1;
-      d--;
-      while ((d > c) && (nparen)) {
-        if (*d == ')')
-          nparen++;
-        if (*d == '(')
-          nparen--;
-        d--;
-      }
-    }
-
-    if (*d == '.') {
-      char x = *(d + 1);
-      *(d + 1) = 0;
-      r = NewString(c);
-      *(d + 1) = x;
-      return r;
-    }
-  }
-  return NewStringEmpty();
+  SwigType *base = SwigType_base(t);
+  String *prefix = NewStringWithSize(Char(t), Len(t) - Len(base));
+  Delete(base);
+  return prefix;
 }
 
 /* -----------------------------------------------------------------------------

@@ -20,6 +20,24 @@ Version 4.6.0 (in progress)
             getter, so it works even when the getter throws, e.g. because the value is not set yet.
 
 2026-10-15: wsfulton
+            Fix a template argument containing a '.', such as a floating point literal, a member
+            access or a C++20 designated initializer, which was scrambled in the generated code so
+            that it did not compile:
+
+              struct Point { int x, y; };
+              constexpr Point s{1, 2};
+              template<double D> struct DoubleValue {...};
+              template<int N> struct IntValue {...};
+              template<Point P> struct PointValue {...};
+
+              %template(D) DoubleValue<1.5>;            // was DoubleValue< 5 1. >
+              %template(X) IntValue<s.x>;               // was IntValue< x s. >
+              %template(P) PointValue<Point{.x = 1}>;   // was PointValue< x = 1} Point{. >
+
+            Also fix a default argument value such as 's.y' becoming 's.int' when 'typedef int y;'
+            is in scope and %feature("compactdefaultargs") is used.
+
+2026-10-15: wsfulton
             Add support for C++11 default template arguments in function templates. %template can now
             leave out the template arguments that have defaults, as for a class template, such as:
 
