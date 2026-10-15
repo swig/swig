@@ -3617,6 +3617,35 @@ A global variable or a structure member cannot have one.
 </p>
 
 <p>
+SWIG reports an error for the array syntax that only a function parameter can have, which is <tt>static</tt> or a
+type qualifier in the brackets or <tt>*</tt> as the size, when it is used for a global variable, a structure member
+or a typedef:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+struct Buffer {
+  int ids[static 4];
+};
+typedef double row[*];
+</pre>
+</div>
+
+<div class="shell">
+<pre>
+example.i:4: Error: 'static' and type qualifiers in an array declarator are only allowed in a function parameter.
+example.i:6: Error: A variable length array of unspecified size, '[*]', is only allowed in a function prototype.
+</pre>
+</div>
+
+<p>
+A size that is not an integer constant expression, such as the <tt>n</tt> in a global variable declared as
+<tt>int values[n]</tt>, is left for the C compiler to report, as SWIG cannot always tell whether a size is a constant.
+</p>
+
+<p>
 The size of a variable length array is only known when the function is called, so SWIG wraps a parameter of a
 variably modified type as an array of unknown size.
 Any array in the parameter's type whose size refers to an earlier parameter, or whose size is <tt>*</tt>, is wrapped

@@ -235,6 +235,8 @@ Version 4.6.0 (in progress)
               void clear(int buffer[const 10]);
               int total(size_t, const int [*]);
 
+            They are reported as an error for a global variable, structure member or typedef.
+
 2026-10-14: wsfulton
             [R] Fix the wrapper for a function pointer type with an array parameter, which did
             not compile:

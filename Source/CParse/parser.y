@@ -258,6 +258,12 @@ static int cplus_mode  = 0;
 #define SWIG_STORAGE_CLASS_CONSTEXPR	0x0100
 #define SWIG_STORAGE_CLASS_THREAD_LOCAL	0x0200
 
+/* C99 syntax in the brackets of an array declarator that is only allowed for a function parameter: 'static' or a type
+   qualifier as in 'int a[static 3]' and the unspecified size of a variable length array as in 'int a[*]' */
+#define SWIG_ARRAY_PLAIN 0x0000            /* 'int a[3]' */
+#define SWIG_ARRAY_QUALIFIED 0x0001        /* 'int a[static 3]' or 'int a[const 3]' etc */
+#define SWIG_ARRAY_UNSPECIFIED_SIZE 0x0002 /* 'int a[*]' */
+
 /* Test if multiple bits are set in x. */
 static int multiple_bits_set(unsigned x) { return (x & (x - 1)) != 0; }
 
@@ -2102,6 +2108,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String    *final;
     /* C++20 trailing requires-clause on a constructor. */
     Node      *constraint_node;
+    /* SWIG_ARRAY_* bits for C99 syntax in the declarator's array brackets that only a function parameter can have. */
+    int        parmonly_array;
   } decl;
   Parm         *tparms;
   struct {
@@ -2144,6 +2152,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Parm       *parms;
     Parm       *last;
   } pbuilder;
+  /* The contents of an array declarator's brackets: the size ("" if there is none) and the SWIG_ARRAY_* bits. */
+  struct {
+    String     *dim;
+    int         parmonly;
+  } arraydim;
   struct {
     Node       *node;
     Node       *last;
@@ -2284,7 +2297,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
-%type <str>      array_dimension;
+%type <arraydim> array_dimension;
+%type <intvalue> array_qualifiers_opt;
 %type <autotype> auto_type_holder;
 %type <str>      ref_qualifier;
 %type <node>     requires_clause_opt;
@@ -3565,6 +3579,17 @@ static void unsize_variable_length_arrays(ParmList *parms) {
         Delete(unsized);
       }
     }
+  }
+}
+
+/* Report the C99 syntax in the array brackets of a declarator 'd' of a variable, structure member or typedef that only
+   a function parameter can have, as given by its SWIG_ARRAY_* bits. */
+static void check_parameter_only_array(const struct Decl *d) {
+  if (d->parmonly_array & SWIG_ARRAY_QUALIFIED) {
+    Swig_error(cparse_file, cparse_line, "'static' and type qualifiers in an array declarator are only allowed in a function parameter.\n");
+  }
+  if (d->parmonly_array & SWIG_ARRAY_UNSPECIFIED_SIZE) {
+    Swig_error(cparse_file, cparse_line, "A variable length array of unspecified size, '[*]', is only allowed in a function prototype.\n");
   }
 }
 
@@ -5107,6 +5132,7 @@ c_declaration   : c_decl {
 
 c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      String *decl = $declarator.type;
+              check_parameter_only_array(&$declarator);
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier)
 	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
@@ -5572,6 +5598,7 @@ structured_binding_names : ID {
    without also reaching c_decl_tail's error alternative, which turns an initialiser SWIG cannot parse into a
    fatal error rather than into the ignored declaration an 'auto' variable gets. */
 c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
+                 check_parameter_only_array(&$declarator);
 		 $$ = new_node("cdecl");
 		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
 		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
@@ -8487,7 +8514,8 @@ notso_direct_declarator : idcolon {
                     SwigType *t;
                     $$ = $in;
                     t = NewStringEmpty();
-                    SwigType_add_array(t, $array_dimension);
+                    SwigType_add_array(t, $array_dimension.dim);
+                    $$.parmonly_array |= $array_dimension.parmonly;
                     if ($$.type) {
                       SwigType_push(t, $$.type);
                       Delete($$.type);
@@ -8598,7 +8626,8 @@ direct_declarator : idcolon {
                     SwigType *t;
                     $$ = $in;
                     t = NewStringEmpty();
-                    SwigType_add_array(t, $array_dimension);
+                    SwigType_add_array(t, $array_dimension.dim);
+                    $$.parmonly_array |= $array_dimension.parmonly;
                     if ($$.type) {
                       SwigType_push(t, $$.type);
                       Delete($$.type);
@@ -8738,7 +8767,8 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimen
                     SwigType *t;
                     $$ = $in;
                     t = NewStringEmpty();
-                    SwigType_add_array(t, $array_dimension);
+                    SwigType_add_array(t, $array_dimension.dim);
+                    $$.parmonly_array |= $array_dimension.parmonly;
                     if ($$.type) {
                       SwigType_push(t, $$.type);
                       Delete($$.type);
@@ -8748,7 +8778,8 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimen
                   | LBRACKET array_dimension RBRACKET {
                     $$ = default_decl;
                     $$.type = NewStringEmpty();
-                    SwigType_add_array($$.type, $array_dimension);
+                    SwigType_add_array($$.type, $array_dimension.dim);
+                    $$.parmonly_array = $array_dimension.parmonly;
                   }
                   | LPAREN abstract_declarator RPAREN {
                     $$ = $abstract_declarator;
@@ -8771,18 +8802,25 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimen
    'static', type qualifiers and '*' (a variable length array of unspecified size) in the brackets of a function
    parameter's array, such as 'int a[static const 3]'.  None of them change the function's type, so they are dropped. */
 array_dimension : array_qualifiers_opt {
-                    $$ = NewStringEmpty();
+                    $$.dim = NewStringEmpty();
+                    $$.parmonly = $array_qualifiers_opt;
                   }
                 | array_qualifiers_opt expr {
-                    $$ = $expr.val;
+                    $$.dim = $expr.val;
+                    $$.parmonly = $array_qualifiers_opt;
                   }
                 | array_qualifiers_opt STAR {
-                    $$ = NewStringEmpty();
+                    $$.dim = NewStringEmpty();
+                    $$.parmonly = $array_qualifiers_opt | SWIG_ARRAY_UNSPECIFIED_SIZE;
                   }
                 ;
 
-array_qualifiers_opt : array_qualifiers_opt ARRAY_QUALIFIER
-                | %empty
+array_qualifiers_opt : array_qualifiers_opt ARRAY_QUALIFIER {
+                    $$ = SWIG_ARRAY_QUALIFIED;
+                  }
+                | %empty {
+                    $$ = SWIG_ARRAY_PLAIN;
+                  }
                 ;
 
 pointer    : pointer[in] STAR type_qualifier {
