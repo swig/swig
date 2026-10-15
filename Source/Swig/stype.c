@@ -1219,8 +1219,16 @@ static String *manglestr_default(const SwigType *s) {
 
   if (SwigType_istemplate(ss)) {
     SwigType *dt = Swig_symbol_template_deftype(ss, 0);
-    String *ty = Swig_symbol_type_qualify(dt, 0);
+    SwigType *qt = Swig_symbol_type_qualify(dt, 0);
+    /* Swig_symbol_type_qualify() can collapse a template-id back down to a shorter spelling
+       (omitting default template arguments) when a %template-instantiated node happens to be
+       registered for it locally -- but whether that's the case depends on unrelated %template
+       calls elsewhere in this compilation, not on the type itself. Re-expand any defaults here
+       so the mangled name stays a stable function of the type, regardless of what's been
+       %template'd locally (see swig/swig#3553). */
+    String *ty = SwigType_istemplate(qt) ? Swig_symbol_template_deftype(qt, 0) : Copy(qt);
     Delete(dt);
+    Delete(qt);
     Delete(ss);
     ss = ty;
     type = ss;
