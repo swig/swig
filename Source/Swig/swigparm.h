@@ -37,6 +37,7 @@ extern int ParmList_len_nonvariadic(ParmList *p);
 extern int ParmList_has_defaultargs(ParmList *p);
 extern int ParmList_has_varargs(ParmList *p);
 extern void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end);
+extern Parm *ParmList_find_name_in(ParmList *p, Parm *end, const String *s);
 
 /* Output functions */
 extern String *ParmList_str(ParmList *);

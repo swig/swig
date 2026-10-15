@@ -3501,6 +3501,73 @@ static Node *new_enum_node(SwigType *enum_base_type) {
   return n;
 }
 
+/* Return a copy of the type 't' of a parameter in 'parms' with the size removed from each array whose size refers to a
+   parameter before 'end', as the size of a C99 variable length array does.  An array in the type of a parameter of a
+   function type is included.  For example, the parameter 'a' in:
+     int n, void (*a[n])(int b[n])
+   has the type 'a(n).p.f(a(n).int).void', which is returned as:
+     a().p.f(a().int).void
+   Return 0 if there is no such array. */
+static SwigType *unsized_variable_length_arrays(const SwigType *t, ParmList *parms, Parm *end) {
+  List *elements = SwigType_split(t);
+  SwigType *unsized = NewStringEmpty();
+  int changed = 0;
+  int i;
+  /* Build the copy from the innermost element out, as the SwigType_add_* functions add an element to the front */
+  for (i = Len(elements) - 1; i >= 0; i--) {
+    String *element = Getitem(elements, i);
+    if (SwigType_isarray(element)) {
+      String *size = SwigType_parm(element);
+      if (ParmList_find_name_in(parms, end, size)) {
+        SwigType_add_array(unsized, "");
+        changed = 1;
+      } else {
+        SwigType_add_array(unsized, size);
+      }
+      Delete(size);
+    } else if (SwigType_isfunction(element)) {
+      ParmList *fparms = SwigType_function_parms(element, 0);
+      Parm *fparm;
+      for (fparm = fparms; fparm; fparm = nextSibling(fparm)) {
+        SwigType *unsized_fparm = unsized_variable_length_arrays(Getattr(fparm, "type"), parms, end);
+        if (unsized_fparm) {
+          Setattr(fparm, "type", unsized_fparm);
+          Delete(unsized_fparm);
+          changed = 1;
+        }
+      }
+      SwigType_add_function(unsized, fparms);
+      Delete(fparms);
+    } else {
+      SwigType_push(unsized, element);
+    }
+  }
+  Delete(elements);
+  if (!changed) {
+    Delete(unsized);
+    unsized = 0;
+  }
+  return unsized;
+}
+
+/* A C99 variable length array parameter has a size that refers to an earlier parameter in the parameter list, as in
+   'int n, int a[n]', so the size is only known at runtime and the generated code cannot use it.  Drop such a size from
+   any array in the parameter's type, as in 'double m[n][n]' or 'int (*p)[n]', so that the parameter is wrapped as an
+   array of unknown size, as is a variable length array of unspecified size, such as 'int a[*]'. */
+static void unsize_variable_length_arrays(ParmList *parms) {
+  Parm *p;
+  for (p = parms; p; p = nextSibling(p)) {
+    SwigType *type = Getattr(p, "type");
+    if (type && Strstr(type, "a(")) {
+      SwigType *unsized = unsized_variable_length_arrays(type, parms, p);
+      if (unsized) {
+        Setattr(p, "type", unsized);
+        Delete(unsized);
+      }
+    }
+  }
+}
+
 /* Add the function declarator '(parms)' to the declarator 'd', extending the declarator's type and recording 'parms'
    as the declarator's parameter list unless an inner declarator already provided one.  'qualifier' is the trailing
    cv-qualifier and ref-qualifier of the function, or 0 when it has none; it belongs under whatever the enclosing
@@ -7704,6 +7771,7 @@ parms          : rawparms {
 		   Replace(Getattr(p,"type"),"typename ", "", DOH_REPLACE_ANY);
 		   p = nextSibling(p);
                  }
+                 unsize_variable_length_arrays($$);
                }
     	       ;
 

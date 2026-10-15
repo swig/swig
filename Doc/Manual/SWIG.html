@@ -1705,6 +1705,8 @@ As for any other pointer, NULL can be passed for an array parameter.
 The C99 keyword <tt>static</tt> and type qualifiers in the brackets of a parameter's array, such as
 <tt>int a[static 40]</tt>, are accepted and ignored, see
 <a href="#SWIG_c99_parameter_array_declarators">Static and type qualifiers in parameter array declarators</a>.
+A parameter that is a C99 variable length array, such as <tt>int a[n]</tt>, is wrapped as an array of unknown size,
+see <a href="#SWIG_c99_variable_length_arrays">Variable length arrays</a>.
 </p>
 
 <p>
@@ -3583,6 +3585,17 @@ Earlier versions reported a syntax error, except for <tt>restrict</tt>, which wa
 C99 added variable length arrays.
 An array has a <i>variable length array type</i> when its size is not an integer constant expression, so that the
 size is only known at runtime.
+For a function parameter, the size is usually another parameter that comes earlier in the parameter list:
+</p>
+
+<div class="code">
+<pre>
+double sum(size_t n, const double values[n]);
+void fill(size_t rows, size_t cols, double matrix[rows][cols]);
+</pre>
+</div>
+
+<p>
 In a function prototype, the size can be given as <tt>*</tt> instead of an expression, as the parameter that holds
 the size need not be named in a prototype.
 C99 calls this a <i>variable length array type of unspecified size</i> and it can only be used in a function
@@ -3591,24 +3604,94 @@ prototype:
 
 <div class="code">
 <pre>
-int total(size_t, const int [*]);
+double sum(size_t, const double [*]);
+void fill(size_t, size_t, double [*][*]);
 </pre>
 </div>
 
 <p>
-SWIG wraps a parameter declared with <tt>*</tt> as an array of unknown size, so the declaration above is wrapped as
-if it had been written as follows:
+A type that contains a variable length array, such as the array of arrays above or a pointer to a variable length
+array, is a <i>variably modified type</i>.
+Only function parameters and the local variables of a function can have a variably modified type.
+A global variable or a structure member cannot have one.
+</p>
+
+<p>
+The size of a variable length array is only known when the function is called, so SWIG wraps a parameter of a
+variably modified type as an array of unknown size.
+Any array in the parameter's type whose size refers to an earlier parameter, or whose size is <tt>*</tt>, is wrapped
+as an array without a size.
+Other arrays keep their size, as the table shows for each kind of array parameter:
+</p>
+
+<table summary="Array parameters" border="1" cellpadding="5">
+<tr>
+    <th>Parameter declaration</th><th>Wrapped as</th><th>Kind of array</th>
+</tr>
+<tr>
+    <td><tt>int a[3]</tt></td><td><tt>int a[3]</tt></td><td>Fixed size array</td>
+</tr>
+<tr>
+    <td><tt>int a[]</tt></td><td><tt>int a[]</tt></td><td>Array of unknown size</td>
+</tr>
+<tr>
+    <td><tt>int a[static 3]</tt></td><td><tt>int a[3]</tt></td>
+    <td>Fixed size array, see <a href="#SWIG_c99_parameter_array_declarators">static and type qualifiers</a></td>
+</tr>
+<tr>
+    <td><tt>int n, int a[n]</tt></td><td><tt>int n, int a[]</tt></td><td>Variable length array type</td>
+</tr>
+<tr>
+    <td><tt>int n, int a[static n]</tt></td><td><tt>int n, int a[]</tt></td><td>Variable length array type</td>
+</tr>
+<tr>
+    <td><tt>int a[*]</tt></td><td><tt>int a[]</tt></td><td>Variable length array type of unspecified size</td>
+</tr>
+<tr>
+    <td><tt>int n, double m[n][n]</tt></td><td><tt>int n, double (*m)[]</tt></td><td>Variably modified type</td>
+</tr>
+<tr>
+    <td><tt>int n, int (*p)[n]</tt></td><td><tt>int n, int (*p)[]</tt></td><td>Variably modified type</td>
+</tr>
+</table>
+
+<p>
+As the size is not known, typemaps for a fixed size array, such as <tt>double [ANY]</tt>, are not used for a variable
+length array parameter.
+The typemaps for an array of unknown size, such as <tt>double []</tt>, are used instead.
+For example, a string passed to a <tt>char s[n]</tt> parameter is not checked against the size, as it is for a fixed
+size <tt>char</tt> array.
+SWIG drops the size in the parameter list of a multi-argument typemap too, so the following typemap matches the
+parameters of <tt>sum</tt> above:
 </p>
 
 <div class="code">
 <pre>
-int total(size_t, const int []);
+%typemap(in) (size_t n, const double values[n]) {
+  ...
+}
 </pre>
 </div>
 
 <p>
-<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse <tt>*</tt> as the size of an array.
-Earlier versions reported a syntax error.
+A size is only dropped when it refers to an earlier parameter in the same parameter list.
+A typemap for the array parameter alone must be written without the size, as in <tt>const double []</tt>.
+The same applies to <tt>%rename</tt>, <tt>%feature</tt> and the other directives that match a declaration, so both
+of the following match <tt>sum</tt>:
+</p>
+
+<div class="code">
+<pre>
+%rename(sum_doubles) sum(size_t n, const double values[n]);
+%rename(sum_doubles) sum(size_t, const double []);
+</pre>
+</div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse <tt>*</tt> as the size of an array and the
+first to wrap a variable length array parameter as an array of unknown size.
+Earlier versions wrapped it as a fixed size array, giving wrapper code that did not compile for some types, such as
+an array of <tt>char</tt>.
 </p>
 
 <H2><a name="SWIG_nn40">5.7 Code Insertion</a></H2>

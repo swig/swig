@@ -1446,14 +1446,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_variadic_expands(const SwigType *t, const String *pack_name) {
-  String *copy;
-  int found;
-  if (!SwigType_isvariadic(t) || !pack_name)
-    return 0;
-  copy = Copy(t);
-  found = Replace(copy, pack_name, "", DOH_REPLACE_ID) > 0;
-  Delete(copy);
-  return found;
+  return SwigType_isvariadic(t) && Swig_contains_identifier(t, pack_name);
 }
 
 /* -----------------------------------------------------------------------------

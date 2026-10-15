@@ -485,3 +485,19 @@ void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
     }
   }
 }
+
+/* -----------------------------------------------------------------------------
+ * ParmList_find_name_in()
+ *
+ * Return the first parameter in 'p' whose name occurs as an identifier in 's', such as the 'int n' of the C99 variable
+ * length array size 'n * 2'.  Only the parameters before 'end' are searched, or all of them when 'end' is 0.  NULL if
+ * there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_name_in(ParmList *p, Parm *end, const String *s) {
+  for (; p && p != end; p = nextSibling(p)) {
+    if (Swig_contains_identifier(s, Getattr(p, "name")))
+      return p;
+  }
+  return 0;
+}

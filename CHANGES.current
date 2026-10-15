@@ -138,6 +138,19 @@ Version 4.6.0 (in progress)
             getter, so it works even when the getter throws, e.g. because the value is not set yet.
 
 2026-10-15: wsfulton
+            A C99 variable length array parameter, which has a size that refers to an earlier
+            parameter, is now wrapped as an array of unknown size, such as 'char []'. It was wrapped
+            as a fixed size array, such as 'char [ANY]'. The wrappers did not compile for some types,
+            such as these:
+
+              int char_length(int n, const char s[n]);
+              double trace(int n, double m[n][n]);
+
+            Typemaps for a fixed size array are no longer used for such a parameter.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-15: wsfulton
             Fix a template argument containing a '.', such as a floating point literal, a member
             access or a C++20 designated initializer, which was scrambled in the generated code so
             that it did not compile:

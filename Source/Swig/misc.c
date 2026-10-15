@@ -629,6 +629,23 @@ String *Swig_string_escape(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_contains_identifier()
+ *
+ * Whether 'id' occurs in 's' as a whole identifier, such as the 'n' in 'n * 2' but not the one in 'size'.
+ * ----------------------------------------------------------------------------- */
+
+int Swig_contains_identifier(const String *s, const_String_or_char_ptr id) {
+  String *copy;
+  int found;
+  if (!s || !id)
+    return 0;
+  copy = Copy(s);
+  found = Replace(copy, id, "", DOH_REPLACE_ID | DOH_REPLACE_FIRST) > 0;
+  Delete(copy);
+  return found;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_wideescape()
  *
  * Takes the text of a wide string literal and produces a string with escape codes added to it, as Swig_string_escape()

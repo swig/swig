@@ -348,6 +348,7 @@ extern int Swig_storage_isexternc(Node *n);
 extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
 extern int Swig_storage_isstatic(Node *n);
 extern String *Swig_string_escape(String *s);
+extern int Swig_contains_identifier(const String *s, const_String_or_char_ptr id);
 extern void Swig_utf8_encode(String *s, unsigned long code_point);
 extern int Swig_utf8_decode(String *s, int pos, unsigned long *code_point);
 extern int Swig_utf8_length(String *s);

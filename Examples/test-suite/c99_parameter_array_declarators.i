@@ -10,8 +10,9 @@
 static int add_n(int n, const int *a) {
   int sum = 0;
   int i;
-  for (i = 0; i < n; i++)
+  for (i = 0; i < n; i++) {
     sum += a[i];
+  }
   return sum;
 }
 %}
@@ -57,6 +58,33 @@ int sum_pointers(int *a[2]) { return *a[0] + *a[1]; }
 int sum_grid(int a[2][3]) { return a[0][0] + a[1][2]; }
 %}
 
+// Variable length array type, the size being an earlier parameter in the parameter list
+
+/* Matches only if the variable length array's size is dropped */
+%rename(sum_n_renamed) sum_n(int, const int []);
+/* Matches when written as declared */
+%rename(sum_n_static_renamed) sum_n_static(int n, const int a[static n]);
+
+%inline %{
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int sum_n(int n, const int a[n]);
+int sum_n_static(int n, const int a[static n]);
+int char_length(int n, const char s[n]);
+#endif
+%}
+
+%{
+int sum_n(int n, const int *a) { return add_n(n, a); }
+int sum_n_static(int n, const int *a) { return add_n(n, a); }
+int char_length(int n, const char *s) {
+  int i = 0;
+  while (i < n && s[i]) {
+    i++;
+  }
+  return i;
+}
+%}
+
 // Variable length array type of unspecified size
 
 %rename(sum_n_unsized_renamed) sum_n_unsized(int n, const int a[*]);
@@ -71,4 +99,45 @@ int sum_n_unnamed(int, const int [const *]);
 %{
 int sum_n_unsized(int n, const int *a) { return add_n(n, a); }
 int sum_n_unnamed(int n, const int *a) { return add_n(n, a); }
+%}
+
+// Variably modified types: variable length arrays inside an array, a pointer or a function pointer's parameters
+
+%inline %{
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+double trace(int n, double m[n][n]);
+double trace_unsized(int n, double m[*][*]);
+int first_row_sum(int n, int (*rows)[n]);
+int apply_sum(int n, int (*f)(const int a[n]), const int numbers[n]);
+#endif
+%}
+
+%{
+#if defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__)
+double trace(int n, double m[n][n]) {
+  double sum = 0;
+  int i;
+  for (i = 0; i < n; i++) {
+    sum += m[i][i];
+  }
+  return sum;
+}
+double trace_unsized(int n, double m[n][n]) { return trace(n, m); }
+int first_row_sum(int n, int (*rows)[n]) { return add_n(n, rows[0]); }
+int apply_sum(int n, int (*f)(const int a[n]), const int numbers[n]) { return n > 0 ? f(numbers) : 0; }
+#else
+/* A pointer to an array of unknown size converts to 'const void *' in C++ too */
+double trace(int n, const void *m) {
+  const double *elements = (const double *)m;
+  double sum = 0;
+  int i;
+  for (i = 0; i < n; i++) {
+    sum += elements[i * n + i];
+  }
+  return sum;
+}
+double trace_unsized(int n, const void *m) { return trace(n, m); }
+int first_row_sum(int n, const void *rows) { return add_n(n, (const int *)rows); }
+int apply_sum(int n, int (*f)(const int *a), const int *numbers) { return n > 0 ? f(numbers) : 0; }
+#endif
 %}

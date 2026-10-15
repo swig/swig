@@ -12,6 +12,11 @@ swig_check(sum_qualifiers(numbers), 6)
 swig_check(sum_qualifiers_only(numbers), 6)
 swig_check(sum_unnamed(numbers), 6)
 
+# Variable length array type, the size being an earlier parameter in the parameter list
+swig_check(sum_n_renamed(3, numbers), 6)
+swig_check(sum_n_static_renamed(3, numbers), 6)
+swig_check(char_length(5, "abc"), 3)
+
 # Variable length array type of unspecified size
 swig_check(sum_n_unsized_renamed(3, numbers), 6)
 swig_check(sum_n_unnamed(3, numbers), 6)
