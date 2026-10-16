@@ -2153,22 +2153,33 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
       if (value) {
         Parm *cp;
         Parm *ta = targs;
-        Parm *p = parms;
+        Parm *p = expandedparms;
+        int position = 0;
         SwigType *nt = Swig_symbol_string_qualify(value, tsdecl);
         SwigType *ntq = 0;
 #ifdef SWIG_DEBUG
         Printf(stderr, "value %s %s %s\n", value, nt, tsdecl ? Getattr(tsdecl, "name") : tsdecl);
 #endif
+        /* The names are replaced by position first, so that a name in an argument is not replaced too.  For example:
+             template<class T, class U, class V = T> struct X;
+             X<U, int>
+           The default 'T' becomes 'U', which is not then replaced by 'int'. */
+        ParmList_replace_names_positional(nt, targs, tp);
         while (p && ta) {
           String *name = Getattr(ta, "name");
-          String *pvalue = Getattr(p, "value");
-          String *value = pvalue ? pvalue : Getattr(p, "type");
-          String *ttq = Swig_symbol_type_qualify(value, tscope);
-          /* value = SwigType_typedef_resolve_all(value); */
-          Replaceid(nt, name, ttq);
+          ++position;
+          if (name) {
+            String *pvalue = Getattr(p, "value");
+            String *value = pvalue ? pvalue : Getattr(p, "type");
+            String *ttq = Swig_symbol_type_qualify(value, tscope);
+            String *dollar = NewStringf("$%d", position);
+            /* value = SwigType_typedef_resolve_all(value); */
+            Replace(nt, dollar, ttq, DOH_REPLACE_NUMBER_END);
+            Delete(dollar);
+            Delete(ttq);
+          }
           p = nextSibling(p);
           ta = nextSibling(ta);
-          Delete(ttq);
         }
         ntq = Swig_symbol_type_qualify(nt, tsdecl);
         if (SwigType_istemplate(ntq)) {

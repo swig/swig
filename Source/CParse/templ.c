@@ -2265,22 +2265,32 @@ static void use_mark_specialized_defaults(ParmList *defaults) {
  * ----------------------------------------------------------------------------- */
 
 static void expand_defaults(ParmList *expanded_templateparms) {
-  Parm *tp = expanded_templateparms;
-  while (tp) {
-    Parm *p = expanded_templateparms;
-    String *tv = Getattr(tp, "value");
-    if (!tv)
-      tv = Getattr(tp, "type");
-    while (p) {
-      String *name = Getattr(p, "name");
-      String *value = Getattr(p, "value");
-      if (!value)
-        value = Getattr(p, "type");
-      if (name)
-        Replaceid(tv, name, value);
-      p = nextSibling(p);
+  Parm *tp;
+  for (tp = expanded_templateparms; tp; tp = nextSibling(tp)) {
+    /* Only a default value is in the template's scope, an explicit template argument cannot refer to the parameters */
+    if (Getattr(tp, "default")) {
+      Parm *p;
+      int position = 0;
+      String *tv = Getattr(tp, "value");
+      if (!tv)
+        tv = Getattr(tp, "type");
+      /* The names are replaced by position first, so that a name in a value is not replaced too.  For example:
+           template<class T, class U, class V = T> struct X;
+           %template(XU) X<U, int>;
+         The default 'T' becomes 'U', which is not then replaced by 'int'. */
+      ParmList_replace_names_positional(tv, expanded_templateparms, tp);
+      for (p = expanded_templateparms; p != tp; p = nextSibling(p)) {
+        ++position;
+        if (Getattr(p, "name")) {
+          String *dollar = NewStringf("$%d", position);
+          String *value = Getattr(p, "value");
+          if (!value)
+            value = Getattr(p, "type");
+          Replace(tv, dollar, value, DOH_REPLACE_NUMBER_END);
+          Delete(dollar);
+        }
+      }
     }
-    tp = nextSibling(tp);
   }
 }
 

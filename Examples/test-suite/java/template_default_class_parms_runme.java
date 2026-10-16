@@ -50,6 +50,21 @@ public class template_default_class_parms_runme {
       MapDefaults md = new MapDefaults();
       md.test_func(10, 20, new DefaultNodeType());
     }
+    {
+      Second s = new Second();
+      s.setValue(5);
+      DefaultedSecondInt d = new DefaultedSecondInt();
+      d.setThird(s);
+      if (d.getThird().getValue() != 5)
+        throw new RuntimeException("getThird failed");
+      if (d.copy_third().getValue() != 5)
+        throw new RuntimeException("copy_third failed");
+      if (template_default_class_parms.third_value(d) != 5)
+        throw new RuntimeException("third_value failed");
+      d.setSecond(10);
+      if (d.getSecond() != 10)
+        throw new RuntimeException("getSecond failed");
+    }
   }
 }
 

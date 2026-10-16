@@ -36,6 +36,43 @@ namespace Space {
 
 %template() Space::ATemplate<>;
 
+// A default that is an earlier parameter, whose argument has the same name as a later parameter
+%inline %{
+namespace Space {
+  struct Second {
+    int value;
+  };
+  template<typename First, typename Second, typename Third = First> class Defaulted {
+  public:
+    Second second;
+    Third third;
+    Defaulted() : second(), third() {}
+    Third copy_third() { return third; }
+  };
+  int third_value(Defaulted<Second, int> *d) { return d->copy_third().value; }
+}
+%}
+
+%template(DefaultedSecondInt) Space::Defaulted<Space::Second, int>;
+
+// All the arguments defaulted, with a default that is an earlier parameter
+%inline %{
+namespace Space {
+  template<typename T> struct Box {
+    T item;
+  };
+  template<typename Value = int, typename Boxed = Box<Value> > class AllDefaulted {
+  public:
+    Boxed boxed;
+    AllDefaulted() : boxed() {}
+  };
+  int all_defaulted_item(AllDefaulted<> *a) { return a->boxed.item; }
+}
+%}
+
+%template(BoxInt) Space::Box<int>;
+%template(AllDefaultedInt) Space::AllDefaulted<>;
+
 
 // Github issue #280 segfault
 %inline %{

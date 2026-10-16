@@ -126,6 +126,17 @@ Version 4.6.0 (in progress)
             exception was not thrown. Now it is thrown, as it is for %exception code.
 
 2026-10-16: wsfulton
+            Fix %template of a class template with a default template argument when a template
+            argument has the same name as a later template parameter. For example, 'Second' is both a
+            type and the name of the second template parameter here:
+
+              struct Second { int value; };
+              template<typename First, typename Second, typename Third = First> class Defaulted {...};
+              %template(DefaultedSecondInt) Defaulted<Second, int>;
+
+            The template was wrapped with the wrong template arguments or the wrappers did not compile.
+
+2026-10-16: wsfulton
             Fix %contract checks testing the wrong value when a parameter has the same name as a
             variable in the generated wrapper, such as 'arg1' or 'result':
 
