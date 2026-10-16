@@ -70,6 +70,8 @@ int sum_grid(int a[2][3]) { return a[0][0] + a[1][2]; }
 int sum_n(int n, const int a[n]);
 int sum_n_static(int n, const int a[static n]);
 int char_length(int n, const char s[n]);
+int char_length_offset(int offset, int n, const char s[n - offset]);
+int count_names(int n, char *names[n]);
 #endif
 %}
 
@@ -82,6 +84,17 @@ int char_length(int n, const char *s) {
     i++;
   }
   return i;
+}
+int char_length_offset(int offset, int n, const char *s) { return char_length(n - offset, s); }
+int count_names(int n, char **names) {
+  int count = 0;
+  int i;
+  for (i = 0; i < n; i++) {
+    if (names[i]) {
+      count++;
+    }
+  }
+  return count;
 }
 %}
 
@@ -140,4 +153,36 @@ double trace_unsized(int n, const void *m) { return trace(n, m); }
 int first_row_sum(int n, const void *rows) { return add_n(n, (const int *)rows); }
 int apply_sum(int n, int (*f)(const int *a), const int *numbers) { return n > 0 ? f(numbers) : 0; }
 #endif
+%}
+
+// A method, whose wrapper is passed self before the parameters
+
+%inline %{
+struct Text {
+  int id;
+};
+%}
+
+%extend Text {
+  int char_length(int n, const char s[n]) {
+    int i = 0;
+    (void)$self;
+    while (i < n && s[i]) {
+      i++;
+    }
+    return i;
+  }
+}
+
+// A size that is not an earlier parameter, such as a global variable, is kept as the size of a fixed size array
+
+%inline %{
+int global_n = 5;
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int sum_global_dimension(int n, const int a[global_n]);
+#endif
+%}
+
+%{
+int sum_global_dimension(int n, const int *a) { return add_n(n, a); }
 %}

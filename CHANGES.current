@@ -125,6 +125,21 @@ Version 4.6.0 (in progress)
             Before, the variable's getter and setter did not check for the pending exception, so the
             exception was not thrown. Now it is thrown, as it is for %exception code.
 
+2026-10-16: wsfulton
+            A typemap written with '*' as the size of an array, such as 'char [*]', is now used for a
+            C99 variable length array parameter. Its '$1_dim0' is the size worked out at runtime from
+            the earlier parameter:
+
+              int char_length(int n, const char s[n]);
+
+            Such typemaps are provided for a char array in every target language. In R, they are also
+            provided for an array of numbers or strings. They copy the string or vector into an array
+            of that size, as for a fixed size array, instead of passing it without checking its length.
+            A string or vector too long for the array is now an error.
+
+            The size cannot be used in such a typemap's local variables, which are declared before the
+            arguments are converted, and doing so is an error.
+
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using
             the nondynamic feature that derives from a nondynamic class from another module.

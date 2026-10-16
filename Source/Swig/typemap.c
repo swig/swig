@@ -737,6 +737,22 @@ ret_result:
 }
 
 /* -----------------------------------------------------------------------------
+ * vla_parameter_type()
+ *
+ * For a C99 variable length array parameter 'node', such as the 'char s[n]' of 'int n, char s[n]', return a copy of its
+ * array 'type' with '*' as the size, the type of a typemap written for one, as in 'char [*]'.  Return 0 otherwise.
+ * ----------------------------------------------------------------------------- */
+
+static SwigType *vla_parameter_type(const SwigType *type, Node *node) {
+  SwigType *vla = 0;
+  if (node && Getattr(node, "vlasize") && SwigType_isarray(type)) {
+    vla = Copy(type);
+    SwigType_array_setdim(vla, 0, "*");
+  }
+  return vla;
+}
+
+/* -----------------------------------------------------------------------------
  * typemap_search()
  *
  * Search for a typemap match. This is where the typemap pattern matching rules
@@ -764,13 +780,29 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     cqualifiedname = qualifiedname;
 
   if (debug_display) {
-    String *typestr = SwigType_str(type, cqualifiedname ? cqualifiedname : cname);
+    /* A C99 variable length array parameter is shown as the type searched for first, with '*' as the size */
+    SwigType *vla = vla_parameter_type(type, node);
+    String *typestr = SwigType_str(vla ? vla : type, cqualifiedname ? cqualifiedname : cname);
     Swig_diagnostic(Getfile(node), Getline(node), "Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
     Delete(typestr);
+    Delete(vla);
   }
   ctype = Copy(type);
   ctype_unstripped = Copy(ctype);
   while (ctype) {
+    /* A C99 variable length array parameter is an array of unknown size, but first look for a typemap written for one */
+    SwigType *vla = vla_parameter_type(ctype, node);
+    if (vla) {
+      tm = get_typemap(vla);
+      result = typemap_search_helper(debug_display, tm, tm_method, vla, cqualifiedname, cname, &backup);
+      if (result && Getattr(result, "code")) {
+        Delete(ctype);
+        ctype = vla;
+        goto ret_result;
+      }
+      Delete(vla);
+    }
+
     /* Try to get an exact type-match */
     tm = get_typemap(ctype);
     result = typemap_search_helper(debug_display, tm, tm_method, ctype, cqualifiedname, cname, &backup);
@@ -905,10 +937,12 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   if (typemap_search_debug && (in_typemap_search_multi == 0))
     debug_search_result_display(tm);
   if (typemaps_used_debug && (in_typemap_search_multi == 0) && tm) {
-    String *typestr = SwigType_str(type, name);
+    SwigType *vla = vla_parameter_type(type, parms);
+    String *typestr = SwigType_str(vla ? vla : type, name);
     Swig_diagnostic(Getfile(parms), Getline(parms), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
+    Delete(vla);
   }
 
   return tm;
@@ -927,6 +961,36 @@ static void replace_local_types(ParmList *p, const String *name, const String *r
     Replace(t, name, replace, DOH_REPLACE_ANY);
     p = nextSibling(p);
   }
+}
+
+/* Replace the array size variables of typemap parameter 'index' in 's' and in the types of 'locals' with the sizes in
+ * 'dims', the array's dimensions as C expressions: $<index>_dim<i> for dimension i, also $dim<i> for 'index' 1, and
+ * $<index>_size for all the dimensions multiplied together. */
+static void replace_array_size_vars(String *s, ParmList *locals, List *dims, int index) {
+  String *size = NewStringEmpty();
+  String *var;
+  int i;
+  for (i = 0; i < Len(dims); i++) {
+    String *dim = Getitem(dims, i);
+    if (index == 1) {
+      var = NewStringf("$dim%d", i);
+      Replace(s, var, dim, DOH_REPLACE_ANY);
+      replace_local_types(locals, var, dim);
+      Delete(var);
+    }
+    var = NewStringf("$%d_dim%d", index, i);
+    Replace(s, var, dim, DOH_REPLACE_ANY);
+    replace_local_types(locals, var, dim);
+    Delete(var);
+    if (Len(size))
+      Putc('*', size);
+    Append(size, dim);
+  }
+  var = NewStringf("$%d_size", index);
+  Replace(s, var, size, DOH_REPLACE_ANY);
+  replace_local_types(locals, var, size);
+  Delete(var);
+  Delete(size);
 }
 
 static void replace_local_names(ParmList *p, const String *name, const String *replace, Hash *override_vars) {
@@ -997,7 +1061,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
      its array dimensions */
 
   if (has_array_dimensions(type) || has_array_dimensions(ftype)) {
-    String *size;
+    List *dims;
     SwigType *adims;
     SwigType *afdims;
     int ndim;
@@ -1014,27 +1078,14 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       adims = Copy(afdims);
     }
     ndim = SwigType_array_ndim(adims);
-    size = NewStringEmpty();
+    dims = NewList();
     for (i = 0; i < ndim; i++) {
       String *dim = array_dimension_operand(adims, i);
-      if (index == 1) {
-        char t[32];
-        snprintf(t, sizeof(t), "$dim%d", i);
-        Replace(s, t, dim, DOH_REPLACE_ANY);
-        replace_local_types(locals, t, dim);
-      }
-      snprintf(varname, varname_size, "dim%d", i);
-      Replace(s, var, dim, DOH_REPLACE_ANY);
-      replace_local_types(locals, var, dim);
-      if (Len(size))
-        Putc('*', size);
-      Append(size, dim);
+      Append(dims, dim);
       Delete(dim);
     }
-    snprintf(varname, varname_size, "size");
-    Replace(s, var, size, DOH_REPLACE_ANY);
-    replace_local_types(locals, var, size);
-    Delete(size);
+    replace_array_size_vars(s, locals, dims, index);
+    Delete(dims);
     Delete(adims);
     Delete(afdims);
   }
@@ -1503,10 +1554,12 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   if (typemap_search_debug)
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
-    String *typestr = SwigType_str(type, qpname ? qpname : pname);
+    SwigType *vla = vla_parameter_type(type, node);
+    String *typestr = SwigType_str(vla ? vla : type, qpname ? qpname : pname);
     Swig_diagnostic(Getfile(node), Getline(node), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(node) && Len(Getfile(node)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
+    Delete(vla);
   }
 
   Delete(qpname);
@@ -1804,6 +1857,64 @@ static String *typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
   return 0;
 }
 
+/* For a typemap written with '[*]' that matched 'p', a C99 variable length array parameter in 'parms', replace the
+ * array's size variables in the typemap code 's', $1_dim0, $dim0 and $1_size for 'index' 1, with the size the array has
+ * at runtime, such as '(arg1)' for the 'char s[n]' of 'int n, char s[n]'.  The typemap's local variables are declared
+ * before any argument is converted, so using the size in one of 'locals' is an error.  Nothing is done for any other
+ * match. */
+static void replace_vla_size(String *s, ParmList *locals, SwigType *matchtype, Parm *p, ParmList *parms, int index) {
+  String *vlasize = Getattr(p, "vlasize");
+  if (vlasize && SwigType_isarray(matchtype)) {
+    String *dim = SwigType_array_getdim(matchtype, 0);
+    if (Equal(dim, "*")) {
+      String *size = NewStringf("(%s)", vlasize);
+      List *dims = NewList();
+      String *var = NewStringf("$%d_dim0", index);
+      String *sizevar = NewStringf("$%d_size", index);
+      int ndim = SwigType_array_ndim(matchtype);
+      int i;
+      Parm *local;
+      for (local = locals; local; local = nextSibling(local)) {
+        String *ltype = Getattr(local, "type");
+        String *lvalue = Getattr(local, "value");
+        if (Strstr(ltype, var) || Strstr(ltype, sizevar) || (index == 1 && Strstr(ltype, "$dim0")) ||
+            (lvalue && (Strstr(lvalue, var) || Strstr(lvalue, sizevar) || (index == 1 && Strstr(lvalue, "$dim0"))))) {
+          /* Report the error once, as the typemaps for a function can be attached more than once */
+          static Hash *reported = 0;
+          String *key = NewStringf("%s:%d:%s", Getfile(p), Getline(p), Getattr(local, "name"));
+          if (!reported)
+            reported = NewHash();
+          if (!Getattr(reported, key)) {
+            String *pname = Getattr(p, "name");
+            String *pstr = pname ? Copy(pname) : SwigType_str(Getattr(p, "type"), 0);
+            Swig_error(Getfile(p),
+                       Getline(p),
+                       "Typemap local variable '%s' cannot use the runtime size of variable length array parameter '%s'.\n",
+                       Getattr(local, "name"),
+                       pstr);
+            Setattr(reported, key, "1");
+            Delete(pstr);
+          }
+          Delete(key);
+        }
+      }
+      Delete(sizevar);
+      ParmList_replace_names_lname(size, parms, p);
+      Append(dims, size);
+      for (i = 1; i < ndim; i++) {
+        String *inner = array_dimension_operand(matchtype, i);
+        Append(dims, inner);
+        Delete(inner);
+      }
+      replace_array_size_vars(s, 0, dims, index);
+      Delete(dims);
+      Delete(var);
+      Delete(size);
+    }
+    Delete(dim);
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_typemap_attach_parms()
  *
@@ -1936,6 +2047,7 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
       SwigType *mtype = Getattr(p, "tmap:match");
       SwigType *matchtype = mtype ? mtype : type;
 
+      replace_vla_size(s, locals, matchtype, p, parms, i + 1);
       typemap_replace_vars(s, locals, matchtype, type, pname, lname, i + 1, override_vars);
       if (mtype)
         Delattr(p, "tmap:match");

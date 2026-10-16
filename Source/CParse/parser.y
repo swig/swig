@@ -3564,16 +3564,26 @@ static SwigType *unsized_variable_length_arrays(const SwigType *t, ParmList *par
   return unsized;
 }
 
-/* A C99 variable length array parameter has a size that refers to an earlier parameter in the parameter list, as in
-   'int n, int a[n]', so the size is only known at runtime and the generated code cannot use it.  Drop such a size from
-   any array in the parameter's type, as in 'double m[n][n]' or 'int (*p)[n]', so that the parameter is wrapped as an
-   array of unknown size, as is a variable length array of unspecified size, such as 'int a[*]'. */
+/* Remove the size of each C99 variable length array in the parameter types of 'parms', which is a size that refers to
+   an earlier parameter and so is only known at runtime, so that the parameter is wrapped as an array of unknown size.
+   For example, the parameters 'int n, int a[n]' become 'int n, int a[]', 'int n, double m[n][n]' become
+   'int n, double m[][]' and 'int n, int (*p)[n]' become 'int n, int (*p)[]'.  The size of a parameter that is itself
+   such an array is kept as its "vlasize" for $1_dim0 in a typemap written with '[*]', so the 'n' of 'int n, int a[n]'
+   is kept as the "vlasize" of 'a'. */
 static void unsize_variable_length_arrays(ParmList *parms) {
   Parm *p;
   for (p = parms; p; p = nextSibling(p)) {
     SwigType *type = Getattr(p, "type");
     if (type && Strstr(type, "a(")) {
-      SwigType *unsized = unsized_variable_length_arrays(type, parms, p);
+      SwigType *unsized;
+      if (SwigType_isarray(type)) {
+        String *size = SwigType_array_getdim(type, 0);
+        if (ParmList_find_name_in(parms, p, size)) {
+          Setattr(p, "vlasize", size);
+        }
+        Delete(size);
+      }
+      unsized = unsized_variable_length_arrays(type, parms, p);
       if (unsized) {
         Setattr(p, "type", unsized);
         Delete(unsized);
@@ -4716,6 +4726,10 @@ typemap_parm   : type plain_declarator {
                   Parm *parm;
                   declarator_remove_locals_function(&$plain_declarator);
 		  SwigType_push($type,$plain_declarator.type);
+                  /* A typemap for a variable length array parameter, such as 'char [*]', keeps '*' as the array's size */
+                  if (($plain_declarator.parmonly_array & SWIG_ARRAY_UNSPECIFIED_SIZE) && SwigType_isarray($type)) {
+                    SwigType_array_setdim($type, 0, "*");
+                  }
 		  $$ = new_node("typemapitem");
 		  parm = NewParmWithoutFileLineInfo($type,$plain_declarator.id);
 		  Setattr($$,"pattern",parm);

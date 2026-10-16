@@ -486,6 +486,17 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
      }
      $1 = ($1_ltype)temp;
    } %}
+/* A C99 variable length array parameter, as in 'int n, char s[n]' */
+%typemap(in, canthrow=1, fragment="SWIG_NewCharArray") char[*]
+%{ $1 = 0;
+   if ($input) {
+     $1 = ($1_ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), $input, strlen($input)) : 0);
+     if (!$1) {
+       SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
+       return $null;
+     }
+   } %}
+%typemap(freearg) char[*] %{ free($1); %}
 %typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
 %typemap(out, fragment="SWIG_CharArrayString") char[ANY] %{ {
      const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);

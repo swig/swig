@@ -770,6 +770,23 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 }
 
+/* A C99 variable length array parameter, as in 'int n, char s[n]' */
+%typemap(in, noblock=1, fragment="SWIG_NewCharArray") char[*] {
+  $1 = 0;
+  if ($input) {
+    const char *$1_pstr = JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!$1_pstr)
+      return $null;
+    $1 = ($1_ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), $1_pstr, strlen($1_pstr)) : 0);
+    JCALL2(ReleaseStringUTFChars, jenv, $input, $1_pstr);
+    if (!$1) {
+      SWIG_JavaThrowException(jenv, SWIG_JavaIllegalArgumentException, "string too long for char array");
+      return $null;
+    }
+  }
+}
+%typemap(freearg) char[*] %{ free($1); %}
+
 %typemap(in, noblock=1) char[] {
   $1 = 0;
   if ($input) {

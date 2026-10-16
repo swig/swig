@@ -187,6 +187,23 @@ std::ptrdiff_t *INOUT
   $1 = Rf_isNull($input) ? 0 : temp;
 }
 %typemap(freearg) TYPE [ANY] ""
+/* A C99 variable length array parameter, as in 'int n, int a[n]', is copied into an array of the size it has at runtime */
+%typemap(in,noblock=1) TYPE [*] ($1_basetype *temp = 0, int i, int len) {
+  len = Rf_length($input);
+  if (!(($1_dim0) > 0) || len > (int)($1_dim0)) {
+    %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+  }
+  if (!Rf_isNull($input)) {
+    temp = %new_array((size_t)($1_dim0), $1_basetype);
+    for (i = 0; i < len; i++) {
+      temp[i] = ($1_basetype)ELEMENT($input)[i];
+    }
+  }
+  $1 = temp;
+}
+%typemap(freearg,noblock=1) TYPE [*] {
+  %delete_array(temp$argnum);
+}
 %typemap(out,noblock=1) TYPE [ANY] (int i) {
   $result = Rf_allocVector(SEXPTYPE, $1_dim0);
   for (i = 0; i < (int)($1_dim0); i++)
@@ -255,6 +272,37 @@ std::ptrdiff_t *INOUT
       free(copies$argnum[i]);
     }
   }
+}
+
+/* A C99 variable length array parameter, as in 'int n, char *names[n]', is copied into an array of its runtime size */
+%typemap(in,noblock=1,fragment="SWIG_strdup") char *[*] (char **temp = 0, char **copies = 0, int len = 0) {
+  if (!Rf_isNull($input)) {
+    int i;
+    len = Rf_length($input);
+    if (!Rf_isString($input)) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+    }
+    if (!(($1_dim0) > 0) || len > (int)($1_dim0)) {
+      %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+    }
+    temp = %new_array((size_t)($1_dim0), char *);
+    copies = %new_array((size_t)($1_dim0), char *);
+    for (i = 0; i < len; i++) {
+      copies[i] = temp[i] = SWIG_strdup(CHAR(STRING_ELT($input, i)));
+    }
+    $1 = temp;
+  }
+}
+
+%typemap(freearg,noblock=1) char *[*] {
+  if (copies$argnum) {
+    int i;
+    for (i = 0; i < len$argnum; i++) {
+      free(copies$argnum[i]);
+    }
+  }
+  %delete_array(copies$argnum);
+  %delete_array(temp$argnum);
 }
 
 /* A variable keeps copies of the strings, as for char *, as freearg frees those from the in typemap */

@@ -464,6 +464,15 @@
   $1 = ($1_ltype)temp;
 %}
 
+/* A C99 variable length array parameter, as in 'int n, char s[n]' */
+%typemap(in, fragment="SWIG_NewCharArray") char[*]
+%{
+  $1 = ($1_ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), $input.p, (size_t)$input.n) : 0);
+  if (!$1) {
+    _swig_gopanic("string too long for char array");
+  }
+%}
+
 %typemap(in) char *&(char *temp)
 %{
   temp = (char *)malloc($input.n + 1);
@@ -476,6 +485,9 @@
 %{ free((char *)$1); %}
 
 %typemap(freearg) char[ANY] ""
+
+%typemap(freearg) char[*]
+%{ free($1); %}
 
 %typemap(freearg) char *&
 %{ free((char *)*$1); %}

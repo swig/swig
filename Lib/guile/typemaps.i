@@ -342,6 +342,16 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
      scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
    $1 = ($1_ltype)temp;
  }
+ /* A C99 variable length array parameter, as in 'int n, char s[n]' */
+ %typemap (in,     doc="$NAME is a string", fragment="SWIG_NewCharArray") char [*] {
+   size_t swig_len = 0;
+   char *swig_str = SWIG_Guile_scm2newstr($input, &swig_len);
+   $1 = ($1_ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), swig_str, swig_len) : 0);
+   SWIG_free(swig_str);
+   if (!$1)
+     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+ }
+ %typemap (freearg)                              char [*] {free($1);}
  %typemap (in,     doc="$NAME is a string")      char [](char *swig_str = 0) {
    swig_str = SWIG_scm2str($input);
    $1 = ($1_ltype)swig_str;

@@ -244,6 +244,19 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     }
 }
 
+/* A C99 variable length array parameter, as in 'int n, char s[n]' */
+%typemap(in, fragment="SWIG_NewCharArray") char [*] {
+    char *str = caml_string_val($input);
+    $1 = 0;
+    if (str) {
+        $1 = ($ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), str, (size_t)caml_string_len($input)) : 0);
+        if (!$1) {
+            SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "string too long for char array");
+        }
+    }
+}
+%typemap(freearg) char [*] "free($1);"
+
 %typemap(varin, fragment="SWIG_CopyCharArray") char [ANY] {
     char *str = caml_string_val($input);
     if (!str) {

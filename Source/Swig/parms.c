@@ -487,6 +487,28 @@ void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_replace_names_lname()
+ *
+ * Replace each identifier in 's' naming one of the parameters in 'p' with that parameter's local variable in the
+ * wrapper, its "lname", such as 'n * 2' into 'arg1 * 2'.  Only the parameters before 'end' are replaced, or all of
+ * them when 'end' is 0.  The names are replaced by position first, so a parameter named like another's lname, such as
+ * 'arg1', is replaced correctly.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_names_lname(String *s, ParmList *p, Parm *end) {
+  int position = 0;
+  ParmList_replace_names_positional(s, p, end);
+  for (; p && p != end; p = nextSibling(p)) {
+    String *lname = Getattr(p, "lname");
+    String *dollar = NewStringf("$%d", ++position);
+    if (lname) {
+      Replace(s, dollar, lname, DOH_REPLACE_NUMBER_END);
+    }
+    Delete(dollar);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_find_name_in()
  *
  * Return the first parameter in 'p' whose name occurs as an identifier in 's', such as the 'int n' of the C99 variable

@@ -294,6 +294,32 @@
 }
 %typemap(freearg) Char [ANY], const Char [ANY] ""
 
+/* A C99 variable length array parameter, as in 'int n, char s[n]', is copied into an array of the size it has at
+   runtime in the same way, checking that the string fits before allocating it */
+%typemap(in,noblock=1,fragment=#SWIG_AsCharArray) Char [*] (Char *temp = 0, int res), const Char [*] (Char *temp = 0, int res)
+{
+  res = SWIG_AsCharArray($input, 0, ($1_dim0) > 0 ? (size_t)($1_dim0) : 0);
+  if (res == SWIG_NullReferenceError) {
+    $1 = 0;
+  } else {
+    if (!(($1_dim0) > 0)) {
+      %argument_fail(SWIG_ValueError, "$type", $symname, $argnum);
+    }
+    if (!SWIG_IsOK(res)) {
+      %argument_fail(res, "$type", $symname, $argnum);
+    }
+    temp = %new_array((size_t)($1_dim0), Char);
+    if (!temp) {
+      %argument_fail(SWIG_MemoryError, "$type", $symname, $argnum);
+    }
+    SWIG_AsCharArray($input, temp, (size_t)($1_dim0));
+    $1 = %reinterpret_cast(temp, $1_ltype);
+  }
+}
+%typemap(freearg,noblock=1) Char [*], const Char [*] {
+  %delete_array(temp$argnum);
+}
+
 %typemap(in,noblock=1,fragment=#SWIG_AsCharArray) Char (&)[ANY] (Char temp[$1_dim0], int res), Char (&&)[ANY] (Char temp[$1_dim0], int res)
 {
   res = SWIG_AsCharArray($input, temp, $1_dim0);
