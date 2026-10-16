@@ -496,7 +496,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
        return $null;
      }
    } %}
-%typemap(freearg) char[*] %{ free($1); %}
+%typemap(freearg) char[*] %{ free((char *)$1); %}
 %typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
 %typemap(out, fragment="SWIG_CharArrayString") char[ANY] %{ {
      const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);

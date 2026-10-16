@@ -27,6 +27,11 @@ swig_check(char_length_offset(1, 5, "abc"), 3)
 with swig_assert_raises(TypeError):
     char_length_offset(2, 5, "abc")
 
+# Declared with an unspecified size and then with the size
+swig_check(char_length_redeclared(5, "abc"), 3)
+with swig_assert_raises(TypeError):
+    char_length_redeclared(3, "abc")
+
 # A method's size is the parameter n, not self
 text = Text()
 swig_check(text.char_length(5, "abc"), 3)
@@ -39,3 +44,10 @@ swig_check(sum_global_dimension(3, numbers), 6)
 # Variable length array type of unspecified size
 swig_check(sum_n_unsized_renamed(3, numbers), 6)
 swig_check(sum_n_unnamed(3, numbers), 6)
+
+# Typedefs in a variable length array parameter
+swig_check(sum_typedef_size(3, numbers), 6)
+swig_check(sum_typedef_element(3, numbers), 6)
+swig_check(char_length_typedef(5, "abc"), 3)
+with swig_assert_raises(TypeError):
+    char_length_typedef(3, "abc")

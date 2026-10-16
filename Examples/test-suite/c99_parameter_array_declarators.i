@@ -155,6 +155,21 @@ int apply_sum(int n, int (*f)(const int *a), const int *numbers) { return n > 0 
 #endif
 %}
 
+// A function declared with an unspecified size and then with the size uses the size for the '[*]' typemaps
+
+%warnfilter(SWIGWARN_PARSE_REDUNDANT) char_length_redeclared;
+
+%inline %{
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int char_length_redeclared(int, const char [*]);
+int char_length_redeclared(int n, const char s[n]);
+#endif
+%}
+
+%{
+int char_length_redeclared(int n, const char *s) { return char_length(n, s); }
+%}
+
 // A method, whose wrapper is passed self before the parameters
 
 %inline %{
@@ -185,4 +200,23 @@ int sum_global_dimension(int n, const int a[global_n]);
 
 %{
 int sum_global_dimension(int n, const int *a) { return add_n(n, a); }
+%}
+
+// Typedefs in a variable length array parameter: the size, the element type and a const char string
+
+%inline %{
+typedef int count_t;
+typedef int element_t;
+typedef const char text_t;
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int sum_typedef_size(count_t n, const int a[n]);
+int sum_typedef_element(int n, const element_t a[n]);
+int char_length_typedef(int n, text_t s[n]);
+#endif
+%}
+
+%{
+int sum_typedef_size(count_t n, const int *a) { return add_n(n, a); }
+int sum_typedef_element(int n, const element_t *a) { return add_n(n, a); }
+int char_length_typedef(int n, text_t *s) { return char_length(n, s); }
 %}

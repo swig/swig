@@ -772,6 +772,7 @@ int SwigType_ismemberpointer(const SwigType *t) {
  * SwigType_add_array()
  * SwigType_del_array()
  * SwigType_isarray()
+ * SwigType_isarray_vla()
  *
  * Utility functions:
  *
@@ -812,6 +813,21 @@ int SwigType_isarray(const SwigType *t) {
   }
   return 0;
 }
+
+/* Return whether the type is an array with '*' as the size of one of its dimensions, the type of a typemap written for a
+ * C99 variable length array parameter, such as 'a(*).int' or 'a(3).a(*).double' */
+int SwigType_isarray_vla(const SwigType *t) {
+  int vla = 0;
+  int ndim = SwigType_array_ndim(t);
+  int i;
+  for (i = 0; i < ndim && !vla; i++) {
+    String *dim = SwigType_array_getdim(t, i);
+    vla = Equal(dim, "*");
+    Delete(dim);
+  }
+  return vla;
+}
+
 /*
  * SwigType_prefix_is_simple_1D_array
  *

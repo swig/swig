@@ -487,22 +487,20 @@ void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
 }
 
 /* -----------------------------------------------------------------------------
- * ParmList_replace_names_lname()
+ * ParmList_replace_positional()
  *
- * Replace each identifier in 's' naming one of the parameters in 'p' with that parameter's local variable in the
- * wrapper, its "lname", such as 'n * 2' into 'arg1 * 2'.  Only the parameters before 'end' are replaced, or all of
- * them when 'end' is 0.  The names are replaced by position first, so a parameter named like another's lname, such as
- * 'arg1', is replaced correctly.
+ * The reverse of ParmList_replace_names_positional(): replace each $ variable in 's' with the 'attribute' of the
+ * parameter in 'p' at that position, $1 for the first parameter, $2 for the second and so on, such as '$1 * 2' into
+ * 'arg1 * 2' for the "lname" attribute.  A $ variable for a parameter without the attribute is left alone.
  * ----------------------------------------------------------------------------- */
 
-void ParmList_replace_names_lname(String *s, ParmList *p, Parm *end) {
+void ParmList_replace_positional(String *s, ParmList *p, const_String_or_char_ptr attribute) {
   int position = 0;
-  ParmList_replace_names_positional(s, p, end);
-  for (; p && p != end; p = nextSibling(p)) {
-    String *lname = Getattr(p, "lname");
+  for (; p; p = nextSibling(p)) {
+    String *value = Getattr(p, attribute);
     String *dollar = NewStringf("$%d", ++position);
-    if (lname) {
-      Replace(s, dollar, lname, DOH_REPLACE_NUMBER_END);
+    if (value) {
+      Replace(s, dollar, value, DOH_REPLACE_NUMBER_END);
     }
     Delete(dollar);
   }

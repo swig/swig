@@ -785,7 +785,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     }
   }
 }
-%typemap(freearg) char[*] %{ free($1); %}
+%typemap(freearg) char[*] %{ free((char *)$1); %}
 
 %typemap(in, noblock=1) char[] {
   $1 = 0;

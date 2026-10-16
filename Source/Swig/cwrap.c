@@ -241,6 +241,66 @@ static String *Swig_wrapped_var_assign(SwigType *t, const_String_or_char_ptr nam
   }
 }
 
+/* Whether parameter 'p' in 'parms' is used in the size of a later C99 variable length array parameter, as 'n' is here:
+     int n, int a[n]
+   The array's "vlasize" gives the parameters it uses by their position in the declaration, which a wrapper for a
+   method puts after self, so the size of 'a' is '$1'. */
+static int is_variable_length_array_size(ParmList *parms, Parm *p) {
+  int used = 0;
+  int position = 1;
+  Parm *q;
+  while (parms && Getattr(parms, "self"))
+    parms = nextSibling(parms);
+  for (q = parms; q && q != p; q = nextSibling(q))
+    position++;
+  if (q) {
+    String *dollar = NewStringf("$%d", position);
+    for (q = nextSibling(p); q && !used; q = nextSibling(q)) {
+      String *vlasize = Getattr(q, "vlasize");
+      if (vlasize) {
+        String *size = Copy(vlasize);
+        used = Replace(size, dollar, "", DOH_REPLACE_NUMBER_END) > 0;
+        Delete(size);
+      }
+    }
+    Delete(dollar);
+  }
+  return used;
+}
+
+/* Whether a local variable of type 'type', which is resolved, can be initialised with '= 0' in both C and C++, as a
+   wrapper for C can be compiled as C++.  An enum cannot be in C++. */
+static int is_zero_initialisable(SwigType *type) {
+  int zero = 0;
+  SwigType *t = SwigType_strip_qualifiers(type);
+  if (!SwigType_isenum(t)) {
+    switch (SwigType_type(t)) {
+    case T_BOOL:
+    case T_CHAR:
+    case T_SCHAR:
+    case T_UCHAR:
+    case T_WCHAR:
+    case T_SHORT:
+    case T_USHORT:
+    case T_INT:
+    case T_UINT:
+    case T_LONG:
+    case T_ULONG:
+    case T_LONGLONG:
+    case T_ULONGLONG:
+    case T_FLOAT:
+    case T_DOUBLE:
+    case T_LONGDOUBLE:
+      zero = 1;
+      break;
+    default:
+      break;
+    }
+  }
+  Delete(t);
+  return zero;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_cargs()
  *
@@ -252,6 +312,7 @@ static String *Swig_wrapped_var_assign(SwigType *t, const_String_or_char_ptr nam
 int Swig_cargs(Wrapper *w, ParmList *p) {
   int i = 0;
   int compactdefargs = ParmList_is_compactdefargs(p);
+  ParmList *parms = p;
 
   while (p != 0) {
     String *lname = Swig_cparm_name(p, i);
@@ -296,6 +357,10 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
           Delete(defvalue);
         }
       } else if (!pvalue && ((tycode == T_POINTER) || (tycode == T_STRING) || (tycode == T_WSTRING) || (tycode == T_ARRAY))) {
+        pvalue = (String *)"0";
+      } else if (!pvalue && is_zero_initialisable(type) && is_variable_length_array_size(parms, p)) {
+        /* A 'freearg' typemap can use the size of a C99 variable length array.  It also runs when the wrapper fails,
+           which can be before the size is converted. */
         pvalue = (String *)"0";
       }
       if (!altty) {

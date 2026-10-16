@@ -1,0 +1,6 @@
+c_vla_typemap_method.i:19: Error: The 'typecheck' typemap cannot use the runtime size of variable length array parameter 's'.
+c_vla_typemap_method.i:20: Error: An 'in' typemap with numinputs=0 cannot use the runtime size of variable length array parameter 'a'.
+c_vla_typemap_method.i:21: Error: The 'default' typemap cannot use the runtime size of variable length array parameter 'h'.
+c_vla_typemap_method.i:22: Error: The 'arginit' typemap cannot use the runtime size of variable length array parameter 'l'.
+c_vla_typemap_method.i:23: Error: The 'doc' typemap cannot use the runtime size of variable length array parameter 'd'.
+c_vla_typemap_method.i:24: Error: The 'in' typemap attribute 'doc' cannot use the runtime size of variable length array parameter 'f'.

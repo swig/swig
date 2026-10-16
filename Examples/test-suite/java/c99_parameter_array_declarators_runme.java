@@ -20,5 +20,14 @@ public class c99_parameter_array_declarators_runme {
       throw new RuntimeException("char_length(3, \"abc\") should fail as the string is too long");
     } catch (IllegalArgumentException e) {
     }
+
+    // A typedef for a const char variable length array parameter
+    if (c99_parameter_array_declarators.char_length_typedef(5, "abc") != 3)
+      throw new RuntimeException("char_length_typedef(5, \"abc\") failed");
+    try {
+      c99_parameter_array_declarators.char_length_typedef(3, "abc");
+      throw new RuntimeException("char_length_typedef(3, \"abc\") should fail as the string is too long");
+    } catch (IllegalArgumentException e) {
+    }
   }
 }

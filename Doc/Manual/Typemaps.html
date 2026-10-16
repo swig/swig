@@ -83,6 +83,7 @@
 <li><a href="#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
+<li><a href="#Typemaps_variable_length_arrays">Typemaps for variable length arrays</a>
 <li><a href="#Typemaps_warnings">Typemap warnings</a>
 <li><a href="#Typemaps_fragments">Typemap fragments</a>
 <ul>
@@ -4211,7 +4212,168 @@ with non-consecutive C/C++ arguments; a workaround such as a helper function re-
 the arguments to make them consecutive will need to be written.
 </p>
 
-<H2><a name="Typemaps_warnings">16.10 Typemap warnings</a></H2>
+<H2><a name="Typemaps_variable_length_arrays">16.10 Typemaps for variable length arrays</a></H2>
+
+
+<p>
+A C99 variable length array parameter, such as <tt>values</tt> in the following, has a size that is only known at
+runtime, as described in <a href="SWIG.html#SWIG_c99_variable_length_arrays">Variable length arrays</a>:
+</p>
+
+<div class="code">
+<pre>
+double sum(size_t n, const double values[n]);
+</pre>
+</div>
+
+<p>
+Typemaps for a fixed size array, such as <tt>double[ANY]</tt>, are not used for such a parameter.
+In a typemap, <tt>*</tt> as the size of an array, as in <tt>double[*]</tt>, stands for the size of any variable
+length array, much as <tt>ANY</tt> stands for any fixed size.
+In a multidimensional array, each dimension whose size is only known at runtime is written with <tt>*</tt>, as in
+<tt>double[*][*]</tt> for <tt>double m[r][c]</tt>.
+A dimension with a constant size is written with its size or with <tt>ANY</tt>, as in <tt>double[*][3]</tt> or
+<tt>double[*][ANY]</tt> for <tt>double m[n][3]</tt>.
+</p>
+
+<p>
+A typemap written with <tt>*</tt> is used for a variable length array parameter if there is one.
+It is used even when a typemap for an array of unknown size matches the parameter more closely, such as one with the
+parameter's qualifiers or typedef name.
+So for <tt>const int a[n]</tt>, a typemap for <tt>int[*]</tt> is used rather than one for <tt>const int[]</tt>.
+Otherwise the typemaps for an array of unknown size, such as <tt>int[]</tt>, are used.
+The default typemaps are looked for in the same order, <tt>SWIGTYPE[*]</tt> before <tt>SWIGTYPE[]</tt>.
+A parameter declared with <tt>*</tt> as its size has no specified size, so it uses the typemaps for an array of
+unknown size, unless <a href="SWIG.html#SWIG_c99_variable_length_arrays">another declaration</a> of the function
+gives the size.
+A size that does not refer to an earlier parameter, such as a global variable, is treated rightly or wrongly by SWIG
+as a fixed size, so the typemaps for <tt>[ANY]</tt> are used.
+</p>
+
+<p>
+In a typemap written with <tt>*</tt>, <tt>$1_dim0</tt> is the size of the array, worked out at runtime from the earlier
+parameters that the size refers to.
+It is an expression using the wrapper's variables for those parameters, such as <tt>(arg1)</tt>.
+In a multidimensional array, <tt>$1_dim1</tt> and so on are the sizes of the other dimensions and <tt>$1_size</tt> is
+all the sizes multiplied together, such as <tt>(arg1)*(arg2)</tt> for <tt>double m[r][c]</tt>.
+</p>
+
+<p>
+A size worked out at runtime only has a value in the wrapper code that comes after the parameters it refers to are
+converted from the target language.
+The code that the typemaps for the parameters supply comes in this order in the wrapper:
+</p>
+
+<ol>
+<li>The code of any <a href="#Typemaps_nn26">"in"</a> typemap with <tt>numinputs=0</tt>, before any argument is
+converted.</li>
+<li>The code of the other "in" typemaps, which convert the arguments in turn.</li>
+<li>The code of the <a href="#Typemaps_nn31">"check"</a> typemaps.</li>
+<li>The call to the wrapped function.</li>
+<li>The code of the <a href="#Typemaps_nn32">"argout"</a> typemaps.</li>
+<li>The code of the <a href="#Typemaps_nn33">"freearg"</a> typemaps.</li>
+</ol>
+
+<p>
+So the size can only be used in the code of an "in" typemap without <tt>numinputs=0</tt> and in the code of the
+"check", "argout" and "freearg" typemaps.
+Any other use of it is an error, such as in a <tt>typecheck</tt> typemap or in a typemap's local variables:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%typemap(in) const int[*] (int temp[$1_dim0]) {
+  ...
+}
+%typemap(typecheck) const int[*] "$1 = ($1_dim0) &gt; 0;"
+int total(int n, const int values[n]);
+</pre>
+</div>
+
+<div class="shell">
+<pre>
+example.i:7: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'values'.
+example.i:7: Error: The 'typecheck' typemap cannot use the runtime size of variable length array parameter 'values'.
+</pre>
+</div>
+
+<p>
+The size of a dimension with a constant size, such as <tt>$1_dim1</tt> for <tt>double m[n][3]</tt>, can be used in any
+typemap.
+</p>
+
+<p>
+An output array is usually allocated in an "in" typemap with <tt>numinputs=0</tt>, so that it is not an argument in
+the target language.
+This is not possible for an output array sized by an earlier parameter, as the code of such a typemap comes before the
+size has a value.
+This is a limitation of SWIG.
+Allocate the array in a "check" typemap instead, keeping the "in" typemap with <tt>numinputs=0</tt> just to set it to
+NULL, so that the "freearg" typemap can free it even if converting an argument fails.
+The following typemaps are written in the order that their code comes in the wrapper:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in, numinputs=0) double numbers[*] "$1 = 0;"
+%typemap(check) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
+%typemap(argout) double numbers[*] {
+  ... add the $1_dim0 elements of $1 to $result ...
+}
+%typemap(freearg) double numbers[*] "free($1);"
+void squares(int n, double numbers[n]);
+</pre>
+</div>
+
+<p>
+The wrapper for <tt>squares</tt> then has this code, in outline:
+</p>
+
+<div class="code">
+<pre>
+arg2 = 0;
+... convert the first argument into arg1 ...
+arg2 = (double *)calloc((arg1), sizeof(double));
+squares(arg1, arg2);
+... add the (arg1) elements of arg2 to result ...
+free(arg2);
+</pre>
+</div>
+
+<p>
+A <a href="#Typemaps_multi_argument_typemaps">multi-argument typemap</a> is written as a parameter list.
+An array in it whose size refers to an earlier parameter of the typemap, or whose size is <tt>*</tt>, is a variable
+length array, as if written with <tt>*</tt>.
+So the following typemap has the parameter types <tt>size_t</tt> and <tt>const double[*]</tt>.
+It matches <tt>sum</tt> above, but not a function whose second parameter is an array of unknown size, such as
+<tt>const double[]</tt>.
+Its <tt>$2_dim0</tt> is the size of <tt>values</tt> worked out at runtime:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) (size_t n, const double values[n]) {
+  ...
+}
+</pre>
+</div>
+
+<p>
+A typemap for a single parameter has no earlier parameter for a size to refer to, so <tt>[n]</tt> in one is a fixed
+size, which never matches a variable length array parameter.
+Write <tt>[*]</tt> to match a variable length array parameter or <tt>[]</tt> to match any array of unknown size.
+</p>
+
+<p>
+SWIG provides typemaps written with <tt>*</tt> for a <tt>char</tt> array in every target language except C, which
+passes the array on unchanged.
+Like the typemaps for a fixed size array, they copy a string into an array of the size worked out at runtime, zero
+filling the rest of the array.
+</p>
+
+<H2><a name="Typemaps_warnings">16.11 Typemap warnings</a></H2>
 
 
 <p>
@@ -4220,7 +4382,7 @@ See the information in the <a href="Warnings.html#Warnings_nn5">issuing warnings
 </p>
 
 
-<H2><a name="Typemaps_fragments">16.11 Typemap fragments</a></H2>
+<H2><a name="Typemaps_fragments">16.12 Typemap fragments</a></H2>
 
 
 <p>
@@ -4571,7 +4733,7 @@ fragment usage unless a desire to really get to grips
 with some powerful but tricky macro and fragment usage that is used in parts of the SWIG typemap library.
 </p>
 
-<H3><a name="Typemaps_fragment_type_specialization">16.11.1 Fragment type specialization</a></H3>
+<H3><a name="Typemaps_fragment_type_specialization">16.12.1 Fragment type specialization</a></H3>
 
 
 <p>
@@ -4604,7 +4766,7 @@ struct A {
 </pre>
 </div>
 
-<H3><a name="Typemaps_automatic_specialization">16.11.2 Fragments and automatic typemap specialization</a></H3>
+<H3><a name="Typemaps_automatic_specialization">16.12.2 Fragments and automatic typemap specialization</a></H3>
 
 
 <p>
@@ -4650,7 +4812,7 @@ The interested (or very brave) reader can take a look at the fragments.swg file 
 </p>
 
 
-<H2><a name="Typemaps_runtime_type_checker">16.12 The run-time type checker</a></H2>
+<H2><a name="Typemaps_runtime_type_checker">16.13 The run-time type checker</a></H2>
 
 
 <p>
@@ -4676,7 +4838,7 @@ language modules.</li>
 <li>Modules can be unloaded from the type system.</li>
 </ul>
 
-<H3><a name="Typemaps_nn45">16.12.1 Implementation</a></H3>
+<H3><a name="Typemaps_nn45">16.13.1 Implementation</a></H3>
 
 
 <p>
@@ -4870,7 +5032,7 @@ structures rather than creating new ones.  These <tt>swig_module_info</tt>
 structures are chained together in a circularly linked list.
 </p>
 
-<H3><a name="Typemaps_runtime_type_checker_usage">16.12.2 Usage</a></H3>
+<H3><a name="Typemaps_runtime_type_checker_usage">16.13.2 Usage</a></H3>
 
 
 <p>This section covers how to use these functions from typemaps.  To learn how to
@@ -4966,7 +5128,7 @@ probably just look at the output of SWIG to get a better sense for how types are
 managed.
 </p>
 
-<H2><a name="Typemaps_overloading">16.13 Typemaps and overloading</a></H2>
+<H2><a name="Typemaps_overloading">16.14 Typemaps and overloading</a></H2>
 
 
 <p>
@@ -5305,7 +5467,7 @@ Subsequent "in" typemaps would then perform more extensive type-checking.
 </li>
 </ul>
 
-<H3><a name="Typemaps_typecheck_pointer">16.13.1 SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a></H3>
+<H3><a name="Typemaps_typecheck_pointer">16.14.1 SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a></H3>
 
 
 <p>
@@ -5407,7 +5569,7 @@ Otherwise both can be wrapped by removing the overloading name ambiguity by rena
 The 'equivalent' attribute is used in the implementation for the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library.
 </p>
 
-<H2><a name="Typemaps_nn48">16.14 More about %apply and %clear</a></H2>
+<H2><a name="Typemaps_nn48">16.15 More about %apply and %clear</a></H2>
 
 
 <p>
@@ -5511,7 +5673,7 @@ will delete the typemaps for all the typemap methods; namely "in", "check" and "
 </pre>
 </div>
 
-<H3><a name="Typemaps_apply_typedefs">16.14.1 Typedefs and %apply</a></H3>
+<H3><a name="Typemaps_apply_typedefs">16.15.1 Typedefs and %apply</a></H3>
 
 
 <p>
@@ -5593,7 +5755,7 @@ for <tt>int *NEGATIVE</tt>
 no longer being available for applying.
 </p>
 
-<H2><a name="Typemaps_nn47">16.15 Passing data between typemaps</a></H2>
+<H2><a name="Typemaps_nn47">16.16 Passing data between typemaps</a></H2>
 
 
 <p>
@@ -5630,7 +5792,7 @@ sure that the typemaps sharing information have exactly the same types and names
 </p>
 
 
-<H2><a name="Typemaps_nn52">16.16 C++ "this" pointer</a></H2>
+<H2><a name="Typemaps_nn52">16.17 C++ "this" pointer</a></H2>
 
 
 <p>
@@ -5690,7 +5852,7 @@ will also match the typemap.  One work around is to create an interface file tha
 the method, but gives the argument a name other than <tt>self</tt>.
 </p>
 
-<H2><a name="Typemaps_nn51">16.17 Where to go for more information?</a></H2>
+<H2><a name="Typemaps_nn51">16.18 Where to go for more information?</a></H2>
 
 
 <p>

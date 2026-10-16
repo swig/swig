@@ -351,7 +351,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    if (!$1)
      scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
  }
- %typemap (freearg)                              char [*] {free($1);}
+ %typemap (freearg)                              char [*] {free((char *)$1);}
  %typemap (in,     doc="$NAME is a string")      char [](char *swig_str = 0) {
    swig_str = SWIG_scm2str($input);
    $1 = ($1_ltype)swig_str;

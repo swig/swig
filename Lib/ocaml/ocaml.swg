@@ -255,7 +255,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
         }
     }
 }
-%typemap(freearg) char [*] "free($1);"
+%typemap(freearg) char [*] "free((char *)$1);"
 
 %typemap(varin, fragment="SWIG_CopyCharArray") char [ANY] {
     char *str = caml_string_val($input);

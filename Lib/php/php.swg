@@ -105,7 +105,7 @@
      }
    }
 %}
-%typemap(freearg) char[*] %{ free($1); %}
+%typemap(freearg) char[*] %{ free((char *)$1); %}
 
 %typemap(in, phptype="string") char[]
 %{

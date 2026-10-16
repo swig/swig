@@ -3604,8 +3604,8 @@ prototype:
 
 <div class="code">
 <pre>
-double sum(size_t, const double [*]);
-void fill(size_t, size_t, double [*][*]);
+double sum(size_t, const double[*]);
+void fill(size_t, size_t, double[*][*]);
 </pre>
 </div>
 
@@ -3701,52 +3701,45 @@ int sum_global(int n, const int values[global_n]);
 </div>
 
 <p>
-SWIG cannot always tell whether a size is a constant, so <tt>values</tt> is wrapped as a fixed size array, using the
-typemaps for <tt>const int [ANY]</tt>.
-Their <tt>$1_dim0</tt> is <tt>global_n</tt>, so the size must be one that can be used in the wrapper code.
+SWIG cannot always tell whether a size is a constant, so <tt>values</tt> is wrapped as a fixed size array.
 </p>
 
 <p>
-As the size of a variable length array is not known until runtime, typemaps for a fixed size array, such as
-<tt>double [ANY]</tt>, are not used for a variable length array parameter.
-In a typemap, <tt>*</tt> as the size of an array, as in <tt>char [*]</tt>, stands for the size of any variable length
-array, much as <tt>ANY</tt> stands for any fixed size.
-Such a typemap is used for a variable length array parameter if there is one.
-Otherwise the typemaps for an array of unknown size, such as <tt>char []</tt>, are used.
-A parameter declared with <tt>*</tt> as its size has no size, so it always uses the typemaps for an array of unknown
-size.
+The typemaps used for a variable length array parameter, including those that SWIG provides and ones that use the size
+the array has at runtime, are described in
+<a href="Typemaps.html#Typemaps_variable_length_arrays">Typemaps for variable length arrays</a>.
 </p>
 
 <p>
-In a typemap written with <tt>*</tt>, <tt>$1_dim0</tt> is the size of the array, worked out at runtime from the earlier
-parameters that the size refers to.
-A typemap's local variables are declared before any of the arguments are converted, so they cannot use it.
-SWIG reports an error if one does:
+A function can be declared more than once in C, such as in a prototype written with <tt>*</tt> as the size and then
+in one that gives the size:
 </p>
 
 <div class="code">
 <pre>
 %module example
 
-%typemap(in) const int [*] (int temp[$1_dim0]) {
-  ...
-}
+int total(int, const int[*]);
 int total(int n, const int values[n]);
 </pre>
 </div>
 
+<p>
+Both declarations have the same type once the sizes are removed, so SWIG wraps the first and ignores the second as
+redundant, giving warning 322 when run with <tt>-Wall</tt>:
+</p>
+
 <div class="shell">
 <pre>
-example.i:6: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'values'.
+example.i:4: Warning 322: Redundant redeclaration of identifier 'total' as total(int,int const []) ignored,
+example.i:3: Warning 322: previous declaration of 'total' as total(int,int const []).
 </pre>
 </div>
 
 <p>
-SWIG provides typemaps written with <tt>*</tt> for a <tt>char</tt> array in every target language.
-In R, there are also typemaps for an array of numbers or an array of strings.
-Like the typemaps for a fixed size array, they copy a string or vector into an array of the size worked out at
-runtime, zero filling the rest of the array.
-A string or vector that is too long for the array is an error.
+The size given by the second declaration is still used by the
+<a href="Typemaps.html#Typemaps_variable_length_arrays">typemaps for variable length arrays</a>, so it does not
+matter which declaration comes first.
 </p>
 
 <p>
@@ -3761,31 +3754,9 @@ So each of the following matches <tt>sum</tt> above:
 <pre>
 %rename(sum_doubles) sum(size_t n, const double values[n]);
 %rename(sum_doubles) sum(size_t, const double values[*]);
-%rename(sum_doubles) sum(size_t, const double []);
+%rename(sum_doubles) sum(size_t, const double[]);
 </pre>
 </div>
-
-<p>
-A multi-argument typemap is written as a parameter list as well, so a size in it that refers to an earlier parameter
-of the typemap is removed too.
-The following typemap therefore has the parameter types <tt>size_t</tt> and <tt>const double []</tt>.
-They are the types of the parameters of <tt>sum</tt> once the size of <tt>values</tt> is removed, so the typemap
-matches them:
-</p>
-
-<div class="code">
-<pre>
-%typemap(in) (size_t n, const double values[n]) {
-  ...
-}
-</pre>
-</div>
-
-<p>
-A typemap for a single parameter has no earlier parameter for a size to refer to, so <tt>[n]</tt> in one is a fixed
-size, which never matches a variable length array parameter.
-Write <tt>[*]</tt> to match a variable length array parameter or <tt>[]</tt> to match any array of unknown size.
-</p>
 
 <p>
 <b>Compatibility note:</b> SWIG-4.6.0 is the first version to parse <tt>*</tt> as the size of an array.

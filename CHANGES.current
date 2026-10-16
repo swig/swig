@@ -132,13 +132,39 @@ Version 4.6.0 (in progress)
 
               int char_length(int n, const char s[n]);
 
-            Such typemaps are provided for a char array in every target language. In R, they are also
-            provided for an array of numbers or strings. They copy the string or vector into an array
-            of that size, as for a fixed size array, instead of passing it without checking its length.
-            A string or vector too long for the array is now an error.
+            The size is used even when the function is first declared without it, as C allows:
 
-            The size cannot be used in such a typemap's local variables, which are declared before the
-            arguments are converted, and doing so is an error.
+              int char_length(int, const char [*]);
+              int char_length(int n, const char s[n]);
+
+            In a multidimensional array, each dimension whose size is only known at runtime is written
+            with '*', as in 'double [*][*]' for 'double m[r][c]'. A dimension with a constant size is
+            written with its size or with ANY, as in 'double [*][ANY]' for 'double m[n][3]'. '$1_dim1'
+            and so on are the sizes of the other dimensions and '$1_size' is all the sizes multiplied
+            together.
+
+            A typemap written with '*' is used before any typemap for an array of unknown size, even
+            when the '*' typemap only matches once a qualifier is removed or a typedef is resolved. So
+            'int [*]' is used rather than 'const int []' for 'const int a[n]'. The default typemaps are
+            looked for in the same order, 'SWIGTYPE [*]' before 'SWIGTYPE []'.
+
+            In a multi-argument typemap, an array written with '*', or with a size that refers to an
+            earlier parameter of the typemap, only matches a variable length array parameter. Its
+            '$2_dim0' and so on are the sizes of that array:
+
+              %typemap(in) (int n, double values[n]) {...}
+              double sum(int n, double values[n]);
+
+            Such typemaps are provided for a char array in every target language except C, which passes
+            the array on unchanged. In R, they are also provided for an array of numbers, enums or
+            strings. They copy the string or vector into an array of that size, as for a fixed size
+            array, instead of passing it without checking its length. A string or vector too long for
+            the array is now an error.
+
+            The size is only known once the arguments are converted. So it can only be used in the
+            'check', 'argout' and 'freearg' typemaps and in an 'in' typemap without numinputs=0. Using
+            it in any other typemap, such as a 'typecheck' or target language typemap, or in a
+            typemap's local variables or attributes is an error.
 
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using

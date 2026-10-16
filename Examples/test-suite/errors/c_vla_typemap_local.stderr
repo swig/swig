@@ -1,2 +1,3 @@
 c_vla_typemap_local.i:6: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'a'.
 c_vla_typemap_local.i:7: Error: Typemap local variable 'size' cannot use the runtime size of variable length array parameter 'd'.
+c_vla_typemap_local.i:13: Error: Typemap local variable 'row' cannot use the runtime size of variable length array parameter 'm'.

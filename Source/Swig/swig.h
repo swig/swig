@@ -162,6 +162,7 @@ extern int SwigType_isrvalue_reference(const SwigType *t);
 extern int SwigType_isanyreference(const SwigType *t);
 extern int SwigType_isvariadic(const SwigType *t);
 extern int SwigType_isarray(const SwigType *t);
+extern int SwigType_isarray_vla(const SwigType *t);
 extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
 extern int SwigType_isfunction(const SwigType *t);
 extern int SwigType_isqualifier(const SwigType *t);
