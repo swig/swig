@@ -219,12 +219,9 @@ jobs:
           if [[ "$COMPILER" = "gcc" ]]; then
             # MinGW-w64 variant to use
             # See: https://www.msys2.org/docs/environments
-            MSYS2_UENV="${MSYS2_ENV^^}" # Change to uppercase
-            if [[ "$MSYSTEM" != "$MSYS2_UENV" ]]; then
-                MSYSTEM="$MSYS2_UENV"
-                # Change MSYS2 active environment
-                echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
-            fi
+            MSYSTEM="${MSYS2_ENV^^}" # Change to uppercase
+            # Change MSYS2 active environment
+            echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
             case "$MSYSTEM" in
             MINGW64) # Use MinGW-w64 with old Microsoft Visual C++ Runtime
               # The matched MSYS2 packages prefix
