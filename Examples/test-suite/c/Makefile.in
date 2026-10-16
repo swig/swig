@@ -11,8 +11,9 @@ top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES := \
-				 c_backend_cpp_natural_std_string \
-				 c_backend_cpp_exception \
+    c_backend_cpp_natural_std_string \
+    c_backend_cpp_exception \
+    c_exceptions \
 
 CPP11_TEST_CASES := \
 

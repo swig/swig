@@ -2050,6 +2050,51 @@ public:
   }
 
   /* ----------------------------------------------------------------------
+   * canThrow()
+   *
+   * Notes that the wrapper for 'n' needs the 'fail' label that SWIG_fail jumps to,
+   * if the 'typemap' typemap attached to 'parameter' has the canthrow attribute.
+   * ---------------------------------------------------------------------- */
+
+  void canThrow(Node *n, const_String_or_char_ptr typemap, Node *parameter) {
+    String *canthrow_attribute = NewStringf("tmap:%s:canthrow", typemap);
+    String *canthrow = Getattr(parameter, canthrow_attribute);
+    if (canthrow)
+      Setattr(n, "c:canthrow", "1");
+    Delete(canthrow_attribute);
+  }
+
+  /* ----------------------------------------------------------------------
+   * emit_fail_label()
+   *
+   * Appends the 'fail' label that SWIG_fail jumps to after an error, if a typemap or feature used by the
+   * wrapper has the canthrow attribute, followed by the cleanup code and a return of 'fail_result', which
+   * is NULL for a void function. Returns true if the label is added.
+   * ---------------------------------------------------------------------- */
+
+  bool emit_fail_label(Node *n, Wrapper *wrapper, String *cleanup, const char *fail_result) {
+    if (!Getattr(n, "c:canthrow")) {
+      // A simple check, which is not foolproof, for code that jumps to the label. SWIG_exception is usually found as the SWIG_fail it expands to.
+      const char *jump = Strstr(wrapper->code, "SWIG_exception") ? "SWIG_exception" : Strstr(wrapper->code, "SWIG_fail") ? "SWIG_fail" : NULL;
+      if (jump) {
+        Swig_warning(WARN_C_CANTHROW_MISSING,
+                     input_file,
+                     line_number,
+                     "Wrapper code uses %s, but no 'fail' label is generated for it to jump to, as the canthrow attribute is not set.\n",
+                     jump);
+      }
+      return false;
+    }
+
+    if (fail_result) {
+      Printv(wrapper->code, "fail: SWIGUNUSED;\n", cleanup, "return ", fail_result, ";\n", NIL);
+    } else {
+      Printv(wrapper->code, "return;\n", "fail: SWIGUNUSED;\n", cleanup, "return;\n", NIL);
+    }
+    return true;
+  }
+
+  /* ----------------------------------------------------------------------
    * get_mangled_type()
    * ---------------------------------------------------------------------- */
 
@@ -2158,6 +2203,7 @@ public:
     for (p = parms; p;) {
       String *tm;
       if ((tm = Getattr(p, "tmap:check"))) {
+        canThrow(n, "check", p);
         Replaceall(tm, "$target", Getattr(p, "lname"));
         Replaceall(tm, "$name", name);
         Printv(wrapper->code, tm, "\n", NIL);
@@ -2175,18 +2221,20 @@ public:
     Append(wrapper->code, append_feature(n));
     if (!is_void_return)
       Printf(wrapper->code, "return result;\n");
-    Printf(wrapper->code, "}");
 
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-    if (!is_void_return && SwigType_type(resolved_type) == T_USER && Strstr(wrapper->code, "$null")) {
-      // A struct returned by value cannot be 0, so a zero initialised one is returned
-      String *null_result = NewStringf("static %s swig_null_result;\n", return_type);
-      Insert(wrapper->code, 0, null_result);
-      Replaceall(wrapper->code, "$null", "swig_null_result");
-      Delete(null_result);
+    if (SwigType_type(resolved_type) == T_USER) {
+      // A struct returned by value cannot be 0, so a zero initialised one is returned after an error
+      if (emit_fail_label(n, wrapper, empty_string, "swig_null_result")) {
+        String *null_result = NewStringf("static %s swig_null_result;\n", return_type);
+        Insert(wrapper->code, 0, null_result);
+        Delete(null_result);
+      }
+    } else {
+      emit_fail_label(n, wrapper, empty_string, is_void_return ? NULL : "0");
     }
     Delete(resolved_type);
-    Replaceall(wrapper->code, "$null", is_void_return ? "" : "0");
+    Printf(wrapper->code, "}");
 
     Wrapper_print(wrapper, sect_wrappers);
 
@@ -2308,6 +2356,7 @@ public:
       if ((tm = Getattr(p, "tmap:in"))) {
         Replaceall(tm, "$input", arg_name);
         if (wrapper) {
+          canThrow(n, "in", p);
           Setattr(p, "emit:input", arg_name);
           Printf(wrapper->code, "%s\n", tm);
         }
@@ -2430,6 +2479,7 @@ public:
     for (p = parms; p;) {
       String *tm;
       if ((tm = Getattr(p, "tmap:check"))) {
+        canThrow(n, "check", p);
         Replaceall(tm, "$target", Getattr(p, "lname"));
         Replaceall(tm, "$name", name);
         Printv(wrapper->code, tm, "\n", NIL);
@@ -2438,6 +2488,25 @@ public:
         p = nextSibling(p);
       }
     }
+
+    // look for the throws typemaps used for the exception specification and the canthrow attribute
+    if (ParmList *throw_parm_list = Getattr(n, "catchlist")) {
+      Swig_typemap_attach_parms("throws", throw_parm_list, wrapper);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+        if (Getattr(p, "tmap:throws"))
+          canThrow(n, "throws", p);
+      }
+    }
+
+    // the action of a variable setter is the memberin or globalin typemap
+    if (Getattr(n, "memberset"))
+      canThrow(n, "memberin", n);
+    else if (Getattr(n, "varset"))
+      canThrow(n, "globalin", n);
+
+    // %exception
+    if (Getattr(n, "feature:except:canthrow"))
+      Setattr(n, "c:canthrow", "1");
 
     // create action code
     String *action = Getattr(n, "wrap:action");
@@ -2459,6 +2528,7 @@ public:
     if (!is_void_return) {
       String *tm;
       if ((tm = Swig_typemap_lookup_out("out", n, "cppresult", wrapper, action))) {
+        canThrow(n, "out", n);
         // This is ugly, but the type of our result variable is not always the same as the actual return type currently because
         // get_wrapper_func_return_type() applies ctype typemap to it. These types are more or less compatible though, so we should be able to cast
         // between them explicitly.
@@ -2485,7 +2555,8 @@ public:
       Append(wrapper->code, action);
     }
 
-    // insert cleanup code
+    // insert cleanup code, which is run after an error too, so the canthrow attribute is not used for a freearg typemap, which cannot use SWIG_fail
+    scoped_dohptr cleanup(NewStringEmpty());
     for (p = parms; p;) {
       String *tm;
       if ((tm = Getattr(p, "tmap:freearg"))) {
@@ -2494,23 +2565,20 @@ public:
           Replaceall(tm, "$source", Getattr(p, "lname"));
           Replaceall(tm, "$input", input);
           Delete(input);
-          Printv(wrapper->code, tm, "\n", NIL);
+          Printv(cleanup, tm, "\n", NIL);
         }
         p = Getattr(p, "tmap:freearg:next");
       } else {
         p = nextSibling(p);
       }
     }
+    Append(wrapper->code, cleanup);
+
+    if (!is_void_return)
+      Append(wrapper->code, "return result;\n");
+    emit_fail_label(n, wrapper, cleanup, is_void_return ? NULL : "0");
 
     emit_isvoid_special_variables(n, wrapper->code, is_void_return);
-
-    if (is_void_return) {
-      Replaceall(wrapper->code, "$null", "");
-    } else {
-      Replaceall(wrapper->code, "$null", "0");
-
-      Append(wrapper->code, "return result;\n");
-    }
 
     Append(wrapper->code, "}\n");
 
@@ -2545,6 +2613,9 @@ public:
       if (!addSymbol(Getattr(n, "sym:name"), n))
         return SWIG_ERROR;
     }
+
+    // A variable getter and setter are wrapped from the same node, so only the typemaps and features of this wrapper decide if it can fail
+    Delattr(n, "c:canthrow");
 
     if (CPlusPlus) {
       functionWrapperCPPSpecific(n);

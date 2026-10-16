@@ -8,6 +8,30 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-17: wsfulton
+            [C] #3588 Fix a memory leak when an error is raised after an 'in' typemap has allocated memory.
+            SWIG_exception left the wrapper without running the 'freearg' typemaps that release the memory.
+            SWIG_exception now leaves the wrapper with the new SWIG_fail macro, which jumps to a fail label
+            at the end of the wrapper. The code after the label runs the 'freearg' typemaps and then returns.
+            SWIG_fail can also be used directly in a typemap to leave the wrapper after an error.
+
+            A typemap using SWIG_exception or SWIG_fail must now have the canthrow attribute, which
+            generates the fail label, for example:
+
+              %typemap(check, canthrow=1) int positive {
+                if ($1 <= 0)
+                  SWIG_exception(SWIG_ValueError, "positive value expected");
+              }
+
+            Without it, the wrapper does not compile. Warning 762 is given if SWIG_exception or SWIG_fail is
+            found in a wrapper without the canthrow attribute. The warning cannot be relied on though, as other
+            ways of jumping to the fail label are not found, such as a macro that uses SWIG_fail.
+
+            %exception and %exceptionvar have the canthrow attribute set, as do the library typemaps that
+            raise an error.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-17: wsfulton
             [C#, D] Fix missing warning for SWIG_exception used without the canthrow attribute, such as
             in this typemap:
 

@@ -18,7 +18,7 @@
   Foo::inc_freearg_count();
   delete $1;
 }
-%typemap(out) Foo* trigger_internal_swig_exception
+%typemap(out, canthrow=1) Foo* trigger_internal_swig_exception
 {
   TYPEMAP_OUT_INIT
   if ($1 == NULL) {
@@ -29,7 +29,7 @@
   }
   $1 = NULL;
 }
-%typemap(out) Foo trigger_internal_swig_exception
+%typemap(out, canthrow=1) Foo trigger_internal_swig_exception
 {
   TYPEMAP_OUT_INIT
   SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");

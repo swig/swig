@@ -5,7 +5,7 @@
 #include "example.h"
 %}
 
-%typemap(throws, noblock="1") Exc {
+%typemap(throws, noblock=1, canthrow=1) Exc {
   SWIG_exception(SWIG_RuntimeError, $1.msg);
 }
 

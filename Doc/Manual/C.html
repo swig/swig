@@ -625,6 +625,8 @@ A typical wrapper will be composited with these [optional] blocks:
 <li>[Exception handling]</li>
 <li>[Assignment to C++ return value]</li>
 <li>Assignment to C return value</li>
+<li>[Cleanup]</li>
+<li>[Cleanup and return after an error]</li>
 </ol>
 
 <p>
@@ -717,10 +719,21 @@ return result;
 </pre></div>
 
 <p>
-Note that typemaps may use <tt>$null</tt> special variable which will be
-replaced with either <tt>0</tt> or nothing, depending on whether the function
-has a non-void return value or not.
+Code in typemaps or <tt>%exception</tt> leaves the wrapper after an error with <tt>SWIG_fail</tt>, which jumps to a <tt>fail</tt> label at the end of the wrapper.
+<tt>SWIG_exception(code, msg)</tt> raises the error and then uses <tt>SWIG_fail</tt>.
+The code after the label runs the 'freearg' typemaps, so that memory allocated in the 'in' typemaps is released, then returns a zero value, or nothing for a function returning void.
+For example, with 'in' and 'freearg' typemaps that call <tt>strdup</tt> and <tt>free</tt> for a string parameter, the wrapper ends with:
 </p>
+
+<div class="targetlang"><pre>
+  ...
+  free(arg1);
+  return result;
+fail:
+  free(arg1);
+  return 0;
+}
+</pre></div>
 
 <H4><a name="C_walkthrough_proxy">40.6.1.3 The Proxy</a></H4>
 

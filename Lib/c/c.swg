@@ -331,7 +331,7 @@ typedef struct SwigObj SwigObj;
 
 %include <swigcommon.swg>
 
-%typemap(in, noblock=1) SWIGTYPE &, SWIGTYPE &&, SWIGTYPE ((&)[ANY]) {
+%typemap(in, canthrow=1, noblock=1) SWIGTYPE &, SWIGTYPE &&, SWIGTYPE ((&)[ANY]) {
   $1 = ($1_ltype) $input;
   if (!$1) {
     SWIG_exception(SWIG_NullReferenceError, "$1_type reference is null");

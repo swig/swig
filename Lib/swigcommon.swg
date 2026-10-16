@@ -9,7 +9,7 @@
  *   %fragment("SWIG_exception")  - any support code that SWIG_exception needs, which is always brought in.
  * Then it includes swigexceptions.swg, with the error handling common to all target languages, such as the SWIG error
  * codes and SWIG_exception_fail, the same macro as SWIG_exception.
- * A typemap here that raises an error uses canthrow=1 (for C# and D). Its code is in a noblock=1 { } body, as
+ * A typemap here that raises an error uses canthrow=1 (for C, C# and D). Its code is in a noblock=1 { } body, as
  * SWIG_exception is a SWIG preprocessor macro in some target languages.
  * ----------------------------------------------------------------------------- */
 

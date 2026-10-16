@@ -1,10 +1,15 @@
 /* -----------------------------------------------------------------------------
  * exception.swg
  *
- * Defines SWIG_exception(code, msg), the SWIG_exception fragment with any support code that it needs and the throws typemaps for C++ exceptions.
- * SWIG_exception raises the target language error for a SWIG error code and leaves the wrapper function.
- * Included by swigcommon.swg.
+ * Defines SWIG_exception(code, msg), SWIG_fail, the SWIG_exception fragment with any support code that it needs and the throws typemaps for C++
+ * exceptions. SWIG_exception raises the target language error for a SWIG error code and leaves the wrapper function through SWIG_fail, which jumps
+ * to the cleanup code at the end of the wrapper function. A typemap or feature using either needs the canthrow attribute for the wrapper function to
+ * have the 'fail' label that SWIG_fail jumps to. Included by swigcommon.swg.
  * ----------------------------------------------------------------------------- */
+
+%insert("runtime") %{
+#define SWIG_fail goto fail
+%}
 
 #ifdef SWIG_C_EXCEPT
 // This function is special: it's used by various typemaps (via SWIG_exception
@@ -101,13 +106,13 @@ template <typename T> T swig_check(T x) {
 #endif // SWIG_CXX_WRAPPERS
 
 // Raise the error for a SWIG error code and leave the wrapper
-#define SWIG_exception(code, msg) { SWIG_CException_Raise(code, msg); return $null; }
+#define SWIG_exception(code, msg) { SWIG_CException_Raise(code, msg); SWIG_fail; }
 
-%typemap(throws, noblock="1") char *, const char * {
+%typemap(throws, noblock=1, canthrow=1) char *, const char * {
   SWIG_exception(SWIG_RuntimeError, $1);
 }
 
-%typemap(throws, noblock="1") SWIGTYPE {
+%typemap(throws, noblock=1, canthrow=1) SWIGTYPE {
   SWIG_exception(SWIG_UnknownError, "exception of type $1_type");
 }
 
@@ -121,6 +126,6 @@ template <typename T> T swig_check(T x) {
 %}
 
 // Call any SWIG_exception defined in C above, which is not expanded again inside this macro, then leave the wrapper
-#define SWIG_exception(code, msg) { SWIG_exception(code, msg); return $null; }
+#define SWIG_exception(code, msg) { SWIG_exception(code, msg); SWIG_fail; }
 #endif // SWIG_C_EXCEPT/!SWIG_C_EXCEPT
 %fragment("SWIG_exception", "header") {}
