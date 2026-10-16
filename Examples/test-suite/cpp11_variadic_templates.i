@@ -228,3 +228,11 @@ struct PlainStruct {
 %template(PlainStructParms1) PlainStruct::ParmsPlainStructVariadic<A>;
 %template(PlainStructParms2) PlainStruct::ParmsPlainStructVariadic<A,B>;
 %template(PlainStructParms3) PlainStruct::ParmsPlainStructVariadic<A,B,C>;
+
+// A pack argument with the same name as an earlier template parameter
+%inline %{
+template <typename B, typename... Bs> struct NamedLikePack {
+  int pack_size(B, Bs...) { return (int)sizeof...(Bs); }
+};
+%}
+%template(NamedLikePackIntB) NamedLikePack<int, B>;

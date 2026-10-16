@@ -466,6 +466,7 @@ CPP_TEST_CASES += \
 	symbol_clash \
 	sym \
 	template_advanced_rename \
+	template_arg_names \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \

@@ -126,6 +126,21 @@ Version 4.6.0 (in progress)
             exception was not thrown. Now it is thrown, as it is for %exception code.
 
 2026-10-16: wsfulton
+            Fix %template when a template argument has the same name as a later template parameter.
+            For example, 'Second' is both a type and the name of the second template parameter here:
+
+              struct Second { int value; };
+              template<typename First, typename Second> struct Pair {
+                First first;
+                Second second;
+                Pair *link;
+              };
+              %template(PairSecond) Pair<Second, int>;
+
+            The template was wrapped with the wrong types or the wrappers did not compile. Function
+            templates were affected too.
+
+2026-10-16: wsfulton
             Fix %template of a class template with a default template argument when a template
             argument has the same name as a later template parameter. For example, 'Second' is both a
             type and the name of the second template parameter here:

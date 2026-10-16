@@ -869,6 +869,37 @@ static int explicit_template_argument_count(ParmList *templateparms, ParmList *t
 }
 
 /* -----------------------------------------------------------------------------
+ * template_parm_placeholder()
+ *
+ * A name for the template parameter at 'position' that cannot occur in a type or in code, which replaces the
+ * parameter's name until every parameter's name is replaced, before the template arguments replace the placeholders.
+ * ----------------------------------------------------------------------------- */
+
+static String *template_parm_placeholder(int position) {
+  return NewStringf("$swig_tparm%d", position);
+}
+
+/* -----------------------------------------------------------------------------
+ * template_pack_placeholders()
+ *
+ * A copy of 'expanded_variadic_parms', the template arguments of a variadic template parameter pack, with a
+ * placeholder as the type of each, which replaces the argument when the pack is expanded until every template
+ * parameter's name is replaced.  0 if there are no arguments.
+ * ----------------------------------------------------------------------------- */
+
+static ParmList *template_pack_placeholders(ParmList *expanded_variadic_parms) {
+  ParmList *placeholders = CopyParmList(expanded_variadic_parms);
+  Parm *p;
+  int position = 1;
+  for (p = placeholders; p; p = nextSibling(p), position++) {
+    String *placeholder = NewStringf("$swig_tpack%d", position);
+    Setattr(p, "type", placeholder);
+    Delete(placeholder);
+  }
+  return placeholders;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cparse_template_expand()
  * ----------------------------------------------------------------------------- */
 
@@ -880,6 +911,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   String *tbase;
   Parm *unexpanded_variadic_parm = 0;
   ParmList *expanded_variadic_parms = 0;
+  ParmList *pack_placeholders;
   ParmList *templateparms = Getattr(n, "templateparms");
   ParmList *templateparmsraw = 0;
   patchlist = NewList();  /* List of String * ("name" and "value" attributes) */
@@ -949,10 +981,18 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     }
   }
 
+  /* A variadic template parameter pack is expanded with placeholders for its arguments, which replace them only after
+   * every template parameter's name is replaced, so that a name in them is not replaced too, such as the 'T' given for
+   * 'Ts' here:
+   *   template<class T, class... Ts> struct V { void f(T t, Ts... ts); };
+   *   %template(VT) V<int, T>;
+   */
+  pack_placeholders = template_pack_placeholders(expanded_variadic_parms);
+
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
      Printf(stdout,"rname = '%s'\n", rname);
      Printf(stdout,"tname = '%s'\n", tname);  */
-  cparse_template_expand(n, n, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
+  cparse_template_expand(n, n, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, pack_placeholders);
 
   /* Set the name */
   {
@@ -974,48 +1014,53 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     if (tp) {
       Symtab *tsdecl = Getattr(n, "sym:symtab");
       String *tsname = Getattr(n, "sym:name");
-      while (tp) {
-        String *name, *value, *valuestr, *tmp, *tmpr;
-        int sz, i;
-        String *dvalue = 0;
-        String *qvalue = 0;
-        SwigType *argtype = Getattr(tp, "argtype");
+      /* The types in typelist in which a template parameter is replaced, so that the template's own name is too */
+      List *patched_types = NewList();
+      Iterator ti;
+      int named = 0;
+      int position;
+      int i;
+      Parm *p;
 
-        name = Getattr(tp, "name");
-        value = Getattr(tp, "value");
-
+      /* Replace each template parameter's name with a placeholder first and then each placeholder with its template
+       * argument, so that a name in an argument is not replaced by a later parameter's argument, such as the 'U' given
+       * for 'T' here:
+       *   template<class T, class U> struct Y { T t; };
+       *   %template(YU) Y<U, int>;
+       */
+      for (p = tp, position = 1; p; p = nextSibling(p), position++) {
+        String *name = Getattr(p, "name");
         if (name) {
-          if (!value)
-            value = Getattr(tp, "type");
-          qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
-          dvalue = Swig_symbol_type_qualify(qvalue, tsdecl);
-          if (SwigType_istemplate(dvalue)) {
-            String *ty = Swig_symbol_template_deftype(dvalue, tscope);
-            Delete(dvalue);
-            dvalue = ty;
+          String *placeholder = template_parm_placeholder(position);
+          named = 1;
+
+          for (i = 0; i < Len(patchlist); i++) {
+            /* Patch String or SwigType, eg the T in Foo<(T)> or the TT in X<(TT)>::meth */
+            Replace(Getitem(patchlist, i), name, placeholder, DOH_REPLACE_ID);
           }
 
-          assert(dvalue);
-          valuestr = SwigType_str(dvalue, 0);
-          sz = Len(patchlist);
-          for (i = 0; i < sz; i++) {
-            /* Patch String or SwigType with SwigType, eg T => int in Foo<(T)>, or TT => Hello<(int)> in X<(TT)>::meth */
-            String *s = Getitem(patchlist, i);
-            Replace(s, name, dvalue, DOH_REPLACE_ID);
-            /* Try treat the string as a proper SwigType thought it's usually a string containing an unparsed
-             * C type.  The proper fix would be to parse the String to convert it to a SwigType say using
-             * Swig_cparse_type, but we'd need a re-entrant parser for that. This hack usually works for simple types.
-             */
-            SwigType_typename_replace(s, tbase, name_with_templateargs);
+          for (i = 0; i < Len(cpatchlist); i++) {
+            /* Patch String with C++ String type, eg the T in Foo< T > or the TT in X< TT >::meth, also #T */
+            Replace(Getitem(cpatchlist, i), name, placeholder, DOH_REPLACE_ID);
           }
+          Delete(placeholder);
+        }
+      }
 
-          sz = Len(typelist);
-          for (i = 0; i < sz; i++) {
-            SwigType *s = Getitem(typelist, i);
+      for (i = 0; i < Len(typelist); i++) {
+        SwigType *s = Getitem(typelist, i);
+        int patched = 0;
+
+        if (named)
+          SwigType_variadic_replace(s, unexpanded_variadic_parm, pack_placeholders);
+
+        for (p = tp, position = 1; p; p = nextSibling(p), position++) {
+          String *name = Getattr(p, "name");
+          SwigType *argtype = Getattr(p, "argtype");
+          if (name) {
             Node *tynode;
             String *tyname;
 
-            SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
             if (argtype)
               replace_placeholder_decltype(s, name, argtype);
 
@@ -1027,35 +1072,99 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
             */
             tynode = Swig_symbol_clookup(s, 0);
             tyname = tynode ? Getattr(tynode, "sym:name") : 0;
-            /*
-            Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, name_with_templateargs);
-            Printf(stdout, "    %d %s to %s\n", tp == unexpanded_variadic_parm, name, ParmList_str_defaultargs(expanded_variadic_parms));
-            */
             if (!tyname || !tsname || !Equal(tyname, tsname) || Getattr(tynode, "templatetype")) {
-              SwigType_typename_replace(s, name, dvalue);
-              SwigType_typename_replace(s, tbase, name_with_templateargs);
+              String *placeholder = template_parm_placeholder(position);
+              SwigType_typename_replace(s, name, placeholder);
+              Delete(placeholder);
+              patched = 1;
             }
           }
+        }
+        if (patched)
+          Append(patched_types, s);
+      }
 
-          tmp = NewStringf("#%s", name);
-          tmpr = NewStringf("\"%s\"", valuestr);
+      /* The arguments of a variadic template parameter pack replace their placeholders */
+      {
+        Parm *ep;
+        Parm *pp;
+        for (ep = expanded_variadic_parms, pp = pack_placeholders; ep && pp; ep = nextSibling(ep), pp = nextSibling(pp)) {
+          SwigType *argtype = Getattr(ep, "type");
+          String *pack_placeholder = Getattr(pp, "type");
+          String *argstr = SwigType_str(argtype, 0);
+          for (i = 0; i < Len(patchlist); i++) {
+            Replace(Getitem(patchlist, i), pack_placeholder, argtype, DOH_REPLACE_ID);
+          }
+          for (i = 0; i < Len(typelist); i++) {
+            SwigType_typename_replace(Getitem(typelist, i), pack_placeholder, argtype);
+          }
+          for (i = 0; i < Len(cpatchlist); i++) {
+            Replace(Getitem(cpatchlist, i), pack_placeholder, argstr, DOH_REPLACE_ID);
+          }
+          Delete(argstr);
+        }
+      }
 
-          sz = Len(cpatchlist);
-          for (i = 0; i < sz; i++) {
-            /* Patch String with C++ String type, eg T => int in Foo< T >, or TT => Hello< int > in X< TT >::meth */
+      for (p = tp, position = 1; p; p = nextSibling(p), position++) {
+        String *name = Getattr(p, "name");
+        if (name) {
+          String *value = Getattr(p, "value");
+          String *placeholder = template_parm_placeholder(position);
+          String *stringised = NewStringf("#%s", placeholder);
+          String *qvalue;
+          String *dvalue;
+          String *valuestr;
+          String *quoted;
+
+          if (!value)
+            value = Getattr(p, "type");
+          qvalue = Swig_symbol_typedef_reduce(value, tsdecl);
+          dvalue = Swig_symbol_type_qualify(qvalue, tsdecl);
+          if (SwigType_istemplate(dvalue)) {
+            String *ty = Swig_symbol_template_deftype(dvalue, tscope);
+            Delete(dvalue);
+            dvalue = ty;
+          }
+
+          assert(dvalue);
+          valuestr = SwigType_str(dvalue, 0);
+          quoted = NewStringf("\"%s\"", valuestr);
+
+          for (i = 0; i < Len(patchlist); i++) {
+            Replace(Getitem(patchlist, i), placeholder, dvalue, DOH_REPLACE_ID);
+          }
+          for (i = 0; i < Len(typelist); i++) {
+            SwigType_typename_replace(Getitem(typelist, i), placeholder, dvalue);
+          }
+          for (i = 0; i < Len(cpatchlist); i++) {
             String *s = Getitem(cpatchlist, i);
             /* Stringising that ought to be done in the preprocessor really, eg #T => "int" */
-            Replace(s, tmp, tmpr, DOH_REPLACE_ID);
-            Replace(s, name, valuestr, DOH_REPLACE_ID);
+            Replace(s, stringised, quoted, DOH_REPLACE_ID);
+            Replace(s, placeholder, valuestr, DOH_REPLACE_ID);
           }
-          Delete(tmp);
-          Delete(tmpr);
+          Delete(quoted);
           Delete(valuestr);
           Delete(dvalue);
           Delete(qvalue);
+          Delete(stringised);
+          Delete(placeholder);
         }
-        tp = nextSibling(tp);
       }
+
+      /* The template's own name is replaced last, so that the template arguments it is given are not replaced */
+      if (named) {
+        for (i = 0; i < Len(patchlist); i++) {
+          /* Try treat the string as a proper SwigType thought it's usually a string containing an unparsed
+           * C type.  The proper fix would be to parse the String to convert it to a SwigType say using
+           * Swig_cparse_type, but we'd need a re-entrant parser for that. This hack usually works for simple types.
+           */
+          SwigType_typename_replace(Getitem(patchlist, i), tbase, name_with_templateargs);
+        }
+      }
+      for (ti = First(patched_types); ti.item; ti = Next(ti)) {
+        SwigType_typename_replace(ti.item, tbase, name_with_templateargs);
+      }
+      Delete(patched_types);
     } else {
       /* No template parameters at all.  This could be a specialization */
       int i, sz;
@@ -1089,6 +1198,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tbase);
   Delete(tname);
   Delete(templateargs);
+  Delete(pack_placeholders);
   Delete(expanded_variadic_parms);
 
   return 0;
@@ -1757,17 +1867,30 @@ success:
 
 /* Replace the template parameters of function template 'n' in type 't' with the arguments in 'instantiated_parms'. */
 static void replace_template_parms(SwigType *t, Node *n, ParmList *instantiated_parms) {
-  Parm *tp = Getattr(n, "templateparms");
-  Parm *ip = instantiated_parms;
-  while (tp && ip) {
-    String *tname = Getattr(tp, "name");
-    SwigType *value = Getattr(ip, "type");
-    if (!value)
-      value = Getattr(ip, "value");
-    if (tname && value)
-      SwigType_typename_replace(t, tname, value);
-    tp = nextSibling(tp);
-    ip = nextSibling(ip);
+  int pass;
+  /* Placeholders replace the names first, as in Swig_cparse_template_expand(), so that a name in an argument is kept */
+  for (pass = 0; pass < 2; pass++) {
+    Parm *tp = Getattr(n, "templateparms");
+    Parm *ip = instantiated_parms;
+    int position = 1;
+    while (tp && ip) {
+      String *tname = Getattr(tp, "name");
+      SwigType *value = Getattr(ip, "type");
+      if (!value)
+        value = Getattr(ip, "value");
+      if (tname && value) {
+        String *placeholder = template_parm_placeholder(position);
+        if (pass == 0) {
+          SwigType_typename_replace(t, tname, placeholder);
+        } else {
+          SwigType_typename_replace(t, placeholder, value);
+        }
+        Delete(placeholder);
+      }
+      tp = nextSibling(tp);
+      ip = nextSibling(ip);
+      position++;
+    }
   }
 }
 
