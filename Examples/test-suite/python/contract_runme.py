@@ -1,4 +1,5 @@
 import contract
+from swig_test_utils import swig_check, swig_assert_raises
 
 contract.test_preassert(1, 2)
 try:
@@ -28,6 +29,14 @@ try:
 
 except RuntimeError:
     pass
+
+swig_check(contract.test_arg_names(1, -1), 0)
+with swig_assert_raises(RuntimeError):
+    contract.test_arg_names(-1, 1)
+
+swig_check(contract.test_result_name(-1), 1)
+with swig_assert_raises(RuntimeError):
+    contract.test_result_name(1)
 
 f = contract.Foo()
 f.test_preassert(4, 5)
@@ -132,6 +141,12 @@ try:
     raise Exception("Failed! Inherited preassertion (D).")
 except RuntimeError:
     pass
+
+e = contract.E()
+e.m_i = 5
+e.manipulate_arg1(5)
+with swig_assert_raises(RuntimeError):
+    e.manipulate_arg1(6)
 
 # Namespace
 my = contract.myClass(1)

@@ -37,8 +37,8 @@ static contract Rules[] = {
  * ------------------------------------------------------------------------- */
 
 class Contracts : public Dispatcher {
-  String *make_expression(String *s, Node *n);
-  void substitute_parms(String *s, ParmList *p, int method);
+  String *make_expression(String *s);
+  void substitute_parms(String *s, ParmList *p, int method, String *name);
 
 public:
   Hash *ContractSplit(Node *n);
@@ -190,7 +190,7 @@ static void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages)
 /* This function cleans up the assertion string by removing some extraneous characters.
    Splitting the assertion into pieces */
 
-String *Contracts::make_expression(String *s, Node *n) {
+String *Contracts::make_expression(String *s) {
   String *str_assert, *expr = 0;
   List *list_assert;
 
@@ -212,7 +212,6 @@ String *Contracts::make_expression(String *s, Node *n) {
   for (ei = First(list_assert); ei.item; ei = Next(ei)) {
     expr = ei.item;
     if (Len(expr)) {
-      Replaceid(expr, Getattr(n, "name"), Swig_cresult_name());
       if (Len(str_assert))
         Append(str_assert, "&&");
       Printf(str_assert, "(%s)", expr);
@@ -222,26 +221,27 @@ String *Contracts::make_expression(String *s, Node *n) {
   return str_assert;
 }
 
-/* This function substitutes parameter names for argument names in the
-   contract specification.  Note: it is assumed that the wrapper code
-   uses arg1 for self and arg2..argn for arguments. */
+/* This function substitutes the argument names for the parameter names in the contract specification and the result
+   for the function's 'name'.  Note: it is assumed that the wrapper code uses arg1 for self and arg2..argn for
+   arguments. */
 
-void Contracts::substitute_parms(String *s, ParmList *p, int method) {
-  int argnum = 1;
-  char argname[32];
+void Contracts::substitute_parms(String *s, ParmList *p, int method, String *name) {
+  int len = ParmList_len(p);
+  int position;
 
-  if (method) {
-    Replaceid(s, "$self", "arg1");
-    argnum++;
-  }
-  while (p) {
-    snprintf(argname, sizeof(argname), "arg%d", argnum);
-    String *name = Getattr(p, "name");
-    if (name) {
-      Replaceid(s, name, argname);
-    }
-    argnum++;
-    p = nextSibling(p);
+  /* The names are replaced by position first, $0 for self, so that a replacement is not replaced too.  For example:
+       int f(int x, int arg1, int *result);
+     'x' becomes 'arg1' and the function's name 'f' becomes 'result', neither of which is then replaced again. */
+  if (method)
+    Replaceid(s, "$self", "$0");
+  ParmList_replace_names_positional(s, p, 0);
+  Replaceid(s, name, Swig_cresult_name());
+  for (position = method ? 0 : 1; position <= len; position++) {
+    String *dollar = NewStringf("$%d", position);
+    String *argname = NewStringf("arg%d", position + method);
+    Replace(s, dollar, argname, DOH_REPLACE_NUMBER_END);
+    Delete(argname);
+    Delete(dollar);
   }
 }
 
@@ -271,8 +271,8 @@ int Contracts::emit_contract(Node *n, int method) {
   /* Take the different contract expressions and clean them up a bit */
   Iterator i;
   for (i = First(contracts); i.item; i = Next(i)) {
-    String *e = make_expression(i.item, n);
-    substitute_parms(e, cparms, method);
+    String *e = make_expression(i.item);
+    substitute_parms(e, cparms, method, Getattr(n, "name"));
     Setattr(contracts, i.key, e);
 
     /* Make a string containing error messages */

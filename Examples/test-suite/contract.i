@@ -32,7 +32,25 @@ ensure:
 	test_prepost > 0;
 }
 
+// Contract parameter names that are also the names used in the wrapper for the arguments and the result
+%contract test_arg_names(int x, int arg1) {
+require:
+	x > 0;
+}
+
+%contract test_result_name(int result) {
+ensure:
+	test_result_name > 0;
+}
+
 %inline %{
+int test_arg_names(int x, int arg1) {
+    return x + arg1;
+}
+
+int test_result_name(int value) {
+    return -value;
+}
 
 int test_preassert(int x, int y) {
    if ((x > 0) && (y > 0)) return 1;
@@ -197,12 +215,18 @@ public:
   require:
   i <= $self->m_i;
   }
+  %contract manipulate_arg1(int arg1) {
+  require:
+  arg1 <= $self->m_i;
+  }
 }
 
 %inline %{
 struct E {
   int m_i;
   void manipulate_i(int i) {
+  }
+  void manipulate_arg1(int arg1) {
   }
 };
 %}

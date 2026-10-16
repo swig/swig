@@ -126,6 +126,19 @@ Version 4.6.0 (in progress)
             exception was not thrown. Now it is thrown, as it is for %exception code.
 
 2026-10-16: wsfulton
+            Fix %contract checks testing the wrong value when a parameter has the same name as a
+            variable in the generated wrapper, such as 'arg1' or 'result':
+
+              %contract f(int x, int arg1, int *result) {
+              require:
+                x > 0;
+              ensure:
+                f > 0;
+              }
+
+            Some of these checks did not compile.
+
+2026-10-16: wsfulton
             A typemap written with '*' as the size of an array, such as 'char [*]', is now used for a
             C99 variable length array parameter. Its '$1_dim0' is the size worked out at runtime from
             the earlier parameter:
