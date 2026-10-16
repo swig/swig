@@ -861,7 +861,7 @@ public:
                "            set(self, name, value)\n",
                "        elif name == \"thisown\":\n",
                "            self.this.own(value)\n",
-               "        elif hasattr(self, name) and isinstance(getattr(type(self), name), property):\n",
+               "        elif isinstance(getattr(type(self), name, None), property):\n",
                "            set(self, name, value)\n",
                "        else:\n",
                "            raise AttributeError(\"You cannot add instance attributes to %s\" % self)\n",

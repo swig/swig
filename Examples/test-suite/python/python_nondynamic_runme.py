@@ -98,3 +98,13 @@ if not python_nondynamic.is_python_builtin():
         debug_print(e)
         pass
 
+dd = python_nondynamic.D()
+dd.value = 17
+if dd.value != 17: raise RuntimeError("value not set correctly")
+
+try:
+    dd.other = 1
+    raise RuntimeError("D is not static")
+except AttributeError as e:
+    debug_print(e)
+    pass

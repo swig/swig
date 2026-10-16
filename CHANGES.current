@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-16: vadz
+            [Python] Setting a property of a class using the nondynamic feature no longer calls its
+            getter, so it works even when the getter throws, e.g. because the value is not set yet.
+
 2026-10-14: wsfulton
             [C, C#, D, Go, Guile, Java, Lua, PHP] An exception caught by the catch all handler that
             %catches(...) adds is now raised as a SWIG_RuntimeError with the message "unknown exception",
