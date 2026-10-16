@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-16: vadz
+            [Python] Fix "metaclass conflict" TypeError when importing a module with a class using
+            the nondynamic feature that derives from a nondynamic class from another module.
+
+2026-10-16: vadz
             [Python] Fix accessing the elements of a wrapped STL container of a class using the
             nondynamic feature, which raised AttributeError.
 

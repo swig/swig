@@ -6405,6 +6405,7 @@ public:
   void printClassHeader(Node *n, String *class_name, String *f_dest, bool addMetaclass) {
     /* Handle inheritance */
     String *base_class = NewString("");
+    bool has_nondynamic_base = false;
     List *baselist = Getattr(n, "bases");
     if (baselist && Len(baselist)) {
       Iterator b;
@@ -6425,6 +6426,8 @@ public:
           continue;
         }
         Printv(base_class, bname, NIL);
+        if (GetFlag(b.item, "feature:python:nondynamic"))
+          has_nondynamic_base = true;
         b = Next(b);
         if (b.item) {
           Printv(base_class, ", ", NIL);
@@ -6440,7 +6443,10 @@ public:
       Printv(base_class, abcs, NIL);
     }
 
-    String *metaclass = (addMetaclass && GetFlag(n, "feature:python:nondynamic")) ? NewString(", metaclass=_SwigNonDynamicMeta") : NewString("");
+    /* A class deriving from a nondynamic class inherits its metaclass, which must not be given explicitly: each module defines its own
+     * _SwigNonDynamicMeta and the one of a base class from another module would conflict with the one of this module. */
+    bool needs_metaclass = addMetaclass && GetFlag(n, "feature:python:nondynamic") && !has_nondynamic_base;
+    String *metaclass = needs_metaclass ? NewString(", metaclass=_SwigNonDynamicMeta") : NewString("");
     Printv(f_dest, "class ", class_name, NIL);
 
     if (Len(base_class)) {
