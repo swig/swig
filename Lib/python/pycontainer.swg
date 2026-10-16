@@ -65,7 +65,8 @@ namespace swig {
     static bool back_reference(PyObject* child, PyObject* owner) {
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
       if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-        return PyObject_SetAttr(child, container_owner_attribute(), owner) != -1;
+        // Bypass __setattr__, which doesn't allow adding attributes to the classes using the nondynamic feature.
+        return PyObject_GenericSetAttr(child, container_owner_attribute(), owner) != -1;
       }
       return false;
     }

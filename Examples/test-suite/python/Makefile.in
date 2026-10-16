@@ -70,6 +70,7 @@ CPP_TEST_CASES += \
 	python_moduleimport \
 	python_nokwargs_feature \
 	python_nokwargs_keyword \
+	python_nondynamic_cpp \
 	python_overload_simple_cast \
 	python_pickle \
 	python_pyi \
