@@ -19,6 +19,7 @@ public class cpp11_template_function_overload_kind_runme {
   public static void main(String argv[]) {
     check(cpp11_template_function_overload_kind.dflt_int(1), 1, "dflt_int(1)");
     check(cpp11_template_function_overload_kind.dflt_int(1, 2), 2, "dflt_int(1, 2)");
+    check(cpp11_template_function_overload_kind.area_int(3), 9, "area_int");
     check(cpp11_template_function_overload_kind.value_default_int(1), 3, "value_default_int");
     check(cpp11_template_function_overload_kind.value_default_int_4(1), 4, "value_default_int_4");
     check(new DefaultHolderInt().convert_double(2.5), 2, "convert_double");

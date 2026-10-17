@@ -6,6 +6,9 @@
 template<typename T, typename U = int> int dflt(T) { return 1; }
 template<typename T> int dflt(T, T) { return 2; }
 
+template<typename T, typename U = void> int area(T *shape) { return shape->area(); }
+template<typename T> int area(T side) { return side * side; }
+
 template<typename T, int N = 3> int value_default(T) { return N; }
 
 // A member function template default naming a template parameter of the class template
@@ -21,6 +24,9 @@ template<int N, typename... Ts> int mixed() { return 40 + (int)sizeof...(Ts); }
 %}
 
 %template(dflt_int) dflt<int>;
+// Simplified from #1660: area<int> also chooses area(T *shape) using U's default, whose body does not compile for int
+%ignore area<int>(int *);
+%template(area_int) area<int>;
 %template(value_default_int) value_default<int>;
 %template(value_default_int_4) value_default<int, 4>;
 

@@ -28,7 +28,22 @@ Version 4.6.0 (in progress)
 
             Previously %template gave the error "No matching function template" unless every template
             argument was given. For an overloaded function template, an overload needing a default was
-            left out instead, with no error if another overload took the template arguments.
+            left out instead, with no error if another overload took the template arguments. Such an
+            overload is now instantiated too, as C++ also considers it. Its wrapper does not compile if
+            its body does not work for the template arguments, such as the first area in:
+
+              template<typename T, typename U = void> int area(T *shape) { return shape->area(); }
+              template<typename T> int area(T side) { return side * side; }
+              %template(area) area<int>;
+
+            which is now also instantiated as 'int area(int *shape)' using the default for U. Its body
+            does not compile as int has no area() member. To wrap only the second area as before,
+            ignore the first one:
+
+              %ignore area<int>(int *);
+              %template(area) area<int>;
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-10-15: wsfulton
             %template on an overloaded function template now instantiates only the overloads whose
