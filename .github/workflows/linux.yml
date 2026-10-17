@@ -29,7 +29,7 @@ jobs:
   # The clang-format version used is slightly different for each OS workflow file
   # These jobs gate the main build job so must succeed before the main build job is run
   # Oldest and newest supported versions are checked here in parallel, the others in the macos/windows files
-  clang-format:
+  clang-format-18:
     runs-on: ubuntu-latest
     name: clang-format 18 # 18 is the oldest supported version
 
@@ -63,23 +63,12 @@ jobs:
         sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
         style: file
 
-  build:
-
-    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
-    # but it won't fail the overall build
-    continue-on-error: ${{ matrix.continue-on-error || false }}
-
-    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
-
-    # By default, the name of the build is the language used and SWIG options, but matrix entries
-    # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
-
-    needs: [clang-format, clang-format-22]
-
-    strategy:
-      matrix:
-        include:
+  filters:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set_matrix.outputs.matrix }}
+    env:
+      MATRIX_BASE: |
         - SWIGLANG: ""
           CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
@@ -529,6 +518,48 @@ jobs:
           CPPSTD: c++20
           VER: '9.0'
           os: ubuntu-26.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
+        persist-credentials: false
+
+    - name: Get changed files
+      uses: tj-actions/changed-files@v47
+      with:
+        json: true
+        write_output_files: true
+
+    - name: Probe files and select tests in matrix
+      id: set_matrix
+      run: |
+        $GITHUB_WORKSPACE/Tools/GHA-dynamic-matrix.py
+
+# Uncomment to print the result
+#   - name: print dynamic matrix result
+#     env:
+#       RESULT: ${{ steps.set_matrix.outputs.matrix }}
+#     run: echo "$RESULT"
+
+  build:
+
+    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+
+    # By default, the name of the build is the language used and SWIG options, but matrix entries
+    # can define the additional "desc" field with any additional information to include in the name.
+    name: ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: [clang-format-18, clang-format-22, filters]
+
+    strategy:
+      matrix:
+        include: ${{ fromJSON(needs.filters.outputs.matrix) }}
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
