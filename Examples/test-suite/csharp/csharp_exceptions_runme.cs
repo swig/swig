@@ -177,6 +177,37 @@ public class runme
         throw new Exception("member csvarout not working");
       } catch (IndexOutOfRangeException) {
       }
+
+      // test exception pending in %exceptionvar code
+      try {
+        csharp_exceptions.exceptionvar_number = -1;
+        throw new Exception("global %exceptionvar set not working");
+      } catch (IndexOutOfRangeException e) {
+        if (e.Message != "exceptionvar_number negative") throw new Exception("global %exceptionvar set msg incorrect");
+      }
+      try {
+        numberout += csharp_exceptions.exceptionvar_number;
+        throw new Exception("global %exceptionvar get not working");
+      } catch (IndexOutOfRangeException) {
+      }
+      csharp_exceptions.exceptionvar_number = 5;
+      if (csharp_exceptions.exceptionvar_number != 5)
+        throw new Exception("global exceptionvar_number not 5");
+      try {
+        ExceptionVarStruct.staticnumber = -1;
+        throw new Exception("static %exceptionvar set not working");
+      } catch (IndexOutOfRangeException e) {
+        if (e.Message != "staticnumber negative") throw new Exception("static %exceptionvar set msg incorrect");
+      }
+      try {
+        numberout += ExceptionVarStruct.staticnumber;
+        throw new Exception("static %exceptionvar get not working");
+      } catch (IndexOutOfRangeException) {
+      }
+      ExceptionVarStruct.staticnumber = 5;
+      if (ExceptionVarStruct.staticnumber != 5)
+        throw new Exception("static staticnumber not 5");
+
       // test SWIG_exception macro - it must return from unmanaged code without executing any further unmanaged code
       try {
         csharp_exceptions.exceptionmacrotest(-1);

@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-17: wsfulton
+            [C#, D] Fix %exceptionvar code that raises an exception when a variable is accessed, such as:
+
+              %exceptionvar number {
+                $action
+                if (number < 0)
+                  SWIG_exception(SWIG_ValueError, "number is negative");
+              }
+
+            Before, the variable's getter and setter did not check for the pending exception, so the
+            exception was not thrown. Now it is thrown, as it is for %exception code.
+
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using
             the nondynamic feature that derives from a nondynamic class from another module.
