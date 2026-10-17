@@ -608,6 +608,11 @@ wrapper is run. <tt>SWIG_exception_fail()</tt>, used by many of the typemaps in 
 </div>
 
 <p>
+Some target languages also need the <tt>canthrow</tt> attribute on such a typemap, namely
+<a href="CSharp.html#CSharp_exceptions">C#</a>, D and <a href="C.html#C_exceptions_typemaps">C</a>.
+</p>
+
+<p>
 For C++, the <tt>SWIG_CATCH_STDEXCEPT</tt> macro adds a catch handler for each of these standard exceptions, which
 raises the error shown with the message from the exception's <tt>what()</tt>:
 </p>
