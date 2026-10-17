@@ -407,6 +407,9 @@ namespace swig
     return self%}
   }
 #endif
+  // FIXME: This should use a type variable for the value type.
+  %pythonstubcode %{def __iter__(self) -> "typing.Any":
+    ...%}
 
   %catches(std::invalid_argument) SwigPyIterator::distance(const SwigPyIterator &x) const;
   %catches(std::invalid_argument) SwigPyIterator::equal (const SwigPyIterator &x) const;

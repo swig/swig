@@ -36,5 +36,9 @@ public class special_variable_macros_runme {
       throw new RuntimeException("test failed");
     if (special_variable_macros.shortFunction((short)1, (short)1) != (200*2 + 200*3))
       throw new RuntimeException("test failed");
+    if (!OptionalAttrTest.OptionalAttrResult.equals("int"))
+      throw new RuntimeException("test failed");
+    if (!OptionalAttrTest.OptionalAttrFallback.equals("NoAttrType"))
+      throw new RuntimeException("test failed");
   }
 }

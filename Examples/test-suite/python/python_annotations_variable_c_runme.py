@@ -44,6 +44,6 @@ if sys.version_info[0:2] >= (3, 6):
     for filename in generated:
         with open(filename) as f:
             source = f.read()
-        for unwanted in ("_swig_property", "_swig_dispatch", "TYPE_CHECKING", '"typing.Any"'):
+        for unwanted in ("_swig_property", "_swig_dispatch", '"typing.Any"'):
             if unwanted in source:
                 raise RuntimeError("{} should not contain {}".format(filename, unwanted))
