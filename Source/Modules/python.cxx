@@ -2507,19 +2507,21 @@ public:
    * siblings generated due to the original function having
    * default arguments.
    * ------------------------------------------------------------ */
-  bool is_real_overloaded(Node *n) {
+  bool is_real_overloaded(Node *n, bool expect_decls) {
     Node *h = Getattr(n, "sym:overloaded");
-    Node *i;
+    Node *i = h;
     if (!h)
       return false;
 
-    i = Getattr(h, "sym:nextSibling");
+    size_t nDecls = 0;
     while (i) {
+      if (Getattr(i, "python:typing-overload") != NULL)
+        ++nDecls;
+
       Node *nn = Getattr(i, "defaultargs");
-      if (nn != h) {
-        /* Check if overloaded function has defaultargs and
-         * pointed to the first overloaded. */
-        return true;
+      if (i != h && nn != h) {
+        if (!expect_decls || nDecls >= 2)
+          return true;
       }
       i = Getattr(i, "sym:nextSibling");
     }
@@ -2540,7 +2542,7 @@ public:
    *  5. Varargs that haven't been forced to use a fixed number of arguments with %varargs.
    * ------------------------------------------------------------ */
 
-  bool is_pyargs_dispatcher(Node *n) {
+  bool is_pyargs_dispatcher(Node *n, bool for_overload = false) {
     Node *nn = Getattr(n, "defaultargs");
     if (nn)
       n = nn;
@@ -2548,8 +2550,8 @@ public:
     Parm *parms = Getattr(n, "parms");
     int varargs = parms ? emit_isvarargs(parms) : 0;
 
-    return is_real_overloaded(n) || GetFlag(n, "feature:compactdefaultargs") || GetFlag(n, "feature:python:cdefaultargs") || !is_representable_as_pyargs(n) ||
-           varargs != 0;
+    return (!for_overload && is_real_overloaded(n, false)) || GetFlag(n, "feature:compactdefaultargs") || GetFlag(n, "feature:python:cdefaultargs") ||
+           !is_representable_as_pyargs(n) || varargs != 0;
   }
 
   /* ------------------------------------------------------------
@@ -2581,7 +2583,7 @@ public:
    * file's own parameter annotations are suppressed (see
    * returnTypeAnnotation()), but the .pyi always needs them.
    * ------------------------------------------------------------ */
-  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false, bool for_stub = false) {
+  String *make_pyParmList(Node *n, bool in_class, bool is_calling, int kw, bool has_self_for_count = false, bool for_overload = false, bool for_stub = false) {
     /* Get the original function for a defaultargs copy,
      * see default_arguments() in parser.y. */
     Node *nn = Getattr(n, "defaultargs");
@@ -2593,7 +2595,7 @@ public:
        however in some cases we must replace the real parameters list with just
        the catch all "*args", see is_pyargs_dispatcher().
      */
-    if (is_pyargs_dispatcher(n)) {
+    if (is_pyargs_dispatcher(n, for_overload)) {
       String *parms = NewString("");
       if (in_class)
         Printf(parms, "self, ");
@@ -2604,7 +2606,7 @@ public:
     }
 
     type_annotation_t funcanno = getTypeAnnotationMode(n);
-    if (!for_stub && pyi_stub)
+    if (!for_stub && !for_overload && pyi_stub)
       funcanno = TYPE_ANNOTATION_NONE;
     String *params = NewString("");
     String *_params = make_autodocParmList(n, false, ((in_class || has_self_for_count) ? 2 : 1), is_calling, funcanno);
@@ -2618,6 +2620,100 @@ public:
     Printv(params, _params, NULL);
 
     return params;
+  }
+
+  /* ------------------------------------------------------------
+   * should_show_overload()
+   *
+   * Check if the function is overloaded and if it should be
+   * annotated.
+   * ------------------------------------------------------------ */
+  bool shouldShowOverload(Node *n) {
+    if (!is_real_overloaded(n, false))
+      return false;
+
+    // The function is overloaded, but it might have overloads with default arguments.
+    // In that case, only show one function - the first one.
+    Node *root_overload = Getattr(n, "defaultargs");
+    return !root_overload || root_overload == n;
+  }
+
+  /* ------------------------------------------------------------
+   * anyOverloadIsAnnotated()
+   *
+   * Check if there is any overload with type annotations in the
+   * overload set that n is in.
+   * ------------------------------------------------------------ */
+
+  bool anyOverloadIsAnnotated(Node *n) {
+    Node *h = Getattr(n, "sym:overloaded");
+    Node *i;
+    if (!h)
+      return false;
+
+    i = Getattr(h, "sym:nextSibling");
+    while (i) {
+      if (getTypeAnnotationMode(i) != TYPE_ANNOTATION_NONE)
+        return true;
+
+      i = Getattr(i, "sym:nextSibling");
+    }
+
+    return false;
+  }
+
+  /* ------------------------------------------------------------
+   * makeOverloadDeclaration()
+   *
+   * Create a declaration with @typing.overload for n if that's
+   * necessary for this function.
+   * ------------------------------------------------------------ */
+
+  String *makeOverloadDeclaration(Node *n, const String *name, bool is_classmethod, bool is_staticmethod, bool has_return = true) {
+    if (getTypeAnnotationMode(n) == TYPE_ANNOTATION_NONE && !anyOverloadIsAnnotated(n))
+      return NULL;
+
+    if (is_classmethod && !is_staticmethod) {
+      // An overload might contian both non-static and static methods.
+      // In this case, all methods need to be annotated with @staticmethod.
+      // Since that's not known in advance, we check that when looking at the first overload.
+      Node *root = Getattr(n, "sym:overloaded");
+      const String *any_static = n != root ? Getattr(root, "python:overload-has-static") : NULL;
+      if (!any_static) {
+        for (Node *i = root; i != NULL; i = Getattr(i, "sym:nextSibling")) {
+          if (Language::isStaticFunction(i)) {
+            any_static = "1";
+            break;
+          }
+        }
+        if (!any_static)
+          any_static = "0";
+        Setattr(root, "python:overload-has-static", any_static);
+      }
+
+      if (Equal(any_static, "1"))
+        is_staticmethod = true;
+    }
+
+    String *parms = make_pyParmList(n, is_classmethod, false, 0, false, true);
+    const char *tab = (is_classmethod || is_staticmethod) ? tab4 : "";
+    String *dest = NewStringEmpty();
+    Printv(dest, "\n", tab, "@typing.overload\n", tab, NIL);
+    if (is_staticmethod)
+      Printv(dest, "@staticmethod\n", tab, NIL);
+
+    // Add '/' here to indicate that the previous arguments are positional.
+    // Otherwise, they could be key-value arguments, which isn't the case in the real function.
+    const char *close = ")";
+    if (Len(parms) != 0 && Getattr(n, "feature:python:annotations:positional-only-overloads"))
+      close = ", /)";
+
+    // Not all functions can have return annotations (e.g. __init__ shouldn't have any).
+    const String *return_annotation = "";
+    if (has_return)
+      return_annotation = returnTypeAnnotationForStubFile(n, true);
+    Printv(dest, "def ", name, "(", parms, close, return_annotation, ":\n", tab, tab4, "...\n", NIL);
+    return dest;
   }
 
   /* ------------------------------------------------------------
@@ -2866,7 +2962,12 @@ public:
    * The annotation for the type a function returns, without the
    * surrounding " -> " and quotes, or NIL if there is not one.
    * ------------------------------------------------------------ */
-  String *rawReturnAnnotation(Node *n, type_annotation_t anno) {
+  String *rawReturnAnnotation(Node *n, type_annotation_t anno, bool for_overload = false) {
+
+    // Don't print the return type for the real function if this is an overloaded one.
+    if (!for_overload && is_real_overloaded(n, true))
+      return NIL;
+
     String *ret = argoutReturnTypeAnnotation(n, anno);
 
     /* If no argout typemap, then get the returning type from
@@ -2923,19 +3024,13 @@ public:
    * Helper function for constructing the function annotation
    * of the returning type, return an empty string when annotations are disabled
    * ------------------------------------------------------------ */
-  String *returnTypeAnnotationForStubFile(Node *n) {
+  String *returnTypeAnnotationForStubFile(Node *n, bool for_overload) {
     type_annotation_t anno = getTypeAnnotationMode(n);
     if (anno == TYPE_ANNOTATION_NONE)
       return NewStringEmpty();
 
-    String *ret = rawReturnAnnotation(n, anno);
+    String *ret = rawReturnAnnotation(n, anno, for_overload);
 
-    /* Overloads which do not agree on what they return are described by typing.Any, but
-       there is no C/C++ type meaning the same, so those say nothing at all instead. */
-    if (ret && !overloadsAgreeOnReturnType(n)) {
-      Delete(ret);
-      ret = anno == TYPE_ANNOTATION_TYPING ? NewString("typing.Any") : NULL;
-    }
     String *result = ret ? NewStringf(" -> \"%s\"", ret) : NewStringEmpty();
     Delete(ret);
     return result;
@@ -2953,8 +3048,8 @@ public:
    * will read.
    * ------------------------------------------------------------ */
 
-  String *returnTypeAnnotation(Node *n) {
-    return pyi_stub ? NewStringEmpty() : returnTypeAnnotationForStubFile(n);
+  String *returnTypeAnnotation(Node *n, bool for_overload = false) {
+    return pyi_stub ? NewStringEmpty() : returnTypeAnnotationForStubFile(n, for_overload);
   }
 
   /* ------------------------------------------------------------
@@ -3227,6 +3322,8 @@ public:
     bool fast = (fastproxy && !have_addtofunc(n)) || Getattr(n, "feature:callback");
 
     if (!fast || olddefs) {
+      if (!pyi_stub)
+        emitTypingOverloadDeclarations(n, f_dest);
       emitFunctionHeaderHelper(n, f_dest, name, kw, false);
 
       if (have_pythonprepend(n))
@@ -3256,6 +3353,8 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionStubHelper(Node *n, File *f_dest, String *name, int kw) {
+    if (emitTypingOverloadDeclarations(n, f_dest))
+      return;
     emitFunctionHeaderHelper(n, f_dest, name, kw, true);
     Printv(f_dest, tab4, "...\n", NIL);
   }
@@ -3270,9 +3369,9 @@ public:
    * ------------------------------------------------------------ */
 
   void emitStaticMethodStubHelper(Node *n, String *symname, int kw) {
-    String *parms = make_pyParmList(n, false, false, kw, false, true);
+    String *parms = make_pyParmList(n, false, false, kw, false, false, true);
     Printv(stub, "\n", tab4, "@staticmethod", NIL);
-    Printv(stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
+    Printv(stub, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotationForStubFile(n, false), ":\n", NIL);
     if (Node *node_with_doc = find_overload_with_docstring(n))
       Printv(stub, tab8, docstring(node_with_doc, AUTODOC_STATICFUNC, tab8), "\n", NIL);
     Printv(stub, tab8, "...\n", NIL);
@@ -3287,11 +3386,17 @@ public:
    * ------------------------------------------------------------ */
 
   void emitFunctionHeaderHelper(Node *n, File *f_dest, String *name, int kw, bool for_stub) {
-    String *parms = make_pyParmList(n, false, false, kw, false, for_stub);
-    String *ret = for_stub ? returnTypeAnnotationForStubFile(n) : returnTypeAnnotation(n);
+    String *parms = make_pyParmList(n, false, false, kw, false, false, for_stub);
+    String *ret = for_stub ? returnTypeAnnotationForStubFile(n, false) : returnTypeAnnotation(n, false);
 
     /* Make a wrapper function to insert the code into */
-    Printv(f_dest, "\n", "def ", name, "(", parms, ")", ret, ":\n", NIL);
+    Printv(f_dest, "\n", NIL);
+    if (!for_stub && !pyi_stub) {
+      String *deco = dispatchDecorator(n, "");
+      Printv(f_dest, deco, NIL);
+      Delete(deco);
+    }
+    Printv(f_dest, "def ", name, "(", parms, ")", ret, ":\n", NIL);
     Delete(ret);
 
     // When handling the last overloaded function in an overload set (and we're only called for the last one if the function is overloaded at all), we need to
@@ -3331,6 +3436,36 @@ public:
   void emitLowLevelStubVariable(const String *name) {
     if (f_lowlevel_pyi)
       Printf(f_lowlevel_pyi, "%s: \"typing.Any\"\n", name);
+  }
+
+  /* ------------------------------------------------------------
+   * emitTypingOverloadDeclarations()
+   *
+   * Emits all accumulated overload declarations for n if there
+   * is more than one.
+   * This is split from the generation of the declaration as it's
+   * not known in advance how many overloads are visible in the
+   * generated file (some may come from headers).
+   * Returns true if any overload was emitted.
+   * ------------------------------------------------------------ */
+
+  bool emitTypingOverloadDeclarations(Node *n, String *dest, const char *attr = "python:typing-overload") {
+    if (!is_real_overloaded(n, true))
+      return false;
+
+    n = Getattr(n, "sym:overloaded");
+    bool any = false;
+
+    while (n) {
+      String *decl = Getattr(n, attr);
+      if (decl) {
+        Printv(dest, decl, NIL);
+        any = true;
+      }
+
+      n = Getattr(n, "sym:nextSibling");
+    }
+    return any;
   }
 
   /* ------------------------------------------------------------
@@ -4219,6 +4354,14 @@ public:
       }
 
     } else {
+      if (shouldShowOverload(n) && !(shadow & PYSHADOW_MEMBER) && use_static_method && (!builtin || pyi_stub)) {
+        String *overdecl = makeOverloadDeclaration(n, Getattr(n, "sym:name"), false, false);
+        if (overdecl) {
+          Setattr(n, "python:typing-overload", overdecl);
+          Delete(overdecl);
+        }
+      }
+
       if (!Getattr(n, "sym:nextSibling")) {
         dispatchFunction(n, linkage, funpack, builtin_self, builtin_ctor, director_class, use_static_method);
       }
@@ -5763,9 +5906,19 @@ public:
     if (builtin)
       Swig_restore(n);
 
+    if (shouldShowOverload(n) && (!builtin || pyi_stub)) {
+      String *overdecl = makeOverloadDeclaration(n, symname, true, false);
+      if (overdecl) {
+        Setattr(n, "python:typing-overload", overdecl);
+        Delete(overdecl);
+      }
+    }
+
     if (!Getattr(n, "sym:nextSibling")) {
       int allow_kwargs = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
       String *parms = make_pyParmList(n, true, false, allow_kwargs);
+
+      bool any_overload = emitTypingOverloadDeclarations(n, pyi_stub ? stub : shadow_code);
 
       if (shadow && !builtin) {
         int fproxy = fastproxy;
@@ -5822,9 +5975,9 @@ public:
         Delete(fullname);
       }
 
-      if (pyi_stub) {
-        String *stub_parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
-        Printv(stub, "\n", tab4, "def ", symname, "(", stub_parms, ")", returnTypeAnnotationForStubFile(n), ":\n", NIL);
+      if (pyi_stub && !any_overload) {
+        String *stub_parms = make_pyParmList(n, true, false, allow_kwargs, false, false, true);
+        Printv(stub, "\n", tab4, "def ", symname, "(", stub_parms, ")", returnTypeAnnotationForStubFile(n, false), ":\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
           Printv(stub, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
         Printv(stub, tab8, "...\n", NIL);
@@ -5847,6 +6000,8 @@ public:
     if (builtin && in_class) {
       Swig_restore(n);
     }
+
+    const char *overload_key = flat_static_method ? "python:typing-overload-member" : "python:typing-overload";
 
     int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
     if (builtin && in_class) {
@@ -5882,14 +6037,34 @@ public:
         Delete(wname);
         Delete(pyflags);
       }
-      if (pyi_stub)
-        emitStaticMethodStubHelper(n, symname, kw);
+
+      if (shouldShowOverload(n) && pyi_stub) {
+        String *overdecl = makeOverloadDeclaration(n, symname, false, true);
+        if (overdecl) {
+          Setattr(n, overload_key, overdecl);
+          Delete(overdecl);
+        }
+      }
+      if (!Getattr(n, "sym:nextSibling") && pyi_stub) {
+        if (!emitTypingOverloadDeclarations(n, stub, overload_key))
+          emitStaticMethodStubHelper(n, symname, kw);
+      }
       return SWIG_OK;
+    }
+
+    if (shouldShowOverload(n) && (!builtin || pyi_stub)) {
+      String *overdecl = makeOverloadDeclaration(n, symname, false, true);
+      if (overdecl) {
+        Setattr(n, overload_key, overdecl);
+        Delete(overdecl);
+      }
     }
 
     if (Getattr(n, "sym:nextSibling")) {
       return SWIG_OK;
     }
+
+    bool any_overload = emitTypingOverloadDeclarations(n, pyi_stub ? stub : shadow_code, overload_key);
 
     if (shadow) {
       String *staticfunc_name = NewString(fastproxy ? "_swig_new_static_method" : "staticmethod");
@@ -5921,7 +6096,7 @@ public:
       }
       Delete(staticfunc_name);
     }
-    if (pyi_stub)
+    if (pyi_stub && !any_overload)
       emitStaticMethodStubHelper(n, symname, kw);
 
     return SWIG_OK;
@@ -5966,17 +6141,30 @@ public:
 
     Swig_restore(n);
 
-    if (!Getattr(n, "sym:nextSibling")) {
-      int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
-      int handled_as_init = 0;
-      if (!have_constructor) {
-        String *nname = Getattr(n, "sym:name");
-        String *sname = Getattr(getCurrentClass(), "sym:name");
-        String *cname = Swig_name_construct(NSPACE_TODO, sname);
-        handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
-        Delete(cname);
+    int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
+    int handled_as_init = 0;
+    if (!have_constructor) {
+      String *nname = Getattr(n, "sym:name");
+      String *sname = Getattr(getCurrentClass(), "sym:name");
+      String *cname = Swig_name_construct(NSPACE_TODO, sname);
+      handled_as_init = (Strcmp(nname, sname) == 0) || (Strcmp(nname, cname) == 0);
+      Delete(cname);
+    }
+    const int add_init = !have_constructor && handled_as_init;
+
+    if (shouldShowOverload(n) && (!builtin || pyi_stub) && add_init) {
+      String *overdecl = makeOverloadDeclaration(n, "__init__", true, false, false);
+      if (overdecl) {
+        Setattr(n, "python:typing-overload", overdecl);
+        Delete(overdecl);
       }
-      const int add_init = !have_constructor && handled_as_init;
+    }
+
+    if (!Getattr(n, "sym:nextSibling")) {
+      bool any_overload = false;
+      if (add_init)
+        any_overload = emitTypingOverloadDeclarations(n, pyi_stub ? stub : shadow_code);
+
       if (shadow) {
         String *subfunc = Swig_name_construct(NSPACE_TODO, symname);
         if (add_init) {
@@ -6007,8 +6195,10 @@ public:
                 Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
               }
 
+              String *deco = dispatchDecorator(n, tab4);
               /* __init__ always returns None in Python, so it never carries a return annotation. */
-              Printv(shadow_code, "\n", tab4, "def __init__(", parms, "):\n", NIL);
+              Printv(shadow_code, "\n", tab4, deco, "def __init__(", parms, "):\n", NIL);
+              Delete(deco);
               if (Node *node_with_doc = find_overload_with_docstring(n))
                 Printv(shadow_code, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
               if (have_pythonprepend(n))
@@ -6053,14 +6243,14 @@ public:
           }
           /* The renamed constructor is a module scope function, with -builtin too, so declare it
              after the class body rather than in it */
-          if (pyi_stub)
+          if (pyi_stub && !any_overload)
             emitFunctionStubHelper(n, stub_globals, symname, allow_kwargs);
         }
         Delete(subfunc);
       }
 
-      if (pyi_stub && add_init) {
-        String *parms = make_pyParmList(n, true, false, allow_kwargs, false, true);
+      if (pyi_stub && add_init && !any_overload) {
+        String *parms = make_pyParmList(n, true, false, allow_kwargs, false, false, true);
         /* __init__ always returns None in Python, so it never carries a return annotation. */
         Printv(stub, "\n", tab4, "def __init__(", parms, "):\n", NIL);
         if (Node *node_with_doc = find_overload_with_docstring(n))
