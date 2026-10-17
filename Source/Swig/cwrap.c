@@ -1412,7 +1412,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
   Delete(t);
 
   ty = Swig_wrapped_member_var_type(type, varcref);
-  p = NewParm(ty, name, n);
+  p = NewParmNode(ty, n);
   Setattr(parms, "hidden", "1");
   set_nextSibling(parms, p);
 
