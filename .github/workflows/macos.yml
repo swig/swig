@@ -98,6 +98,9 @@ jobs:
           CPPSTD: c++20
           VER: 25
         - SWIGLANG: java
+        - SWIGLANG: kotlin
+          CPPSTD: c++20
+          JVM_VER: 25
         - SWIGLANG: python
           VER: '3.11'
           COMPILER: gcc
@@ -150,6 +153,7 @@ jobs:
       GCC: ${{ matrix.GCC }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CSTD: ${{ matrix.CSTD }}
+      JVM_VER: ${{ matrix.JVM_VER }}
       HOMEBREW_REQUIRE_TAP_TRUST: 1
       HOMEBREW_NO_ENV_HINTS: 1
       HOMEBREW_NO_ASK: 1
@@ -277,6 +281,11 @@ jobs:
                 echo "$go_dir" >> $GITHUB_PATH
                 ;;
               esac
+            fi
+            if test "$SWIGLANG" = "kotlin" && test -n "$JVM_VER"; then
+              arc=$(arch)
+              java_path="JAVA_HOME_${JVM_VER}_$arc"
+              echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
             fi
           fi
 
