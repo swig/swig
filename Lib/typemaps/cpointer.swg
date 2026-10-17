@@ -148,10 +148,16 @@ TYPE2 NAME(TYPE1 x) {
 %}
 %enddef
 
+/* -----------------------------------------------------------------------------
+ * %pointer_dynamic_cast(type1,type2,name)
+ *
+ * Generates a polymorphic conversion function.
+ * ----------------------------------------------------------------------------- */
 
-
-
-
-
-
-
+%define %pointer_dynamic_cast(TYPE1,TYPE2,NAME)
+%inline %{
+TYPE2 NAME(TYPE1 x) {
+   return %dynamic_cast(x,TYPE2);
+}
+%}
+%enddef
