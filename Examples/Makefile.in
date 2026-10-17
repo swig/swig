@@ -82,6 +82,7 @@ COMPILETOOL=
 RUNPIPE=
 
 RUNME = runme
+SWIGTESTS = swigtests
 
 IWRAP      = $(INTERFACE:.i=_wrap.i)
 ISRCS      = $(IWRAP:.i=.c)
@@ -406,161 +407,135 @@ d_clean:
 
 # Use to print the commands 'go build' use during build
 # GOBUILDDBG=-x
-GO = @GO@
-GOGCC = @GOGCC@
-GCCGO = @GCCGO@
-GOOPT = @GOOPT@
-GCCGOOPT = @GCCGOOPT@
-GOVERSIONOPTION = @GOVERSIONOPTION@
-GOMINVER = @GOMINVER@
-GO_CYGPATH = @GO_CYGPATH@
+GO		= @GO@
+GOROOT		= @GOROOT@
+GOMINVER	= @GOMINVER@
+GO_CYGPATH	= @GO_CYGPATH@
+CGO_CFLAGS	= @CGO_CFLAGS@
+CGO_CXXFLAGS	= @CGO_CXXFLAGS@
+CGO_CPPFLAGS	= @CGO_CPPFLAGS@
+CGO_LDFLAGS	= @CGO_LDFLAGS@
+GOFLAGS		= @GOFLAGS@
+GO111MODULE	= @GO111MODULE@
+GOPROXY		= @GOPROXY@
+GOMODCACHE	= @GOMODCACHE@
 
-GOBUILDARG=$(GOBUILDDBG)
-ifneq (false, $(GOGCC))
-GOSWIGARG = -gccgo
-GOBUILDARG+= -compiler=gccgo
+GO_SWIGTESTS_BASENAME=$(INTERFACE:.i=)
+GO_SWIGTESTS_FULLNAME=$(SWIGTESTS)/$(GO_SWIGTESTS_BASENAME)
+ifeq ($(GOMOD),)
+GO_SWIGTESTS_DIR=$(GO_SWIGTESTS_FULLNAME)
+GO_RUNME_DIR=$(RUNME)
 else
-GOSWIGARG =
+GO_SWIGTESTS_DIR=$(GOMOD)/$(GO_SWIGTESTS_FULLNAME)
+GO_RUNME_DIR=$(GOMOD)/$(RUNME)
 endif
 
-GOSRCS = $(INTERFACE:.i=.go)
-GOCSRCS = $(INTERFACE:.i=_gc.c)
+GO_SRCDIR_GOSRCS=$(addprefix $(SRCDIR),$(GOSRCS))
+export GOROOT GOFLAGS GO111MODULE GOPROXY GOMODCACHE
+go: export CGO_CFLAGS+=$(CFLAGS)
+go_cpp: export CGO_CXXFLAGS+=$(CXXFLAGS)
+go go_cpp: export CGO_LDFLAGS+=$(LDFLAGS)
 
-GOPACKAGE = $(notdir $(INTERFACE:.i=.a))
-
-GOPATHPARENTDIR = gopath/$(GOMOD)/src
-GOPATHDIR = $(GOPATHPARENTDIR)/$(INTERFACE:.i=)
 
 # ----------------------------------------------------------------
 # Build a Go module (C)
 # ----------------------------------------------------------------
 
-$(GOPATHPARENTDIR)/go.mod:
-	mkdir -p "$(@D)"
-	printf "module swigtests\n\ngo $(GOMINVER)\n" > "$@"
-
-go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
-	mkdir -p "$(GOPATHDIR)"
-	$(SWIG) -go -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	rm -rf $(GOPATHDIR)/*
-	cp "$(ISRCS)" "$(GOPATHDIR)/"
-	if test -f "$(IWRAP:.i=.h)"; then \
-	  cp "$(IWRAP:.i=.h)" "$(GOPATHDIR)/"; \
-	fi
+go:
+	mkdir -p "$(GO_SWIGTESTS_DIR)"
+	$(SWIG) -go -import-prefix $(GO_SWIGTESTS_BASENAME) $(SWIGOPT) -o $(GO_SWIGTESTS_DIR)/$(ISRCS) $(INTERFACEPATH)
 	if test -n "$(SRCDIR_SRCS)"; then \
-	  cp "$(SRCDIR_SRCS)" "$(GOPATHDIR)/"; \
+	  cp $(SRCDIR_SRCS) "$(GO_SWIGTESTS_DIR)/"; \
 	fi
-	cp $(GOSRCS) "$(GOPATHDIR)/"
-	if test -f "$(SRCDIR)$(RUNME).go"; then \
-	  mkdir -p "$(GOPATHPARENTDIR)/runme"; \
-	  rm -f $(GOPATHPARENTDIR)/runme/*; \
+	if test -n "$(GO_SRCDIR_GOSRCS)"; then \
+	  cp $(GO_SRCDIR_GOSRCS) "$(GO_SWIGTESTS_DIR)/"; \
+	fi
+	if test ! -f "$(GO_SWIGTESTS_DIR)/go.mod"; then \
+	  cd "$(GO_SWIGTESTS_DIR)" && \
+	  $(GO) mod init $(GO_SWIGTESTS_BASENAME) 2>/dev/null && \
+	  $(GO) mod tidy 2>/dev/null; \
 	fi
 	if test -f "$(SRCDIR)$(RUNME).go"; then \
-	  cp "$(SRCDIR)$(RUNME).go" "$(GOPATHPARENTDIR)/runme/"; \
-	fi
-	GOPATH=`pwd`/gopath/$(GOMOD); \
-	includes="$(INCLUDES) -I `pwd` "; \
-	if test -n '$(SRCDIR)'; then \
-	  includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
-	fi; \
-	if test -n "$(GO_CYGPATH)"; then \
-	  n_includes=''; \
-	  for n in $${includes//-I}; do \
-	    if test -d "$$n"; then \
-	      n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
-	    else \
-	      n_includes="$$n_includes $$n"; \
-	    fi; \
-	  done; \
-	  includes="$$n_includes"; \
-	fi; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
-	CGO_CFLAGS="$(CFLAGS) $$includes"; \
-	CGO_LDFLAGS="$(LDFLAGS)"; \
-	export GOPATH CGO_CPPFLAGS CGO_CFLAGS CGO_LDFLAGS; \
-	(cd "$(GOPATHDIR)" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
-	stat=$$?; \
-	if test $$stat -ne 0; then \
-	  exit $$stat; \
-	fi; \
-	if $(GOGCC); then \
-	  cp "$(GOPATHDIR)/$(GOPACKAGE)" "$(GOPATHDIR)/$(GOPACKAGE:.a=.gox)"; \
-	fi; \
-	if test -f "$(SRCDIR)$(RUNME).go"; then \
-	  mkdir -p "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)"; \
-	  cp $(GOPATHDIR)/* "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)/"; \
-	  (cd "$(GOPATHPARENTDIR)/runme" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
+	  mkdir -p "$(GO_RUNME_DIR)"; \
+	  cp "$(SRCDIR)$(RUNME).go" "$(GO_RUNME_DIR)/"; \
+	  includes="$(INCLUDES) -I `pwd` "; \
+	  if test -n '$(SRCDIR)'; then \
+	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	  fi; \
+	  if test -n "$(GO_CYGPATH)"; then \
+	    n_includes=''; \
+	    for n in $${includes//-I}; do \
+	      if test -d "$$n"; then \
+	        n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	      else \
+	        n_includes="$$n_includes $$n"; \
+	      fi; \
+	    done; \
+	    includes="$$n_includes"; \
+	  fi; \
+	  CGO_CPPFLAGS="$(CGO_CPPFLAGS) $(CPPFLAGS) $$includes"; \
+	  export CGO_CPPFLAGS; \
+	  (cd "$(GO_RUNME_DIR)" && \
+	   if test ! -f go.mod; then \
+	     $(GO) mod init $(RUNME) 2>/dev/null && \
+	     $(GO) mod edit -replace "$(GO_SWIGTESTS_FULLNAME)=../$(GO_SWIGTESTS_FULLNAME)" && \
+	     $(GO) mod tidy 2>/dev/null; \
+	   fi && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) .); \
 	  stat=$$?; \
 	  if test $$stat -ne 0; then \
 	    exit $$stat; \
 	  fi; \
-	  cp "$(GOPATHPARENTDIR)/runme/runme" "$(RUNME)"; \
 	fi
 
 # ----------------------------------------------------------------
 # Build a Go module (C++)
 # ----------------------------------------------------------------
 
-go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
-	mkdir -p "$(GOPATHDIR)"
-	$(SWIG) -go -c++ -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	rm -rf $(GOPATHDIR)/*
-	cp "$(ICXXSRCS)" "$(GOPATHDIR)/"
-	if test -f "$(IWRAP:.i=.h)"; then \
-	  cp "$(IWRAP:.i=.h)" "$(GOPATHDIR)/"; \
-	fi
+go_cpp:
+	mkdir -p "$(GO_SWIGTESTS_DIR)"
+	$(SWIG) -go -c++ -import-prefix $(GO_SWIGTESTS_BASENAME) $(SWIGOPT) -o $(GO_SWIGTESTS_DIR)/$(ICXXSRCS) $(INTERFACEPATH)
 	if test -n "$(SRCDIR_CXXSRCS)"; then \
-	  cp "$(SRCDIR_CXXSRCS)" "$(GOPATHDIR)/"; \
+	  cp $(SRCDIR_CXXSRCS) "$(GO_SWIGTESTS_DIR)/"; \
 	fi
-	if test -n "$(SRCDIR_SRCS)"; then \
-	  cp "$(SRCDIR_SRCS)" "$(GOPATHDIR)/"; \
+	if test -n "$(GO_SRCDIR_GOSRCS)"; then \
+	  cp $(GO_SRCDIR_GOSRCS) "$(GO_SWIGTESTS_DIR)/"; \
 	fi
-	cp $(GOSRCS) "$(GOPATHDIR)/"
+	if test ! -f "$(GO_SWIGTESTS_DIR)/go.mod"; then \
+	  cd "$(GO_SWIGTESTS_DIR)" && \
+	  $(GO) mod init $(GO_SWIGTESTS_BASENAME) 2>/dev/null && \
+	  $(GO) mod tidy 2>/dev/null; \
+	fi
 	if test -f "$(SRCDIR)$(RUNME).go"; then \
-	  mkdir -p "$(GOPATHPARENTDIR)/runme"; \
-	  rm -f $(GOPATHPARENTDIR)/runme/*; \
-	fi
-	if test -f "$(SRCDIR)$(RUNME).go"; then \
-	  cp "$(SRCDIR)$(RUNME).go" "$(GOPATHPARENTDIR)/runme/"; \
-	fi
-	GOPATH=`pwd`/gopath/$(GOMOD); \
-	includes="$(INCLUDES) -I `pwd` "; \
-	if test -n '$(SRCDIR)'; then \
-	  includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
-	fi; \
-	if test -n "$(GO_CYGPATH)"; then \
-	  n_includes=''; \
-	  includes="$$includes $(BOOST_CPPFLAGS)"; \
-	  for n in $${includes//-I}; do \
-	    if test -d "$$n"; then \
-	      n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
-	    else \
-	      n_includes="$$n_includes $$n"; \
-	    fi; \
-	  done; \
-	  includes="$$n_includes"; \
-	fi; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
-	CGO_CXXFLAGS="$(CXXFLAGS) $$includes"; \
-	CGO_LDFLAGS="$(LDFLAGS)"; \
-	export GOPATH CGO_CXXFLAGS CGO_LDFLAGS; \
-	(cd "$(GOPATHDIR)" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
-	stat=$$?; \
-	if test $$stat -ne 0; then \
-	  exit $$stat; \
-	fi; \
-	if $(GOGCC); then \
-	  cp "$(GOPATHDIR)/$(GOPACKAGE)" "$(GOPATHDIR)/$(GOPACKAGE:.a=.gox)"; \
-	fi; \
-	if test -f "$(SRCDIR)$(RUNME).go"; then \
-	  mkdir -p "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)"; \
-	  cp $(GOPATHDIR)/* "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)/"; \
-	  (cd "$(GOPATHPARENTDIR)/runme" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
+	  mkdir -p "$(GO_RUNME_DIR)"; \
+	  cp "$(SRCDIR)$(RUNME).go" "$(GO_RUNME_DIR)/"; \
+	  includes="$(INCLUDES) -I `pwd` "; \
+	  if test -n '$(SRCDIR)'; then \
+	    includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	  fi; \
+	  if test -n "$(GO_CYGPATH)"; then \
+	    n_includes=''; \
+	    includes="$$includes $(BOOST_CPPFLAGS)"; \
+	    for n in $${includes//-I}; do \
+	      if test -d "$$n"; then \
+	        n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	      else \
+	        n_includes="$$n_includes $$n"; \
+	      fi; \
+	    done; \
+	    includes="$$n_includes"; \
+	  fi; \
+	  CGO_CPPFLAGS="$(CGO_CPPFLAGS) $(CPPFLAGS) $$includes"; \
+	  export CGO_CPPFLAGS; \
+	  (cd "$(GO_RUNME_DIR)" && \
+	   if test ! -f go.mod; then \
+	     $(GO) mod init $(RUNME) 2>/dev/null && \
+	     $(GO) mod edit -replace "$(GO_SWIGTESTS_FULLNAME)=../$(GO_SWIGTESTS_FULLNAME)" && \
+	     $(GO) mod tidy 2>/dev/null; \
+	   fi && $(COMPILETOOL) $(GO) build $(GOBUILDDBG) .); \
 	  stat=$$?; \
 	  if test $$stat -ne 0; then \
 	    exit $$stat; \
 	  fi; \
-	  cp "$(GOPATHPARENTDIR)/runme/runme" "$(RUNME)"; \
 	fi
 
 # -----------------------------------------------------------------
@@ -568,24 +543,21 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 # -----------------------------------------------------------------
 
 go_run:
-	env $(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+	env $(RUNTOOL) $(GO_RUNME_DIR)/$(RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
 go_version:
-	$(GO) $(GOVERSIONOPTION)
+	$(GO) version
 
 # -----------------------------------------------------------------
 # Cleaning the Go examples
 # -----------------------------------------------------------------
 
 go_clean:
-	rm -f *_wrap* *_gc* *.gox .~* $(RUNME) $(GOSRCS)
-	rm -rf gopath
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *.[568] *.a *@SO@
+	rm -rf $(GOMOD) $(RUNME) $(SWIGTESTS)
 
 ##################################################################
 #####                       GUILE                           ######
