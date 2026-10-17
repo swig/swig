@@ -1834,8 +1834,9 @@ public:
       // from C++ code. It checks for the common methods which set
       // a pending D exception and issues a warning if one of them has been found
       // in the typemap, but the »canthrow« attribute/feature is not set.
+      // SWIG_exception is a SWIG preprocessor macro, so it is usually found as the SWIG_DThrowException call it expands to.
       if (!Getattr(n, "d:canthrow")) {
-        if (Strstr(f->code, "SWIG_exception")) {
+        if (Strstr(f->code, "SWIG_exception") || Strstr(f->code, "SWIG_DThrowException(")) {
           Swig_warning(WARN_D_CANTHROW_MISSING,
                        input_file,
                        line_number,
@@ -4452,7 +4453,7 @@ private:
    * Determines whether the code in the typemap can throw a D exception.
    * If so, note it for later when excodeSubstitute() is called.
    * --------------------------------------------------------------------------- */
-  void canThrow(Node *n, const String *typemap, Node *parameter) const {
+  void canThrow(Node *n, const_String_or_char_ptr typemap, Node *parameter) const {
     String *canthrow_attribute = NewStringf("tmap:%s:canthrow", typemap);
     String *canthrow = Getattr(parameter, canthrow_attribute);
     if (canthrow)

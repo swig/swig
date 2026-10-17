@@ -1107,8 +1107,9 @@ public:
       // throwing C# exceptions from unmanaged code. It checks for the common methods which
       // set a pending C# exception... the 'canthrow' typemap/feature attribute must be set
       // so that code which checks for pending exceptions is added in the C# proxy method.
+      // SWIG_exception is a SWIG preprocessor macro, so it is usually found as the SWIG_CSharpException call it expands to.
       if (!Getattr(n, "csharp:canthrow")) {
-        if (Strstr(f->code, "SWIG_exception")) {
+        if (Strstr(f->code, "SWIG_exception") || Strstr(f->code, "SWIG_CSharpException(")) {
           Swig_warning(WARN_CSHARP_CANTHROW,
                        input_file,
                        line_number,
@@ -3896,7 +3897,7 @@ public:
    * If so, note it for later when excodeSubstitute() is called.
    * ----------------------------------------------------------------------------- */
 
-  void canThrow(Node *n, const String *typemap, Node *parameter) {
+  void canThrow(Node *n, const_String_or_char_ptr typemap, Node *parameter) {
     String *canthrow_attribute = NewStringf("tmap:%s:canthrow", typemap);
     String *canthrow = Getattr(parameter, canthrow_attribute);
     if (canthrow)

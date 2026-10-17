@@ -574,7 +574,7 @@ example.i(4) : Syntax error in input(1).
 <li>708. No ddirectorin typemap defined for <em>type</em> for use in <em>classname</em>::<em>name</em> (skipping director method)  (D).
 <li>709. No dconstructor typemap defined for <em>type</em>  (D).
 <li>710. D exception may not be thrown - no $excode or excode attribute in '<em>typemap</em>' typemap.  (D).
-<li>711. C code contains a call to SWIG_exception and D code does not handle pending exceptions via the canthrow attribute.  (D).
+<li>711. C code contains a call to [SWIG_exception | a SWIG_DSetPendingException method] and D code does not handle pending exceptions via the canthrow attribute.  (D).
 <li>712. "directorconnect" attribute missing in <em>type</em> "dconstructor" typemap.  (D).
 <li>713. <em>classname</em>::<em>name</em> might collide with the package name, consider using %rename to resolve the ambiguity.  (D).
 </ul>
@@ -631,7 +631,7 @@ example.i(4) : Syntax error in input(1).
 <li>842. Covariant return types not supported in C#. Proxy method will return <em>basetype</em>  (C#).
 <li>843. No csconstruct typemap defined for <em>type</em>  (C#).
 <li>844. C# exception may not be thrown - no $excode or excode attribute in <em>typemap</em> typemap. (C#).
-<li>845. Unmanaged code contains a call to a SWIG_CSharpSetPendingException method and C# code does not handle pending exceptions via the canthrow attribute. (C#).
+<li>845. Unmanaged code contains a call to [SWIG_exception | a SWIG_CSharpSetPendingException method] and C# code does not handle pending exceptions via the canthrow attribute. (C#).
 <li>846. "directorconnect" attribute missing in <em>type</em> "csconstruct" typemap.  (C#).
 <li>847. No csinterfacemodifiers typemap defined for <em>type</em>  (C#).
 </ul>

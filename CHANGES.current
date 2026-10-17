@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-17: wsfulton
+            [C#, D] Fix missing warning for SWIG_exception used without the canthrow attribute, such as
+            in this typemap:
+
+              %typemap(check) int number {
+                if ($1 < 0)
+                  SWIG_exception(SWIG_ValueError, "only positive numbers accepted");
+              }
+
+            The exception was not thrown, as the proxy method did not check for a pending exception,
+            yet no warning was given. Now warning 845 (C#) or 711 (D) is given, as it already was for
+            SWIG_CSharpSetPendingException and SWIG_DSetPendingException. Add canthrow=1 to fix it.
+
+2026-10-17: wsfulton
             [C#, D] Fix %exceptionvar code that raises an exception when a variable is accessed, such as:
 
               %exceptionvar number {

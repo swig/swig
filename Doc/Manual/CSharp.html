@@ -1477,11 +1477,11 @@ if ($1 &lt; 0) {
 </div>
 
 <p>
-Note that if SWIG detects you have used <tt>SWIG_CSharpSetPendingException()</tt> or <tt>SWIG_CSharpSetPendingExceptionArgument()</tt>
-without setting the <tt>canthrow</tt> attribute you will get a warning message similar to
+Note that if SWIG detects you have used <tt>SWIG_exception()</tt>, <tt>SWIG_CSharpSetPendingException()</tt> or
+<tt>SWIG_CSharpSetPendingExceptionArgument()</tt> without setting the <tt>canthrow</tt> attribute you will get a warning message similar to
 </p>
 
-<div class="code">
+<div class="shell">
 <pre>
 example.i:21: Warning 845: Unmanaged code contains a call to a SWIG_CSharpSetPendingException
 method and C# code does not handle pending exceptions via the canthrow attribute.
