@@ -766,7 +766,12 @@ void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 
 
 <p>
-Any call to a C++ function may throw an exception, which cannot be caught by C code. Instead, the special <tt>SWIG_CException_get_pending()</tt> function must be called to check for this. If it returns a non-null pointer, <tt>SWIG_CException_msg_get()</tt> can be called to retrieve the error message associated with the exception. Finally, <tt>SWIG_CException_reset_pending()</tt> must be called to free the exception object and reset the current pending exception. Note that exception handling is much simpler when using C++, rather than C, wrappers, see sections 36.6.2.
+Any call to a C++ function may throw an exception, which cannot be caught by C code. Instead, the special
+<tt>SWIG_CException_get_pending()</tt> function must be called to check for this. If it does not return NULL,
+<tt>SWIG_CException_msg_get()</tt> can be called to retrieve the error message associated with the exception.
+Finally, <tt>SWIG_CException_reset_pending()</tt> must be called to free the exception object and reset the current
+pending exception. Note that exception handling is much simpler when using C++, rather than C, wrappers, see
+<a href="#C_exception_handling">Exception handling</a> for the C++ wrappers.
 </p>
 
 <H2><a name="C_cxx_wrappers">40.8 C++ Wrappers</a></H2>
