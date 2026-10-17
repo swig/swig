@@ -222,6 +222,9 @@ jobs:
           CSTD: gnu99
           SWIG_FEATURES: -builtin -pyi -typehints
         - SWIGLANG: python
+          VER: '3.14'
+          os: ubuntu-24.04-arm
+        - SWIGLANG: python
           VER: '3.14-dbg'
           CSTD: gnu99
         - SWIGLANG: python
