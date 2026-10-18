@@ -157,7 +157,7 @@ $ swig -c -help
 
 <tr>
 <td>-namespace &lt;nspace&gt;</td>
-<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this provides a way to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>.</td>
+<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this provides a way to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>. Global variables are wrapped with accessor functions, see <a href="#C_variables">Variables</a>.</td>
 </tr>
 
 <tr>
@@ -253,7 +253,7 @@ The output is simply:
 <div class="targetlang"><pre>
 int mymath_gcd(int arg1, int arg2) {
   int result;
-  result = gcd(arg1,arg2);
+  result = (int)gcd(arg1,arg2);
   return result;
 }
 </pre></div>
@@ -276,7 +276,7 @@ And now the generated result looks like:
 </p>
 
 <div class="targetlang"><pre>
-int _wrap_gcd(int arg1, int arg2) {
+int mymath_gcd(int arg1, int arg2) {
   int result;
   {
     if (arg1 &lt;= 0)
@@ -286,7 +286,7 @@ int _wrap_gcd(int arg1, int arg2) {
     if (arg2 &lt;= 0)
       fprintf(stderr, "Expected positive value for parameter arg2 in gcd.\n");
   }
-  result = gcd(arg1,arg2);
+  result = (int)gcd(arg1,arg2);
   return result;
 }
 </pre></div>
@@ -299,7 +299,47 @@ This time calling <tt>gcd</tt> with negative value argument will trigger an erro
 
 
 <p>
-Wrapping variables comes also without any special issues. All global variables are directly accessible from application code. There is a difference in the semantics of <tt>struct</tt> definition in C and C++. When handling C <tt>struct</tt>, SWIG simply rewrites its declaration. In C++ <tt>struct</tt> is handled as class declaration. 
+Global variables are declared in the generated header, so they are directly accessible from application code. For example:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+int counter;
+const int limit = 5;
+%}
+</pre></div>
+
+<p>
+gives these declarations in the header:
+</p>
+
+<div class="targetlang"><pre>
+SWIGIMPORT int counter;
+SWIGIMPORT int const limit;
+</pre></div>
+
+<p>
+A global variable cannot be declared in the header with the prefix used by the <tt>-namespace</tt> option, so with this
+option it is wrapped with accessor functions instead. They are named after the variable with the <tt>_get</tt> and
+<tt>_set</tt> suffixes and there is no <tt>_set</tt> function for a read only variable. With <tt>-namespace ns</tt>,
+the header for the example above declares:
+</p>
+
+<div class="targetlang"><pre>
+SWIGIMPORT void ns_counter_set(int carg1);
+SWIGIMPORT int ns_counter_get();
+SWIGIMPORT int ns_limit_get();
+</pre></div>
+
+<p>
+When wrapping C++ code, accessor functions are also used for a variable in a namespace and for a variable whose type is
+not a builtin type or a pointer to one, such as a class, an enum, a typedef or a reference.
+</p>
+
+<p>
+There is a difference in the semantics of <tt>struct</tt> definition in C and C++. When handling C <tt>struct</tt>, SWIG simply rewrites its declaration. In C++ <tt>struct</tt> is handled as class declaration.
 </p>
 
 <p>
@@ -865,7 +905,8 @@ if (ex) {
 
 <p>
 With the <tt>-noexcept</tt> option, or when wrapping C code, there is no <tt>SWIG_CException</tt>. C++ exceptions are
-not caught and an error raised by the wrapper just makes it return a zero value.
+not caught and an error raised by the wrapper, in a typemap or in <tt>%exception</tt> code, just makes the wrapper return a zero
+value.
 </p>
 
 <p>

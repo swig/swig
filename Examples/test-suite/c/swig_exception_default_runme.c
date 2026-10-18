@@ -15,5 +15,16 @@ int main() {
     exit(1);
   }
 
+  if (swig_exception_default_positive_result(5) != 5) {
+    fprintf(stderr, "positive_result(5) failed\n");
+    exit(1);
+  }
+
+  /* The %exception code leaves the wrapper after positive_result returns -1 */
+  if (swig_exception_default_positive_result(-1) != 0) {
+    fprintf(stderr, "positive_result(-1) failed\n");
+    exit(1);
+  }
+
   return 0;
 }

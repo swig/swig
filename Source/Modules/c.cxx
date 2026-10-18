@@ -2164,7 +2164,6 @@ public:
     maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
     SwigType *type = Getattr(n, "type");
     SwigType *return_type = NULL;
-    String *arg_names = NULL;
     ParmList *parms = Getattr(n, "parms");
     Parm *p;
     String *proto = NewString("");
@@ -2174,14 +2173,17 @@ public:
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
 
-    // create new wrapper name
-    Setattr(n, "wrap:name", wname);  // Necessary to set this attribute? Apparently, it's never read!
+    // create new wrapper name, which emit_action() requires
+    Setattr(n, "wrap:name", wname);
 
-    // create function call
-    arg_names = Swig_cfunction_call(empty_string, parms);
-    if (arg_names) {
-      Delitem(arg_names, 0);
-      Delitem(arg_names, DOH_END);
+    // make sure lnames are set, as they are not for the parameter of a variable setter
+    int index = 1;
+    for (p = parms; p; (p = nextSibling(p)), index++) {
+      if (!Getattr(p, "lname")) {
+        String *lname = NewStringf("arg%d", index);
+        Setattr(p, "lname", lname);
+        Delete(lname);
+      }
     }
     return_type = SwigType_str(type, 0);
 
@@ -2192,8 +2194,11 @@ public:
     }
     Printv(wrapper->def, return_type, " ", wname.get(), "(", proto, ") {\n", NIL);
 
+    // the result variable is assigned to, so it does not have the qualifiers of a const return type
     if (!is_void_return) {
-      Printv(wrapper->code, return_type, " result;\n", NIL);
+      SwigType *ltype = SwigType_ltype(type);
+      Printv(wrapper->code, scoped_dohptr(SwigType_str(ltype, 0)).get(), " result;\n", NIL);
+      Delete(ltype);
     }
 
     // attach 'check' typemaps
@@ -2213,11 +2218,18 @@ public:
       }
     }
 
+    // the action of a variable setter is the memberin or globalin typemap
+    if (Getattr(n, "memberset"))
+      canThrow(n, "memberin", n);
+    else if (Getattr(n, "varset"))
+      canThrow(n, "globalin", n);
+
+    // %exception
+    if (Getattr(n, "feature:except:canthrow"))
+      Setattr(n, "c:canthrow", "1");
+
     Append(wrapper->code, prepend_feature(n));
-    if (!is_void_return) {
-      Printf(wrapper->code, "result = ");
-    }
-    Printv(wrapper->code, Getattr(n, "name"), "(", arg_names, ");\n", NIL);
+    Append(wrapper->code, scoped_dohptr(emit_action(n)).get());
     Append(wrapper->code, append_feature(n));
     if (!is_void_return)
       Printf(wrapper->code, "return result;\n");
@@ -2234,6 +2246,9 @@ public:
       emit_fail_label(n, wrapper, empty_string, is_void_return ? NULL : "0");
     }
     Delete(resolved_type);
+
+    emit_isvoid_special_variables(n, wrapper->code, is_void_return);
+
     Printf(wrapper->code, "}");
 
     Wrapper_print(wrapper, sect_wrappers);
@@ -2242,7 +2257,6 @@ public:
 
     // cleanup
     Delete(proto);
-    Delete(arg_names);
     Delete(return_type);
     DelWrapper(wrapper);
   }

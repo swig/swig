@@ -17,6 +17,9 @@ CPP_TEST_CASES := \
 
 CPP11_TEST_CASES := \
 
+C_TEST_CASES := \
+    c_namespace_globals \
+
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
@@ -112,6 +115,9 @@ SWIGOPT += -Werror
 SWIGOPT += -w524 -w761
 
 %.ctest: SWIGOPT += -nocxx
+
+# When wrapping C code, global variables are only wrapped with accessor functions with -namespace.
+c_namespace_globals.ctest: SWIGOPT += -namespace ns
 
 # Tests for which C++ wrappers currently don't compile.
 contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with multiple base classes and hence ignored.

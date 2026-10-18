@@ -8,6 +8,30 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-18: wsfulton
+            [C] Fix %exception being ignored when wrapping C code, that is without the -c++ option,
+            such as:
+
+              %exception positive_result {
+                $action
+                if (result <= 0)
+                  SWIG_exception(SWIG_ValueError, "positive result expected");
+              }
+
+            The wrapper called the wrapped function without the %exception code. %feature("action")
+            and %contract code were ignored too. They are now used, as they are when wrapping C++ code.
+
+2026-10-18: wsfulton
+            [C] Fix wrappers that did not compile when wrapping C code, such as for:
+
+              int counter;
+              const int get_limit(void);
+
+            The wrapper for a function returning a const type, such as get_limit(), assigned the result
+            to a const variable. With the -namespace option, global variables such as counter are wrapped
+            with accessor functions, which called the variable as if it were a function, as in
+            counter(arg1). The wrappers now compile.
+
+2026-10-18: wsfulton
             [C] The SWIG error codes, such as SWIG_ValueError, are now defined in the generated header, so
             C code can check the error code of a pending exception by name, for example:
 
