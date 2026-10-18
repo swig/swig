@@ -2,11 +2,9 @@
  * swigexceptions.swg
  *
  * Error handling common to all target languages, included by swigcommon.swg after the target language's
- * exception.swg, which defines SWIG_exception: the SWIG error codes, SWIG_exception_fail, the 'throws' typemap for
- * '...' and the SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN macros.
+ * exception.swg, which defines SWIG_exception: SWIG_exception_fail, the 'throws' typemap for '...' and the
+ * SWIG_CATCH_STDEXCEPT and SWIG_CATCH_UNKNOWN macros.
  * ----------------------------------------------------------------------------- */
-
-%insert("runtime") "swigerrors.swg"
 
 /* SWIG_exception_fail is the same as SWIG_exception, as a SWIG preprocessor macro if SWIG_exception is one */
 #ifdef SWIG_exception

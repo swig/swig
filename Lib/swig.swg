@@ -420,6 +420,8 @@ static int NAME(TYPE x) {
 
 %insert("runtime") "swiglabels.swg"
 
+%insert("runtime") "swigerrors.swg"
+
 
 /*  The SwigValueWrapper class  */
 

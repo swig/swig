@@ -12,7 +12,6 @@
 %feature("php:type", "compat");
 
 %runtime "swigrun.swg"  // Common C API type-checking code
-%runtime "swigerrors.swg"    // SWIG errors
 %runtime "phprun.swg"	// PHP runtime functions
 
 %include <phpinit.swg> // PHP initialization routine.

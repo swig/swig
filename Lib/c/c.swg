@@ -8,7 +8,6 @@
 %include <cheader.swg>
 
 %insert("runtime") "clabels.swg"
-%insert("runtime") "swigerrors.swg"
 
 %insert("runtime") %{
 #include <stdlib.h>
