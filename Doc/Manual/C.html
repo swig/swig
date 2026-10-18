@@ -794,8 +794,9 @@ the C code and terminates the program.
 <p>
 After calling a wrapper function, call <tt>SWIG_CException_get_pending()</tt> to check for an error. It returns NULL
 if there is no pending exception. Otherwise <tt>SWIG_CException_msg_get()</tt> and <tt>SWIG_CException_code_get()</tt>
-return the error message and the <a href="Customization.html#Customization_nn7">SWIG error code</a>, such as -9 for
-<tt>SWIG_ValueError</tt>. Then call <tt>SWIG_CException_reset_pending()</tt> to free the exception. A successful call
+return the error message and the <a href="Customization.html#Customization_nn7">SWIG error code</a>, such as
+<tt>SWIG_ValueError</tt>, which is defined in the generated header.
+Then call <tt>SWIG_CException_reset_pending()</tt> to free the exception. A successful call
 does not reset the pending exception, so reset it before checking the next call. Each thread has its own pending
 exception.
 </p>
@@ -831,7 +832,8 @@ The error is handled in C with:
 int result = example_parse("");
 SWIG_CException *ex = SWIG_CException_get_pending();
 if (ex) {
-  printf("Error: %s (code %d)\n", SWIG_CException_msg_get(ex), SWIG_CException_code_get(ex));
+  if (SWIG_CException_code_get(ex) == SWIG_ValueError)
+    printf("Invalid value: %s\n", SWIG_CException_msg_get(ex));
   SWIG_CException_reset_pending();
 }
 </pre></div>
@@ -841,7 +843,7 @@ which prints:
 </p>
 
 <div class="shell"><pre>
-Error: empty string (code -9)
+Invalid value: empty string
 </pre></div>
 
 <p>
@@ -1029,7 +1031,8 @@ error code. For example, the error from the <tt>parse</tt> function in the examp
 try {
   example::parse("");
 } catch (example::SWIG_CException const &amp;e) {
-  printf("Error: %s (code %d)\n", e.msg(), e.code());
+  if (e.code() == SWIG_ValueError)
+    printf("Invalid value: %s\n", e.msg());
 }
 </pre></div>
 
@@ -1038,7 +1041,7 @@ which prints the same message as the C code:
 </p>
 
 <div class="shell"><pre>
-Error: empty string (code -9)
+Invalid value: empty string
 </pre></div>
 
 <p>

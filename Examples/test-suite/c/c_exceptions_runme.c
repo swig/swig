@@ -4,13 +4,6 @@
 
 #include "c_exceptions/c_exceptions_wrap.h"
 
-/* SWIG error codes from swigerrors.swg */
-#define SWIG_UnknownError -1
-#define SWIG_RuntimeError -3
-#define SWIG_IndexError -4
-#define SWIG_DivisionByZero -6
-#define SWIG_NullReferenceError -13
-
 static void check_error(const char *test, int code, const char *msg) {
   c_exceptions_SWIG_CException *ex = c_exceptions_SWIG_CException_get_pending();
   if (!ex) {

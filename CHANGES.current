@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-18: wsfulton
+            [C] The SWIG error codes, such as SWIG_ValueError, are now defined in the generated header, so
+            C code can check the error code of a pending exception by name, for example:
+
+              if (SWIG_CException_code_get(ex) == SWIG_ValueError) {...}
+
+            Before, the number had to be used instead, such as -9.
+
 2026-10-17: wsfulton
             [C] #3588 Fix a memory leak when an error is raised after an 'in' typemap has allocated memory.
             SWIG_exception left the wrapper without running the 'freearg' typemaps that release the memory.

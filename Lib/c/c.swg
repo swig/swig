@@ -9,6 +9,9 @@
 
 %insert("runtime") "clabels.swg"
 
+// The SWIG error codes, also in the header for the code calling the wrappers
+%insert("cheader") "swigerrors.swg"
+
 %insert("runtime") %{
 #include <stdlib.h>
 #include <stdio.h>
