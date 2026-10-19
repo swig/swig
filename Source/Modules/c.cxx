@@ -2656,8 +2656,15 @@ public:
     Setattr(new_node, "parms", Copy(Getattr(node, "parms")));
     Setattr(new_node, "type", Copy(Getattr(node, "type")));
     Setattr(new_node, "decl", Copy(Getattr(node, "decl")));
-    if (GetFlag(node, "feature:immutable"))
-      SetFlag(new_node, "feature:immutable");
+    // use the features, such as %exception, and the exception specification of the base class member
+    for (Iterator ki = First(node); ki.key; ki = Next(ki)) {
+      if (Strncmp(ki.key, "feature:", 8) == 0)
+        Setattr(new_node, ki.key, Copy(ki.item));
+    }
+    if (ParmList *throws = Getattr(node, "throws"))
+      Setattr(new_node, "throws", CopyParmList(throws));
+    if (ParmList *catchlist = Getattr(node, "catchlist"))
+      Setattr(new_node, "catchlist", CopyParmList(catchlist));
 
     Node *const parent = parentNode(node);
     Setattr(new_node, "c:inherited_from", Getattr(parent, "name"));

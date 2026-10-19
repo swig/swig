@@ -172,3 +172,20 @@ unsigned short ushorttest() { return 100; }
     exception_macro_run_flag = true;
   }
 %}
+
+// test the wrapper of an inherited member function uses the %exception code and exception specification of the base class
+%exception InheritedBase::InheritedThrowException() {
+  try {
+    $action
+  } catch(Ex e) {
+    SWIG_exception(SWIG_DivisionByZero, e.what());
+  }
+}
+%inline %{
+  struct InheritedBase {
+    void InheritedThrowException() { throw Ex("InheritedThrowException"); }
+    void InheritedExceptionSpecification() TESTCASE_THROW1(const char *) { throw "InheritedExceptionSpecification"; }
+  };
+  struct InheritedDerived : InheritedBase {
+  };
+%}

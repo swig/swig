@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-19: wsfulton
+            [C] Fix the wrapper of a member inherited from a base class ignoring the %exception code and
+            the exception specification of the base class member, for example:
+
+              %exception Base::get {...}
+              struct Base {
+                int get();
+              };
+              struct Derived : Base {
+              };
+
+            An exception thrown by Base::get() was caught when calling Base_get() but not when calling
+            Derived_get(), so it terminated the program. Derived_get() now uses the %exception code, the
+            exception specification, %catches and the other features of the base class member, as
+            Base_get() does.
+
+2026-10-19: wsfulton
             [C] Fix the wrapper not compiling when wrapping C code for a function with an array
             parameter, such as:
 

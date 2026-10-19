@@ -141,5 +141,15 @@ int main() {
   check_no_error("exceptionmacrotest valid");
   check(c_exceptions_exception_macro_run_flag_get(), "exceptionmacrotest was not executed");
 
+  /* the wrapper of an inherited member function */
+  {
+    c_exceptions_InheritedDerived *d = c_exceptions_InheritedDerived_new();
+    c_exceptions_InheritedDerived_InheritedThrowException(d);
+    check_error("inherited %exception", SWIG_DivisionByZero, "InheritedThrowException");
+    c_exceptions_InheritedDerived_InheritedExceptionSpecification(d);
+    check_error("inherited exception specification", SWIG_RuntimeError, "InheritedExceptionSpecification");
+    c_exceptions_InheritedDerived_delete(d);
+  }
+
   return 0;
 }
