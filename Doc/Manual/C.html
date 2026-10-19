@@ -906,7 +906,55 @@ if (ex) {
 <p>
 With the <tt>-noexcept</tt> option, or when wrapping C code, there is no <tt>SWIG_CException</tt>. C++ exceptions are
 not caught and an error raised by the wrapper, in a typemap or in <tt>%exception</tt> code, just makes the wrapper return a zero
-value.
+value. An error raised with <tt>SWIG_exception(code, msg)</tt> also passes its error code and message to a C macro of
+the same name, which does nothing by default. Defining this macro in <tt>%begin</tt> code, which comes before the SWIG
+runtime code, gives completely custom error handling. For example, a C version of the <tt>parse()</tt> function can
+report the error in global variables:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%begin %{
+#define SWIG_exception(code, msg) (error_code = (code), error_msg = (msg))
+%}
+
+%exception parse {
+  $action
+  if (result &lt; 0)
+    SWIG_exception(SWIG_ValueError, "empty string");
+}
+
+%inline %{
+int error_code = 0;
+const char *error_msg = NULL;
+
+int parse(const char *s) {
+  if (!*s)
+    return -1;
+  return 1;
+}
+%}
+</pre></div>
+
+<p>
+The global variables are declared in the generated header, see <a href="#C_variables">Variables</a>, so the C code
+checks them after calling the wrapper function:
+</p>
+
+<div class="targetlang"><pre>
+int result = example_parse("");
+if (error_code) {
+  if (error_code == SWIG_ValueError)
+    printf("Invalid value: %s\n", error_msg);
+  error_code = 0;
+}
+</pre></div>
+
+<p>
+which prints the same error as the <tt>SWIG_CException</tt> example above. The macro should not leave the wrapper
+itself, as the wrapper then leaves through <tt>SWIG_fail</tt>, which runs the cleanup code, see
+<a href="#C_exceptions_typemaps">Raising an error in a typemap</a>.
 </p>
 
 <p>
