@@ -2505,7 +2505,7 @@ public:
 
     // look for the throws typemaps used for the exception specification and the canthrow attribute
     if (ParmList *throw_parm_list = Getattr(n, "catchlist")) {
-      Swig_typemap_attach_parms("throws", throw_parm_list, wrapper);
+      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
         if (Getattr(p, "tmap:throws"))
           canThrow(n, "throws", p);

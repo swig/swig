@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-20: wsfulton
+            Fix a 'throws' typemap that declares a local variable, which gave a wrapper that did not
+            compile, for example:
+
+              %typemap(throws) int (const char *message) {
+                message = $1 == 1 ? "int 1 thrown" : "int thrown";
+                SWIG_exception(SWIG_RuntimeError, message);
+              }
+
+            The local variable was not declared in the catch block that uses it. C#, D and Java also
+            declared an unused local variable in the wrapper, such as 'message1', which is an error
+            with -Werror. The local variable is now declared in the catch block.
+
 2026-10-19: wsfulton
             [C] Fix the wrapper of a member inherited from a base class ignoring the %exception code and
             the exception specification of the base class member, for example:

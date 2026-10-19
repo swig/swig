@@ -990,7 +990,7 @@ public:
     // Look for usage of throws typemap and the canthrow flag
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "catchlist"))) {
-      Swig_typemap_attach_parms("throws", throw_parm_list, f);
+      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
         if (Getattr(p, "tmap:throws")) {
           canThrow(n, "throws", p);

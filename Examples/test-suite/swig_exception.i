@@ -103,3 +103,16 @@ int throwIndexError() {
   throw std::out_of_range("index out of range");
 }
 %}
+
+// A 'throws' typemap with a local variable
+%typemap(throws, canthrow=1) int (const char *message) {
+  message = $1 == 1 ? "int 1 thrown" : "int thrown";
+  SWIG_exception(SWIG_RuntimeError, message);
+}
+%catches(int) throwInt;
+
+%inline %{
+int throwInt() {
+  throw 1;
+}
+%}

@@ -559,6 +559,28 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
 }
 
 /* -----------------------------------------------------------------------------
+ * emit_throws_locals()
+ *
+ * Declares the local variables of the 'throws' typemap for exception 'ep' in its catch block, as the typemap is looked
+ * up without a wrapper to declare them in.
+ * ----------------------------------------------------------------------------- */
+
+static void emit_throws_locals(String *eaction, Parm *ep) {
+  for (Parm *lp = Getattr(ep, "tmap:throws:locals"); lp; lp = nextSibling(lp)) {
+    String *name = Getattr(lp, "name");
+    if (Len(name) > 0) {
+      SwigType *type = Getattr(lp, "type");
+      SwigType *alttype = SwigType_alttype(type, 1);
+      String *value = Getattr(lp, "value");
+      String *decl = SwigType_str(alttype ? alttype : type, name);
+      Printv(eaction, "\n", decl, value ? " = " : "", value ? value : "", ";\n", NIL);
+      Delete(decl);
+      Delete(alttype);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * int emit_action()
  *
  * Emits the call to the wrapped function.
@@ -652,6 +674,7 @@ String *emit_action(Node *n) {
         } else {
           Printf(eaction, " catch(%s) {", SwigType_str(et, "&_e"));
         }
+        emit_throws_locals(eaction, ep);
         Printv(eaction, em, "\n", NIL);
         Printf(eaction, "}");
       } else {

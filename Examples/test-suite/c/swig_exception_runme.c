@@ -43,6 +43,12 @@ int main() {
   }
   check_exception("throwIndexError", SWIG_IndexError, "index out of range");
 
+  if (swig_exception_throwInt() != 0) {
+    fprintf(stderr, "throwInt should return 0\n");
+    exit(1);
+  }
+  check_exception("throwInt", SWIG_RuntimeError, "int 1 thrown");
+
   /* ----- Delete everything ----- */
   swig_exception_Circle_delete(c);
   swig_exception_Square_delete(s);
