@@ -2189,7 +2189,7 @@ public:
 
     // emit wrapper prototype and code
     for (p = parms, gencomma = 0; p; p = nextSibling(p)) {
-      Printv(proto, gencomma ? ", " : "", SwigType_str(Getattr(p, "type"), 0), " ", Getattr(p, "lname"), NIL);
+      Printv(proto, gencomma ? ", " : "", SwigType_str(Getattr(p, "type"), Getattr(p, "lname")), NIL);
       gencomma = 1;
     }
     Printv(wrapper->def, return_type, " ", wname.get(), "(", proto, ") {\n", NIL);
