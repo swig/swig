@@ -51,6 +51,7 @@ SWIGINTERN int SWIG_AsVal_string SWIG_JSC_AS_DECL_ARGS(JSValueRef obj, JSStringR
         SWIG_exception_fail(SWIG_ERROR, "wrong string length");
       }
     }
+    JSStringRelease(str);
     $2[i] = pstr;
   }
   $2[i] = NULL;
