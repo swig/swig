@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-20: wsfulton
+            Fix '$1_dim10' to '$1_dim19' in typemaps, which were replaced as '$1_dim1' followed by a
+            digit for an array with 11 or more dimensions.
+
+2026-10-20: wsfulton
             Fix a 'throws' typemap that declares a local variable, which gave a wrapper that did not
             compile, for example:
 

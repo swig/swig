@@ -1100,6 +1100,16 @@ static void replace_local_types(ParmList *p, const String *name, const String *r
   }
 }
 
+/* Replace the array size variable 'var' in 's' and in the types of 'locals' with 'size', but not where 'var' is the
+ * start of another variable, as '$1_dim1' is of '$1_dim10'. */
+static void replace_array_size_var(String *s, ParmList *locals, const String *var, const String *size) {
+  Parm *p;
+  Replace(s, var, size, DOH_REPLACE_NUMBER_END);
+  for (p = locals; p; p = nextSibling(p)) {
+    Replace(Getattr(p, "type"), var, size, DOH_REPLACE_NUMBER_END);
+  }
+}
+
 /* Replace the array size variables of typemap parameter 'index' in 's' and in the types of 'locals' with the sizes in
  * 'dims', the array's dimensions as C expressions: $<index>_dim<i> for dimension i, also $dim<i> for 'index' 1, and
  * $<index>_size for all the dimensions multiplied together. */
@@ -1111,21 +1121,18 @@ static void replace_array_size_vars(String *s, ParmList *locals, List *dims, int
     String *dim = Getitem(dims, i);
     if (index == 1) {
       var = NewStringf("$dim%d", i);
-      Replace(s, var, dim, DOH_REPLACE_ANY);
-      replace_local_types(locals, var, dim);
+      replace_array_size_var(s, locals, var, dim);
       Delete(var);
     }
     var = NewStringf("$%d_dim%d", index, i);
-    Replace(s, var, dim, DOH_REPLACE_ANY);
-    replace_local_types(locals, var, dim);
+    replace_array_size_var(s, locals, var, dim);
     Delete(var);
     if (Len(size))
       Putc('*', size);
     Append(size, dim);
   }
   var = NewStringf("$%d_size", index);
-  Replace(s, var, size, DOH_REPLACE_ANY);
-  replace_local_types(locals, var, size);
+  replace_array_size_var(s, locals, var, size);
   Delete(var);
   Delete(size);
 }
@@ -1599,6 +1606,16 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
   }
 }
 
+/* Whether 's' contains the array size variable 'var', but not only as the start of another variable, as '$1_dim1' is
+ * of '$1_dim10'. */
+static int has_array_size_var(const String *s, const String *var) {
+  int len = Len(var);
+  const char *c = Strstr(s, var);
+  while (c && isdigit((unsigned char)c[len]))
+    c = Strstr(c + len, var);
+  return c != 0;
+}
+
 /* Whether 's' uses a size of a C99 variable length array parameter that a typemap written with '[*]' matched as
  * 'matchtype', which is a size only known at runtime: $<index>_dim<i> for each dimension i written as '[*]', also
  * $dim<i> for 'index' 1, or $<index>_size. */
@@ -1613,7 +1630,7 @@ static int uses_vla_size(const String *s, SwigType *matchtype, int index) {
       String *var = NewStringf("$%d_dim%d", index, i);
       String *shortvar = NewStringf("$dim%d", i);
       runtime = 1;
-      used = Strstr(s, var) != 0 || (index == 1 && Strstr(s, shortvar) != 0);
+      used = has_array_size_var(s, var) || (index == 1 && has_array_size_var(s, shortvar));
       Delete(shortvar);
       Delete(var);
     }
@@ -1621,7 +1638,7 @@ static int uses_vla_size(const String *s, SwigType *matchtype, int index) {
   }
   if (runtime && !used) {
     String *sizevar = NewStringf("$%d_size", index);
-    used = Strstr(s, sizevar) != 0;
+    used = has_array_size_var(s, sizevar);
     Delete(sizevar);
   }
   return used;
