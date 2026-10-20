@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-18: jschueller
+            [Python] #2703 Keyword arguments are now supported with overloaded functions,
+            methods and constructors when %feature("kwargs") or -keyword is used. Each
+            overload is tried in turn when keyword arguments are passed. The -builtin
+            mode still does not support keyword arguments with overloaded functions.
+
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using
             the nondynamic feature that derives from a nondynamic class from another module.

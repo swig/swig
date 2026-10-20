@@ -3414,7 +3414,54 @@ public:
     String *tmp = NewString("");
     String *dispatch;
 
-    const char *dispatch_call = funpack ? "%s(self, argc, argv);" : (builtin_ctor ? "%s(self, args, NULL);" : "%s(self, args);");
+    bool enable_kwargs = !builtin && !builtin_ctor && check_kwargs(n);
+    if (enable_kwargs) {
+      Node *sibl = n;
+      while (Getattr(sibl, "sym:previousSibling"))
+        sibl = Getattr(sibl, "sym:previousSibling");
+      while (sibl) {
+        if (!check_kwargs(sibl)) {
+          enable_kwargs = false;
+          break;
+        }
+        sibl = Getattr(sibl, "sym:nextSibling");
+      }
+      if (!enable_kwargs) {
+        Swig_warning(WARN_LANG_OVERLOAD_KEYWORD,
+                     input_file,
+                     line_number,
+                     "Can't use keyword arguments with overloaded functions (%s) as not all overloads enable them.\n",
+                     Swig_name_decl(n));
+      }
+    } else if (!builtin && !builtin_ctor) {
+      /* Kwargs were not enabled, warn if any overload in the set requested them, e.g. per-overload feature or getter/setter sharing the name. */
+      Node *sibl = n;
+      while (Getattr(sibl, "sym:previousSibling"))
+        sibl = Getattr(sibl, "sym:previousSibling");
+      while (sibl) {
+        if (check_kwargs(sibl)) {
+          Swig_warning(WARN_LANG_OVERLOAD_KEYWORD,
+                       input_file,
+                       line_number,
+                       "Can't use keyword arguments with overloaded functions (%s) as not all overloads enable them.\n",
+                       Swig_name_decl(n));
+          break;
+        }
+        sibl = Getattr(sibl, "sym:nextSibling");
+      }
+    }
+    const char *dispatch_call;
+    /* Note that funpack implies !enable_kwargs when the kwargs feature is uniform across overloads (see above),
+       as the per-overload funpack flag requires !allow_kwargs, so kwargs are never silently dropped below. */
+    if (funpack) {
+      dispatch_call = "%s(self, argc, argv);";
+    } else if (builtin_ctor) {
+      dispatch_call = "%s(self, args, NULL);";
+    } else if (enable_kwargs) {
+      dispatch_call = "%s(self, args, kwargs);";
+    } else {
+      dispatch_call = "%s(self, args);";
+    }
     String *dispatch_code = NewStringf("return %s", dispatch_call);
 
     if (castmode) {
@@ -3439,8 +3486,11 @@ public:
     String *symname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(symname);
 
-    const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
+    String *builtin_kwargs = NewString("");
+    if (builtin_ctor || enable_kwargs)
+      Printf(builtin_kwargs, ", PyObject *kwargs");
     Printv(f->def, linkage, builtin_ctor ? "int " : "PyObject *", wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
+    Delete(builtin_kwargs);
 
     if (builtin) {
       /* Avoid warning if the self parameter is not used. */
@@ -3483,6 +3533,35 @@ public:
 
     Replaceall(dispatch, "$args", "self, args");
 
+    /* When kwargs are enabled and present, bypass argc/argv-based dispatch and try each overload individually. Each overload wrapper
+       uses PyArg_ParseTupleAndKeywords, so a keyword mismatch fails with TypeError. Only failures raised before the overload finishes
+       converting its arguments (tracked with SWIG_Python_parse_count) are treated as mismatches and retried; a TypeError raised while
+       executing a matched overload, e.g. by user code or %exception, propagates immediately with its original message. Where no thread
+       local storage is available the counter check is compiled out and any TypeError is retried. Reentrant conversion running Python
+       code that dispatches another kwargs overload before this one has matched may disturb the count (see pyerrors.swg). */
+    if (enable_kwargs) {
+      Node *sibl = n;
+      while (Getattr(sibl, "sym:previousSibling"))
+        sibl = Getattr(sibl, "sym:previousSibling");
+      Printf(f->code, "if (kwargs && PyDict_Size(kwargs) > 0) {\n");
+      while (sibl) {
+        String *wrap_name = Getattr(sibl, "wrap:name");
+        Printf(f->code, "  {\n");
+        Printf(f->code, "    unsigned long swig_parse_count = SWIG_Python_parse_count;\n");
+        Printf(f->code, "    PyObject *retobj = %s(self, args, kwargs);\n", wrap_name);
+        Printf(f->code, "    if (retobj) return retobj;\n");
+        Printf(f->code, "    if (!SWIG_Python_TypeErrorOccurred(NULL)) return NULL;\n");
+        Printf(f->code, "#ifdef SWIG_PYTHON_PARSE_COUNT_IS_THREAD_LOCAL\n");
+        Printf(f->code, "    if (SWIG_Python_parse_count != swig_parse_count) return NULL;\n");
+        Printf(f->code, "#endif\n");
+        Printf(f->code, "    PyErr_Clear();\n");
+        Printf(f->code, "  }\n");
+        sibl = Getattr(sibl, "sym:nextSibling");
+      }
+      Printf(f->code, "  goto fail;\n");
+      Printf(f->code, "}\n");
+    }
+
     Printv(f->code, dispatch, "\n", NIL);
 
     if (GetFlag(n, "feature:python:maybecall")) {
@@ -3513,19 +3592,19 @@ public:
     Wrapper_print(f, f_wrappers);
     if (!builtin_self && (use_static_method || !builtin)) {
       String *constructor_name = builtin ? Getattr(n, "constructorHandler:sym:name") : NULL;
-      add_method(constructor_name ? constructor_name : symname, wname, 0, Getattr(n, "sym:previousSibling") ? n : NULL);
+      add_method(constructor_name ? constructor_name : symname, wname, enable_kwargs ? 1 : 0, Getattr(n, "sym:previousSibling") ? n : NULL);
     }
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     bool module_scope = !builtin_self && !(shadow & PYSHADOW_MEMBER) && use_static_method;
     if (!builtin && shadow && module_scope) {
-      emitFunctionShadowHelper(n, in_class ? shadow_stubs : shadow_code, symname, 0);
+      emitFunctionShadowHelper(n, in_class ? shadow_stubs : shadow_code, symname, enable_kwargs ? 1 : 0);
     }
 
     /* A function declared inside a class, such as a friend, is still wrapped at module scope, so its
        declaration goes after the class body in the stub file rather than in it */
     if (pyi_stub && module_scope) {
-      emitFunctionStubHelper(n, in_class ? stub_globals : stub, symname, 0);
+      emitFunctionStubHelper(n, in_class ? stub_globals : stub, symname, enable_kwargs ? 1 : 0);
     }
 
     DelWrapper(f);
@@ -3683,9 +3762,18 @@ public:
 
     // builtin handles/checks kwargs by default except in constructor wrappers so we need to explicitly handle them in the C constructor wrapper
     // The check below is for zero arguments. Sometimes (eg directors) self is the first argument for a method with zero arguments.
-    if (((num_arguments == 0) && (num_required == 0)) || ((num_arguments == 1) && (num_required == 1) && Getattr(l, "self")))
-      if (!builtin_ctor)
+    // When the function is overloaded, keep kwargs enabled for the individual wrappers since
+    // the dispatch function passes kwargs to each overload.
+    // For builtin mode, the dispatch function does not pass kwargs to overloads, so disable them.
+    if (overname && builtin) {
+      if (allow_kwargs) {
+        Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
+      }
+      allow_kwargs = 0;
+    } else if (((num_arguments == 0) && (num_required == 0)) || ((num_arguments == 1) && (num_required == 1) && Getattr(l, "self"))) {
+      if (!builtin_ctor && !overname)
         allow_kwargs = 0;
+    }
     varargs = emit_isvarargs(l);
 
     String *wname = Copy(wrapper_name);
@@ -3694,15 +3782,11 @@ public:
     }
 
     const char *builtin_kwargs = builtin_ctor ? ", PyObject *kwargs" : "";
-    if (!allow_kwargs || overname) {
+    if (!allow_kwargs) {
       if (!varargs) {
         Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args", builtin_kwargs, ") {", NIL);
       } else {
         Printv(f->def, linkage, wrap_return, wname, "__varargs__", "(PyObject *self, PyObject *args, PyObject *varargs", builtin_kwargs, ") {", NIL);
-      }
-      if (allow_kwargs) {
-        Swig_warning(WARN_LANG_OVERLOAD_KEYWORD, input_file, line_number, "Can't use keyword arguments with overloaded functions (%s).\n", Swig_name_decl(n));
-        allow_kwargs = 0;
       }
     } else {
       if (varargs) {
@@ -3717,7 +3801,7 @@ public:
       Append(f->code, "(void)self;\n");
     }
 
-    if (!builtin || !in_class || tuple_arguments > 0 || builtin_ctor) {
+    if (!builtin || !in_class || tuple_arguments > 0 || builtin_ctor || allow_kwargs) {
       if (!allow_kwargs) {
         Append(parse_args, "    if (!PyArg_ParseTuple(args, \"");
       } else {
@@ -4012,6 +4096,13 @@ public:
     }
 
     Setattr(n, "wrap:name", wname);
+
+    /* For keyword argument overload dispatch: record successful argument parsing and conversion, so the
+       dispatch wrapper retries only overloads failing before this point and propagates errors raised while
+       executing a matched overload. */
+    if (allow_kwargs && overname) {
+      Append(f->code, "++SWIG_Python_parse_count;\n");
+    }
 
     /* Emit the function call */
     if (Swig_director_emit_dynamic_cast(n, f)) {
@@ -5741,7 +5832,7 @@ public:
         Setattr(class_members, symname, n);
         int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
         String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_METHOD) : NewString("");
-        if (check_kwargs(n)) {
+        if (check_kwargs(n) && !Getattr(n, "sym:overloaded")) {
           // Cast via void(*)(void) to suppress GCC -Wcast-function-type
           // warning.  Python should always call the function correctly, but
           // the Python C API requires us to store it in function pointer of a
@@ -5764,7 +5855,7 @@ public:
       Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
-      int allow_kwargs = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
+      int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded") || !builtin)) ? 1 : 0;
       String *parms = make_pyParmList(n, true, false, allow_kwargs);
 
       if (shadow && !builtin) {
@@ -5848,7 +5939,7 @@ public:
       Swig_restore(n);
     }
 
-    int kw = (check_kwargs(n) && !Getattr(n, "sym:overloaded")) ? 1 : 0;
+    int kw = (check_kwargs(n) && (!Getattr(n, "sym:overloaded") || !builtin)) ? 1 : 0;
     if (builtin && in_class) {
       if ((GetFlagAttr(n, "feature:extend") || checkAttribute(n, "access", "public")) && !Getattr(class_members, symname)) {
         String *fullname = Swig_name_member(NSPACE_TODO, class_name, symname);
@@ -5967,7 +6058,7 @@ public:
     Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
-      int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded"))) ? 1 : 0;
+      int allow_kwargs = (check_kwargs(n) && (!Getattr(n, "sym:overloaded") || !builtin)) ? 1 : 0;
       int handled_as_init = 0;
       if (!have_constructor) {
         String *nname = Getattr(n, "sym:name");
