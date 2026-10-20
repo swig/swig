@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-20: wsfulton
+            [OCaml] Fix carray.i for an array parameter of unknown size, such as 'int []' or 'Foo []' for
+            a struct or enum Foo. The wrapper code did not compile. The function is now passed a copy of
+            the OCaml array, with the same number of elements.
+
+2026-10-20: wsfulton
             Fix '$1_dim10' to '$1_dim19' in typemaps, which were replaced as '$1_dim1' followed by a
             digit for an array with 11 or more dimensions.
 

@@ -530,6 +530,18 @@ SWIG can't predict which of these methods will be used in the array,
 so you have to specify it for yourself in the form of a typemap.
 </p>
 
+<p>
+An exception is an array parameter of unknown size, such as <tt>a</tt> in the following.
+For the simple types, enums and structures, "carray.i" passes the function a copy of the OCaml array, with as many
+elements as the OCaml array has:
+</p>
+
+<div class="code">
+<pre>
+int sum(int a[], int n);
+</pre>
+</div>
+
 <H4><a name="Ocaml_nn15">41.2.3.3 Using an object</a></H4>
 
 
