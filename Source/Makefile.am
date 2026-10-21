@@ -96,6 +96,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/typemap.c			\
 		Swig/typeobj.c			\
 		Swig/typesys.c			\
+		Swig/vla.c			\
 		Swig/wrapfunc.c
 
 bin_PROGRAMS = eswig

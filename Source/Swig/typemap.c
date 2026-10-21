@@ -737,59 +737,21 @@ ret_result:
   return result;
 }
 
-/* -----------------------------------------------------------------------------
- * vla_parameter_type()
- *
- * For a C99 variable length array parameter 'node', such as the 'char s[n]' of 'int n, char s[n]', return a copy of
- * 'type', its type or a type it reduces to, with '*' as the size of each array dimension whose size is only known at
- * runtime, as given by the parameter's "vlasize".  This is the type of a typemap written for one, as in 'char [*]'.
- * Return 0 otherwise, or when 'type' has none of those array dimensions.
- * ----------------------------------------------------------------------------- */
-
-static SwigType *vla_parameter_type(const SwigType *type, Node *node) {
-  String *vlasize = node ? Getattr(node, "vlasize") : 0;
-  SwigType *vla = 0;
-  if (vlasize && SwigType_isarray(type)) {
-    List *sizes = SwigType_split(vlasize);
-    int ndim = SwigType_array_ndim(type);
-    int i;
-    for (i = 0; i < Len(sizes) && i < ndim; i++) {
-      String *size = SwigType_parm(Getitem(sizes, i));
-      if (size && Len(size) > 0) {
-        if (!vla)
-          vla = Copy(type);
-        SwigType_array_setdim(vla, i, "*");
-      }
-      Delete(size);
-    }
-    Delete(sizes);
+/* The type to search for a typemap after 'ctype', which is '*ctype_unstripped' with any number of its qualifiers
+ * stripped.  This is 'ctype' with one more qualifier stripped or, once none remain, '*ctype_unstripped' with a typedef
+ * resolved, which also becomes the new '*ctype_unstripped'.  Return 0 if there is no typedef to resolve.  'ctype' is
+ * deleted. */
+static SwigType *typemap_search_next_type(SwigType *ctype, SwigType **ctype_unstripped) {
+  SwigType *next = SwigType_strip_single_qualifier(ctype);
+  if (Equal(next, ctype)) {
+    /* Once all qualifiers are stripped try resolve a typedef */
+    Delete(next);
+    next = SwigType_typedef_resolve(*ctype_unstripped);
+    Delete(*ctype_unstripped);
+    *ctype_unstripped = Copy(next);
   }
-  return vla;
-}
-
-/* -----------------------------------------------------------------------------
- * vla_wrapped_type()
- *
- * For 'matchtype', the type of a typemap written with '[*]' that matched a C99 variable length array parameter, as in
- * 'int [*]', return a copy without the '*' sizes, as in 'int []'.  This is the type the parameter is wrapped as, which
- * $1_type and the other type variables expand to, as '*' as a size is only valid in a function prototype.  Return 0
- * when 'matchtype' has no array dimension with '*' as its size.
- * ----------------------------------------------------------------------------- */
-
-static SwigType *vla_wrapped_type(const SwigType *matchtype) {
-  SwigType *wrapped = 0;
-  if (SwigType_isarray_vla(matchtype)) {
-    int ndim = SwigType_array_ndim(matchtype);
-    int i;
-    wrapped = Copy(matchtype);
-    for (i = 0; i < ndim; i++) {
-      String *dim = SwigType_array_getdim(wrapped, i);
-      if (Equal(dim, "*"))
-        SwigType_array_setdim(wrapped, i, "");
-      Delete(dim);
-    }
-  }
-  return wrapped;
+  Delete(ctype);
+  return next;
 }
 
 /* -----------------------------------------------------------------------------
@@ -797,10 +759,10 @@ static SwigType *vla_wrapped_type(const SwigType *matchtype) {
  *
  * Search for a typemap written for a C99 variable length array parameter 'node' of type 'type', as in 'int [*]' for the
  * 'int a[n]' of 'int n, int a[n]'.  Each type 'type' reduces to, by stripping qualifiers and resolving typedefs as in
- * typemap_search(), is looked for as given by vla_parameter_type() and then with any other array dimensions as ANY.
- * So 'const int a[n]' is looked for as 'const int [*]' and then 'int [*]'.  The 'int m[n][3]' of 'int n, int m[n][3]'
- * is looked for as 'int [*][3]' and then 'int [*][ANY]'.  Return the typemap found, setting 'matchtype' to the type
- * from vla_parameter_type() it was found for, or return 0 if there is none.
+ * typemap_search(), is looked for as given by Swig_vla_parameter_type() and then with any other array dimensions as
+ * ANY.  So 'const int a[n]' is looked for as 'const int [*]' and then 'int [*]'.  The 'int m[n][3]' of
+ * 'int n, int m[n][3]' is looked for as 'int [*][3]' and then 'int [*][ANY]'.  Return the typemap found, setting
+ * 'matchtype' to the type from Swig_vla_parameter_type() it was found for, or return 0 if there is none.
  * ----------------------------------------------------------------------------- */
 
 static Hash *typemap_search_vla(int debug_display, const String *tm_method, SwigType *type, const String *cqualifiedname, const String *cname, Node *node,
@@ -810,7 +772,7 @@ static Hash *typemap_search_vla(int debug_display, const String *tm_method, Swig
   SwigType *ctype = Copy(type);
   SwigType *ctype_unstripped = Copy(type);
   while (ctype && !result) {
-    SwigType *vla = vla_parameter_type(ctype, node);
+    SwigType *vla = Swig_vla_parameter_type(ctype, node);
     if (vla) {
       tm = get_typemap(vla);
       result = typemap_search_helper(debug_display, tm, tm_method, vla, cqualifiedname, cname, backup);
@@ -831,18 +793,8 @@ static Hash *typemap_search_vla(int debug_display, const String *tm_method, Swig
       }
       Delete(vla);
     }
-    if (!result) {
-      SwigType *oldctype = ctype;
-      ctype = SwigType_strip_single_qualifier(oldctype);
-      if (Equal(ctype, oldctype)) {
-        /* Once all qualifiers are stripped try resolve a typedef */
-        Delete(ctype);
-        ctype = SwigType_typedef_resolve(ctype_unstripped);
-        Delete(ctype_unstripped);
-        ctype_unstripped = Copy(ctype);
-      }
-      Delete(oldctype);
-    }
+    if (!result)
+      ctype = typemap_search_next_type(ctype, &ctype_unstripped);
   }
   Delete(ctype);
   Delete(ctype_unstripped);
@@ -865,7 +817,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *primitive = 0;
   SwigType *ctype = 0;
   SwigType *ctype_unstripped = 0;
-  SwigType *vla = vla_parameter_type(type, node);
+  SwigType *vla = Swig_vla_parameter_type(type, node);
   int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
@@ -930,24 +882,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     /* No match so far - try with a qualifier stripped (strip one qualifier at a time until none remain)
      * The order of stripping in SwigType_strip_single_qualifier is used to provide some sort of consistency
      * with the default (SWIGTYPE) typemap matching rules for the first qualifier to be stripped. */
-    {
-      SwigType *oldctype = ctype;
-      ctype = SwigType_strip_single_qualifier(oldctype);
-      if (!Equal(ctype, oldctype)) {
-        Delete(oldctype);
-        continue;
-      }
-      Delete(oldctype);
-    }
-
-    /* Once all qualifiers are stripped try resolve a typedef */
-    {
-      SwigType *oldctype = ctype;
-      ctype = SwigType_typedef_resolve(ctype_unstripped);
-      Delete(oldctype);
-      Delete(ctype_unstripped);
-      ctype_unstripped = Copy(ctype);
-    }
+    ctype = typemap_search_next_type(ctype, &ctype_unstripped);
   }
 
   /* Hmmm. Well, no match seems to be found at all. See if there is some kind of default (SWIGTYPE) mapping */
@@ -956,7 +891,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     /* Again first look for a typemap written for a C99 variable length array parameter, as in 'SWIGTYPE [*]' */
     primitive = SwigType_default_create(type);
     while (primitive) {
-      SwigType *vla_primitive = vla_parameter_type(primitive, node);
+      SwigType *vla_primitive = Swig_vla_parameter_type(primitive, node);
       if (vla_primitive) {
         tm = get_typemap(vla_primitive);
         result = typemap_search_helper(debug_display, tm, tm_method, vla_primitive, cqualifiedname, cname, &backup);
@@ -1028,7 +963,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   /* Try to find a match on the first type */
   tm = typemap_search(tmap_method, type, name, 0, &mtype, parms);
   if (tm) {
-    SwigType *vla = vla_parameter_type(type, parms);
+    SwigType *vla = Swig_vla_parameter_type(type, parms);
     in_typemap_search_multi++;
     if (vla) {
       /* A C99 variable length array parameter first continues a multi-argument typemap written for one, such as
@@ -1074,7 +1009,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   if (typemap_search_debug && (in_typemap_search_multi == 0))
     debug_search_result_display(tm);
   if (typemaps_used_debug && (in_typemap_search_multi == 0) && tm) {
-    SwigType *vla = vla_parameter_type(type, parms);
+    SwigType *vla = Swig_vla_parameter_type(type, parms);
     String *typestr = SwigType_str(vla ? vla : type, name);
     Swig_diagnostic(Getfile(parms), Getline(parms), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
@@ -1606,125 +1541,6 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
   }
 }
 
-/* Whether 's' contains the array size variable 'var', but not only as the start of another variable, as '$1_dim1' is
- * of '$1_dim10'. */
-static int has_array_size_var(const String *s, const String *var) {
-  int len = Len(var);
-  const char *c = Strstr(s, var);
-  while (c && isdigit((unsigned char)c[len]))
-    c = Strstr(c + len, var);
-  return c != 0;
-}
-
-/* Whether 's' uses a size of a C99 variable length array parameter that a typemap written with '[*]' matched as
- * 'matchtype', which is a size only known at runtime: $<index>_dim<i> for each dimension i written as '[*]', also
- * $dim<i> for 'index' 1, or $<index>_size. */
-static int uses_vla_size(const String *s, SwigType *matchtype, int index) {
-  int used = 0;
-  int runtime = 0;
-  int ndim = SwigType_array_ndim(matchtype);
-  int i;
-  for (i = 0; i < ndim && !used; i++) {
-    String *dim = SwigType_array_getdim(matchtype, i);
-    if (Equal(dim, "*")) {
-      String *var = NewStringf("$%d_dim%d", index, i);
-      String *shortvar = NewStringf("$dim%d", i);
-      runtime = 1;
-      used = has_array_size_var(s, var) || (index == 1 && has_array_size_var(s, shortvar));
-      Delete(shortvar);
-      Delete(var);
-    }
-    Delete(dim);
-  }
-  if (runtime && !used) {
-    String *sizevar = NewStringf("$%d_size", index);
-    used = has_array_size_var(s, sizevar);
-    Delete(sizevar);
-  }
-  return used;
-}
-
-/* Report the error 'message' about C99 variable length array parameter 'p' once only, as the typemaps for a function
- * can be attached more than once. */
-static void report_vla_size_use(Parm *p, String *message) {
-  static Hash *reported = 0;
-  String *key = NewStringf("%s:%d:%s", Getfile(p), Getline(p), message);
-  if (!reported)
-    reported = NewHash();
-  if (!Getattr(reported, key)) {
-    Swig_error(Getfile(p), Getline(p), "%s", message);
-    Setattr(reported, key, "1");
-  }
-  Delete(key);
-}
-
-/* -----------------------------------------------------------------------------
- * check_vla_size_use()
- *
- * The runtime size of a C99 variable length array parameter 'p' is a variable in the C wrapper, such as 'arg1' for 's'
- * in these parameters:
- *   int n, char s[n]
- * It only has a value once the arguments are converted, so only these typemaps written with '[*]' can use it, as
- * $1_dim0, $dim0 or $1_size for 'index' 1:
- *   %typemap(in) with numinputs other than 0
- *   %typemap(check)
- *   %typemap(argout)
- *   %typemap(freearg)
- * Report an error for any other typemap 'tm' that matched 'p' as 'matchtype' and uses the size in its code.  These are
- * the typemaps that run before the arguments are converted, such as 'typecheck', 'default' and 'arginit', and the
- * target language typemaps.  Also report a typemap attribute that uses it.  Only typemap_attach_parms() can substitute
- * the size, which 'substituted' is set for, as the size needs the other parameters.
- * ----------------------------------------------------------------------------- */
-
-static void check_vla_size_use(const_String_or_char_ptr tmap_method, Hash *tm, SwigType *matchtype, Parm *p, int index, int substituted) {
-  String *code = Getattr(tm, "code");
-  String *numinputs = 0;
-  String *pname;
-  String *pstr;
-  int allowed = 0;
-  Parm *kw;
-
-  if (!SwigType_isarray_vla(matchtype))
-    return;
-
-  pname = Getattr(p, "name");
-  pstr = pname ? Copy(pname) : SwigType_str(Getattr(p, "type"), 0);
-  for (kw = Getattr(tm, "kwargs"); kw; kw = nextSibling(kw)) {
-    if (Equal(Getattr(kw, "name"), "numinputs"))
-      numinputs = Getattr(kw, "value");
-  }
-
-  if (substituted) {
-    if (Equal(tmap_method, "in")) {
-      allowed = !Equal(numinputs, "0");
-    } else {
-      allowed = Equal(tmap_method, "check") || Equal(tmap_method, "argout") || Equal(tmap_method, "freearg");
-    }
-  }
-
-  if (!allowed && code && uses_vla_size(code, matchtype, index)) {
-    String *message;
-    if (substituted && Equal(tmap_method, "in")) {
-      message = NewStringf("An 'in' typemap with numinputs=0 cannot use the runtime size of variable length array parameter '%s'.\n", pstr);
-    } else {
-      message = NewStringf("The '%s' typemap cannot use the runtime size of variable length array parameter '%s'.\n", tmap_method, pstr);
-    }
-    report_vla_size_use(p, message);
-    Delete(message);
-  }
-
-  for (kw = Getattr(tm, "kwargs"); kw; kw = nextSibling(kw)) {
-    String *value = Getattr(kw, "value");
-    if (DohIsString(value) && uses_vla_size(value, matchtype, index)) {
-      String *message = NewStringf(
-        "The '%s' typemap attribute '%s' cannot use the runtime size of variable length array parameter '%s'.\n", tmap_method, Getattr(kw, "name"), pstr);
-      report_vla_size_use(p, message);
-      Delete(message);
-    }
-  }
-  Delete(pstr);
-}
-
 /* -----------------------------------------------------------------------------
  * Swig_typemap_lookup()
  *
@@ -1818,7 +1634,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   if (typemap_search_debug)
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
-    SwigType *vla = vla_parameter_type(type, node);
+    SwigType *vla = Swig_vla_parameter_type(type, node);
     String *typestr = SwigType_str(vla ? vla : type, qpname ? qpname : pname);
     Swig_diagnostic(Getfile(node), Getline(node), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(node) && Len(Getfile(node)) > 0); /* Missing file and line numbering information */
@@ -1843,7 +1659,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     return sdef;
 
   if (mtype)
-    check_vla_size_use(tmap_method, tm, mtype, node, 1, 0);
+    Swig_vla_check_size_use(tmap_method, tm, mtype, node, 1, 0);
 
   s = Copy(s); /* Make a local copy of the typemap code */
 
@@ -1916,7 +1732,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   }
 
   matchtype = mtype && SwigType_isarray(mtype) ? mtype : type;
-  wrappedtype = vla_wrapped_type(matchtype);
+  wrappedtype = Swig_vla_wrapped_type(matchtype);
   num_substitutions = typemap_replace_vars(s, locals, wrappedtype ? wrappedtype : matchtype, type, pname, (char *)lname, 1, NULL);
   Delete(wrappedtype);
   if (optimal_substitution && num_substitutions > 1) {
@@ -2133,63 +1949,31 @@ static String *typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
  * local variables are declared before any argument is converted, so using a runtime size in one of 'locals' is an
  * error.  Nothing is done for any other match. */
 static void replace_vla_size(String *s, ParmList *locals, SwigType *matchtype, Parm *p, ParmList *parms, int index) {
-  String *vlasize = Getattr(p, "vlasize");
-  if (vlasize && SwigType_isarray(matchtype)) {
+  if (SwigType_isarray_vla(matchtype)) {
     /* A typedef can give more of the dimensions, as in typemap_replace_vars() */
     SwigType *ftype = SwigType_typedef_resolve_all(matchtype);
     SwigType *dimtype = SwigType_array_ndim(ftype) != SwigType_array_ndim(matchtype) ? ftype : matchtype;
-    List *sizes = SwigType_split(vlasize);
     List *dims = NewList();
     int ndim = SwigType_array_ndim(dimtype);
     int variable = 0;
     int i;
-    /* The size gives the parameters by their position in the declaration, which a wrapper for a method puts after self */
-    while (parms && Getattr(parms, "self"))
-      parms = nextSibling(parms);
     for (i = 0; i < ndim; i++) {
       String *dim = SwigType_array_getdim(dimtype, i);
-      String *size = Equal(dim, "*") && i < Len(sizes) ? SwigType_parm(Getitem(sizes, i)) : 0;
-      String *operand;
-      if (size && Len(size) > 0) {
-        operand = NewStringf("(%s)", size);
-        ParmList_replace_positional(operand, parms, "lname");
+      String *operand = Equal(dim, "*") ? Swig_vla_dimension_operand(p, parms, i) : 0;
+      if (operand) {
         variable = 1;
       } else {
         operand = array_dimension_operand(dimtype, i);
       }
       Append(dims, operand);
       Delete(operand);
-      Delete(size);
       Delete(dim);
     }
     if (variable) {
-      Parm *local;
-      for (local = locals; local; local = nextSibling(local)) {
-        String *lvalue = Getattr(local, "value");
-        if (uses_vla_size(Getattr(local, "type"), dimtype, index) || (lvalue && uses_vla_size(lvalue, dimtype, index))) {
-          /* Report the error once, as the typemaps for a function can be attached more than once */
-          static Hash *reported = 0;
-          String *key = NewStringf("%s:%d:%s", Getfile(p), Getline(p), Getattr(local, "name"));
-          if (!reported)
-            reported = NewHash();
-          if (!Getattr(reported, key)) {
-            String *pname = Getattr(p, "name");
-            String *pstr = pname ? Copy(pname) : SwigType_str(Getattr(p, "type"), 0);
-            Swig_error(Getfile(p),
-                       Getline(p),
-                       "Typemap local variable '%s' cannot use the runtime size of variable length array parameter '%s'.\n",
-                       Getattr(local, "name"),
-                       pstr);
-            Setattr(reported, key, "1");
-            Delete(pstr);
-          }
-          Delete(key);
-        }
-      }
+      Swig_vla_check_locals(locals, dimtype, p, index);
       replace_array_size_vars(s, 0, dims, index);
     }
     Delete(dims);
-    Delete(sizes);
     Delete(ftype);
   }
 }
@@ -2325,9 +2109,9 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
       String *lname = Getattr(p, "lname");
       SwigType *mtype = Getattr(p, "tmap:match");
       SwigType *matchtype = mtype ? mtype : type;
-      SwigType *wrappedtype = vla_wrapped_type(matchtype);
+      SwigType *wrappedtype = Swig_vla_wrapped_type(matchtype);
 
-      check_vla_size_use(tmap_method, tm, matchtype, p, i + 1, 1);
+      Swig_vla_check_size_use(tmap_method, tm, matchtype, p, i + 1, 1);
       replace_vla_size(s, locals, matchtype, p, parms, i + 1);
       typemap_replace_vars(s, locals, wrappedtype ? wrappedtype : matchtype, type, pname, lname, i + 1, override_vars);
       Delete(wrappedtype);

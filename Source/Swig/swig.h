@@ -480,6 +480,18 @@ extern int Constraint_differently_constrained(Node *a, Node *b);
 extern String *Constraint_display_str(Node *n);
 extern String *Constraint_match_str(Node *constraint, ParmList *templateparms);
 
+/* --- C99 variable length array support --- */
+
+extern void Swig_vla_unsize_parms(ParmList *parms);
+extern void Swig_vla_star_parms(ParmList *parms);
+extern void Swig_vla_merge_sizes(Node *c, Node *n);
+extern SwigType *Swig_vla_parameter_type(const SwigType *type, Node *node);
+extern SwigType *Swig_vla_wrapped_type(const SwigType *matchtype);
+extern String *Swig_vla_dimension_operand(Parm *p, ParmList *parms, int i);
+extern void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, SwigType *matchtype, Parm *p, int index, int substituted);
+extern void Swig_vla_check_locals(ParmList *locals, SwigType *matchtype, Parm *p, int index);
+extern int Swig_vla_is_size_parm(ParmList *parms, Parm *p);
+
 /* hacks defined in C++ ! */
 extern int Swig_director_mode(void);
 extern int Swig_director_protected_mode(void);
