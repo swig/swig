@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 19;
 BEGIN { use_ok('ignore_parameter') }
 require_ok('ignore_parameter');
 
@@ -15,12 +15,17 @@ is(ignore_parameter::jaguar(200, 0.0), "hello", "jaguar()");
 is(ignore_parameter::lotus("fast", 0.0), 101, "lotus()");
 is(ignore_parameter::tvr("fast", 200), 8.8, "tvr()");
 is(ignore_parameter::ferrari(), 101, "ferrari()");
+is($ignore_parameter::called_argout, 1, "argout typemap called");
+is($ignore_parameter::called_freearg, 1, "freearg typemap called");
+is(ignore_parameter::fiat(17), 17, "fiat()");
 
 my $sc = new ignore_parameter::SportsCars();
 is($sc->daimler(200, 0.0), "hello", "daimler()");
 is($sc->astonmartin("fast", 0.0), 101, "astonmartin()");
 is($sc->bugatti("fast", 200), 8.8, "bugatti()");
 is($sc->lamborghini(), 101, "lamborghini()");
+is($sc->maseratti(289), 289, "maseratti()");
+is($sc->audi(), 8.8, "audi()");
 
 # Check constructors are also generated correctly
 my $mc = eval { new ignore_parameter::MiniCooper(200, 0.0) };

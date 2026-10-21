@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [Tcl] The "freearg" typemap of a parameter whose "in" typemap has numinputs=0 was not
+            used, so memory allocated for such a parameter, such as an output array, was not freed.
+            It is now used, as in the other target languages.
+
+2026-10-22: wsfulton
             [Lua] The array typemaps in typemaps.i are no longer supported and have been removed, for
             consistency with the other target languages. These are the INPUT, OUTPUT and INOUT
             typemaps for numbers, enums and pointers in a fixed size array, such as 'int INPUT[ANY]',

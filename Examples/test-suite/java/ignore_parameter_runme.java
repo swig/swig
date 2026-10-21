@@ -20,12 +20,17 @@ public class ignore_parameter_runme {
       if (ignore_parameter.lotus("fast", 0.0) != 101) { throw new RuntimeException("Runtime Error in lotus()");}
       if (ignore_parameter.tvr("fast", 200) != 8.8) { throw new RuntimeException("Runtime Error in tvr()");}
       if (ignore_parameter.ferrari() != 101) { throw new RuntimeException("Runtime Error in ferrari()");}
+      if (ignore_parameter.getCalled_argout() != 1) { throw new RuntimeException("argout typemap not called");}
+      if (ignore_parameter.getCalled_freearg() != 1) { throw new RuntimeException("freearg typemap not called");}
+      if (ignore_parameter.fiat(17) != 17) { throw new RuntimeException("Runtime Error in fiat()");}
 
       SportsCars sc = new SportsCars();
       if (!sc.daimler(200, 0.0).equals("hello")) { throw new RuntimeException("Runtime Error in daimler()");}
       if (sc.astonmartin("fast", 0.0) != 101) { throw new RuntimeException("Runtime Error in astonmartin()");}
       if (sc.bugatti("fast", 200) != 8.8) { throw new RuntimeException("Runtime Error in bugatti()");}
       if (sc.lamborghini() != 101) { throw new RuntimeException("Runtime Error in lamborghini()");}
+      if (sc.maseratti(289) != 289) { throw new RuntimeException("Runtime Error in maseratti()");}
+      if (sc.audi() != 8.8) { throw new RuntimeException("Runtime Error in audi()");}
 
       // Check constructors are also generated correctly
       MiniCooper mc = new MiniCooper(200, 0.0);

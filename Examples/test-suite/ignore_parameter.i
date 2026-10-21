@@ -11,12 +11,13 @@
   redefinition_error_means_in_typemap_substituted_more_than_once:
   $1 = const_cast<char *>("hello");
 %}
-%typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0;"
+%typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0; called_freearg = 0;"
 %typemap(in,numinputs=0) double ccc "$1 = 8.8;"
 
 %typemap(freearg) char* a "" // ensure freearg is not generated (needed for Java at least)
 
 %typemap(argout) int bb "called_argout = 1;"
+%typemap(freearg) int bb "called_freearg = 1;"
 
 %ignore unignorable;
 // Don't let SWIG expand this function with its default parameter: instead,
@@ -27,6 +28,7 @@
 %inline %{
 // constant for detecting correct "argout" call
 int called_argout = 0;
+int called_freearg = 0;
 
 // global function tests
 char* jaguar(char* a, int b, double c) { return a; }

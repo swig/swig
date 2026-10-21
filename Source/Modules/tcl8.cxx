@@ -402,7 +402,7 @@ public:
 
     /* Insert cleanup code */
     for (i = 0, p = parms; p; i++) {
-      if (!checkAttribute(p, "tmap:in:numinputs", "0") && !Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
+      if (!Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
         if (Len(tm) != 0) {
           Printv(cleanup, tm, "\n", NIL);
         }

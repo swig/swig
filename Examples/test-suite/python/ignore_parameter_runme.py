@@ -8,6 +8,8 @@ check(jaguar(200, 0), "hello")
 check(lotus("foo", 1), 101)
 check(tvr("bar", 2), 8.8)
 check(ferrari(), 101)
+check(cvar.called_argout, 1)
+check(cvar.called_freearg, 1)
 check(fiat(17), 17)
 
 car = SportsCars()
