@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
@@ -9,7 +9,7 @@
  * scilab.cxx
  *
  * Scilab language module for SWIG.
- * --------------------------------------------------------------------------*/
+ * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
 #include <cstddef>

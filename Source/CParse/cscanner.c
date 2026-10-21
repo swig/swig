@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at https://www.swig.org/legal.html.
  *
- * scanner.c
+ * cscanner.c
  *
  * SWIG tokenizer.  This file is a wrapper around the generic C scanner
  * found in Swig/scanner.c.   Extra logic is added both to accommodate the
