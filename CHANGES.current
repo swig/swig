@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-21: wsfulton
+            Warnings and errors about a typemap now give the line of its %typemap directive. They gave
+            the line where its code ends, or the line after a typemap written on one line.
+
+2026-10-21: wsfulton
             Fix typemaps for an array whose size contains a '.', such as 'int a[sizeof(s.x)]'. The
             typemaps for 'int[ANY]' were not used for it.
 
@@ -220,8 +224,8 @@ Version 4.6.0 (in progress)
 
             The size is only known once the arguments are converted. So it can only be used in the
             'check', 'argout' and 'freearg' typemaps and in an 'in' typemap without numinputs=0. Using
-            it in any other typemap, such as a 'typecheck' or target language typemap, or in a
-            typemap's local variables or attributes is an error.
+            it anywhere else is an error, such as in an 'in' typemap with numinputs=0, a target
+            language typemap or a typemap's local variables or attributes.
 
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using

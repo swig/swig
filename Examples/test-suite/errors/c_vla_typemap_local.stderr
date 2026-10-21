@@ -1,6 +1,6 @@
 c_vla_typemap_local.i:6: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'a'.
-c_vla_typemap_local.i:4: Error: the size is used in %typemap(in) int [*].
+c_vla_typemap_local.i:3: Error: the size is used in %typemap(in) int [*].
 c_vla_typemap_local.i:7: Error: Typemap local variable 'size' cannot use the runtime size of variable length array parameter 'd'.
-c_vla_typemap_local.i:6: Error: the size is used in %typemap(in) double [*].
+c_vla_typemap_local.i:4: Error: the size is used in %typemap(in) double [*].
 c_vla_typemap_local.i:14: Error: Typemap local variable 'row' cannot use the runtime size of variable length array parameter 'm'.
-c_vla_typemap_local.i:11: Error: the size is used in %typemap(in) double [*][*].
+c_vla_typemap_local.i:10: Error: the size is used in %typemap(in) double [*][*].

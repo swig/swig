@@ -4295,7 +4295,8 @@ converted.</li>
 <p>
 So the size can only be used in the code of an "in" typemap without <tt>numinputs=0</tt> and in the code of the
 "check", "argout" and "freearg" typemaps.
-Any other use of it is an error, such as in a <tt>typecheck</tt> typemap or in a typemap's local variables:
+Any other use of it is an error, such as in a typemap's local variables or in an "in" typemap with
+<tt>numinputs=0</tt>:
 </p>
 
 <div class="code">
@@ -4305,17 +4306,18 @@ Any other use of it is an error, such as in a <tt>typecheck</tt> typemap or in a
 %typemap(in) const int[*] (int temp[$1_dim0]) {
   ...
 }
-%typemap(typecheck) const int[*] "$1 = ($1_dim0) &gt; 0;"
+%typemap(in, numinputs=0) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
 int total(int n, const int values[n]);
+void squares(int n, double numbers[n]);
 </pre>
 </div>
 
 <div class="shell">
 <pre>
 example.i:7: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'values'.
-example.i:5: Error: the size is used in %typemap(in) int const [*].
-example.i:7: Error: The 'typecheck' typemap cannot use the runtime size of variable length array parameter 'values'.
-example.i:7: Error: the size is used in %typemap(typecheck) int const [*].
+example.i:3: Error: the size is used in %typemap(in) int const [*].
+example.i:8: Error: An 'in' typemap with numinputs=0 cannot use the runtime size of variable length array parameter 'numbers'.
+example.i:6: Error: the size is used in %typemap(in) double numbers[*].
 </pre>
 </div>
 
@@ -4327,8 +4329,8 @@ typemap.
 <p>
 An output array is usually allocated in an "in" typemap with <tt>numinputs=0</tt>, so that it is not an argument in
 the target language.
-This is not possible for an output array sized by an earlier parameter, as the code of such a typemap comes before the
-size has a value.
+This is not possible for an output array sized by an earlier parameter, such as <tt>numbers</tt> above, as the code of
+such a typemap comes before the size has a value.
 This is a limitation of SWIG.
 Allocate the array in a "check" typemap instead, keeping the "in" typemap with <tt>numinputs=0</tt> just to set it to
 NULL, so that the "freearg" typemap can free it even if converting an argument fails.

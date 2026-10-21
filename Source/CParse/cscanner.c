@@ -1521,8 +1521,12 @@ static int scan_token(void) {
         return (FRAGMENT);
       if (strcmp(yytext, "%inline") == 0)
         return (INLINE);
-      if (strcmp(yytext, "%typemap") == 0)
+      if (strcmp(yytext, "%typemap") == 0) {
+        /* The location of a typemap is where its directive starts, not where its code ends */
+        yylval.loc.filename = cparse_file;
+        yylval.loc.line = cparse_start_line;
         return (TYPEMAP);
+      }
       if (strcmp(yytext, "%feature") == 0) {
         /* The rename_active indicates we don't need the information of the
          * following function's return type. This applied for %rename, so do

@@ -2199,7 +2199,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token USING
 %token NAMESPACE
 %token NATIVE INLINE
-%token TYPEMAP ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
+%token <loc> TYPEMAP
+%token ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
 %token LESSTHAN GREATERTHAN DELETE_KW NEW_KW DEFAULT
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO LESSEQUALGREATER
@@ -4636,6 +4637,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   if ($typemap_type.method) {
 		     String *code = 0;
 		     $$ = new_node("typemap");
+                     Setfile($$, $TYPEMAP.filename);
+                     Setline($$, $TYPEMAP.line);
 		     Setattr($$,"method",$typemap_type.method);
 		     if ($typemap_type.kwargs) {
 		       ParmList *kw = $typemap_type.kwargs;
@@ -4654,6 +4657,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		 $$ = 0;
 		 if ($typemap_type.method) {
 		   $$ = new_node("typemap");
+                   Setfile($$, $TYPEMAP.filename);
+                   Setline($$, $TYPEMAP.line);
 		   Setattr($$,"method",$typemap_type.method);
 		   appendChild($$,$tm_list);
 		   Delete($typemap_type.method);
@@ -4664,6 +4669,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   $$ = 0;
 		   if ($typemap_type.method) {
 		     $$ = new_node("typemapcopy");
+                     Setfile($$, $TYPEMAP.filename);
+                     Setline($$, $TYPEMAP.line);
 		     Setattr($$,"method",$typemap_type.method);
 		     Setattr($$,"pattern", Getattr($typemap_parm,"pattern"));
 		     appendChild($$,$tm_list);
