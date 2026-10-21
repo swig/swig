@@ -24,6 +24,7 @@ C_TEST_CASES := \
 FAILING_C_TESTS := \
     arrays \
     c99_parameter_array_declarators \
+    c99_vla_array_libraries \
     c99_vla_typemaps \
     funcptr \
     function_typedef \

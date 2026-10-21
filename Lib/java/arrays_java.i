@@ -178,6 +178,9 @@ JAVA_ARRAYS_IMPL(double, jdouble, Double, Double)     /* double[] */
 
 %typemap(memberin) CTYPE[ANY], CTYPE[];
 %typemap(globalin) CTYPE[ANY], CTYPE[];
+
+/* A C99 variable length array parameter, as in 'int n, int a[n]', is handled as a fixed size array of its runtime size */
+%apply CTYPE[ANY] { CTYPE[*] };
 %enddef
 
 JAVA_ARRAYS_TYPEMAPS(bool, boolean, jboolean, Bool, "[Z")       /* bool[ANY] */
@@ -232,8 +235,8 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
     ""
 
 #if defined(SWIGWORDSIZE64)
-%apply long long[ANY] { long[ANY] };
-%apply unsigned long long[ANY] { unsigned long[ANY] };
+%apply long long[ANY] { long[ANY], long[*] };
+%apply unsigned long long[ANY] { unsigned long[ANY], unsigned long[*] };
 %apply long long[] { long[] };
 %apply unsigned long long[] { unsigned long[] };
 #endif
@@ -343,6 +346,8 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 %{ free($1); %}
 #endif
 
+%apply ARRAYSOFCLASSES[ANY] { ARRAYSOFCLASSES[*] };
+
 /* Add some code to the proxy class of the array type for converting between type used in 
  * JNI class (long[]) and type used in proxy class ( ARRAYSOFCLASSES[] ) */
 %extend ARRAYSOFCLASSES {
@@ -369,8 +374,9 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 
 
 /* Arrays of enums. 
- * Use the following to use these typemaps for an array of enums called name:
- * %apply ARRAYSOFENUMS[ANY] { name[ANY] }; */
+ * Use the following to use these typemaps for an array of enums called name,
+ * name[*] being for a C99 variable length array parameter:
+ *   %apply ARRAYSOFENUMS[ANY] { name[ANY], name[*] }; */
 %typemap(jni) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "jintArray"
 %typemap(jtype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "int[]"
 %typemap(jstype) ARRAYSOFENUMS[ANY], ARRAYSOFENUMS[] "int[]"

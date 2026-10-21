@@ -222,6 +222,18 @@ Version 4.6.0 (in progress)
             array, instead of passing it without checking its length. A string or vector too long for
             the array is now an error.
 
+            The typemaps for a fixed size array in arrays_java.i, arrays_javascript.i and carray.i are
+            also used for a variable length array parameter, with the size it has at runtime, such as
+            'n' for 'values' here:
+
+              int sum(int n, const int values[n]);
+
+            arrays_java.i throws an IndexOutOfBoundsException for an array that is not 'n' long.
+            arrays_javascript.i reports an error for an array shorter than 'n', as carray.i does with
+            Invalid_argument. For ARRAYSOFENUMS use:
+
+              %apply ARRAYSOFENUMS[ANY] { name[ANY], name[*] };
+
             The size is only known once the arguments are converted. So it can only be used in the
             'check', 'argout' and 'freearg' typemaps and in an 'in' typemap without numinputs=0. Using
             it anywhere else is an error, such as in an 'in' typemap with numinputs=0, a target

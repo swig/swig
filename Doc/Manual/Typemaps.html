@@ -4395,6 +4395,43 @@ Like the typemaps for a fixed size array, they copy a string into an array of th
 filling the rest of the array.
 </p>
 
+<p>
+The typemaps for a fixed size array can be used for a variable length array parameter too, by applying them to the
+same type written with <tt>*</tt>:
+</p>
+
+<div class="code">
+<pre>
+%apply double[ANY] { double[*] };
+double sum(size_t n, const double values[n]);
+</pre>
+</div>
+
+<p>
+<tt>$1_dim0</tt> and <tt>$1_size</tt> in the applied typemaps are then the size worked out at runtime, so they can
+only be used in the typemaps listed above.
+If an applied typemap uses them anywhere else, such as in its local variables, SWIG reports an error naming the
+<tt>%apply</tt>.
+Copy just the typemaps that use the size where it can be used instead:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) double[*] = double[ANY];
+%typemap(freearg) double[*] = double[ANY];
+</pre>
+</div>
+
+<p>
+The array libraries with typemaps for a fixed size array apply them to variable length arrays in this way:
+</p>
+
+<ul>
+<li><tt>arrays_java.i</tt> in Java</li>
+<li><tt>arrays_javascript.i</tt> in JavaScript</li>
+<li><tt>carray.i</tt> in OCaml</li>
+</ul>
+
 <H2><a name="Typemaps_warnings">16.11 Typemap warnings</a></H2>
 
 

@@ -5635,6 +5635,27 @@ When arrays are used in functions like <tt>populate</tt>, the size of the C arra
 </p>
 
 <p>
+A C99 variable length array parameter, such as <tt>values</tt> in the following, is passed like a fixed size array
+of the size given at runtime, so a Java array of any other size throws an <tt>IndexOutOfBoundsException</tt>:
+</p>
+
+<div class="code">
+<pre>
+int sum(int n, const int values[n]);
+</pre>
+</div>
+
+<p>
+For an array of enums, apply the enum typemaps to the variable length array as well:
+</p>
+
+<div class="code">
+<pre>
+%apply ARRAYSOFENUMS[ANY] { name[ANY], name[*] };
+</pre>
+</div>
+
+<p>
 A <tt>null</tt> Java array is passed to the function as a NULL pointer, as for any other array parameter.
 Setting an array variable to <tt>null</tt> throws a <tt>NullPointerException</tt>, as there is no array to copy from.
 To throw a <tt>NullPointerException</tt> for a <tt>null</tt> array parameter too, add a <tt>check</tt> typemap for the array type:

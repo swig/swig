@@ -910,6 +910,7 @@ C_TEST_CASES += \
 	c_delete_function \
 	c_this_identifier \
 	c99_parameter_array_declarators \
+	c99_vla_array_libraries \
 	c99_vla_typemaps \
 	char_constant \
 	charptr_fragment \

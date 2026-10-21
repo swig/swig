@@ -63,6 +63,11 @@ type _value = c_obj
 %array_tmap_in(varin,type,in_f,SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "$1_type is null"));
 %array_tmap_in(directorout,type,in_f,$1 = 0);
 %array_tmap_in_unknown_size(type,in_f);
+
+/* A C99 variable length array parameter, as in 'int n, int a[n]', is copied as a fixed size array of its runtime size.
+   %apply is not used, as it would also copy the 'directorin' typemap, which cannot use that size. */
+%typemap(in) type[*] = type[ANY];
+%typemap(freearg) type[*] = type[ANY];
 %enddef
 
 %make_simple_array_typemap(bool,caml_val_bool,caml_long_val);
