@@ -15,6 +15,8 @@ let _ =
   assert (_sum_schars schars as int = 2);
   let uchars = C_array [| C_int 200; C_int 50; C_int 1; C_int 4 |] in
   assert (_sum_uchars uchars as int = 255);
+  assert (_sum_items (C_array [| new_item 3; new_item 4 |]) as int = 7);
+  assert (_count_chars (C_string "ab") as int = 2);
   (* C_void is passed as NULL for an array parameter *)
   assert (_sum_ints (C_list [ C_void ]) as int = -1);
   assert (_sum_doubles (C_list [ C_void ]) as float = -1.);

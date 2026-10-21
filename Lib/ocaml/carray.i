@@ -87,7 +87,7 @@ type _value = c_obj
     } else {
         $1 = new $*1_type [$1_dim0];
         for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
-            $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $*1_descriptor));
+            $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $1_descriptor));
         }
     }
 }
@@ -113,7 +113,7 @@ type _value = c_obj
     } else {
         $1 = ($*1_type *)malloc( $1_dim0 * sizeof($*1_type) );
         for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
-            $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $*1_descriptor));
+            $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $1_descriptor));
         }
     }
 }
@@ -184,7 +184,7 @@ type _value = c_obj
 }
 
 #ifdef __cplusplus
-%typemap(freearg) SWIGTYPE [ANY] {
+%typemap(freearg, match="in") SWIGTYPE [ANY] {
     delete [] $1;
 }
 
@@ -192,7 +192,7 @@ type _value = c_obj
     delete [] $1;
 %}
 #else
-%typemap(freearg) SWIGTYPE [ANY] {
+%typemap(freearg, match="in") SWIGTYPE [ANY] {
     free( (void *)$1 );
 }
 

@@ -38,6 +38,16 @@ typedef struct CarrayMember {
 } CarrayMember;
 %}
 
+// A fixed size char array is passed as a string, which carray.i must not free
+%inline %{
+int count_chars(char a[4]) {
+  int n = 0;
+  while (n < 4 && a[n])
+    n++;
+  return n;
+}
+%}
+
 // An array of unknown size has as many elements as the OCaml array
 %inline %{
 typedef enum CarrayColor { CARRAY_RED = 1, CARRAY_GREEN = 2, CARRAY_BLUE = 4 } CarrayColor;

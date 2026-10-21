@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-21: wsfulton
+            [OCaml] Fix carray.i for a fixed size array of structs, which failed for any array of
+            wrapped objects. Also fix a fixed size char array parameter, such as 'char a[4]', being
+            freed even though it is a local array, which crashed.
+
 2026-10-20: wsfulton
             [OCaml] Fix carray.i for an array parameter of unknown size, such as 'int []' or 'Foo []' for
             a struct or enum Foo. The wrapper code did not compile. The function is now passed a copy of
