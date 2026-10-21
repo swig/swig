@@ -2267,6 +2267,24 @@ run-time type checker (described later).</td>
 </td>
 </tr>
 
+<tr>
+<td>$<em>n</em>_dim<em>i</em></td>
+<td>Size of dimension <em>i</em> of an array type <em>n</em>, counting from 0 for the outermost dimension.
+For example, <tt>$1_dim0</tt> is <tt>3</tt> and <tt>$1_dim1</tt> is <tt>4</tt> for <tt>int a[3][4]</tt>.
+A size written as an expression is parenthesised, such as <tt>(N+1)</tt>.
+It is empty for an array of unknown size, as in <tt>int a[]</tt>.
+For a variable length array, see <a href="#Typemaps_variable_length_arrays">Typemaps for variable length arrays</a>.
+</td>
+</tr>
+
+<tr>
+<td>$<em>n</em>_size</td>
+<td>Number of elements in an array type <em>n</em>, which is the sizes of all its dimensions multiplied together, such
+as <tt>3*4</tt> for <tt>int a[3][4]</tt>.
+A dimension of unknown size is left out, so it is <tt>4</tt> for <tt>int a[][4]</tt> and empty for <tt>int a[]</tt>.
+</td>
+</tr>
+
 </table>
 </center>
 
