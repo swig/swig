@@ -1384,9 +1384,9 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
     if (!checkAttribute(p, "tmap:in:noblock", "1")) {
       Printf(code, "{\n");
     }
-    Printf(code, "%s", tm);
+    Printf(code, "%s\n", tm);
     if (!checkAttribute(p, "tmap:in:noblock", "1")) {
-      Printf(code, "\n}\n");
+      Printf(code, "}\n");
     }
   } else {
     Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));

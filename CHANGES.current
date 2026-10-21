@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [Javascript] The wrapper code that comes after an "in" typemap with noblock=1, such as the
+            conversion of the next argument, is now correct when the typemap ends with a // comment.
+
+2026-10-22: wsfulton
             [Tcl] The "freearg" typemap of a parameter whose "in" typemap has numinputs=0 was not
             used, so memory allocated for such a parameter, such as an output array, was not freed.
             It is now used, as in the other target languages.
