@@ -170,6 +170,14 @@ static int element_size(char *c) {
   return (int)(c - s);
 }
 
+/* The element after the one that 'c' points to, or 0 if that is the last element.  The '.' that ends an element is
+ * found with element_size(), as a '.' can also be inside the parentheses of an element, as in the array size of
+ * 'a(s.n).int'. */
+static char *next_element(char *c) {
+  int len = element_size(c);
+  return len > 0 && c[len - 1] == '.' ? c + len : 0;
+}
+
 /* -----------------------------------------------------------------------------
  * SwigType_del_element()
  *
@@ -838,9 +846,9 @@ int SwigType_prefix_is_simple_1D_array(const SwigType *t) {
   char *c = Char(t);
 
   if (c && (strncmp(c, "a(", 2) == 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c)
-      return (*(++c) == 0);
+      return (*c == 0);
   }
   return 0;
 }
@@ -880,9 +888,8 @@ int SwigType_array_ndim(const SwigType *t) {
   char *c = Char(t);
 
   while (c && (strncmp(c, "a(", 2) == 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c) {
-      c++;
       ndim++;
     }
   }
@@ -893,9 +900,8 @@ int SwigType_array_ndim(const SwigType *t) {
 String *SwigType_array_getdim(const SwigType *t, int n) {
   char *c = Char(t);
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c) {
-      c++;
       n--;
     }
   }
@@ -927,9 +933,8 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
   }
 
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c) {
-      c++;
       n--;
     }
   }
@@ -939,8 +944,8 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
     result = NewString(start);
     Printf(result, "a(%s)", rep);
     *c = temp;
-    c = strchr(c, '.');
-    Append(result, c);
+    /* The rest of the type, from the '.' that ends the replaced dimension */
+    Append(result, c + element_size(c) - 1);
   }
   Clear(t);
   Append(t, result);

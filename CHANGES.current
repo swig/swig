@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-21: wsfulton
+            Fix typemaps for an array whose size contains a '.', such as 'int a[sizeof(s.x)]'. The
+            typemaps for 'int[ANY]' were not used for it.
+
+2026-10-21: wsfulton
             [OCaml] Fix carray.i for a fixed size array of structs, which failed for any array of
             wrapped objects. Also fix a fixed size char array parameter, such as 'char a[4]', being
             freed even though it is a local array, which crashed.

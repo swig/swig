@@ -177,26 +177,20 @@ void Swig_vla_unsize_parms(ParmList *parms) {
 }
 
 /* Return a copy of the type 't' of a parameter 'p' in 'parms' with '*' as the size of each of its leading arrays whose
-   size refers to a parameter before 'p', such as 's.rows' in:
+   size refers to a parameter before 'p', as 's.rows' does in:
      struct S s, double m[s.rows]
-   The type is split into its elements, as such a size can contain a '.'. */
+   The other sizes are kept. */
 static SwigType *starred_variable_length_arrays(const SwigType *t, ParmList *parms, Parm *p) {
-  List *elements = SwigType_split(t);
-  SwigType *starred = NewStringEmpty();
-  int leading = 1;
+  SwigType *starred = Copy(t);
+  int ndim = SwigType_array_ndim(t);
   int i;
-  for (i = 0; i < Len(elements); i++) {
-    String *element = Getitem(elements, i);
-    leading = leading && SwigType_isarray(element);
-    if (leading) {
-      String *size = SwigType_parm(element);
-      Printf(starred, "a(%s).", ParmList_find_name_in(parms, p, size) ? "*" : size);
-      Delete(size);
-    } else {
-      Append(starred, element);
+  for (i = 0; i < ndim; i++) {
+    String *size = SwigType_array_getdim(t, i);
+    if (ParmList_find_name_in(parms, p, size)) {
+      SwigType_array_setdim(starred, i, "*");
     }
+    Delete(size);
   }
-  Delete(elements);
   return starred;
 }
 

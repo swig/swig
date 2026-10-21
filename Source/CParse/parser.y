@@ -3525,22 +3525,15 @@ static Node *new_enum_node(SwigType *enum_base_type) {
 }
 
 /* Set '*' as the size of each of the leading arrays of the type 't' that 'arrays' has the bit for, as given by the
-   unspecified_size_arrays of a declarator.  The type is split into its elements, as a size can contain a '.'. */
+   unspecified_size_arrays of a declarator. */
 static void set_unspecified_size_arrays(SwigType *t, int arrays) {
-  List *elements = SwigType_split(t);
-  int leading = 1;
+  int ndim = SwigType_array_ndim(t);
   int i;
-  Clear(t);
-  for (i = 0; i < Len(elements); i++) {
-    String *element = Getitem(elements, i);
-    leading = leading && SwigType_isarray(element);
-    if (leading && i < SWIG_UNSPECIFIED_SIZE_ARRAYS_MAX && (arrays & (1 << i))) {
-      Append(t, "a(*).");
-    } else {
-      Append(t, element);
+  for (i = 0; i < ndim && i < SWIG_UNSPECIFIED_SIZE_ARRAYS_MAX; i++) {
+    if (arrays & (1 << i)) {
+      SwigType_array_setdim(t, i, "*");
     }
   }
-  Delete(elements);
 }
 
 /* Give '*' as the size of each array dimension of a C99 variable length array parameter in the parameters 'parms' of a
