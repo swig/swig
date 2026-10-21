@@ -872,7 +872,7 @@ Note the types in the 'imtype' and 'cstype' typemaps can be different.
 </tr>
 
 <tr>
-<td>char *<br>char []</td>
+<td>char *<br>char[]</td>
 <td>char *</td>
 <td>string</td>
 <td>string</td>
@@ -939,7 +939,7 @@ void * f(void *v);
 <p>
 There are various ways to pass arrays from C# to C/C++. 
 The default wrapping treats arrays as pointers and as such simple type wrapper classes are generated, 
-eg <tt>SWIGTYPE_p_int</tt> when wrapping the C type <tt>int []</tt> or <tt>int *</tt>.
+eg <tt>SWIGTYPE_p_int</tt> when wrapping the C type <tt>int[]</tt> or <tt>int *</tt>.
 This gives a rather restricted use of the underlying unmanaged code and the most practical way to use arrays is to enhance or customise
 with one of the following three approaches; namely the SWIG C arrays library, P/Invoke default array marshalling or 
 pinned arrays.

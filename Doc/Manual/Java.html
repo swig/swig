@@ -4871,7 +4871,7 @@ void set_transform(Image *im, double m[4][4]);
 it would be accessible from Java, but there may be no easy way to call it.
 The problem here is that a type wrapper class is generated for the two dimensional array parameter so
 there is no easy way to construct and manipulate a suitable
-<tt>double [4][4]</tt> value.   To fix this, you can write some extra C helper
+<tt>double[4][4]</tt> value.   To fix this, you can write some extra C helper
 functions.  Just use the <tt>%inline</tt> directive. For example:
 </p>
 
@@ -6096,7 +6096,7 @@ The following table lists the default type mapping from Java to C/C++.</p>
 </tr>
 
 <tr>
-<td>char *<br>char []</td>
+<td>char *<br>char[]</td>
 <td>String</td>
 <td>jstring</td>
 </tr>
@@ -7172,7 +7172,7 @@ For the typemap to be used in all type wrapper classes, all the different types 
 
 <div class="code">
 <pre>
-%typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[], SWIGTYPE (CLASS::*) %{
   private transient long swigCPtr;
 
   protected $javaclassname(long cPtr, boolean bFutureUse) {
@@ -7624,7 +7624,7 @@ The default generic "throws" typemap looks like this:
 
 <div class="code">
 <pre>
-%typemap(throws) SWIGTYPE, SWIGTYPE &amp;, SWIGTYPE *, SWIGTYPE [ANY] %{
+%typemap(throws) SWIGTYPE, SWIGTYPE &amp;, SWIGTYPE *, SWIGTYPE[ANY] %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                           "C++ $1_type exception thrown");
   return $null;
@@ -8472,10 +8472,10 @@ Here is an example which uses a common base class for all proxy classes and type
 
 <div class="code">
 <pre>
-%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], 
+%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[],
                                                          SWIGTYPE (CLASS::*) "SWIG"
 
-%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], 
+%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[],
                                                          SWIGTYPE (CLASS::*) %{
   protected long getPointer() {
     return swigCPtr;

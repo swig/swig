@@ -1103,7 +1103,7 @@ If <tt>TYPE</tt> is an array, or a pointer or reference to an array.  The follow
 
 <ul>
 <li>Replace all dimensions to <tt>[ANY]</tt> and look for a generic array typemap.
-An unknown dimension is not replaced, so an array of unknown size, such as <tt>int []</tt>, does not match an <tt>[ANY]</tt> typemap,
+An unknown dimension is not replaced, so an array of unknown size, such as <tt>int[]</tt>, does not match an <tt>[ANY]</tt> typemap,
 as such a typemap can rely on the array size, such as by using <tt>$1_dim0</tt>.
 </ul>
 
@@ -1149,11 +1149,11 @@ shows how some of the basic rules are applied:
   ... typemap 3
 }
 
-%typemap(in) int [4] {
+%typemap(in) int[4] {
   ... typemap 4
 }
 
-%typemap(in) int [ANY] {
+%typemap(in) int[ANY] {
   ... typemap 5
 }
 
@@ -1161,8 +1161,8 @@ void A(int *x);        // int *x rule       (typemap 1)
 void B(int *y);        // int * rule        (typemap 2)
 void C(const int *x);  // int *x rule       (typemap 1)
 void D(const int *z);  // const int *z rule (typemap 3)
-void E(int x[4]);      // int [4] rule      (typemap 4)
-void F(int x[1000]);   // int [ANY] rule    (typemap 5)
+void E(int x[4]);      // int[4] rule       (typemap 4)
+void F(int x[1000]);   // int[ANY] rule     (typemap 5)
 void G(int x[]);       // none of the above, as typemap 5 needs a size
 </pre>
 </div>
@@ -1265,21 +1265,21 @@ check the following patterns, stopping only when it found a match:
 <div class="code">
 <pre>
 Row4 rows[10]
-Row4 [10]
+Row4[10]
 Row4 rows[ANY]
-Row4 [ANY]
+Row4[ANY]
 
 # Reduce Row4 --&gt; Integer[4]
 Integer rows[10][4]
-Integer [10][4]
+Integer[10][4]
 Integer rows[ANY][ANY]
-Integer [ANY][ANY]
+Integer[ANY][ANY]
 
 # Reduce Integer --&gt; int
 int rows[10][4]
-int [10][4]
+int[10][4]
 int rows[ANY][ANY]
-int [ANY][ANY]
+int[ANY][ANY]
 </pre>
 </div>
 
@@ -1401,7 +1401,7 @@ Below is a list of the typical default types supplied by language modules, showi
 %typemap(in) SWIGTYPE *const       { ... default pointer const handling ...                   }
 %typemap(in) SWIGTYPE *const&amp;      { ... default pointer const reference handling ...         }
 %typemap(in) SWIGTYPE[ANY]         { ... 1D fixed size arrays handling ...                    }
-%typemap(in) SWIGTYPE []           { ... unknown sized array handling ...                     }
+%typemap(in) SWIGTYPE[]            { ... unknown sized array handling ...                     }
 %typemap(in) enum SWIGTYPE         { ... default handling for enum values ...                 }
 %typemap(in) const enum SWIGTYPE &amp; { ... default handling for const enum reference values ... }
 %typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...                  }
@@ -2349,8 +2349,8 @@ type              ltype
 int               int
 const int         int
 const int *       int *
-int [4]           int *
-int [4][5]        int (*)[5]
+int[4]            int *
+int[4][5]         int (*)[5]
 </pre>
 </div>
 
@@ -2387,7 +2387,7 @@ kinds of pointers.   For example, if you wrote this,
 
 <div class="code">
 <pre>
-%typemap(in) int [10][20] {
+%typemap(in) int[10][20] {
   $1_ltype temp;
 }
 </pre>
@@ -2413,7 +2413,7 @@ casts to get the correct type when needed.  For example:
 
 <div class="code">
 <pre>
-%typemap(in) int [10][20] {
+%typemap(in) int[10][20] {
   void *temp;
   ...
   (($1_ltype) temp)[i][j] = x;    /* set a value */
@@ -2428,7 +2428,7 @@ Another approach, which only works for arrays is to use the <tt>$1_basetype</tt>
 
 <div class="code">
 <pre>
-%typemap(in) int [10][20] {
+%typemap(in) int[10][20] {
   $1_basetype temp[10][20];
   ...
   temp[i][j] = x;    /* set a value */
@@ -3339,7 +3339,7 @@ cases.  For example:
 
 <div class="code">
 <pre>
-%typemap(memberin) int [4] {
+%typemap(memberin) int[4] {
   memmove($1, $input, 4*sizeof(int));
 }
 </pre>
@@ -3609,7 +3609,7 @@ To fix this, you can supply a special "memberin" typemap like this:
 </p>
 
 <div class="code"><pre>
-%typemap(memberin) float [ANY] {
+%typemap(memberin) float[ANY] {
   int i;
   for (i = 0; i &lt; $1_dim0; i++) {
       $1[i] = $input[i];
@@ -3657,7 +3657,7 @@ To fix this, you can write an "out" typemap.   For example:
 
 <div class="code">
 <pre>
-%typemap(out) float [ANY] {
+%typemap(out) float[ANY] {
   int i;
   $result = PyList_New($1_dim0);
   for (i = 0; i &lt; $1_dim0; i++) {

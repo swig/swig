@@ -489,11 +489,11 @@ values using the swig_val function before sharing them with another module.
 
 
 <p>
-By default, an array, such as <tt>int [4]</tt> or <tt>Foo [2]</tt>, is wrapped as a pointer to its first element,
+By default, an array, such as <tt>int[4]</tt> or <tt>Foo[2]</tt>, is wrapped as a pointer to its first element,
 as it is in the other target languages.
 <tt>C_void</tt> is passed as a NULL pointer for an array parameter.
 Setting an array member or global variable copies the elements from such a pointer, so NULL is an error.
-A global variable that is an array of unknown size, such as <tt>int []</tt>, is read only.
+A global variable that is an array of unknown size, such as <tt>int[]</tt>, is read only.
 </p>
 
 <H4><a name="Ocaml_nn13">41.2.3.1 Simple types of bounded arrays</a></H4>
