@@ -4313,7 +4313,9 @@ int total(int n, const int values[n]);
 <div class="shell">
 <pre>
 example.i:7: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'values'.
+example.i:5: Error: the size is used in %typemap(in) int const [*].
 example.i:7: Error: The 'typecheck' typemap cannot use the runtime size of variable length array parameter 'values'.
+example.i:7: Error: the size is used in %typemap(typecheck) int const [*].
 </pre>
 </div>
 

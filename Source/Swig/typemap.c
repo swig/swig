@@ -1945,10 +1945,10 @@ static String *typemap_get_option(Hash *tm, const_String_or_char_ptr name) {
 /* For a typemap written with '[*]' that matched 'p', a C99 variable length array parameter in 'parms', replace the
  * array's size variables of typemap parameter 'index' in the typemap code 's', as replace_array_size_vars() does, with
  * the sizes the array has.  The size of a dimension that is '*' in 'matchtype' is the one it has at runtime, such as
- * '(arg1)' for the 'char s[n]' of 'int n, char s[n]'.  Any other dimension has its size in 'matchtype'.  The typemap's
- * local variables are declared before any argument is converted, so using a runtime size in one of 'locals' is an
- * error.  Nothing is done for any other match. */
-static void replace_vla_size(String *s, ParmList *locals, SwigType *matchtype, Parm *p, ParmList *parms, int index) {
+ * '(arg1)' for the 'char s[n]' of 'int n, char s[n]'.  Any other dimension has its size in 'matchtype'.  The local
+ * variables of typemap 'tm' are declared before any argument is converted, so using a runtime size in one of 'locals'
+ * is an error.  Nothing is done for any other match. */
+static void replace_vla_size(String *s, Hash *tm, ParmList *locals, SwigType *matchtype, Parm *p, ParmList *parms, int index) {
   if (SwigType_isarray_vla(matchtype)) {
     /* A typedef can give more of the dimensions, as in typemap_replace_vars() */
     SwigType *ftype = SwigType_typedef_resolve_all(matchtype);
@@ -1970,7 +1970,7 @@ static void replace_vla_size(String *s, ParmList *locals, SwigType *matchtype, P
       Delete(dim);
     }
     if (variable) {
-      Swig_vla_check_locals(locals, dimtype, p, index);
+      Swig_vla_check_locals(tm, locals, dimtype, p, index);
       replace_array_size_vars(s, 0, dims, index);
     }
     Delete(dims);
@@ -2112,7 +2112,7 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
       SwigType *wrappedtype = Swig_vla_wrapped_type(matchtype);
 
       Swig_vla_check_size_use(tmap_method, tm, matchtype, p, i + 1, 1);
-      replace_vla_size(s, locals, matchtype, p, parms, i + 1);
+      replace_vla_size(s, tm, locals, matchtype, p, parms, i + 1);
       typemap_replace_vars(s, locals, wrappedtype ? wrappedtype : matchtype, type, pname, lname, i + 1, override_vars);
       Delete(wrappedtype);
       if (mtype)

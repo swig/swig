@@ -368,10 +368,11 @@ static int uses_vla_size(const String *s, SwigType *matchtype, int index) {
   return used;
 }
 
-/* Report the error that 'what', a typemap or a part of one, cannot use the runtime size of C99 variable length array
-   parameter 'p'.  The error is reported once only, as the typemaps for a function can be attached more than once.  It
-   is reported once for each 'key' at the location of 'p', or for each message when 'key' is 0. */
-static void report_vla_size_use(Parm *p, const String *what, const String *key) {
+/* Report the error that 'what', the typemap 'tm' or a part of it, cannot use the runtime size of C99 variable length array
+   parameter 'p', followed by the typemap's directive at the typemap's location.  The error is reported once only, as the
+   typemaps for a function can be attached more than once.  It is reported once for each 'key' at the location of 'p', or
+   for each message when 'key' is 0. */
+static void report_vla_size_use(Parm *p, Hash *tm, const String *what, const String *key) {
   static Hash *reported = 0;
   String *pname = Getattr(p, "name");
   String *pstr = pname ? Copy(pname) : SwigType_str(Getattr(p, "type"), 0);
@@ -381,6 +382,7 @@ static void report_vla_size_use(Parm *p, const String *what, const String *key) 
     reported = NewHash();
   if (!Getattr(reported, reported_key)) {
     Swig_error(Getfile(p), Getline(p), "%s", message);
+    Swig_error(Getfile(tm), Getline(tm), "the size is used in %%%s.\n", Getattr(tm, "source"));
     Setattr(reported, reported_key, "1");
   }
   Delete(reported_key);
@@ -401,9 +403,9 @@ static void report_vla_size_use(Parm *p, const String *what, const String *key) 
  *   %typemap(argout)
  *   %typemap(freearg)
  * Report an error for any other typemap 'tm' that matched 'p' as 'matchtype' and uses the size in its code.  These are
- * the typemaps that run before the arguments are converted, such as 'typecheck', 'default' and 'arginit', and the
- * target language typemaps.  Also report a typemap attribute that uses it.  Only typemap_attach_parms() can substitute
- * the size, which 'substituted' is set for, as the size needs the other parameters.
+ * the target language typemaps and the typemaps whose code comes before the arguments are converted, such as
+ * 'typecheck', 'default' and 'arginit'.  Also report a typemap attribute that uses it.  Only typemap_attach_parms() can
+ * substitute the size, which 'substituted' is set for, as the size needs the other parameters.
  * ----------------------------------------------------------------------------- */
 
 void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, SwigType *matchtype, Parm *p, int index, int substituted) {
@@ -435,7 +437,7 @@ void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, Swi
     } else {
       what = NewStringf("The '%s' typemap", tmap_method);
     }
-    report_vla_size_use(p, what, 0);
+    report_vla_size_use(p, tm, what, 0);
     Delete(what);
   }
 
@@ -443,7 +445,7 @@ void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, Swi
     String *value = Getattr(kw, "value");
     if (DohIsString(value) && uses_vla_size(value, matchtype, index)) {
       String *what = NewStringf("The '%s' typemap attribute '%s'", tmap_method, Getattr(kw, "name"));
-      report_vla_size_use(p, what, 0);
+      report_vla_size_use(p, tm, what, 0);
       Delete(what);
     }
   }
@@ -453,18 +455,18 @@ void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, Swi
  * Swig_vla_check_locals()
  *
  * A typemap's local variables are declared before any argument is converted, so they cannot use the runtime size of a
- * C99 variable length array parameter.  Report an error for each of the typemap's 'locals' whose type or value uses a
- * size of parameter 'p', which the typemap written with '[*]' matched as 'matchtype' for typemap parameter 'index'.
+ * C99 variable length array parameter.  Report an error for each of the 'locals' of typemap 'tm' whose type or value
+ * uses a size of parameter 'p', which the typemap written with '[*]' matched as 'matchtype' for typemap parameter 'index'.
  * ----------------------------------------------------------------------------- */
 
-void Swig_vla_check_locals(ParmList *locals, SwigType *matchtype, Parm *p, int index) {
+void Swig_vla_check_locals(Hash *tm, ParmList *locals, SwigType *matchtype, Parm *p, int index) {
   Parm *local;
   for (local = locals; local; local = nextSibling(local)) {
     String *name = Getattr(local, "name");
     String *lvalue = Getattr(local, "value");
     if (uses_vla_size(Getattr(local, "type"), matchtype, index) || (lvalue && uses_vla_size(lvalue, matchtype, index))) {
       String *what = NewStringf("Typemap local variable '%s'", name);
-      report_vla_size_use(p, what, name);
+      report_vla_size_use(p, tm, what, name);
       Delete(what);
     }
   }
