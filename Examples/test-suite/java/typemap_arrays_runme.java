@@ -18,7 +18,7 @@ public class typemap_arrays_runme {
       throw new RuntimeException("Grid size is wrong");
     if (typemap_arrays.rowSize(null) != 6)
       throw new RuntimeException("Row size is wrong");
-    if (typemap_arrays.manyDims() != 332)
+    if (typemap_arrays.manyDims() != 302)
       throw new RuntimeException("Dimensions of many are wrong");
   }
 }

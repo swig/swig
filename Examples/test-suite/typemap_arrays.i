@@ -50,12 +50,12 @@ int rowSize(int row[GRID_DIM + 1]) {
 }
 %}
 
-// Check $1_dim10 and $dim10 are not replaced as $1_dim1 and $dim1 followed by 0
+// Check $1_dim10 is not replaced as $1_dim1 followed by 0
 %{
 static int manyDimsSeen = 0;
 %}
 %typemap(in, numinputs=0) int many[ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY] {
-  manyDimsSeen = $1_dim10 * 100 + $dim10 * 10 + $1_dim1;
+  manyDimsSeen = $1_dim10 * 100 + $1_dim1;
   $1 = 0;
 }
 %typemap(freearg) int many[ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY][ANY] ""

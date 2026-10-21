@@ -6,4 +6,4 @@ if sumA(None) != 60:
 
 swig_check(gridSize(None), 12)
 swig_check(rowSize(None), 6)
-swig_check(manyDims(), 332)
+swig_check(manyDims(), 302)

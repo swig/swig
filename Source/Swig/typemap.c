@@ -1046,8 +1046,8 @@ static void replace_array_size_var(String *s, ParmList *locals, const String *va
 }
 
 /* Replace the array size variables of typemap parameter 'index' in 's' and in the types of 'locals' with the sizes in
- * 'dims', the array's dimensions as C expressions: $<index>_dim<i> for dimension i, also $dim<i> for 'index' 1, and
- * $<index>_size for all the dimensions multiplied together. */
+ * 'dims', the array's dimensions as C expressions: $<index>_dim<i> for dimension i and $<index>_size for all the
+ * dimensions multiplied together.  For 'index' 1, $dim<i>, which $1_dim<i> supersedes, is also replaced. */
 static void replace_array_size_vars(String *s, ParmList *locals, List *dims, int index) {
   String *size = NewStringEmpty();
   String *var;

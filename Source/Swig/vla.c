@@ -24,8 +24,8 @@
  *
  * A typemap written for a variable length array parameter has '*' as the size of each variable dimension, as C99 has
  * for a variable length array of unspecified size in a function prototype, such as 'int [*]' or 'double [*][*][3]'.
- * Such a typemap only matches a variable length array parameter.  Its $1_dim0, $dim0 and $1_size special variables
- * expand to the runtime size, such as '(arg1)', which only some of the typemaps can use, see Swig_vla_check_size_use().
+ * Such a typemap only matches a variable length array parameter.  Its $1_dim0 and $1_size special variables expand to
+ * the runtime size, such as '(arg1)', which only some of the typemaps can use, see Swig_vla_check_size_use().
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -348,7 +348,7 @@ static int has_array_size_var(const String *s, const String *var) {
 
 /* Whether 's' uses a size of a C99 variable length array parameter that a typemap written with '[*]' matched as
    'matchtype', which is a size only known at runtime: $<index>_dim<i> for each dimension i written as '[*]', also
-   $dim<i> for 'index' 1, or $<index>_size. */
+   $dim<i>, which $1_dim<i> supersedes, for 'index' 1, or $<index>_size. */
 static int uses_vla_size(const String *s, SwigType *matchtype, int index) {
   int used = 0;
   int runtime = 0;
@@ -401,7 +401,7 @@ static void report_vla_size_use(Parm *p, const String *what, const String *key) 
  * in these parameters:
  *   int n, char s[n]
  * It only has a value once the arguments are converted, so only these typemaps written with '[*]' can use it, as
- * $1_dim0, $dim0 or $1_size for 'index' 1:
+ * $1_dim0 or $1_size for 'index' 1:
  *   %typemap(in) with numinputs other than 0
  *   %typemap(check)
  *   %typemap(argout)

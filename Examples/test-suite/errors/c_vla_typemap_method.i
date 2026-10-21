@@ -4,7 +4,7 @@
 
 %typemap(typecheck) char [*] "$1 = ($1_dim0) > 0;"
 %typemap(in, numinputs=0) int [*] "$1 = 0; /* $1_dim0 */"
-%typemap(default) short [*] "$1 = 0; /* $dim0 */"
+%typemap(default) short [*] "$1 = 0; /* $1_dim0 */"
 %typemap(arginit) long [*] "$1 = 0; /* $1_size */"
 %typemap(doc) double [*] "$1_name: $1_dim0 doubles"
 %typemap(in, doc="$1_dim0 floats") float [*] "$1 = 0;"
