@@ -1665,7 +1665,7 @@ Received an integer : 6
 
 <p>There are many ready written typemaps built into SWIG for all common types (int, float, short, long, char*, enum and more), which SWIG uses automatically, with no effort required on your part.</p>
 
-<p>However for more complex functions which use input/output parameters or arrays, you will need to make use of &lt;typemaps.i&gt;, which contains typemaps for these situations. For example, consider these functions:</p>
+<p>However for more complex functions which use input/output parameters, you will need to make use of &lt;typemaps.i&gt;, which contains typemaps for these situations. For example, consider these functions:</p>
 
 <div class="code"><pre>void add(int x, int y, int *result) {
   *result = x + y;
@@ -1717,80 +1717,44 @@ void swap(int *sx, int *sy);
 
 
 <p>Arrays present a challenge for SWIG, because like pointers SWIG does not know whether these are input or output values, nor
-does SWIG have any indication of how large an array should be. However with the proper guidance SWIG can easily wrapper
-arrays for convenient usage.</p>
+does SWIG have any indication of how large an array should be.</p>
 
-<p>Given the functions:</p>
+<p>Given the function:</p>
 <div class="code"><pre>extern void sort_int(int* arr, int len);
-extern void sort_double(double* arr, int len);
 </pre></div>
 
-<p>There are basically two ways that SWIG can deal with this. The first way, uses the <tt>&lt;carrays.i&gt;</tt> library
-to create an array in C/C++ then this can be filled within Lua and passed into the function. It works, but it's a bit tedious.
+<p>The <tt>&lt;carrays.i&gt;</tt> library can be used to create an array in C/C++, which can then be filled within Lua
+and passed into the function.
 More details can be found in the <a href="Library.html#Library_carrays">carrays.i</a> documentation.</p>
 
-<p>The second and more intuitive way, would be to pass a Lua table directly into the function, and have SWIG automatically convert between Lua-table and C-array. Within the <tt>&lt;typemaps.i&gt;</tt> file there are typemaps ready written to perform this task. To use them is again a matter of using %apply in the correct manner.</p>
-
-<p>The wrapper file below, shows both the use of carrays as well as the use of the typemap to wrap arrays. </p>
-
-<div class="code"><pre>// using the C-array
-%include &lt;carrays.i&gt;
+<div class="code"><pre>%include &lt;carrays.i&gt;
 // this declares a batch of functions for manipulating C integer arrays
 %array_functions(int, int)
 
 extern void sort_int(int* arr, int len); // the function to wrap
-
-// using typemaps
-%include &lt;typemaps.i&gt;
-%apply (double *INOUT, int) {(double* arr, int len)};
-
-extern void sort_double(double* arr, int len); // the function to wrap
 </pre></div>
 
-<p>Once wrapped, the functions can both be called, though with different ease of use:</p>
+<p>Once wrapped, the function can be called as follows:</p>
 
 <div class="targetlang"><pre>require "example"
 ARRAY_SIZE=10
 
--- passing a C array to the sort_int()
 arr=example.new_int(ARRAY_SIZE) -- create the array
 for i=0, ARRAY_SIZE-1 do -- index 0..9 (just like C)
     example.int_setitem(arr, i, math.random(1000))
 end
 example.sort_int(arr, ARRAY_SIZE)  -- call the function
 example.delete_int(arr) -- must delete the allocated memory
-
--- use a typemap to call with a Lua-table
--- one item of note: the typemap creates a copy, rather than edit-in-place
-t={} -- a Lua table
-for i=1, ARRAY_SIZE do -- index 1..10 (Lua style)
-    t[i]=math.random(1000)/10
-end
-t=example.sort_double(t) -- replace t with the result
 </pre></div>
 
-<p>Obviously the first version could be made less tedious by writing a Lua function to perform the conversion from a table 
-to a C-array. The <tt>%luacode</tt> directive is good for this. See SWIG\Examples\lua\arrays for an example of this.</p>
+<p>This could be made less tedious by writing a Lua function to perform the conversion from a table to a C array.
+The <tt>%luacode</tt> directive is good for this. See SWIG\Examples\lua\arrays for an example of this.
+A table can also be passed directly to the function by writing typemaps that convert between a table and a C array,
+see <a href="#Lua_writing_typemaps">Writing typemaps</a>.</p>
 
-<p><b>Warning:</b> in C indexes start at ZERO, in Lua indexes start at ONE. SWIG expects C-arrays to be filled for 0..N-1
-and Lua tables to be 1..N, (the indexing follows the norm for the language). In the typemap when it converts the table to an array it quietly changes the indexing accordingly. Take note of this behaviour if you have a C function which returns indexes.</p>
-
-<p>Note: SWIG also can support arrays of pointers in a similar manner.</p>
-
-<p>
-<tt>nil</tt> instead of a table is passed to the function as a NULL array, as for any other array parameter.
-The length of a variable size array is then 0 and an INOUT array gives back <tt>nil</tt>.
-To raise an error for <tt>nil</tt> instead, add a <tt>check</tt> typemap for the array parameter:
-</p>
-
-<div class="code"><pre>
-%typemap(check) double *arr %{
-  if (!$1) {
-    SWIG_Lua_pusherrstring(L, "expected a table");
-    SWIG_fail;
-  }
-%}
-</pre></div>
+<p><b>Warning:</b> in C indexes start at ZERO, in Lua indexes start at ONE. SWIG expects C arrays to be filled for 0..N-1
+and Lua tables to be 1..N, (the indexing follows the norm for the language). Code that converts between a table and an
+array has to change the indexing accordingly. Take note of this behaviour if you have a C function which returns indexes.</p>
 
 <H3><a name="Lua_typemaps_ptr_ptr_functions">31.4.4 Typemaps and pointer-pointer functions</a></H3>
 

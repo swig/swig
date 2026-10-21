@@ -33,7 +33,6 @@ CPP_TEST_CASES += \
 	lua_module_global \
 	lua_no_module_global \
 	lua_inherit_getitem  \
-	lua_lib_arrays \
 	lua_lightuserdata  \
 
 CPP11_TEST_CASES += \

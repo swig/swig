@@ -1,8 +1,8 @@
 /* File : example.i */
 %module example
 
-/* in this file there are two sorting functions
-and three different ways to wrap them.
+/* in this file there is a sorting function
+and two different ways to call it.
 
 See the lua code for how they are called
 */
@@ -32,12 +32,6 @@ function example.sort_int2(t)
 end
 }
 
-// this way uses the SWIG-Lua typemaps to do the conversion for us
-// the %apply command states to apply this wherever the argument signature matches
-%include <typemaps.i>
-%apply (double *INOUT,int) {(double* arr,int len)};
-
 %inline %{
 extern void sort_int(int* arr, int len);
-extern void sort_double(double* arr, int len);
 %}

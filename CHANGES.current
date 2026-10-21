@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-22: wsfulton
+            [Lua] The array typemaps in typemaps.i are no longer supported and have been removed, for
+            consistency with the other target languages. These are the INPUT, OUTPUT and INOUT
+            typemaps for numbers, enums and pointers in a fixed size array, such as 'int INPUT[ANY]',
+            or in an array passed with its length, such as '(double *INOUT, int)'. The helpers they
+            used are removed too, so a typemap of your own that uses one no longer compiles. These are
+            the functions SWIG_itable_size, SWIG_table_size, SWIG_read_<type>_num_array,
+            SWIG_get_<type>_num_array_fixed, SWIG_get_<type>_num_array_var,
+            SWIG_write_<type>_num_array, SWIG_read_ptr_array, SWIG_get_ptr_array_fixed,
+            SWIG_get_ptr_array_var and SWIG_write_ptr_array, the macros SWIG_ALLOC_ARRAY,
+            SWIG_FREE_ARRAY and SWIG_DECLARE_TYPEMAP_ARR_FN and the SWIG_TYPEMAP_NUM_ARR %define. To
+            keep using them, copy them from typemaps.i in an earlier version of SWIG into an
+            interface file.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-10-21: wsfulton
             Warnings and errors about a typemap now give the line of its %typemap directive. They gave
             the line where its code ends, or the line after a typemap written on one line.
@@ -426,22 +442,6 @@ Version 4.6.0 (in progress)
             variable in C changed the assigned pointer object too. The variable no longer holds a
             reference to the assigned pointer object, so, as in the other target languages, the object
             must be kept alive for as long as C uses the pointer.
-
-            *** POTENTIAL INCOMPATIBILITY ***
-
-2026-10-13: wsfulton
-            [Lua] nil for an INPUT or INOUT array parameter using the typemaps.i array typemaps, such as
-            'int INPUT[ANY]' or '(double *INOUT, int)', is now passed on to the function as a NULL
-            pointer, as for any other array parameter, instead of raising an error. The length of a
-            variable size array is then 0 and an INOUT array gives back nil. To raise an error for nil as
-            before, add a check typemap for each array parameter, for example:
-
-              %typemap(check) double *arr %{
-                if (!$1) {
-                  SWIG_Lua_pusherrstring(L, "expected a table");
-                  SWIG_fail;
-                }
-              %}
 
             *** POTENTIAL INCOMPATIBILITY ***
 
