@@ -7,6 +7,12 @@ c_array_declarator_scope.i:10: Error: 'static' and type qualifiers in an array d
 c_array_declarator_scope.i:11: Error: A variable length array of unspecified size, '[*]', is only allowed in a function prototype.
 c_array_declarator_scope.i:14: Error: 'static' and type qualifiers in an array declarator are only allowed in a function parameter.
 c_array_declarator_scope.i:15: Error: A variable length array of unspecified size, '[*]', is only allowed in a function prototype.
+c_array_declarator_scope.i:17: Error: A variable length array of unspecified size, '[*]', is only allowed in a function prototype.
+c_array_declarator_scope.i:17: Error: 'static' and type qualifiers in an array declarator are only allowed in a function parameter.
+c_array_declarator_scope.i:18: Error: A variable length array of unspecified size, '[*]', is only allowed in a function prototype.
+c_array_declarator_scope.i:19: Error: A variable length array of unspecified size, '[*]', is only allowed in a function prototype.
 c_array_declarator_scope.i:5: Warning 462: Unable to set dimensionless array variable.
 c_array_declarator_scope.i:6: Warning 462: Unable to set dimensionless array variable.
 c_array_declarator_scope.i:11: Warning 462: Unable to set variable of type int [].
+c_array_declarator_scope.i:17: Warning 462: Unable to set dimensionless array variable.
+c_array_declarator_scope.i:18: Warning 462: Unable to set dimensionless array variable.

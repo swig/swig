@@ -14,5 +14,9 @@ struct S {
 typedef int t_static[static 3];
 typedef int t_unspecified[*];
 
+struct T { int t; } s_static[static 3], s_unspecified[*];
+enum E { EA } e_unspecified[*];
+%constant int c_unspecified[*];
+
 /* No error for a function parameter */
 void f(int n, int a[static 3], int b[const n], int c[*]);

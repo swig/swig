@@ -646,6 +646,64 @@ int Swig_contains_identifier(const String *s, const_String_or_char_ptr id) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_replace_expression_identifier()
+ *
+ * Replace each occurrence of the identifier 'id' in 's', a C or C++ expression, with 'rep' and return the number of
+ * replacements.  An identifier that names a member or is qualified, such as the 'n' in 's.n', 'p->n', 'S::n' and '::n',
+ * is not 'id', so it is left alone, as is the text of a number, a character literal or a string literal.
+ * ----------------------------------------------------------------------------- */
+
+int Swig_replace_expression_identifier(String *s, const_String_or_char_ptr id, const_String_or_char_ptr rep) {
+  const char *c = Char(s);
+  const char *idstr = Char(id);
+  int idlen = (int)strlen(idstr);
+  String *replaced = NewStringEmpty();
+  char last = 0;
+  char before_last = 0;
+  int count = 0;
+  while (*c) {
+    const char *start = c;
+    if (*c == '"' || *c == '\'') {
+      char quote = *c++;
+      while (*c && *c != quote) {
+        if (*c == '\\' && *(c + 1)) {
+          c++;
+        }
+        c++;
+      }
+      if (*c) {
+        c++;
+      }
+      Write(replaced, start, (int)(c - start));
+    } else if (isalnum((unsigned char)*c) || *c == '_') {
+      int member = last == '.' || (before_last == '-' && last == '>') || (before_last == ':' && last == ':');
+      while (isalnum((unsigned char)*c) || *c == '_') {
+        c++;
+      }
+      if (!member && !isdigit((unsigned char)*start) && c - start == idlen && strncmp(start, idstr, idlen) == 0) {
+        Append(replaced, rep);
+        count++;
+      } else {
+        Write(replaced, start, (int)(c - start));
+      }
+    } else {
+      Putc(*c, replaced);
+      c++;
+    }
+    if (!isspace((unsigned char)*start)) {
+      before_last = last;
+      last = c[-1];
+    }
+  }
+  if (count > 0) {
+    Clear(s);
+    Append(s, replaced);
+  }
+  Delete(replaced);
+  return count;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_wideescape()
  *
  * Takes the text of a wide string literal and produces a string with escape codes added to it, as Swig_string_escape()

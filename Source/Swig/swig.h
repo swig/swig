@@ -350,6 +350,7 @@ extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storag
 extern int Swig_storage_isstatic(Node *n);
 extern String *Swig_string_escape(String *s);
 extern int Swig_contains_identifier(const String *s, const_String_or_char_ptr id);
+extern int Swig_replace_expression_identifier(String *s, const_String_or_char_ptr id, const_String_or_char_ptr rep);
 extern void Swig_utf8_encode(String *s, unsigned long code_point);
 extern int Swig_utf8_decode(String *s, int pos, unsigned long *code_point);
 extern int Swig_utf8_length(String *s);
@@ -483,6 +484,7 @@ extern String *Constraint_match_str(Node *constraint, ParmList *templateparms);
 /* --- C99 variable length array support --- */
 
 extern void Swig_vla_unsize_parms(ParmList *parms);
+extern SwigType *Swig_vla_declared_decl(Node *n, const SwigType *decl);
 extern void Swig_vla_star_parms(ParmList *parms);
 extern void Swig_vla_merge_sizes(Node *c, Node *n);
 extern SwigType *Swig_vla_parameter_type(const SwigType *type, Node *node);

@@ -98,6 +98,27 @@ int count_names(int n, char **names) {
 }
 %}
 
+// A %rename, %ignore or %exception given with an unnamed size parameter matches the size as declared
+
+%rename(char_length_unnamed_renamed) char_length_unnamed(int, const char [n]);
+%ignore char_length_ignored(int, const char [n]);
+%exception char_length_excepted "this_will_not_compile";
+%exception char_length_excepted(int, const char [n]) "$action";
+
+%inline %{
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int char_length_unnamed(int n, const char s[n]);
+int char_length_ignored(int n, const char s[n]);
+int char_length_excepted(int n, const char s[n]);
+#endif
+%}
+
+%{
+int char_length_unnamed(int n, const char *s) { return char_length(n, s); }
+int char_length_ignored(int n, const char *s) { return char_length(n, s); }
+int char_length_excepted(int n, const char *s) { return char_length(n, s); }
+%}
+
 // Variable length array type of unspecified size
 
 %rename(sum_n_unsized_renamed) sum_n_unsized(int n, const int a[*]);
@@ -189,6 +210,38 @@ struct Text {
   }
 }
 
+// A constructor and a function declared with its name in parentheses
+
+%{
+#include <stdlib.h>
+%}
+
+%inline %{
+struct Name {
+  int length;
+};
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int (char_length_parenthesized)(int n, const char s[n]);
+int (char_length_parenthesized_unsized)(int n, const char s[*]);
+#endif
+%}
+
+%{
+int char_length_parenthesized(int n, const char *s) { return char_length(n, s); }
+int char_length_parenthesized_unsized(int n, const char *s) { return char_length(n, s); }
+%}
+
+%extend Name {
+  Name(int n, const char s[n]) {
+    struct Name *name = (struct Name *)malloc(sizeof(struct Name));
+    name->length = char_length(n, s);
+    return name;
+  }
+  ~Name() {
+    free($self);
+  }
+}
+
 // A size that is not an earlier parameter, such as a global variable, is kept as the size of a fixed size array
 
 %inline %{
@@ -200,6 +253,28 @@ int sum_global_dimension(int n, const int a[global_n]);
 
 %{
 int sum_global_dimension(int n, const int *a) { return add_n(n, a); }
+%}
+
+// A parameter's name used as a member name or in a literal does not refer to the parameter
+
+%inline %{
+struct Dimensions {
+  int n;
+};
+struct Sizes {
+  int n;
+  struct Dimensions dims;
+};
+#if defined(SWIG) || (defined(TEST_C99_ARRAY_DECLARATORS) && !defined(__STDC_NO_VLA__))
+int char_length_member(const struct Sizes *sizes, int n, const char s[sizes->n]);
+int char_length_dot_member(const struct Sizes *sizes, int n, const char s[sizes->dims.n]);
+#endif
+int char_length_literal(int a, const char s['a' - 'a' + 2]) { return a + char_length(2, s); }
+%}
+
+%{
+int char_length_member(const struct Sizes *sizes, int n, const char *s) { return n + char_length(sizes->n, s); }
+int char_length_dot_member(const struct Sizes *sizes, int n, const char *s) { return n + char_length(sizes->dims.n, s); }
 %}
 
 // Typedefs in a variable length array parameter: the size, the element type and a const char string

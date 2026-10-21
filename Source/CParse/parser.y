@@ -48,7 +48,6 @@
 #include "cparse.h"
 #include "preprocessor.h"
 #include <ctype.h>
-#include <limits.h>
 
 #define YYMALLOC Malloc
 #define YYFREE Free
@@ -264,10 +263,6 @@ static int cplus_mode  = 0;
 #define SWIG_ARRAY_PLAIN 0x0000            /* 'int a[3]' */
 #define SWIG_ARRAY_QUALIFIED 0x0001        /* 'int a[static 3]' or 'int a[const 3]' etc */
 #define SWIG_ARRAY_UNSPECIFIED_SIZE 0x0002 /* 'int a[*]' */
-
-/* The number of array dimensions that the unspecified_size_arrays bits of a declarator can record, one bit for each
-   dimension, which is every bit of an int other than the sign bit */
-#define SWIG_UNSPECIFIED_SIZE_ARRAYS_MAX ((int)(sizeof(int) * CHAR_BIT) - 1)
 
 /* Test if multiple bits are set in x. */
 static int multiple_bits_set(unsigned x) { return (x & (x - 1)) != 0; }
@@ -2116,9 +2111,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Node      *constraint_node;
     /* SWIG_ARRAY_* bits for C99 syntax in the declarator's array brackets that only a function parameter can have. */
     int        parmonly_array;
-    /* Bit i is set when the i-th array of the declarator's type, counting from the outermost, is written '[*]', a C99
-     * variable length array of unspecified size. */
-    int        unspecified_size_arrays;
   } decl;
   Parm         *tparms;
   struct {
@@ -3525,57 +3517,12 @@ static Node *new_enum_node(SwigType *enum_base_type) {
   return n;
 }
 
-/* Set '*' as the size of each of the leading arrays of the type 't' that 'arrays' has the bit for, as given by the
-   unspecified_size_arrays of a declarator. */
-static void set_unspecified_size_arrays(SwigType *t, int arrays) {
-  int ndim = SwigType_array_ndim(t);
-  int i;
-  for (i = 0; i < ndim && i < SWIG_UNSPECIFIED_SIZE_ARRAYS_MAX; i++) {
-    if (arrays & (1 << i)) {
-      SwigType_array_setdim(t, i, "*");
-    }
-  }
-}
-
-/* Give '*' as the size of each array dimension of a C99 variable length array parameter in the parameters 'parms' of a
-   multi-argument typemap pattern, so that the typemap only matches such a parameter, as a typemap written with '[*]'
-   does.  This is a dimension written '[*]', which is set first, or one whose size refers to an earlier parameter of the
-   pattern, see Swig_vla_star_parms().  For example:
-     int n, double a[n][3], double b[*]
-   becomes:
-     int n, double a[*][3], double b[*] */
-static void star_variable_length_arrays(ParmList *parms) {
-  Parm *p;
-  for (p = parms; p; p = nextSibling(p)) {
-    int arrays = GetInt(p, "unspecified_size_arrays");
-    if (arrays)
-      set_unspecified_size_arrays(Getattr(p, "type"), arrays);
-    Delattr(p, "unspecified_size_arrays");
-  }
-  Swig_vla_star_parms(parms);
-}
-
 /* Add an array whose brackets have the size 'dim' and the SWIG_ARRAY_* bits 'parmonly' to the end of the type of the
    declarator 'd', as the innermost array. */
 static void declarator_add_array(struct Decl *d, String *dim, int parmonly) {
   SwigType *t = NewStringEmpty();
   SwigType_add_array(t, dim);
   d->parmonly_array |= parmonly;
-  if (parmonly & SWIG_ARRAY_UNSPECIFIED_SIZE) {
-    /* The number of arrays already in the type is the position of the new one */
-    int position = 0;
-    if (d->type) {
-      List *elements = SwigType_split(d->type);
-      int i;
-      for (i = 0; i < Len(elements); i++) {
-        if (SwigType_isarray(Getitem(elements, i)))
-          position++;
-      }
-      Delete(elements);
-    }
-    if (position < SWIG_UNSPECIFIED_SIZE_ARRAYS_MAX)
-      d->unspecified_size_arrays |= 1 << position;
-  }
   if (d->type) {
     SwigType_push(t, d->type);
     Delete(d->type);
@@ -3584,13 +3531,15 @@ static void declarator_add_array(struct Decl *d, String *dim, int parmonly) {
 }
 
 /* Report the C99 syntax in the array brackets of a declarator 'd' of a variable, structure member or typedef that only
-   a function parameter can have, as given by its SWIG_ARRAY_* bits. */
-static void check_parameter_only_array(const struct Decl *d) {
+   a function parameter can have, as given by its SWIG_ARRAY_* bits.  The size of an array written '[*]' is then
+   removed, as for an array of unknown size. */
+static void check_parameter_only_array(struct Decl *d) {
   if (d->parmonly_array & SWIG_ARRAY_QUALIFIED) {
     Swig_error(cparse_file, cparse_line, "'static' and type qualifiers in an array declarator are only allowed in a function parameter.\n");
   }
   if (d->parmonly_array & SWIG_ARRAY_UNSPECIFIED_SIZE) {
     Swig_error(cparse_file, cparse_line, "A variable length array of unspecified size, '[*]', is only allowed in a function prototype.\n");
+    Replaceall(d->type, "a(*).", "a().");
   }
 }
 
@@ -3985,6 +3934,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 }
 	       }
                | CONSTANT type declarator def_args SEMI {
+                 check_parameter_only_array(&$declarator);
 		 SwigType_push($type, $declarator.type);
 		 /* Sneaky callback function trick */
 		 if (SwigType_isfunction($type)) {
@@ -4727,11 +4677,10 @@ typemap_parm   : type plain_declarator {
                   Parm *parm;
                   declarator_remove_locals_function(&$plain_declarator);
 		  SwigType_push($type,$plain_declarator.type);
-                  /* A typemap for a variable length array parameter, such as 'char [*]', keeps '*' as the size of each
-                     array written with it */
-                  set_unspecified_size_arrays($type, $plain_declarator.unspecified_size_arrays);
 		  $$ = new_node("typemapitem");
 		  parm = NewParmWithoutFileLineInfo($type,$plain_declarator.id);
+                  /* Only a leading array keeps '*' as its size, as in 'char [*]' but not 'char (*)[*]' */
+                  Swig_vla_star_parms(parm);
 		  Setattr($$,"pattern",parm);
 		  Setattr($$,"parms", $plain_declarator.parms);
 		  Delete(parm);
@@ -4740,13 +4689,13 @@ typemap_parm   : type plain_declarator {
                 }
                | LPAREN parms RPAREN {
                   $$ = new_node("typemapitem");
-                  star_variable_length_arrays($parms);
+                  Swig_vla_star_parms($parms);
 		  Setattr($$,"pattern",$parms);
 		  /*		  Setattr($$,"multitype",$parms); */
                }
                | LPAREN parms[pattern] RPAREN LPAREN parms[in] RPAREN {
 		 $$ = new_node("typemapitem");
-                 star_variable_length_arrays($pattern);
+                 Swig_vla_star_parms($pattern);
 		 Setattr($$,"pattern", $pattern);
 		 /*                 Setattr($$,"multitype",$in); */
 		 Setattr($$,"parms",$in);
@@ -5977,6 +5926,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		 int       unnamedinstance = 0;
 		 int scopedenum = $ename && !Equal($c_enum_key, "enum");
 
+                 check_parameter_only_array(&$declarator);
 		 $$ = new_enum_node($c_enum_inherit);
 		 Setattr($$,"enumkey",$c_enum_key);
 		 if (scopedenum)
@@ -6091,6 +6041,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 
 			if ($ctor_end.have_parms) {
 			  SwigType *decl = NewStringEmpty();
+                          Swig_vla_unsize_parms($ctor_end.parms);
 			  SwigType_add_function(decl,$ctor_end.parms);
 			  Setattr($$,"decl",decl);
 			  Setattr($$,"parms",$ctor_end.parms);
@@ -6582,6 +6533,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 
 cpp_opt_declarators :  SEMI { $$ = 0; }
                     |  declarator cpp_const initializer c_decl_tail {
+                        check_parameter_only_array(&$declarator);
                         $$ = new_node("cdecl");
                         Setattr($$,"name",$declarator.id);
                         Setattr($$,"decl",$declarator.type);
@@ -7409,6 +7361,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		$$ = new_node("constructor");
 		Setattr($$,"storage",$storage_class);
 		Setattr($$, "name", name);
+                Swig_vla_unsize_parms($parms);
 		Setattr($$,"parms",$parms);
 		SwigType_add_function(decl,$parms);
 		Setattr($$,"decl",decl);
@@ -7869,9 +7822,6 @@ parm_no_dox	: rawtype parameter_declarator {
 		   $$ = NewParmWithoutFileLineInfo($rawtype,$parameter_declarator.id);
 		   Setfile($$,cparse_file);
 		   Setline($$,cparse_line);
-                   /* For a multi-argument typemap pattern, see star_variable_length_arrays() */
-                   if ($parameter_declarator.unspecified_size_arrays)
-                     SetInt($$, "unspecified_size_arrays", $parameter_declarator.unspecified_size_arrays);
 		   if ($parameter_declarator.defarg)
 		     Setattr($$, "value", $parameter_declarator.defarg);
 		   if ($parameter_declarator.stringdefarg)
@@ -8792,7 +8742,9 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimen
 
 /* The contents of an array declarator's brackets: the array's dimension, or "" if it is not specified.  C99 also allows
    'static', type qualifiers and '*' (a variable length array of unspecified size) in the brackets of a function
-   parameter's array, such as 'int a[static const 3]'.  None of them change the function's type, so they are dropped. */
+   parameter's array, such as 'int a[static const 3]'.  'static' and the type qualifiers do not change the function's
+   type, so they are dropped.  '*' is kept as the dimension for a typemap, see Swig_vla_star_parms().  It is removed
+   from a declaration's parameters, see Swig_vla_unsize_parms(). */
 array_dimension : array_qualifiers_opt {
                     $$.dim = NewStringEmpty();
                     $$.parmonly = $array_qualifiers_opt;
@@ -8802,7 +8754,7 @@ array_dimension : array_qualifiers_opt {
                     $$.parmonly = $array_qualifiers_opt;
                   }
                 | array_qualifiers_opt STAR {
-                    $$.dim = NewStringEmpty();
+                    $$.dim = NewString("*");
                     $$.parmonly = $array_qualifiers_opt | SWIG_ARRAY_UNSPECIFIED_SIZE;
                   }
                 ;

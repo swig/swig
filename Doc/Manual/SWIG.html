@@ -3747,6 +3747,8 @@ matter which declaration comes first.
 length array from the parameter list they are given in the same way.
 In that parameter list, an array whose size refers to an earlier parameter, an array whose size is <tt>*</tt> and an
 array without a size are all the same.
+A size that uses the name of a parameter not named in that list, such as the <tt>n</tt> in
+<tt>sum(size_t, const double[n])</tt>, is kept, but it matches the size as declared.
 So each of the following matches <tt>sum</tt> above:
 </p>
 
@@ -3755,6 +3757,7 @@ So each of the following matches <tt>sum</tt> above:
 %rename(sum_doubles) sum(size_t n, const double values[n]);
 %rename(sum_doubles) sum(size_t, const double values[*]);
 %rename(sum_doubles) sum(size_t, const double[]);
+%rename(sum_doubles) sum(size_t, const double[n]);
 </pre>
 </div>
 

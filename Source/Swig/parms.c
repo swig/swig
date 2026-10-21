@@ -509,15 +509,22 @@ void ParmList_replace_positional(String *s, ParmList *p, const_String_or_char_pt
 /* -----------------------------------------------------------------------------
  * ParmList_find_name_in()
  *
- * Return the first parameter in 'p' whose name occurs as an identifier in 's', such as the 'int n' of the C99 variable
- * length array size 'n * 2'.  Only the parameters before 'end' are searched, or all of them when 'end' is 0.  NULL if
- * there is none.
+ * Return the first parameter in 'p' that 's', a C or C++ expression, refers to by its name, such as the 'int n' of the
+ * C99 variable length array size 'n * 2', but not of 'S::n', see Swig_replace_expression_identifier().  Only the
+ * parameters before 'end' are searched, or all of them when 'end' is 0.  NULL if there is none.
  * ----------------------------------------------------------------------------- */
 
 Parm *ParmList_find_name_in(ParmList *p, Parm *end, const String *s) {
   for (; p && p != end; p = nextSibling(p)) {
-    if (Swig_contains_identifier(s, Getattr(p, "name")))
-      return p;
+    String *name = Getattr(p, "name");
+    if (name && s) {
+      String *copy = Copy(s);
+      int found = Swig_replace_expression_identifier(copy, name, "") > 0;
+      Delete(copy);
+      if (found) {
+        return p;
+      }
+    }
   }
   return 0;
 }
