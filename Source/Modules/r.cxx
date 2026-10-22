@@ -224,6 +224,26 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp_ref);
 }
 
+/* -------------------------------------------------------------
+ * Add the names of the classes that the R code creates objects
+ * of, as in new("_p_void", ref=ans), to the classes hash.
+ * --------------------------------------------------------------*/
+
+static void addCreatedClasses(Hash *classes, String *code) {
+  const char *const new_call = "new(\"";
+  const char *s = strstr(Char(code), new_call);
+  while (s) {
+    s += strlen(new_call);
+    const char *const end = strchr(s, '"');
+    if (!end)
+      break;
+    String *name = NewStringWithSize(s, (int)(end - s));
+    Setattr(classes, name, name);
+    Delete(name);
+    s = strstr(end, new_call);
+  }
+}
+
 class R : public Language {
 public:
   R();
@@ -383,6 +403,7 @@ protected:
   Hash *ClassMemberTable;
   Hash *ClassMethodsTable;
   Hash *SClassDefs;
+  Hash *SClassesCreated;
   Hash *SMethodInfo;
 
   // Information about routines that are generated and to be registered with
@@ -446,6 +467,7 @@ R::R() :
   ClassMemberTable(0),
   ClassMethodsTable(0),
   SClassDefs(0),
+  SClassesCreated(0),
   SMethodInfo(0),
   registrationTable(0),
   functionPointerProxyTable(0),
@@ -715,6 +737,7 @@ void R::init() {
   UnProtectWrapupCode = NewStringf("%s", "vmaxset(r_vmax);\nif(r_nprotect)  Rf_unprotect(r_nprotect);\n\n");
 
   SClassDefs = NewHash();
+  SClassesCreated = NewHash();
 
   sfile = NewString("");
   f_init = NewString("");
@@ -779,6 +802,17 @@ int R::top(Node *n) {
   Printf(f_wrapper, "#endif\n\n");
 
   Language::top(n);
+
+  // Define the classes of the objects created for a pointer to a type that is not a wrapped class, such as '_p_void'
+  // for a 'void *' return value
+  List *created_classes = SortedKeys(SClassesCreated, Strcmp);
+  for (Iterator it = First(created_classes); it.item; it = Next(it)) {
+    if (!Getattr(SClassDefs, it.item)) {
+      Printf(s_classes, "setClass('%s', contains = 'ExternalReference')\n", it.item);
+      Setattr(SClassDefs, it.item, it.item);
+    }
+  }
+  Delete(created_classes);
 
   Printf(f_wrapper, "#ifdef __cplusplus\n");
   Printf(f_wrapper, "}\n");
@@ -2079,6 +2113,7 @@ int R::functionWrapper(Node *n) {
       Printf(stdout, "Calling replace B: %s, %s, %s\n", Getattr(n, "type"), Getattr(n, "sym:name"), getNSpace());
     }
     replaceRClass(tm, Getattr(n, "type"));
+    addCreatedClasses(SClassesCreated, tm);
     Chop(tm);
   }
 

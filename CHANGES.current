@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [R] Fix a function returning a pointer to a type that is not a wrapped class, such as
+            'void *' or 'int *', which failed with the error '"_p_void" is not a defined class'.
+
+2026-10-22: wsfulton
             [R, Scilab] Add support for "check" typemaps. They were ignored, so their code, such as
             checking that an argument is valid, was missing from the wrappers.
 

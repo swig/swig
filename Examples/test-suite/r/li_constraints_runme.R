@@ -35,4 +35,4 @@ check_double(FALSE, test_nonzero, "nonzero", 0)
 check_double(TRUE, test_nonzero, "nonzero", -10)
 
 unittest(grepl("Received a NULL pointer.", error_message(function() test_nonnull(NULL)), fixed=TRUE), TRUE)
-# get_nonnull() is not called as R does not define the "_p_void" class for its void * return value
+unittest(error_message(function() test_nonnull(get_nonnull())), "")
