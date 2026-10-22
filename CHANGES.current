@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [PHP] The 'char INPUT[ANY]' and 'char OUTPUT[ANY]' typemaps in typemaps.i are no longer
+            supported and have been removed, for consistency with the other target languages, which
+            have no array typemaps in typemaps.i. To keep using them, copy them from typemaps.i in an
+            earlier version of SWIG into an interface file.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-22: wsfulton
             [Javascript] The wrapper code that comes after an "in" typemap with noblock=1, such as the
             conversion of the next argument, is now correct when the typemap ends with a // comment.
 
@@ -697,10 +705,6 @@ Version 4.6.0 (in progress)
             an array member or global variable copies the elements, raising Invalid_argument for
             NULL. A global variable that is an array of unknown size, such as 'int []', is read only
             and gives warning 462.
-
-2026-10-10: wsfulton
-            [PHP] NULL is now passed as a NULL pointer for a 'char INPUT[ANY]' parameter with the
-            typemaps.i typemaps, as for a 'char *' parameter, rather than as an empty string.
 
 2026-10-10: wsfulton
             [C#] The arrays_csharp.i FIXED[] typemaps for 'long' and 'unsigned long' now use a C#
