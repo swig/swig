@@ -541,6 +541,12 @@ SwigObj* MyClass_do(SwigObj *carg1) {
     <td>Assigns wrapped function's return value to a dedicated return variable, packaging it into SwigObj if necessary</td>
   </tr>
   <tr>
+    <td><tt>argout</tt></td>
+    <td>Code inserted after the <tt>out</tt> typemap, such as to set an output parameter.
+    <tt>$input</tt> is the parameter of the wrapper function and <tt>$result</tt> is the variable holding its return value,
+    which a function returning <tt>void</tt> does not have</td>
+  </tr>
+  <tr>
     <td><tt>cppouttype</tt></td>
     <td>Type of the result variable used for the return value if the wrapped function is a C++ function
     </td>
@@ -1025,9 +1031,9 @@ it is called directly. It is only available when wrapping C++ code without the <
 </p>
 
 <p>
-The <tt>canthrow</tt> attribute can be set on the 'in', 'check', 'out', 'throws', 'memberin' and 'globalin' typemaps.
-It is not used on a 'freearg' typemap, which cannot use <tt>SWIG_fail</tt>, as the 'freearg' code is also run after
-the <tt>fail</tt> label. <tt>%exception</tt> and <tt>%exceptionvar</tt> have the <tt>canthrow</tt> attribute set.
+The <tt>canthrow</tt> attribute can be set on the 'in', 'check', 'out', 'argout', 'throws', 'memberin' and 'globalin'
+typemaps. It is not used on a 'freearg' typemap, which cannot use <tt>SWIG_fail</tt>, as the 'freearg' code is also run
+after the <tt>fail</tt> label. <tt>%exception</tt> and <tt>%exceptionvar</tt> have the <tt>canthrow</tt> attribute set.
 The label is marked with <tt>SWIGUNUSED</tt>, so there is no compiler warning when the code does not use
 <tt>SWIG_fail</tt>, such as <tt>%exception</tt> code that only catches some exceptions. The typemaps in the SWIG library
 that raise an error, such as the 'in' typemap rejecting NULL for a reference, have the <tt>canthrow</tt> attribute set.

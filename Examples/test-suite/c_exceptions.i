@@ -110,6 +110,17 @@ struct constructor {
 unsigned short ushorttest() { return 100; }
 %}
 
+// test an error raised in an argout typemap
+%typemap(argout, canthrow=1) int *argoutvalue %{
+  if (*$1 == 100) {
+    SWIG_CException_Raise(SWIG_IndexError, "argout 100");
+    SWIG_fail;
+  }
+%}
+%inline %{
+int argouttest(int *argoutvalue) { *argoutvalue = 100; return 1; }
+%}
+
 // test errors raised in the variable getters and setters by the canthrow attribute in typemaps
 %typemap(check, canthrow=1) int numberin, int InOutStruct::staticnumberin %{
   if ($1 < 0) {

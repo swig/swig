@@ -8,6 +8,28 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [C] Add support for "argout" typemaps when wrapping C++ code. They were ignored, so their
+            code, such as setting an output parameter, was missing from the wrappers. As for the other
+            typemaps, an "argout" typemap that uses SWIG_exception or SWIG_fail needs the canthrow
+            attribute. $result is the variable holding the return value, so an "argout" typemap that
+            uses it for a function returning void is an error.
+
+2026-10-22: wsfulton
+            [C] Fix the $symname special variable, which was not expanded in some typemaps, such as a
+            "check" typemap, giving a wrapper that did not compile. It is now expanded in all the
+            typemaps used in a wrapper function.
+
+            Also with the -namespace option, $symname no longer includes the namespace prefix, as in
+            the other target languages. This changes $symname in typemaps, %exception and %exceptionvar
+            for a class member, constructor or destructor and for the getter or setter of a variable.
+            For example, with '-namespace ns', $symname is now 'Klass_method' instead of
+            'ns_Klass_method' for the method 'method' of class 'Klass' and 'gvar_get' instead of
+            'ns_gvar_get' for the getter of the global variable 'gvar'. It is unchanged for a function
+            that is not a class member, such as 'func'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-22: wsfulton
             [C] Fix the wrapper not compiling when wrapping C code for a function with a function
             pointer parameter, a multidimensional array parameter or an array parameter of structs or
             of pointers to structs, such as:

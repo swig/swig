@@ -1520,22 +1520,28 @@ public:
     Delete(ns_prefix);
   }
 
+  // Return true if the sym:name of the node is used as the name of its wrapper function without adding a prefix.
+  //
+  // The basic idea here is that for class members we don't need to use any prefix at all, as they're already prefixed by the class name, which has the
+  // appropriate prefix, but we need to use a prefix for the other symbols.
+  //
+  // However there are a couple of special cases complicating this:
+  //
+  //  - Friend functions are declared inside the class, but are not member functions, so we have to check for both the current class and "ismember" property.
+  //  - Destructors and implicitly generated constructors don't have "ismember" for some reason, so we need to check for them specifically.
+  //  - Variable getters and setters don't need to use the prefix as they don't clash with anything.
+  bool isSymNameWrapperName(Node *n) const {
+    return (getCurrentClass() && (Checkattr(n, "ismember", "1") || Checkattr(n, "nodeType", "constructor") || Checkattr(n, "nodeType", "destructor"))) ||
+           Checkattr(n, "varget", "1") || Checkattr(n, "varset", "1");
+  }
+
   // Construct the name to be used for a function with the given name in C wrappers.
   //
   // The returned string must be freed by caller.
   maybe_owned_dohptr getFunctionWrapperName(Node *n, String *name) const {
     maybe_owned_dohptr wname;
 
-    // The basic idea here is that for class members we don't need to use any prefix at all, as they're already prefixed by the class name, which has the
-    // appropriate prefix, but we need to use a prefix for the other symbols.
-    //
-    // However there are a couple of special cases complicating this:
-    //
-    //  - Friend functions are declared inside the class, but are not member functions, so we have to check for both the current class and "ismember" property.
-    //  - Destructors and implicitly generated constructors don't have "ismember" for some reason, so we need to check for them specifically.
-    //  - Variable getters and setters don't need to use the prefix as they don't clash with anything.
-    if ((getCurrentClass() && (Checkattr(n, "ismember", "1") || Checkattr(n, "nodeType", "constructor") || Checkattr(n, "nodeType", "destructor"))) ||
-        -Checkattr(n, "varget", "1") || Checkattr(n, "varset", "1")) {
+    if (isSymNameWrapperName(n)) {
       wname.assign_non_owned(name);
       return wname;
     }
@@ -1557,6 +1563,23 @@ public:
 
     wname.assign_owned(NewStringf("%s_%s", prefix, name));
     return wname;
+  }
+
+  // Return the sym:name of the node as the other target languages have it, for the $symname special variable.
+  //
+  // The -namespace option puts its prefix in the sym:name of the nodes that use it as their wrapper name. The naming
+  // formats registered in main() do so for a class member, constructor or destructor, such as 'ns_Klass_method'.
+  // globalvariableHandler() does so for a global variable, giving 'ns_gvar_get' for its getter. So remove the prefix.
+  //
+  // The returned string must be freed by caller.
+  String *getSymName(Node *n) const {
+    String *const symname = Getattr(n, "sym:name");
+    if (ns_prefix && isSymNameWrapperName(n)) {
+      int const prefix_len = Len(ns_prefix);
+      if (Strncmp(symname, ns_prefix, prefix_len) == 0 && Char(symname)[prefix_len] == '_')
+        return NewString(Char(symname) + prefix_len + 1);
+    }
+    return Copy(symname);
   }
 
   /* -----------------------------------------------------------------------------
@@ -2190,6 +2213,12 @@ public:
     // create new wrapper name, which emit_action() requires
     Setattr(n, "wrap:name", wname);
 
+    // $symname in the typemaps and the %exception code expands to sym:name, so use the other target languages' one
+    Swig_save("functionWrapperCSpecific", n, "sym:name", NIL);
+    String *symname = getSymName(n);
+    Setattr(n, "sym:name", symname);
+    Delete(symname);
+
     // make sure lnames are set, as they are not for the parameter of a variable setter
     int index = 1;
     for (p = parms; p; (p = nextSibling(p)), index++) {
@@ -2265,10 +2294,12 @@ public:
     Delete(resolved_type);
 
     emit_isvoid_special_variables(n, wrapper->code, is_void_return);
+    Replaceall(wrapper->code, "$symname", Getattr(n, "sym:name"));
 
     Printf(wrapper->code, "}");
 
     Wrapper_print(wrapper, sect_wrappers);
+    Swig_restore(n);
 
     emit_wrapper_func_decl(n, wname);
 
@@ -2489,6 +2520,12 @@ public:
     // create new wrapper name
     Setattr(n, "wrap:name", wname);
 
+    // $symname in the typemaps and the %exception code expands to sym:name, so use the other target languages' one
+    Swig_save("functionWrapperCPPSpecific", n, "sym:name", NIL);
+    String *symname = getSymName(n);
+    Setattr(n, "sym:name", symname);
+    Delete(symname);
+
     // add variable for holding result of original function 'cppresult'
     if (!is_void_return) {
       SwigType *value_type = cplus_value_type(type);
@@ -2591,6 +2628,28 @@ public:
       Append(wrapper->code, action);
     }
 
+    // insert argument output code
+    for (p = parms; p;) {
+      String *tm;
+      if ((tm = Getattr(p, "tmap:argout"))) {
+        if (Len(tm) != 0) {
+          canThrow(n, "argout", p);
+          if (is_void_return && Strstr(tm, "$result")) {
+            String *pname = Getattr(p, "name") ? Getattr(p, "name") : Getattr(p, "lname");
+            Swig_error(Getfile(n), Getline(n), "The 'argout' typemap of parameter '%s' uses $result, but '%s' returns void.\n", pname, name);
+          }
+          String *input = NewStringf("c%s", Getattr(p, "lname"));
+          Replaceall(tm, "$input", input);
+          Replaceall(tm, "$result", "result");
+          Delete(input);
+          Printv(wrapper->code, tm, "\n", NIL);
+        }
+        p = Getattr(p, "tmap:argout:next");
+      } else {
+        p = nextSibling(p);
+      }
+    }
+
     // insert cleanup code, which is run after an error too, so the canthrow attribute is not used for a freearg typemap, which cannot use SWIG_fail
     scoped_dohptr cleanup(NewStringEmpty());
     for (p = parms; p;) {
@@ -2615,10 +2674,12 @@ public:
     emit_fail_label(n, wrapper, cleanup, is_void_return ? NULL : "0");
 
     emit_isvoid_special_variables(n, wrapper->code, is_void_return);
+    Replaceall(wrapper->code, "$symname", Getattr(n, "sym:name"));
 
     Append(wrapper->code, "}\n");
 
     Wrapper_print(wrapper, sect_wrappers);
+    Swig_restore(n);
 
     // cleanup
     DelWrapper(wrapper);

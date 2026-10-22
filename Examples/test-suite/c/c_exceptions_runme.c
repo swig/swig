@@ -87,6 +87,14 @@ int main() {
   check(c_exceptions_ushorttest() == 0, "ushorttest result");
   check_error("ushorttest", SWIG_IndexError, "don't like 100");
 
+  /* error raised in an argout typemap */
+  {
+    int value = 0;
+    check(c_exceptions_argouttest(&value) == 0, "argouttest result");
+    check(value == 100, "argouttest value");
+    check_error("argouttest", SWIG_IndexError, "argout 100");
+  }
+
   /* errors raised in the variable getters and setters */
   /* 1) global variables */
   c_exceptions_numberin_set(5);

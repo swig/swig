@@ -9,7 +9,7 @@ int main(int argc, const char *argv[]) {
   assert(ignore_parameter_lotus("foo", 1) == 101);
   assert(ignore_parameter_tvr("bar", 2) == 8.8);
   assert(ignore_parameter_ferrari() == 101);
-  /* The C target language does not use argout typemaps, so called_argout is not set */
+  assert(ignore_parameter_called_argout_get() == 1);
   assert(ignore_parameter_called_freearg_get() == 1);
   assert(ignore_parameter_fiat(17) == 17);
 
