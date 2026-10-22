@@ -2493,9 +2493,9 @@ public:
     if (!is_void_return) {
       SwigType *value_type = cplus_value_type(type);
       SwigType *cppresult_type = value_type ? value_type : type;
-      SwigType *ltype = SwigType_ltype(cppresult_type);
-      Wrapper_add_local(wrapper, "cppresult", SwigType_str(ltype, "cppresult"));
-      Delete(ltype);
+      String *cppresult_decl = SwigType_lstr(cppresult_type, "cppresult");
+      Wrapper_add_local(wrapper, "cppresult", cppresult_decl);
+      Delete(cppresult_decl);
       Delete(value_type);
     }
 
