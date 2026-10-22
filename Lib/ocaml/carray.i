@@ -226,3 +226,8 @@ type _value = c_obj
     free( (void *)$1 );
 %}
 #endif
+
+%typemap(in) SWIGTYPE [*] = SWIGTYPE [ANY];
+%typemap(freearg) SWIGTYPE [*] = SWIGTYPE [ANY];
+%typemap(in) enum SWIGTYPE [*] = enum SWIGTYPE [ANY];
+%typemap(freearg) enum SWIGTYPE [*] = enum SWIGTYPE [ANY];
