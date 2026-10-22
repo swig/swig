@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [R, Scilab] Add support for "check" typemaps. They were ignored, so their code, such as
+            checking that an argument is valid, was missing from the wrappers.
+
+2026-10-22: wsfulton
             [OCaml] Fix a segmentation fault calling a function that takes or returns an enum type
             written with the 'enum' keyword, such as 'enum Color get_color(enum Color c)', or that
             takes an array of such enums using carray.i.

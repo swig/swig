@@ -425,7 +425,16 @@ public:
       }
     }
 
-    /* TODO write constraints */
+    /* Insert constraint checking code */
+    for (param = functionParamsList; param;) {
+      String *tm;
+      if ((tm = Getattr(param, "tmap:check"))) {
+        Printf(wrapper->code, "%s\n", tm);
+        param = Getattr(param, "tmap:check:next");
+      } else {
+        param = nextSibling(param);
+      }
+    }
 
     Setattr(node, "wrap:name", overloadedName);
 

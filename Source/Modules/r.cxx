@@ -1945,6 +1945,16 @@ int R::functionWrapper(Node *n) {
       Delete(funcptr_name);
   } /* end of looping over parameters. */
 
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p, "tmap:check"))) {
+      Printv(f->code, tm, "\n", NIL);
+      p = Getattr(p, "tmap:check:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
   if (addCopyParam) {
     Printf(sfun->def, "%s.copy = FALSE", nargs > 0 ? ", " : "");
     Printf(f->def, "%sSEXP s_swig_copy", nargs > 0 ? ", " : "");
