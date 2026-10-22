@@ -6,7 +6,7 @@
 
 %include <javascriptuint8array.swg>
 
-%typemap(in,noblock=0,fragment="SWIG_FromUint8Array") (const void *BYTES, size_t LENGTH) (void *buf = 0, int alloc = 0) {
+%typemap(in,fragment="SWIG_FromUint8Array") (const void *BYTES, size_t LENGTH) (void *buf = 0, int alloc = 0) {
   size_t len;
   int res = SWIG_FromUint8Array($input, &buf, &len, &alloc);
   if (!SWIG_IsOK(res)) {

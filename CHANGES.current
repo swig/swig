@@ -8,6 +8,23 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [Javascript] The code of an "in" typemap is no longer put inside an extra pair of braces,
+            which no other target language adds. A local variable declared in the code of a typemap
+            written with "" or %{ %} delimiters is now in the scope of the whole wrapper function, as
+            in the other target languages, so it can clash with a variable of the same name declared
+            by another typemap, for example when two parameters use this typemap:
+
+              %typemap(in) int %{
+                int tmp = 0;
+                ...
+                $1 = tmp;
+              %}
+
+            Such typemaps must be changed to use { } delimiters.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-22: wsfulton
             [PHP] The 'char INPUT[ANY]' and 'char OUTPUT[ANY]' typemaps in typemaps.i are no longer
             supported and have been removed, for consistency with the other target languages, which
             have no array typemaps in typemaps.i. To keep using them, copy them from typemaps.i in an
