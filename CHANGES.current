@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [C] Fix the wrapper not compiling for a global array variable when wrapping C code with the
+            -namespace option, such as:
+
+              int numbers[3];
+
+2026-10-22: wsfulton
             [R] Fix a function returning a pointer to a type that is not a wrapped class, such as
             'void *' or 'int *', which failed with the error '"_p_void" is not a defined class'.
 

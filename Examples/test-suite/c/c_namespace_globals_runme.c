@@ -20,5 +20,19 @@ int main() {
     exit(1);
   }
 
+  {
+    int values[3] = {4, 5, 6};
+    ns_numbers_set(values);
+    if (ns_numbers_get()[2] != 6) {
+      fprintf(stderr, "numbers failed\n");
+      exit(1);
+    }
+  }
+
+  if (ns_primes_get()[1] != 3) {
+    fprintf(stderr, "primes failed\n");
+    exit(1);
+  }
+
   return 0;
 }

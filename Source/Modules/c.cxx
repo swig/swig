@@ -2238,13 +2238,16 @@ public:
       Delete(parm_decl);
       gencomma = 1;
     }
-    Printv(wrapper->def, return_type, " ", wname.get(), "(", proto, ") {\n", NIL);
+
+    // the name goes inside the declaration, as for a function returning a pointer to an array, which is what the getter
+    // of an array variable returns, as in 'int (*name(void))[3]'
+    scoped_dohptr def_type(SwigType_decay_array(type));
+    scoped_dohptr decl(NewStringf("%s(%s)", wname.get(), proto));
+    Printv(wrapper->def, scoped_dohptr(SwigType_str(def_type, decl)).get(), " {\n", NIL);
 
     // the result variable is assigned to, so it does not have the qualifiers of a const return type
     if (!is_void_return) {
-      SwigType *ltype = SwigType_ltype(type);
-      Printv(wrapper->code, scoped_dohptr(SwigType_str(ltype, 0)).get(), " result;\n", NIL);
-      Delete(ltype);
+      Printv(wrapper->code, scoped_dohptr(SwigType_lstr(type, "result")).get(), ";\n", NIL);
     }
 
     // attach 'check' typemaps
