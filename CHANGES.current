@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            Fix the noblock=0 attribute of a typemap or %feature, which removed the braces around the
+            code as noblock=1 does. The braces are now kept, as when there is no noblock attribute.
+
+2026-10-22: wsfulton
             [C] Fix the wrapper not compiling for a global array variable when wrapping C code with the
             -namespace option, such as:
 

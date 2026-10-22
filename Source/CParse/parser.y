@@ -1264,7 +1264,7 @@ static String *remove_block(Node *kw, const String *inputcode) {
   String *modified_code = 0;
   while (kw) {
    String *name = Getattr(kw,"name");
-   if (name && (Cmp(name,"noblock") == 0)) {
+   if (name && (Cmp(name,"noblock") == 0) && GetFlag(kw, "value")) {
      char *cstr = Char(inputcode);
      int len = Len(inputcode);
      if (len && cstr[0] == '{') {
