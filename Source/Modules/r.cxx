@@ -25,31 +25,6 @@ static String *replaceInitialDash(const String *name) {
   return retval;
 }
 
-static String *getRTypeName(SwigType *t, int *outCount = NULL) {
-  String *b = SwigType_base(t);
-  List *els = SwigType_split(t);
-  int count = 0;
-  int i;
-
-  if (Strncmp(b, "struct ", 7) == 0)
-    Replace(b, "struct ", "", DOH_REPLACE_FIRST);
-
-  for (i = 0; i < Len(els); i++) {
-    String *el = Getitem(els, i);
-    if (Strcmp(el, "p.") == 0 || Strncmp(el, "a(", 2) == 0) {
-      count++;
-      Append(b, "Ref");
-    }
-  }
-  if (outCount)
-    *outCount = count;
-
-  String *tmp = NewString("");
-  char *retName = Char(SwigType_manglestr(t));
-  Insert(tmp, 0, retName);
-  return tmp;
-}
-
 /* --------------------------------------------------------------
  * Tries to get the resolved name, with options of adding
  * or removing a layer of references. Take care not
@@ -2754,28 +2729,12 @@ String *R::processType(SwigType *t, Node *n, int *nargs) {
   if (debugMode)
     Printf(stdout, "processType %s (tdname = %s)(SwigType = %s)\n", Getattr(n, "name"), tmp, Copy(t));
 
-  SwigType *td = t;
   if (expandTypedef(t) && SwigType_istypedef(t)) {
     SwigType *resolved = SwigType_typedef_resolve_all(t);
     if (expandTypedef(resolved)) {
-      td = Copy(resolved);
+      t = Copy(resolved);
     }
   }
-
-  if (!td) {
-    int count = 0;
-    String *b = getRTypeName(t, &count);
-    if (count && b && !Getattr(SClassDefs, b)) {
-      if (debugMode)
-        Printf(stdout, "<processType> Defining class %s\n", b);
-
-      Printf(s_classes, "setClass('%s', contains = 'ExternalReference')\n", b);
-      Setattr(SClassDefs, b, b);
-    }
-  }
-
-  if (td)
-    t = td;
 
   if (SwigType_isfunctionpointer(t)) {
     if (debugMode)
