@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [C] Fix the wrapper not compiling when wrapping C code for a function with a function
+            pointer parameter, a multidimensional array parameter or an array parameter of structs or
+            of pointers to structs, such as:
+
+              int apply(int (*op)(int, int));
+              int sum_items(struct Item items[]);
+              double trace(int n, double m[n][n]);
+
+2026-10-22: wsfulton
             [OCaml] Fix carray.i for a fixed size array of enums, such as 'Color a[3]', which raised
             Failure "No appropriate conversion found." as the typemap for an array of structs was used.
             An OCaml array with fewer elements than a fixed size array left the rest of the C array

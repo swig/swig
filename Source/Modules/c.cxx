@@ -1615,9 +1615,11 @@ public:
 
   /* -----------------------------------------------------------------------------
    * substituteResolvedTypeSpecialVariable()
+   *
+   * Return true if tm is replaced with the declaration of the parameter parm_name.
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, String *parm_name) {
     scoped_dohptr btype(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
       Node *const enum_node = enumLookup(btype);
@@ -1641,11 +1643,11 @@ public:
     } else {
       if (!CPlusPlus) {
         // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
+        String *const s = SwigType_lstr(classnametype, parm_name);
         Clear(tm);
-        String *const s = SwigType_str(classnametype, 0);
         Append(tm, s);
         Delete(s);
-        return;
+        return parm_name != NULL;
       }
 
       String *typestr = NIL;
@@ -1671,6 +1673,7 @@ public:
       Replaceall(tm, classnamespecialvariable, typestr);
       Delete(typestr);
     }
+    return false;
   }
 
   /* -----------------------------------------------------------------------------
@@ -1683,36 +1686,43 @@ public:
    * Inputs:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
+   *   parm_name - name of the parameter of type pt, if any
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
+   * Returns true if tm is the declaration of parm_name rather than just its type.
    * ----------------------------------------------------------------------------- */
 
-  void substituteResolvedType(SwigType *pt, String *tm) {
+  bool substituteResolvedType(SwigType *pt, String *tm, String *parm_name = NULL) {
     SwigType *type = SwigType_typedef_resolve_all(pt);
     SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    bool is_parm_decl = false;
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type");
+      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type", parm_name))
+        is_parm_decl = true;
       Delete(classnametype);
     }
     if (Strstr(tm, "$*resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-        substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type");
+        if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type", parm_name))
+          is_parm_decl = true;
       }
       Delete(classnametype);
     }
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type");
+      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type", parm_name))
+        is_parm_decl = true;
       Delete(classnametype);
     }
 
     Delete(strippedtype);
     Delete(type);
+    return is_parm_decl;
   }
 
   /*----------------------------------------------------------------------
@@ -2193,7 +2203,10 @@ public:
 
     // emit wrapper prototype and code
     for (p = parms, gencomma = 0; p; p = nextSibling(p)) {
-      Printv(proto, gencomma ? ", " : "", SwigType_str(Getattr(p, "type"), Getattr(p, "lname")), NIL);
+      scoped_dohptr parm_type(SwigType_decay_array(Getattr(p, "type")));
+      String *parm_decl = SwigType_str(parm_type, Getattr(p, "lname"));
+      Printv(proto, gencomma ? ", " : "", parm_decl, NIL);
+      Delete(parm_decl);
       gencomma = 1;
     }
     Printv(wrapper->def, return_type, " ", wname.get(), "(", proto, ") {\n", NIL);
@@ -2346,16 +2359,17 @@ public:
       String *lname = Getattr(p, "lname");
       String *c_parm_type = 0;
       String *arg_name = NewString("");
+      bool is_parm_decl = false;
 
       Printf(arg_name, "c%s", lname);
 
       if ((tm = Getattr(p, "tmap:ctype"))) {  // set the appropriate type for parameter
         c_parm_type = Copy(tm);
-        substituteResolvedType(type, c_parm_type);
+        is_parm_decl = substituteResolvedType(type, c_parm_type, arg_name);
 
         // We prefer to keep typedefs in the wrapper functions signatures as it makes them more readable, but we can't do it for nested typedefs as
         // they're not valid in C, so resolve them in this case.
-        if (strstr(Char(c_parm_type), "::")) {
+        if (!is_parm_decl && strstr(Char(c_parm_type), "::")) {
           SwigType *const tdtype = SwigType_typedef_resolve_all(c_parm_type);
           Delete(c_parm_type);
           c_parm_type = tdtype;
@@ -2367,7 +2381,11 @@ public:
         Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
       }
 
-      Printv(proto, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
+      if (is_parm_decl) {
+        Printv(proto, gencomma ? ", " : "", c_parm_type, NIL);
+      } else {
+        Printv(proto, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
+      }
       gencomma = 1;
 
       // apply typemaps for input parameter

@@ -824,6 +824,30 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_decay_array()
+ *
+ * Return a copy of type 's' with an array, or a typedef of an array, changed into a pointer to its first element, as C
+ * does for a function parameter declared as an array.  Unlike SwigType_ltype(), the qualifiers and the typedef names
+ * of the element type are kept, so 'a(3).q(const).int' becomes 'p.q(const).int'.  Any other type is copied unchanged.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_decay_array(const SwigType *s) {
+  SwigType *t;
+  if (SwigType_isarray(s)) {
+    t = Copy(s);
+  } else {
+    t = SwigType_typedef_resolve_all(s);
+    if (!SwigType_isarray(t)) {
+      Delete(t);
+      return Copy(s);
+    }
+  }
+  SwigType_del_array(t);
+  SwigType_add_pointer(t);
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_rcaststr()
  *
  * Produces a casting string that maps the type returned by lstr() to the real
