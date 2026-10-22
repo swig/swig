@@ -1387,6 +1387,9 @@ public:
                  oname,
                  fq_noenum,
                  name);
+        } else {
+          // The typemaps of a type written with the 'enum' keyword, such as 'enum Color', use the marker of 'enum Color'
+          Printf(f_mlbody, "let _ = Callback.register \"enum %s_marker\" (`%s)\n", fully_qualified_name, oname);
         }
 
         Printf(f_enumtypes_type, "| `%s\n", oname);

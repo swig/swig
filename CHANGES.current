@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [OCaml] Fix a segmentation fault calling a function that takes or returns an enum type
+            written with the 'enum' keyword, such as 'enum Color get_color(enum Color c)', or that
+            takes an array of such enums using carray.i.
+
+2026-10-22: wsfulton
             [C] Add support for "argout" typemaps when wrapping C++ code. They were ignored, so their
             code, such as setting an output parameter, was missing from the wrappers. As for the other
             typemaps, an "argout" typemap that uses SWIG_exception or SWIG_fail needs the canthrow

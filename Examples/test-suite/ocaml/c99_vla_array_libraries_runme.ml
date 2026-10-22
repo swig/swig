@@ -8,5 +8,8 @@ let _ =
   assert (_sum_ints (C_list [ C_int 2; ints ]) as int = 3);
   assert (try ignore (_sum_ints (C_list [ C_int 4; ints ])); false with Invalid_argument _ -> true);
   let doubles = C_array [| C_double 0.5; C_double 1.5 |] in
-  assert (_sum_doubles (C_list [ C_int 2; doubles ]) as float = 2.)
+  assert (_sum_doubles (C_list [ C_int 2; doubles ]) as float = 2.);
+  let colours = C_array [| C_enum `GREEN; C_enum `BLUE |] in
+  assert (_sum_colours (C_list [ C_int 2; colours ]) as int = 3);
+  assert (_sum_const_colours (C_list [ C_int 2; colours ]) as int = 3)
 ;;
