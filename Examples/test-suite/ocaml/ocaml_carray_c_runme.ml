@@ -41,3 +41,17 @@ let _ =
   assert (_sum_items_unknown_size (C_list [ C_void; C_int 0 ]) as int = -1);
   assert (_sum_colors_unknown_size (C_list [ C_void; C_int 0 ]) as int = -1)
 ;;
+
+let _ =
+  let colors = C_array [| C_enum `CARRAY_RED; C_enum `CARRAY_GREEN; C_enum `CARRAY_BLUE |] in
+  assert (_sum_colors colors as int = 7);
+  assert (_sum_colors (C_list [ C_void ]) as int = -1);
+  (* An array shorter than a fixed size array is an error *)
+  let too_short f = try ignore (f ()); false with Invalid_argument _ -> true in
+  assert (too_short (fun () -> _sum_ints (C_array [| C_int 1; C_int 2 |])));
+  assert (too_short (fun () -> _sum_doubles (C_array [| C_double 0.5 |])));
+  assert (too_short (fun () -> _sum_items (C_array [| new_item 3 |])));
+  assert (too_short (fun () -> _sum_colors (C_array [| C_enum `CARRAY_RED |])));
+  let m = new_CarrayMember '() in
+  assert (too_short (fun () -> (invoke m) "[ints]" (C_array [| C_int 1 |])))
+;;

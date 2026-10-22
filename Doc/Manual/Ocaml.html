@@ -518,6 +518,12 @@ for arrays whose bounds are completely specified.
 </p>
 
 <p>
+For a fixed size array parameter, an OCaml array with fewer elements than the array's size raises
+<tt>Invalid_argument</tt>.
+The elements of a longer OCaml array after the array's size are ignored.
+</p>
+
+<p>
 These typemaps are also used for a C99 variable length array parameter, such as <tt>a</tt> in the following, with the
 size given at runtime:
 </p>
@@ -550,6 +556,20 @@ elements as the OCaml array has:
 <div class="code">
 <pre>
 int sum(int a[], int n);
+</pre>
+</div>
+
+<p>
+The copy is freed by a "freearg" typemap, which is not used with your own "in" typemap for another type, such as
+<tt>const int[]</tt> or a typedef name.
+Your own "in" typemap for the same type as in "carray.i", such as <tt>int[]</tt>, needs its own "freearg" typemap,
+which can be empty:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) int[] %{ $1 = my_ints($input); %}
+%typemap(freearg) int[] ""
 </pre>
 </div>
 

@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-22: wsfulton
+            [OCaml] Fix carray.i for a fixed size array of enums, such as 'Color a[3]', which raised
+            Failure "No appropriate conversion found." as the typemap for an array of structs was used.
+            An OCaml array with fewer elements than a fixed size array left the rest of the C array
+            uninitialised. It now raises Invalid_argument.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-22: wsfulton
             [Javascript] The code of an "in" typemap is no longer put inside an extra pair of braces,
             which no other target language adds. A local variable declared in the code of a typemap
             written with "" or %{ %} delimiters is now in the scope of the whole wrapper function, as
@@ -73,7 +81,11 @@ Version 4.6.0 (in progress)
 2026-10-20: wsfulton
             [OCaml] Fix carray.i for an array parameter of unknown size, such as 'int []' or 'Foo []' for
             a struct or enum Foo. The wrapper code did not compile. The function is now passed a copy of
-            the OCaml array, with the same number of elements.
+            the OCaml array, with the same number of elements, which is then freed. An "in" typemap of
+            your own for the same type, such as 'int []', now also needs a "freearg" typemap, which can
+            be empty, or the pointer it sets is freed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-10-20: wsfulton
             Fix '$1_dim10' to '$1_dim19' in typemaps, which were replaced as '$1_dim1' followed by a

@@ -16,15 +16,18 @@ type _value = c_obj
 }
 %enddef
 
-/* C_void is a NULL pointer, but is not accepted for a variable, as the array is copied from it */
+/* C_void is a NULL pointer, but is not accepted for a variable, as the array is copied from it.
+   An OCaml array shorter than a fixed size array is an error and the extra elements of a longer one are ignored. */
 %define %array_tmap_in(type,what,in_f,null_action)
 %typemap(type) what [ANY] {
     int i;
     if (!Is_block($input)) {
         null_action;
+    } else if (caml_array_len($input) < $1_dim0) {
+        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "array has too few elements");
     } else {
         $1 = ($*1_type *)malloc( $1_size * sizeof($*1_type) );
-        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+        for( i = 0; i < $1_dim0; i++ ) {
             $1[i] = in_f(caml_array_nth($input,i));
         }
     }
@@ -49,7 +52,7 @@ type _value = c_obj
     }
 %}
 
-%typemap(freearg) what [] %{
+%typemap(freearg, match="in") what [] %{
     free( (void *)$1 );
 %}
 %enddef
@@ -89,9 +92,11 @@ type _value = c_obj
 
     if (!Is_block($input)) {
         $1 = 0;
+    } else if (caml_array_len($input) < $1_dim0) {
+        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "array has too few elements");
     } else {
         $1 = new $*1_type [$1_dim0];
-        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+        for( i = 0; i < $1_dim0; i++ ) {
             $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $1_descriptor));
         }
     }
@@ -115,9 +120,11 @@ type _value = c_obj
 
     if (!Is_block($input)) {
         $1 = 0;
+    } else if (caml_array_len($input) < $1_dim0) {
+        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "array has too few elements");
     } else {
         $1 = ($*1_type *)malloc( $1_dim0 * sizeof($*1_type) );
-        for( i = 0; i < $1_dim0 && i < caml_array_len($input); i++ ) {
+        for( i = 0; i < $1_dim0; i++ ) {
             $1[i] = *(($*1_ltype *)caml_ptr_val(caml_array_nth($input,i), $1_descriptor));
         }
     }
@@ -170,7 +177,21 @@ type _value = c_obj
     }
 %}
 
-%typemap(freearg) enum SWIGTYPE [] %{
+%typemap(in) enum SWIGTYPE [ANY] %{
+    if (!Is_block($input)) {
+        $1 = 0;
+    } else if (caml_array_len($input) < $1_dim0) {
+        SWIG_OCamlThrowException(SWIG_OCamlIllegalArgumentException, "array has too few elements");
+    } else {
+        int i;
+        $1 = ($1_ltype)malloc( $1_dim0 * sizeof($*1_ltype) );
+        for( i = 0; i < $1_dim0; i++ ) {
+            $1[i] = ($*1_ltype)caml_long_val_full(caml_array_nth($input,i), "$*1_ltype_marker");
+        }
+    }
+%}
+
+%typemap(freearg, match="in") enum SWIGTYPE [ANY], enum SWIGTYPE [] %{
     free( (void *)$1 );
 %}
 

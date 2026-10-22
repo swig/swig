@@ -89,4 +89,27 @@ int sum_colors_unknown_size(CarrayColor a[], int n) {
     sum += a[i];
   return sum;
 }
+
+int sum_colors(CarrayColor a[3]) {
+  return a ? a[0] + a[1] + a[2] : -1;
+}
+%}
+
+// The freearg typemaps do not free the array set by a user's 'in' typemap for another type
+%{
+static int user_ints[] = { 10, 20 };
+static CarrayColor user_colors[] = { CARRAY_GREEN };
+%}
+
+%typemap(in) const int [] %{ $1 = user_ints; %}
+%typemap(in) CarrayColor [] %{ $1 = user_colors; %}
+
+%inline %{
+int first_user_int(const int a[]) {
+  return a[0];
+}
+
+int first_user_color(CarrayColor a[]) {
+  return a[0];
+}
 %}
