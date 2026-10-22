@@ -30,6 +30,7 @@ int sum_ints(int n, const int values[n]);
 double sum_doubles(int n, const double values[n]);
 void double_ints(int n, int numbers[n]);
 int sum_colours(int n, enum Colour colours[n]);
+int sum_const_colours(int n, const enum Colour colours[n]);
 int sum_items(int n, struct Item items[n]);
 int sum_item_pointers(int n, struct Item *pointers[n]);
 int count_names(int n, char *names[n]);
@@ -63,6 +64,15 @@ void double_ints(int n, int *numbers) {
 }
 
 int sum_colours(int n, enum Colour *colours) {
+  int sum = 0;
+  int i;
+  for (i = 0; i < n; i++) {
+    sum += (int)colours[i];
+  }
+  return sum;
+}
+
+int sum_const_colours(int n, const enum Colour *colours) {
   int sum = 0;
   int i;
   for (i = 0; i < n; i++) {

@@ -12,6 +12,11 @@ unittest(grepl("^SWIG:OverflowError", error_message(function() sum_n_renamed(2L,
 unittest(char_length(5L, "abc"), 3L)
 unittest(count_names(3L, c("a", "b")), 2L)
 unittest(grepl("^SWIG:OverflowError", error_message(function() count_names(1L, c("a", "b")))), TRUE)
+# NULL is passed for any size, but an array needs a size greater than 0
+unittest(sum_n_renamed(0L, NULL), 0L)
+unittest(count_names(0L, NULL), 0L)
+unittest(grepl("^SWIG:ValueError", error_message(function() sum_n_renamed(0L, integer(0)))), TRUE)
+unittest(grepl("^SWIG:ValueError", error_message(function() count_names(0L, character(0)))), TRUE)
 
 # A size that is a global variable is a fixed size, global_n being 5
 unittest(sum_global_dimension(2L, c(1L, 2L)), 3L)

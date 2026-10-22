@@ -31,6 +31,8 @@ public class c99_vla_array_libraries_runme {
     int[] colours = {Colour.GREEN.swigValue(), Colour.BLUE.swigValue()};
     if (c99_vla_array_libraries.sum_colours(2, colours) != 3)
       throw new RuntimeException("sum_colours failed");
+    if (c99_vla_array_libraries.sum_const_colours(2, colours) != 3)
+      throw new RuntimeException("sum_const_colours failed");
 
     Item[] items = {newItem(10), newItem(20)};
     if (c99_vla_array_libraries.sum_items(2, items) != 30)

@@ -175,28 +175,34 @@ std::ptrdiff_t *INOUT
 /* A fixed size array is copied from a vector of up to that many elements, any after a shorter vector being 0. It is
    returned as a vector of that many elements */
 %define %r_fixed_size_array(TYPE, SEXPTYPE, ELEMENT, ELEMENT_TYPE)
-%typemap(in,noblock=1) TYPE [ANY] ($1_basetype temp[$1_dim0], int i, int len) {
+%typemap(in,noblock=1) TYPE [ANY] ($*1_ltype temp[$1_dim0], int i, int len) {
   len = Rf_length($input);
   if (len > (int)($1_dim0)) {
     %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
   }
   for (i = 0; i < len; i++)
-    temp[i] = ($1_basetype)ELEMENT($input)[i];
+    temp[i] = ($*1_ltype)ELEMENT($input)[i];
   for (; i < (int)($1_dim0); i++)
-    temp[i] = ($1_basetype)0;
+    temp[i] = ($*1_ltype)0;
   $1 = Rf_isNull($input) ? 0 : temp;
 }
 %typemap(freearg) TYPE [ANY] ""
 /* A C99 variable length array parameter, as in 'int n, int a[n]', is copied into an array of the size it has at runtime */
-%typemap(in,noblock=1) TYPE [*] ($1_basetype *temp = 0, int i, int len) {
-  len = Rf_length($input);
-  if (!(($1_dim0) > 0) || len > (int)($1_dim0)) {
-    %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
-  }
+%typemap(in,noblock=1) TYPE [*] ($*1_ltype *temp = 0, int i, int len) {
   if (!Rf_isNull($input)) {
-    temp = %new_array((size_t)($1_dim0), $1_basetype);
+    len = Rf_length($input);
+    if (!(($1_dim0) > 0)) {
+      %argument_fail(SWIG_ValueError, "$type", $symname, $argnum);
+    }
+    if (len > (int)($1_dim0)) {
+      %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+    }
+    temp = %new_array((size_t)($1_dim0), $*1_ltype);
+    if (!temp) {
+      %argument_fail(SWIG_MemoryError, "$type", $symname, $argnum);
+    }
     for (i = 0; i < len; i++) {
-      temp[i] = ($1_basetype)ELEMENT($input)[i];
+      temp[i] = ($*1_ltype)ELEMENT($input)[i];
     }
   }
   $1 = temp;
@@ -282,11 +288,18 @@ std::ptrdiff_t *INOUT
     if (!Rf_isString($input)) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     }
-    if (!(($1_dim0) > 0) || len > (int)($1_dim0)) {
+    if (!(($1_dim0) > 0)) {
+      %argument_fail(SWIG_ValueError, "$type", $symname, $argnum);
+    }
+    if (len > (int)($1_dim0)) {
       %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
     }
     temp = %new_array((size_t)($1_dim0), char *);
     copies = %new_array((size_t)($1_dim0), char *);
+    if (!temp || !copies) {
+      len = 0;
+      %argument_fail(SWIG_MemoryError, "$type", $symname, $argnum);
+    }
     for (i = 0; i < len; i++) {
       copies[i] = temp[i] = SWIG_strdup(CHAR(STRING_ELT($input, i)));
     }
