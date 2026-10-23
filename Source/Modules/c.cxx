@@ -1665,8 +1665,10 @@ public:
 
       Replaceall(tm, classnamespecialvariable, c_enumname);
     } else {
-      if (!CPlusPlus) {
-        // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
+      // Just use the original C type when not using C++, we know that this type can be used in the wrappers. The type of a
+      // function pointer cannot be followed by a '*' or a name, so it is declared in this way in the header file for C++ too.
+      if (!CPlusPlus ||
+          (current_output == output_wrapper_decl && Strcmp(classnamespecialvariable, "$resolved_type") == 0 && SwigType_isfunctionpointer(classnametype))) {
         String *const s = SwigType_lstr(classnametype, parm_name);
         Clear(tm);
         Append(tm, s);

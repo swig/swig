@@ -221,10 +221,10 @@ template<class T, class U = const T[2][3]> struct ConstArrayDefault {
 %}
 
 #if !defined(SWIGC)
-// TODO: Fix the experimental C backend emitting invalid C for a pointer to member or function pointer, such as 'int (*)(int)'
+// TODO: Fix the experimental C backend emitting invalid C for a pointer to member, such as 'int MemberHolder::*'
 %template(MemberPtrDefault_def) MemberPtrDefault<>;
 %template(MemberFuncPtrDefault_def) MemberFuncPtrDefault<>;
+#endif
 %template(FuncPtrDefault_def) FuncPtrDefault<>;
 %template(FuncPtrParmDefault_int) FuncPtrParmDefault<int>;
-#endif
 

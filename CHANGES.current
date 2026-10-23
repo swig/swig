@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-23: wsfulton
+            [C] Fix the .h file not compiling for a function pointer parameter or return type when
+            wrapping C++ code, such as:
+
+              int call(int (*f)(int), int i);
+              int (*get_operation())(int, int);
+
+2026-10-23: wsfulton
             [C] Fix the .h file not compiling for a global variable that is a function pointer or an
             array of function pointers, such as:
 
