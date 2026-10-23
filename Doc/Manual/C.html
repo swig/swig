@@ -45,6 +45,7 @@
 <ul>
 <li><a href="#C_additional_possibilities">Additional customization possibilities</a>
 <li><a href="#C_exception_handling">Exception handling</a>
+<li><a href="#C_vector_iterate">Iterating over <tt>std::vector</tt></a>
 </ul>
 </ul>
 </div>
@@ -838,6 +839,33 @@ template &lt;typename T&gt; T swig_check(T x) {
 #endif // SWIG_swig_check_DEFINED
 %}
 </pre></div>
+
+<h3><a name="C_vector_iterate">38.8.3 Iterating over <tt>std::vector</tt></a></h3>
+
+<p>Objects of <tt>std::vector&lt;T&gt;</tt> type are represented by vector-like classes in C++, which provide member functions with the same names as <tt>std::vector</tt>, e.g. <tt>size()</tt>, <tt>push_back</tt> etc. However by default iterating over these objects using range-based for loop is not supported. Please use the <tt>SWIG_STD_VECTOR_ITERATOR()</tt> macro to allow it, e.g.:</p>
+<div class="code"><pre>
+struct Foo {
+    int x;
+    double d;
+};
+
+std::vector&lt;Foo&gt; get_foos();
+
+#ifdef SWIGC
+SWIG_STD_VECTOR_ITERATOR(Foo)
+#endif
+</pre></div>
+
+<p>makes it possible to write code like this:</p>
+<div class="code"><pre>
+for ( const auto &amp; foo : get_foos() ) {
+    // use foo.x and foo.d
+}
+</pre></div>
+
+<p>
+Note that currently only iteration by const reference (or value) is supported, vector elements cannot be modified while iterating in this way.
+</p>
 
 </body>
 </html>
