@@ -181,6 +181,7 @@ clean:
 		rm -f clientdata_prop_a$${ext} clientdata_prop_b$${ext}; \
 		rm -f import_share_a$${ext} import_share_b$${ext} import_share_c$${ext}; \
 		rm -f import_stl_a$${ext} import_stl_b$${ext} import_stl_c$${ext}; \
+		rm -f import_vector_fwd_a$${ext} import_vector_fwd_b$${ext}; \
 		rm -f imports_a$${ext} imports_b$${ext}; \
 		rm -f mod_a$${ext} mod_b$${ext}; \
 		rm -f multi_import_a$${ext} multi_import_b$${ext} multi_import_d$${ext}; \
