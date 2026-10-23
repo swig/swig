@@ -141,3 +141,13 @@ static char *bar(void *[SIZE]) {
   };
 }
 
+// An array size that is an expression
+%inline %{
+int expression_overload(int values[SIZE + 1]) {
+  return values[SIZE];
+}
+int expression_overload(int value) {
+  return value;
+}
+%}
+

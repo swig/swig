@@ -2171,7 +2171,10 @@ public:
       Replaceall(prefix, "q(", "");
       Replaceall(prefix, ")", "");
       Replaceall(prefix, " ", "");
-      Printf(result, "%s", prefix);
+      // an array size can be an expression, such as 'N+1' or 'sizeof("abc")', so mangle what is left of it
+      String *mangled_prefix = Swig_name_mangle_string(prefix);
+      Printf(result, "%s", mangled_prefix);
+      Delete(mangled_prefix);
     }
 
     type = SwigType_base(type);
