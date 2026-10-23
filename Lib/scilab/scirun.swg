@@ -153,7 +153,7 @@ SWIG_Scilab_Error(int code, const char *msg) {
 
 #define SWIG_Error(code, msg) SWIG_Scilab_Error(code, msg)
 
-#define SWIG_fail return SWIG_ERROR;
+#define SWIG_fail goto fail;
 
 SWIGRUNTIME void
 SWIG_Scilab_Raise_Ex(const char *obj, const char *type, swig_type_info *descriptor) {

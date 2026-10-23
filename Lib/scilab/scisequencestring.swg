@@ -36,7 +36,8 @@ SWIGINTERN int
 SWIG_AsGet_Sequence_dec(std::string)(SwigSciObject obj, char ***pSequence) {
   int iRows = 0;
   int iCols = 0;
-  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, pSequence, SWIG_Scilab_GetFuncName()));
+  int iAllocated;
+  return (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, pSequence, &iAllocated, SWIG_Scilab_GetFuncName()));
 }
 }
 
@@ -48,8 +49,16 @@ SWIG_AsSize_Sequence_dec(std::string)(SwigSciObject obj, int *piSize) {
   char **pstMatrix;
   int iCols = 0;
   int iRows = 0;
-  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, &pstMatrix, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
+  int i;
+  int iAllocated;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, obj, &iRows, &iCols, &pstMatrix, &iAllocated, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
     *piSize = iRows * iCols;
+    if (iAllocated) {
+      for (i = 0; i < *piSize; i++) {
+        free(pstMatrix[i]);
+      }
+      free(pstMatrix);
+    }
     return SWIG_OK;
   }
   return SWIG_ERROR;
