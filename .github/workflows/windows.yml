@@ -118,7 +118,7 @@ jobs:
           COMPILER: gcc
           MSYS2_ENV: ucrt64
         - SWIGLANG: python
-          VER: '3.10'
+          VER: '3.11'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
