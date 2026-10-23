@@ -22,7 +22,7 @@
 
 #ifdef SWIG_THREADS
 
-#if __cplusplus >= 201103L
+#if (defined _MSVC_LANG ? _MSVC_LANG : __cplusplus) >= 201103L
 /*
  * C++ 11 or above
  * std::mutex        https://en.cppreference.com/w/cpp/thread/mutex
