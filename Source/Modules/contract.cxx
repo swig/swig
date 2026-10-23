@@ -231,11 +231,12 @@ void Contracts::substitute_parms(String *s, ParmList *p, int method, String *nam
 
   /* The names are replaced by position first, $0 for self, so that a replacement is not replaced too.  For example:
        int f(int x, int arg1, int *result);
-     'x' becomes 'arg1' and the function's name 'f' becomes 'result', neither of which is then replaced again. */
+     'x' becomes 'arg1' and the function's name 'f' becomes 'result', neither of which is then replaced again.  A member
+     with the name of a parameter or of the function, such as the 'n' in 'p->n', is left alone. */
   if (method)
     Replaceid(s, "$self", "$0");
-  ParmList_replace_names_positional(s, p, 0);
-  Replaceid(s, name, Swig_cresult_name());
+  ParmList_replace_expression_names_positional(s, p, 0);
+  Swig_replace_expression_identifier(s, name, Swig_cresult_name());
   for (position = method ? 0 : 1; position <= len; position++) {
     String *dollar = NewStringf("$%d", position);
     String *argname = NewStringf("arg%d", position + method);

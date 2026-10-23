@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-23: wsfulton
+            Fix %contract checks using a member with the same name as a parameter or as the function,
+            or using a parameter's name in a character or string literal, such as:
+
+              %contract f(struct S *s, int n) {
+              require:
+                s->n == n;
+              }
+
+            The generated check did not compile or tested the wrong value. It is now correct.
+
 2026-10-22: wsfulton
             Fix the noblock=0 attribute of a typemap or %feature, which removed the braces around the
             code as noblock=1 does. The braces are now kept, as when there is no noblock attribute.

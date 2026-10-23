@@ -487,6 +487,29 @@ void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_replace_expression_names_positional()
+ *
+ * As ParmList_replace_names_positional() but for 's', a C or C++ expression, in which the name of a member, a qualified
+ * name and the text of a literal do not name a parameter, see Swig_replace_expression_identifier().  For example,
+ * 'd->n > n' becomes '$1->n > $2' for the parameters 'd' and 'n'.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_expression_names_positional(String *s, ParmList *p, Parm *end) {
+  int position = 0;
+  if (!s)
+    return;
+  for (; p && p != end; p = nextSibling(p)) {
+    String *name = Getattr(p, "name");
+    ++position;
+    if (name) {
+      String *dollar = NewStringf("$%d", position);
+      Swig_replace_expression_identifier(s, name, dollar);
+      Delete(dollar);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_replace_positional()
  *
  * The reverse of ParmList_replace_names_positional(): replace each $ variable in 's' with the 'attribute' of the

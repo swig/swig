@@ -109,23 +109,6 @@ static SwigType *unsized_variable_length_arrays(const SwigType *t, ParmList *par
   return unsized;
 }
 
-/* Replace each name of a parameter in 'parms' before 'end' that 'size', an array size, refers to with the parameter's
-   position, $1 for the first parameter, as ParmList_replace_names_positional() does for a type.  The 'n' in 's.n',
-   'p->n' and 'S::n' is not a parameter, see Swig_replace_expression_identifier(). */
-static void replace_size_names_positional(String *size, ParmList *parms, Parm *end) {
-  int position = 0;
-  Parm *p;
-  for (p = parms; p && p != end; p = nextSibling(p)) {
-    String *name = Getattr(p, "name");
-    position++;
-    if (name) {
-      String *dollar = NewStringf("$%d", position);
-      Swig_replace_expression_identifier(size, name, dollar);
-      Delete(dollar);
-    }
-  }
-}
-
 /* The sizes of the array dimensions of a parameter 'p' in 'parms' of type 'type' that is a C99 variable length array,
    kept as its "vlasize".  There is a size for each of the leading arrays of 'type': the size of a dimension that refers
    to a parameter before 'p', with each such parameter given by its position, or empty for any other dimension.  For
@@ -142,7 +125,7 @@ static String *variable_length_array_sizes(const SwigType *type, ParmList *parms
   for (i = 0; i < Len(elements) && SwigType_isarray(Getitem(elements, i)); i++) {
     String *size = SwigType_parm(Getitem(elements, i));
     if (ParmList_find_name_in(parms, p, size)) {
-      replace_size_names_positional(size, parms, p);
+      ParmList_replace_expression_names_positional(size, parms, p);
       variable = 1;
     } else {
       Clear(size);

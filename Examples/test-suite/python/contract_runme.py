@@ -38,6 +38,17 @@ swig_check(contract.test_result_name(-1), 1)
 with swig_assert_raises(RuntimeError):
     contract.test_result_name(1)
 
+size = contract.ContractSize()
+size.n = 2
+size.test_member_names = 3
+swig_check(contract.test_member_names(size, 2), 5)
+with swig_assert_raises(RuntimeError):
+    contract.test_member_names(size, 1)
+
+swig_check(contract.test_literal_name("a"), ord("a"))
+with swig_assert_raises(RuntimeError):
+    contract.test_literal_name("n")
+
 f = contract.Foo()
 f.test_preassert(4, 5)
 try:
@@ -147,6 +158,9 @@ e.m_i = 5
 e.manipulate_arg1(5)
 with swig_assert_raises(RuntimeError):
     e.manipulate_arg1(6)
+e.manipulate_m_i(5)
+with swig_assert_raises(RuntimeError):
+    e.manipulate_m_i(6)
 
 # Namespace
 my = contract.myClass(1)

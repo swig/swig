@@ -12,3 +12,10 @@ assert(v.test_arg_names(1, -1) == 0, "Parameter names")
 assert(not pcall(function () v.test_arg_names(-1, 1) end), "Parameter names")
 assert(v.test_result_name(-1) == 1, "Result name")
 assert(not pcall(function () v.test_result_name(1) end), "Result name")
+local size = v.ContractSize()
+size.n = 2
+size.test_member_names = 3
+assert(v.test_member_names(size, 2) == 5, "Member names")
+assert(not pcall(function () v.test_member_names(size, 1) end), "Member names")
+assert(v.test_literal_name("a") == 97, "Literal name")
+assert(not pcall(function () v.test_literal_name("n") end), "Literal name")

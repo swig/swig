@@ -43,6 +43,20 @@ ensure:
 	test_result_name > 0;
 }
 
+// Members with the names of a parameter and of the function
+%contract test_member_names(const ContractSize *size, int n) {
+require:
+	size->n == n;
+ensure:
+	test_member_names == size->test_member_names + n;
+}
+
+// A parameter's name in a literal
+%contract test_literal_name(const char *n) {
+require:
+	n[0] != 'n';
+}
+
 %inline %{
 int test_arg_names(int x, int arg1) {
     return x + arg1;
@@ -50,6 +64,19 @@ int test_arg_names(int x, int arg1) {
 
 int test_result_name(int value) {
     return -value;
+}
+
+typedef struct ContractSize {
+  int n;
+  int test_member_names;
+} ContractSize;
+
+int test_member_names(const ContractSize *size, int n) {
+    return size->test_member_names + n;
+}
+
+int test_literal_name(const char *n) {
+    return n[0];
 }
 
 int test_preassert(int x, int y) {
@@ -219,6 +246,10 @@ public:
   require:
   arg1 <= $self->m_i;
   }
+  %contract manipulate_m_i(int m_i) {
+  require:
+  m_i <= $self->m_i;
+  }
 }
 
 %inline %{
@@ -227,6 +258,8 @@ struct E {
   void manipulate_i(int i) {
   }
   void manipulate_arg1(int arg1) {
+  }
+  void manipulate_m_i(int m_i) {
   }
 };
 %}
