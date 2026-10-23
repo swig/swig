@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-17: jschueller
+            #2056 Fix qualified typemaps not matching non-static member variable
+            setters. For example, the in typemap below now applies to the setter:
+
+              %typemap(in) int StructA::member { ... }
+              struct StructA { int member; };
+
+            Previously only the getter (out typemap) honoured the qualification
+            and the setter fell back to the unqualified typemap.
+
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using
             the nondynamic feature that derives from a nondynamic class from another module.
