@@ -165,6 +165,15 @@ python_pyi_untyped.cpptest: override SWIG_FEATURES := $(filter-out -typehints,$(
 python_annotations_c.cpptest: override SWIG_FEATURES := $(filter-out -typehints,$(SWIG_FEATURES))
 python_annotations_variable_c.cpptest: override SWIG_FEATURES := $(filter-out -typehints,$(SWIG_FEATURES))
 
+# overload_kwargs tests kwargs with overloaded functions, which is not supported in -builtin mode.
+overload_kwargs.cpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
+overload_kwargs.cpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT))
+
+# overload_kwargs_builtin pins the -builtin fallback: positional dispatch with warning 511 instead of kwargs.
+# PY_ABI_VER is unset as stable ABI is not supported by builtin.
+overload_kwargs_builtin.cpptest: SWIGOPT += -builtin -w511
+overload_kwargs_builtin.cpptest: swig_and_compile_cpp += PY_ABI_VER=
+
 # Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
 # PY_ABI_VER is unset for python_runtime_data_builtin because stable ABI is not supported by builtin
 python_runtime_data.multicpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
