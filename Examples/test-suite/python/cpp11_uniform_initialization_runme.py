@@ -19,3 +19,8 @@ if m.more1([-1, 1, 2]) != 2:
     raise RuntimeError(m.vi)
 if m.more1() != 10:
     raise RuntimeError
+
+if cpp11_uniform_initialization.cvar.after_new_braced != 4:
+    raise RuntimeError("after_new_braced")
+if cpp11_uniform_initialization.new_braced_default() != 9:
+    raise RuntimeError("new_braced_default")

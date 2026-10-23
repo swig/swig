@@ -8,8 +8,6 @@
 %ignore addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const;
 // SWIG/C doesn't currently support wrapping rvalue reference return types.
 %ignore SomeStruct::output(short);
-#elif defined SWIGGO
-%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) output_rvalueref;
 #endif
 
 %inline %{
@@ -33,6 +31,21 @@ struct SomeStruct {
   enum E { A, B };
   auto output_enum() -> enum E { return A; }
 
+  // Pointer and primitive reference return types
+  auto output_ptr() -> Hello*;
+  auto output_constptr() -> const Hello*;
+  auto int_ptr() -> int*;
+  auto int_ptr_ptr() -> int**;
+  auto int_ref() -> int&;
+  auto int_constref() -> const int&;
+  auto int_rvalueref() -> int&&;
+  auto hello_const() -> const Hello;
+  auto int_constptr() -> int* const&;
+  auto void_ptr() -> void*;
+  auto array_ref() -> int(&)[3];
+  auto fn_ptr() -> int(*)(int);
+  auto member_ptr() -> int (SomeStruct::*)(int, int);
+
   virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
   virtual ~SomeStruct() = default;
 };
@@ -52,4 +65,44 @@ auto SomeStruct::output() -> Hello& { static Hello h; return h; }
 auto SomeStruct::output_rvalueref() -> Hello&& { static Hello h; return std::move(h); }
 auto SomeStruct::output_constref() -> const Hello& { static Hello h; return h; }
 
+static int global_int = 11;
+static int global_array[3] = { 1, 2, 3 };
+static int doubler(int x) { return 2 * x; }
+
+auto SomeStruct::output_ptr() -> Hello* { static Hello h; return &h; }
+auto SomeStruct::output_constptr() -> const Hello* { static Hello h; return &h; }
+auto SomeStruct::int_ptr() -> int* { return &global_int; }
+auto SomeStruct::int_ptr_ptr() -> int** { static int *p = &global_int; return &p; }
+auto SomeStruct::int_ref() -> int& { return global_int; }
+auto SomeStruct::int_constref() -> const int& { return global_int; }
+auto SomeStruct::int_rvalueref() -> int&& { return std::move(global_int); }
+auto SomeStruct::hello_const() -> const Hello { static Hello h; return h; }
+auto SomeStruct::int_constptr() -> int* const& { static int* const p = &global_int; return p; }
+auto SomeStruct::void_ptr() -> void* { return &global_int; }
+auto SomeStruct::array_ref() -> int(&)[3] { return global_array; }
+auto SomeStruct::fn_ptr() -> int(*)(int) { return doubler; }
+auto SomeStruct::member_ptr() -> int (SomeStruct::*)(int, int) { return &SomeStruct::addNormal; }
+
+// A pure specifier, virt-specifier and '= delete' after a trailing return type.
+struct AbstractTrailing {
+  virtual auto pure_fn() const -> int = 0;
+  virtual ~AbstractTrailing() {}
+};
+
+struct ConcreteTrailing : AbstractTrailing {
+  auto pure_fn() const -> int override { return 42; }
+};
+
+struct AbstractFinalTrailing {
+  virtual auto pure_final() const -> int final = 0;
+  virtual ~AbstractFinalTrailing() {}
+};
+auto AbstractFinalTrailing::pure_final() const -> int { return 0; }
+
+auto deleted_free(int x) -> int = delete;
+
+struct DeletedTrailing {
+  DeletedTrailing() {}
+  auto deleted_member() -> int = delete;
+};
 %}

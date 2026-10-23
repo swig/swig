@@ -1,5 +1,4 @@
-require("import")	-- the import fn
-import("overload_null")	-- import lib into global
+require("overload_null")
 
 o = overload_null.Overload()
 x = overload_null.X()
@@ -39,3 +38,15 @@ assert(20 == o:byval2fwdptr(x))
 assert(21 == o:byval1fwdref(x))
 
 assert(22 == o:byval2fwdref(x))
+
+assert(23 == o:bychar1("a"))
+assert(24 == o:bychar1(nil))
+
+-- NULL is a NULL pointer for an array of char too
+assert(37 == o:bychararray(x))
+assert(-38 == o:bychararray(nil))
+assert(38 == o:bychararray("ab"))
+
+assert(39 == o:byunsizedchararray(x))
+assert(-40 == o:byunsizedchararray(nil))
+assert(40 == o:byunsizedchararray("ab"))

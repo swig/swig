@@ -34,6 +34,19 @@ public class template_methods_runme {
     Klass.KlassStaticTMethodBool();
 
 
+    // Advanced renaming with %s format specifiers
+    Clay clay = new Clay();
+    b = clay.ClayBoolRenamed_cmethod(true);
+    clay.ClayCMethodBool();
+    b = Clay.ClayBoolStaticRenamed_staticcmethod(true);
+    Clay.ClayStaticCMethodBool();
+
+    i = clay.ClayIntRenamed_cmethod(99);
+    clay.ClayIntRenamed_cmethod();
+    i = Clay.ClayIntStaticRenamed_staticcmethod(88);
+    Clay.ClayIntStaticRenamed_staticcmethod();
+
+
     //
     ComponentProperties cp = new ComponentProperties();
     cp.adda("key1", "val1", "key2", 22.2);

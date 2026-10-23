@@ -129,10 +129,12 @@ extern "C" {
 SWIGINTERN int SWIG_CastCmpStruct(const void *pa, const void *pb) {
   swig_cast_info *pca = (swig_cast_info *)pa;
   swig_cast_info *pcb = (swig_cast_info *)pb;
-  if (pca->type < pcb->type)
-    return (pca->next || pcb->next == 0) ? -1 : 1;
-  if (pca->type > pcb->type)
-    return (pcb->next || pca->next == 0) ? 1 : -1;
+  /* Entries with next != 0 (newly mapped) come before entries with next == 0 (already loaded) */
+  if (!pca->next && pcb->next) return 1;
+  if (pca->next && !pcb->next) return -1;
+  /* Within the same group, sort by type pointer for binary search */
+  if (pca->type < pcb->type) return -1;
+  if (pca->type > pcb->type) return 1;
   return 0;
 }
 
@@ -269,7 +271,10 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
 #ifdef SWIGRUNTIME_DEBUG
             if (ocast) printf("SWIG_InitializeModule: skip old cast %s\n", target_type->name);
 #endif
-            if (!ocast) target_type = 0;
+            if (!ocast) {
+              cast->type = target_type;
+              target_type = 0;
+            }
           }
         }
       }
@@ -308,7 +313,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
         swig_cast_info *tmp;
 
         /* Sort casts by type address for binary search in SWIG_TypeCheckStruct */
-        qsort(first, cast - first, sizeof(swig_cast_info), SWIG_CastCmpStruct);
+        qsort(first, (size_t)(cast - first), sizeof(swig_cast_info), SWIG_CastCmpStruct);
 
         /* Remap back links for added entries */
         cast = swig_module.cast_initial[i] + num_mapped;
@@ -319,7 +324,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
 
       /* Set the value field of the first entry to the index of the last added entry */
       cast = swig_module.cast_initial[i];
-      cast->value = num_mapped - 1;
+      cast->value = (unsigned int)(num_mapped - 1);
 
       num_mapped -= (int)(first - cast);
       if (num_mapped > 1) {

@@ -1,0 +1,20 @@
+local v=require("li_std_vector_member_var")
+
+local t = v.Test()
+assert(t.x == 0, "Test::x != 0")
+assert(t.v:size() == 0, "Test::v.size() != 0")
+t:f(1)
+assert(t.x == 1, "Test::x != 1")
+assert(t.v:size() == 1, "Test::v.size() != 1")
+t:f(2)
+assert(t.x == 3, "Test::x != 3")
+assert(t.v:size() == 2, "Test::v.size() != 2")
+t:f(3)
+assert(t.x == 6, "Test::x != 6")
+assert(t.v:size() == 3, "Test::v.size() != 3")
+
+local T = v.T()
+T.start_t = v.S()
+T.length = 7
+assert(T.start_t.x == 4, "S::x != 4")
+assert(T.length == 7, "T::length != 7")

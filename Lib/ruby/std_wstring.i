@@ -18,7 +18,7 @@ extern "C" {
 #include "ruby/encoding.h"
 #endif
 
-/**
+/*
  *  The internal encoding of std::wstring is defined based on
  *  the size of wchar_t. If it is not appropriate for your library,
  *  SWIG_RUBY_WSTRING_ENCODING must be given when compiling.
@@ -35,7 +35,7 @@ extern "C" {
 
 #endif
 
-/**
+/*
  *  If Encoding.default_internal is nil, this encoding will be used
  *  when converting from std::wstring to String object in Ruby.
  */

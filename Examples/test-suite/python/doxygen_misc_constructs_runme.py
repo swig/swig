@@ -141,3 +141,20 @@ comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.doc_with_triple_qu
 
     """How quaint"""'''
 );
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.FileHeaderTestClass),
+    r"""This is the real class description."""
+)
+
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.SlashFileHeaderTestClass),
+    r"""Real class description (slash style)."""
+)
+
+comment_verifier.check(doxygen_misc_constructs.GroupedMembers.loggingMember1.__doc__,
+    r"""Doc for the first grouped member."""
+)
+comment_verifier.check(doxygen_misc_constructs.GroupedMembers.loggingMember2.__doc__,
+    r"""Doc for the second grouped member."""
+)
+comment_verifier.check(inspect.getdoc(doxygen_misc_constructs.GroupedMembers),
+    "")

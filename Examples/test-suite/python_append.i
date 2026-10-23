@@ -44,8 +44,8 @@ import os.path
 %inline %{
 class Test {
 public:
-  static void static_func() {};
-  void funk() {};
+  static void static_func() {}
+  void funk() {}
 };
 %}
 

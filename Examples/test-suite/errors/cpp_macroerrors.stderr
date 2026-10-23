@@ -1,0 +1,8 @@
+cpp_macroerrors.i:11: Warning 401: Nothing known about base class 'Nothing0'. Ignored.
+cpp_macroerrors.i:15: Warning 401: Nothing known about base class 'Nothing1'. Ignored.
+cpp_macroerrors.i:16: Warning 401: Nothing known about base class 'Nothing2'. Ignored.
+cpp_macroerrors.i:11: Warning 401: Nothing known about base class 'Nothing0'. Ignored.
+cpp_macroerrors.i:20: Warning 401: Nothing known about base class 'Nothing3'. Ignored.
+cpp_macroerrors.i:24: Warning 401: Nothing known about base class 'Nothing4'. Ignored.
+cpp_macroerrors.i:29: Warning 401: Nothing known about base class 'Nothing5'. Ignored.
+cpp_macroerrors.i:33: Warning 401: Nothing known about base class 'Nothing6'. Ignored.

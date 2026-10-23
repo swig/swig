@@ -275,6 +275,36 @@ private:
   };
 %}
 
+// Enumerator initialised by a character literal
+%inline %{
+  enum class Enum19 {
+    Val1 = 'a', Val2
+  };
+%}
+
+// Underlying types whose target language type, such as C# char, is not a valid enum underlying type
+#if defined(SWIGCSHARP)
+%typemap(csbase, replace="1") Enum20, Enum21, Enum23 "int"
+%typemap(csbase, replace="1") Enum22 "byte"
+#elif defined(SWIGD)
+%typemap(dbase, replace="1") Enum21, Enum23 "dchar"
+#endif
+%inline %{
+  enum class Enum20 : char {
+    Val1 = 'b', Val2
+  };
+  enum class Enum21 : wchar_t {
+    Val1 = L'c', Val2, Val3 = L'\x263A', Val4
+  };
+  enum class Enum22 : bool {
+    Val1 = false, Val2 = true
+  };
+  typedef wchar_t WideChar23;
+  enum class Enum23 : WideChar23 {
+    Val1 = L'd', Val2
+  };
+%}
+
 // Regression tests for cases where SWIG incorrectly included "enum " when
 // qualifying the emunerator name:
 

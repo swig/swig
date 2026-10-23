@@ -13,7 +13,6 @@
 %{
 #include <unordered_set>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 %csmethodmodifiers std::unordered_set::empty "private"

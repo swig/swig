@@ -113,3 +113,23 @@ end
 if my_class.bang_method! != true
   raise RuntimeError, "Incorrect value for bang_method!" 
 end
+
+
+# Check that std::vector<bool>'s partial specialization survives -autorename (Github issue #3546)
+if not Ruby_naming::VectorBool
+  raise RuntimeError, 'Invalid class name for VectorBool'
+end
+
+vb = Ruby_naming::VectorBool.new(3)
+
+if vb.size != 3
+  raise RuntimeError, "Incorrect size for VectorBool"
+end
+
+vb[0] = true
+vb[1] = false
+vb[2] = true
+
+if vb[0] != true || vb[1] != false || vb[2] != true
+  raise RuntimeError, "Incorrect element values for VectorBool"
+end

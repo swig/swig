@@ -20,6 +20,8 @@ HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
 HAVE_CXX17   = @HAVE_CXX17@
 HAVE_CXX20   = @HAVE_CXX20@
+HAVE_CXX23   = @HAVE_CXX23@
+HAVE_CXX26   = @HAVE_CXX26@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -40,7 +42,7 @@ DOXYGEN_ERROR_TEST_CASES := $(DOXYGEN_ERROR_TEST_CASES:=.cpptest)
 
 ERROR_TEST_CASES := $(CPP_ERROR_TEST_CASES:=.cpptest) \
 		    $(C_ERROR_TEST_CASES:=.ctest) \
-		    $(DOXYGEN_ERROR_TEST_CASES)
+		    $(DOXYGEN_ERROR_TEST_CASES) \
 
 include $(srcdir)/../common.mk
 
@@ -48,6 +50,12 @@ include $(srcdir)/../common.mk
 # it, if we do it before including it, its defining of SWIGOPT would override
 # whatever we do here.
 $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
+
+# The argout container consistency check only runs when the return type is being described.
+swig_argout_container.ctest: SWIGOPT += -typehints
+
+# Warnings are reported at the line in the macro definition instead of the macro invocation.
+cpp_macroerrors.cpptest: SWIGOPT += -macroerrors
 
 # Unique module names are obtained from the .i file name (required for parallel make).
 # Note: -module overrides %module in the .i file.
@@ -76,4 +84,4 @@ STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean
-	@rm -f *.$(ERROR_EXT) *.py
+	@rm -f *.$(ERROR_EXT) *.py *.pyi

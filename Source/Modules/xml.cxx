@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -15,32 +15,31 @@
 
 static const char *usage = "\
 XML Options (available with -xml)\n\
-     -xmllite        - More lightweight version of XML\n";
+     -xmllite        - More lightweight version of XML\n\
+\n";
 
 static File *out = 0;
 static int xmllite = 0;
 
-
-class XML:public Language {
+class XML : public Language {
 public:
-
   int indent_level;
   long id;
 
-  XML() :indent_level(0) , id(0) {
+  XML() : indent_level(0), id(0) {
   }
-  
+
   ~XML() {
   }
 
   virtual void main(int argc, char *argv[]) {
     for (int iX = 0; iX < argc; iX++) {
       if (strcmp(argv[iX], "-help") == 0) {
-	fputs(usage, stdout);
+        fputs(usage, stdout);
       }
       if (strcmp(argv[iX], "-xmllite") == 0) {
-	Swig_mark_arg(iX);
-	xmllite = 1;
+        Swig_mark_arg(iX);
+        xmllite = 1;
       }
     }
 
@@ -60,8 +59,8 @@ public:
       Append(outfile, ".xml");
       out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
-	FileErrorDisplay(outfile);
-	Exit(EXIT_FAILURE);
+        FileErrorDisplay(outfile);
+        Exit(EXIT_FAILURE);
       }
     }
     Printf(out, "<?xml version=\"1.0\" ?> \n");
@@ -96,52 +95,47 @@ public:
     ki = First(obj);
     while (ki.key) {
       k = ki.key;
-      if ((Cmp(k, "nodeType") == 0)
-	  || (Cmp(k, "firstChild") == 0)
-	  || (Cmp(k, "lastChild") == 0)
-	  || (Cmp(k, "parentNode") == 0)
-	  || (Cmp(k, "nextSibling") == 0)
-	  || (Cmp(k, "previousSibling") == 0)
-	  || (*(Char(k)) == '$')) {
-	/* Do nothing */
+      if ((Cmp(k, "nodeType") == 0) || (Cmp(k, "firstChild") == 0) || (Cmp(k, "lastChild") == 0) || (Cmp(k, "parentNode") == 0) ||
+          (Cmp(k, "nextSibling") == 0) || (Cmp(k, "previousSibling") == 0) || (*(Char(k)) == '$')) {
+        /* Do nothing */
       } else if (Cmp(k, "module") == 0) {
-	Xml_print_module(Getattr(obj, k));
+        Xml_print_module(Getattr(obj, k));
       } else if (Cmp(k, "baselist") == 0) {
-	Xml_print_baselist(Getattr(obj, k));
+        Xml_print_baselist(Getattr(obj, k));
       } else if (!xmllite && Cmp(k, "typescope") == 0) {
-	Xml_print_typescope(Getattr(obj, k));
+        Xml_print_typescope(Getattr(obj, k));
       } else if (!xmllite && Cmp(k, "typetab") == 0) {
-	Xml_print_typetab(Getattr(obj, k));
+        Xml_print_typetab(Getattr(obj, k));
       } else if (Cmp(k, "kwargs") == 0) {
-	Xml_print_kwargs(Getattr(obj, k));
+        Xml_print_kwargs(Getattr(obj, k));
       } else if (Cmp(k, "parms") == 0 || Cmp(k, "pattern") == 0) {
-	Xml_print_parmlist(Getattr(obj, k));
+        Xml_print_parmlist(Getattr(obj, k));
       } else if (Cmp(k, "catchlist") == 0 || Cmp(k, "templateparms") == 0) {
-	Xml_print_parmlist(Getattr(obj, k), Char(k));
+        Xml_print_parmlist(Getattr(obj, k), Char(k));
       } else {
-	DOH *o;
-	print_indent(0);
-	if (DohIsString(Getattr(obj, k))) {
-	  String *ck = NewString(k);
-	  o = Str(Getattr(obj, k));
-	  Replaceall(ck, ":", "_");
-	  Replaceall(ck, "<", "&lt;");
-	  /* Do first to avoid aliasing errors. */
-	  Replaceall(o, "&", "&amp;");
-	  Replaceall(o, "<", "&lt;");
-	  Replaceall(o, "\"", "&quot;");
-	  Replaceall(o, "\\", "\\\\");
-	  Replaceall(o, "\n", "&#10;");
-	  Printf(out, "<attribute name=\"%s\" value=\"%s\" id=\"%ld\" addr=\"%p\" />\n", ck, o, ++id, o);
-	  Delete(o);
-	  Delete(ck);
-	} else {
-	  o = Getattr(obj, k);
-	  String *ck = NewString(k);
-	  Replaceall(ck, ":", "_");
-	  Printf(out, "<attribute name=\"%s\" value=\"%p\" id=\"%ld\" addr=\"%p\" />\n", ck, o, ++id, o);
-	  Delete(ck);
-	}
+        DOH *o;
+        print_indent(0);
+        if (DohIsString(Getattr(obj, k))) {
+          String *ck = NewString(k);
+          o = Str(Getattr(obj, k));
+          Replaceall(ck, ":", "_");
+          Replaceall(ck, "<", "&lt;");
+          /* Do first to avoid aliasing errors. */
+          Replaceall(o, "&", "&amp;");
+          Replaceall(o, "<", "&lt;");
+          Replaceall(o, "\"", "&quot;");
+          Replaceall(o, "\\", "\\\\");
+          Replaceall(o, "\n", "&#10;");
+          Printf(out, "<attribute name=\"%s\" value=\"%s\" id=\"%ld\" addr=\"%p\" />\n", ck, o, ++id, o);
+          Delete(o);
+          Delete(ck);
+        } else {
+          o = Getattr(obj, k);
+          String *ck = NewString(k);
+          Replaceall(ck, ":", "_");
+          Printf(out, "<attribute name=\"%s\" value=\"%p\" id=\"%ld\" addr=\"%p\" />\n", ck, o, ++id, o);
+          Delete(ck);
+        }
       }
       ki = Next(ki);
     }
@@ -171,8 +165,7 @@ public:
     Printf(out, "</%s>\n", nodeType(obj));
   }
 
-
-  void Xml_print_parmlist(ParmList *p, const char* markup = "parmlist") {
+  void Xml_print_parmlist(ParmList *p, const char *markup = "parmlist") {
 
     print_indent(0);
     Printf(out, "<%s id=\"%ld\" addr=\"%p\">\n", markup, ++id, p);
@@ -239,7 +232,6 @@ public:
 
     Xml_print_hash(p, "typetab");
   }
-
 
   void Xml_print_hash(Hash *p, const char *markup) {
 

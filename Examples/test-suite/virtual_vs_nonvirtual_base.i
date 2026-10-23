@@ -19,7 +19,7 @@ class SimpleNonVirtual
 class SimpleReturnClass
 {
 	public:
-		SimpleReturnClass(int i) : value(i) {};
+		SimpleReturnClass(int i) : value(i) {}
 		int get() const { return value; }
 	private:
 		int value;

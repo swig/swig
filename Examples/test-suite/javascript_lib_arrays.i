@@ -5,6 +5,8 @@
 %apply int[] { int *data1 }
 %apply int[3] { int data2[3] }
 %apply int[4] { int data3[4] }
+%apply int[] { int *nullable }
+%apply int[3] { int nullable_sized[3] }
 
 %inline %{
 
@@ -25,6 +27,9 @@ int sum2(int data2[3]) {
 }
 
 int data3[4] = {1, 2, 3, 4};
+
+int isnull(int *nullable) { return nullable == 0; }
+int isnull_sized(int nullable_sized[3]) { return nullable_sized == 0; }
 
 %}
 

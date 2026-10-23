@@ -207,6 +207,7 @@ public:
 class Bar {
 public:
   Bar(Foo* d) { delegate=d; }
+  virtual ~Bar() {}
   virtual std::string ping(int excp) throw(int,MyNS::Exception2)
   {
     return delegate->ping(excp);

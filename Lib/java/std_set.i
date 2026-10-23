@@ -14,7 +14,6 @@
 
 %{
 #include <set>
-#include <stdexcept>
 %}
 
 %fragment("SWIG_SetSize", "header", fragment="SWIG_JavaIntFromSize_t") {

@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="R">34 SWIG and R</a></H1>
+<H1><a name="R">36 SWIG and R</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -21,6 +21,13 @@
 <li><a href="#R_class_examples">Examples</a>
 </ul>
 <li><a href="#R_nn7">Enumerations</a>
+<li><a href="#R_null">NULL and empty vectors</a>
+<ul>
+<li><a href="#R_null_parameters">Passing NULL and empty vectors</a>
+<li><a href="#R_null_examples">NULL examples</a>
+<li><a href="#R_null_errors">Handling NULL errors</a>
+<li><a href="#R_null_typemaps">Typemaps that accept NULL</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -43,7 +50,7 @@ to <a href="https://www.simpleitk.org/">SimpleITK</a>.  The R
 bindings also work on Microsoft Windows using Visual C++.
 </p>
 
-<H2><a name="R_nn2">34.1 Bugs</a></H2>
+<H2><a name="R_nn2">36.1 Bugs</a></H2>
 
 
 <p>
@@ -57,7 +64,7 @@ Currently the following features are not implemented or broken:
 <li>C Array wrappings
 </ul>
 
-<H2><a name="R_nn3">34.2 Using R and SWIG</a></H2>
+<H2><a name="R_nn3">36.2 Using R and SWIG</a></H2>
 
 
 <p>
@@ -147,7 +154,7 @@ Error in .Call("R_swig_fact", s_arg1, as.logical(.copy), PACKAGE = "example") :
 <li>Make sure the architecture of the shared library(x64 for instance), matches the architecture of the R program you want to load your shared library into
 </ul>
 
-<H2><a name="R_nn4">34.3 Precompiling large R files</a></H2>
+<H2><a name="R_nn4">36.3 Precompiling large R files</a></H2>
 
 
 <p>
@@ -172,7 +179,7 @@ There is no need to precompile large R files if the SWIG-generated code is being
 in an R package. The package infrastructure provides this service during package installation.
 </p>
 
-<H2><a name="R_nn5">34.4 General policy</a></H2>
+<H2><a name="R_nn5">36.4 General policy</a></H2>
 
 
 <p>
@@ -181,7 +188,7 @@ wrapping over the underlying functions and rely on the R type system
 to provide R syntax.
 </p>
 
-<H2><a name="R_language_conventions">34.5 Language conventions</a></H2>
+<H2><a name="R_language_conventions">36.5 Language conventions</a></H2>
 
 
 <p>
@@ -190,7 +197,7 @@ and [ are overloaded to allow for R syntax (one based indices and
 slices)
 </p>
 
-<H2><a name="R_nn6">34.6 C++ classes</a></H2>
+<H2><a name="R_nn6">36.6 C++ classes</a></H2>
 
 
 <p>
@@ -217,7 +224,7 @@ The R interface has the following capabilities:
 <li> Variable accessors are automatically generated and called via the $, [, [[, $&lt;-,  [&lt;-, [[&lt;- operators.
 </ul>
 
-<H3><a name="R_class_examples">34.6.1 Examples</a></H3>
+<H3><a name="R_class_examples">36.6.1 Examples</a></H3>
 
 
 <p>
@@ -310,7 +317,7 @@ defined "_p_Vehicle"
 The names in the <tt>accessorFuns</tt> list correspond to class methods while names in the <tt>vaccessors</tt> section
 correspond to variables that may be modified.
 </p>
-<H2><a name="R_nn7">34.7 Enumerations</a></H2>
+<H2><a name="R_nn7">36.7 Enumerations</a></H2>
 
 
 <p>
@@ -368,6 +375,285 @@ The relevant functions, for debugging purposes, are <tt>enumToInteger</tt> and
 Anonymous enumerations are ignored by the binding generation process,
 leaving no way of accessing the value of anonymous enumerations from R
 code.
+</p>
+
+<H2><a name="R_null">36.8 NULL and empty vectors</a></H2>
+
+
+<p>
+R's <tt>NULL</tt> is the equivalent of a C/C++ NULL pointer.
+<tt>NULL</tt> is passed to C/C++ as a NULL pointer wherever a NULL pointer is valid, such as for a pointer to a class
+or for a <tt>char *</tt> string.
+A NULL pointer returned from C/C++ is returned to R as <tt>NULL</tt>.
+Where C/C++ cannot accept a NULL pointer, such as for a reference, <tt>NULL</tt> gives an error.
+</p>
+
+<p>
+A vector with no elements, such as <tt>integer(0)</tt>, <tt>character(0)</tt> or <tt>list()</tt>, is not <tt>NULL</tt>.
+It is passed as an empty array or <tt>std::vector</tt>, or gives an error where C/C++ needs at least one element,
+such as for a string or a number.
+Note that R itself gives <tt>NULL</tt> for some empty results, for example <tt>c()</tt> is <tt>NULL</tt>, so when a
+vector that may be empty is built up to pass to C/C++, start with an empty vector of the right type, such as
+<tt>integer(0)</tt>, rather than <tt>c()</tt>.
+</p>
+
+<H3><a name="R_null_parameters">36.8.1 Passing NULL and empty vectors</a></H3>
+
+
+<p>
+The following table shows what <tt>NULL</tt> and an empty vector give for each kind of C/C++ parameter.
+The errors are described in <a href="#R_null_errors">Handling NULL errors</a>.
+</p>
+
+<table BORDER summary="R NULL and empty vector conversion">
+<tr><th>C/C++ parameter</th><th>NULL</th><th>Empty vector</th></tr>
+<tr><td>Pointer to a class, <tt>Shape *</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
+<tr><td>Class by reference or by value, <tt>Shape &amp;</tt>, <tt>const Shape &amp;</tt>, <tt>Shape</tt></td>
+    <td>SWIG:NullReferenceError</td><td>SWIG:TypeError</td></tr>
+<tr><td>String, <tt>char *</tt>, <tt>const char *</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
+<tr><td>String and length, <tt>(const char *STRING, size_t LENGTH)</tt></td><td>NULL pointer and length 0</td>
+    <td>SWIG:TypeError</td></tr>
+<tr><td>Char array, <tt>char [8]</tt>, <tt>char []</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
+<tr><td>Array of strings, <tt>char *[3]</tt></td><td>NULL pointer</td><td>Array of NULL pointers</td></tr>
+<tr><td>Number, bool or enum, by value or const reference, <tt>int</tt>, <tt>const double &amp;</tt></td>
+    <td>SWIG:TypeError</td><td>SWIG:TypeError</td></tr>
+<tr><td>Non-const reference to a number or library type, <tt>int &amp;</tt>, <tt>int &amp;INPUT</tt>,
+    <tt>std::vector&lt;int&gt; &amp;</tt></td><td>SWIG:NullReferenceError</td><td>SWIG:TypeError</td></tr>
+<tr><td>Pointer to numbers, <tt>int *</tt>, <tt>double []</tt></td><td>NULL pointer</td>
+    <td>Pointer to an array holding a single 0</td></tr>
+<tr><td>Fixed size array of numbers or enums, <tt>int [3]</tt></td><td>NULL pointer</td><td>Array of zeros</td></tr>
+<tr><td>Array of a class, <tt>Shape [3]</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
+<tr><td><tt>const std::vector&lt;int&gt; &amp;</tt></td><td>SWIG:NullReferenceError</td>
+    <td>Empty <tt>std::vector</tt></td></tr>
+<tr><td><tt>std::vector&lt;int&gt;</tt> by value</td><td>SWIG:TypeError</td><td>Empty <tt>std::vector</tt></td></tr>
+<tr><td><tt>const std::string &amp;</tt></td><td>SWIG:NullReferenceError</td><td>SWIG:TypeError</td></tr>
+<tr><td><tt>std::string</tt> by value</td><td>SWIG:TypeError</td><td>SWIG:TypeError</td></tr>
+</table>
+
+<p>
+A pointer to numbers, such as <tt>int *</tt>, or an array of numbers of unknown size, such as <tt>double []</tt>,
+takes an R vector, whose values are copied into a temporary C/C++ array for the call.
+C/C++ receives a pointer to the copy, so any changes it makes to the values are not copied back to the R vector.
+An empty vector is copied to an array holding a single 0, so that the pointer is not NULL, although there are no
+values to read.
+</p>
+
+<p>
+A vector shorter than a fixed size array, such as <tt>int [3]</tt>, fills the start of the array and the remaining
+elements are zero, while a longer vector gives SWIG:OverflowError.
+An array of a class, such as <tt>Shape [3]</tt>, takes an object of the class, which is passed as a pointer to it, as
+in the other target languages.
+Setting a fixed size array member or global variable to <tt>NULL</tt> gives SWIG:NullReferenceError.
+</p>
+
+<p>
+An empty string, <tt>""</tt>, is a character vector of one element, so it is passed as an empty C/C++ string and is
+valid for <tt>char *</tt> and for a char array, whereas <tt>character(0)</tt> is a character vector with no string at
+all.
+</p>
+
+<p>
+A parameter that takes a single value, such as a number, a bool, an enum, a <tt>char</tt>, a <tt>char *</tt>, a char
+array or a <tt>std::string</tt>, takes exactly one value, so a vector of more than one value, such as <tt>c(6, 7)</tt>
+for an <tt>int</tt> or <tt>c("ab", "cd")</tt> for a <tt>char *</tt>, gives SWIG:TypeError, whereas an array, such as
+<tt>int [3]</tt> or <tt>char *[3]</tt>, takes a vector of up to that many values.
+</p>
+
+<H3><a name="R_null_examples">36.8.2 NULL examples</a></H3>
+
+
+<p>
+Consider the following interface:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%include &lt;std_vector.i&gt;
+%template(IntVector) std::vector&lt;int&gt;;
+
+%inline %{
+#include &lt;string.h&gt;
+#include &lt;vector&gt;
+
+typedef std::vector&lt;int&gt; Numbers;
+
+struct Shape {
+  double size;
+  Shape() : size(2.0) {}
+};
+
+int is_null_shape(const Shape *shape) {
+  return shape == 0;
+}
+
+double shape_size(const Shape &amp;shape) {
+  return shape.size;
+}
+
+int name_length(const char *name) {
+  return name ? (int)strlen(name) : -1;
+}
+
+const char *find_name(int id) {
+  return id == 1 ? "one" : 0;
+}
+
+int total(const Numbers &amp;values) {
+  int sum = 0;
+  for (size_t i = 0; i &lt; values.size(); i++)
+    sum += values[i];
+  return sum;
+}
+
+int first_of_three(int values[3]) {
+  return values ? values[0] : -1;
+}
+%}
+</pre>
+</div>
+
+<p>
+<tt>NULL</tt> and empty vectors are then handled as follows:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt; is_null_shape(NULL)
+[1] 1
+&gt; shape_size(NULL)
+Error in shape_size(NULL) :
+  SWIG:NullReferenceError invalid null reference in method 'shape_size', argument 1 of type 'Shape const &amp;'
+&gt; name_length(NULL)
+[1] -1
+&gt; name_length(character(0))
+Error in name_length(character(0)) :
+  SWIG:TypeError in method 'name_length', argument 1 of type 'char const *'
+&gt; find_name(2)
+NULL
+&gt; total(integer(0))
+[1] 0
+&gt; total(NULL)
+Error in total(NULL) :
+  SWIG:NullReferenceError invalid null reference in method 'total', argument 1 of type 'Numbers const &amp;'
+&gt; first_of_three(NULL)
+[1] -1
+&gt; first_of_three(integer(0))
+[1] 0
+&gt; first_of_three(5L)
+[1] 5
+&gt; first_of_three(1:4)
+Error in first_of_three(1:4) :
+  SWIG:OverflowError in method 'first_of_three', argument 1 of type 'int [3]'
+</pre>
+</div>
+
+<H3><a name="R_null_errors">36.8.3 Handling NULL errors</a></H3>
+
+
+<p>
+The errors are R errors whose message starts with the type of SWIG error, such as <tt>SWIG:NullReferenceError</tt> for
+<tt>NULL</tt> where C/C++ needs an object, <tt>SWIG:TypeError</tt> for a value of the wrong type or an empty vector
+where a value is needed, or <tt>SWIG:OverflowError</tt> for a vector too long for an array.
+They can be caught with <tt>tryCatch</tt> and told apart by the start of the message:
+</p>
+
+<div class="targetlang">
+<pre>
+size &lt;- tryCatch(shape_size(shape), error = function(e) {
+  if (startsWith(conditionMessage(e), "SWIG:NullReferenceError"))
+    NA
+  else
+    stop(e)
+})
+</pre>
+</div>
+
+<p>
+It is usually simpler to test for <tt>NULL</tt> before the call, for example with
+<tt>if (is.null(shape)) NA else shape_size(shape)</tt>.
+</p>
+
+<H3><a name="R_null_typemaps">36.8.4 Typemaps that accept NULL</a></H3>
+
+
+<p>
+The R function generated for each wrapped function converts each argument with the <tt>scoercein</tt> typemap before
+calling the C/C++ wrapper.
+An R conversion such as <tt>as.integer</tt> or <tt>as.numeric</tt> turns <tt>NULL</tt> into an empty vector, so a
+<tt>scoercein</tt> typemap that converts its argument should leave <tt>NULL</tt> unchanged.
+The C/C++ <tt>in</tt> typemap then receives <tt>NULL</tt> as <tt>R_NilValue</tt>, which it can test for with
+<tt>Rf_isNull</tt>.
+It can use the length of anything else to tell an empty vector apart.
+For example, the following typemaps pass a numeric vector of two elements as a <tt>Point</tt> and <tt>NULL</tt> as a
+NULL pointer.
+They reject a vector of any other length with SWIG:TypeError:
+</p>
+
+<div class="code">
+<pre>
+%module point
+
+%inline %{
+typedef struct Point {
+  double x;
+  double y;
+} Point;
+%}
+
+%typemap(scoercein) const Point * %{
+  if (!is.null($input)) $input = as.numeric($input);
+%}
+%typemap(in, noblock=1) const Point * (Point temp) {
+  if (Rf_isNull($input)) {
+    $1 = 0;
+  } else if (Rf_length($input) == 2) {
+    temp.x = REAL($input)[0];
+    temp.y = REAL($input)[1];
+    $1 = &amp;temp;
+  } else {
+    %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+  }
+}
+
+%inline %{
+double distance_from_origin(const Point *p) {
+  return p ? p-&gt;x * p-&gt;x + p-&gt;y * p-&gt;y : -1.0;
+}
+%}
+</pre>
+</div>
+
+<div class="targetlang">
+<pre>
+&gt; distance_from_origin(c(3, 4))
+[1] 25
+&gt; distance_from_origin(3:4)
+[1] 25
+&gt; distance_from_origin(NULL)
+[1] -1
+&gt; distance_from_origin(numeric(0))
+Error in distance_from_origin(numeric(0)) :
+  SWIG:TypeError in method 'distance_from_origin', argument 1 of type 'Point const *'
+</pre>
+</div>
+
+<p>
+The <tt>in</tt> typemap reads the values with <tt>REAL</tt> without checking their type, as it relies on the
+<tt>scoercein</tt> typemap to convert the argument with <tt>as.numeric</tt> first.
+An R vector holds values of a single type, so after the conversion every value is a double and none needs checking.
+The conversion also accepts an integer vector, such as <tt>3:4</tt>.
+<tt>as.numeric</tt> gives an R error for an argument that it cannot convert, such as a list of vectors.
+It gives <tt>NA</tt> with a warning for a string that is not a number.
+Without the <tt>is.null</tt> test in the <tt>scoercein</tt> typemap, <tt>NULL</tt> would reach the <tt>in</tt> typemap
+as <tt>numeric(0)</tt> and give SWIG:TypeError.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to pass <tt>NULL</tt> unchanged to the C/C++ wrapper for
+numbers, strings, <tt>std::vector</tt> and the other types whose <tt>scoercein</tt> typemap converts the argument.
+Earlier versions converted <tt>NULL</tt> to an empty vector for these types, so <tt>NULL</tt> could not be told apart
+from an empty vector and gave, depending on the type, an empty value, an R internal error or a crash.
 </p>
 
 </body>

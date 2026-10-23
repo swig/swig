@@ -68,3 +68,8 @@ int ignored_int_variable = 42;
 %constant unsupported_constant_value1 = &ignored_int_variable;
 %constant unsupported_constant_value2 = getType1Instance;
 %constant unsupported_constant_value3 = &getType1Instance;
+
+/* A %constant with an implicit type takes the type a named cast casts to. */
+%constant cast_double_constant = static_cast<double>(3);
+%constant cast_uint_constant = static_cast<unsigned int>(3);
+%constant cast_bool_constant = static_cast<bool>(1);

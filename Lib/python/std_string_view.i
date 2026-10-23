@@ -4,14 +4,8 @@
  * SWIG typemaps for std::string_view types
  * ----------------------------------------------------------------------------- */
 
-%include <exception.i>
-
 %{
 #include <string_view>
-
-#if PY_VERSION_HEX < 0x03000000
-# error std_string_view.i not supported for Python 2
-#endif
 %}
 
 namespace std {
@@ -88,15 +82,11 @@ namespace std {
         if (PyUnicode_Check($input)) {
           p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
           // Avoid undefined behaviour by leaking, macros match those in SWIG_PyUnicode_AsUTF8AndSize
-%#if PY_VERSION_HEX >= 0x03030000
 %# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
           SWIG_Py_XINCREF($input);
 %# else
           // Py_XDECREF(bytes);
 %# endif
-%#else
-          // Py_XDECREF(bytes);
-%#endif
         } else {
           p = PyBytes_AsString($input);
           if (p) len = PyBytes_Size($input);

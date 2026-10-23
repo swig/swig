@@ -2,10 +2,6 @@
 
 %include <std_string.i>
 
-%begin %{
-#define SWIG_PYTHON_2_UNICODE
-%}
-
 %inline %{
 
 const char* non_utf8_c_str(void) {

@@ -73,10 +73,11 @@
   rvrdeleter.reset($1);
 }
 %typemap(freearg) SWIGTYPE && ""
+%typemap(in) SWIGTYPE (&&)[ANY], SWIGTYPE (&&)[] = SWIGTYPE &;
 
 /* By value */
 #if defined(__cplusplus) && defined(%implicitconv_flag)
-%typemap(in,implicitconv=1) SWIGTYPE (void *argp, int res = 0) {
+%typemap(in,implicitconv=1) SWIGTYPE (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags | %implicitconv_flag);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -90,7 +91,7 @@
   }
 }
 #else
-%typemap(in) SWIGTYPE (void *argp, int res = 0) {
+%typemap(in) SWIGTYPE (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $&descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum); 
@@ -165,6 +166,33 @@
   }
 }
 
+/* memberin/globalin/varin, for a reference to a fix array.  These also match a reference to an array of arrays, such
+   as an int (&)[2][3], so all $1_size elements are copied rather than the $1_dim0 of the first dimension. memberin and
+   globalin do not check for NULL, which the in typemap for a reference rejects. */
+
+%typemap(memberin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  size_t ii = 0;
+  for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
+}
+
+%typemap(globalin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  size_t ii = 0;
+  for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
+}
+
+%typemap(varin) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  $basetype *inp = 0;
+  int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $*1_descriptor, %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    %variable_fail(res, "$type", "$name");
+  } else if (inp) {
+    size_t ii = 0;
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)inp + ii);
+  } else {
+    %variable_nullref("$type", "$name");
+  }
+}
+
 
 /* memberin/globalin/varin, for fix double arrays. */
 
@@ -219,7 +247,7 @@
   $1 = %reinterpret_cast(argp, $ltype);
 }
 
-%typemap(varin,noblock=1,warning="462:Unable to set dimensionless array variable") SWIGTYPE []
+%typemap(varin,noblock=1,warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[]
 {
   %variable_fail(SWIG_AttributeError, "$type", "read-only $name");
 }
@@ -293,6 +321,10 @@
 }
 
 /* References */
+%typemap(varout, noblock=1) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $*1_descriptor, %newpointer_flags));
+}
+
 %typemap(varout, noblock=1) SWIGTYPE & {
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr(&$1), $descriptor, %newpointer_flags));
 }
@@ -520,10 +552,6 @@
   %raise(SWIG_NewPointerObj(%as_voidptr(&$1),$descriptor,0), "$type", $descriptor);
 }
 
-%typemap(throws,noblock=1) (...) {
-  SWIG_exception_fail(SWIG_RuntimeError,"unknown exception");
-}
-
 /* ------------------------------------------------------------
  * --- CLASS::* typemaps --- 
  * ------------------------------------------------------------ */
@@ -637,6 +665,31 @@
 #endif
 
 %apply SWIGTYPE ((*)(ANY)) { SWIGTYPE ((* const)(ANY)) }
+
+/* ------------------------------------------------------------
+ * --- function reference typemaps ---
+ * A reference to a function is passed and returned as a function pointer.
+ * ------------------------------------------------------------ */
+
+%typemap(in) SWIGTYPE ((&)(ANY)) {
+  int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum);
+  }
+  if (!$1) {
+    %argument_nullref("$type", $symname, $argnum);
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)) {
+  void *ptr = 0;
+  int res = SWIG_ConvertFunctionPtr($input, &ptr, $descriptor);
+  $1 = ptr ? SWIG_CheckState(res) : 0;
+}
+
+%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)) {
+  %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
+}
 
 %apply SWIGTYPE * { SWIGTYPE *const }
 

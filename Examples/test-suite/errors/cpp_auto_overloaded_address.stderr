@@ -1,0 +1,3 @@
+cpp_auto_overloaded_address.i:8: Warning 346: Unable to deduce auto type for variable 'ov_address' from initialiser '&ov' (ignored).
+cpp_auto_overloaded_address.i:9: Warning 346: Unable to deduce auto type for variable 'sov_address' from initialiser '&K::sov' (ignored).
+cpp_auto_overloaded_address.i:10: Warning 344: Unable to deduce decltype for '&ov'.

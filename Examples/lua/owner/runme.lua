@@ -1,13 +1,6 @@
 -- Operator overloading example
 ---- importing ----
-if string.sub(_VERSION,1,7)=='Lua 5.0' then
-	-- lua5.0 doesn't have a nice way to do this
-	lib=loadlib('example.dll','luaopen_example') or loadlib('example.so','luaopen_example')
-	assert(lib)()
-else
-	-- lua 5.1 does
-	require('example')
-end
+require('example')
 
 print "ok, let's test Lua's ownership of C++ objects"
 print("Currently there are",example.Shape_nshapes,"shapes (there should be 0)")
@@ -94,7 +87,7 @@ for i=0,10000 do
         a=o:remove(0)
         if a==nil then break end
         sh[a]=true
-    end        
+    end
     if i%100==0 then collectgarbage() end
 end
 print "done"

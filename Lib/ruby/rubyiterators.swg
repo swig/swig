@@ -17,7 +17,7 @@ namespace swig {
   struct stop_iteration {
   };
 
-  /** 
+  /* 
    * Abstract base class used to represent all iterators of STL containers.
    */
   struct ConstIterator {
@@ -55,7 +55,7 @@ namespace swig {
     virtual VALUE value() const {
       throw std::invalid_argument("value not supported");
       return Qnil;
-    };
+    }
 
     virtual VALUE setValue( const VALUE& v ) {
       throw std::invalid_argument("value= not supported");
@@ -173,13 +173,13 @@ namespace swig {
     }
       
     static swig_type_info* descriptor() {
-      static swig_type_info *desc = SWIG_TypeQuery("swig::ConstIterator *");
+      static swig_type_info *desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(ConstIterator) " *");
       return desc;
     }
   };
 
 
-  /**
+  /*
    * Abstract base class used to represent all non-const iterators of STL containers.
    * 
    */
@@ -199,7 +199,7 @@ namespace swig {
 
   public:
     static swig_type_info* descriptor() {
-      static swig_type_info *desc = SWIG_TypeQuery("swig::Iterator *");
+      static swig_type_info *desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(Iterator) " *");
       return desc;
     }
     
@@ -263,7 +263,7 @@ namespace swig {
 %fragment("ConstIterator_T","header",fragment="<stddef.h>",fragment="ConstIterator",fragment="StdTraits",fragment="StdIteratorTraits") {
 namespace swig {
 
-  /** 
+  /* 
    * Templated base classes for all custom const_iterators.
    *
    */
@@ -349,7 +349,7 @@ namespace swig {
   };
 
 
-  /** 
+  /* 
    * Templated base classes for all custom non-const iterators.
    *
    */
@@ -456,7 +456,7 @@ namespace swig {
   };
 
 
-  /**
+  /*
    * Auxiliary functor to store the value of a ruby object inside
    * a reference of a compatible C++ type.  ie: Ruby -> C++
    * 
@@ -472,7 +472,7 @@ namespace swig {
     }
   };
 
-  /**
+  /*
    * Auxiliary functor to return a ruby object from a C++ type. 
    * ie: C++ -> Ruby
    * 
@@ -489,7 +489,7 @@ namespace swig {
   };
 
 
-  /** 
+  /* 
    * ConstIterator class for a const_iterator with no end() boundaries.
    *
    */
@@ -520,7 +520,7 @@ namespace swig {
     }
   };
 
-  /** 
+  /* 
    * Iterator class for an iterator with no end() boundaries.
    *
    */
@@ -561,7 +561,7 @@ namespace swig {
     }
   };
 
-  /** 
+  /* 
    * ConstIterator class for a const_iterator where begin() and end() boundaries are known.
    *
    */
@@ -612,7 +612,7 @@ namespace swig {
     const_iter end;
   };
 
-  /** 
+  /* 
    * Iterator class for a iterator where begin() and end() boundaries are known.
    *
    */
@@ -777,7 +777,7 @@ namespace swig {
   };
 
 
-  /** 
+  /* 
    * Helper function used to wrap a bounded const_iterator.  This is to be used in
    * a %typemap(out), for example.
    *
@@ -790,7 +790,7 @@ namespace swig {
     return new IteratorClosed_T<InOutIter>(current, begin, end, seq);
   }
 
-  /** 
+  /* 
    * Helper function used to wrap an unbounded const_iterator.  This is to be used in
    * a %typemap(out), for example.
    *
@@ -802,7 +802,7 @@ namespace swig {
     return new IteratorOpen_T<InOutIter>(current, seq);
   }
 
-  /** 
+  /* 
    * Helper function used to wrap a bounded const_iterator.  This is to be used in
    * a %typemap(out), for example.
    *
@@ -815,7 +815,7 @@ namespace swig {
     return new ConstIteratorClosed_T<OutIter>(current, begin, end, seq);
   }
 
-  /** 
+  /* 
    * Helper function used to wrap an unbounded const_iterator.  This is to be used in
    * a %typemap(out), for example.
    *

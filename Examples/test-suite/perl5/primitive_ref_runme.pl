@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 16;
 BEGIN { use_ok('primitive_ref') }
 require_ok('primitive_ref');
 
@@ -15,4 +15,9 @@ is(primitive_ref::ref_uchar(3), 3, "ref_uchar");
 is(primitive_ref::ref_bool(1), 1, "ref_bool");
 is(primitive_ref::ref_float(3.5), 3.5, "ref_float");
 is(primitive_ref::ref_double(3.5), 3.5, "ref_double");
+for my $val ('', undef) {
+	no warnings 'uninitialized';
+	eval { primitive_ref::ref_double($val) };
+	like($@, qr/\bTypeError\b/, "ref_double " . (defined $val ? "''" : 'undef'));
+}
 is(primitive_ref::ref_char('x'), 'x', "ref_char");

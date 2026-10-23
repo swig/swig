@@ -34,6 +34,10 @@ int count(char *str_in, int n, char c) {
    return r;
 }
 
+int binary_length(char *str_in, int n) {
+   return n;
+}
+
 void test1(char *out1) {
    strcpy(out1,"Hello World");
 }

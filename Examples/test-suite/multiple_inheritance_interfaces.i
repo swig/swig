@@ -12,7 +12,7 @@
 
 %inline %{
 struct IA {
-  virtual void ia() {};
+  virtual void ia() {}
   virtual void ia(const char *s, bool b = true) {}
   virtual void ia(int i) {}
   virtual ~IA() {}
@@ -29,7 +29,8 @@ struct E : D {};
 %interface_custom("L", "IL", IL)
 #endif
 %inline %{
-struct IJ { virtual ~IJ() {}; virtual void ij() {} };
+struct IJ { virtual ~IJ() {}
+            virtual void ij() {} };
 struct IK : IJ {};
 struct IL : IK {};
 struct M : IL {};
@@ -100,6 +101,23 @@ struct BaseOverloaded {
 struct DerivedOverloaded : public BaseOverloaded {
   virtual void identical_overload(int i, const PTypedef &p = PTypedef()) {}
 };
+%}
+
+// %interface_impl is a %rename("%sSwigImpl"), so check it also works on an instantiated class template
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface_impl(TemplateBase<int>);
+#endif
+%inline %{
+template<typename T> struct TemplateBase {
+  virtual ~TemplateBase() {}
+  virtual T tb(T t) { return t; }
+};
+%}
+
+%template(TemplateBaseInt) TemplateBase<int>;
+
+%inline %{
+struct TemplateDerived : TemplateBase<int> {};
 %}
 
 

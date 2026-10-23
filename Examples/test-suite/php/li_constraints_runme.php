@@ -12,7 +12,7 @@ check::globals(array());
 
 function check_double(bool $except, $fn, string $f, $val) {
   $actual = true;
-  $d = doubleval($val);
+  $d = floatval($val);
   try {
     $fn($d);
   } catch(ValueError $e) {

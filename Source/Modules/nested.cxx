@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -50,23 +50,23 @@ static void add_symbols_c(Node *n) {
     if (iscdecl) {
       String *storage = Getattr(n, "storage");
       if (Cmp(storage, "typedef") == 0) {
-	Setattr(n, "kind", "typedef");
+        Setattr(n, "kind", "typedef");
       } else {
-	SwigType *type = Getattr(n, "type");
-	String *value = Getattr(n, "value");
-	Setattr(n, "kind", "variable");
-	if (value && Len(value)) {
-	  Setattr(n, "hasvalue", "1");
-	}
-	if (!type) {
-	  Printf(stderr, "notype name %s\n", name);
-	}
+        SwigType *type = Getattr(n, "type");
+        String *value = Getattr(n, "value");
+        Setattr(n, "kind", "variable");
+        if (value && Len(value)) {
+          Setattr(n, "hasvalue", "1");
+        }
+        if (!type) {
+          Printf(stderr, "notype name %s\n", name);
+        }
       }
     }
     Swig_features_get(Swig_cparse_features(), 0, name, 0, n);
     if (makename) {
       symname = make_name(n, makename, 0);
-      Delattr(n, "parser:makename");	/* temporary information, don't leave it hanging around */
+      Delattr(n, "parser:makename"); /* temporary information, don't leave it hanging around */
     } else {
       makename = name;
       symname = make_name(n, makename, 0);
@@ -93,7 +93,6 @@ static void add_symbols_c(Node *n) {
 
     Delete(fdecl);
     Delete(fun);
-
   }
   if (!symname)
     return;
@@ -114,10 +113,10 @@ static void add_symbols_c(Node *n) {
     if ((wrn) && (Len(wrn))) {
       String *metaname = symname;
       if (!Getmeta(metaname, "already_warned")) {
-	SWIG_WARN_NODE_BEGIN(n);
-	Swig_warning(0, Getfile(n), Getline(n), "%s\n", wrn);
-	SWIG_WARN_NODE_END(n);
-	Setmeta(metaname, "already_warned", "1");
+        SWIG_WARN_NODE_BEGIN(n);
+        Swig_warning(0, Getfile(n), Getline(n), "%s\n", wrn);
+        SWIG_WARN_NODE_END(n);
+        Setmeta(metaname, "already_warned", "1");
       }
     }
     c = Swig_symbol_add(symname, n);
@@ -125,10 +124,10 @@ static void add_symbols_c(Node *n) {
     if (c != n) {
       /* symbol conflict attempting to add in the new symbol */
       if (Getattr(n, "sym:weak")) {
-	Setattr(n, "sym:name", symname);
+        Setattr(n, "sym:name", symname);
       } else {
-	int inclass = 1;
-	Swig_symbol_conflict_warn(n, c, symname, inclass);
+        int inclass = 1;
+        Swig_symbol_conflict_warn(n, c, symname, inclass);
       }
     }
   }
@@ -152,44 +151,44 @@ static void strip_comments(char *string) {
     switch (state) {
     case 0:
       if (*c == '\"')
-	state = 3;
+        state = 3;
       else if (*c == '/')
-	state = 4;
+        state = 4;
       break;
     case 1:
       if (*c == '*')
-	state = 5;
+        state = 5;
       *c = ' ';
       break;
     case 2:
       if (*c == '\n')
-	state = 0;
+        state = 0;
       else
-	*c = ' ';
+        *c = ' ';
       break;
     case 3:
       if (*c == '\"')
-	state = 0;
+        state = 0;
       else if (*c == '\\')
-	state = 6;
+        state = 6;
       break;
     case 4:
       if (*c == '/') {
-	*(c - 1) = ' ';
-	*c = ' ';
-	state = 2;
+        *(c - 1) = ' ';
+        *c = ' ';
+        state = 2;
       } else if (*c == '*') {
-	*(c - 1) = ' ';
-	*c = ' ';
-	state = 1;
+        *(c - 1) = ' ';
+        *c = ' ';
+        state = 1;
       } else
-	state = 0;
+        state = 0;
       break;
     case 5:
       if (*c == '/')
-	state = 0;
+        state = 0;
       else
-	state = 1;
+        state = 1;
       *c = ' ';
       break;
     case 6:
@@ -223,26 +222,26 @@ static Node *create_insert(Node *n, bool noTypedef = false) {
   /* Make all SWIG created typedef structs/unions/classes unnamed else
      redefinition errors occur - nasty hack alert. */
   if (!noTypedef) {
-    const char *types_array[3] = { "struct", "union", "class" };
+    const char *types_array[3] = {"struct", "union", "class"};
     for (int i = 0; i < 3; i++) {
       char *code_ptr = Char(ccode);
       while (code_ptr) {
-	/* Replace struct name (as in 'struct name {...}' ) with whitespace
-	   name will be between struct and opening brace */
+        /* Replace struct name (as in 'struct name {...}' ) with whitespace
+           name will be between struct and opening brace */
 
-	code_ptr = strstr(code_ptr, types_array[i]);
-	if (code_ptr) {
-	  char *open_bracket_pos;
-	  code_ptr += strlen(types_array[i]);
-	  open_bracket_pos = strchr(code_ptr, '{');
-	  if (open_bracket_pos) {
-	    /* Make sure we don't have something like struct A a; */
-	    char *semi_colon_pos = strchr(code_ptr, ';');
-	    if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
-	      while (code_ptr < open_bracket_pos)
-		*code_ptr++ = ' ';
-	  }
-	}
+        code_ptr = strstr(code_ptr, types_array[i]);
+        if (code_ptr) {
+          char *open_bracket_pos;
+          code_ptr += strlen(types_array[i]);
+          open_bracket_pos = strchr(code_ptr, '{');
+          if (open_bracket_pos) {
+            /* Make sure we don't have something like struct A a; */
+            char *semi_colon_pos = strchr(code_ptr, ';');
+            if (!(semi_colon_pos && (semi_colon_pos < open_bracket_pos)))
+              while (code_ptr < open_bracket_pos)
+                *code_ptr++ = ' ';
+          }
+        }
       }
     }
   }
@@ -252,11 +251,11 @@ static Node *create_insert(Node *n, bool noTypedef = false) {
     while (code_ptr) {
       code_ptr = strstr(code_ptr, "%constant");
       if (code_ptr) {
-	char *directive_end_pos = strchr(code_ptr, ';');
-	if (directive_end_pos) {
-	  while (code_ptr <= directive_end_pos)
-	    *code_ptr++ = ' ';
-	}
+        char *directive_end_pos = strchr(code_ptr, ';');
+        if (directive_end_pos) {
+          while (code_ptr <= directive_end_pos)
+            *code_ptr++ = ' ';
+        }
       }
     }
   }
@@ -302,68 +301,68 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
     Node *next = nextSibling(c);
     if (String *declName = Getattr(c, "nested:unnamed")) {
       if (Node *outer = Getattr(c, "nested:outer")) {
-	// generate a name
-	String *name = NewStringf("%s_%s", Getattr(outer, "name"), declName);
-	Delattr(c, "nested:unnamed");
-	// set the name to the class and symbol table
-	Setattr(c, "tdname", name);
-	Setattr(c, "name", name);
-	Swig_symbol_setscope(Getattr(c, "symtab"));
-	Swig_symbol_setscopename(name);
-	// now that we have a name - gather base symbols
-	if (List *publicBases = Getattr(c, "baselist")) {
-	  List *bases = Swig_make_inherit_list(name, publicBases, 0);
-	  Swig_inherit_base_symbols(bases);
-	  Delete(bases);
-	}
-	Setattr(classhash, name, c);
+        // generate a name
+        String *name = NewStringf("%s_%s", Getattr(outer, "name"), declName);
+        Delattr(c, "nested:unnamed");
+        // set the name to the class and symbol table
+        Setattr(c, "tdname", name);
+        Setattr(c, "name", name);
+        Swig_symbol_setscope(Getattr(c, "symtab"));
+        Swig_symbol_setscopename(name);
+        // now that we have a name - gather base symbols
+        if (List *publicBases = Getattr(c, "baselist")) {
+          List *bases = Swig_make_inherit_list(name, publicBases, 0);
+          Swig_inherit_base_symbols(bases);
+          Delete(bases);
+        }
+        Setattr(classhash, name, c);
 
-	// Merge the extension into the symbol table
-	if (Node *am = Getattr(Swig_extend_hash(), name)) {
-	  Swig_extend_merge(c, am);
-	  Swig_extend_append_previous(c, am);
-	  Delattr(Swig_extend_hash(), name);
-	}
-	Swig_symbol_popscope();
+        // Merge the extension into the symbol table
+        if (Node *am = Getattr(Swig_extend_hash(), name)) {
+          Swig_extend_merge(c, am);
+          Swig_extend_append_previous(c, am);
+          Delattr(Swig_extend_hash(), name);
+        }
+        Swig_symbol_popscope();
 
-	// process declarations following this type (assign correct new type)
-	SwigType *ty = Copy(name);
-	Node *decl = nextSibling(c);
-	List *declList = NewList();
-	while (decl && Getattr(decl, "nested:unnamedtype") == c) {
-	  Setattr(decl, "type", ty);
-	  Append(declList, decl);
-	  Delattr(decl, "nested:unnamedtype");
-	  SetFlag(decl, "feature:immutable");
-	  add_symbols_c(decl);
-	  decl = nextSibling(decl);
-	}
-	Delete(ty);
-	Swig_symbol_setscope(Swig_symbol_global_scope());
-	add_symbols_c(c);
+        // process declarations following this type (assign correct new type)
+        SwigType *ty = Copy(name);
+        Node *decl = nextSibling(c);
+        List *declList = NewList();
+        while (decl && Getattr(decl, "nested:unnamedtype") == c) {
+          Setattr(decl, "type", ty);
+          Append(declList, decl);
+          Delattr(decl, "nested:unnamedtype");
+          SetFlag(decl, "feature:immutable");
+          add_symbols_c(decl);
+          decl = nextSibling(decl);
+        }
+        Delete(ty);
+        Swig_symbol_setscope(Swig_symbol_global_scope());
+        add_symbols_c(c);
 
-	Node *ins = create_insert(c);
-	insertNodeAfter(c, ins);
-	removeNode(c);
-	insertNodeAfter(n, c);
-	Delete(ins);
-	Delattr(c, "nested:outer");
+        Node *ins = create_insert(c);
+        insertNodeAfter(c, ins);
+        removeNode(c);
+        insertNodeAfter(n, c);
+        Delete(ins);
+        Delattr(c, "nested:outer");
       } else {
-	// global unnamed struct - ignore it and its instances
-	SetFlag(c, "feature:ignore");
-	while (next && Getattr(next, "nested:unnamedtype") == c) {
-	  SetFlag(next, "feature:ignore");
-	  next = nextSibling(next);
-	}
-	c = next;
-	continue;
+        // global unnamed struct - ignore it and its instances
+        SetFlag(c, "feature:ignore");
+        while (next && Getattr(next, "nested:unnamedtype") == c) {
+          SetFlag(next, "feature:ignore");
+          next = nextSibling(next);
+        }
+        c = next;
+        continue;
       }
     } else if (cparse_cplusplusout) {
       if (Getattr(c, "nested:outer")) {
-	Node *ins = create_insert(c, true);
-	insertNodeAfter(c, ins);
-	Delete(ins);
-	Delattr(c, "nested:outer");
+        Node *ins = create_insert(c, true);
+        insertNodeAfter(c, ins);
+        Delete(ins);
+        Delattr(c, "nested:outer");
       }
     }
     // process children
@@ -389,13 +388,13 @@ void Swig_nested_process_classes(Node *n) {
     Node *next = nextSibling(c);
     if (!Getattr(c, "templatetype")) {
       if (GetFlag(c, "nested") && (GetFlag(c, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None)) {
-	removeNode(c);
-	if (!checkAttribute(c, "access", "public"))
-	  SetFlag(c, "feature:ignore");
-	else if (Strcmp(nodeType(n),"extend") == 0 && Strcmp(nodeType(parentNode(n)),"class") == 0)
-	  insertNodeAfter(parentNode(n), c);
-	else
-	  insertNodeAfter(n, c);
+        removeNode(c);
+        if (!checkAttribute(c, "access", "public"))
+          SetFlag(c, "feature:ignore");
+        else if (Strcmp(nodeType(n), "extend") == 0 && Strcmp(nodeType(parentNode(n)), "class") == 0)
+          insertNodeAfter(parentNode(n), c);
+        else
+          insertNodeAfter(n, c);
       }
       Swig_nested_process_classes(c);
     }
@@ -403,4 +402,3 @@ void Swig_nested_process_classes(Node *n) {
   }
   remove_outer_class_reference(n);
 }
-

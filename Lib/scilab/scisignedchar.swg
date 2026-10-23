@@ -3,7 +3,7 @@
  * Scilab type: double or int8
  */
 %fragment(SWIG_AsVal_frag(signed char), "header", fragment="SWIG_SciDoubleOrInt8_AsSignedChar", fragment="<limits.h>") {
-#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsSignedChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
+%#define SWIG_AsVal_signed_SS_char(scilabValue, valuePointer) SWIG_SciDoubleOrInt8_AsSignedChar(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciDoubleOrInt8_AsSignedChar", "header") {
 SWIGINTERN int
@@ -84,7 +84,7 @@ SWIG_SciDoubleOrInt8_AsSignedChar(void *pvApiCtx, int iVar, signed char *pscValu
 }
 
 %fragment(SWIG_From_frag(signed char), "header", fragment="SWIG_SciDouble_FromSignedChar") {
-#define SWIG_From_signed_SS_char(scilabValue) SWIG_SciDouble_FromSignedChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
+%#define SWIG_From_signed_SS_char(scilabValue) SWIG_SciDouble_FromSignedChar(pvApiCtx, SWIG_Scilab_GetOutputPosition(), scilabValue)
 }
 %fragment("SWIG_SciDouble_FromSignedChar", "header") {
 SWIGINTERN int

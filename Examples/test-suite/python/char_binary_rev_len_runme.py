@@ -13,3 +13,6 @@ if t2.getisize() != 4:
 
 if t2.strlen("hil\0a") != 5:
     raise RuntimeError("bad multi-arg typemap 4")
+
+if t.strlen(None) != 0:
+    raise RuntimeError("bad multi-arg typemap 5")

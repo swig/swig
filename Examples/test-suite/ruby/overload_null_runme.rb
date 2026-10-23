@@ -50,3 +50,15 @@ swig_assert(20 == o.byval2fwdptr(x))
 swig_assert(21 == o.byval1fwdref(x))
 
 swig_assert(22 == o.byval2fwdref(x))
+
+swig_assert(23 == o.bychar1("a"))
+swig_assert(24 == o.bychar1(nil))
+
+# NULL is a NULL pointer for an array of char too
+swig_assert(37 == o.bychararray(x))
+swig_assert(-38 == o.bychararray(nil))
+swig_assert(38 == o.bychararray("ab"))
+
+swig_assert(39 == o.byunsizedchararray(x))
+swig_assert(-40 == o.byunsizedchararray(nil))
+swig_assert(40 == o.byunsizedchararray("ab"))

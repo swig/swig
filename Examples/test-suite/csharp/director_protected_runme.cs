@@ -53,6 +53,12 @@ public class runme
 
     if (fb3.callcheer() != "FooBar3::cheer();")
       throw new Exception("bad fb3.callcheer");
+
+    // NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+    NestedOuter outer = new NestedOuter();
+    NestedBase nb = outer.makeDerived();
+    if (nb.identify() != 1)
+      throw new Exception("bad NestedOuter.makeDerived().identify()");
   }
 }
 

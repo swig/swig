@@ -89,6 +89,14 @@ public class director_protected_runme {
 
     if (!fb3.callcheer().equals("director_protected_FooBar3::cheer();"))
       throw new RuntimeException("bad fb3.callcheer");
+
+    // NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+    {
+      NestedOuter outer = new NestedOuter();
+      NestedBase base = outer.makeDerived();
+      if (base.identify() != 1)
+        throw new RuntimeException("bad NestedOuter.makeDerived().identify()");
+    }
   }
 }
 

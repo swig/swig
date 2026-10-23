@@ -5,7 +5,6 @@
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
-%include <exception.i>
 
 // containers
 
@@ -38,7 +37,6 @@
 #include <list>
 %}
 %fragment("<algorithm>");
-%fragment("<stdexcept>");
 
 // exported class
 

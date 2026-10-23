@@ -3,7 +3,7 @@
 
 class Foo { 
 public: 
-Foo(int a) {}; 
+Foo(int a) {}
 }; 
 
 class Bar { 

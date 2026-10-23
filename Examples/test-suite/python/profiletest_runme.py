@@ -2,8 +2,8 @@ import _profiletest
 import profiletest
 
 a = profiletest.A()
-print a
-print a.this
+print(a)
+print(a.this)
 
 b = profiletest.B()
 fn = b.fn

@@ -60,3 +60,16 @@ endif
 if (mainv(empty_string, 3) != "<<NULL>>")
   error("bad main typemap");
 endif
+
+# Non-string element mid-list - exercises the per-element type-check
+# cleanup path that frees $2[0..i-1] before %argument_fail.
+mixed_args={"alpha", 42, "gamma"};
+try
+  error_flag = 0;
+  mainc(mixed_args);
+  error_flag = 1;
+catch
+end_try_catch
+if (error_flag)
+  error("non-string element should raise a type error");
+endif

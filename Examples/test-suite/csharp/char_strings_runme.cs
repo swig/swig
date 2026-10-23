@@ -86,12 +86,41 @@ public class char_strings_runme {
         throw new Exception("Test char set 8 failed, iteration " + i);
     }
 
+    for (i=0; i<count; i++) {
+      if (!char_strings.SetConstCharTypedefString(OTHERLAND_MSG + i, i))
+        throw new Exception("Test char set 9 failed, iteration " + i);
+    }
+
     // get set function
     for (i=0; i<count*10; i++) {
       string ping = OTHERLAND_MSG + i;
       string pong = char_strings.CharPingPong(ping);
       if (ping != pong)
         throw new Exception("Test PingPong 1 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      string ping = OTHERLAND_MSG + i;
+      string pong = char_strings.CharArrayPingPong(ping);
+      if (ping != pong)
+        throw new Exception("Test PingPong 2 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      string ping = "Ping" + i; // char[16] buffer, keep short enough to fit
+      string pong = char_strings.CharArrayDimsPingPong(ping);
+      if (ping != pong)
+        throw new Exception("Test PingPong 3 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    if (char_strings.CharArrayDimsLength("Ping") != 4)
+      throw new Exception("Test CharArrayDimsLength failed");
+    if (char_strings.CharArrayDimsLength("0123456789abcde") != 15)
+      throw new Exception("Test CharArrayDimsLength failed");
+    try {
+      char_strings.CharArrayDimsLength("0123456789abcdef");
+      throw new Exception("Test CharArrayDimsLength overlong string failed");
+    } catch (ArgumentException) {
     }
 
     // variables
@@ -101,17 +130,47 @@ public class char_strings_runme {
         throw new Exception("Test variables 1 failed, iteration " + i);
     }
 
-    for (i=0; i<count; i++) {
-      char_strings.global_char_array1 = OTHERLAND_MSG + i;
-      if (char_strings.global_char_array1 != OTHERLAND_MSG + i)
-        throw new Exception("Test variables 2 failed, iteration " + i);
-    }
+    // global_char_array1 is a char[] with no size, so it is read only
+    if (typeof(char_strings).GetProperty("global_char_array1").CanWrite)
+      throw new Exception("global_char_array1 has a setter");
+    if (char_strings.global_char_array1 != CPLUSPLUS_MSG)
+      throw new Exception("Test variables 2 failed");
 
     for (i=0; i<count; i++) {
       char_strings.global_char_array2 = OTHERLAND_MSG + i;
       if (char_strings.global_char_array2 != OTHERLAND_MSG + i)
         throw new Exception("Test variables 3 failed, iteration " + i);
     }
+
+    try {
+      char_strings.global_char_array2 = CPLUSPLUS_MSG + CPLUSPLUS_MSG;
+      throw new Exception("Test variables 3 overlong string failed");
+    } catch (ArgumentException) {
+    }
+
+    if (char_strings.char_array_no_nul.full != "abcd" || char_strings.char_array_no_nul.after != "XYZ")
+      throw new Exception("Test full char array failed");
+
+    char_strings.global_char_one = "a";
+    CharArrayOne one = new CharArrayOne();
+    one.one = "b";
+    if (char_strings.global_char_one != "a" || one.one != "b")
+      throw new Exception("Test char[1] failed");
+
+    if (char_strings.CharArrayPingPong(null) != null || char_strings.CharArrayDimsPingPong(null) != null)
+      throw new Exception("Test char array null failed");
+    try {
+      char_strings.char_array_null.four = null;
+      throw new Exception("Test char array member set to null failed");
+    } catch (ArgumentNullException) {
+    }
+    try {
+      char_strings.global_char_array_null = null;
+      throw new Exception("Test char array global set to null failed");
+    } catch (ArgumentNullException) {
+    }
+    if (char_strings.char_array_null.four != "qqq" || char_strings.global_char_array_null != "qqq")
+      throw new Exception("Test char array set to null changed it");
 
     for (i=0; i<count; i++) {
       if (char_strings.global_const_char != CPLUSPLUS_MSG)

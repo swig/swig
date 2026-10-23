@@ -1,0 +1,10 @@
+local v=require("template_namespace_forward_declaration")
+
+local xxx = v.XXXInt()
+v.testXXX1(xxx)
+v.testXXX2(xxx)
+v.testXXX3(xxx)
+local yyy = v.YYYInt()
+v.testYYY1(yyy)
+v.testYYY2(yyy)
+v.testYYY3(yyy)

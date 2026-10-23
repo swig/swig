@@ -1,31 +1,72 @@
-import sys
+from swig_test_utils import swig_annotations_in_stub, swig_check, swig_get_annotations
 
-if sys.version_info[0:2] >= (3, 2):
-    from python_annotations_c import *
+from python_annotations_c import *
 
-    # No __annotations__ support with -builtin or -fastproxy
-    annotations_supported = not(is_python_builtin() or is_python_fastproxy())
+# Annotations are only added to the runtime objects for the default proxy classes,
+# but with -pyi they are always available in the generated .pyi stub file
+annotations_supported = swig_annotations_in_stub() or not(is_python_builtin() or is_python_fastproxy())
 
-    if annotations_supported:
-        anno = MakeShort.__annotations__
-        if anno != {'x': 'int', 'return': 'Space::Template< short >'}:
-            raise RuntimeError("annotations mismatch: {}".format(anno))
 
-        anno = global_ints.__annotations__
-        if anno != {'ri': 'int &', 't': 'TemplateShort', 'return': 'int *'}:
-            raise RuntimeError("annotations mismatch: {}".format(anno))
+def get_annotations(obj):
+    return swig_get_annotations(obj, "python_annotations_c", is_python_fastproxy())
 
-        ts = MakeShort(10)
+if annotations_supported:
+    anno = get_annotations(MakeShort)
+    if anno != {'x': 'int', 'return': 'Space::Template< short >'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
 
-        anno = MakeShort.__annotations__
-        if anno != {'x': 'int', 'return': 'Space::Template< short >'}:
-            raise RuntimeError("annotations mismatch: {}".format(anno))
+    anno = get_annotations(global_ints)
+    if anno != {'ri': 'int &', 't': 'TemplateShort', 'return': 'int *'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
 
-        anno = ts.mymethod.__annotations__
-        if anno != {'arg2': 'int', 'tt': 'TemplateShort', 'return': 'void'}:
-            raise RuntimeError("annotations mismatch: {}".format(anno))
+    ts = MakeShort(10)
 
-        # No annotations
-        anno = no_annotations.__annotations__
-        if anno != {}:
-            raise RuntimeError("annotations mismatch: {}".format(anno))
+    anno = get_annotations(MakeShort)
+    if anno != {'x': 'int', 'return': 'Space::Template< short >'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    anno = get_annotations(ts.mymethod)
+    if anno != {'arg2': 'int', 'tt': 'TemplateShort', 'return': 'void'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # No annotations
+    anno = get_annotations(no_annotations)
+    if anno != {}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # Overloads are called with *args, so only what they all return is annotated
+    anno = get_annotations(global_overloaded)
+    if anno != {'return': 'int *'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # Overloads returning different types have no one C/C++ type to be annotated with
+    anno = get_annotations(global_overloaded_differ)
+    if anno != {}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+    # numoutputs=0 in the out typemap leaves nothing to return, annotated as void
+    anno = get_annotations(suppressed_none)
+    if anno != {'code': 'int', 'return': 'void'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(suppressed_none(0), None)
+
+    # with an argout typemap the argout type is annotated, as it always was
+    anno = get_annotations(suppressed_one)
+    if anno != {'code': 'int', 'return': 'short *'}:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+    swig_check(suppressed_one(0), 42)
+
+# C/C++ annotations are not type hints and are never type checked, so none of the PEP 484 machinery is generated.
+# A quoted "typing.Any" is an annotation; the unquoted one is the placeholder a .pyi needs for an unannotated name.
+# The feature is applied per declaration here rather than to the whole module, so the class is not itself C/C++
+# annotated and declares thisown with the catch-all type as any other class does. python_annotations_variable_c
+# applies the feature to the whole module and so has no such declaration to skip.
+generated = ["python_annotations_c.py"]
+if swig_annotations_in_stub():
+    generated.append("python_annotations_c.pyi")
+for filename in generated:
+    with open(filename) as f:
+        source = "".join(line for line in f if "thisown" not in line)
+    for unwanted in ("_swig_property", "_swig_dispatch", "TYPE_CHECKING", '"typing.Any"'):
+        if unwanted in source:
+            raise RuntimeError("{} should not contain {}".format(filename, unwanted))

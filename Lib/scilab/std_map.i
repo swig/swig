@@ -12,7 +12,6 @@
 %{
 #include <map>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 // exported class

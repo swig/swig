@@ -1,4 +1,5 @@
 import cpp11_rvalue_reference
+from swig_test_utils import swig_check
 
 a = cpp11_rvalue_reference.A()
 
@@ -25,3 +26,7 @@ a.setAref(rvalueref)
 if a.getAcopy() != 5:
     raise RuntimeError("after A::setAmove(): int A::getAcopy() value is ", a.getAcopy(
     ), " should be 5")
+
+b = cpp11_rvalue_reference.A()
+b.setAref(cpp11_rvalue_reference.RvalueRefDefault_def().move(ptr))
+swig_check(b.getAcopy(), 5)

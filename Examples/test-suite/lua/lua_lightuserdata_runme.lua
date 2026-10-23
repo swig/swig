@@ -1,5 +1,4 @@
-require("import") -- the import fn
-import("lua_lightuserdata") -- import lib
+require("lua_lightuserdata")
 
 local t = lua_lightuserdata
 local d = t.get_lightuserdata()

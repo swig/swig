@@ -9,7 +9,6 @@
 #include <vector>
 %}
 
-%include <exception.i>
 %include <std_vector.i>
 
 namespace std {

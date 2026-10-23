@@ -43,6 +43,10 @@ typedef struct {
 
 void fn_taking_arrays(SimpleStruct array_struct[ARRAY_LEN]) {}
 
+double first_double_field(SimpleStruct array_struct[ARRAY_LEN]) {
+  return array_struct[0].double_field;
+}
+
 /* Pointer helper functions used in the Java run test */
 int* newintpointer() {
     return (int*)malloc(sizeof(int));
@@ -77,4 +81,14 @@ cartPosition_t p;
  * Regression test for https://sourceforge.net/p/swig/bugs/983/ */
 char array_shifted_size[(1<<2)];
 
+%}
+
+%warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) chars;
+
+%inline %{
+/* A flexible array member has no size to bound a copy into it, so is read only */
+typedef struct {
+  int len;
+  char chars[];
+} FlexibleCharArray;
 %}

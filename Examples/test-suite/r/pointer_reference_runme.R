@@ -21,4 +21,6 @@ unittest(s, 111)
 s = overloading(ss)
 unittest(s, 222)
 
+unittest(grepl("^SWIG:TypeError", error_message(function() pointer_reference_value(ss))), TRUE)
+
 

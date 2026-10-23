@@ -14,6 +14,8 @@ swig_assert(t.strlen(str) == 4, binding, 'bad multi-arg typemap')
 swig_assert(t.ustrlen(str) == 4, binding, 'bad multi-arg typemap')
 swig_assert(t.strlen("hil\000") == 4, binding, 'bad multi-arg typemap')
 swig_assert(t.ustrlen("hil\000") == 4, binding, 'bad multi-arg typemap')
+swig_assert(t.strlen(nil) == 0, binding, 'bad multi-arg typemap')
+swig_assert(t.ustrlen(nil) == 0, binding, 'bad multi-arg typemap')
 
 # creating a raw char*
 pc = new_pchar(5)

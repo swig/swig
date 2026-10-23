@@ -11,7 +11,6 @@
 
 %{
 #include <vector>
-#include <stdexcept>
 %}
 
 %fragment("SWIG_VectorSize", "header", fragment="SWIG_JavaIntFromSize_t") {

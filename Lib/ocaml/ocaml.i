@@ -33,11 +33,11 @@
 
 %insert(classtemplate) "class.swg"
 
+%include <swigcommon.swg>
+
 /* Read in standard typemaps. */
-%include <swig.swg>
 %include <ocaml.swg>
 %include <typecheck.i>
-%include <exception.i>
 %include <preamble.swg>
 
 /* ocaml keywords */

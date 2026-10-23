@@ -1,0 +1,2 @@
+cpp_auto_variable_template_parameter.i:5: Warning 346: Unable to deduce auto type for variable 'sum' from initialiser 'T(3)+1' (ignored).
+cpp_auto_variable_template_parameter.i:6: Warning 346: Unable to deduce auto type for variable 'braced_sum' from initialiser 'T{}+1' (ignored).

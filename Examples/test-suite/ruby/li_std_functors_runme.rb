@@ -63,9 +63,9 @@ def test
   yield method(:_map), Li_std_functors::Map
 end
 
-# these should fail and not segfault but currently do segfault with Ruby 2.6
-# in GitHub Actions environment
-if RUBY_VERSION != '2.6.6'
+if RUBY_VERSION[0..2] == "2.6"
+# This should raise and not segfault, but currently segfaults with Ruby 2.6
+else
 begin
   Li_std_functors::Set.new('sd')
 rescue
@@ -73,5 +73,24 @@ end
 
 test do |proc, container|
   proc.call(container)
+end
+
+# Regression test for #3385: a Ruby proc or object stored in an STL container
+# is held by GC_VALUE as a raw VALUE. GC compaction must not move it, otherwise
+# the next comparator call dereferences a stale VALUE and segfaults. Exercise it
+# by keeping containers alive across forced compactions.
+if GC.respond_to?(:verify_compaction_references)
+  maps = Array.new(40) { Li_std_functors::Map.new(proc { |a, b| b < a }) }
+  maps.each_with_index { |m, i| m["k#{i}"] = i }
+  GC.stress = true
+  15.times do |i|
+    begin
+      GC.verify_compaction_references(:expand_heap => true, :toward => :empty)
+    rescue ArgumentError, TypeError
+      GC.compact
+    end
+    maps.each_with_index { |m, j| m["x#{i}_#{j}"] = i }
+  end
+  GC.stress = false
 end
 end

@@ -1,0 +1,17 @@
+local v=require("cpp11_constexpr_friend")
+
+local fa10 = v.FriendA(10)
+local fa20 = v.FriendA(20)
+local fa10_2 = v.FriendA(10)
+assert(v.isEqual(fa10, fa10), "Friend fa10 fa10 fail")
+assert(not v.isEqual(fa10, fa20), "Friend fa10 fa20 fail")
+assert(v.isEqual(fa10, fa10_2), "Friend fa10 fa10_2 fail")
+assert(fa10 ~= fa10_2)
+
+local fb10 = v.FriendB(10)
+local fb20 = v.FriendB(20)
+local fb10_2 = v.FriendB(10)
+assert(v.isEqual(fb10, fb10), "Friend fb10 fb10 fail")
+assert(not v.isEqual(fb10, fb20), "Friend fb10 fb20 fail")
+assert(v.isEqual(fb10, fb10_2), "Friend fb10 fb10_2 fail")
+assert(fb10 ~= fb10_2)

@@ -26,8 +26,6 @@
 
 /**** The RubySequence C++ Wrap ***/
 
-%fragment("<stdexcept>");
-
 %include <std_except.i>
 
 
@@ -169,7 +167,7 @@ namespace swig {
 namespace swig
 {
 
-  /**
+  /*
    * This class is a proxy class for references, used to return and set values
    * of an element of a Ruby Array of stuff.
    * It can be used by RubySequence_InputIterator to make it work with STL
@@ -214,7 +212,7 @@ namespace swig
   };
 
 
-  /**
+  /*
    * This class is a proxy to return a pointer to a class, usually
    * RubySequence_Ref. 
    * It can be used by RubySequence_InputIterator to make it work with STL
@@ -230,7 +228,7 @@ namespace swig
   };
 
 
-  /**
+  /*
    * Input Iterator.  This adapator class is a random access iterator that 
    * allows you to use STL algorithms with a Ruby class (a Ruby Array by default).
    */
@@ -330,7 +328,7 @@ namespace swig
   };
 
 
-  /**
+  /*
    * This adaptor class allows you to use a Ruby Array as if it was an STL
    * container, giving it begin(), end(), and iterators.
    */
@@ -417,7 +415,7 @@ namespace swig
 }
 }
 
-/** 
+/* 
  * Macros used to typemap an STL iterator -> SWIGIterator conversion.
  */
 %define %swig_sequence_iterator(Sequence...)
@@ -543,7 +541,7 @@ namespace swig
 %enddef
 
 
-/**
+/*
  * Macro used to define common Ruby printing methods for STL container
  */
 %define %swig_sequence_printing_methods(Sequence...)
@@ -602,7 +600,7 @@ namespace swig
 %enddef
 
 
-/**
+/*
  * Macro used to add common methods to all STL sequence-type containers 
  */
 %define %swig_sequence_methods_non_resizable_common(Sequence...)
@@ -703,7 +701,7 @@ namespace swig
   %swig_sequence_methods_resizable_common(%arg(Sequence))
 %enddef
 
-/**
+/*
  * Macro used to add functions for back insertion of values in
  * STL sequence containers
  */
@@ -865,7 +863,7 @@ namespace swig
  }
 %enddef
 
-/**
+/*
  * Macro used to add functions for non resizable sequences
  */
 %define %swig_sequence_methods_non_resizable(Sequence...)
@@ -874,7 +872,7 @@ namespace swig
 %enddef
 
 
-/**
+/*
  * Macro used to add functions for sequences
  */
 %define %swig_sequence_methods(Sequence...)
@@ -894,7 +892,7 @@ namespace swig
 %enddef
 
 
-/**
+/*
  * Macro used to add functions for front insertion of
  * elements in STL sequence containers that support it.
  */

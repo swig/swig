@@ -42,3 +42,15 @@ check(20, o.byval2fwdptr(x))
 check(21, o.byval1fwdref(x))
 
 check(22, o.byval2fwdref(x))
+
+check(23, o.bychar1("a"))
+check(24, o.bychar1(None))
+
+# NULL is a NULL pointer for an array of char too
+check(37, o.bychararray(x))
+check(-38, o.bychararray(None))
+check(38, o.bychararray("ab"))
+
+check(39, o.byunsizedchararray(x))
+check(-40, o.byunsizedchararray(None))
+check(40, o.byunsizedchararray("ab"))

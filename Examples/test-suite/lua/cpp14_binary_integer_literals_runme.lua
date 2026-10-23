@@ -1,0 +1,10 @@
+local v=require("cpp14_binary_integer_literals")
+
+assert(v.b1 == 1)
+assert(v.b2 == 2)
+assert(v.b3 == 3)
+assert(v.b4 == 4)
+assert(v.b5 == 5)
+assert(v.b6 == 6)
+assert(v.b7 == 7)
+assert(v.b8 == 8)

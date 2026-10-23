@@ -1,0 +1,10 @@
+local v=require("namespace_forward_declaration")
+
+local xxx = v.XXX()
+v.testXXX1(xxx)
+v.testXXX2(xxx)
+v.testXXX3(xxx)
+local yyy = v.YYY()
+v.testYYY1(yyy)
+v.testYYY2(yyy)
+v.testYYY3(yyy)

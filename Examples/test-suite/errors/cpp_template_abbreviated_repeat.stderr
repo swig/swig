@@ -1,0 +1,2 @@
+cpp_template_abbreviated_repeat.i:6: Warning 404: Duplicate template instantiation of 'climbed< int >' with name 'iiclimbed' ignored,
+cpp_template_abbreviated_repeat.i:5: Warning 404: previous instantiation of 'climbed< int >' with name 'iclimbed'.

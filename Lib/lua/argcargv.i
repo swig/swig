@@ -30,13 +30,21 @@ SWIGINTERN int SWIG_argv_size(lua_State* L, int index) {
 
 %typemap(in) (int ARGC, char **ARGV) {
   if (lua_istable(L,$input)) {
-    int i, size = SWIG_argv_size(L,$input);
-    $1 = ($1_ltype) size;
+    $1_ltype i, size = ($1_ltype)SWIG_argv_size(L,$input);
+    $1 = size;
     $2 = (char **) malloc((size+1)*sizeof(char *));
+    if ($2 == NULL) {
+      lua_pushstring(L,"Failed to allocate memory for 'int ARGC, char **ARGV' in '$symname'");
+      SWIG_fail;
+    }
     for (i = 0; i < size; i++) {
       lua_rawgeti(L,$input,i+1);
-      if (lua_isnil(L,-1))
-   break;
+      if (lua_isnil(L,-1)) {
+        /* nil terminates the table early; shrink ARGC to the actual count */
+        $1 = i;
+        lua_pop(L,1);
+        break;
+      }
       $2[i] = (char *)lua_tostring(L, -1);
       lua_pop(L,1);
     }
@@ -44,7 +52,7 @@ SWIGINTERN int SWIG_argv_size(lua_State* L, int index) {
   } else {
     $1 = 0; $2 = 0;
     lua_pushstring(L,"Expecting argv array");
-    lua_error(L);
+    SWIG_fail;
   }
 }
 

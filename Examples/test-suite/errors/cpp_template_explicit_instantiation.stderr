@@ -2,3 +2,6 @@ cpp_template_explicit_instantiation.i:12: Warning 320: Explicit template instant
 cpp_template_explicit_instantiation.i:13: Warning 327: Extern template ignored.
 cpp_template_explicit_instantiation.i:19: Warning 320: Explicit template instantiation ignored.
 cpp_template_explicit_instantiation.i:20: Warning 327: Extern template ignored.
+cpp_template_explicit_instantiation.i:27: Warning 320: Explicit template instantiation ignored.
+cpp_template_explicit_instantiation.i:28: Warning 327: Extern template ignored.
+cpp_template_explicit_instantiation.i:29: Warning 320: Explicit template instantiation ignored.

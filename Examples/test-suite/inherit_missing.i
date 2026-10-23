@@ -27,14 +27,14 @@ class Bar : public Foo {
   virtual ~Bar() {}
   virtual char *blah() {
     return (char *) "Bar::blah";
-  };
+  }
 };
 
 class Spam : public Bar {
   public:
   virtual char *blah() {
     return (char *) "Spam::blah";
-  };
+  }
 };
 
 Foo *new_Foo() {

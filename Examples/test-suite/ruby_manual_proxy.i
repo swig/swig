@@ -42,17 +42,37 @@ static void svn_swig_rb_raise_svn_fs_already_close(void) {
 }
 
 static VALUE svn_fs_swig_rb_close(VALUE self) {
-  if (!DATA_PTR(self)) {
+  void *ptr = 0;
+  int res;
+
+  res = SWIG_ConvertPtr(self, &ptr, NULL, 0);
+  if (res != SWIG_OK) SWIG_Error(res, "Can't get C++ pointer");
+  if (!ptr) {
     svn_swig_rb_raise_svn_fs_already_close();
   }
 
+  res = SWIG_ConvertPtr(self, NULL, NULL, SWIG_POINTER_CLEAR);
+  if (res != SWIG_OK) SWIG_Error(res, "Can't release C++ object");
+
+  return Qnil;
+}
+
+/* The way hand written code invalidated a proxy before SWIG 4.5 introduced the TypedData
+   wrapper. It is no longer the recommended approach, see svn_fs_swig_rb_close above, but it
+   must not crash on any Ruby version, see #3512. */
+static VALUE svn_fs_swig_rb_legacy_close(VALUE self) {
   DATA_PTR(self) = NULL;
 
   return Qnil;
 }
 
 static VALUE svn_fs_swig_rb_closed(VALUE self) {
-  return DATA_PTR(self) ? Qfalse : Qtrue;
+  void *ptr = 0;
+  int res;
+
+  res = SWIG_ConvertPtr(self, &ptr, NULL, 0);
+  if (res != SWIG_OK) SWIG_Error(res, "Can't get C++ pointer");
+  return ptr ? Qfalse : Qtrue;
 }
 %}
 
@@ -62,5 +82,9 @@ static VALUE svn_fs_swig_rb_closed(VALUE self) {
     cSvnfs = rb_const_get(_mSWIG, rb_intern("TYPE_p_svn_fs_t"));
     rb_define_method(cSvnfs, "close",
                      VALUEFUNC(svn_fs_swig_rb_close), 0);
+    rb_define_method(cSvnfs, "legacy_close",
+                     VALUEFUNC(svn_fs_swig_rb_legacy_close), 0);
+    rb_define_method(cSvnfs, "closed?",
+                     VALUEFUNC(svn_fs_swig_rb_closed), 0);
   }
 %}

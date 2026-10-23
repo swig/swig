@@ -20,7 +20,7 @@
 
   struct Alpha
   {
-    virtual ~Alpha() { };
+    virtual ~Alpha() { }
     virtual const char* abs_method() = 0;
   };
 
@@ -80,6 +80,10 @@
     virtual unsigned long long ull(unsigned long long i, unsigned long long j) { return i + j; }
     unsigned long long callull(int i, int j) { return ull(i, j); }
   };
+
+  int take_ops_intref(Ops& ops) {
+    return ops.operator int&();
+  }
 %}
 
 

@@ -16,8 +16,9 @@
 (check "uint" 75 =)
 (check "ushort" 123 =)
 (check "ulong" 462 =)
-;(check "uchar" 16 =)
-;(check "schar" -53 =)
+;; A char is a character, a signed char of -53 being the character 203
+(check "uchar" (integer->char 200) char=?)
+(check "schar" (integer->char 203) char=?)
 (check "float" 4.3 =~)
 (check "double" -175.42 =~)
 ;(check "longlong" 1634 =)

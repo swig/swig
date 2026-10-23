@@ -1,4 +1,18 @@
 %module python_pybuffer
+
+/* Due to removal of old Buffer Protocol in python-3.13 and the new Buffer Protocol only being added to the Stable ABI in python-3.11, this test can be run only if:
+ *
+ * 1. Py_LIMITED_API is not set
+ *
+ * or
+ *
+ * 2. Py_LIMITED_API is set
+ * and
+ * 2a. python >= 3.13 and Py_LIMITED_API >= 3.11
+ * or
+ * 2a. python < 3.13 and Py_LIMITED_API < 3.13 (actually any value for Py_LIMITED_API, but any Py_LIMITED_API greater than the version of python is treated as if it is set to the python version)
+*/
+
 %include <pybuffer.i>
 %include <cstring.i>
 /*functions for the test case*/

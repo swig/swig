@@ -50,4 +50,17 @@
 
 (check (=~ 22 (Overload-byval2fwdref o x)))
 
+(check (=~ 23 (Overload-bychar1 o #\a)))
+;; NULL is not a char and char * does not accept it either
+(check (not (false-if-exception (Overload-bychar1 o #nil))))
+
+;; An array of char is a string, which cannot be NULL here, as for char *
+(check (=~ 37 (Overload-bychararray o x)))
+(check (=~ 38 (Overload-bychararray o "ab")))
+(check (not (false-if-exception (Overload-bychararray o #nil))))
+
+(check (=~ 39 (Overload-byunsizedchararray o x)))
+(check (=~ 40 (Overload-byunsizedchararray o "ab")))
+(check (not (false-if-exception (Overload-byunsizedchararray o #nil))))
+
 (exit 0)

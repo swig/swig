@@ -31,7 +31,7 @@ SWIG_SciInt64_FromLongLong(void *pvApiCtx, int iVarOut, long long llValue) {
  * Scilab 6 type: uint64
  */
 %fragment(SWIG_AsVal_frag(unsigned long long), "header", fragment="SWIG_SciUint64_ToUnsignedLongLong") {
-#define SWIG_AsVal_unsigned_SS_long_SS_long(scilabValue, valuePointer) SWIG_SciUint64_ToUnsignedLongLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
+%#define SWIG_AsVal_unsigned_SS_long_SS_long(scilabValue, valuePointer) SWIG_SciUint64_ToUnsignedLongLong(pvApiCtx, scilabValue, valuePointer, SWIG_Scilab_GetFuncName())
 }
 %fragment("SWIG_SciUint64_ToUnsignedLongLong", "header") {
 SWIGINTERN int

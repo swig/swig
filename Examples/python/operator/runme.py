@@ -12,7 +12,7 @@ print("c   = %s" % c)
 print("a*b = %s" % (a * b))
 print("a-c = %s" % (a - c))
 
-e = example.ComplexCopy(a - c)
+e = example.Complex(a - c)
 print("e   = %s" % e)
 
 # Big expression

@@ -16,6 +16,13 @@ unittest(unsigned_long_identity(1), 1)
 unittest(signed_long_long_identity(1), 1)
 unittest(unsigned_long_long_identity(1), 1)
 
+for (f in c("signed_char_identity", "unsigned_char_identity", "signed_short_identity", "unsigned_short_identity",
+            "signed_int_identity", "unsigned_int_identity", "signed_long_identity", "unsigned_long_identity",
+            "signed_long_long_identity", "unsigned_long_long_identity")) {
+  unittest(grepl("^SWIG:TypeError", error_message(function() get(f)(NULL))), TRUE)
+  unittest(grepl("^SWIG:TypeError", error_message(function() get(f)(c(1, 2)))), TRUE)
+}
+
 q(save="no")
 
 

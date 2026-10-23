@@ -1,4 +1,5 @@
 import template_default_arg
+from swig_test_utils import swig_check
 
 
 helloInt = template_default_arg.Hello_int()
@@ -91,3 +92,34 @@ if (template_default_arg.ott(template_default_arg.Hello_int(), 1.0) != 60):
 
 if (template_default_arg.ott(template_default_arg.Hello_int()) != 60):
     raise RuntimeError(("ott test 13 failed"))
+
+swig_check(template_default_arg.ArrayDefaultUShort().count(), 4)
+swig_check(template_default_arg.ConstArrayDefaultShort().count(), 6)
+
+# Pointer type-ids as the default of a type template parameter
+pd = template_default_arg.PtrDefault_def()
+swig_check(pd.deref(pd.t), 42)
+swig_check(template_default_arg.deref_int_ptr(pd.t), 42)
+
+pad = template_default_arg.PtrArrayDefault_def()
+swig_check(pad.sum(pad.t), 30)
+
+swig_check(template_default_arg.PtrConstDefault_def().deref(pd.t), 42)
+swig_check(template_default_arg.PtrPtrDefault_def().deref(pad.t), 10)
+swig_check(template_default_arg.PtrConstPtrDefault_def().deref(pad.t), 10)
+swig_check(template_default_arg.RefDefault_def().deref(pd.t), 42)
+
+pa2d = template_default_arg.PtrArray2dDefault_def()
+swig_check(pa2d.get(pa2d.t), 6)
+
+# Pointer to member and function pointer type-ids as the default of a type template parameter
+mh = template_default_arg.MemberHolder()
+mpd = template_default_arg.MemberPtrDefault_def()
+swig_check(mpd.get(mh, mpd.t), 5)
+
+mfpd = template_default_arg.MemberFuncPtrDefault_def()
+swig_check(mfpd.call(mh, mfpd.t, 2), 7)
+
+fpd = template_default_arg.FuncPtrDefault_def()
+swig_check(fpd.call(fpd.t, 4), 12)
+swig_check(template_default_arg.FuncPtrParmDefault_int().call(fpd.t, 5), 15)

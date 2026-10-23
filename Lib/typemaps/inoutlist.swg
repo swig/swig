@@ -77,7 +77,7 @@ or you can use the %apply directive :
 #endif
 
 %define %_value_input_typemap(code, asval_meth, asval_frag, Type)
-  %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res = 0), Type &INPUT($*ltype temp, int res = 0) {
+  %typemap(in,noblock=1,fragment=asval_frag) Type *INPUT ($*ltype temp, int res = 0) {
     if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
       Type val;
       int ecode = asval_meth($input, &val);
@@ -89,9 +89,21 @@ or you can use the %apply directive :
       res = SWIG_AddTmpMask(ecode);
     }
   }
-  %typemap(freearg,noblock=1,match="in") Type *INPUT, Type &INPUT {
-    if (SWIG_IsNewObj(res$argnum)) %delete($1);
+  %typemap(in,noblock=1,fragment=asval_frag) Type &INPUT($*ltype temp, int res = 0) {
+    if (!%check_input_ptr($input,&$1,$descriptor,$disown)) {
+      Type val;
+      int ecode = asval_meth($input, &val);
+      if (!SWIG_IsOK(ecode)) {
+	%argument_fail(ecode, "$*ltype",$symname, $argnum);
+      }
+      temp = %static_cast(val, $*ltype);
+      $1 = &temp;
+      res = SWIG_AddTmpMask(ecode);
+    } else if (!$1) {
+      %argument_nullref("$type",$symname, $argnum);
+    }
   }
+  %typemap(freearg,match="in") Type *INPUT, Type &INPUT ""
   %typemap(typecheck,noblock=1,precedence=code,fragment=asval_frag) Type *INPUT, Type &INPUT {
     void *ptr = 0;
     int res = asval_meth($input, 0);

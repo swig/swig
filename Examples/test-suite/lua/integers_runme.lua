@@ -1,0 +1,12 @@
+local v=require("integers")
+
+assert(v.signed_char_identity(-3) == -3)
+assert(v.unsigned_char_identity(5) == 5)
+assert(v.signed_short_identity(-3) == -3)
+assert(v.unsigned_short_identity(5) == 5)
+assert(v.signed_int_identity(-3) == -3)
+assert(v.unsigned_int_identity(5) == 5)
+assert(v.signed_long_identity(-3) == -3)
+assert(v.unsigned_long_identity(5) == 5)
+assert(v.signed_long_long_identity(-3) == -3)
+assert(v.unsigned_long_long_identity(5) == 5)

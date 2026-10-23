@@ -21,7 +21,8 @@
       typename t_alloc<t_item>::alloc_type allotype; // SWIG can handle this now
     void xx() {
       typename t_alloc<t_item>::alloc_type atype; // this type is the same as t_item type
-      atype = true;
+      // atype = true; // to remove -Wunused-but-set-variable
+      (void)atype;
     }
   };
 

@@ -19,5 +19,8 @@ public class char_binary_rev_len_runme {
 
     if (t2.strlen("hil\0a") != 5)
       throw new Exception("bad multi-arg typemap 4");
+
+    if (t.strlen(null) != 0)
+      throw new Exception("bad multi-arg typemap 5");
   }
 }

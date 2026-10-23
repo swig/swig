@@ -1,21 +1,14 @@
-require("import")	-- the import fn
-import("cpp11_strongly_typed_enumerations")	-- import lib
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("cpp11_strongly_typed_enumerations")
+catch_undef_globs() -- catch "undefined" global variables
 
 function enumCheck(actual, expected)
-  if not (actual == expected) then
-    error("Enum value mismatch. Expected: "..expected.." Actual: "..actual)
-  end
+  assert(actual == expected, "Enum value mismatch. Expected: "..expected.." Actual: "..actual)
   return expected + 1
 end
 
 --val = 0
 --val = enumCheck(cpp11_strongly_typed_enumerations.cpp11_strongly_typed_enumerations.Enum1_Val1, val)
-local val = 0
+val = 0
 val = enumCheck(cpp11_strongly_typed_enumerations.Enum1_Val1, val)
 val = enumCheck(cpp11_strongly_typed_enumerations.Enum1_Val2, val)
 val = enumCheck(cpp11_strongly_typed_enumerations.Enum1_Val3, 13)
@@ -162,6 +155,10 @@ val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Enum14_Val6j, val)
 --val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1.Enum14_Val4, val)
 --val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1.Enum14_Val5m, 4141)
 --val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1.Enum14_Val6m, val)
+
+-- Enum class and enumerator renamed with %rename (QEnum18 -> Enum18, QVal1 -> Val1)
+enumCheck(cpp11_strongly_typed_enumerations.Enum18_Val1, 1181)
+enumCheck(cpp11_strongly_typed_enumerations.Enum18_Val2, 1182)
 
 class1 = cpp11_strongly_typed_enumerations.Class1()
 enumCheck(class1:class1Test1(cpp11_strongly_typed_enumerations.Enum1_Val5a), 13)

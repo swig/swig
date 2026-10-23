@@ -7,6 +7,72 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.5.1 summary:
+- Regression fix for %rename using a format string, such as Ruby's
+  -autorename, dropping a class template's partial specializations.
+- Regression fix restoring the %typemaps_string_alloc macro for string
+  classes using custom allocators.
+- Python fix for compile errors in a module that %imports another
+  module already using the STL containers.
+- MinGW configure and CMake PCRE2 version build fixes.
+
+SWIG-4.5.0 summary:
+- New C++20 support: concepts, requires-clauses and
+  requires-expressions, type-constrained template parameters,
+  constrained alias templates and abbreviated function templates
+  (auto parameters).
+- New C++17 support: class template argument deduction (CTAD)
+  handling, user-defined deduction guides and pack expansion in
+  using-declarations.
+- C++14 generic lambdas and variable templates.
+- Add support for wrapping std::function via the new
+  std_function.i library.
+- Template partial specialization fixes for function types and
+  parameter packs.
+- Numerous using-declaration, inherited-constructor and
+  typedef-scope name resolution fixes.
+- User-defined literal operators emitted without deprecated
+  whitespace and multicharacter constants corrected to use int type.
+- More powerful %rename for instantiated templates.
+- cdata.i now uses a binary data type (e.g. Python bytes,
+  JavaScript Uint8Array) so all byte values round-trip correctly.
+- char *& string typemaps added to all remaining target languages.
+- Runtime type system fixes, including cross-module type casts and
+  a strict weak ordering fix in the type lookup.
+- Memory allocation failure protection added to several typemaps.
+- %typedef is deprecated; embed.i and the %new_copy_array macro
+  are removed.
+- Fewer compiler warnings in generated code.
+- Python 2 is no longer supported; SWIG now targets Python 3.5 and
+  later. Python 2 code paths and compatibility macros are removed
+  from the generated wrappers and the SWIG library and the
+  keyword/built-in warning list now tracks Python 3.
+- Python: PEP 484 type annotations support added, new -typehints and
+ .pyi stub generation, -builtin docstring parity, metaclass and
+  director reference counting fixes and %nokwargs fixes.
+- Lua: director support added; std::array, std::set,
+  std::unordered_set, std::unordered_map, shared_ptr and nested
+  class support added. Minimum Lua version is now 5.1.
+- Ruby: generated wrappers migrated to the TypedData API (the
+  deprecated Data API is removed in Ruby 4.1) and use embedded
+  TypedData storage on Ruby 3.3 and later; GC compaction crash fix
+  for STL containers of Ruby objects.
+- Go: %rename of enums honoured, new -unique-id/-no-unique-id
+  flags, Windows build and test support and various
+  rvalue-reference and director fixes.
+- R: %rename of enums and enum items honoured, scoped enum fixes
+  and R 4.6.0 compatibility.
+- JavaScript: v8 and node engines support v8 13.x and 14.x, as used by
+  Node.js 24 and 26, with improved node-addon-api detection.
+- Tcl 9 support.
+- Minor fixes and improvements specific to: C#, D, Guile, Java,
+  Octave, OCaml, Perl, PHP, Scilab.
+
+SWIG-4.4.1 summary:
+- Fix errors with some combinations of Py_LIMITED_API and recent Python
+  versions.
+- A couple of other minor fixes/improvements.
+
 SWIG-4.4.0 summary:
 - Python-3.14 and early Python-3.15 support including modernisations:
   - Remove some DeprecationWarnings.
@@ -568,5 +634,3 @@ SWIG-1.3.22 summary:
 - RPM fixes.
 - Various minor improvements and bug fixes for C#, Chicken, Guile, Java, 
   MzScheme, Perl, Php, Python, Ruby and XML.
-
-

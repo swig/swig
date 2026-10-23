@@ -1,6 +1,8 @@
 /* This testcase checks whether SWIG correctly handles alias templates. */
 %module cpp11_template_typedefs
 
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) space1::Outer::Inner;
+
 %inline %{
 
 template<typename T>
@@ -64,6 +66,49 @@ using BucketAllocator2 = typename Alloc::template rebind<::template ListBucket<d
 
 BucketAllocator1 get_bucket_allocator1() { return 1; }
 BucketAllocator2 get_bucket_allocator2() { return 2; }
+
+// Regression test for #3526.  An alias declaration of a template instantiation is used as the scope
+// qualifier of a template argument.  The scope of the argument type was added twice, generating
+// space1::space1::Point and the like, which did not compile.  Holder has no default constructor, so
+// the argument type is also emitted in a SwigValueWrapper declaration in the generated code.
+namespace space1 {
+  struct Point { int x; };
+  struct Outer {
+    struct Inner { int x; };
+  };
+  template <typename T> struct Holder {
+    using size_type = int;
+    Holder(T v) {}
+  };
+  // Control: the alias is declared in a class, where the argument type is not qualified yet when it
+  // is looked up, so the scope does still have to be added.
+  struct InClass {
+    typedef Holder<Point> PointHolder;
+    typedef Holder<PointHolder::size_type> SizeHolder;
+    SizeHolder qualifier_in_class(SizeHolder h) { return h; }
+  };
+}
+
+namespace space2 {
+  namespace space3 {
+    struct DeepPoint { int x; };
+  }
+}
+
+// Template argument is a class in a namespace.
+using PointHolder = space1::Holder<space1::Point>;
+using PointSizeHolder = space1::Holder<PointHolder::size_type>;
+PointSizeHolder qualifier_namespace(PointSizeHolder h) { return h; }
+
+// Template argument is a nested class.
+using InnerHolder = space1::Holder<space1::Outer::Inner>;
+using InnerSizeHolder = space1::Holder<InnerHolder::size_type>;
+InnerSizeHolder qualifier_nested_class(InnerSizeHolder h) { return h; }
+
+// Template argument is a class in a nested namespace.
+using DeepHolder = space1::Holder<space2::space3::DeepPoint>;
+using DeepSizeHolder = space1::Holder<DeepHolder::size_type>;
+DeepSizeHolder qualifier_nested_namespace(DeepSizeHolder h) { return h; }
 %}
 
 %immutable ns::SomeType::a;

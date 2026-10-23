@@ -124,3 +124,107 @@ namespace OuterSpace {
 %template(nsottint) OuterSpace::InnerSpace::nsott<int>; // default arg requires a rename
 %template(nsottstring) OuterSpace::InnerSpace::nsott<const char *>; // default arg requires a rename
 
+// A type-id with an array bound as the default of a type template parameter
+%inline %{
+template<class T = unsigned short[4]> struct ArrayDefault {
+  T t;
+  int count() const { return sizeof(T) / sizeof(unsigned short); }
+};
+template<class T, class U = const T[2][3]> struct ConstArrayDefault {
+  int count() const { return sizeof(U) / sizeof(T); }
+};
+%}
+%template(ArrayDefaultUShort) ArrayDefault<>;
+%template(ConstArrayDefaultShort) ConstArrayDefault<short>;
+
+// Pointer type-ids as the default of a type template parameter
+%inline %{
+  template<class T = int *> struct PtrDefault {
+    T t;
+    PtrDefault() { static int i = 42; t = &i; }
+    int deref(T p) { return *p; }
+  };
+
+  template<class T = int *[2]> struct PtrArrayDefault {
+    T t;
+    PtrArrayDefault() { static int i = 10, j = 20; t[0] = &i; t[1] = &j; }
+    int sum(T a) { return *a[0] + *a[1]; }
+  };
+
+  template<class T = int *const> struct PtrConstDefault {
+    int deref(T p) { return *p; }
+  };
+
+  template<class T = int **> struct PtrPtrDefault {
+    int deref(T p) { return **p; }
+  };
+
+  template<class T = int *const *> struct PtrConstPtrDefault {
+    int deref(T p) { return **p; }
+  };
+
+  template<class T = int &> struct RefDefault {
+    int deref(T r) { return r; }
+  };
+
+  template<class T = int *[][3]> struct PtrArray2dDefault {
+    int *(*t)[3];
+    PtrArray2dDefault() { static int i = 6; static int *v[2][3]; v[1][2] = &i; t = v; }
+    int get(T a) { return *a[1][2]; }
+  };
+
+  int deref_int_ptr(int *p) { return *p; }
+%}
+
+%template(PtrDefault_def) PtrDefault<>;
+%template(PtrArrayDefault_def) PtrArrayDefault<>;
+%template(PtrConstDefault_def) PtrConstDefault<>;
+%template(PtrPtrDefault_def) PtrPtrDefault<>;
+%template(PtrConstPtrDefault_def) PtrConstPtrDefault<>;
+%template(RefDefault_def) RefDefault<>;
+#if !defined(SWIGC)
+// TODO: Fix the experimental C backend emitting invalid C for a pointer to an array, such as 'int *(*)[3]'
+%template(PtrArray2dDefault_def) PtrArray2dDefault<>;
+#endif
+
+// Pointer to member and function pointer type-ids as the default of a type template parameter
+%inline %{
+  struct MemberHolder {
+    int m;
+    MemberHolder() : m(5) {}
+    int add(int i) const { return m + i; }
+  };
+
+  template<class T = int MemberHolder::*> struct MemberPtrDefault {
+    T t;
+    MemberPtrDefault() : t(&MemberHolder::m) {}
+    int get(const MemberHolder &h, T p) { return h.*p; }
+  };
+
+  template<class T = int (MemberHolder::*)(int) const> struct MemberFuncPtrDefault {
+    T t;
+    MemberFuncPtrDefault() : t(&MemberHolder::add) {}
+    int call(const MemberHolder &h, T f, int i) { return (h.*f)(i); }
+  };
+
+  int triple(int i) { return 3 * i; }
+
+  template<class T = int (*)(int)> struct FuncPtrDefault {
+    T t;
+    FuncPtrDefault() : t(triple) {}
+    int call(T f, int i) { return f(i); }
+  };
+
+  template<class T, class F = T (*)(T)> struct FuncPtrParmDefault {
+    T call(F f, T i) { return f(i); }
+  };
+%}
+
+#if !defined(SWIGC)
+// TODO: Fix the experimental C backend emitting invalid C for a pointer to member or function pointer, such as 'int (*)(int)'
+%template(MemberPtrDefault_def) MemberPtrDefault<>;
+%template(MemberFuncPtrDefault_def) MemberFuncPtrDefault<>;
+%template(FuncPtrDefault_def) FuncPtrDefault<>;
+%template(FuncPtrParmDefault_int) FuncPtrParmDefault<int>;
+#endif
+

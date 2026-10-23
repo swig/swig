@@ -13,7 +13,6 @@
 %{
 #include <set>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 %csmethodmodifiers std::set::empty "private"

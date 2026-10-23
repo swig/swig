@@ -64,8 +64,8 @@ template<typename T> struct Hey<T, T> { void special_hey() {} };
 // (4) Switching parameters around
 %inline %{
 #include <iostream>
-template<typename P1 = int, typename P2 = double> struct Partialler { void primary(P1, P2) {}; };
-template<typename S1, typename S2> struct Partialler<S2, S1*> { void special(S1*, S2, bool) {}; };
+template<typename P1 = int, typename P2 = double> struct Partialler { void primary(P1, P2) {} };
+template<typename S1, typename S2> struct Partialler<S2, S1*> { void special(S1*, S2, bool) {} };
 %}
 %template(PartiallerPrimary) Partialler<short, short>;
 %template(PartiallerSpecial) Partialler<int, PlainStruct*>;
@@ -88,7 +88,7 @@ void test_list() {
 
     PlainStruct ps;
     int myint = 0;
-    std::string mystring = 0;
+    std::string mystring;
     Lyst<PlainStruct *>().specialized1(ps, Allocator<PlainStruct *>());
     Lyst<double **>().specialized2(mydouble, (double **)0);
     Lyst<const int&>().specialized3(myint);

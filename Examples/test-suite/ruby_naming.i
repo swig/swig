@@ -105,3 +105,9 @@ public:
 }
 
 %template(A_i) A<int>;
+
+/* Test std::vector's bool partial specialization survives -autorename (#3546) */
+%include <std_vector.i>
+namespace std {
+  %template(VectorBool) vector<bool>;
+}

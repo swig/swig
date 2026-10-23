@@ -260,19 +260,6 @@ OUTPUT_TYPEMAP(unsigned long,     unsigned long long,  uint,      UINT64_PTR)
 INOUT_TYPEMAP(long,               long long,           int,       INT64_PTR)
 INOUT_TYPEMAP(unsigned long,      unsigned long long,  uint,      UINT64_PTR)
 #endif
-%typemap(in) long INPUT[] ($*1_ltype tempinput), unsigned long INPUT[] ($*1_ltype tempinput)
-%{tempinput = ($*1_ltype)*$input;
-  $1 = &tempinput;%}
-
-%typemap(in) long OUTPUT[] ($*1_ltype tempoutput), unsigned long OUTPUT[] ($*1_ltype tempoutput)
-%{$1 = &tempoutput;%}
-
-%typemap(in) long INOUT[] ($*1_ltype tempinout), unsigned long INOUT[] ($*1_ltype tempinout)
-%{tempinout = ($*1_ltype)*$input;
-  $1 = &tempinout;%}
-
-%typemap(argout) long OUTPUT[], unsigned long OUTPUT[] "*$input = *$1;"
-%typemap(argout) long INOUT[], unsigned long INOUT[] "*$input = *$1;"
 
 
 #undef INPUT_TYPEMAP

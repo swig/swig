@@ -34,7 +34,6 @@
 #include <vector>
 %}
 %fragment("<algorithm>");
-%fragment("<stdexcept>");
 
 // exported class
 

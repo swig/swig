@@ -30,10 +30,20 @@ SWIG_From_dec(long)(long value)
 }
 }
 
+%fragment(SWIG_From_frag(bool),"header") {
+SWIGINTERNINLINE SEXP
+SWIG_From_dec(bool)(bool value)
+{
+	return Rf_ScalarLogical(value ? TRUE : FALSE);
+}
+}
+
 %fragment(SWIG_AsVal_frag(long),"header") {
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long)(SEXP obj, long *val)
 {
+   if (Rf_length(obj) != 1)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -57,6 +67,8 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(long long)(SEXP obj, long long *val)
 {
+   if (Rf_length(obj) != 1)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -76,6 +88,8 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(unsigned long)(SEXP obj, unsigned long *val)
 {
+   if (Rf_length(obj) != 1)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -100,6 +114,8 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(unsigned long long)(SEXP obj, unsigned long long *val)
 {
+   if (Rf_length(obj) != 1)
+     return SWIG_TypeError;
    if (val) *val = Rf_asInteger(obj);
    return SWIG_OK;
 }
@@ -119,6 +135,8 @@ SWIG_From_dec(double)(double value)
 SWIGINTERNINLINE  int
 SWIG_AsVal_dec(double)(SEXP obj, double *val)
 {
+   if (Rf_length(obj) != 1)
+     return SWIG_TypeError;
    if (val) *val = Rf_asReal(obj);
    return SWIG_OK;
 }
@@ -129,13 +147,28 @@ SWIG_AsVal_dec(double)(SEXP obj, double *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
 {
-  if (cptr && Rf_isString(obj)) {
+  int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
+  if (Rf_isNull(obj)) {
+    if (cptr)
+      *cptr = 0;
+    if (psize)
+      *psize = 0;
+    if (alloc)
+      *alloc = SWIG_OLDOBJ;
+    return SWIG_OK;
+  }
+  if (cptr && Rf_isString(obj) && Rf_length(obj) == 1) {
     char *cstr = %const_cast(CHAR(STRING_ELT(obj, 0)), char *);
     int len = strlen(cstr);
 
     if (alloc) {
       if (*alloc == SWIG_NEWOBJ) {
-        *cptr = %new_copy_array(cstr, len + 1, char);
+        char *p = %new_array(len + 1, char);
+        if (p == NULL) {
+          return SWIG_MemoryError;
+        }
+        memcpy(p, cstr, len + 1);
+        *cptr = p;
         *alloc = SWIG_NEWOBJ;
       } else {
         *cptr = cstr;
@@ -144,7 +177,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
       *cptr = %reinterpret_cast(malloc(len + 1), char *);
       *cptr = strcpy(*cptr, cstr);
     }
-    if (psize) *psize = len + 1;
+    if (psize) *psize = is_binary ? (size_t)len : (size_t)(len + 1);
     return SWIG_OK;
   }
   return SWIG_TypeError;
@@ -165,6 +198,7 @@ SWIG_strdup(const char *str)
 
 %fragment("SWIG_FromCharPtrAndSize","header") 
 {
+%#define SWIG_FromBinaryCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERN SEXP
 SWIG_FromCharPtrAndSize(const char* carray, size_t size) 
 {

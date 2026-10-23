@@ -1,0 +1,5 @@
+swig_typemap_numoutputs.i:7: Error: Invalid numoutputs value 'abc' in the out typemap. It must be a non-negative integer.
+swig_typemap_numoutputs.i:8: Error: Invalid numoutputs value '' in the argout typemap. It must be a non-negative integer.
+swig_typemap_numoutputs.i:9: Error: Invalid numoutputs value '-1' in the argout typemap. It must be a non-negative integer.
+swig_typemap_numoutputs.i:10: Error: Only numoutputs=0 and numoutputs=1 are supported in the argout typemap.
+swig_typemap_numoutputs.i:11: Error: Only numoutputs=0 and numoutputs=1 are supported in the out typemap.

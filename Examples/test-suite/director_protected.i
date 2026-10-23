@@ -79,7 +79,7 @@ public:
 protected:
   std::string ping() { 
     return "Bar::ping();"; 
-  };
+  }
   using Foo::cheer;
 
   enum Hello {hola, chao};
@@ -109,19 +109,19 @@ class PrivateFoo : private Foo
 %inline %{
   class A {
   public:
-    A() {};
-    virtual ~A() {};
+    A() {}
+    virtual ~A() {}
   protected:
-    virtual void draw() {};
+    virtual void draw() {}
   };
 
   class B : public A {
   public:
-    B() {};
-    virtual ~B() {};
+    B() {}
+    virtual ~B() {}
   protected:
-    void draw() {};
-    void draw(int arg1) {};
+    void draw() {}
+    void draw(int arg1) {}
   };
 
 %}
@@ -132,23 +132,53 @@ class PrivateFoo : private Foo
 %inline %{
   class AA {
   public:
-    AA() {};
-    virtual ~AA() {};
+    AA() {}
+    virtual ~AA() {}
   protected:
-    virtual void draw() {};
-    virtual void plot() {};
+    virtual void draw() {}
+    virtual void plot() {}
   };
 
   class BB : public AA {
   public:
-    BB() {};
-    virtual ~BB() {};
+    BB() {}
+    virtual ~BB() {}
   protected:
-    void draw() {};
-    void draw(int arg1) {};
+    void draw() {}
+    void draw(int arg1) {}
 
-    void plot(int arg1) {};
-    void plot() {};
+    void plot(int arg1) {}
+    void plot() {}
   };
 %}
 
+// A protected nested class, directed and deriving from a class used elsewhere in the wrapped API.
+// No target language wraps a non-public nested class (regardless of dirprot/directors), but a
+// runtime upcast helper for it used to get generated anyway, naming it by its inaccessible
+// qualified name - a C++ compile error. See nested_scope.i's protectedbase block for the same
+// bug without directors involved.
+%warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) NestedOuter::NestedDerived;
+%feature("director") NestedOuter::NestedDerived;
+
+%inline %{
+  class NestedBase {
+  public:
+    virtual ~NestedBase() {}
+    virtual int identify() { return 0; }
+  };
+
+  class NestedOuter {
+  protected:
+    class NestedDerived : public NestedBase {
+    public:
+      NestedDerived() {}
+      virtual int identify() { return 1; }
+      virtual int vmethod(int x) { return x; }
+    protected:
+      virtual int protectedvmethod(int x) { return x; }
+    };
+  public:
+    virtual ~NestedOuter() {}
+    virtual NestedBase *makeDerived() { return new NestedDerived(); }
+  };
+%}

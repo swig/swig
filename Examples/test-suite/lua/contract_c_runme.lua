@@ -1,0 +1,10 @@
+local v=require("contract_c")
+
+v.test_preassert(1, 2)
+assert(not pcall(function () v.test_preassert(-1, 3) end), "Preassertions")
+v.test_postassert(3)
+assert(not pcall(function () v.test_postassert(-3) end), "Postassertions")
+v.test_prepost(2, 3)
+v.test_prepost(5, -4)
+assert(not pcall(function () v.test_prepost(-3, 4) end), "Preassertions")
+assert(not pcall(function () v.test_prepost(4, -10) end), "Postassertions")

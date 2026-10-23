@@ -56,14 +56,14 @@ protected:
    * Typedef for the function that handles one tag
    * arg - some string argument to easily pass it through lookup table
    */
-  typedef void (JavaDocConverter::*tagHandler) (DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
+  typedef void (JavaDocConverter::*tagHandler)(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
-  /**
+  /*
    * Copies verbatim args of the tag to output, used for commands like \f$, ...
    */
   void handleTagVerbatim(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
-  /** Creates anchor link. */
+  /* Creates anchor link. */
   void handleTagAnchor(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /*
@@ -138,7 +138,7 @@ protected:
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /*
-   * Writes link for \ref tag. 
+   * Writes link for \ref tag.
    */
   void handleTagRef(DoxygenEntity &tag, std::string &translatedComment, std::string &);
 

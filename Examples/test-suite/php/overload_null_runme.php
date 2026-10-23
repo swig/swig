@@ -41,4 +41,16 @@ check::equal(21, $o->byval1fwdref($x), "test 21");
 
 check::equal(22, $o->byval2fwdref($x), "test 22");
 
+check::equal(23, $o->bychar1("a"), "test 23");
+check::equal(24, $o->bychar1(null), "test 24");
+
+// NULL is a NULL pointer for an array of char too
+check::equal(37, $o->bychararray($x), "test 37");
+check::equal(-38, $o->bychararray(null), "test 38 null");
+check::equal(38, $o->bychararray("ab"), "test 38");
+
+check::equal(39, $o->byunsizedchararray($x), "test 39");
+check::equal(-40, $o->byunsizedchararray(null), "test 40 null");
+check::equal(40, $o->byunsizedchararray("ab"), "test 40");
+
 check::done();

@@ -1,0 +1,5 @@
+cpp_auto_variable_braced.i:10: Warning 346: Unable to deduce auto type for variable 'good_list' from a braced initialiser list (ignored).
+cpp_auto_variable_braced.i:13: Warning 346: Unable to deduce auto type for variable 'multi_a' from a braced initialiser list (ignored).
+cpp_auto_variable_braced.i:16: Warning 346: Unable to deduce auto type for variable 'empty_list' from a braced initialiser list (ignored).
+cpp_auto_variable_braced.i:19: Warning 346: Unable to deduce auto type for variable 'mixed_list' from a braced initialiser list (ignored).
+cpp_auto_variable_braced.i:22: Warning 346: Unable to deduce auto type for variable 'dauto_list' from a braced initialiser list (ignored).

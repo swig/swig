@@ -51,6 +51,7 @@
 
 #define SWIG_MakePtr(sv, ptr, type, flags)              SWIG_Perl_MakePtr(SWIG_PERL_OBJECT_CALL sv, ptr, type, flags)
 #define SWIG_MakePackedObj(sv, p, s, type)	        SWIG_Perl_MakePackedObj(SWIG_PERL_OBJECT_CALL sv, p, s, type)
+#define SWIG_SetPtrVariable(sv, value, type)            SWIG_Perl_SetPtrVariable(SWIG_PERL_OBJECT_CALL sv, value, type)
 #define SWIG_SetError(str)                              SWIG_Error(SWIG_RuntimeError, str)
 
 
@@ -354,6 +355,21 @@ SWIG_Perl_NewPointerObj(SWIG_MAYBE_PERL_OBJECT void *ptr, swig_type_info *t, int
   SV *result = sv_newmortal();
   SWIG_MakePtr(result, ptr, t, flags);
   return result;
+}
+
+/* Set the pointer value of a global variable linked as a pointer object. A set of the variable with a pointer object
+   leaves it undefined, so it is made a pointer object again here, rather than changing the one assigned to it. The new
+   pointer object is copied into the variable, as making it in the variable with sv_setref_pv() would remove the
+   variable's magic. */
+SWIGRUNTIME void
+SWIG_Perl_SetPtrVariable(SWIG_MAYBE_PERL_OBJECT SV *sv, IV value, swig_type_info *t) {
+  if (!SvROK(sv)) {
+    SV *obj = newSV(0);
+    SWIG_MakePtr(obj, (void *)1, t, 0);
+    sv_setsv(sv, obj);
+    SvREFCNT_dec(obj);
+  }
+  sv_setiv(SvRV(sv), value);
 }
 
 SWIGRUNTIME void

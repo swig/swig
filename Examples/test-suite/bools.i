@@ -48,9 +48,12 @@ const bool& const_rbo(const bool& b) {
 const bool* const_pbo(const bool* b) {
     return b;
 }
+bool bo_const_ref(const bool& b) {
+    return b;
+}
 
 // helper function
-bool bool_value(bool* b) {
+bool bool_value(const bool* b) {
     return *b;
 }
 

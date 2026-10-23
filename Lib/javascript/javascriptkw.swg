@@ -2,7 +2,7 @@
 #define JAVASCRIPT_JAVASCRIPTKW_SWG_
 
 /* Warnings for Javascript keywords: note that we allow the use of keywords for members, as they're used as property names in JS and properties don't conflict with keywords. */
-#define JAVASCRIPTKW(x) %keywordwarn("'" `x` "' is a javascript keyword, renaming to '_"`x`"'",%$not %$ismember,rename="_%s")  `x`
+#define JAVASCRIPTKW(x) %keywordwarn("'" `x` "' is a javascript keyword",%$not %$ismember,rename="_%s")  `x`
 
 /* Taken from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#keywords */
 /* This the union of all currently reserved keywords in ECMAScript 4 to 6 in both sloppy and strict mode */

@@ -25,6 +25,10 @@
 %warnfilter(SWIGWARN_CPP11_LAMBDA) lambda18;
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::lambda19;
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::Space2::lambda20;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda21;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda22;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda23;
+%warnfilter(SWIGWARN_CPP11_LAMBDA) lambda24;
 
 // throw is invalid in C++17 and later, only SWIG to use it
 #define TESTCASE_THROW0() throw()
@@ -85,6 +89,14 @@ namespace Space1 {
     CONSTEXPR auto lambda20 = [] (int x, int y) mutable TESTCASE_THROW1(int) { return x+y; };
   }
 }
+
+/* Cv-qualified auto, either ordering. */
+const auto lambda21 = [] (int x, int y) { return x+y; };
+auto const lambda22 = [] (int x, int y) { return x+y; };
+
+/* An explicit trailing return type can be a pointer or a reference to a primitive type. */
+auto lambda23 = [] (int, int) -> int* { return &thing; };
+auto lambda24 = [] (int, int) -> const int& { return thing; };
 
 int runLambda1() {
   return lambda1(5,6);

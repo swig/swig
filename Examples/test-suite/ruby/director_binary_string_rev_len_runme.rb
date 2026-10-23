@@ -19,7 +19,11 @@ class DirectorBinaryStringCallback < Director_binary_string_rev_len::Callback
   end
 end
 
-caller = Director_binary_string_rev_len::Caller.new(DirectorBinaryStringCallback.new)
+# Keep a reference to the director object in a local variable so that Ruby's GC
+# does not collect it while the C++ Caller still holds a (non-owning) pointer to
+# it - see the sibling director_binary_string test which does the same.
+callback = DirectorBinaryStringCallback.new
+caller = Director_binary_string_rev_len::Caller.new(callback)
 sum = caller.call()
 
 raise RuntimeError if sum != 9*2*8

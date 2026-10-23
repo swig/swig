@@ -28,6 +28,12 @@ public class char_binary_runme {
     if (t.ustrlen(hil0) != 4)
       throw new RuntimeException("bad multi-arg typemap");
 
+    if (t.strlen(null) != 0)
+      throw new RuntimeException("bad multi-arg typemap");
+
+    if (t.ustrlen(null) != 0)
+      throw new RuntimeException("bad multi-arg typemap");
+
     // creating a raw char*
     SWIGTYPE_p_char pc = char_binary.new_pchar(5);
     char_binary.pchar_setitem(pc, 0, 'h');

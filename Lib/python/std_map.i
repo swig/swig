@@ -85,10 +85,8 @@
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	if (PyDict_Check(obj)) {
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
-%#if PY_VERSION_HEX >= 0x03000000
-          /* In Python 3.x the ".items()" method returns a dict_items object */
-          items = PySequence_Fast(items, ".items() didn't return a sequence!");
-%#endif
+	  /* In Python 3.x the ".items()" method returns a dict_items object */
+	  items = PySequence_Fast(items, ".items() didn't return a sequence!");
 	  res = traits_asptr_stdseq<map_type, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  map_type *p = 0;
@@ -137,6 +135,9 @@
     };
   }
 }
+
+// A map keyed by Python objects takes anything, so the catch-all __contains__ overload is redundant
+%ignore std::map<swig::SwigPtr_PyObject,swig::SwigPtr_PyObject>::__contains__(PyObject *);
 
 %define %swig_map_common(Map...)
   %swig_sequence_iterator(Map);
@@ -256,6 +257,10 @@
     
     bool __contains__(const key_type& key) {
       return self->find(key) != self->end();
+    }
+
+    bool __contains__(PyObject *) {
+      return false;
     }
 
     %newobject key_iterator(PyObject **PYTHON_SELF);

@@ -4,8 +4,6 @@
  * SWIG typemaps for std::string_view types
  * ----------------------------------------------------------------------------- */
 
-%include <exception.i>
-
 %{
 #include <string_view>
 %}

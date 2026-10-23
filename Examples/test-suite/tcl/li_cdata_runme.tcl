@@ -3,12 +3,17 @@ if [ catch { load ./li_cdata[info sharedlibextension] Li_cdata} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 
-# The universal character Escape Sequence is 2 bytes
-set s "ABC\u0000bc"
+# Ascii codes of "ABC\0abc"
+set s { 65 66 67 0 97 98 99 }
 set m [ malloc 256 ]
 memmove $m $s
 set ss [ cdata $m 7 ]
-if {$ss != "ABC\u0000bc"} {
+# Convert list of integers to string
+set a ""
+foreach i $ss {
+    append a "[format %c $i]"
+}
+if {$a != "ABC\u0000abc"} {
     puts stderr "failed"
     exit 1
 }

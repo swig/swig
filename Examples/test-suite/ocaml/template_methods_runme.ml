@@ -18,6 +18,17 @@ let _ =
   assert (_Klass_KlassStaticTMethodBoolRenamed '(true) as bool = true);
   assert (_Klass_KlassStaticTMethodBool '() = C_void);
 
+  let clay = new_Clay '() in
+  assert (clay -> ClayBoolRenamed_cmethod (true) as bool = true);
+  assert (clay -> ClayCMethodBool () = C_void);
+  assert (_Clay_ClayBoolStaticRenamed_staticcmethod '(true) as bool = true);
+  assert (_Clay_ClayStaticCMethodBool '() = C_void);
+
+  assert (clay -> ClayIntRenamed_cmethod (99) as int = 99);
+  assert (clay -> ClayIntRenamed_cmethod () = C_void);
+  assert (_Clay_ClayIntStaticRenamed_staticcmethod '(88) as int = 88);
+  assert (_Clay_ClayIntStaticRenamed_staticcmethod '() = C_void);
+
   let cp = new_ComponentProperties '() in
   assert (cp -> adda ("key1", "val1", "key2", 22.2) = C_void);
   assert (cp -> adda ("key1", "val1", "key2", "val2", "key3", "val3") = C_void);

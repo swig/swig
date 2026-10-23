@@ -7,7 +7,7 @@ What is happening is as follows:
 example.i declares a type Foo
 examples2.i declares Bar
 
-The first lua state will load example.i 
+The first lua state will load example.i
 and check to see if types Foo and Bar are registered with it
 (Foo should be & Bar should not)
 
@@ -36,10 +36,6 @@ extern "C" int luaopen_example2(lua_State*L);
 #define DEBUG2(X,Y) {printf(X,Y);fflush(stdout);}
 #define DEBUG3(X,Y,Z) {printf(X,Y,Z);fflush(stdout);}
 
-#if LUA_VERSION_NUM > 501
-#define lua_open luaL_newstate
-#endif
-
 void testModule(lua_State *L)
 {
   swig_type_info *pTypeInfo=0,*pTypeInfo2=0;
@@ -62,17 +58,17 @@ int main(int argc,char* argv[])
   printf("This is a test of having two SWIG'ed modules and three lua states\n"
 	"statically linked together.\n"
 	"Its mainly to check that all the types are correctly managed\n\n");
-	
+
   DEBUG("creating lua states(L1,L2,L3)");
-  L1=lua_open();
-  L2=lua_open();
-  L3=lua_open();
+  L1=luaL_newstate();
+  L2=luaL_newstate();
+  L3=luaL_newstate();
   DEBUG("ok\n\n");
 
   DEBUG("luaopen_example(L1)..");
   luaopen_example(L1);
   DEBUG("ok\n");
-	
+
   DEBUG("Testing Module L1\n");
   DEBUG("This module should know about Foo* but not Bar*\n");
   testModule(L1);
@@ -81,7 +77,7 @@ int main(int argc,char* argv[])
   DEBUG("luaopen_example2(L2)..");
   luaopen_example2(L2);
   DEBUG("ok\n");
-	
+
   DEBUG("Testing Module L2\n");
   DEBUG("This module should know about Bar* but not Foo*\n");
   testModule(L2);

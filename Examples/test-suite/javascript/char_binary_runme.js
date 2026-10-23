@@ -15,6 +15,13 @@ if (t.ustrlen('hil\0') != 4) {
   throw("bad multi-arg typemap 2");
 }
 
+if (t.strlen(null) != 0) {
+  throw("bad multi-arg typemap null");
+}
+if (t.ustrlen(null) != 0) {
+  throw("bad multi-arg typemap null");
+}
+
 /*
  *  creating a raw char*
  */

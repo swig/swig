@@ -66,6 +66,8 @@ SWIGRUNTIME const char *SWIG_ErrorType(int code) {
     return "SWIG:SystemError";
   case SWIG_AttributeError:
     return "SWIG:AttributeError";
+  case SWIG_NullReferenceError:
+    return "SWIG:NullReferenceError";
   }
   return "SWIG:UnknownError";
 }
@@ -267,7 +269,7 @@ SWIG_MakePtr(void *ptr, const char *typeName, int flags)
     R_RegisterCFinalizer(external, R_SWIG_ReferenceFinalizer);
 
   r_obj = SET_SLOT(r_obj, Rf_mkString((char *) "ref"), external);
-  SET_S4_OBJECT(r_obj);
+  r_obj = Rf_asS4(r_obj, TRUE, 0);
   Rf_unprotect(2);
 
   return(r_obj);
@@ -285,7 +287,7 @@ R_SWIG_create_SWIG_R_Array(const char *typeName, SEXP ref, int len)
    Rf_protect(arr = R_do_slot_assign(arr, Rf_mkString("dims"), Rf_ScalarInteger(len)));
 
    Rf_unprotect(3); 			   
-   SET_S4_OBJECT(arr);	
+   arr = Rf_asS4(arr, TRUE, 0);
    return arr;
 }
 
@@ -308,10 +310,13 @@ SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   }
   rptr = R_MakeExternalPtr(ptr, 
   R_MakeExternalPtr(type, R_NilValue, R_NilValue), R_NilValue); 
-  SET_S4_OBJECT(rptr);
+  rptr = Rf_asS4(rptr, TRUE, 0);
   return rptr;
 }
 
+
+/* This module's type table, set by SWIG_SetModule, as SWIG_GetModule does not share one between R modules */
+static swig_module_info *SWIG_R_module = 0;
 
 /* Convert a pointer value */
 SWIGRUNTIMEINLINE int
@@ -320,20 +325,32 @@ SWIG_R_ConvertPtrAndOwn(SEXP obj, void **ptr, swig_type_info *ty, int flags, int
   if (!obj) return SWIG_ERROR;
   if (own)
     *own = 0;
-  if (obj == R_NilValue) {
+  if (TYPEOF(obj) != EXTPTRSXP) {
+    /* The scoercein typemaps leave NULL as R_NilValue, so any other object, even a zero length vector, is not NULL */
+    if (obj != R_NilValue)
+      return SWIG_ERROR;
     if (ptr) *ptr = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
   vptr = R_ExternalPtrAddr(obj);
   if (ty) {
-    swig_type_info *to = (swig_type_info*) 
-      R_ExternalPtrAddr(R_ExternalPtrTag(obj));
+    SEXP tag = R_ExternalPtrTag(obj);
+    swig_type_info *to = TYPEOF(tag) == EXTPTRSXP ? (swig_type_info *)R_ExternalPtrAddr(tag) : 0;
+    if (!to)
+      return SWIG_ERROR;
     if (to == ty) {
       if (ptr) *ptr = vptr;
     } else {
       swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
-      if (ptr) {
+      if (!tc) {
+        /* No casts are known for a type of another module only, such as a class derived in a module importing this
+           one, so its pointer is passed on unchanged */
+        if (SWIG_R_module && SWIG_MangledTypeQueryModule(SWIG_R_module, SWIG_R_module, to->name))
+          return SWIG_ERROR;
+        if (ptr)
+          *ptr = vptr;
+      } else if (ptr) {
         int newmemory = 0;
         *ptr = SWIG_TypeCast(tc, vptr, &newmemory);
         if (newmemory == SWIG_CAST_NEW_MEMORY) {
@@ -357,6 +374,7 @@ SWIG_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
 
 SWIGRUNTIME void
 SWIG_SetModule(void *v, swig_module_info *swig_module) {
+  SWIG_R_module = swig_module;
 }
 
 typedef struct {

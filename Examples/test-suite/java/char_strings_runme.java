@@ -93,12 +93,41 @@ public class char_strings_runme {
         throw new RuntimeException("Test char set 8 failed, iteration " + i);
     }
 
+    for (i=0; i<count; i++) {
+      if (!char_strings.SetConstCharTypedefString(OTHERLAND_MSG + i, i))
+        throw new RuntimeException("Test char set 9 failed, iteration " + i);
+    }
+
     // get set function
     for (i=0; i<count; i++) {
       String ping = OTHERLAND_MSG + i;
       String pong = char_strings.CharPingPong(ping);
       if (!ping.equals(pong))
         throw new RuntimeException("Test PingPong 1 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      String ping = OTHERLAND_MSG + i;
+      String pong = char_strings.CharArrayPingPong(ping);
+      if (!ping.equals(pong))
+        throw new RuntimeException("Test PingPong 2 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    for (i=0; i<count; i++) {
+      String ping = "Ping" + i; // char[16] buffer, keep short enough to fit
+      String pong = char_strings.CharArrayDimsPingPong(ping);
+      if (!ping.equals(pong))
+        throw new RuntimeException("Test PingPong 3 failed.\nExpected:" + ping + "\nReceived:" + pong);
+    }
+
+    if (char_strings.CharArrayDimsLength("Ping") != 4)
+      throw new RuntimeException("Test CharArrayDimsLength failed");
+    if (char_strings.CharArrayDimsLength("0123456789abcde") != 15)
+      throw new RuntimeException("Test CharArrayDimsLength failed");
+    try {
+      char_strings.CharArrayDimsLength("0123456789abcdef");
+      throw new RuntimeException("Test CharArrayDimsLength overlong string failed");
+    } catch (IllegalArgumentException e) {
     }
 
     // variables
@@ -108,17 +137,50 @@ public class char_strings_runme {
         throw new RuntimeException("Test variables 1 failed, iteration " + i);
     }
 
-    for (i=0; i<count; i++) {
-      char_strings.setGlobal_char_array1(OTHERLAND_MSG + i);
-      if (!char_strings.getGlobal_char_array1().equals(OTHERLAND_MSG + i))
-        throw new RuntimeException("Test variables 2 failed, iteration " + i);
+    // global_char_array1 is a char[] with no size, so it is read only
+    try {
+      char_strings.class.getMethod("setGlobal_char_array1", String.class);
+      throw new RuntimeException("global_char_array1 has a setter");
+    } catch (NoSuchMethodException e) {
     }
+    if (!char_strings.getGlobal_char_array1().equals(CPLUSPLUS_MSG))
+      throw new RuntimeException("Test variables 2 failed");
 
     for (i=0; i<count; i++) {
       char_strings.setGlobal_char_array2(OTHERLAND_MSG + i);
       if (!char_strings.getGlobal_char_array2().equals(OTHERLAND_MSG + i))
         throw new RuntimeException("Test variables 3 failed, iteration " + i);
     }
+
+    try {
+      char_strings.setGlobal_char_array2(CPLUSPLUS_MSG + CPLUSPLUS_MSG);
+      throw new RuntimeException("Test variables 3 overlong string failed");
+    } catch (IllegalArgumentException e) {
+    }
+
+    if (!char_strings.getChar_array_no_nul().getFull().equals("abcd") || !char_strings.getChar_array_no_nul().getAfter().equals("XYZ"))
+      throw new RuntimeException("Test full char array failed");
+
+    char_strings.setGlobal_char_one("a");
+    CharArrayOne one = new CharArrayOne();
+    one.setOne("b");
+    if (!char_strings.getGlobal_char_one().equals("a") || !one.getOne().equals("b"))
+      throw new RuntimeException("Test char[1] failed");
+
+    if (char_strings.CharArrayPingPong(null) != null || char_strings.CharArrayDimsPingPong(null) != null)
+      throw new RuntimeException("Test char array null failed");
+    try {
+      char_strings.getChar_array_null().setFour(null);
+      throw new RuntimeException("Test char array member set to null failed");
+    } catch (NullPointerException e) {
+    }
+    try {
+      char_strings.setGlobal_char_array_null(null);
+      throw new RuntimeException("Test char array global set to null failed");
+    } catch (NullPointerException e) {
+    }
+    if (!char_strings.getChar_array_null().getFour().equals("qqq") || !char_strings.getGlobal_char_array_null().equals("qqq"))
+      throw new RuntimeException("Test char array set to null changed it");
 
     for (i=0; i<count; i++) {
       if (!char_strings.getGlobal_const_char().equals(CPLUSPLUS_MSG))

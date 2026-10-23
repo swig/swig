@@ -19,40 +19,10 @@ static bool SWIG_init_user(octave_swig_type* module_ns);
 SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
   bool retn = false;
   {
-#if SWIG_OCTAVE_PREREQ(6,0,0)
-#elif SWIG_OCTAVE_PREREQ(4,2,0)
-    octave::unwind_protect frame;
-    frame.protect_var(discard_error_messages);          discard_error_messages = true;
-    frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
-#elif SWIG_OCTAVE_PREREQ(3,3,50)
-    unwind_protect frame;
-    frame.protect_var(error_state);                     error_state = 0;
-    frame.protect_var(warning_state);                   warning_state = 0;
-    frame.protect_var(discard_error_messages);          discard_error_messages = true;
-    frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
-#else
-    unwind_protect::begin_frame("SWIG_Octave_LoadModule");
-    unwind_protect_int(error_state);                    error_state = 0;
-    unwind_protect_int(warning_state);                  warning_state = 0;
-    unwind_protect_bool(discard_error_messages);        discard_error_messages = true;
-    unwind_protect_bool(discard_warning_messages);      discard_warning_messages = true;
-#endif
-#if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
-#if SWIG_OCTAVE_PREREQ(4,4,0)
       octave::feval(name, octave_value_list(), 0);
-#else
-      feval(name, octave_value_list(), 0);
-#endif
       retn = true;
     } catch (octave::execution_exception&) { }
-#else
-    feval(name, octave_value_list(), 0);
-    retn = (error_state == 0);
-#endif
-#if !SWIG_OCTAVE_PREREQ(3,3,50)
-    unwind_protect::run_frame("SWIG_Octave_LoadModule");
-#endif
   }
   if (!retn) {
     error(SWIG_name_d ": could not load module `%s'", name.c_str());
@@ -63,43 +33,13 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
 SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::string name) {
   bool retn = false;
   {
-#if SWIG_OCTAVE_PREREQ(6,0,0)
-#elif SWIG_OCTAVE_PREREQ(4,2,0)
-    octave::unwind_protect frame;
-    frame.protect_var(discard_error_messages);          discard_error_messages = true;
-    frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
-#elif SWIG_OCTAVE_PREREQ(3,3,50)
-    unwind_protect frame;
-    frame.protect_var(error_state);                     error_state = 0;
-    frame.protect_var(warning_state);                   warning_state = 0;
-    frame.protect_var(discard_error_messages);          discard_error_messages = true;
-    frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
-#else
-    unwind_protect::begin_frame("SWIG_Octave_InstallFunction");
-    unwind_protect_int(error_state);                    error_state = 0;
-    unwind_protect_int(warning_state);                  warning_state = 0;
-    unwind_protect_bool(discard_error_messages);        discard_error_messages = true;
-    unwind_protect_bool(discard_warning_messages);      discard_warning_messages = true;
-#endif
     octave_value_list args;
     args.append(name);
     args.append(octloadfcn->fcn_file_name());
-#if SWIG_OCTAVE_PREREQ(4,2,0)
     try {
-#if SWIG_OCTAVE_PREREQ(4,4,0)
       octave::feval("autoload", args, 0);
-#else
-      feval("autoload", args, 0);
-#endif
       retn = true;
     } catch (octave::execution_exception&) { }
-#else
-    feval("autoload", args, 0);
-    retn = (error_state == 0);
-#endif
-#if !SWIG_OCTAVE_PREREQ(3,3,50)
-    unwind_protect::run_frame("SWIG_Octave_InstallFunction");
-#endif
   }
   if (!retn) {
     error(SWIG_name_d ": could not load function `%s'", name.c_str());
@@ -243,20 +183,6 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
   static octave_swig_type* module_ns = 0;
 
-  // workaround to prevent octave seg-faulting on exit: set Octave exit function
-  // octave_exit to _Exit, which exits immediately without trying to cleanup memory.
-  // definitely affected version 3.2.*, not sure about 3.3.*, seems to be fixed in
-  // version 3.4.*, reappeared in 4.2.*, hack not possible in 4.4.* or later due to
-  // removal of octave_exit, so turn on for all versions between 3.2.*. and 4.4.*.
-  // can be turned off with macro definition.
-#ifndef SWIG_OCTAVE_NO_SEGFAULT_HACK
-#if !SWIG_OCTAVE_PREREQ(4,4,0)
-#if SWIG_OCTAVE_PREREQ(3,2,0)
-  octave_exit = ::_Exit;
-#endif
-#endif
-#endif
-
   // check for no input and output args
   if (args.length() != 0 || nargout != 0) {
     print_usage();
@@ -268,7 +194,6 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
 
     // workaround bug in octave where installing global variable of custom type and then
     // exiting without explicitly clearing the variable causes octave to segfault.
-#if SWIG_OCTAVE_PREREQ(3,2,0)
     octave_value_list eval_args;
     eval_args.append("base");
     eval_args.append("function __swig_atexit__; "
@@ -281,14 +206,8 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
                      "__swig_atexit__; "
                      "atexit(\"__swig_atexit__\", false); "
                      "atexit(\"__swig_atexit__\")");
-#if SWIG_OCTAVE_PREREQ(4,4,0)
     octave::feval("evalin", eval_args, 0);
-#else
-    feval("evalin", eval_args, 0);
-#endif
-#endif
 
-#if SWIG_OCTAVE_PREREQ(4,4,0)
     {
       octave::type_info& typeinfo = octave::interpreter::the_interpreter()->get_type_info();
       string_vector types = typeinfo.installed_type_names();
@@ -311,25 +230,16 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
         octave_swig_packed::register_type();
       }
     }
-#else
-    octave_swig_ref::register_type();
-    octave_swig_packed::register_type();
-#endif
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
 #if SWIG_OCTAVE_PREREQ(8,0,0)
     octave::tree_evaluator& tree_eval = octave::interpreter::the_interpreter()->get_evaluator();
     octave_function *me = tree_eval.current_function();
-#elif SWIG_OCTAVE_PREREQ(6,0,0)
+#else
     octave::tree_evaluator& tree_eval = octave::interpreter::the_interpreter()->get_evaluator();
     octave::call_stack& stack = tree_eval.get_call_stack();
     octave_function *me = stack.current_function();
-#elif SWIG_OCTAVE_PREREQ(4,4,0)
-    octave::call_stack& stack = octave::interpreter::the_interpreter()->get_call_stack();
-    octave_function *me = stack.current();
-#else
-    octave_function *me = octave_call_stack::current();
 #endif
 
     if (!SWIG_Octave_InstallFunction(me, "subclass")) {
@@ -400,14 +310,7 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       }
     }
 
-#if SWIG_OCTAVE_PREREQ(4,4,0)
     octave::interpreter::the_interpreter()->mlock();
-#elif SWIG_OCTAVE_PREREQ(3,2,0)
-    mlock();
-#else
-    mlock(me->name());
-#endif
-
   }
 
   octave_swig_type::swig_member_const_iterator mb;

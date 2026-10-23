@@ -1,7 +1,6 @@
-require("import")	-- the import fn
-import("lua_inherit_getitem")	-- import lib
+require("lua_inherit_getitem")
 
-local t = lua_inherit_getitem;
+local t = lua_inherit_getitem
 local base = t.CBase()
 local derived = t.CDerived()
 

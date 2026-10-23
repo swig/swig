@@ -51,6 +51,11 @@ namespace swig {
 
   template <class Type>
   inline int asptr(SWIG_Object obj, Type **vptr) {
+    if (Rf_isNull(obj)) {
+      if (vptr)
+        *vptr = 0;
+      return SWIG_OK;
+    }
     return traits_asptr<Type>::asptr(obj, vptr);
   }
 

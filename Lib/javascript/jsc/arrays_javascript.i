@@ -55,6 +55,10 @@
       arg$argnum[i] = temp;
     }
   }
+  else if (JSValueIsNull(context, $input))
+  {
+    $1 = 0;
+  }
   else
   {
     SWIG_exception_fail(SWIG_ERROR, "$input is not JSObjectRef");

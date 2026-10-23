@@ -1,0 +1,9 @@
+cpp_decltype_trailing_member.i:10: Warning 344: Unable to deduce decltype for 'ov(1)' in the trailing return type of 'overloaded()' (ignored).
+cpp_decltype_trailing_member.i:11: Warning 344: Unable to deduce decltype for 'inner.x' in the trailing return type of 'member_access()' (ignored).
+cpp_decltype_trailing_member.i:12: Warning 344: Unable to deduce decltype for 'this->inner.x' in the trailing return type of 'this_access()' (ignored).
+cpp_decltype_trailing_member.i:23: Warning 344: Unable to deduce decltype for '(*this).d' in the trailing return type of 'member_of_deref()' (ignored).
+cpp_decltype_trailing_member.i:32: Warning 344: Unable to deduce decltype for 'inners[idx].x' in the trailing return type of 'index()' (ignored).
+cpp_decltype_trailing_member.i:33: Warning 344: Unable to deduce decltype for 'inners[this->idx].x' in the trailing return type of 'this_index()' (ignored).
+cpp_decltype_trailing_member.i:34: Warning 344: Unable to deduce decltype for 'overloaded(idx)' in the trailing return type of 'argument()' (ignored).
+cpp_decltype_trailing_member.i:43: Warning 344: Unable to deduce decltype for 'ov(1)' in the trailing return type of 'call()' (ignored).
+cpp_decltype_trailing_member.i:48: Warning 344: Unable to deduce decltype for 'ov(1.5)' in the trailing return type of 'call()' (ignored).

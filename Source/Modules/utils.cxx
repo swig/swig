@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -12,6 +12,25 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+
+/* -----------------------------------------------------------------------------
+ * is_non_negative_integer()
+ *
+ * Checks that a typemap attribute value is written as a non-negative integer.
+ * GetInt() uses atoi(), which quietly turns anything unparseable into zero, so a
+ * value has to be checked with this before being read with GetInt().
+ * ----------------------------------------------------------------------------- */
+
+bool is_non_negative_integer(String *value) {
+  const char *c = value ? Char(value) : 0;
+  if (!c || !*c)
+    return false;
+  for (; *c; c++) {
+    if ((*c < '0') || (*c > '9'))
+      return false;
+  }
+  return true;
+}
 
 int is_public(Node *n) {
   String *access = Getattr(n, "access");
@@ -77,18 +96,16 @@ void clean_overloaded(Node *n) {
   Node *first = 0;
   while (nn) {
     String *ntype = nodeType(nn);
-    if ((GetFlag(nn, "feature:ignore")) ||
-	(Getattr(nn, "error")) ||
-	(Strcmp(ntype, "template") == 0) ||
-	((Strcmp(ntype, "cdecl") == 0) && is_protected(nn) && !is_member_director(nn) && !is_non_virtual_protected_access(n))) {
+    if ((GetFlag(nn, "feature:ignore")) || (Getattr(nn, "error")) || (Strcmp(ntype, "template") == 0) ||
+        ((Strcmp(ntype, "cdecl") == 0) && is_protected(nn) && !is_member_director(nn) && !is_non_virtual_protected_access(n))) {
       /* Remove from overloaded list */
       Node *ps = Getattr(nn, "sym:previousSibling");
       Node *ns = Getattr(nn, "sym:nextSibling");
       if (ps) {
-	Setattr(ps, "sym:nextSibling", ns);
+        Setattr(ps, "sym:nextSibling", ns);
       }
       if (ns) {
-	Setattr(ns, "sym:previousSibling", ps);
+        Setattr(ns, "sym:previousSibling", ps);
       }
       Delattr(nn, "sym:previousSibling");
       Delattr(nn, "sym:nextSibling");
@@ -98,7 +115,7 @@ void clean_overloaded(Node *n) {
       continue;
     } else {
       if (!first)
-	first = nn;
+        first = nn;
       Setattr(nn, "sym:overloaded", first);
     }
     nn = Getattr(nn, "sym:nextSibling");
@@ -121,7 +138,6 @@ void clean_overloaded(Node *n) {
 void Swig_set_max_hash_expand(int count) {
   SetMaxHashExpand(count);
 }
-
 
 extern "C" {
 
@@ -222,5 +238,4 @@ void Swig_print_with_location(DOH *object, int count) {
   Delete(output);
 }
 
-} // extern "C"
-
+}  // extern "C"

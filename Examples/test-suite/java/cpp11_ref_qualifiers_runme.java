@@ -51,6 +51,15 @@ public class cpp11_ref_qualifiers_runme {
 
     ConversionOperators2 co2 = new ConversionOperators2();
     s = co2.StringConvertMove();
+
+    // Default arguments
+    DefaultArgs d = new DefaultArgs();
+    if (d.vol() != 100 || d.vol(10) != 100 || d.vol(10, 20) != 100) throw new RuntimeException("vol");
+    if (d.lref() != 200 || d.lref(10) != 200 || d.lref(10, 20) != 200) throw new RuntimeException("lref");
+    if (d.cvref_renamed() != 3 || d.cvref_renamed(10) != 12 || d.cvref_renamed(10, 20) != 30) throw new RuntimeException("cvref_renamed");
+    if (d.rv() != 3 || d.rv(10) != 12 || d.rv(10, 20) != 30) throw new RuntimeException("rv");
+    for (java.lang.reflect.Method m : DefaultArgs.class.getMethods())
+      if (m.getName().equals("cvref") || m.getName().equals("crv")) throw new RuntimeException(m.getName() + " should not be wrapped");
   }
 }
 

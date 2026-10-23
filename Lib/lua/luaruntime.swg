@@ -42,6 +42,12 @@ SWIGEXPORT int SWIG_init(lua_State* L) /* default Lua action */
   /* add a global fn */
   SWIG_Lua_add_function(L,"swig_type",SWIG_Lua_type);
   SWIG_Lua_add_function(L,"swig_equals",SWIG_Lua_class_equal);
+#ifdef SWIG_DIRECTORS
+  /* add director helper functions */
+  SWIG_Lua_add_function(L,"swig_override",SWIG_Lua_director_override);
+  SWIG_Lua_add_function(L,"swig_get_override",SWIG_Lua_director_get_override);
+  SWIG_Lua_add_function(L,"swig_derive",SWIG_Lua_director_derive);
+#endif
 #endif
 
 #if (SWIG_LUA_TARGET != SWIG_LUA_FLAVOR_ELUAC)

@@ -1,4 +1,3 @@
-%include <exception.i>
 %include <std_container.i>
 %include <std_alloc.i>
 %include <std_char_traits.i>
@@ -204,7 +203,7 @@ namespace std {
     %std_sequence_methods_val(basic_string);    
 
 
-    %ignore pop();
+    %ignore pop;
 
 
 #ifdef %swig_basic_string

@@ -24,7 +24,6 @@
 //
 
 %fragment("<string>");
-%fragment("<stdexcept>");
 %fragment("<stddef.h>");
 
 

@@ -7,12 +7,6 @@
  * std_except.i
  * ----------------------------------------------------------------------------- */
 
-%{
-#include <typeinfo>
-#include <stdexcept>
-%}
-%include <exception.i>
-
 namespace std 
 {
   %ignore exception; // not sure if I should ignore this...

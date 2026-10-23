@@ -20,8 +20,8 @@
 #include "doxyentity.h"
 #include "doxytranslator.h"
 
-#define DOC_STRING_LENGTH         64 // characters per line allowed
-#define DOC_PARAM_STRING_LENGTH   30 // characters reserved for param name / type
+#define DOC_STRING_LENGTH       64  // characters per line allowed
+#define DOC_PARAM_STRING_LENGTH 30  // characters reserved for param name / type
 
 class PyDocConverter : public DoxygenTranslator {
 public:
@@ -29,7 +29,6 @@ public:
   String *makeDocumentation(Node *node);
 
 protected:
-
   size_t m_tableLineLen;
   bool m_prevRowIsTH;
   std::string m_url;
@@ -51,7 +50,7 @@ protected:
    * Typedef for the function that handles one tag
    * arg - some string argument to easily pass it through lookup table
    */
-  typedef void (PyDocConverter::*tagHandler) (DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
+  typedef void (PyDocConverter::*tagHandler)(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
    * Wrap the command data with the some string
@@ -99,7 +98,7 @@ protected:
    */
   void handlePlainString(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
-  /**
+  /*
    * Copies verbatim args of the tag to output, used for commands like \f$, ...
    */
   void handleTagVerbatim(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
@@ -136,7 +135,7 @@ protected:
   void handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
-   * Writes text for \ref tag. 
+   * Writes text for \ref tag.
    */
   void handleTagRef(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
@@ -144,12 +143,12 @@ protected:
 
   void handleDoxyHtmlTag(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
-  /** Does not output params of HTML tag, for example in <table border='1'>
+  /* Does not output params of HTML tag, for example in <table border='1'>
    * 'border=1' is not written to output.
    */
   void handleDoxyHtmlTagNoParam(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
-  /** Translates tag <a href = "url">text</a> to: text ("url"). */
+  /* Translates tag <a href = "url">text</a> to: text ("url"). */
   void handleDoxyHtmlTag_A(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
@@ -170,7 +169,6 @@ protected:
   /* Handles HTML entities recognized by Doxygen, like &lt;, &copy;, ... */
   void handleHtmlEntity(DoxygenEntity &, std::string &translatedComment, const std::string &arg);
 
-
   /*
    * Simple helper function that calculates correct parameter type
    * of the node stored in 'currentNode'
@@ -190,9 +188,8 @@ private:
   // Extra indent for the current paragraph, must be output after each new line.
   std::string m_indent;
 
-
   // this contains the handler pointer and one string argument
-  typedef std::map<std::string, std::pair<tagHandler, std::string> >TagHandlersMap;
+  typedef std::map<std::string, std::pair<tagHandler, std::string> > TagHandlersMap;
   static TagHandlersMap tagHandlers;
 
   // this contains the sections titles, like 'Arguments:' or 'Notes:', that are printed only once

@@ -42,6 +42,9 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     /* Special case for empty matrix. */
     $1 = 0;
     $2 = ($2_ltype) malloc(sizeof($*2_ltype));
+    if ($2 == NULL) {
+      SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for 'int ARGC, char **ARGV' (empty array)");
+    }
     $2[0] = NULL;
   } else {
     /* first call to retrieve dimensions */
@@ -56,7 +59,7 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     memsize = sizeof(int) * len;
     aLen = (int*)malloc(memsize);
     if (aLen == NULL) {
-      SWIG_exception_fail(SWIG_MemoryError, "fail allocate sizes array");
+      SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for string lengths in 'int ARGC, char **ARGV'");
     }
     memset(aLen, 0, memsize);
     /*second call to retrieve length of each string */
@@ -71,20 +74,26 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     $2 = ($2_ltype) malloc(memsize);
     if ($2 == NULL) {
       free((void *)aLen);
-      SWIG_exception_fail(SWIG_MemoryError, "fail allocate array");
+      SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for 'int ARGC, char **ARGV'");
     }
     memset($2, 0, memsize);
     for(i = 0 ; i < len ; i++) {
       $2[i] = ($*2_ltype)malloc(aLen[i] + 1);
       if ($2[i] == NULL) {
+        while (i) free((void *)$2[--i]);
+        free((void *)$2);
+        $2 = NULL;
         free((void *)aLen);
-        SWIG_exception_fail(SWIG_MemoryError, "fail allocate array string element");
+        SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for a string in 'int ARGC, char **ARGV'");
       }
     }
     /* third call to retrieve data */
     sciErr = getMatrixOfString(pvApiCtx, array, &rows, &cols, aLen, $2);
     if(sciErr.iErr) {
       printError(&sciErr, 0);
+      for (i = 0; i < len; i++) free((void *)$2[i]);
+      free((void *)$2);
+      $2 = NULL;
       free((void *)aLen);
       SWIG_fail;
     }

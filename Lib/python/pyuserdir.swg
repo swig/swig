@@ -9,6 +9,10 @@
 #define %pythoncode  %insert("python")
 #define %pythonbegin %insert("pythonbegin")
 
+/* stub file code, only generated when the -pyi or -pyifile option is used */
+#define %pythonstubcode  %insert("pythonstub")
+#define %pythonstubbegin %insert("pythonstubbegin")
+
 
 /* ------------------------------------------------------------------------- */
 /* 

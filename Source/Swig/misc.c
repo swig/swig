@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -22,7 +22,10 @@
 #ifdef _WIN32
 #include <direct.h>
 #ifndef S_ISDIR
+/* Formatting changed/corrected in clang-format-17 */
+/* clang-format off */
 #define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
+/* clang-format on */
 #endif
 #endif
 
@@ -37,7 +40,7 @@ static char *fake_version = 0;
 char *Swig_copy_string(const char *s) {
   char *c = 0;
   if (s) {
-    c = (char *) Malloc(strlen(s) + 1);
+    c = (char *)Malloc(strlen(s) + 1);
     strcpy(c, s);
   }
   return c;
@@ -111,7 +114,6 @@ void Swig_banner(File *f) {
   Printf(f, "/* ----------------------------------------------------------------------------\n");
   Swig_banner_target_lang(f, " *");
   Printf(f, " * ----------------------------------------------------------------------------- */\n");
-
 }
 
 /* -----------------------------------------------------------------------------
@@ -147,7 +149,7 @@ String *Swig_strip_c_comments(const String *s) {
       if (!*c)
         break;
       if (*c == '*')
-        comment_begin = c-1;
+        comment_begin = c - 1;
     } else if (comment_begin && !comment_end && *c == '*') {
       ++c;
       if (*c == '/') {
@@ -172,6 +174,115 @@ String *Swig_strip_c_comments(const String *s) {
     } while (stripmore);
   }
   return stripped;
+}
+
+/* Whether 'c' can be part of an identifier or a number. */
+static int is_word_char(char c) {
+  return isalnum((unsigned char)c) || c == '_' || c == '$' || (unsigned char)c >= 0x80;
+}
+
+/* Whether 'next' continues the number whose last character is 'last', as in '1.5e+3', '0x1p-3' or '1'000'. */
+static int continues_number(char last, char next) {
+  return is_word_char(next) || next == '.' || next == '\'' || ((next == '+' || next == '-') && (last == 'e' || last == 'E' || last == 'p' || last == 'P'));
+}
+
+/* Whether the token ending in 'last' and the one starting at 'next' would run together into different tokens without a
+ * space between them, such as two identifiers, '-' and '-', or an identifier and the literal it would then prefix.
+ * 'number' is whether 'last' ends a number.  Digraphs are not recognised, so '< ::' can become '<::', which C++11 also
+ * reads as '<' and '::'.  A space between two '>' is not kept either: '> >' is only valid where it closes two template
+ * argument lists, and there C++11 reads '>>' as two '>' too. */
+static int tokens_run_together(char last, int number, const char *next) {
+  static const char *const punctuators[] = {"::", "->", ".*", "..", "++", "--", "<<", "<=", ">=", "==", "!=", "&&",
+                                            "||", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^=", "//", "/*", 0};
+  const char *const *p;
+  if (number && continues_number(last, *next))
+    return 1;
+  if (is_word_char(last) && (is_word_char(*next) || *next == '"' || *next == '\''))
+    return 1;
+  if ((last == '"' || last == '\'') && is_word_char(*next))
+    return 1;
+  if (last == '.' && isdigit((unsigned char)*next))
+    return 1;
+  for (p = punctuators; *p; p++) {
+    if (last == (*p)[0] && *next == (*p)[1])
+      return 1;
+  }
+  return 0;
+}
+
+/* Copy the string or character literal starting at quote 'c' to 'out' as written, taking it to be a raw string literal
+ * R"delimiter(...)delimiter" if 'raw', and return the position after it. */
+static const char *copy_literal(String *out, const char *c, int raw) {
+  const char *open = raw ? strchr(c, '(') : 0;
+  const char *end;
+  if (open) {
+    size_t delimiter_len = (size_t)(open - c - 1);
+    for (end = open + 1; *end; end++) {
+      if (*end == ')' && strncmp(end + 1, c + 1, delimiter_len) == 0 && end[delimiter_len + 1] == '"') {
+        end += delimiter_len + 2;
+        break;
+      }
+    }
+  } else {
+    for (end = c + 1; *end && *end != *c; end++) {
+      if (*end == '\\' && end[1])
+        end++;
+    }
+    if (*end)
+      end++;
+  }
+  while (c < end)
+    Putc(*c++, out);
+  return end;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_squeeze_c_whitespace()
+ *
+ * Return a copy of C/C++ source text 's' without the whitespace and comments between its tokens, other than a single
+ * space where two tokens would otherwise run together, as in 'unsigned int', 'a - -b' or 'x / *p'.  String and
+ * character literals are copied as written.  Two spellings of the same token sequence therefore give the same result,
+ * such as '(sizeof(T)>4)' for both '(sizeof(T) > 4)' and '( sizeof( T )>4 )'.  So do '> >' and '>>' closing template
+ * argument lists, as both give '>>'.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_squeeze_c_whitespace(const String *s) {
+  String *out = NewStringEmpty();
+  const char *c = Char(s);
+  char last = 0;   /* the last character copied, 0 before the first */
+  int number = 0;  /* whether 'last' is part of a number */
+  int skipped = 0; /* whether whitespace or a comment was skipped after 'last' */
+  while (*c) {
+    if (isspace((unsigned char)*c)) {
+      c++;
+      skipped = 1;
+    } else if (c[0] == '/' && c[1] == '*') {
+      const char *end = strstr(c + 2, "*/");
+      c = end ? end + 2 : c + strlen(c);
+      skipped = 1;
+    } else if (c[0] == '/' && c[1] == '/') {
+      c += strcspn(c, "\n");
+      skipped = 1;
+    } else {
+      if (skipped && last && tokens_run_together(last, number, c))
+        Putc(' ', out);
+      /* A quote directly after a number is a digit separator rather than the start of a character literal */
+      if (*c == '"' || (*c == '\'' && (skipped || !number))) {
+        c = copy_literal(out, c, !skipped && last == 'R');
+        number = 0;
+      } else {
+        if (skipped || !number || !continues_number(last, *c)) {
+          int in_identifier = !skipped && is_word_char(last) && is_word_char(*c);
+          number = !in_identifier && (isdigit((unsigned char)*c) || (*c == '.' && isdigit((unsigned char)c[1])));
+        }
+        Putc(*c, out);
+        c++;
+      }
+      last = c[-1];
+      skipped = 0;
+    }
+  }
+  return out;
 }
 
 /* -----------------------------------------------------------------------------
@@ -219,17 +330,19 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
       result = mkdir(Char(dir), 0777);
 #endif
       if (result != 0 && errno != EEXIST) {
-	error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
-	break;
+        error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
+        break;
       }
       if (!is_directory(dir)) {
-	error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
-	break;
+        error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
+        break;
       }
       Printf(dir, SWIG_FILE_DELIMITER);
     }
   } else {
-    error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.", subdirectory, basedirectory);
+    error = NewStringf("Cannot create subdirectory %s under the base directory %s. Either the base does not exist as a directory or it is not readable.",
+                       subdirectory,
+                       basedirectory);
   }
   return error;
 }
@@ -275,7 +388,7 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
   Swig_filename_correct(adjusted_filename);
-#if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
+#if defined(_WIN32) /* Note not on Cygwin else filename is displayed with double '/' */
   Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
   return adjusted_filename;
@@ -350,21 +463,134 @@ int Swig_storage_isstatic(Node *n) {
   return Swig_storage_isstatic_custom(n, "storage");
 }
 
+/* The smallest code point whose UTF-8 encoding has 'extra' continuation bytes, indexed by 'extra' */
+static const unsigned long utf8_min_code_point[] = {0, 0x80, 0x800, 0x10000, 0x200000, 0x4000000, 0x80000000};
+
+/* -----------------------------------------------------------------------------
+ * Swig_utf8_encode()
+ *
+ * Append the UTF-8 encoding of 'code_point', the code point of a character that is not ASCII, from 0x80 to 0x10FFFF,
+ * to 's'. The scanner stores a numeric escape sequence that is not ASCII in a wide character or wide string literal
+ * this way, as a character written as itself in a UTF-8 source file already is. So is a universal character name in
+ * any literal. A numeric escape sequence in a wide literal can also give a value beyond Unicode, up to 0xFFFFFFFF with
+ * a 32 bit wchar_t, which is encoded with the five and six byte forms of the original UTF-8 design, and a seven byte
+ * form for a value above 0x7FFFFFFF. For example:
+ *
+ *   code_point   Character               Bytes appended
+ *   0xE9         e with an acute accent  C3 A9
+ *   0x263A       smiley face             E2 98 BA
+ *   0x1F600      grinning face           F0 9F 98 80
+ *   0x110000     none, beyond Unicode    F4 90 80 80
+ *   0x80000000   none, beyond Unicode    FE 82 80 80 80 80 80
+ * ----------------------------------------------------------------------------- */
+
+void Swig_utf8_encode(String *s, unsigned long code_point) {
+  static const unsigned char lead_byte[] = {0, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC, 0xFE};
+  int extra = 1;
+  while (extra < 6 && code_point >= utf8_min_code_point[extra + 1]) {
+    extra++;
+  }
+  /* The lead byte of the seven byte form holds no bits of the value */
+  Putc((char)(lead_byte[extra] | (extra < 6 ? code_point >> (6 * extra) : 0)), s);
+  while (extra-- > 0) {
+    Putc((char)(0x80 | ((code_point >> (6 * extra)) & 0x3F)), s);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_utf8_decode()
+ *
+ * Decode the UTF-8 encoding of a character that is not ASCII at offset 'pos' in 's', setting 'code_point' to its code
+ * point and returning the number of bytes in the encoding, or return 0 if there is no such encoding at 'pos', such as
+ * for an ASCII character. 's' is expected to be the text the scanner stores for a wide character or wide string
+ * literal, which holds each character that is not ASCII as its UTF-8 encoding, from Swig_utf8_encode() for an escape
+ * sequence or as written in a UTF-8 source file, including the longer forms Swig_utf8_encode() uses for a value beyond
+ * Unicode. Any other byte, such as one from a source file that is not UTF-8, is not decoded, nor is an overlong
+ * encoding, which UTF-8 does not allow. For example:
+ *
+ *   Bytes of 's'           pos   Returns   code_point
+ *   61 C3 A9 62            1     2         0xE9, an e with an acute accent
+ *   61 C3 A9 62            0     0         not set, as 61 is an ASCII 'a'
+ *   E2 98 BA               0     3         0x263A, a smiley face
+ *   F4 90 80 80            0     4         0x110000, beyond Unicode
+ *   FE 82 80 80 80 80 80   0     7         0x80000000, beyond Unicode
+ *   E9 62                  0     0         not set, as E9 62 is not a UTF-8 encoding
+ *   C0 A2                  0     0         not set, as C0 A2 is an overlong encoding of a '"'
+ * ----------------------------------------------------------------------------- */
+
+int Swig_utf8_decode(String *s, int pos, unsigned long *code_point) {
+  const unsigned char *u = (const unsigned char *)Char(s) + pos;
+  int len = Len(s) - pos;
+  int ones = 0;
+  int extra;
+  int i;
+  unsigned long value;
+  if (len < 1)
+    return 0;
+  /* The number of leading ones in the lead byte is the number of bytes in the encoding */
+  while (ones < 8 && (u[0] & (0x80 >> ones))) {
+    ones++;
+  }
+  if (ones < 2 || ones > 7)
+    return 0;
+  extra = ones - 1;
+  value = u[0] & (0x7F >> ones);
+  if (len < extra + 1)
+    return 0;
+  /* The seven byte form has 36 bits, of which only the low 32 are used */
+  if (extra == 6 && (u[1] & 0x3C) != 0)
+    return 0;
+  for (i = 1; i <= extra; i++) {
+    if ((u[i] & 0xC0) != 0x80)
+      return 0;
+    value = (value << 6) | (u[i] & 0x3F);
+  }
+  if (value < utf8_min_code_point[extra])
+    return 0;
+  *code_point = value;
+  return extra + 1;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_utf8_length()
+ *
+ * The number of characters in 's', a UTF-8 encoding decoded by Swig_utf8_decode() being one character, as is any other
+ * byte. For the text of a wide string literal, this is the number of wchar_t in it, although a compiler with a 16 bit
+ * wchar_t stores a character outside the Basic Multilingual Plane as two. For example, it is 3 for the bytes
+ * 61 C3 A9 62, an 'a', an e with an acute accent and a 'b'. It is 1 for F0 9F 98 80, a grinning face.
+ * ----------------------------------------------------------------------------- */
+
+int Swig_utf8_length(String *s) {
+  int len = Len(s);
+  int count = 0;
+  int pos = 0;
+  while (pos < len) {
+    unsigned long code_point;
+    int n = Swig_utf8_decode(s, pos, &code_point);
+    pos += n ? n : 1;
+    count++;
+  }
+  return count;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_string_escape()
  *
- * Takes a string object and produces a string with escape codes added to it.
- * Octal escaping is used.  The result is used for literal strings and characters
- * in C/C++ and also Java, Python, R and Ruby.
+ * Takes a string object and produces a string with escape codes added to it, for use in a string or character literal
+ * in C/C++ and also Java, Python, R and Ruby. A character that is not printable ASCII is given as an octal escape
+ * sequence, one for each byte of a UTF-8 encoding, using three octal digits when an octal digit follows. The result is
+ * suitable for wrapping in single or double quotes to form a character or string literal. For example:
  *
- * The result is suitable for wrapping in single or double quotes to form a
- * character or string literal.
+ *   Bytes of 's'                         Result
+ *   61 22 62, a"b                        a\"b
+ *   09 0A, a tab and a newline           \t\n
+ *   01 78, 01 and an 'x'                 \1x
+ *   01 37, 01 and a '7'                  \0017
+ *   C3 A9, an e with an acute accent     \303\251
  *
- * Note that it's not safe to concatenate the results of escaping two strings
- * - you need to concatenate first and escape second.  The problem case is
- * when the first string ends with a character which gets escaped using one or
- * two octal digits and the second string starts with a character which is an
- * octal digit.
+ * Note that it's not safe to concatenate the results of escaping two strings - you need to concatenate first and escape
+ * second. The problem case is when the first string ends with a character which gets escaped using one or two octal
+ * digits and the second string starts with a character which is an octal digit.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_escape(String *s) {
@@ -389,10 +615,10 @@ String *Swig_string_escape(String *s) {
       int next_c = Getc(s);
       assert(c >= 0);
       if (next_c >= '0' && next_c < '8') {
-	/* We need to emit 3 octal digits. */
-	Printf(ns, "\\%03o", c);
+        /* We need to emit 3 octal digits. */
+        Printf(ns, "\\%03o", c);
       } else {
-	Printf(ns, "\\%o", c);
+        Printf(ns, "\\%o", c);
       }
       c = next_c;
       continue;
@@ -403,10 +629,72 @@ String *Swig_string_escape(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_wideescape()
+ *
+ * Takes the text of a wide string literal and produces a string with escape codes added to it, as Swig_string_escape()
+ * does, for use as a C/C++ wide string literal L"...". A character that is not ASCII, which the text holds as its UTF-8
+ * encoding, is given as a hexadecimal escape sequence of its code point rather than as a wide character for each byte
+ * of the encoding, or as a universal character name if it is outside the Basic Multilingual Plane, as a compiler with a
+ * 16 bit wchar_t stores it as two wchar_t. A value beyond Unicode, from a numeric escape sequence, is given as a
+ * hexadecimal escape sequence too, as no universal character name has it. A hexadecimal digit after a hexadecimal escape
+ * sequence would be taken as part of it, so the literal is ended and another started before the digit. The result is
+ * only for a literal with the L prefix. For example:
+ *
+ *   Bytes of 's'                                    Result       L"%(wideescape)s"
+ *   61 22 62, a"b                                   a\"b         L"a\"b"
+ *   C3 A9 7A, an e with an acute accent and a 'z'   \xE9z        L"\xE9z"
+ *   C3 A9 62, an e with an acute accent and a 'b'   \xE9" L"b    L"\xE9" L"b"
+ *   E2 98 BA, a smiley face                         \x263A       L"\x263A"
+ *   F0 9F 98 80, a grinning face                    \U0001F600   L"\U0001F600"
+ *   F4 90 80 80, 0x110000, beyond Unicode           \x110000     L"\x110000"
+ * ----------------------------------------------------------------------------- */
+
+static String *Swig_string_wideescape(String *s) {
+  String *ns = NewStringEmpty();
+  String *ascii = NewStringEmpty();
+  const char *text = Char(s);
+  int len = Len(s);
+  int after_hex_escape = 0;
+  int pos = 0;
+  while (pos < len) {
+    unsigned long code_point;
+    int n = Swig_utf8_decode(s, pos, &code_point);
+    if (n) {
+      Printf(ns, "%(escape)s", ascii);
+      Clear(ascii);
+      if (code_point > 0xFFFF && code_point <= 0x10FFFF) {
+        Printf(ns, "\\U%08lX", code_point);
+        after_hex_escape = 0;
+      } else {
+        Printf(ns, "\\x%lX", code_point);
+        after_hex_escape = 1;
+      }
+      pos += n;
+    } else {
+      if (after_hex_escape && isxdigit((unsigned char)text[pos]))
+        Append(ns, "\" L\"");
+      after_hex_escape = 0;
+      Putc(text[pos], ascii);
+      pos++;
+    }
+  }
+  Printf(ns, "%(escape)s", ascii);
+  Delete(ascii);
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_csharpescape()
  *
- * Takes a string object and produces a string with escape codes added to it
- * suitable for use as a C# string or character literal.
+ * Takes a string object and produces a string with escape codes added to it, for use as a C# string or character
+ * literal. A character that is not printable ASCII is given as a four digit hexadecimal escape sequence, so that a
+ * hexadecimal digit after it is not taken as part of it. Each byte of a UTF-8 encoding is a C# char. For example:
+ *
+ *   Bytes of 's'                         Result
+ *   61 22 62, a"b                        a\"b
+ *   09 0A, a tab and a newline           \t\n
+ *   01 41, 01 and an 'A'                 \x0001A
+ *   C3 A9, an e with an acute accent     \x00C3\x00A9
  * ----------------------------------------------------------------------------- */
 
 static String *Swig_string_csharpescape(String *s) {
@@ -436,6 +724,64 @@ static String *Swig_string_csharpescape(String *s) {
     }
   }
   return ns;
+}
+
+/* -----------------------------------------------------------------------------
+ * string_unicode_escape()
+ *
+ * Takes the text of a string or character literal and produces a string with escape codes added to it, for use as a
+ * string or character literal in a target language with \u escape sequences. A character that is not ASCII, which the
+ * text holds as its UTF-8 encoding, is given as a \u escape sequence of its code point rather than as a character for
+ * each byte of the encoding. One outside the Basic Multilingual Plane is given as a \U escape sequence, or as two \u
+ * escape sequences of a UTF-16 surrogate pair if 'surrogates' is set. A value beyond Unicode, which only a numeric
+ * escape sequence in a wide literal gives, has no such escape sequence and is given as a \U escape sequence, which the
+ * target language rejects. Any other byte is escaped with the 'encoding'. For example, with the 'escape' encoding:
+ *
+ *   Bytes of 's'                                    Result         Result if 'surrogates' is set
+ *   61 22 62, a"b                                   a\"b           a\"b
+ *   C3 A9 62, an e with an acute accent and a 'b'   \u00E9b        \u00E9b
+ *   F0 9F 98 80, a grinning face                    \U0001F600     \uD83D\uDE00
+ * ----------------------------------------------------------------------------- */
+
+static String *string_unicode_escape(String *s, const char *encoding, int surrogates) {
+  String *ns = NewStringEmpty();
+  String *other = NewStringEmpty();
+  const char *text = Char(s);
+  int len = Len(s);
+  int pos = 0;
+  while (pos < len) {
+    unsigned long code_point;
+    int n = Swig_utf8_decode(s, pos, &code_point);
+    if (n) {
+      Printf(ns, encoding, other);
+      Clear(other);
+      if (code_point <= 0xFFFF)
+        Printf(ns, "\\u%04lX", code_point);
+      else if (surrogates && code_point <= 0x10FFFF)
+        Printf(ns, "\\u%04lX\\u%04lX", 0xD800 + ((code_point - 0x10000) >> 10), 0xDC00 + ((code_point - 0x10000) & 0x3FF));
+      else
+        Printf(ns, "\\U%08lX", code_point);
+      pos += n;
+    } else {
+      Putc(text[pos], other);
+      pos++;
+    }
+  }
+  Printf(ns, encoding, other);
+  Delete(other);
+  return ns;
+}
+
+static String *Swig_string_csharpunicodeescape(String *s) {
+  return string_unicode_escape(s, "%(csharpescape)s", 0);
+}
+
+static String *Swig_string_javaunicodeescape(String *s) {
+  return string_unicode_escape(s, "%(escape)s", 1);
+}
+
+static String *Swig_string_dunicodeescape(String *s) {
+  return string_unicode_escape(s, "%(escape)s", 0);
 }
 
 /* -----------------------------------------------------------------------------
@@ -507,7 +853,6 @@ String *Swig_string_lower(String *s) {
   }
   return ns;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_string_title()
@@ -623,7 +968,8 @@ static String *Swig_string_ucase(String *s) {
   Seek(s, 0, SEEK_SET);
 
   while ((c = Getc(s)) != EOF) {
-    nextC = Getc(s); Ungetc(nextC, s);
+    nextC = Getc(s);
+    Ungetc(nextC, s);
     if (isdigit(c) && isalpha(lastC) && nextC != EOF)
       underscore = 1;
     else if (isupper(c) && isalpha(lastC) && !isupper(lastC))
@@ -644,12 +990,12 @@ static String *Swig_string_ucase(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_first_upper()
  *
- * Make the first character in the string uppercase, leave all the 
+ * Make the first character in the string uppercase, leave all the
  * rest the same.  This is used by the Ruby module to provide backwards
  * compatibility with the old way of naming classes and constants.  For
  * more info see the Ruby documentation.
  *
- *      firstUpper -> FirstUpper 
+ *      firstUpper -> FirstUpper
  * ----------------------------------------------------------------------------- */
 
 static String *Swig_string_first_upper(String *s) {
@@ -665,12 +1011,12 @@ static String *Swig_string_first_upper(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_first_lower()
  *
- * Make the first character in the string lowercase, leave all the 
+ * Make the first character in the string lowercase, leave all the
  * rest the same.  This is used by the Ruby module to provide backwards
  * compatibility with the old way of naming classes and constants.  For
  * more info see the Ruby documentation.
  *
- *      firstLower -> FirstLower 
+ *      firstLower -> FirstLower
  * ----------------------------------------------------------------------------- */
 
 static String *Swig_string_first_lower(String *s) {
@@ -701,7 +1047,6 @@ static String *string_mangle(String *s) {
   return Swig_name_mangle_string(s);
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_scopename_split()
  *
@@ -718,6 +1063,7 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
   if (!strstr(c, "::")) {
     *rprefix = 0;
     *rlast = Copy(s);
+    return;
   }
 
   co = strstr(cc, "operator ");
@@ -738,17 +1084,17 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
       c += 2;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -793,17 +1139,17 @@ String *Swig_scopename_prefix(const String *s) {
       c += 2;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -819,7 +1165,7 @@ String *Swig_scopename_prefix(const String *s) {
  * Swig_scopename_last()
  *
  * Take a qualified name like "A::B::C" and returns the last.  In this
- * case, "C". 
+ * case, "C".
  * ----------------------------------------------------------------------------- */
 
 String *Swig_scopename_last(const String *s) {
@@ -835,24 +1181,23 @@ String *Swig_scopename_last(const String *s) {
     return NewString(co);
   }
 
-
   while (*c) {
     if ((*c == ':') && (*(c + 1) == ':')) {
       c += 2;
       cc = c;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -887,17 +1232,17 @@ String *Swig_scopename_first(const String *s) {
       break;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -907,7 +1252,6 @@ String *Swig_scopename_first(const String *s) {
     return 0;
   }
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_scopename_suffix()
@@ -933,17 +1277,17 @@ String *Swig_scopename_suffix(const String *s) {
       break;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -1026,17 +1370,17 @@ int Swig_scopename_check(const String *s) {
       return 1;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -1058,7 +1402,7 @@ static String *Swig_string_command(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_strip()
  *
- * Strip given prefix from identifiers 
+ * Strip given prefix from identifiers
  *
  *  Printf(stderr,"%(strip:[wx])s","wxHello") -> Hello
  * ----------------------------------------------------------------------------- */
@@ -1073,12 +1417,12 @@ static String *Swig_string_strip(String *s) {
     if (*cs != '[' || !ce) {
       ns = NewString(s);
     } else {
-      String *fmt = NewStringf("%%.%ds", ce-cs-1);
-      String *prefix = NewStringf(fmt, cs+1);
-      if (0 == Strncmp(ce+1, prefix, Len(prefix))) {
-        ns = NewString(ce+1+Len(prefix));
+      String *fmt = NewStringf("%%.%ds", ce - cs - 1);
+      String *prefix = NewStringf(fmt, cs + 1);
+      if (0 == Strncmp(ce + 1, prefix, Len(prefix))) {
+        ns = NewString(ce + 1 + Len(prefix));
       } else {
-        ns = NewString(ce+1);
+        ns = NewString(ce + 1);
       }
     }
   }
@@ -1088,7 +1432,7 @@ static String *Swig_string_strip(String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_rstrip()
  *
- * Strip given suffix from identifiers 
+ * Strip given suffix from identifiers
  *
  *  Printf(stderr,"%(rstrip:[Cls])s","HelloCls") -> Hello
  * ----------------------------------------------------------------------------- */
@@ -1104,14 +1448,14 @@ static String *Swig_string_rstrip(String *s) {
     if (*cs != '[' || !ce) {
       ns = NewString(s);
     } else {
-      String *fmt = NewStringf("%%.%ds", ce-cs-1);
-      String *suffix = NewStringf(fmt, cs+1);
+      String *fmt = NewStringf("%%.%ds", ce - cs - 1);
+      String *suffix = NewStringf(fmt, cs + 1);
       int suffix_len = Len(suffix);
-      if (0 == Strncmp(cs+len-suffix_len, suffix, suffix_len)) {
-	int copy_len = len-suffix_len-(int)(ce+1-cs);
-        ns = NewStringWithSize(ce+1, copy_len);
+      if (0 == Strncmp(cs + len - suffix_len, suffix, suffix_len)) {
+        int copy_len = len - suffix_len - (int)(ce + 1 - cs);
+        ns = NewStringWithSize(ce + 1, copy_len);
       } else {
-        ns = NewString(ce+1);
+        ns = NewString(ce + 1);
       }
     }
   }
@@ -1137,19 +1481,19 @@ void Swig_offset_string(String *s, int number) {
     start = strchr(start + 1, '\n');
   }
   /* do not count pending new line */
-  if ((Char(s))[len-1] == '\n')
+  if ((Char(s))[len - 1] == '\n')
     --lines;
   /* allocate a temporary storage for a padded string */
-  res = (char*)Malloc(len + lines * number * 2 + 1);
+  res = (char *)Malloc(len + lines * number * 2 + 1);
   res[len + lines * number * 2] = 0;
 
   /* copy lines to res, prepending tabs to each line */
-  p = res; /* output pointer */
-  start = Char(s); /* start of a current line */
+  p = res;                   /* output pointer */
+  start = Char(s);           /* start of a current line */
   end = strchr(start, '\n'); /* end of a current line */
   while (end) {
-    memset(p, ' ', number*2);
-    p += number*2;
+    memset(p, ' ', number * 2);
+    p += number * 2;
     memcpy(p, start, end - start + 1);
     p += end - start + 1;
     start = end + 1;
@@ -1157,8 +1501,8 @@ void Swig_offset_string(String *s, int number) {
   }
   /* process the last line */
   if (*start) {
-    memset(p, ' ', number*2);
-    p += number*2;
+    memset(p, ' ', number * 2);
+    p += number * 2;
     strcpy(p, start);
   }
   /* replace 's' contents with 'res' */
@@ -1167,33 +1511,34 @@ void Swig_offset_string(String *s, int number) {
   Free(res);
 }
 
-
 #ifdef HAVE_PCRE
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
-static int split_regex_pattern_subst(String *s, String **pattern, String **subst, const char **input)
-{
+static int split_regex_pattern_subst(String *s, String **pattern, String **subst, const char **input) {
   const char *pats, *pate;
   const char *subs, *sube;
 
   /* Locate the search pattern */
   const char *p = Char(s);
-  if (*p++ != '/') goto err_out;
+  if (*p++ != '/')
+    goto err_out;
   pats = p;
   p = strchr(p, '/');
-  if (!p) goto err_out;
+  if (!p)
+    goto err_out;
   pate = p;
 
   /* Locate the substitution string */
   subs = ++p;
   p = strchr(p, '/');
-  if (!p) goto err_out;
+  if (!p)
+    goto err_out;
   sube = p;
 
   *pattern = NewStringWithSize(pats, (int)(pate - pats));
-  *subst   = NewStringWithSize(subs, (int)(sube - subs));
-  *input   = p + 1;
+  *subst = NewStringWithSize(subs, (int)(sube - subs));
+  *input = p + 1;
   return 1;
 
 err_out:
@@ -1204,15 +1549,14 @@ err_out:
 
 /* This function copies len characters from src to dst, possibly applying case conversions to them: if convertCase is 1, to upper case and if it is -1, to lower
  * case. If convertNextOnly is 1, only a single character is converted (and convertCase is reset), otherwise all of them are. */
-static void copy_with_maybe_case_conversion(String *dst, const char *src, int len, int *convertCase, int convertNextOnly)
-{
+static void copy_with_maybe_case_conversion(String *dst, const char *src, int len, int *convertCase, int convertNextOnly) {
   /* Deal with the trivial cases first. */
   if (!len)
     return;
 
   if (!*convertCase) {
-      Write(dst, src, len);
-      return;
+    Write(dst, src, len);
+    return;
   }
 
   /* If we must convert only the first character, do it and write the rest at once. */
@@ -1233,8 +1577,7 @@ static void copy_with_maybe_case_conversion(String *dst, const char *src, int le
   }
 }
 
-static String *replace_captures(int num_captures, const char *input, String *subst, size_t captures[], String *pattern, String *s)
-{
+static String *replace_captures(int num_captures, const char *input, String *subst, size_t captures[], String *pattern, String *s) {
   int convertCase = 0, convertNextOnly = 0;
   String *result = NewStringEmpty();
   const char *p = Char(subst);
@@ -1255,41 +1598,45 @@ static String *replace_captures(int num_captures, const char *input, String *sub
     } else if (isdigit((unsigned char)*p)) {
       int group = *p++ - '0';
       if (group < num_captures) {
-	int l = (int)captures[group*2], r = (int)captures[group*2 + 1];
-	if (l != -1) {
-	  copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
-	}
+        int l = (int)captures[group * 2], r = (int)captures[group * 2 + 1];
+        if (l != -1) {
+          copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
+        }
       } else {
-	Swig_error("SWIG", Getline(s), "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
-	    Char(pattern), input, group, num_captures-1);
+        Swig_error("SWIG",
+                   Getline(s),
+                   "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
+                   Char(pattern),
+                   input,
+                   group,
+                   num_captures - 1);
       }
     } else {
-	/* Handle Perl-like case conversion escapes. */
-	switch (*p) {
-	case 'u':
-	  convertCase = 1;
-	  convertNextOnly = 1;
-	  break;
-	case 'U':
-	  convertCase = 1;
-	  convertNextOnly = 0;
-	  break;
-	case 'l':
-	  convertCase = -1;
-	  convertNextOnly = 1;
-	  break;
-	case 'L':
-	  convertCase = -1;
-	  convertNextOnly = 0;
-	  break;
-	case 'E':
-	  convertCase = 0;
-	  break;
-	default:
-	  Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n",
-	      *p, Char(subst));
-	}
-	p++;
+      /* Handle Perl-like case conversion escapes. */
+      switch (*p) {
+      case 'u':
+        convertCase = 1;
+        convertNextOnly = 1;
+        break;
+      case 'U':
+        convertCase = 1;
+        convertNextOnly = 0;
+        break;
+      case 'l':
+        convertCase = -1;
+        convertNextOnly = 1;
+        break;
+      case 'L':
+        convertCase = -1;
+        convertNextOnly = 0;
+        break;
+      case 'E':
+        convertCase = 0;
+        break;
+      default:
+        Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n", *p, Char(subst));
+      }
+      p++;
     }
   }
 
@@ -1318,22 +1665,19 @@ static String *Swig_string_regex(String *s) {
   if (split_regex_pattern_subst(s, &pattern, &subst, &input)) {
     int rc;
 
-    compiled_pat = pcre2_compile(
-          (PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, pcre_options, &pcre_errornum, &pcre_errorpos, NULL);
+    compiled_pat = pcre2_compile((PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, pcre_options, &pcre_errornum, &pcre_errorpos, NULL);
     if (!compiled_pat) {
-      pcre2_get_error_message (pcre_errornum, pcre_error, sizeof pcre_error);
-      Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n",
-          pcre_error, Char(pattern), pcre_errorpos);
+      pcre2_get_error_message(pcre_errornum, pcre_error, sizeof pcre_error);
+      Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n", pcre_error, Char(pattern), pcre_errorpos);
       Exit(EXIT_FAILURE);
     }
-    match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
+    match_data = pcre2_match_data_create_from_pattern(compiled_pat, NULL);
     rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)input, PCRE2_ZERO_TERMINATED, 0, 0, match_data, NULL);
-    captures = pcre2_get_ovector_pointer (match_data);
+    captures = pcre2_get_ovector_pointer(match_data);
     if (rc >= 0) {
       res = replace_captures(rc, input, subst, captures, pattern, s);
     } else if (rc != PCRE2_ERROR_NOMATCH) {
-      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n",
-	rc, Char(pattern), input);
+      Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n", rc, Char(pattern), input);
       Exit(EXIT_FAILURE);
     }
   }
@@ -1372,7 +1716,7 @@ String *Swig_pcre_version(void) {
 /* ------------------------------------------------------------
  * Swig_is_generated_overload()
  * Check if the function is an automatically generated
- * overload created because a method has default parameters. 
+ * overload created because a method has default parameters.
  * ------------------------------------------------------------ */
 
 int Swig_is_generated_overload(Node *n) {
@@ -1395,8 +1739,8 @@ Node *Swig_item_in_list(List *list, const DOH *item) {
     Iterator it;
     for (it = First(list); it.item; it = Next(it)) {
       if (DohCmp(item, it.item) == 0) {
-	found_item = it.item;
-	break;
+        found_item = it.item;
+        break;
       }
     }
   }
@@ -1412,7 +1756,11 @@ Node *Swig_item_in_list(List *list, const DOH *item) {
 void Swig_init(void) {
   /* Set some useful string encoding methods */
   DohEncoding("escape", Swig_string_escape);
+  DohEncoding("wideescape", Swig_string_wideescape);
   DohEncoding("csharpescape", Swig_string_csharpescape);
+  DohEncoding("csharpunicodeescape", Swig_string_csharpunicodeescape);
+  DohEncoding("javaunicodeescape", Swig_string_javaunicodeescape);
+  DohEncoding("dunicodeescape", Swig_string_dunicodeescape);
   DohEncoding("goescape", Swig_string_goescape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);

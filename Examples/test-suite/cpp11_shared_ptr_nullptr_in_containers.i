@@ -7,10 +7,16 @@
 class C;
 %}
 
-%include <std_shared_ptr.i>
-%include <std_vector.i>
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR) || defined(SWIGLUA)
+#define SHARED_PTR_WRAPPERS_IMPLEMENTED
+#endif
 
+#if defined(SHARED_PTR_WRAPPERS_IMPLEMENTED)
+%include <std_shared_ptr.i>
 %shared_ptr(C)
+#endif
+
+%include <std_vector.i>
 
 %inline %{
 

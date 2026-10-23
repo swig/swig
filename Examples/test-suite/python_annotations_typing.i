@@ -1,0 +1,736 @@
+%module python_annotations_typing
+
+%include <std_string.i>
+%include <std_wstring.i>
+%include <std_complex.i>
+
+// Tests the typing annotations
+%feature("python:annotations", "typing");
+
+// The default library 'pytyping' typemaps annotate wrapped C/C++ types as typing.Any.
+// Opt this test module in to proxy-name annotations by defining the SWIGTYPE 'pytyping'
+// typemaps explicitly, which exercises the $pytypename and $&pytypename special variables.
+%typemap(pytyping) SWIGTYPE      "$&pytypename";
+%typemap(pytyping) SWIGTYPE []   "typing.Optional[$pytypename]";
+%typemap(pytyping) SWIGTYPE *    "typing.Optional[$pytypename]";
+%typemap(pytyping) SWIGTYPE &    "$pytypename";
+%typemap(pytyping) SWIGTYPE &&   "$pytypename";
+%typemap(pytyping) enum SWIGTYPE "int";
+
+// Exercise $*pytypename, which removes one pointer level: for a MyStruct ** argument it
+// yields the MyStruct proxy name.
+%typemap(pytyping) MyStruct ** "typing.Optional[$*pytypename]";
+
+%feature("python:annotations", "0") no_annotations;
+
+/* Overloads which do not all return the same type are annotated typing.Any, but an overload which
+   is not wrapped, or which has annotations turned off, says nothing about what the others return. */
+%ignore overloaded_ignored(const char *);
+%feature("python:annotations", "0") overloaded_annotations_off(int);
+
+%typemap(pytyping) OptionalInt "typing.Optional[int]";
+%typemap(pytyping, out = "$typemap(pytyping, short)") MyType "typing.Union[int, float]";
+
+%typemap(in) OptionalInt {
+  $1 = $input == Py_None ? OptionalInt() : OptionalInt(PyLong_AsLong($input));
+}
+%typemap(out) OptionalInt {
+  $result = $1.has_value ? PyLong_FromLong($1.value) : Py_None;
+}
+
+// Test that a changed type for MyEnum will be picked up correctly.
+%typemap(pytyping) MyEnum "bool";
+%rename(MyNamespaced2) MyNamespace::Inner::MyNamespaced1;
+
+// Test a typemap using $pytypename for an enum - it should expand to "int" as Python wraps enums as ints.
+%typemap(pytyping) PytypenameEnum "typing.Optional[$pytypename]";
+
+%inline %{
+namespace Space {
+template<class T>
+struct Template {
+  void mymethod(int, Template* tt) {}
+};
+}
+template<typename T>
+Space::Template<T> makeT(int x) {
+  return Space::Template<T>();
+}
+int *global_ints(int &ri, Space::Template<short> t) { return &ri; }
+int *global_overloaded(int &ri) { return &ri; }
+int *global_overloaded() { return NULL; }
+int *no_annotations(int &ri, const char *c) { return NULL; }
+
+int    overloaded_differ(int x) { return x; }
+double overloaded_differ(double x, double y) { return x + y; }
+
+int         overloaded_ignored(int x) { return x; }
+int         overloaded_ignored(int x, int y) { return x + y; }
+const char *overloaded_ignored(const char *s) { return s; }
+
+int overloaded_annotations_off(int x) { return x; }
+int overloaded_annotations_off(int x, int y) { return x + y; }
+
+/* The Python data model requires these to return a string, so they are annotated str rather
+   than the typing.Optional a char * is otherwise given. */
+struct StringDunders {
+  const char *__str__() const { return "s"; }
+  const char *__repr__() const { return "r"; }
+  const char *__format__(const char *spec) const { return spec; }
+  const char *not_a_dunder() const { return "n"; }
+};
+%}
+%template(TemplateShort) Space::Template<short>;
+%template(MakeShort) makeT<short>;
+
+%inline %{
+#ifdef SWIGPYTHON_BUILTIN
+int is_python_builtin() { return 1; }
+#else
+int is_python_builtin() { return 0; }
+#endif
+
+#if defined SWIGPYTHON_FASTPROXY
+int is_python_fastproxy() { return 1; }
+#else
+int is_python_fastproxy() { return 0; }
+#endif
+%}
+
+%typemap(in) (int argc, char **argv) {
+  /* Check if is a list */
+  if (PyList_Check($input)) {
+    int i;
+    $1 = (int)PyList_Size($input);
+    $2 = (char **)malloc(($1+1)*sizeof(char *));
+    for (i = 0; i < $1; i++) {
+      PyObject *o = PyList_GetItem($input, i);
+      if (PyBytes_Check(o)) {
+        $2[i] = PyBytes_AsString(PyList_GetItem($input, i));
+      } else {
+        PyErr_SetString(PyExc_TypeError, "list must contain strings");
+        SWIG_fail;
+      }
+    }
+    $2[i] = 0;
+  } else {
+    PyErr_SetString(PyExc_TypeError, "not a list");
+    SWIG_fail;
+  }
+}
+
+%typemap(freearg) (int argc, char **argv) {
+  free((char *) $2);
+}
+
+%typemap(pytyping) (int argc, char **argv) "typing.List[str]"
+
+%typemap(in, numinputs=0) short *OutAppend (short temp) { $1 = &temp; }
+%typemap(argout) (short *OutAppend) {
+  $result = SWIG_AppendOutput($result, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutAppend "int"
+%apply short *OutAppend { short *OutAppend2 };
+
+%typemap(in, numinputs=0) (short **short_list)(short*temp) { $1 = &temp; }
+%typemap(in, numinputs=0) (size_t *short_list_len)(size_t temp) { $1 = &temp; }
+%typemap(freearg) (short **short_list) { free(*$1); }
+%typemap(argout) (short **short_list, size_t *short_list_len) {
+  PyObject *list = PyList_New(*$2);
+  for (size_t i = 0; i < *$2; i++)
+    PyList_SetItem(list, i, PyLong_FromLong((*$1)[i]));
+  $result = SWIG_AppendOutput($result, list);
+}
+%typemap(pytyping) (short **short_list, size_t *short_list_len) "typing.List[int]"
+
+/* An argout typemap on a constructor parameter. It must not append, as the constructor
+   result is the new object rather than something to add to. */
+%typemap(in, numinputs=0) short *CtorFlag (short temp) { $1 = &temp; }
+%typemap(argout) short *CtorFlag { (void)*$1; }
+%typemap(pytyping) short *CtorFlag "None"
+
+/* An argout typemap that only checks an error code returns nothing of its own. */
+%typemap(in, numinputs=0) short *OutCheck (short temp) { $1 = &temp; }
+%typemap(argout, numoutputs=0) short *OutCheck {
+  if (*$1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)*$1);
+    SWIG_fail;
+  }
+}
+%typemap(pytyping) short *OutCheck "None"
+
+/* An argout typemap that overwrites $result discards everything returned before it. */
+%typemap(in, numinputs=0) short *OutReplace (short temp) { $1 = &temp; }
+%typemap(argout, overwrite=1) short *OutReplace {
+  Py_XDECREF($result);
+  $result = PyUnicode_FromFormat("replaced%d", (int)*$1);
+}
+%typemap(pytyping) short *OutReplace "str"
+%apply short *OutReplace { short *OutReplace2 };
+
+/* Like (short **short_list, size_t *short_list_len) except that it replaces everything
+   returned before it rather than appending to it. This is the case reported in #3469 -
+   the function return value is dropped, so the annotation is the type the typemap builds
+   rather than a list containing it. */
+%typemap(in, numinputs=0) (short **short_list_replace)(short*temp) { $1 = &temp; }
+%typemap(freearg) (short **short_list_replace) { free(*$1); }
+%typemap(argout, overwrite=1) (short **short_list_replace, size_t *short_list_len) {
+  PyObject *list = PyList_New(*$2);
+  for (size_t i = 0; i < *$2; i++)
+    PyList_SetItem(list, i, PyLong_FromLong((*$1)[i]));
+  Py_XDECREF($result);
+  $result = list;
+}
+%typemap(pytyping) (short **short_list_replace, size_t *short_list_len) "typing.List[int]"
+
+/* An out typemap using numoutputs=0 turns the function return value into an exception,
+   so it is not one of the returned values and is not part of the annotation. This is the
+   case reported in #3084. */
+%typemap(out, numoutputs=0) MyErr ""
+%typemap(ret) MyErr %{
+  if ($1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)$1);
+    SWIG_fail;
+  }
+%}
+
+/* An argout typemap building a tuple rather than the list SWIG_AppendOutput builds.
+   The helper is in a fragment so that it is only emitted when a typemap using it is. */
+%fragment("AppendOutput_Tuple", "header") %{
+SWIGINTERN PyObject *AppendOutput_Tuple(PyObject *result, PyObject *obj, int isvoidresult) {
+  PyObject *tmp, *joined;
+  if (!result)
+    return obj;
+  if (result == Py_None && isvoidresult) {
+    Py_DECREF(result);
+    return obj;
+  }
+  if (!PyTuple_Check(result)) {
+    tmp = PyTuple_New(1);
+    PyTuple_SET_ITEM(tmp, 0, result);
+    result = tmp;
+  }
+  tmp = PyTuple_New(1);
+  PyTuple_SET_ITEM(tmp, 0, obj);
+  joined = PySequence_Concat(result, tmp);
+  Py_DECREF(result);
+  Py_DECREF(tmp);
+  return joined;
+}
+%}
+
+%typemap(in, numinputs=0) short *OutTuple (short temp) { $1 = &temp; }
+%typemap(argout, container="tuple", fragment="AppendOutput_Tuple") short *OutTuple {
+  $result = AppendOutput_Tuple($result, PyLong_FromLong(*$1), $isvoidresult);
+}
+%typemap(pytyping) short *OutTuple "int"
+%apply short *OutTuple { short *OutTuple2 };
+
+/* An overwriting argout typemap that builds the tuple the ones after it append into. */
+%typemap(in, numinputs=0) short *OutTupleReplace (short temp) { $1 = &temp; }
+%typemap(argout, overwrite=1, container="tuple") short *OutTupleReplace {
+  Py_XDECREF($result);
+  $result = PyTuple_New(1);
+  PyTuple_SET_ITEM($result, 0, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutTupleReplace "int"
+
+/* An overwriting argout typemap that builds a list holding the value it adds. The container
+   it names is what it assigns, so a single value is in the list too. */
+%typemap(in, numinputs=0) short *OutListReplace (short temp) { $1 = &temp; }
+%typemap(argout, overwrite=1, container="list") short *OutListReplace {
+  Py_XDECREF($result);
+  $result = PyList_New(1);
+  PyList_SetItem($result, 0, PyLong_FromLong(*$1));
+}
+%typemap(pytyping) short *OutListReplace "int"
+
+/* The container attribute names the container the typemap appends into and is not restricted
+   to the list and tuple that Python knows how to annotate. This one builds a string. */
+%fragment("AppendOutput_Str", "header") %{
+SWIGINTERN PyObject *AppendOutput_Str(PyObject *result, PyObject *obj, int isvoidresult) {
+  PyObject *joined;
+  if (!result)
+    return obj;
+  if (result == Py_None && isvoidresult) {
+    Py_DECREF(result);
+    return obj;
+  }
+  joined = PyUnicode_Concat(result, obj);
+  Py_DECREF(result);
+  Py_DECREF(obj);
+  return joined;
+}
+%}
+
+%typemap(in, numinputs=0) char *OutChar (char temp) { $1 = &temp; }
+%typemap(argout, container="str", fragment="AppendOutput_Str") char *OutChar {
+  $result = AppendOutput_Str($result, PyUnicode_FromStringAndSize($1, 1), $isvoidresult);
+}
+%typemap(pytyping) char *OutChar "str"
+%apply char *OutChar { char *OutChar2 };
+
+/* Python annotates the list and tuple containers and uses the catch-all type for any other,
+   as it cannot work out what a container it does not know about holds. There is no clash and
+   so no warning 478, and the python:annotations:catchall feature supplies the type just as it
+   does for a clash. */
+%feature("python:annotations:catchall") argoutStrTwoCharsTyped "str"
+
+/* Argout typemaps naming different containers cannot agree on what $result is, so the type
+   of the values returned cannot be worked out and warning 478 is issued. What is returned
+   then depends on the order the argout typemaps run in: whichever runs first is the one
+   holding everything before it, so the two functions below return the same values nested
+   the opposite way round. The catch-all type covers both. */
+%warnfilter(SWIGWARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH) argoutBoolTupleThenAppend;
+%warnfilter(SWIGWARN_TYPEMAP_ARGOUT_CONTAINER_MISMATCH) argoutBoolAppendThenTuple;
+
+/* Warning 478 says only that SWIG cannot work the type out, not that there is no type, so
+   the python:annotations:catchall feature supplies it in place of the catch-all type. The
+   feature also suppresses the warning, which the test-suite building with -Werror checks,
+   as there is nothing left for it to report. */
+%feature("python:annotations:catchall") argoutBoolTupleThenAppendTyped "typing.List[typing.Union[typing.Tuple[bool, int], int]]"
+
+%inline %{
+#include <cstddef>
+
+typedef int MyErr;
+
+struct ArgoutConstructor {
+  int value;
+  ArgoutConstructor(int v, short *CtorFlag) : value(v) { *CtorFlag = 1; }
+};
+
+void take_argv(int argc, char **argv) {}
+
+void take_argv_surround(double before, int argc, char **argv, short after) {}
+
+void argcheck_bool(
+  bool a_bool,
+  const bool &a_bool_cref
+) {}
+
+void argcheck_char(
+  char a_char,
+  wchar_t a_wchar,
+  const char &a_char_cref
+) {}
+
+void argcheck_int(
+  signed char a_schar,
+  unsigned char a_uchar,
+  short a_short,
+  unsigned short a_ushort,
+  int a_int,
+  unsigned int a_uint,
+  long a_long,
+  unsigned long a_ulong,
+  long long a_llong,
+  unsigned long long a_ullong,
+  size_t a_size,
+  std::size_t a_stdsize,
+  ptrdiff_t a_ptrdiff,
+  std::ptrdiff_t a_stdptrdiff,
+  const short &a_short_cref,
+  const int &a_int_cref,
+  const size_t &a_size_cref,
+  const std::size_t &a_stdsize_cref,
+  const ptrdiff_t &a_ptrdiff_cref,
+  const std::ptrdiff_t &a_stdptrdiff_cref
+) {}
+
+void argcheck_float(
+  float a_float,
+  double a_double,
+  const double &a_double_cref
+) {}
+
+/* long double has no in/out typemaps of its own, so it is wrapped as a pointer to an
+   opaque type and a Python float is not accepted. Both forms must stay typing.Any. */
+void argcheck_long_double(
+  long double a_ldouble,
+  const long double &a_ldouble_cref
+) {}
+
+void argcheck_complex(
+  std::complex<float> a_cfloat,
+  std::complex<double> a_cdouble,
+  const std::complex<double> &a_cdouble_cref
+) {}
+
+void argcheck_str(
+  const char* a_cstr,
+  const wchar_t *a_wcstr,
+  std::string a_stdstr,
+  std::wstring a_stdwstr,
+  const std::string &a_stdstr_cref
+) {}
+
+void argcheck_fnptr(int(*f)(char, bool)) {}
+void argcheck_array(float arr[3]) {}
+
+struct OptionalInt {
+  OptionalInt() : has_value(false) {}
+  OptionalInt(int i) : has_value(true), value(i) {}
+  bool has_value;
+  int value;
+};
+
+OptionalInt optional_square(OptionalInt i) {
+  if (i.has_value)
+    return OptionalInt(i.value * i.value);
+  return OptionalInt();
+}
+
+struct MyType {};
+MyType docs_do_something_out_type(MyType t) { return MyType(); }
+
+struct MyStruct {
+  void do_something(MyStruct& ref, MyStruct* ptr, const MyStruct& cref) {}
+};
+
+typedef int MyTypedef;
+typedef MyStruct MyStructTypedef;
+void use_typedefs(int i, MyTypedef mt, const MyStructTypedef &cref_mst) {}
+
+void use_memberfn_ptr(void (MyStruct::* ptr)(MyStruct&, MyStruct*, const MyStruct&)) {}
+
+void use_member_ptr(int OptionalInt::*ptr) {}
+
+void use_deref(MyStruct **pp) {}
+
+enum MyEnum {
+  MyEnumMember1,
+  MyEnumMember2,
+  MyEnumMember3,
+};
+typedef MyEnum MyEnumTypedef;
+
+enum MyOtherEnum {
+  MyOtherEnumMember1,
+  MyOtherEnumMember2,
+};
+typedef MyOtherEnum MyOtherEnumTypedef;
+
+void use_enums(MyEnum me, MyEnumTypedef met, MyOtherEnum moe, MyOtherEnumTypedef moet) {}
+
+enum PytypenameEnum {
+  PytypenameEnumMember1,
+};
+void use_pytypename_enum(PytypenameEnum e) {}
+
+namespace MyNamespace {
+  struct MyNamespaced1 {
+    int foo;
+  };
+  namespace Inner {
+    struct MyInner {
+      int bar;
+    };
+    struct MyNamespaced1 {
+      int baz;
+    };
+  }
+}
+
+void use_namespaced(MyNamespace::MyNamespaced1 ns1, const MyNamespace::Inner::MyInner &inner1, MyNamespace::Inner::MyNamespaced1 *inner_ns1) {}
+
+void *wrap_ptr(size_t val) { return (void *)val; }
+size_t unwrap_ptr(void *ptr) { return (size_t)ptr; }
+
+short &make_short_ref() {
+  static short v = 1;
+  return v;
+}
+
+const short &make_short_cref() {
+  static short v = 1;
+  return v;
+}
+
+MyStruct &make_struct_ref() {
+  static MyStruct v;
+  return v;
+}
+
+const MyStruct &make_struct_cref() {
+  static MyStruct v;
+  return v;
+}
+
+struct HasClassMembers {
+  MyStruct member_value;
+  MyStruct *member_pointer;
+};
+
+// Forward-declared only: no proxy class, so $pytypename falls back to an opaque
+// SWIGTYPE_ type wrapper class.
+struct ForwardOnly;
+void use_forward_only(ForwardOnly *fp) { (void)fp; }
+
+void argoutVoidSingleAppend(bool arg, short *OutAppend) { *OutAppend = 42; }
+
+bool argoutBoolSingleAppend(bool arg, short *OutAppend) {
+  *OutAppend = 42;
+  return arg;
+}
+
+void argoutVoidAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
+  *OutAppend = 42;
+  *OutAppend2 = 43;
+}
+
+bool argoutBoolAppendTwice(bool arg, short *OutAppend, short *OutAppend2) {
+  *OutAppend = 42;
+  *OutAppend2 = 43;
+  return arg;
+}
+
+bool argoutBoolCheckOnly(bool arg, short *OutCheck) {
+  *OutCheck = 0;
+  return arg;
+}
+
+void argoutVoidCheckOnly(bool arg, short *OutCheck) {
+  (void)arg;
+  *OutCheck = 0;
+}
+
+bool argoutBoolCheckAndAppend(bool arg, short *OutCheck, short *OutAppend) {
+  *OutCheck = 0;
+  *OutAppend = 42;
+  return arg;
+}
+
+void argoutVoidReplace(bool arg, short *OutReplace) {
+  (void)arg;
+  *OutReplace = 42;
+}
+
+void argoutVoidReplaceTwice(bool arg, short *OutReplace, short *OutReplace2) {
+  (void)arg;
+  *OutReplace = 42;
+  *OutReplace2 = 43;
+}
+
+bool argoutBoolReplaceTwice(bool arg, short *OutReplace, short *OutReplace2) {
+  *OutReplace = 42;
+  *OutReplace2 = 43;
+  return arg;
+}
+
+bool argoutBoolReplace(bool arg, short *OutReplace) {
+  (void)arg;
+  *OutReplace = 42;
+  return arg;
+}
+
+bool argoutBoolAppendThenReplace(bool arg, short *OutAppend, short *OutReplace) {
+  (void)arg;
+  *OutAppend = 42;
+  *OutReplace = 43;
+  return arg;
+}
+
+bool argoutBoolReplaceThenAppend(bool arg, short *OutReplace, short *OutAppend) {
+  (void)arg;
+  *OutReplace = 42;
+  *OutAppend = 43;
+  return arg;
+}
+
+void argoutVoidTupleSingle(short *OutTuple) {
+  *OutTuple = 42;
+}
+
+bool argoutBoolTupleSingle(bool arg, short *OutTuple) {
+  *OutTuple = 42;
+  return arg;
+}
+
+void argoutVoidTupleTwice(short *OutTuple, short *OutTuple2) {
+  *OutTuple = 42;
+  *OutTuple2 = 43;
+}
+
+bool argoutBoolTupleTwice(bool arg, short *OutTuple, short *OutTuple2) {
+  *OutTuple = 42;
+  *OutTuple2 = 43;
+  return arg;
+}
+
+void argoutVoidTupleReplaceOnly(short *OutTupleReplace) {
+  *OutTupleReplace = 41;
+}
+
+bool argoutBoolTupleReplaceOnly(bool arg, short *OutTupleReplace) {
+  (void)arg;
+  *OutTupleReplace = 41;
+  return arg;
+}
+
+bool argoutBoolListReplaceOnly(bool arg, short *OutListReplace) {
+  (void)arg;
+  *OutListReplace = 41;
+  return arg;
+}
+
+bool argoutBoolTupleReplaceThenAppend(bool arg, short *OutTupleReplace, short *OutTuple) {
+  (void)arg;
+  *OutTupleReplace = 41;
+  *OutTuple = 42;
+  return arg;
+}
+
+bool argoutBoolTupleThenAppend(bool arg, short *OutTuple, short *OutAppend) {
+  *OutTuple = 42;
+  *OutAppend = 43;
+  return arg;
+}
+
+bool argoutBoolAppendThenTuple(bool arg, short *OutAppend, short *OutTuple) {
+  *OutAppend = 43;
+  *OutTuple = 42;
+  return arg;
+}
+
+bool argoutBoolTupleThenAppendTyped(bool arg, short *OutTuple, short *OutAppend) {
+  *OutTuple = 42;
+  *OutAppend = 43;
+  return arg;
+}
+
+void argoutStrOneChar(char *OutChar) {
+  *OutChar = 'a';
+}
+
+void argoutStrTwoChars(char *OutChar, char *OutChar2) {
+  *OutChar = 'a';
+  *OutChar2 = 'b';
+}
+
+void argoutStrTwoCharsTyped(char *OutChar, char *OutChar2) {
+  *OutChar = 'a';
+  *OutChar2 = 'b';
+}
+
+const char *argoutStrResultAndTwoChars(char *OutChar, char *OutChar2) {
+  *OutChar = 'a';
+  *OutChar2 = 'b';
+  return "Z";
+}
+
+void argoutMultiarg(short **short_list, size_t *short_list_len) {
+  *short_list = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiarg(bool arg, short **short_list, size_t *short_list_len) {
+  *short_list = NULL;
+  *short_list_len = 0;
+  return arg;
+}
+
+void argoutMultiargAfterFirst(int first, short **short_list, size_t *short_list_len) {
+  (void)first;
+  *short_list = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargAfterFirst(int first, short **short_list, size_t *short_list_len) {
+  *short_list = NULL;
+  *short_list_len = 0;
+  return first != 0;
+}
+
+void argoutMultiargBetweenFirstLast(int first, short **short_list, size_t *short_list_len, double last) {
+  (void)first;
+  (void)last;
+  *short_list = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargBetweenFirstLast(int first, short **short_list, size_t *short_list_len, double last) {
+  *short_list = NULL;
+  *short_list_len = 0;
+  return first != 0 && last != 0.0;
+}
+
+MyErr argoutSuppressedSingleAppend(int code, short *OutAppend) {
+  *OutAppend = 42;
+  return code;
+}
+
+MyErr argoutSuppressedAppendTwice(int code, short *OutAppend, short *OutAppend2) {
+  *OutAppend = 42;
+  *OutAppend2 = 43;
+  return code;
+}
+
+MyErr argoutSuppressedCheckOnly(int code, short *OutCheck) {
+  *OutCheck = 0;
+  return code;
+}
+
+MyErr argoutSuppressedNoArgout(int code) {
+  return code;
+}
+
+void argoutMultiargReplace(short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargReplace(bool arg, short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+  return arg;
+}
+
+void argoutMultiargReplaceAfterFirst(int first, short **short_list_replace, size_t *short_list_len) {
+  (void)first;
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargReplaceAfterFirst(int first, short **short_list_replace, size_t *short_list_len) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+  return first != 0;
+}
+
+void argoutMultiargReplaceBetweenFirstLast(int first, short **short_list_replace, size_t *short_list_len, double last) {
+  (void)first;
+  (void)last;
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+}
+
+bool argoutBoolMultiargReplaceBetweenFirstLast(int first, short **short_list_replace, size_t *short_list_len, double last) {
+  *short_list_replace = NULL;
+  *short_list_len = 0;
+  return first != 0 && last != 0.0;
+}
+%}
+
+// A class-typed %constant is annotated at module level.
+%constant MyStruct *CONST_STRUCT = 0;
+
+%apply int *INPUT { short *IN1, short *IN2 };
+
+/* The reference forms reject a null pointer, so they are annotated with the plain type,
+   unlike the pointer forms which accept one and are annotated with typing.Optional. */
+%apply int &INPUT  { int &refIn };
+%apply int &OUTPUT { int &refOut };
+%apply int &INOUT  { int &refInOut };
+
+%inline %{
+
+void singleOutput(int x, int y, int *OUTPUT) {}
+bool twoInputs(short *IN1, short *IN2) { return true; }
+void inout(int x, int *INOUT) {}
+
+void refInput(int &refIn) {}
+void refOutput(int &refOut) {}
+void refInout(int &refInOut) {}
+
+%}

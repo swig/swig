@@ -41,8 +41,8 @@ char *foo(unsigned) { return (char *) "foo-unsigned"; }
 namespace Space {
 class Base {
 public: 
-  Base(){}; 
-  virtual ~Base(){};
+  Base(){}
+  virtual ~Base(){}
   void fn1(Base baseValue, Base* basePtr, Base& baseRef){}
   virtual const char * oldname(double d) const { return "Base"; }
 };

@@ -472,7 +472,6 @@ namespace std {
 %{
 #include <list>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 %csmethodmodifiers std::list::size "private"

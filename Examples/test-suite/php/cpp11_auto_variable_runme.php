@@ -5,7 +5,7 @@ require "tests.php";
 // No new functions
 check::functions(array());
 check::classes(array('cpp11_auto_variable'));
-check::globals(array('f', 't', 'zero', 'one', 'la', 'da', 'fa', 'lc', 'dc', 'fc', 'pi_approx', 'wstring_lit_len1', 'wstring_lit_len2', 'Bar', 'Bar2', 'Bar3', 'CAST_HAD_WRONG_PRECEDENCE1', 'CAST_HAD_WRONG_PRECEDENCE2', 'CAST_HAD_WRONG_PRECEDENCE3', 'CAST_HAD_WRONG_PRECEDENCE4', 'Foo', 'Foo2', 'Foo3', 'NOEXCEPT_FUNC'));
+check::globals(array('f', 't', 'zero', 'one', 'cz', 'zc', 'la', 'da', 'fa', 'lc', 'dc', 'fc', 'pi_approx', 'wstring_lit_len1', 'wstring_lit_len2', 'Bar', 'Bar2', 'Bar3', 'CAST_HAD_WRONG_PRECEDENCE1', 'CAST_HAD_WRONG_PRECEDENCE2', 'CAST_HAD_WRONG_PRECEDENCE3', 'CAST_HAD_WRONG_PRECEDENCE4', 'Foo', 'Foo2', 'Foo3', 'NOEXCEPT_FUNC'));
 
 check::equal(f_get(), false);
 check::equal(gettype(f_get()), "boolean");
@@ -26,6 +26,11 @@ zero_set(42);
 check::equal(zero_get(), 42);
 
 check::equal(function_exists('one_set'), false, "one should be constant but one_set() exists");
+
+check::equal(cz_get(), 2);
+check::equal(zc_get(), 3);
+check::equal(function_exists('cz_set'), false, "cz should be constant but cz_set() exists");
+check::equal(function_exists('zc_set'), false, "zc should be constant but zc_set() exists");
 
 check::equal(fa_get(), 1.0);
 check::equal(da_get(), 1.0);

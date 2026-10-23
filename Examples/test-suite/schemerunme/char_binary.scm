@@ -17,7 +17,7 @@
 (pchar-setitem pc 1 #\o)
 (pchar-setitem pc 2 #\l)
 (pchar-setitem pc 3 #\a)
-(pchar-setitem pc 4 0)
+(pchar-setitem pc 4 #\nul)
 
 ;; FIXME: pc in not string
 ;; (if (not (= (Test-strlen pc) 4))

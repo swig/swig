@@ -73,7 +73,7 @@ private:
 
 template <typename Type>
 static void swig_acquire_pointer(Swig_memory** pmem, Type* ptr) {
-  if (!pmem) {
+  if (!*pmem) {
     *pmem = new Swig_memory;
   }
   (*pmem)->swig_acquire_pointer(ptr);

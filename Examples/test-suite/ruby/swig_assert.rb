@@ -31,7 +31,7 @@ end
 # scope - optional Binding where to run the code
 # msg   - optional additional message to print
 #
-def swig_assert_equal( a, b, scope = nil, msg = nil )
+def swig_assert_equal( a, b, scope = nil, msg = nil, count_lines = 0 )
   a = 'nil' if a == nil
   b = 'nil' if b == nil
   begin
@@ -65,6 +65,9 @@ rescue => e
   $stderr.puts "#{trace[0,1]}: #{e}"
   if trace.size > 1
     $stderr.puts "\tfrom #{trace[1..-1].join("\n\t     ")}"
+  end
+  if count_lines > 0
+    $stderr.puts "Add #{ count_lines } lines after calling 'swig_assert_each_line'"
   end
   exit(1)
 end
@@ -108,7 +111,7 @@ end
 # scope - optional Binding where to run the code
 # msg   - optional additional message to print
 #
-def swig_eval( expr, scope = nil, msg = nil )
+def swig_eval( expr, scope = nil, msg = nil, count_lines = 0 )
   begin
     if scope.kind_of? Binding
       eval(expr.to_s, scope)
@@ -128,6 +131,9 @@ rescue => e
   if trace.size > 1
     $stderr.puts "\tfrom #{trace[1..-1].join("\n\t     ")}"
   end
+  if count_lines > 0
+    $stderr.puts "Add #{ count_lines } lines after calling 'swig_assert_each_line'"
+  end
   exit(1)
 end
 
@@ -142,12 +148,14 @@ end
 # msg   - optional additional message to print
 #
 def swig_assert_each_line( lines, scope = nil, msg = nil )
+  count_lines = 0
   lines.split("\n").each do |line|
+    count_lines += 1
     next if line.empty? or line =~ /^\s*#.*/
       if line =~ /^\s*([^\s]*)\s*==\s*(.*)\s*$/
-        swig_assert_equal($1, $2, scope, msg)
+        swig_assert_equal($1, $2, scope, msg, count_lines)
       else
-        swig_eval(line, scope, msg)
+        swig_eval(line, scope, msg, count_lines)
       end
   end
 end

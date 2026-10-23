@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 51;
+use Test::More tests => 67;
 BEGIN { use_ok('primitive_types') }
 require_ok('primitive_types');
 
@@ -252,6 +252,23 @@ primitive_types::delete_pchar($pc);
 	like($@, qr/\bTypeError\b/, "namet typemap");
 	is($orig, $t->{var_namet}, "namet typemap");
 }
+# An empty string or undef is not a number, but a string holding a number is
+for my $name (qw(int uint llong ullong)) {
+	for my $val ('', undef) {
+		no warnings 'uninitialized';
+		eval { primitive_types->can("val_$name")->($val) };
+		like($@, qr/\bTypeError\b/, "val_$name " . (defined $val ? "''" : 'undef'));
+	}
+}
+is(primitive_types::val_int('0'), 0, "val_int '0'");
+# A negative number in a string is not an unsigned number
+for my $name (qw(ulong ullong sizet)) {
+	for my $val ('-1', ' -1') {
+		eval { primitive_types->can("val_$name")->($val) };
+		like($@, qr/\bOverflowError\b/, "val_$name '$val'");
+	}
+}
+is(primitive_types::val_ulong('-0'), 0, "val_ulong '-0'");
 #t2 = p.vtest(t)
 #if t.var_namet !=  t2.var_namet:
 #  raise RuntimeError, "bad SWIGTYPE* typemap"

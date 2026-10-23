@@ -31,13 +31,13 @@
 #include <mutex>
 #ifdef SWIG_HAVE_MUTEX
 /* Use Language defined Mutex class */
-#define SWIG_GUARD(_mutex) std::unique_lock<Mutex> _guard(_mutex)
-#define SWIG_GUARD_DEFINITION(_cls, _mutex) Mutex _cls::_mutex
-#define SWIG_GUARD_DECLARATION(_mutex) static Mutex _mutex
+#define SWIG_GUARD(_mutex) std::unique_lock<Mutex> _guard(_mutex);
+#define SWIG_GUARD_DEFINITION(_cls, _mutex) Mutex _cls::_mutex;
+#define SWIG_GUARD_DECLARATION(_mutex) static Mutex _mutex;
 #else
-#define SWIG_GUARD(_mutex) std::unique_lock<std::mutex> _guard(_mutex)
-#define SWIG_GUARD_DEFINITION(_cls, _mutex) std::mutex _cls::_mutex
-#define SWIG_GUARD_DECLARATION(_mutex) static std::mutex _mutex
+#define SWIG_GUARD(_mutex) std::unique_lock<std::mutex> _guard(_mutex);
+#define SWIG_GUARD_DEFINITION(_cls, _mutex) std::mutex _cls::_mutex;
+#define SWIG_GUARD_DECLARATION(_mutex) static std::mutex _mutex;
 #endif
 
 #else /* __cplusplus */
@@ -90,9 +90,9 @@ namespace Swig {
         ~Unique_lock() { mutex_.unlock(); }
     };
 }
-#define SWIG_GUARD(_mutex) Unique_lock _guard(_mutex)
-#define SWIG_GUARD_DEFINITION(_cls, _mutex) Mutex _cls::_mutex
-#define SWIG_GUARD_DECLARATION(_mutex) static Mutex _mutex
+#define SWIG_GUARD(_mutex) Unique_lock _guard(_mutex);
+#define SWIG_GUARD_DEFINITION(_cls, _mutex) Mutex _cls::_mutex;
+#define SWIG_GUARD_DECLARATION(_mutex) static Mutex _mutex;
 
 #endif /* __cplusplus */
 

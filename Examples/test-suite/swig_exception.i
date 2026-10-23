@@ -89,3 +89,17 @@ double Square::perimeter() {
   return 4*width;
 }
 %}
+
+%exception throwIndexError {
+  try {
+    $action
+  } catch (std::out_of_range& e) {
+    SWIG_exception(SWIG_IndexError, e.what());
+  }
+}
+
+%inline %{
+int throwIndexError() {
+  throw std::out_of_range("index out of range");
+}
+%}

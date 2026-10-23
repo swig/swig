@@ -13,3 +13,6 @@ t3 = cpp11_template_explicit.my_templated_function_TemperInt(3,3.0)
 swig_assert_isinstance(t1,int)
 swig_assert_isinstance(t2,cpp11_template_explicit.A)
 swig_assert_isinstance(t3,cpp11_template_explicit.TemperInt)
+
+from swig_test_utils import swig_check
+swig_check(cpp11_template_explicit.trailing_function_int(5), 5)

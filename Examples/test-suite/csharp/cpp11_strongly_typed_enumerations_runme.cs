@@ -161,6 +161,18 @@ public class cpp11_strongly_typed_enumerations_runme {
     val = enumCheck((int)Class2.Struct1.Enum14.Val5m, 4141);
     val = enumCheck((int)Class2.Struct1.Enum14.Val6m, val);
 
+    // Enum class and enumerator renamed with %rename (QEnum18 -> Enum18, QVal1 -> Val1)
+    enumCheck((int)Enum18.Val1, 1181);
+    enumCheck((int)Enum18.Val2, 1182);
+
+    enumCheck((int)Enum19.Val2, 'b');
+    enumCheck((int)Enum20.Val2, 'c');
+    enumCheck((int)Enum21.Val2, 'd');
+    enumCheck((int)Enum21.Val3, 0x263A);
+    enumCheck((int)Enum21.Val4, 0x263B);
+    enumCheck((int)Enum22.Val2, 1);
+    enumCheck((int)Enum23.Val2, 'e');
+
     Class1 class1 = new Class1();
     enumCheck((int)class1.class1Test1(Enum1.Val5a), 13);
     enumCheck((int)class1.class1Test2(Class1.Enum12.Val5c), 1121);
@@ -181,6 +193,11 @@ public class cpp11_strongly_typed_enumerations_runme {
     enumTypeCheck(Enum.GetUnderlyingType(Enum15.Val1.GetType()), ((short)0).GetType());
     enumTypeCheck(Enum.GetUnderlyingType(Enum16.Val1.GetType()), ((long)0).GetType());
     enumTypeCheck(Enum.GetUnderlyingType(Enum17.Val1.GetType()), ((ulong)0).GetType());
+
+    enumTypeCheck(Enum.GetUnderlyingType(Enum20.Val1.GetType()), ((int)0).GetType());
+    enumTypeCheck(Enum.GetUnderlyingType(Enum21.Val1.GetType()), ((int)0).GetType());
+    enumTypeCheck(Enum.GetUnderlyingType(Enum22.Val1.GetType()), ((byte)0).GetType());
+    enumTypeCheck(Enum.GetUnderlyingType(Enum23.Val1.GetType()), ((int)0).GetType());
   }
 }
 

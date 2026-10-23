@@ -1,0 +1,30 @@
+clargs <- commandArgs(trailing=TRUE)
+source(file.path(clargs[1], "unittest.R"))
+
+dyn.load(paste("arrays_global", .Platform$dynlib.ext, sep=""))
+source("arrays_global.R")
+cacheMetaData(1)
+
+# A fixed size array is set from a vector of up to that many elements, the rest being 0. It is read as a vector
+array_i_set(c(1L, 2L))
+unittest(array_i_get(), c(1L, 2L))
+array_i_set(5L)
+unittest(array_i_get(), c(5L, 0L))
+array_us_set(c(3L, 4L))
+unittest(array_us_get(), c(3L, 4L))
+array_ll_set(7L)
+unittest(array_ll_get(), c(7L, 0L))
+array_d_set(c(1.5, 2.5))
+unittest(array_d_get(), c(1.5, 2.5))
+array_enum_set(c("Two", "Five"))
+unittest(array_enum_get(), c("Two", "Five"))
+array_enum_set("Three")
+unittest(array_enum_get(), c("Three", "One"))
+array_i_set(integer(0))
+unittest(array_i_get(), c(0L, 0L))
+unittest(array_const_i_get(), c(10L, 20L))
+
+unittest(grepl("^SWIG:OverflowError", error_message(function() array_i_set(1:3))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() array_i_set(NULL))), TRUE)
+
+q(save="no")

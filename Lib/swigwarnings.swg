@@ -53,6 +53,7 @@
 %define SWIGWARN_TYPEMAP_CHARLEAK_MSG         "451:Setting a const char * variable may leak memory." %enddef
 %define SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG     "454:Setting a pointer/reference variable may leak memory." %enddef
 %define SWIGWARN_TYPEMAP_WCHARLEAK_MSG        "455:Setting a const wchar_t * variable may leak memory." %enddef
+%define SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG      "462:Unable to set dimensionless array variable." %enddef
 %define SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG    "470:Thread/reentrant unsafe wrapping, consider returning by value instead." %enddef
 %define SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG  "473:Returning a reference, pointer or pointer wrapper in a director method is not recommended." %enddef
 %define SWIGWARN_TYPEMAP_INITIALIZER_LIST_MSG "476:Initialization using std::initializer_list." %enddef
@@ -96,7 +97,7 @@
 %define SWIGWARN_IGNORE_OPERATOR_LOR_MSG        "382:operator|| ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_PLUSPLUS_MSG   "383:operator++ ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_MINUSMINUS_MSG "384:operator-- ignored"  %enddef
-%define SWIGWARN_IGNORE_OPERATOR_COMMA_MSG      "385:operator-- ignored"  %enddef
+%define SWIGWARN_IGNORE_OPERATOR_COMMA_MSG      "385:operator, ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_ARROWSTAR_MSG  "386:operator->* ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_ARROW_MSG      "387:operator-> ignored" %enddef
 %define SWIGWARN_IGNORE_OPERATOR_CALL_MSG       "388:operator() ignored" %enddef
@@ -108,7 +109,6 @@
 %define SWIGWARN_IGNORE_OPERATOR_NEWARR_MSG     "394:operator new[] ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_DELARR_MSG     "395:operator delete[] ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_REF_MSG        "396:operator*() ignored" %enddef
-%define SWIGWARN_IGNORE_OPERATOR_LTEQUALGT_MSG  "397:operator<=> ignored" %enddef
 
 #define %ignoreoperator(Oper) %ignorewarn(SWIGWARN_IGNORE_OPERATOR_##Oper##_MSG)
 

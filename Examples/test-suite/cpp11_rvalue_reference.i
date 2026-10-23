@@ -1,11 +1,6 @@
 // This testcase checks whether SWIG correctly parses C++11 rvalue references.
 %module cpp11_rvalue_reference
 
-#if defined SWIGGO
-// Several: Warning 507: No Go typemap defined for int &&
-# pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
-#endif
-
 %inline %{
 #include <utility>
 class A {
@@ -23,4 +18,11 @@ public:
 private:
   int _a;
 };
+
+// An rvalue reference type-id as the default of a template type parameter
+template<class T = int &&> struct RvalueRefDefault {
+  T move(int &i) { return std::move(i); }
+};
 %}
+
+%template(RvalueRefDefault_def) RvalueRefDefault<>;

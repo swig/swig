@@ -12,17 +12,14 @@ top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES := \
 				 c_backend_cpp_natural_std_string \
-				 c_backend_cpp_exception
+				 c_backend_cpp_exception \
 
 CPP11_TEST_CASES := \
-	cpp11_shared_ptr_const \
-	cpp11_shared_ptr_nullptr_in_containers \
-	cpp11_shared_ptr_overload \
-	cpp11_shared_ptr_upcast \
 
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
+    arrays_dimension_expression \
     funcptr \
     function_typedef \
     lextype \
@@ -39,13 +36,13 @@ FAILING_CPP_TESTS := \
     array_member \
     array_typedef_memberin \
     arrayref \
-    arrays_dimensionless \
     arrays_global \
     arrays_global_twodim \
     assign_const \
     assign_reference \
     cpp_enum \
     constant_pointers \
+    director_char_array \
     director_unwrap \
     director_unwrap_result \
     enum_thorough \
@@ -60,6 +57,7 @@ FAILING_CPP_TESTS := \
     li_attribute \
     li_attribute_template \
     li_boost_shared_ptr_attribute \
+    li_cdata_bytes_cpp \
     li_std_auto_ptr \
     li_std_deque \
     li_std_wstring \
@@ -81,6 +79,7 @@ FAILING_CPP_TESTS := \
     template_typedef_fnc \
     typedef_array_member \
     typedef_funcptr \
+    typedef_inherit_using \
     typedef_struct_cpp \
     typemap_namespace \
     typemap_various \
@@ -92,9 +91,9 @@ FAILING_CPP_TESTS := \
     cpp11_ref_qualifiers \
     cpp11_ref_qualifiers_typemaps \
     cpp11_result_of \
-    cpp11_rvalue_reference \
     cpp11_rvalue_reference2 \
-    cpp11_rvalue_reference3 \
+    cpp11_rvalue_reference_array \
+    cpp11_template_pack \
     cpp11_type_aliasing \
 
 # Ignore warnings about failing to apply typemaps because none are defined:
@@ -118,6 +117,7 @@ contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with mul
 conversion.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
 conversion_namespace.cpptest: SWIG_NOCXX = -nocxx # Conversion operator name not handled correctly.
 conversion_ns_template.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return not handled specially.
+cpp11_decltype_nontype_template_parameter.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
 cpp11_explicit_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
 cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.

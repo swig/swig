@@ -12,7 +12,6 @@
 
 %{
 #include <map>
-#include <stdexcept>
 %}
 
 namespace std {

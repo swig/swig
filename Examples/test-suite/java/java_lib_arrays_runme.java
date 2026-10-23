@@ -112,7 +112,35 @@ public class java_lib_arrays_runme {
     ase.setArray_c2(array_c_extra);
     check_byte_array(array_c_extra, ase.getArray_c2());
 
+    // null is passed on as a NULL pointer for an array parameter
+    check_isnull(1, java_lib_arrays.ints_isnull(null));
+    check_isnull(1, java_lib_arrays.ints_sized_isnull(null));
+    check_isnull(1, java_lib_arrays.fingers_isnull(null));
+    check_isnull(1, java_lib_arrays.structs_isnull(null));
+    check_isnull(1, java_lib_arrays.structs_sized_isnull(null));
+    check_isnull(0, java_lib_arrays.ints_isnull(array_i));
+    check_isnull(0, java_lib_arrays.structs_isnull(array_struct));
+
+    // Setting an array member variable to null throws, leaving the array unchanged
+    try {
+      as.setArray_i(null);
+      throw new RuntimeException("setArray_i(null) did not throw");
+    } catch (NullPointerException e) {
+    }
+    check_int_array(array_i, as.getArray_i());
+    try {
+      as.setArray_struct(null);
+      throw new RuntimeException("setArray_struct(null) did not throw");
+    } catch (NullPointerException e) {
+    }
+    check_struct_array(array_struct, as.getArray_struct());
  }
+
+  public static void check_isnull(int expected, int isnull) {
+    if (isnull != expected) {
+      throw new RuntimeException("Runtime test failed. isnull = " + isnull);
+    }
+  }
 
   // Functions to check that the array values were set correctly
   public static void check_string(String original, String checking) {

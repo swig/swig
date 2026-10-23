@@ -14,3 +14,6 @@ if (t2.getisize() != 4) {
 if (t2.strlen('hil\0a') != 5) {
   throw("bad multi-arg typemap 4");
 }
+if (t.strlen(null) != 0) {
+  throw("bad multi-arg typemap 5");
+}

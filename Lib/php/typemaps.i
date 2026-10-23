@@ -243,9 +243,13 @@ INT_TYPEMAP(unsigned long long);
 
 %typemap(in, phptype="string") char INPUT[ANY] ( char temp[$1_dim0] )
 %{
-  convert_to_string(&$input);
-  strncpy(temp, Z_STRVAL($input), $1_dim0);
-  $1 = temp;
+  if (Z_ISNULL($input)) {
+    $1 = 0;
+  } else {
+    convert_to_string(&$input);
+    strncpy(temp, Z_STRVAL($input), $1_dim0);
+    $1 = temp;
+  }
 %}
 %typemap(in,numinputs=0) char OUTPUT[ANY] ( char temp[$1_dim0] )
   "$1 = temp;";

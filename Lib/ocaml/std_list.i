@@ -9,7 +9,6 @@
 %module std_list
 %{
 #include <list>
-#include <stdexcept>
 %}
 
 

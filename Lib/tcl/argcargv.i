@@ -6,11 +6,13 @@
   Tcl_Size i, nitems;
   Tcl_Obj **listobjv;
   if (Tcl_ListObjGetElements(interp, $input, &nitems, &listobjv) == TCL_ERROR) {
-     SWIG_exception_fail(SWIG_ValueError, "in method '$symname', Expecting list of argv");
-     goto fail;
+    SWIG_exception_fail(SWIG_ValueError, "in method '$symname', Expecting list of argv");
   }
   $1 = ($1_ltype) nitems;
   $2 = (char **) malloc((nitems+1)*sizeof(char *));
+  if ($2 == NULL) {
+    SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for 'int ARGC, char **ARGV' in '$symname'");
+  }
   for (i = 0; i < nitems; i++) {
     $2[i] = Tcl_GetString(listobjv[i]);
   }

@@ -1,0 +1,5 @@
+cpp_decltype_auto_string_concatenation.i:4: Warning 346: Unable to deduce auto type for variable 'utf8_joined' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string_concatenation.i:5: Warning 346: Unable to deduce auto type for variable 'utf16_joined' from a string literal with a 'u' prefix (ignored).
+cpp_decltype_auto_string_concatenation.i:6: Warning 346: Unable to deduce auto type for variable 'raw_then_utf8' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string_concatenation.i:7: Warning 346: Unable to deduce auto type for variable 'utf8_then_raw' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string_concatenation.i:8: Warning 346: Unable to deduce auto type for variable 'raw_utf32_first' from a string literal with a 'UR' prefix (ignored).

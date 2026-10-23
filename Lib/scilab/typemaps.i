@@ -13,8 +13,7 @@
   $1 = &temp;
 }
 
-%typemap(freearg, noblock=1) Type *INPUT, Type &INPUT {
-}
+%typemap(freearg, noblock=1) Type *INPUT, Type &INPUT ""
 
 %typemap(typecheck) Type *INPUT, Type &INPUT {
 }

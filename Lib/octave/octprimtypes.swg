@@ -18,11 +18,7 @@ SWIGINTERNINLINE octave_value
 SWIGINTERN int
 SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 {
-%#if SWIG_OCTAVE_PREREQ(4,4,0)
   if (!ov.islogical())
-%#else
-  if (!ov.is_bool_type())
-%#endif
     return SWIG_ERROR;
   if (val)
     *val = ov.bool_value();
@@ -218,41 +214,37 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 {
-  if (
-%#if SWIG_OCTAVE_PREREQ(4,4,0)
-    ov.iscell()
-%#else
-    ov.is_cell()
-%#endif
-    && ov.rows() == 1 && ov.columns() == 1)
+  int is_binary = (alloc != NULL) && SWIG_IsBinaryStr(*alloc);
+  if (ov.iscell() && ov.rows() == 1 && ov.columns() == 1)
     ov = ov.cell_value()(0);
 
-    if (ov.is_string()) {
-      std::string str=ov.string_value();
-      size_t len=str.size();
-      char* cstr=(char*)str.c_str();
-      if (alloc) {
-        *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
-        *alloc = SWIG_NEWOBJ;
-      } else if (cptr)
-        *cptr = cstr;
-      if (psize)
-        *psize = len + 1;
-    } else if (!ov.is_defined() || (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
-      if (cptr)
-        *cptr = 0;
-    } else {
-      return SWIG_TypeError;
-    }
-    return SWIG_OK;
+  if (ov.is_string()) {
+    std::string str=ov.string_value();
+    size_t len=str.size();
+    char* cstr=(char*)str.c_str();
+    if (alloc) {
+      *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
+      *alloc = SWIG_NEWOBJ;
+    } else if (cptr)
+      *cptr = cstr;
+    if (psize)
+      *psize = is_binary ? len : len + 1;
+  } else if (!ov.is_defined() || (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
+    if (cptr)
+      *cptr = 0;
+  } else {
+    return SWIG_TypeError;
+  }
+  return SWIG_OK;
 }
 }
 
 %fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+%#define SWIG_FromBinaryCharPtrAndSize(carray, size, flags) SWIG_FromCharPtrAndSize(carray, size)
 SWIGINTERNINLINE octave_value
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-  return std::string(carray,carray+size);
+  return carray ? std::string(carray,carray+size) : std::string();
 }
 }
 

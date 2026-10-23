@@ -72,9 +72,15 @@ SWIG_Env_FromCharPtrAndSize(Napi::Env env, const char* carray, size_t size)
     return env.Undefined();
   }
 }
+
+SWIGINTERNINLINE Napi::Value
+SWIG_Env_FromCharPtr(Napi::Env env, const char* cptr)
+{
+  return SWIG_Env_FromCharPtrAndSize(env, cptr, cptr ? strlen(cptr) : 0);
+}
 }
 
 %insert(runtime) %{
 #define SWIG_FromCharPtrAndSize(cptr, size) SWIG_Env_FromCharPtrAndSize(env, cptr, size)
-#define SWIG_FromCharPtr(cptr)              SWIG_Env_FromCharPtrAndSize(env, cptr, strlen(cptr))
+#define SWIG_FromCharPtr(cptr)              SWIG_Env_FromCharPtr(env, cptr)
 %}

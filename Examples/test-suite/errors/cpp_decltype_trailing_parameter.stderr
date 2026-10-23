@@ -1,0 +1,8 @@
+cpp_decltype_trailing_parameter.i:5: Warning 344: Unable to deduce decltype for 'p + 1' in the trailing return type of 'parm_pointer(int *)' (ignored).
+cpp_decltype_trailing_parameter.i:6: Warning 344: Unable to deduce decltype for 'p.x' in the trailing return type of 'parm_member(Pt)' (ignored).
+cpp_decltype_trailing_parameter.i:8: Warning 344: Unable to deduce decltype for 't + u' in the trailing return type of 'tmpl_add' (ignored).
+cpp_decltype_trailing_parameter.i:11: Warning 344: Unable to deduce decltype for 'x * y' in the trailing return type of 'abbrev_mul' (ignored).
+cpp_decltype_trailing_parameter.i:20: Warning 344: Unable to deduce decltype for 'arr.m[i]' in the trailing return type of 'parm_index(int)' (ignored).
+cpp_decltype_trailing_parameter.i:21: Warning 344: Unable to deduce decltype for 'overloaded(i)' in the trailing return type of 'parm_argument(int)' (ignored).
+cpp_decltype_trailing_parameter.i:22: Warning 344: Unable to deduce decltype for 'counter = i' in the trailing return type of 'parm_unparsed(int)' (ignored).
+cpp_decltype_trailing_parameter.i:32: Warning 344: Unable to deduce decltype for 'arr.m[pt.x]'.

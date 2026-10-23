@@ -1,0 +1,10 @@
+local v=require("constant_pointers")
+
+local myb = v.B()
+assert(myb ~= nil)
+local bret = v.bar(myb)
+assert(bret ~= nil)
+local bret2 = v.cbar(myb)
+assert(bret2 ~= nil)
+local bret3 = v.bar(bret2)
+assert(bret3 ~= nil)

@@ -3,17 +3,23 @@
 %{
 void abc_1() {}
 void def_0() {}
+void ghi_1() {}
+void ghi_0() {}
 %}
 
-// Use %exception to make sure $isvoid is expanded in the wrapper function
+// Use %exception to make sure $isvoid is expanded in the wrapper function.
+// $isvoidresult is expanded alongside it as $isvoid is a prefix of it, so expanding
+// $isvoid first would leave ghi_1result() behind and fail to compile.
 %exception void_function %{
 $action
 abc_$isvoid(); // must expand to abc_1
+ghi_$isvoidresult(); // must expand to ghi_1
 %}
 
 %exception nonvoid_function %{
 $action
 def_$isvoid(); // must expand to def_0
+ghi_$isvoidresult(); // must expand to ghi_0
 %}
 
 %exception void_function_static %{
@@ -55,8 +61,8 @@ struct AStruct {
 // Use the ret and check typemaps to make sure $isvoid is expanded in at least these typemaps
 %typemap(check) int forvoid %{ abc_$isvoid(); /* must expand to abc_1() in a void return function (check typemap) */ %}
 %typemap(check) int fornonvoid %{ def_$isvoid(); /* must expand to def_0() in a non void return function (check typemap) */ %}
-%typemap(ret) void %{ abc_$isvoid(); /* must expand to abc_1() in a void return function (ret typemap $1_type) */ %}
-%typemap(ret) long, void* %{ def_$isvoid(); /* must expand to def_0() in a non void return function (ret typemap $1_type) */ %}
+%typemap(ret) void %{ abc_$isvoid(); ghi_$isvoidresult(); /* must expand to abc_1() and ghi_1() in a void return function (ret typemap $1_type) */ %}
+%typemap(ret) long, void* %{ def_$isvoid(); ghi_$isvoidresult(); /* must expand to def_0() and ghi_0() in a non void return function (ret typemap $1_type) */ %}
 
 %inline %{
 void test_isvoid(int forvoid) {}

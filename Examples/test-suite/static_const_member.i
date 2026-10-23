@@ -26,4 +26,10 @@ public:
   static const char CHARTEST = 'A';
 };
 
+template<char C> struct CharTemplate {
+  static const char CHARTEST = C;
+};
+
 %}
+
+%template(CharTemplateB) CharTemplate<'B'>;

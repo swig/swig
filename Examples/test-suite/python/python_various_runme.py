@@ -1,13 +1,8 @@
 from python_various import *
 import datetime
-import sys
 
 class MyClass:
     pass
-
-# Only implemented for python 3
-if sys.version_info[0:2] < (3, 0):
-    exit(0)
 
 type = GetFullyQualifiedName(1234)  # Test builtins type
 if type != "int":

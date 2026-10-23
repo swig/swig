@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("valuewrapper")	-- import code
-v=valuewrapper    -- renaming import
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+v=require("valuewrapper")
+catch_undef_globs() -- catch "undefined" global variables
 
 assert(v.Xi ~= nil)
 assert(v.YXi ~= nil)

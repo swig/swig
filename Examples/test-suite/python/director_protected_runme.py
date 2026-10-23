@@ -130,3 +130,9 @@ if fb3.callping() != "Bar::ping();":
 
 if fb3.callcheer() != "FooBar3::cheer();":
     raise RuntimeError("bad fb3.callcheer")
+
+# NestedDerived is never wrapped (protected nested class); check identify() still dispatches to it.
+outer = NestedOuter()
+base = outer.makeDerived()
+if base.identify() != 1:
+    raise RuntimeError("bad NestedOuter.makeDerived().identify()")

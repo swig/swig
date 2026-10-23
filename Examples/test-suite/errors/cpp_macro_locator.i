@@ -106,3 +106,22 @@ struct Outer2 {
     VARIABLEMACRO(MyInnerVar)
   };
 };
+
+// A macro expanding to a new-expression used as a default argument and as an initialiser
+%define NEWDOUBLE(VALUE)
+new double(VALUE)
+%enddef
+void newdefault(double *p = NEWDOUBLE(1.5));
+double *const newconst = NEWDOUBLE(2.5);
+void overload6(int *) {}
+void overload6(const int *) {}
+
+// The same within another macro
+%define DECLARE_NEWDOUBLE(NAME, VALUE)
+double *const NAME = NEWDOUBLE(VALUE);
+
+
+%enddef
+DECLARE_NEWDOUBLE(newnested, 3.5)
+void overload7(int *) {}
+void overload7(const int *) {}

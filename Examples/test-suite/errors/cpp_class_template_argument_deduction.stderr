@@ -1,0 +1,1 @@
+cpp_class_template_argument_deduction.i:10: Warning 347: Unable to deduce class template arguments for variable 'bx' of type 'Box' (ignored).

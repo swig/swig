@@ -42,11 +42,7 @@ struct SimpleValue {
 %}
 
 %{
-#if PY_VERSION_HEX >= 0x03020000
 Py_hash_t SimpleValueHashFunction(PyObject *v)
-#else
-long SimpleValueHashFunction(PyObject *v)
-#endif
 {
   SwigPyObject *sobj = (SwigPyObject *) v;
   SimpleValue *p = (SimpleValue *)sobj->ptr;
@@ -96,9 +92,6 @@ struct BadHashFunctionReturnType {
 %catches(const char *) exception_hash_function;
 
 %inline %{
-#if PY_VERSION_HEX < 0x03020000
-  #define Py_hash_t long
-#endif
 struct ExceptionHashFunction {
     static Py_hash_t exception_hash_function() {
       throw "oops";
@@ -204,11 +197,7 @@ void Dealloc2Destroyer(PyObject *v) {
       if (!PySlice_Check(slice))
         throw std::invalid_argument("Slice object expected");
       Py_ssize_t i, j, step;
-#if PY_VERSION_HEX >= 0x03020000
       PySlice_GetIndices((PyObject *)slice, size, &i, &j, &step);
-#else
-      PySlice_GetIndices((PySliceObject *)slice, size, &i, &j, &step);
-#endif
       if (step != 1)
         throw std::invalid_argument("Only a step size of 1 is implemented");
 
@@ -262,7 +251,7 @@ public:
   }
   void __setitem__(int idx, PyObject* value) {
     this->idx = idx;
-    this->value = value ? (int)PyInt_AsLong(value) : -11;
+    this->value = value ? (int)PyLong_AsLong(value) : -11;
   }
   void __call__(PyObject* args, PyObject* kw) {
     this->args_count = args ? (int)PyTuple_Size(args) : -11;

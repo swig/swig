@@ -25,7 +25,7 @@
 
 
 /* ------------------------------------------------------------
- *  Unified typemap section
+ *  Unified Typemap Library section
  * ------------------------------------------------------------ */
 
 /* directors are supported in Python */
@@ -45,7 +45,7 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, $isvoid)
+#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, $isvoidresult)
 
 /* set constant */
 #if defined(SWIGPYTHON_BUILTIN)
@@ -60,9 +60,31 @@
 /* clear errors */
 #define %error_clear PyErr_Clear()
 
-/* Include the unified typemap library */
+/* PEP 484 type hints. Included before the Unified Typemap Library so that the
+   %apply in the library, such as %apply size_t { std::size_t }, also copies the
+   pytyping typemaps and not just the in, out and typecheck typemaps. */
+%include <pytyping.swg>
+
+/* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>
 
+#ifndef SWIG_INOUT_NODEF
+/* Add INOUT/INPUT/OUTPUT support for the pytyping typemap. Only the pointer forms of INPUT and INOUT accept a null
+   pointer, so only they are annotated with typing.Optional. INOUT returns what it was given, so it returns None too. */
+%define %_pytyping_inout_define(Code, Type)
+  %typemap(pytyping)
+    Type *OUTPUT, Type &OUTPUT,
+    Type &INPUT,
+    Type &INOUT
+  "$typemap(pytyping, Type)"
+
+  %typemap(pytyping)
+    Type *INPUT,
+    Type *INOUT
+  "typing.Optional[$typemap(pytyping, Type)]"
+%enddef
+%apply_checkctypes(%_pytyping_inout_define)
+#endif
 
 /*  ------------------------------------------------------------
  *  Python extra typemaps / typemap overrides

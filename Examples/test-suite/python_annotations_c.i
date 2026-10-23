@@ -5,6 +5,10 @@
 %feature("python:annotations", "c") mymethod;
 %feature("python:annotations", "c") makeT<short>;
 %feature("python:annotations", "c") global_ints;
+%feature("python:annotations", "c") suppressed_none;
+%feature("python:annotations", "c") suppressed_one;
+%feature("python:annotations", "c") global_overloaded;
+%feature("python:annotations", "c") global_overloaded_differ;
 
 %inline %{
 namespace Space {
@@ -16,14 +20,38 @@ struct Template {
 template<typename T>
 Space::Template<T> makeT(int x) {
   return Space::Template<T>();
-};
+}
 int *global_ints(int &ri, Space::Template<short> t) { return &ri; }
 int *global_overloaded(int &ri) { return &ri; }
 int *global_overloaded() { return NULL; }
+/* Overloads returning different types have no one C/C++ type to annotate them with. */
+int global_overloaded_differ(int x) { return x; }
+double global_overloaded_differ(double x, double y) { return x + y; }
 int *no_annotations(int &ri, const char *c) { return NULL; }
 %}
 %template(TemplateShort) Space::Template<short>;
 %template(MakeShort) makeT<short>;
+
+/* An out typemap declaring numoutputs=0 leaves nothing to return, which is annotated the way a
+   void function is rather than with the suppressed C return type. */
+%typemap(out, numoutputs=0) MyErr ""
+%typemap(ret) MyErr %{
+  if ($1 != 0) {
+    PyErr_Format(PyExc_RuntimeError, "error code %d", (int)$1);
+    SWIG_fail;
+  }
+%}
+
+%typemap(in, numinputs=0) short *OutAppend (short temp) { $1 = &temp; }
+%typemap(argout) short *OutAppend {
+  $result = SWIG_AppendOutput($result, PyLong_FromLong(*$1));
+}
+
+%inline %{
+typedef int MyErr;
+MyErr suppressed_none(int code) { return code; }
+MyErr suppressed_one(int code, short *OutAppend) { *OutAppend = 42; return code; }
+%}
 
 %inline %{
 #ifdef SWIGPYTHON_BUILTIN

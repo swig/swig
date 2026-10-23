@@ -55,5 +55,3 @@
  * For backward compatibility
  * ------------------------------------------------------------ */
 %include <pybackward.swg>
-
-

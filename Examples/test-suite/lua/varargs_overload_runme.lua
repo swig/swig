@@ -1,0 +1,22 @@
+local v=require("varargs_overload")
+
+assert(v.vararg_over1("Hello") == "Hello")
+assert(v.vararg_over1(2) == "2")
+assert(v.vararg_over2("Hello") == "Hello")
+assert(v.vararg_over2(2, 2.2) == "2 2.2")
+assert(v.vararg_over3("Hello") == "Hello")
+assert(v.vararg_over3(2, 2.2, "hey") == "2 2.2 hey")
+assert(v.vararg_over4("Hello") == "Hello")
+assert(v.vararg_over4(123) == "123")
+assert(v.vararg_over4("Hello", 123) == "Hello")
+
+-- Same as above but non-vararg function declared first
+assert(v.vararg_over6("Hello") == "Hello")
+assert(v.vararg_over6(2) == "2")
+assert(v.vararg_over7("Hello") == "Hello")
+assert(v.vararg_over7(2, 2.2) == "2 2.2")
+assert(v.vararg_over8("Hello") == "Hello")
+assert(v.vararg_over8(2, 2.2, "hey") == "2 2.2 hey")
+assert(v.vararg_over9("Hello") == "Hello")
+assert(v.vararg_over9(123) == "123")
+assert(v.vararg_over9("Hello", 123) == "Hello")

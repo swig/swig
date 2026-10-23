@@ -135,8 +135,8 @@ class BB {
 friend class AA;
 
 protected:
-	BB(int aa) { this->a = aa; };
-	BB() {};
+	BB(int aa) { this->a = aa; }
+	BB() {}
 	
 	int a;
 };

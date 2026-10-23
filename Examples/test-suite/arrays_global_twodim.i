@@ -32,6 +32,7 @@ int*           array_ipointers [ARRAY_LEN_X][ARRAY_LEN_Y];
 finger         array_enum[ARRAY_LEN_X][ARRAY_LEN_Y];
 finger*        array_enumpointers[ARRAY_LEN_X][ARRAY_LEN_Y];
 const int      array_const_i[ARRAY_LEN_X][ARRAY_LEN_Y] = { {10, 11, 12, 13}, {14, 15, 16, 17} };
+int            array_shift[ARRAY_LEN_X << 1][ARRAY_LEN_Y]; /* '<' in a dimension is not a template */
 
 void fn_taking_arrays(SimpleStruct array_struct[ARRAY_LEN_X][ARRAY_LEN_Y]) {}
 

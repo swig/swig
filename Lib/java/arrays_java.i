@@ -42,8 +42,9 @@ static int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **ca
   int i;
   jsize sz;
   if (!input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return 0;
+    *jarr = 0;
+    *carr = 0;
+    return 1;
   }
   sz = JCALL1(GetArrayLength, jenv, input);
   *jarr = JCALL2(Get##JAVATYPE##ArrayElements, jenv, input, 0);
@@ -65,7 +66,10 @@ static int SWIG_JavaArrayIn##JFUNCNAME (JNIEnv *jenv, JNITYPE **jarr, CTYPE **ca
 
 static void SWIG_JavaArrayArgout##JFUNCNAME (JNIEnv *jenv, JNITYPE *jarr, CTYPE *carr, JNITYPE##Array input) {
   int i;
-  jsize sz = JCALL1(GetArrayLength, jenv, input);
+  jsize sz;
+  if (!input)
+    return;
+  sz = JCALL1(GetArrayLength, jenv, input);
   for (i=0; i<sz; i++)
     jarr[i] = (JNITYPE)carr[i];
   JCALL3(Release##JAVATYPE##ArrayElements, jenv, input, jarr, 0);
@@ -250,69 +254,67 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
     return $javaclassname.cArrayWrap($jnicall, $owner);
   }
 
-%typemap(in) ARRAYSOFCLASSES[] (jlong *jarr, jsize sz)
+%typemap(in) ARRAYSOFCLASSES[] (jlong *jarr = 0, jsize sz = 0)
 {
   int i;
-  if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return $null;
-  }
-  sz = JCALL1(GetArrayLength, jenv, $input);
-  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
-  if (!jarr) {
-    return $null;
-  }
+  if ($input) {
+    sz = JCALL1(GetArrayLength, jenv, $input);
+    jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
+    if (!jarr) {
+      return $null;
+    }
 #ifdef __cplusplus
-  $1 = new $*1_ltype[sz];
+    $1 = new $*1_ltype[sz];
 #else
-  $1 = ($1_ltype) malloc(sz * sizeof($*1_ltype));
+    $1 = ($1_ltype) malloc(sz * sizeof($*1_ltype));
 #endif
-  if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
-    return $null;
-  }
-  for (i=0; i<sz; i++) {
-    $1[i] = **($&1_ltype)&jarr[i];
+    if (!$1) {
+      SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
+      return $null;
+    }
+    for (i=0; i<sz; i++) {
+      $1[i] = **($&1_ltype)&jarr[i];
+    }
   }
 }
 
-%typemap(in) ARRAYSOFCLASSES[ANY] (jlong *jarr, jsize sz)
+%typemap(in) ARRAYSOFCLASSES[ANY] (jlong *jarr = 0, jsize sz = 0)
 {
   int i;
-  if (!$input) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return $null;
-  }
-  sz = JCALL1(GetArrayLength, jenv, $input);
-  if (sz != $1_size) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
-    return $null;
-  }
-  jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
-  if (!jarr) {
-    return $null;
-  }
+  if ($input) {
+    sz = JCALL1(GetArrayLength, jenv, $input);
+    if (sz != $1_size) {
+      SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "incorrect array size");
+      return $null;
+    }
+    jarr = JCALL2(GetLongArrayElements, jenv, $input, 0);
+    if (!jarr) {
+      return $null;
+    }
 #ifdef __cplusplus
-  $1 = new $*1_ltype[sz];
+    $1 = new $*1_ltype[sz];
 #else
-  $1 = ($1_ltype) malloc(sz * sizeof($*1_ltype));
+    $1 = ($1_ltype) malloc(sz * sizeof($*1_ltype));
 #endif
-  if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
-    return $null;
-  }
-  for (i=0; i<sz; i++) {
-    $1[i] = **($&1_ltype)&jarr[i];
+    if (!$1) {
+      SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "array memory allocation failed");
+      return $null;
+    }
+    for (i=0; i<sz; i++) {
+      $1[i] = **($&1_ltype)&jarr[i];
+    }
   }
 }
 
 %typemap(argout) ARRAYSOFCLASSES[ANY], ARRAYSOFCLASSES[]
 {
-  int i;
-  for (i=0; i<sz$argnum; i++) {
-    **($&1_ltype)&jarr$argnum[i] = $1[i];
+  if ($input) {
+    int i;
+    for (i=0; i<sz$argnum; i++) {
+      **($&1_ltype)&jarr$argnum[i] = $1[i];
+    }
+    JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
   }
-  JCALL3(ReleaseLongArrayElements, jenv, $input, jarr$argnum, 0);
 }
 
 %typemap(out) ARRAYSOFCLASSES[ANY]
@@ -346,6 +348,8 @@ JAVA_ARRAYS_TYPEMAPS(double, double, jdouble, Double, "[D")     /* double[ANY] *
 %extend ARRAYSOFCLASSES {
 %proxycode %{
   protected static long[] cArrayUnwrap($javaclassname[] arrayWrapper) {
+      if (arrayWrapper == null)
+        return null;
       long[] cArray = new long[arrayWrapper.length];
       for (int i=0; i<arrayWrapper.length; i++)
         cArray[i] = $javaclassname.getCPtr(arrayWrapper[i]);

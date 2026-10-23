@@ -13,12 +13,6 @@
 
 %{
 #include <iostream>
-
-#if PY_VERSION_HEX >= 0x03020000
-# define SWIGPY_SLICEOBJECT PyObject
-#else
-# define SWIGPY_SLICEOBJECT PySliceObject
-#endif
 %}
 
 
@@ -32,9 +26,11 @@
 
 /**** The PySequence C++ Wrap ***/
 
-%fragment("<stdexcept>");
-
 %include <std_except.i>
+
+%fragment("SWIGPY_SLICEOBJECT", "header") %{
+#define SWIGPY_SLICEOBJECT PyObject
+%}
 
 %fragment("container_owner_attribute_init", "init") {
   // thread safe initialization
@@ -44,7 +40,7 @@
 %fragment("reference_container_owner", "header", fragment="container_owner_attribute_init") {
 namespace swig {
   static PyObject* container_owner_attribute() {
-    static PyObject* attr = SWIG_Python_str_FromChar("__swig_container");
+    static PyObject* attr = PyUnicode_FromString("__swig_container");
     return attr;
   }
 
@@ -69,7 +65,8 @@ namespace swig {
     static bool back_reference(PyObject* child, PyObject* owner) {
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
       if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-        return PyObject_SetAttr(child, container_owner_attribute(), owner) != -1;
+        // Bypass __setattr__, which doesn't allow adding attributes to the classes using the nondynamic feature.
+        return PyObject_GenericSetAttr(child, container_owner_attribute(), owner) != -1;
       }
       return false;
     }
@@ -544,23 +541,14 @@ namespace swig {
 
 %define %swig_container_methods(Container...)
 
-/* deprecated in Python 2 */
-#if 1
-  %newobject __getslice__;
-#endif
   %newobject __getitem__(SWIGPY_SLICEOBJECT *slice);
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("python:slot", "nb_nonzero", functype="inquiry") __nonzero__;
+  %feature("python:slot", "nb_bool", functype="inquiry") __bool__;
   %feature("python:slot", "sq_length", functype="lenfunc") __len__;
 #endif // SWIGPYTHON_BUILTIN
 
   %extend {
-    bool __nonzero__() const {
-      return !(self->empty());
-    }
-
-    /* Alias for Python 3 compatibility */
     bool __bool__() const {
       return !(self->empty());
     }
@@ -586,12 +574,11 @@ namespace swig {
   %swig_container_methods(%arg(Sequence))
 
   %fragment("SwigPySequence_Base");
+  %fragment("SWIGPY_SLICEOBJECT");
 
 #if defined(SWIGPYTHON_BUILTIN)
   //%feature("python:slot", "sq_item", functype="ssizeargfunc") __getitem__;
-  //%feature("python:slot", "sq_slice", functype="ssizessizeargfunc") __getslice__;
   //%feature("python:slot", "sq_ass_item", functype="ssizeobjargproc") __setitem__;
-  //%feature("python:slot", "sq_ass_slice", functype="ssizessizeobjargproc") __setslice__;
   %feature("python:slot", "mp_subscript", functype="binaryfunc") __getitem__;
   %feature("python:slot", "mp_ass_subscript", functype="objobjargproc") __setitem__;
 #endif // SWIGPYTHON_BUILTIN
@@ -608,32 +595,11 @@ namespace swig {
       $1 = PySlice_Check($input);
     }
 
-/* deprecated in Python 2 */
-#if 1
-    Sequence* __getslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
-      return swig::getslice(self, i, j, 1);
-    }
-
-    void __setslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
-      swig::setslice(self, i, j, 1, Sequence());
-    }
-
-    void __setslice__(difference_type i, difference_type j, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
-      swig::setslice(self, i, j, 1, v);
-    }
-
-    void __delslice__(difference_type i, difference_type j) throw (std::out_of_range, std::invalid_argument) {
-      swig::delslice(self, i, j, 1);
-    }
-#endif
-
     void __delitem__(difference_type i) throw (std::out_of_range, std::invalid_argument) {
       swig::erase(self, swig::getpos(self, i));
     }
 
-    /* Overloaded methods for Python 3 compatibility 
-     * (Also useful in Python 2.x)
-     */
+    /* Slice support via __getitem__/__setitem__/__delitem__ */
     Sequence* __getitem__(SWIGPY_SLICEOBJECT *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
@@ -709,11 +675,17 @@ namespace swig {
 %define %swig_sequence_methods(Sequence...)
   %swig_sequence_methods_non_resizable(%arg(Sequence))
   %extend {
-    value_type pop() throw (std::out_of_range) {
+    value_type pop(difference_type i = -1) throw (std::out_of_range) {
       if (self->size() == 0)
 	throw std::out_of_range("pop from empty container");
-      Sequence::value_type x = self->back();
-      self->pop_back();
+      if (i == -1 || i == static_cast<Sequence::difference_type>(self->size()) - 1) {
+	Sequence::value_type last = self->back();
+	self->pop_back();
+	return last;
+      }
+      Sequence::iterator pos = swig::getpos(self, i);
+      Sequence::value_type x = *pos;
+      swig::erase(self, pos);
       return x;
     }
 
@@ -746,11 +718,17 @@ namespace swig {
 %define %swig_sequence_methods_val(Sequence...)
   %swig_sequence_methods_non_resizable_val(%arg(Sequence))
   %extend {
-    value_type pop() throw (std::out_of_range) {
+    value_type pop(difference_type i = -1) throw (std::out_of_range) {
       if (self->size() == 0)
 	throw std::out_of_range("pop from empty container");
-      Sequence::value_type x = self->back();
-      self->pop_back();
+      if (i == -1 || i == static_cast<Sequence::difference_type>(self->size()) - 1) {
+	Sequence::value_type last = self->back();
+	self->pop_back();
+	return last;
+      }
+      Sequence::iterator pos = swig::getpos(self, i);
+      Sequence::value_type x = *pos;
+      swig::erase(self, pos);
       return x;
     }
 

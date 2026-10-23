@@ -1,0 +1,12 @@
+cpp_auto_pointer_arithmetic.i:9: Warning 346: Unable to deduce auto type for variable 'p1' from initialiser 'pg+1' (ignored).
+cpp_auto_pointer_arithmetic.i:10: Warning 346: Unable to deduce auto type for variable 'p2' from initialiser '1+rpg' (ignored).
+cpp_auto_pointer_arithmetic.i:11: Warning 346: Unable to deduce auto type for variable 'p3' from initialiser 'arr+1' (ignored).
+cpp_auto_pointer_arithmetic.i:12: Warning 346: Unable to deduce auto type for variable 'p4' from initialiser '(pg+1)' (ignored).
+cpp_auto_pointer_arithmetic.i:13: Warning 346: Unable to deduce auto type for variable 'p5' from initialiser '(int *) 0+1' (ignored).
+cpp_auto_pointer_arithmetic.i:14: Warning 346: Unable to deduce auto type for variable 'p6' from initialiser 'pg-pg' (ignored).
+cpp_auto_pointer_arithmetic.i:15: Warning 346: Unable to deduce auto type for variable 'p7' from initialiser 'gs+1' (ignored).
+cpp_auto_pointer_arithmetic.i:5: Warning 454: Setting a pointer/reference variable may leak memory.
+cpp_auto_pointer_arithmetic.i:6: Warning 454: Setting a pointer/reference variable may leak memory.
+cpp_auto_pointer_arithmetic.i:8: Warning 451: Setting a const char * variable may leak memory.
+cpp_auto_pointer_arithmetic.i:20: Warning 454: Setting a pointer/reference variable may leak memory.
+cpp_auto_pointer_arithmetic.i:22: Warning 454: Setting a pointer/reference variable may leak memory.

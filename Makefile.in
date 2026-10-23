@@ -2,7 +2,7 @@
 # SWIG top level Makefile
 #######################################################################
 
-.PHONY: ccache source swig
+.PHONY: swig source format-review format-check format-inplace format ccache
 
 prefix      = @prefix@
 exec_prefix = @exec_prefix@
@@ -24,6 +24,7 @@ SHELL       = /bin/sh
 SWIG_LIB_INSTALL = @SWIG_LIB_INSTALL@
 BIN_DIR     = @bindir@
 ENABLE_CCACHE = @ENABLE_CCACHE@
+PYTHON      = @PYTHON3@
 TARGET_NOEXE= swig
 TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
@@ -34,6 +35,17 @@ swig: libfiles source ccache
 
 source:
 	@$(MAKE) -C $(SOURCE)
+
+format-review:
+	@$(MAKE) -C $(SOURCE) format-review
+
+format-check:
+	@$(MAKE) -C $(SOURCE) format-check
+
+format-inplace:
+	@$(MAKE) -C $(SOURCE) format-inplace
+
+format: format-inplace
 
 ccache:
 	test -z "$(ENABLE_CCACHE)" || $(MAKE) -C $(CCACHE)
@@ -120,6 +132,16 @@ check-aliveness:
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || $(MAKE) -C $(CCACHE) check
 
+# Checks that the warning numbers defined in Source/Include/swigwarn.h and the
+# warning list in Doc/Manual/Warnings.html are the same set.  Needs a Python
+# interpreter, so it is skipped when configure did not detect one.
+check-warnings:
+	@if test -z "$(PYTHON)"; then					\
+	  echo "skipping check-warnings (no Python interpreter detected by configure)"; \
+	else								\
+	  $(PYTHON) $(srcdir)/Tools/checkwarnings.py $(srcdir);		\
+	fi
+
 # Checks / displays versions of each target language
 check-versions:					\
 	check-android-version			\
@@ -201,7 +223,7 @@ tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 ifeq ($(ENGINE), $(filter $(ENGINE), jsc v8))
 ifeq ($(ACTION), check)
 check-javascript-prepare:
-	@$(MAKE) $(FLAGS) -C Tools/javascript javascript
+	@$(skip-javascript) || $(MAKE) $(FLAGS) -C Tools/javascript javascript
 endif
 endif
 
@@ -274,7 +296,7 @@ partialcheck-test-suite:
 partialcheck-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=partialcheck NOSKIP=1
 
-check: check-aliveness check-ccache check-versions check-examples check-test-suite
+check: check-aliveness check-warnings check-ccache check-versions check-examples check-test-suite
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\

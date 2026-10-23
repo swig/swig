@@ -91,6 +91,22 @@ public class runme
       li_typemaps.inoutr_bool(ref var);
       if (var != false) exit_test("inoutr_bool");
     }
+
+    // Two parameters using the same typemap
+    if (li_typemaps.in_int_multi(3, 4) != 7) exit_test("in_int_multi");
+
+    {
+      int var1;
+      int var2;
+      li_typemaps.out_int_multi(5, 6, out var1, out var2);
+      if (var1 != 5 || var2 != 6) exit_test("out_int_multi");
+    }
+    {
+      int var1 = 7;
+      int var2 = 8;
+      li_typemaps.inout_int_multi(ref var1, ref var2);
+      if (var1 != 14 || var2 != 24) exit_test("inout_int_multi");
+    }
   }
 
   private static void exit_test(String funcName) {

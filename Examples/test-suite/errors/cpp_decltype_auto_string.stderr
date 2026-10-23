@@ -1,0 +1,12 @@
+cpp_decltype_auto_string.i:10: Warning 346: Unable to deduce auto type for variable 'dauto_string_utf8' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string.i:11: Warning 346: Unable to deduce auto type for variable 'dauto_string_char16' from a string literal with a 'u' prefix (ignored).
+cpp_decltype_auto_string.i:12: Warning 346: Unable to deduce auto type for variable 'dauto_string_char32' from a string literal with a 'U' prefix (ignored).
+cpp_decltype_auto_string.i:25: Warning 346: Unable to deduce auto type for variable 'auto_string_utf8' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string.i:26: Warning 346: Unable to deduce auto type for variable 'auto_string_char16' from a string literal with a 'u' prefix (ignored).
+cpp_decltype_auto_string.i:27: Warning 346: Unable to deduce auto type for variable 'auto_string_char32' from a string literal with a 'U' prefix (ignored).
+cpp_decltype_auto_string.i:28: Warning 346: Unable to deduce auto type for variable 'auto_string_joined' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string.i:37: Warning 346: Unable to deduce auto type for variable 'ref_string_utf8' from a string literal with a 'u8' prefix (ignored).
+cpp_decltype_auto_string.i:38: Warning 346: Unable to deduce auto type for variable 'braced_string' from initialiser '"text"' (ignored).
+cpp_decltype_auto_string.i:39: Warning 346: Unable to deduce auto type for variable 'vref_string' from initialiser '"text"' (ignored).
+cpp_decltype_auto_string.i:20: Warning 451: Setting a const char * variable may leak memory.
+cpp_decltype_auto_string.i:21: Warning 455: Setting a const wchar_t * variable may leak memory.

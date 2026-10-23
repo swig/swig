@@ -1,8 +1,3 @@
-%{
-#include <typeinfo>
-#include <stdexcept>
-%}
-
 namespace std
 {
   %ignore exception;

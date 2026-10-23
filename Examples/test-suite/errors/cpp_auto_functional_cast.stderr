@@ -1,0 +1,6 @@
+cpp_auto_functional_cast.i:7: Warning 346: Unable to deduce auto type for variable 'c1' from initialiser 'fn(1)' (ignored).
+cpp_auto_functional_cast.i:8: Warning 346: Unable to deduce auto type for variable 'c2' from initialiser 'tfn< int >(1)' (ignored).
+cpp_auto_functional_cast.i:9: Warning 346: Unable to deduce auto type for variable 'c3' from initialiser 'unknown_template< int >(1)' (ignored).
+cpp_auto_functional_cast.i:10: Warning 346: Unable to deduce auto type for variable 'c4' from initialiser 'unknown_template< int >{1}' (ignored).
+cpp_auto_functional_cast.i:11: Warning 346: Unable to deduce auto type for variable 'c5' from initialiser 'Pt{1}.a' (ignored).
+cpp_auto_functional_cast.i:12: Warning 346: Unable to deduce auto type for variable 'c6' from initialiser 'Pt().a' (ignored).

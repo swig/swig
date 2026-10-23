@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("extend")	-- import lib into global
-e=extend --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+e=require("extend")
+catch_undef_globs() -- catch "undefined" global variables
 
 base1 = e.Base()
 assert(base1.value == 0)
@@ -24,5 +18,5 @@ assert(der1:method(5) == 10)
 der2 = e.Derived(17)
 assert(der2.value == 34)
 der2.extendval = 200.0
-assert(math.abs(der2.actualval - 2.0) < 0.001)
-assert(math.abs(der2.extendval - 200.0) < 0.001)
+assert(cmp_flt(der2.actualval, 2))
+assert(cmp_flt(der2.extendval, 200))

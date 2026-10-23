@@ -12,6 +12,14 @@ JAVA_ARRAYSOFCLASSES(SimpleStruct)
 
 %include "arrays.i"
 
+%inline %{
+int ints_isnull(int array[]) { return array == 0; }
+int ints_sized_isnull(int array[ARRAY_LEN]) { return array == 0; }
+int fingers_isnull(finger array[ARRAY_LEN]) { return array == 0; }
+int structs_isnull(SimpleStruct array[]) { return array == 0; }
+int structs_sized_isnull(SimpleStruct array[ARRAY_LEN]) { return array == 0; }
+%}
+
 // This will test the %typemap(javacode) in the JAVA_ARRAYSOFCLASSES works with C structs amongst other things
 JAVA_ARRAYSOFCLASSES(struct AnotherStruct)
 %inline %{

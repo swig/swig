@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Test::More tests => 416;
+use Test::More tests => 421;
 BEGIN { use_ok('li_typemaps') }
 require_ok('li_typemaps');
 
@@ -84,4 +84,13 @@ is($int2, 30);
 my($a, $b) = li_typemaps::inoutr_int2(13, 31);
 is($a, 13);
 is($b, 31);
+
+# Two parameters using the same typemap
+is(li_typemaps::in_int_multi(3, 4), 7);
+is_deeply([li_typemaps::out_int_multi(5, 6)], [5, 6]);
+is_deeply([li_typemaps::inout_int_multi(7, 8)], [14, 24]);
+
+# A reference cannot be bound to a null pointer, so undef is rejected rather than dereferenced in the call
+ok(!eval { li_typemaps::inr_int(undef); 1 }, 'inr_int undef rejected');
+ok(!eval { li_typemaps::inoutr_int(undef); 1 }, 'inoutr_int undef rejected');
 

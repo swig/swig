@@ -1,0 +1,18 @@
+local v=require("li_boost_shared_ptr_template")
+
+local b = v.BaseINTEGER()
+local d = v.DerivedINTEGER()
+assert(b:bar() == 1, "test 1")
+assert(d:bar() == 2, "test 2")
+assert(v.bar_getter(b) == 1, "test 3")
+assert(v.bar_getter(d) == 2, "test 4")
+
+b = v.BaseDefaultInt()
+d = v.DerivedDefaultInt()
+local d2 = v.DerivedDefaultInt2()
+assert(b:bar2() == 3, "test 5")
+assert(d:bar2() == 4, "test 6")
+assert(d2:bar2() == 4, "test 6")
+assert(v.bar2_getter(b) == 3, "test 7")
+assert(v.bar2_getter(d) == 4, "test 8")
+assert(v.bar2_getter(d2) == 4, "test 8")

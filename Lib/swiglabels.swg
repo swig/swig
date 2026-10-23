@@ -33,7 +33,7 @@
 #   else
 #     define SWIGUNUSED
 #   endif
-# elif defined(__ICC)
+# elif defined(__ICC) || defined (__clang__)
 #   define SWIGUNUSED __attribute__ ((__unused__))
 # else
 #   define SWIGUNUSED
@@ -122,8 +122,11 @@
 # pragma warning disable 592
 #endif
 
-#if defined(__cplusplus) && __cplusplus >=201103L
+#if defined(__cplusplus) && __cplusplus >= 201103L
 # define SWIG_NOEXCEPT noexcept
 #else
 # define SWIG_NOEXCEPT throw()
 #endif 
+
+#define SWIG_QUOTE_STRING(x) #x
+#define SWIG_STRINGIFY(x) SWIG_QUOTE_STRING(x)

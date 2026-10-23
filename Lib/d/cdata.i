@@ -22,7 +22,7 @@
 %typemap(dtype) SWIGCDATA "ubyte[]"
 %typemap(imtype) SWIGCDATA "ubyte[]"
 %typemap(ctype) SWIGCDATA "SWIG_c_array"
-%typemap(out) SWIGCDATA %{
+%typemap(out, null="{0, 0}") SWIGCDATA %{
   $result.array = $1.data;
   $result.len = $1.len;
 %}

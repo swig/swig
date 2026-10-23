@@ -9,7 +9,7 @@
  * an = assignment operator, etc).
  * ----------------------------------------------------------------------------- */
 
-/** 
+/* 
  * Macro used to add extend functions that require operator== in object.
  * 
  * @param Container    STL container
@@ -37,7 +37,7 @@
 
 
 
-/** 
+/* 
  * Macro used to add extend functions that require the assignment 
  * operator (ie. = ) of contained class
  * 
@@ -85,7 +85,7 @@
 
 
 
-/** 
+/* 
  * Macro used to add all extended functions to a container
  * 
  * @param Container    STL container
@@ -104,7 +104,7 @@
 %enddef
 
 
-/** 
+/* 
  * Private macro used to add all extended functions to C/C++
  * primitive types
  * 

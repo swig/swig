@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Customization">15 Customization Features</a></H1>
+<H1><a name="Customization">17 Customization Features</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -46,7 +46,7 @@ of exception handling is presented.  Then, a more general-purpose
 customization mechanism known as "features" is described.
 </p>
 
-<H2><a name="Customization_exception">15.1 Exception handling with %exception</a></H2>
+<H2><a name="Customization_exception">17.1 Exception handling with %exception</a></H2>
 
 
 <p>
@@ -95,7 +95,7 @@ or <tt>%noexception</tt> with no code. For example:
 %exception;   // Deletes any previously defined handler
 </pre></div>
 
-<H3><a name="Customization_nn3">15.1.1 Handling exceptions in C code</a></H3>
+<H3><a name="Customization_nn3">17.1.1 Handling exceptions in C code</a></H3>
 
 
 <p>
@@ -163,7 +163,7 @@ Each target language has its own approach to creating a runtime error/exception 
 and for Perl it is the <tt>croak</tt> method shown above.
 </p>
 
-<H3><a name="Customization_nn4">15.1.2 Exception handling with longjmp()</a></H3>
+<H3><a name="Customization_nn4">17.1.2 Exception handling with longjmp()</a></H3>
 
 
 <p>
@@ -239,7 +239,7 @@ Note: This implementation is only intended to illustrate the general idea.  To m
 modify it to handle nested <tt>try</tt> declarations.
 </p>
 
-<H3><a name="Customization_nn5">15.1.3 Handling C++ exceptions</a></H3>
+<H3><a name="Customization_nn5">17.1.3 Handling C++ exceptions</a></H3>
 
 
 <p>
@@ -274,7 +274,7 @@ class OutOfMemory {};
 </pre>
 </div>
 
-<H3><a name="Customization_allowexcept">15.1.4 Exception handlers for variables</a></H3>
+<H3><a name="Customization_allowexcept">17.1.4 Exception handlers for variables</a></H3>
 
 
 <p>
@@ -299,7 +299,7 @@ The <tt>%allowexception</tt> feature works like any other feature and so can be 
 </pre>
 </div>
 
-<H3><a name="Customization_nn6">15.1.5 Defining different exception handlers</a></H3>
+<H3><a name="Customization_nn6">17.1.5 Defining different exception handlers</a></H3>
 
 
 <p>
@@ -426,7 +426,7 @@ to attach exceptions to specific parts of a header file. For example:
 </pre>
 </div>
 
-<H3><a name="Customization_exception_special_variables">15.1.6 Special variables for %exception</a></H3>
+<H3><a name="Customization_exception_special_variables">17.1.6 Special variables for %exception</a></H3>
 
 
 <p>
@@ -457,6 +457,14 @@ variables are replaced with.
 <td>$isvoid</td>
 <td>Expands to 1 if the wrapped function has a void return, otherwise expands to 0.
 Note that it expands to 1 in destructors and 0 in constructors.</td>
+</tr>
+
+<tr>
+<td>$isvoidresult</td>
+<td>The same as $isvoid, plus it also expands to 1 when the
+<a href="Typemaps.html#Typemaps_nn28">"out"</a> typemap declares <tt>numoutputs=0</tt> to suppress
+a non void return value. It therefore expands to 1 whenever the wrapped function returns no value
+of its own, rather than just when the C++ return type is void.</td>
 </tr>
 
 <tr>
@@ -535,20 +543,15 @@ Below shows the expansions for the 1st of the overloaded <tt>something</tt> wrap
 </pre></div>
 
 
-<H3><a name="Customization_nn7">15.1.7 Using The SWIG exception library</a></H3>
+<H3><a name="Customization_nn7">17.1.7 Using The SWIG exception library</a></H3>
 
 
 <p>
-The <tt>exception.i</tt> library file provides support for creating
-language independent exceptions in your interfaces.  To use it, simply
-put an "<tt>%include exception.i</tt>" in your interface file.  This
-provides a function <tt>SWIG_exception()</tt> that can be used to raise
+SWIG provides a function <tt>SWIG_exception()</tt> that can be used to raise
 common scripting language exceptions in a portable manner.  For example :</p>
 
 <div class="code"><pre>
 // Language independent exception handler
-%include exception.i       
-
 %exception {
   try {
     $action
@@ -587,10 +590,77 @@ SWIG_NullReferenceError
 </pre></div>
 
 <p>
-The <tt>SWIG_exception()</tt> function can also be used in typemaps.
+<tt>SWIG_exception()</tt> raises the exception and leaves the wrapper function, so none of the code after it in the
+wrapper is run. <tt>SWIG_exception_fail()</tt>, used by many of the typemaps in the SWIG library, is the same.
 </p>
 
-<H2><a name="Customization_ownership">15.2 Object ownership and %newobject</a></H2>
+<p>
+<tt>SWIG_exception()</tt> can also be used in a typemap:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) int positive {
+  if ($1 &lt;= 0)
+    SWIG_exception(SWIG_ValueError, "Expected a positive value.");
+}
+</pre>
+</div>
+
+<p>
+For C++, the <tt>SWIG_CATCH_STDEXCEPT</tt> macro adds a catch handler for each of these standard exceptions, which
+raises the error shown with the message from the exception's <tt>what()</tt>:
+</p>
+
+<div class="diagram"><pre>
+std::invalid_argument    SWIG_ValueError
+std::domain_error        SWIG_ValueError
+std::overflow_error      SWIG_OverflowError
+std::out_of_range        SWIG_IndexError
+std::length_error        SWIG_IndexError
+std::runtime_error       SWIG_RuntimeError
+std::bad_cast            SWIG_TypeError
+std::exception           SWIG_SystemError
+</pre></div>
+
+<p>
+Put any catch handlers for your own exception classes before it, as an exception class derived from a standard
+exception would otherwise be caught by the standard exception's handler:
+</p>
+
+<div class="code"><pre>
+%exception {
+  try {
+    $action
+  } catch (MyError &amp;e) {
+    SWIG_exception(SWIG_ValueError, e.what());
+  }
+  SWIG_CATCH_STDEXCEPT
+  catch (...) {
+    SWIG_exception(SWIG_UnknownError, "unknown exception");
+  }
+}
+</pre></div>
+
+<p>
+The <tt>SWIG_CATCH_UNKNOWN</tt> macro can be used instead of <tt>SWIG_CATCH_STDEXCEPT</tt> and the catch all handler.
+It raises <tt>SWIG_SystemError</tt> with the message from its <tt>what()</tt> for a <tt>std::exception</tt>. It raises
+<tt>SWIG_UnknownError</tt> for any other exception.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version where <tt>SWIG_exception()</tt>, <tt>SWIG_CATCH_STDEXCEPT</tt>
+and <tt>SWIG_CATCH_UNKNOWN</tt> are available without the <tt>exception.i</tt> library file. The following is no longer
+needed, but still works, as the file now does nothing:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;exception.i&gt;
+</pre>
+</div>
+
+<H2><a name="Customization_ownership">17.2 Object ownership and %newobject</a></H2>
 
 
 <p>
@@ -717,7 +787,7 @@ The use of <tt>%newobject</tt> is also integrated with reference counting and is
 <a href="SWIGPlus.html#SWIGPlus_ref_unref">C++ reference counted objects</a> section.
 </p>
 
-<H2><a name="Customization_features">15.3 Features and the %feature directive</a></H2>
+<H2><a name="Customization_features">17.3 Features and the %feature directive</a></H2>
 
 
 <p>
@@ -799,7 +869,7 @@ The following are all equivalent:
 The syntax in the first variation will generate the <tt>{ }</tt> delimiters used whereas the other variations will not.
 </p>
 
-<H3><a name="Customization_feature_attributes">15.3.1 Feature attributes</a></H3>
+<H3><a name="Customization_feature_attributes">17.3.1 Feature attributes</a></H3>
 
 
 <p>
@@ -840,7 +910,7 @@ In the following example, <tt>MyExceptionClass</tt> is the name of the Java clas
 Further details can be obtained from the <a href="Java.html#Java_exception_handling">Java exception handling</a> section.
 </p>
 
-<H3><a name="Customization_feature_flags">15.3.2 Feature flags</a></H3>
+<H3><a name="Customization_feature_flags">17.3.2 Feature flags</a></H3>
 
 
 <p>
@@ -938,7 +1008,7 @@ in the <tt>swig.swg</tt> Library file. The following shows the alternative synta
 The concept of clearing features is discussed next.
 </p>
 
-<H3><a name="Customization_clearing_features">15.3.3 Clearing features</a></H3>
+<H3><a name="Customization_clearing_features">17.3.3 Clearing features</a></H3>
 
 
 <p>
@@ -1031,7 +1101,7 @@ The three macros below show this for the "except" feature:
 </pre>
 </div>
 
-<H3><a name="Customization_features_default_args">15.3.4 Features and default arguments</a></H3>
+<H3><a name="Customization_features_default_args">17.3.4 Features and default arguments</a></H3>
 
 
 <p>
@@ -1106,7 +1176,7 @@ specifying or not specifying default arguments in a feature is not applicable as
 in SWIG-1.3.23 when the approach to wrapping methods with default arguments was changed.
 </p>
 
-<H3><a name="Customization_features_example">15.3.5 Feature example</a></H3>
+<H3><a name="Customization_features_example">17.3.5 Feature example</a></H3>
 
 
 <p>

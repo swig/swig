@@ -32,7 +32,7 @@
 
 
 /* ------------------------------------------------------------
- *  Unified typemap section
+ *  Unified Typemap Library section
  * ------------------------------------------------------------ */
 
 /* director support in Perl is experimental */
@@ -77,7 +77,7 @@ if (argvi >= items) EXTEND(sp, argvi+1);
 %typemap(throws) Swig::DirectorException
 %{ sv_setsv(ERRSV, $1.getNative()); SWIG_fail; %}
 
-/* Include the unified typemap library */
+/* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>
 
 /*  ------------------------------------------------------------
@@ -85,16 +85,16 @@ if (argvi >= items) EXTEND(sp, argvi+1);
  * ------------------------------------------------------------ */
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
-    "sv_setiv(SvRV($result),PTR2IV($1));"; 
+    "SWIG_SetPtrVariable($result, PTR2IV($1), $1_descriptor);";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
-    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+    "SWIG_SetPtrVariable($result, PTR2IV(&$1), $1_descriptor);";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE &&
-    "sv_setiv(SvRV($result),PTR2IV(&$1));"; 
+    "SWIG_SetPtrVariable($result, PTR2IV(&$1), $1_descriptor);";
 
 %typemap(varout,type="$&1_descriptor") SWIGTYPE
-    "sv_setiv(SvRV($result), PTR2IV(&$1));";
+    "SWIG_SetPtrVariable($result, PTR2IV(&$1), $&1_descriptor);";
 
 %typemap(varout,type="$1_descriptor") SWIGTYPE (CLASS::*) {
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1), $1_descriptor);

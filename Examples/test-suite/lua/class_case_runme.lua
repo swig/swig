@@ -1,0 +1,16 @@
+local v=require("class_case")
+
+local a = v.ClassA()
+assert(a ~= nil)
+local b = v.classB()
+assert(b ~= nil)
+local b2 = v.classB2()
+assert(b2 ~= nil)
+assert(v.Test1(4) == 0)
+assert(v.Test1(a) == 1)
+assert(not pcall(function() v.Test1(b) end))
+assert(not pcall(function() v.Test1(b2) end))
+assert(v.Test2(6) == 0)
+assert(not pcall(function() v.Test2(a) end))
+assert(v.Test2(b) == 1)
+assert(v.Test2(b2) == 1) -- classB2 inherite classB

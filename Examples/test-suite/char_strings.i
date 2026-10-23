@@ -113,6 +113,14 @@ bool SetConstCharConstStaticString(const char *const str, unsigned int number) {
   return check(static_str, number);
 }
 
+typedef const char *ConstCharStar; // typedef hiding the const, reproduces GitHub issue #3290
+
+bool SetConstCharTypedefString(ConstCharStar str, unsigned int number) {
+  static char static_str[] = CPLUSPLUS_MSG;
+  strcpy(static_str, str);
+  return check(static_str, number);
+}
+
 // get set function
 char *CharPingPong(char *str) {
   return str;
@@ -123,6 +131,15 @@ char *CharArrayPingPong(char abcstr[]) {
 char *CharArrayDimsPingPong(char abcstr[16]) {
   return abcstr;
 }
+// Reads all 16 chars, returning the string length or -1 if any char after the string is not zero
+int CharArrayDimsLength(char abcstr[16]) {
+  size_t len = strlen(abcstr);
+  for (size_t i = len; i < 16; ++i) {
+    if (abcstr[i])
+      return -1;
+  }
+  return (int)len;
+}
 
 // variables
 char *global_char = NULL;
@@ -132,6 +149,58 @@ char global_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
 const char *global_const_char = CPLUSPLUS_MSG;
 const char global_const_char_array1[] = CPLUSPLUS_MSG;
 const char global_const_char_array2[sizeof(CPLUSPLUS_MSG)+1] = CPLUSPLUS_MSG;
+
+// The first array is full, so has no NUL terminator. It must not be read past its end into the second
+struct CharArrayNoNul {
+  char full[4];
+  char after[4];
+};
+CharArrayNoNul char_array_no_nul = {{'a', 'b', 'c', 'd'}, {'X', 'Y', 'Z', 0}};
+
+// A single char fills a char[1], which has no room for a NUL terminator
+char global_char_one[1] = {0};
+struct CharArrayOne {
+  char one[1];
+};
+
+// NULL is rejected for a char and when setting a char array member or global variable, which is left unchanged
+struct CharArrayNull {
+  char four[4];
+};
+CharArrayNull char_array_null = {{'q', 'q', 'q', 0}};
+char global_char_array_null[4] = {'q', 'q', 'q', 0};
+char PlainCharPingPong(char c) { return c; }
+
+// An array of strings, which R passes as a character vector
+const char *CharPtrArrayJoin(char *strs[3]) {
+  static char joined[64];
+  int i;
+  joined[0] = 0;
+  for (i = 0; i < 3; i++) {
+    if (i)
+      strncat(joined, "|", sizeof(joined) - strlen(joined) - 1);
+    strncat(joined, strs[i] ? strs[i] : "NULL", sizeof(joined) - strlen(joined) - 1);
+  }
+  return joined;
+}
+int CharPtrArrayIsNull(char *strs[3]) {
+  return strs == 0;
+}
+const char *CharPtrArrayReplaceFirst(char *strs[3]) {
+  static char replacement[] = "replaced";
+  strs[0] = replacement;
+  return strs[0];
+}
+struct CharPtrArrayHolder {
+  char *strs[3];
+};
+char *global_char_ptr_array[3];
+const char *CharPtrArrayHolderJoin(CharPtrArrayHolder *holder) {
+  return CharPtrArrayJoin(holder->strs);
+}
+const char *GlobalCharPtrArrayJoin() {
+  return CharPtrArrayJoin(global_char_ptr_array);
+}
 
 %}
 

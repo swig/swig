@@ -23,8 +23,8 @@ static std::wstring Swig_csharp_UTF16ToWString(const unsigned short *str) {
   if (sizeof(wchar_t) == 2) {
     return std::wstring((wchar_t *)str);
   } else {
-    const unsigned short *pBegin(str);
-    const unsigned short *ptr(pBegin);
+    const unsigned short *pBegin = str;
+    const unsigned short *ptr = pBegin;
 
     while (*ptr != 0)
       ++ptr;

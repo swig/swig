@@ -1,7 +1,4 @@
-require("import")	-- the import fn
-import("li_std_pair")	-- import code
-
-for k,v in pairs(li_std_pair) do _G[k]=v end -- move to global
+require_to_globs("li_std_pair")
 
 intPair = makeIntPair(7, 6)
 assert(intPair.first==7 and intPair.second==6)

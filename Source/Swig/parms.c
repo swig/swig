@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -70,7 +70,7 @@ Parm *CopyParm(Parm *p) {
   for (ki = First(p); ki.key; ki = Next(ki)) {
     if (DohIsString(ki.item)) {
       DOH *c = Copy(ki.item);
-      Setattr(np,ki.key,c);
+      Setattr(np, ki.key, c);
       Delete(c);
     }
   }
@@ -93,7 +93,8 @@ ParmList *CopyParmListMax(ParmList *p, int count) {
     return 0;
 
   while (p) {
-    if (count == 0) break;
+    if (count == 0)
+      break;
     np = CopyParm(p);
     if (pp) {
       set_nextSibling(pp, np);
@@ -109,7 +110,7 @@ ParmList *CopyParmListMax(ParmList *p, int count) {
 }
 
 ParmList *CopyParmList(ParmList *p) {
-  return CopyParmListMax(p,-1);
+  return CopyParmListMax(p, -1);
 }
 
 /* -----------------------------------------------------------------------------
@@ -134,24 +135,24 @@ ParmList *ParmList_join(ParmList *p, ParmList *p2) {
 }
 
 /* -----------------------------------------------------------------------------
- * ParmList_replace_last()
+ * ParmList_replace_at()
  *
- * Delete last parameter in p and replace it with parameter list p2.
- * p must have at least one element, that is, must not be NULL.
- * Return beginning of modified parameter list.
+ * Delete the parm at zero based 'position' in p and splice parameter list p2
+ * into its place, preserving any parms that follow.  p must have at least
+ * position + 1 elements, that is, the parm being replaced must exist.  p2 may
+ * be NULL, in which case the parm is simply removed.
+ *
+ * Return beginning of the modified parameter list.
  * ----------------------------------------------------------------------------- */
 
-ParmList *ParmList_replace_last(ParmList *p, ParmList *p2) {
-  ParmList *start = p;
-  int len = ParmList_len(p);
-  assert(p);
-  if (len == 1) {
-    start = p2;
-  } else if (len > 1) {
-    Parm *secondlastparm = ParmList_nth_parm(p, len - 2);
-    set_nextSibling(secondlastparm, p2);
-  }
-  return start;
+ParmList *ParmList_replace_at(ParmList *p, int position, ParmList *p2) {
+  Parm *target = ParmList_nth_parm(p, position);
+  assert(target);
+  p2 = ParmList_join(p2, nextSibling(target));
+  if (position == 0)
+    return p2;
+  set_nextSibling(ParmList_nth_parm(p, position - 1), p2);
+  return p;
 }
 
 /* -----------------------------------------------------------------------------
@@ -173,6 +174,22 @@ Parm *ParmList_nth_parm(ParmList *p, unsigned int n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_find_name()
+ *
+ * Return the first parameter in the list named name, NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_name(ParmList *p, const_String_or_char_ptr name) {
+  while (p) {
+    String *pname = Getattr(p, "name");
+    if (pname && Equal(pname, name))
+      break;
+    p = nextSibling(p);
+  }
+  return p;
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_variadic_parm()
  *
  * Return the variadic parm (last in list if it is variadic), NULL otherwise
@@ -185,6 +202,68 @@ Parm *ParmList_variadic_parm(ParmList *p) {
     p = nextSibling(p);
   }
   return lastparm && SwigType_isvariadic(Getattr(lastparm, "type")) ? lastparm : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_find_variadic_parm()
+ *
+ * Return the first variadic parm anywhere in the list (not just at the end),
+ * NULL otherwise.  If position is non-NULL, the zero based index of the parm
+ * is written through it (left unchanged when no variadic is found).
+ *
+ * C++20 abbreviated function templates that mix an explicit variadic pack
+ * with an 'auto' parm produce a templateparms list where the invented type
+ * template parameter for the 'auto' sits after the pack ([dcl.fct]/19).  This
+ * helper lets the matcher and expand machinery find the pack in that case.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_variadic_parm(ParmList *p, int *position) {
+  int i = 0;
+  while (p) {
+    if (SwigType_isvariadic(Getattr(p, "type"))) {
+      if (position)
+        *position = i;
+      return p;
+    }
+    p = nextSibling(p);
+    ++i;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_expanded_pack()
+ *
+ * Return the first template parameter pack in 'packs', skipping the parms that are not packs, that the variadic type
+ * 't' is an expansion of, such as the 'typename... Ts' that 'v.r.Ts' expands.  NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_expanded_pack(ParmList *packs, const SwigType *t) {
+  for (; packs; packs = nextSibling(packs)) {
+    if (SwigType_isvariadic(Getattr(packs, "type")) && SwigType_variadic_expands(t, Getattr(packs, "name")))
+      return packs;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_find_pack_expansion()
+ *
+ * Return the first parm in the list whose type is an expansion of the template parameter pack named 'pack', such as
+ * the 'Ts &... args' of the pack 'Ts', NULL otherwise.  As for ParmList_find_variadic_parm(), the zero based index of
+ * the parm is written through 'position' if it is non-NULL (left unchanged when no parm is found).
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_pack_expansion(ParmList *p, const String *pack, int *position) {
+  int i = 0;
+  for (; p; p = nextSibling(p), ++i) {
+    if (SwigType_variadic_expands(Getattr(p, "type"), pack)) {
+      if (position)
+        *position = i;
+      return p;
+    }
+  }
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -219,6 +298,21 @@ int ParmList_len(ParmList *p) {
   while (p) {
     i++;
     p = nextSibling(p);
+  }
+  return i;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_len_nonvariadic()
+ *
+ * Return the number of parms in the list that are not variadic, such as the template parameters that are not packs.
+ * ----------------------------------------------------------------------------- */
+
+int ParmList_len_nonvariadic(ParmList *p) {
+  int i = 0;
+  for (; p; p = nextSibling(p)) {
+    if (!SwigType_isvariadic(Getattr(p, "type")))
+      i++;
   }
   return i;
 }
@@ -347,4 +441,28 @@ int ParmList_has_varargs(ParmList *p) {
     p = nextSibling(p);
   }
   return lastparm ? SwigType_isvarargs(Getattr(lastparm, "type")) : 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_replace_names_positional()
+ *
+ * Replace each identifier in 's' naming one of the parameters in 'p' with that parameter's position as a $ variable,
+ * $1 for the first parameter, $2 for the second and so on, such as 'X<(T1,p.T2)>' into 'X<($1,p.$2)>' for template
+ * parameters T1 and T2.  Only the parameters before 'end' are replaced, or all of them when 'end' is 0.  An unnamed
+ * parameter still takes up a position.  Nothing is done when 's' is 0.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
+  int position = 0;
+  if (!s)
+    return;
+  for (; p && p != end; p = nextSibling(p)) {
+    String *name = Getattr(p, "name");
+    ++position;
+    if (name) {
+      String *dollar = NewStringf("$%d", position);
+      Replaceid(s, name, dollar);
+      Delete(dollar);
+    }
+  }
 }

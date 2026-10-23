@@ -5,7 +5,6 @@
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
-%include <exception.i>
 
 // ------------------------------------------------------------------------
 // std::map
@@ -34,7 +33,6 @@
 %{
 #include <map>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 // exported class

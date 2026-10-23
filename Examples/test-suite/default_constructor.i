@@ -23,8 +23,6 @@
 	    SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE) HHH; /* C#, D, Java, PHP multiple inheritance */
 
-%warnfilter(SWIGWARN_LANG_FRIEND_IGNORE) F; /* friend function */
-
 %delobject F::destroy;
 %delobject G::destroy;
 
@@ -33,7 +31,7 @@
 /* A class with a public default constructor */
 class A {
 public:
-   A() { };
+   A() { }
 };
 
 /* This class should get default constructor/destructors */
@@ -56,7 +54,7 @@ class BB : public B {
 /* A class with a protected constructor */
 class C {
 protected:
-    C() { };
+    C() { }
 public:
 };
 
@@ -68,9 +66,9 @@ class CC : public C {
 /* A class with a private constructor */
 class D {
 private:
-   D() { };
+   D() { }
 public:
-   void foo() { };
+   void foo() { }
 };
 
 /* This class does not get a default constructor */

@@ -402,7 +402,6 @@ namespace std {
 
 %{
 #include <vector>
-#include <stdexcept>
 %}
 
 namespace std {

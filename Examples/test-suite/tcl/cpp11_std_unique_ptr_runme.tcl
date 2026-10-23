@@ -230,9 +230,18 @@ if {[moveOverloadTest] != 0} {
 if {[moveOverloadTest "NULL"] != 1} {
   error "moveOverloadTest failed"
 }
+if { $tcl_platform(os) != "Darwin" } {
+# MacOS need a real object
 if {[moveOverloadTest [Klass k "over"]] != 1} {
   error "moveOverloadTest failed"
 }
+}
+Klass kover "over"
+set overset [moveOverloadTest kover]
+if {$overset != 1} {
+  error "moveOverloadTest failed"
+}
+kover -delete
 checkCount 0
 
 
@@ -322,9 +331,18 @@ if {[moveRefOverloadTest] != 0} {
 if {[moveRefOverloadTest "NULL"] != 1} {
   error "moveRefOverloadTest failed"
 }
+if { $tcl_platform(os) != "Darwin" } {
+# MacOS need a real object
 if {[moveRefOverloadTest [Klass k "over"]] != 1} {
   error "moveRefOverloadTest failed"
 }
+}
+Klass krefover "over"
+set refoverset [moveRefOverloadTest krefover]
+if {$refoverset != 1} {
+  error "moveRefOverloadTest failed"
+}
+krefover -delete
 checkCount 0
 
 

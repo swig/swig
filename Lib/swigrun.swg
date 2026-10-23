@@ -11,9 +11,7 @@
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
-# define SWIG_QUOTE_STRING(x) #x
-# define SWIG_EXPAND_AND_QUOTE_STRING(x) SWIG_QUOTE_STRING(x)
-# define SWIG_TYPE_TABLE_NAME SWIG_EXPAND_AND_QUOTE_STRING(SWIG_TYPE_TABLE)
+# define SWIG_TYPE_TABLE_NAME SWIG_STRINGIFY(SWIG_TYPE_TABLE)
 #else
 # define SWIG_TYPE_TABLE_NAME
 #endif
@@ -138,8 +136,8 @@
 /* Errors < -200 are generic runtime specific errors */
 #define SWIG_ERROR_RELEASE_NOT_OWNED (-200)
 
-#define SWIG_IsOK(r)               (r >= 0)
-#define SWIG_ArgError(r)           ((r != SWIG_ERROR) ? r : SWIG_TypeError)
+#define SWIG_IsOK(r)               ((r) >= 0)
+#define SWIG_ArgError(r)           (((r) != SWIG_ERROR) ? (r) : SWIG_TypeError)
 
 /* The CastRankLimit says how many bits are used for the cast rank */
 #define SWIG_CASTRANKLIMIT         (1 << 8)
@@ -147,18 +145,24 @@
 #define SWIG_NEWOBJMASK            (SWIG_CASTRANKLIMIT  << 1)
 /* The TmpMask is for in/out typemaps that use temporary objects */
 #define SWIG_TMPOBJMASK            (SWIG_NEWOBJMASK << 1)
+/* The binary string mask denotes using string without unicode */
+#define SWIG_BINARYSTRMASK         (SWIG_TMPOBJMASK << 1)
 /* Simple returning values */
 #define SWIG_BADOBJ                (SWIG_ERROR)
 #define SWIG_OLDOBJ                (SWIG_OK)
 #define SWIG_NEWOBJ                (SWIG_OK | SWIG_NEWOBJMASK)
 #define SWIG_TMPOBJ                (SWIG_OK | SWIG_TMPOBJMASK)
+#define SWIG_BINARYSTR             (SWIG_OK | SWIG_BINARYSTRMASK)
 /* Check, add and del object mask methods */
-#define SWIG_AddNewMask(r)         (SWIG_IsOK(r) ? (r | SWIG_NEWOBJMASK) : r)
-#define SWIG_DelNewMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_NEWOBJMASK) : r)
-#define SWIG_IsNewObj(r)           (SWIG_IsOK(r) && (r & SWIG_NEWOBJMASK))
-#define SWIG_AddTmpMask(r)         (SWIG_IsOK(r) ? (r | SWIG_TMPOBJMASK) : r)
-#define SWIG_DelTmpMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_TMPOBJMASK) : r)
-#define SWIG_IsTmpObj(r)           (SWIG_IsOK(r) && (r & SWIG_TMPOBJMASK))
+#define SWIG_AddNewMask(r)         (SWIG_IsOK(r) ? ((r) | SWIG_NEWOBJMASK) : (r))
+#define SWIG_DelNewMask(r)         (SWIG_IsOK(r) ? ((r) & ~SWIG_NEWOBJMASK) : (r))
+#define SWIG_IsNewObj(r)           (SWIG_IsOK(r) && ((r) & SWIG_NEWOBJMASK))
+#define SWIG_AddTmpMask(r)         (SWIG_IsOK(r) ? ((r) | SWIG_TMPOBJMASK) : (r))
+#define SWIG_DelTmpMask(r)         (SWIG_IsOK(r) ? ((r) & ~SWIG_TMPOBJMASK) : (r))
+#define SWIG_IsTmpObj(r)           (SWIG_IsOK(r) && ((r) & SWIG_TMPOBJMASK))
+#define SWIG_AddBinaryStrMask(r)   (SWIG_IsOK(r) ? ((r) | SWIG_BINARYSTRMASK) : (r))
+#define SWIG_DelBinaryStrMask(r)   (SWIG_IsOK(r) ? ((r) & ~SWIG_BINARYSTRMASK) : (r))
+#define SWIG_IsBinaryStr(r)        (SWIG_IsOK(r) && ((r) & SWIG_BINARYSTRMASK))
 
 /* Cast-Rank Mode */
 #if defined(SWIG_CASTRANK_MODE)
@@ -169,7 +173,7 @@
 #    define SWIG_MAXCASTRANK          (2)
 #  endif
 #  define SWIG_CASTRANKMASK          ((SWIG_CASTRANKLIMIT) -1)
-#  define SWIG_CastRank(r)           (r & SWIG_CASTRANKMASK)
+#  define SWIG_CastRank(r)           ((r) & SWIG_CASTRANKMASK)
 SWIGINTERNINLINE int SWIG_AddCast(int r) {
   return SWIG_IsOK(r) ? ((SWIG_CastRank(r) < SWIG_MAXCASTRANK) ? (r + 1) : SWIG_ERROR) : r;
 }
@@ -276,12 +280,12 @@ SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len) {
   int rem = (int)len;
 
   while (rem >= (int)sizeof(unsigned int)) {
-    k = *(unsigned int *)data;
+    memcpy(&k, data, sizeof(unsigned int));
     k += i++;
     hash ^= k;
     hash *= 171717;
     data += sizeof(unsigned int);
-    rem -= sizeof(unsigned int);
+    rem -= (int)sizeof(unsigned int);
   }
 
   switch (rem) {
@@ -476,7 +480,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 
   while (head) {
     swig_cast_info *cast;
-    for (cast = head; (cast - head) <= head->value; cast++) {
+    for (cast = head; (unsigned int)(cast - head) <= head->value; cast++) {
       if (!cast->converter) {
         swig_type_info *tc = cast->type;
         if (!tc->clientdata) {
@@ -626,7 +630,7 @@ SWIG_PackVoidPtr(char *buff, void *ptr, const char *name, size_t bsz) {
   if ((2*sizeof(void *) + 2) > bsz) return 0;
   *(r++) = '_';
   r = SWIG_PackData(r,&ptr,sizeof(void *));
-  if (strlen(name) + 1 > (bsz - (r - buff))) return 0;
+  if (strlen(name) + 1 > (bsz - (size_t)(r - buff))) return 0;
   strcpy(r,name);
   return buff;
 }

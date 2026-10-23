@@ -83,5 +83,13 @@ public class multiple_inheritance_interfaces_runme {
     d.ia("bye", false);
 
     UndesirablesSwigImpl.UndesiredStaticMethod(UndesirablesSwigImpl.UndesiredEnum.UndesiredEnum1);
+
+    // %interface_impl on an instantiated class template must still generate the interface
+    checkBaseAndInterfaces(TemplateBase.class, true, "", new String[] {});
+    checkBaseAndInterfaces(TemplateBaseSwigImpl.class, false, "", new String[] {"TemplateBase"});
+    checkBaseAndInterfaces(TemplateDerived.class, false, "", new String[] {"TemplateBase"});
+
+    if (new TemplateDerived().tb(10) != 10)
+      throw new RuntimeException("Incorrect value from TemplateDerived.tb()");
   }
 }

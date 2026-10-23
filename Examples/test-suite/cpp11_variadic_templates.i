@@ -20,11 +20,6 @@
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE) LotsInherit;
 
-#if defined SWIGGO
-%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) ParmsPtrRValueRef;
-%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) ParmsRValueRef;
-#endif
-
 ////////////////////////
 // Variadic templates //
 ////////////////////////

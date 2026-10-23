@@ -235,7 +235,9 @@ basetests() {
     fi
 
     testname="cpp call"
-    $CCACHE_COMPILE -c test1.c -E > test1.i
+    # Don't pass -c as well as -E here - clang warns that -c is unused, and -E alone
+    # exercises the same "don't cache preprocessor only invocations" code path.
+    $CCACHE_COMPILE -E test1.c > test1.i
     checkstat 'cache hit' 8
     checkstat 'cache miss' 37
 

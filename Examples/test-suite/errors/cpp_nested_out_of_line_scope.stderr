@@ -1,0 +1,2 @@
+cpp_nested_out_of_line_scope.i:12: Warning 325: Nested struct not currently supported (Outer ignored)
+cpp_nested_out_of_line_scope.i:15: Warning 325: Nested struct not currently supported (Nested ignored)

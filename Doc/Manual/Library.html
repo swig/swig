@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Library">12 SWIG library</a></H1>
+<H1><a name="Library">14 SWIG library</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -51,6 +51,7 @@
 <li><a href="#Library_std_unique_ptr_by_ref">unique_ptr passed by reference</a>
 </ul>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
+<li><a href="#Library_std_function">std::function</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
@@ -82,7 +83,7 @@ Alternative libraries provide similar functionality.  Please read this chapter
 carefully if you used the old libraries.
 </p>
 
-<H2><a name="Library_nn2">12.1 The %include directive and library search path</a></H2>
+<H2><a name="Library_nn2">14.1 The %include directive and library search path</a></H2>
 
 
 <p>
@@ -114,7 +115,7 @@ Set the environment variable to hold an alternative library directory.
 The directories that are searched are displayed when using <tt>-verbose</tt> commandline option.
 </p>
 
-<H2><a name="Library_nn3">12.2 C arrays and pointers</a></H2>
+<H2><a name="Library_nn3">14.2 C arrays and pointers</a></H2>
 
 
 <p>
@@ -126,7 +127,7 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 </p>
 
-<H3><a name="Library_argcargv">12.2.1 argcargv.i</a></H3>
+<H3><a name="Library_argcargv">14.2.1 argcargv.i</a></H3>
 
 
 <p>
@@ -167,7 +168,7 @@ mainApp(args);
 </div>
 
 
-<H3><a name="Library_nn4">12.2.2 cpointer.i</a></H3>
+<H3><a name="Library_nn4">14.2.2 cpointer.i</a></H3>
 
 
 <p>
@@ -383,7 +384,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
-<H3><a name="Library_carrays">12.2.3 carrays.i</a></H3>
+<H3><a name="Library_carrays">14.2.3 carrays.i</a></H3>
 
 
 <p>
@@ -562,7 +563,7 @@ used with types of <tt>char</tt> or <tt>char *</tt>.
 SWIG's default handling of these types is to handle them as character strings and the two macros do not do enough to change this.
 </p>
 
-<H3><a name="Library_nn6">12.2.4 cmalloc.i</a></H3>
+<H3><a name="Library_nn6">14.2.4 cmalloc.i</a></H3>
 
 
 <p>
@@ -723,18 +724,39 @@ Now, in a script:
 </pre>
 </div>
 
-<H3><a name="Library_nn7">12.2.5 cdata.i</a></H3>
+<H3><a name="Library_nn7">14.2.5 cdata.i</a></H3>
 
 
 <p>
-The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language type.
-The target language type is either:
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language.
 </p>
 
-<ul>
-  <li> A string for the scripting languages. The scripting language must support strings with embedded binary data in order for this to work.</li>
-  <li> A byte array for the statically typed languages; namely, <tt>byte[]</tt> for C# and Java, <tt>ubyte[]</tt> for D, <tt>[]byte</tt> for Go.</li>
-</ul>
+<p>
+The following table describes the specific type per language:
+</p>
+
+<table BORDER summary="cdata types">
+<tr VALIGN=TOP>
+<td><b>Language</b></td>
+<td><b>cdata type</b></td>
+<td><b>mutability</b></td>
+</tr>
+<tr> <td>Ruby</td>       <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>PHP</td>        <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>Guile</td>      <td>string</td>                 <td>yes</td> </tr>
+<tr> <td>Lua</td>        <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Perl5</td>      <td>string</td>                 <td>none</td> </tr>
+<tr> <td>OCaml</td>      <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Octave</td>     <td>string</td>                 <td>none</td> </tr>
+<tr> <td>Python</td>     <td>binary string</td>          <td>none</td> </tr>
+<tr> <td>C#</td>         <td><tt>byte[]</tt></td>        <td>yes</td> </tr>
+<tr> <td>Java</td>       <td><tt>byte[]</tt></td>        <td>yes</td> </tr>
+<tr> <td>D</td>          <td><tt>ubyte[]</tt></td>       <td>yes</td> </tr>
+<tr> <td>Go</td>         <td><tt>[]byte</tt></td>        <td>yes</td> </tr>
+<tr> <td>Javascript</td> <td><tt>Uint8Array</tt></td>    <td>yes</td> </tr>
+<tr> <td>Scilab</td>     <td>list of <tt>uint8</tt></td> <td>yes</td> </tr>
+<tr> <td>Tcl</td>        <td>list of integers</td>       <td>yes</td> </tr>
+</table>
 
 <p>
 The primary applications of this module would be packing/unpacking of
@@ -795,7 +817,7 @@ Python example:
 ...    a[i] = i
 &gt;&gt;&gt; b = cdata(a, 40)
 &gt;&gt;&gt; b
-'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
+b'\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x03\x00\x00\x00\x04
 \x00\x00\x00\x05\x00\x00\x00\x06\x00\x00\x00\x07\x00\x00\x00\x08\x00\x00\x00\t'
 &gt;&gt;&gt; c = intArray(10)
 &gt;&gt;&gt; memmove(c, b)
@@ -836,7 +858,7 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 Clearly they are unsafe.
 </p>
 
-<H2><a name="Library_nn8">12.3 C string handling</a></H2>
+<H2><a name="Library_nn8">14.3 C string handling</a></H2>
 
 
 <p>
@@ -856,7 +878,7 @@ morality.  The modules in this section provide basic functionality
 for manipulating raw C strings.
 </p>
 
-<H3><a name="Library_nn9">12.3.1 Default string handling</a></H3>
+<H3><a name="Library_nn9">14.3.1 Default string handling</a></H3>
 
 
 <p>
@@ -897,7 +919,7 @@ interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 </p>
 
-<H3><a name="Library_nn10">12.3.2 Passing a string with length</a></H3>
+<H3><a name="Library_nn10">14.3.2 Passing a string with length</a></H3>
 
 
 <p>
@@ -956,7 +978,7 @@ The usage from target language will be identical.
 In the wrapper function, the supplied string will be expanded to a length parameter and pointer.
 </p>
 
-<H3><a name="Library_nn11">12.3.3 Using %newobject to release memory</a></H3>
+<H3><a name="Library_nn11">14.3.3 Using %newobject to release memory</a></H3>
 
 
 <p>
@@ -997,7 +1019,7 @@ however, you may need to provide your own "newfree" typemap for other types.
 See <a href="Customization.html#Customization_ownership">Object ownership and %newobject</a> for more details.
 </p>
 
-<H3><a name="Library_nn12">12.3.4 cstring.i</a></H3>
+<H3><a name="Library_nn12">14.3.4 cstring.i</a></H3>
 
 
 <p>
@@ -1457,10 +1479,10 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_c_standard_library">12.4 C standard library</a></H2>
+<H2><a name="Library_c_standard_library">14.4 C standard library</a></H2>
 
 
-<H3><a name="Library_complex">12.4.1 Complex floating types</a></H3>
+<H3><a name="Library_complex">14.4.1 Complex floating types</a></H3>
 
 
 <p>
@@ -1505,7 +1527,7 @@ Then if wrapping as opaque types is not useful to you, you can use
 the functions and/or variables which use complex floating types.
 </p>
 
-<H2><a name="Library_stl_cpp_library">12.5 STL/C++ library</a></H2>
+<H2><a name="Library_stl_cpp_library">14.5 STL/C++ library</a></H2>
 
 
 <p>
@@ -1553,7 +1575,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_std_string">12.5.1 std::string</a></H3>
+<H3><a name="Library_std_string">14.5.1 std::string</a></H3>
 
 
 <p>
@@ -1637,7 +1659,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_string_view">12.5.2 std::string_view</a></H3>
+<H3><a name="Library_std_string_view">14.5.2 std::string_view</a></H3>
 
 
 <p>
@@ -1681,7 +1703,7 @@ needs (e.g. put it in a member variable) - you can't return a temporary target
 language string.  In both cases SWIG will issue a warning by default.
 </p>
 
-<H3><a name="Library_std_vector">12.5.3 std::vector</a></H3>
+<H3><a name="Library_std_vector">14.5.3 std::vector</a></H3>
 
 
 <p>
@@ -1860,7 +1882,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions">12.5.4 STL exceptions</a></H3>
+<H3><a name="Library_stl_exceptions">14.5.4 STL exceptions</a></H3>
 
 
 <p>
@@ -1894,8 +1916,6 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 
 <div class="code">
 <pre>
-%include "exception.i"
-
 %exception {
   try {
     $action
@@ -1910,10 +1930,10 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr">12.5.5 shared_ptr smart pointer</a></H3>
+<H3><a name="Library_std_shared_ptr">14.5.5 shared_ptr smart pointer</a></H3>
 
 
-<H4><a name="Library_shared_ptr_basics">12.5.5.1 shared_ptr basics</a></H4>
+<H4><a name="Library_shared_ptr_basics">14.5.5.1 shared_ptr basics</a></H4>
 
 
 <p>
@@ -2011,7 +2031,7 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_inheritance">12.5.5.2 shared_ptr and inheritance</a></H4>
+<H4><a name="Library_shared_ptr_inheritance">14.5.5.2 shared_ptr and inheritance</a></H4>
 
 
 <p>
@@ -2102,7 +2122,7 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_overloading">12.5.5.3 shared_ptr and method overloading</a></H4>
+<H4><a name="Library_shared_ptr_overloading">14.5.5.3 shared_ptr and method overloading</a></H4>
 
 
 <p>
@@ -2124,7 +2144,7 @@ SWIG will choose to wrap just the first method by default.
 For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
 </p>
 
-<H4><a name="Library_shared_ptr_templates">12.5.5.4 shared_ptr and templates</a></H4>
+<H4><a name="Library_shared_ptr_templates">14.5.5.4 shared_ptr and templates</a></H4>
 
 
 <p>
@@ -2166,14 +2186,14 @@ The SWIG code below shows the required ordering:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_directors">12.5.5.5 shared_ptr and directors</a></H4>
+<H4><a name="Library_shared_ptr_directors">14.5.5.5 shared_ptr and directors</a></H4>
 
 
 <p>
 The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
-<H3><a name="Library_std_unique_ptr">12.5.6 unique_ptr smart pointer</a></H3>
+<H3><a name="Library_std_unique_ptr">14.5.6 unique_ptr smart pointer</a></H3>
 
 
 <p>
@@ -2198,7 +2218,7 @@ Note that SWIG doesn't currently support using both <tt>%shared_ptr(T)</tt> and
 <tt>%unique_ptr&lt;T&gt;</tt> on the same type <tt>T</tt>.
 </p>
 
-<H4><a name="Library_std_unique_ptr_by_value">12.5.6.1 unique_ptr passed by value</a></H4>
+<H4><a name="Library_std_unique_ptr_by_value">14.5.6.1 unique_ptr passed by value</a></H4>
 
 
 <p>
@@ -2306,7 +2326,7 @@ Attempts to pass ownership from a proxy class to a <tt>std::unique</tt> paramete
 in a "Cannot release ownership as memory is not owned" exception. For example, if <tt>example.take(k)</tt> in the example above is called twice.
 </p>
 
-<H4><a name="Library_std_unique_ptr_by_ref">12.5.6.2 unique_ptr passed by reference</a></H4>
+<H4><a name="Library_std_unique_ptr_by_ref">14.5.6.2 unique_ptr passed by reference</a></H4>
 
 
 <p>
@@ -2370,7 +2390,7 @@ std::unique_ptr&lt;Klass&gt; &amp;&amp; RvalueRefReturn();
 This initial support contained the move semantics when passing a <tt>std::unique_ptr</tt> around by value. Support for passing a <tt>std::unique_ptr</tt> around by reference was added in SWIG-4.3.0.
 </p>
 
-<H3><a name="Library_std_auto_ptr">12.5.7 auto_ptr smart pointer</a></H3>
+<H3><a name="Library_std_auto_ptr">14.5.7 auto_ptr smart pointer</a></H3>
 
 
 <p>
@@ -2439,17 +2459,119 @@ That is, it works the same way covered in the previous section for <tt>std::uniq
 Input parameters also work the same way as <tt>std::unique_ptr</tt> covered in the previous section.
 </p>
 
-<H2><a name="Library_nn16">12.6 Utility Libraries</a></H2>
-
-
-<H3><a name="Library_nn17">12.6.1 exception.i</a></H3>
+<H3><a name="Library_std_function">14.5.8 std::function</a></H3>
 
 
 <p>
-The <tt>exception.i</tt> library provides a language-independent function for raising a run-time
-exception in the target language. This library is largely used by the SWIG library writers.
-If possible, use the error handling scheme available to your target language as there is greater
-flexibility in what errors/exceptions can be thrown.
+The <tt>std_function.i</tt> library file wraps the C++11 <tt>std::function</tt>
+polymorphic function-object template. It exposes the partial specialisation
+<tt>std::function&lt;RET(ARGS...)&gt;</tt> so that any C++ callable -
+a free function, a lambda, a bound member function, or a functor (a class with
+<tt>operator()</tt>) - can be returned from C++ to the target language
+and invoked there.
+</p>
+
+<p>
+Two conventions are baked into the library:
+</p>
+
+<ul>
+<li><tt>operator()</tt> is renamed to <tt>call</tt> so that target languages
+which cannot wrap <tt>operator()</tt> as an identifier still get a usable
+method name.</li>
+<li>The default constructor is suppressed (<tt>%ignore</tt>d), so
+<tt>std::function</tt> instances always originate on the C++ side -
+typically returned from a factory function. They are not default-constructible
+from the target language.</li>
+</ul>
+
+<p>
+A typical use is a factory function that captures state in a lambda and
+returns it as a <tt>std::function</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_string.i&gt;
+%include &lt;std_function.i&gt;
+
+std::function&lt;bool(int, const std::string &amp;)&gt; MakeLambda(int pass) {
+  return [pass](int passcode, const std::string &amp;name) -&gt; bool {
+    return passcode == pass &amp;&amp; name == "magic";
+  };
+}
+
+%template(MyLambda) std::function&lt;bool(int, const std::string &amp;)&gt;;
+</pre></div>
+
+<p>
+One <tt>%template</tt> is required for each distinct
+<tt>RET(ARGS...)</tt> signature being wrapped. From Java the wrapped
+C++ lambda is invoked via the renamed <tt>call</tt> method:
+</p>
+
+<div class="targetlang"><pre>
+MyLambda fn = MakeLambda(10);
+boolean ok = fn.call(10, "magic");   // true
+boolean no = fn.call(11, "magic");   // false
+</pre></div>
+
+<p>
+Similarly one can use the other functors defined in <tt>&lt;functional&gt;</tt>, such as <tt>std::plus</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;std_function.i&gt;
+
+std::function&lt;int(int, int)&gt; MakePlusFunctor() {
+  return std::plus&lt;int&gt;();
+}
+
+%template(Plus) std::function&lt;int(int, int)&gt;;
+</pre></div>
+
+<p>
+Usage from Java:
+</p>
+
+<div class="targetlang"><pre>
+Plus plus = MakePlusFunctor();
+int sum = plus.call(3, 4); // returns 7
+</pre></div>
+
+<p>
+Limitations and notes:
+</p>
+
+<ul>
+<li>Only the function-typed partial specialisation is wrapped. A
+<tt>%template</tt> instantiation with a non-function template argument falls
+through to the empty primary template and produces no useful interface.</li>
+<li>The wrapper does not let target-language code construct a
+<tt>std::function</tt> from a target-language callable. <tt>std::function</tt>
+moves a C++ callable <i>out</i> to the target language; to go the other way,
+see
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
+or
+<a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>.</li>
+</ul>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to add
+<tt>std_function.i</tt> so that
+<tt>std::function</tt> can be usefully used.
+</p>
+
+<H2><a name="Library_nn16">14.6 Utility Libraries</a></H2>
+
+
+<H3><a name="Library_nn17">14.6.1 exception.i</a></H3>
+
+
+<p>
+The <tt>exception.i</tt> library file is no longer needed and does nothing, as the language independent function it
+provided for raising a runtime exception in the target language is always available. This function is largely used by
+the SWIG library writers. If possible, use the error handling scheme available to your target language as there is
+greater flexibility in what errors/exceptions can be thrown.
 </p>
 
 <p>
@@ -2459,8 +2581,8 @@ flexibility in what errors/exceptions can be thrown.
 <div class="indent">
 
 <p>
-Raises an exception in the target language.  <tt>code</tt> is one of the following symbolic
-constants:
+Raises an exception in the target language and leaves the wrapper function.  <tt>code</tt> is one of the following
+symbolic constants:
 </p>
 
 <div class="code">
@@ -2475,7 +2597,9 @@ SWIG_OverflowError
 SWIG_SyntaxError
 SWIG_ValueError
 SWIG_SystemError
+SWIG_AttributeError
 SWIG_NullReferenceError
+SWIG_UnknownError
 </pre>
 </div>
 
@@ -2486,13 +2610,12 @@ SWIG_NullReferenceError
 </div>
 
 <p>
-The primary use of this module is in writing language-independent exception handlers.
+The primary use of this function is in writing language independent exception handlers.
 For example:
 </p>
 
 <div class="code">
 <pre>
-%include "exception.i"
 %exception std::vector::getitem {
   try {
     $action
@@ -2503,8 +2626,13 @@ For example:
 </pre>
 </div>
 
+<p>
+See <a href="Customization.html#Customization_nn7">Using The SWIG exception library</a> for more details, including the
+<tt>SWIG_CATCH_STDEXCEPT</tt> macro for the C++ standard exceptions.
+</p>
 
-<H3><a name="Library_attributes">12.6.2 attribute.i</a></H3>
+
+<H3><a name="Library_attributes">14.6.2 attribute.i</a></H3>
 
 
 <p>
@@ -2722,7 +2850,7 @@ shared_ptr which has <tt>%naturalvar</tt> turned on in
 <tt>%shared_ptr</tt>.
 </p>
 
-<H4><a name="Library_attribute_templates">12.6.2.1 %attribute and C++ templates</a></H4>
+<H4><a name="Library_attribute_templates">14.6.2.1 %attribute and C++ templates</a></H4>
 
 
 <p>

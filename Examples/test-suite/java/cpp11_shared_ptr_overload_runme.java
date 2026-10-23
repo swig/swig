@@ -56,5 +56,24 @@ public class cpp11_shared_ptr_overload_runme {
 
     ret = cpp11_shared_ptr_overload.Combo7(new MyType("XXX"));
     if (!ret.equals("XXXCombo7")) throw new RuntimeException("Combo7 fail:" + ret);
+
+    // Test default and None for NULL
+    if (!cpp11_shared_ptr_overload.default_0())
+	throw new RuntimeException("default_0() fail");
+    if (!cpp11_shared_ptr_overload.default_0(null))
+	throw new RuntimeException("default_0(null) fail");
+    if (!cpp11_shared_ptr_overload.default_0l())
+	throw new RuntimeException("default_0l() fail");
+    if (!cpp11_shared_ptr_overload.default_0l(null))
+	throw new RuntimeException("default_0l(null) fail");
+    if (!cpp11_shared_ptr_overload.default_null())
+	throw new RuntimeException("default_null() fail");
+    if (!cpp11_shared_ptr_overload.default_null(null))
+	throw new RuntimeException("default_null(null) fail");
+    if (!cpp11_shared_ptr_overload.default_nullptr())
+	throw new RuntimeException("default_nullptr() fail");
+    if (!cpp11_shared_ptr_overload.default_nullptr(null))
+	throw new RuntimeException("default_nullptr(null) fail");
+
   }
 }

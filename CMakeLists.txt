@@ -4,10 +4,6 @@ set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 
 project (swig)
 
-if (POLICY CMP0074)
-  cmake_policy (SET CMP0074 NEW)
-endif()
-
 file (STRINGS configure.ac line LIMIT_COUNT 1 REGEX "AC_INIT\\(.*\\)" )
 if (line MATCHES "AC_INIT\\(\\[(.*)\\],[ \t]*\\[(.*)\\],[ \t]*\\[(.*)\\]\\)" )
   set (SWIG_VERSION ${CMAKE_MATCH_2})
@@ -76,9 +72,9 @@ endif ()
 
 option (WITH_PCRE "Enable PCRE" ON)
 if (WITH_PCRE)
-  find_package (PCRE2 REQUIRED)
+  # No minimum version as SWIG only uses the PCRE2 API available since 10.00, matching configure which accepts any version
+  find_package (PCRE2 REQUIRED COMPONENTS 8BIT)
   set (HAVE_PCRE 1)
-  include_directories (${PCRE2_INCLUDE_DIRS})
 endif()
 
 #if (WIN32)
@@ -109,9 +105,12 @@ include_directories (
 # generate the parser source code (depends on bison)
 file (MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/Source/CParse)
 
+# Keep the flags in step with AM_YFLAGS in Source/Makefile.am so that both build systems
+# reject the same bison warnings, such as an undeclared grammar conflict
 BISON_TARGET (swig_parser
     ${SWIG_SOURCE_DIR}/CParse/parser.y
     ${PROJECT_BINARY_DIR}/Source/CParse/parser.c
+    COMPILE_FLAGS "-d -Wall -Werror"
 )
 
 # generate swigwarn.swg
@@ -148,7 +147,7 @@ add_executable (swig
   ${PROJECT_BINARY_DIR}/Source/CParse/parser.h
 )
 if (PCRE2_FOUND)
-  target_link_libraries (swig ${PCRE2_LIBRARIES})
+  target_link_libraries (swig PRIVATE PCRE2::8BIT)
 endif ()
 install (TARGETS swig DESTINATION bin)
 

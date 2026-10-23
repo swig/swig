@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -31,14 +31,22 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l) {
   }
   Printf(call, "%s(", method);
   for (p = l; p; p = nextSibling(p)) {
+    SwigType *pt = Getattr(p, "type");
+    SwigType *rpt = SwigType_typedef_resolve_all(pt);
     String *pname = Getattr(p, "name");
-    if (!pname && Cmp(Getattr(p, "type"), "void")) {
-      pname = NewString("");
-      Printf(pname, "arg%d", arg_idx++);
+    String *pname_created = 0;
+    if (!pname && (SwigType_type(pt) != T_VOID)) {
+      pname_created = NewStringf("arg%d", arg_idx++);
     }
     if (p != l)
       Printf(call, ", ");
-    Printv(call, pname, NIL);
+    String *parm_name = pname_created ? pname_created : pname;
+    if (SwigType_isrvalue_reference(rpt))
+      Printv(call, "std::move(", parm_name, ")", NIL);
+    else
+      Printv(call, parm_name, NIL);
+    Delete(pname_created);
+    Delete(rpt);
   }
   Printf(call, ")");
   return call;
@@ -90,33 +98,34 @@ String *Swig_director_declaration(Node *n) {
   return declaration;
 }
 
-
 /* -----------------------------------------------------------------------------
  * Swig_method_call()
  * ----------------------------------------------------------------------------- */
 
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
-  String *func;
+  String *func = NewString("");
   int comma = 0;
   Parm *p = parms;
-  SwigType *pt;
-  String *nname;
-
-  func = NewString("");
-  nname = SwigType_namestr(name);
+  String *nname = SwigType_namestr(name);
   Printf(func, "%s(", nname);
+
   while (p) {
-    String *pname;
-    pt = Getattr(p, "type");
+    SwigType *pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
+      SwigType *rpt = SwigType_typedef_resolve_all(pt);
+      String *pname = Getattr(p, "name");
       if (comma)
-	Printf(func, ",");
-      pname = Getattr(p, "name");
-      Printf(func, "%s", pname);
+        Append(func, ",");
+      if (SwigType_isrvalue_reference(rpt))
+        Printv(func, "std::move(", pname, ")", NIL);
+      else
+        Printv(func, pname, NIL);
+      Delete(rpt);
       comma = 1;
     }
     p = nextSibling(p);
   }
+
   Printf(func, ")");
   return func;
 }
@@ -185,16 +194,15 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
  * Swig_director_emit_dynamic_cast()
  *
  * In order to call protected virtual director methods from the target language, we need
- * to add an extra dynamic_cast to call the public C++ wrapper in the director class. 
+ * to add an extra dynamic_cast to call the public C++ wrapper in the director class.
  * Also for non-static protected members when the allprotected option is on.
  * ----------------------------------------------------------------------------- */
 
-void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
+bool Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
-  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
-      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || 
-                                               Swig_storage_isstatic(n))
-                                          && !Equal(nodeType(n), "constructor"))) {
+  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) ||
+      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || Swig_storage_isstatic(n)) &&
+       !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");
     String *dirname;
     String *dirdecl;
@@ -204,7 +212,9 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
     Delete(dirname);
     Delete(dirdecl);
+    return true;
   }
+  return false;
 }
 
 /* -----------------------------------------------------------------------------

@@ -14,11 +14,7 @@ comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeStruct),
 comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeAnotherClass),
     "SomeAnotherClass description")
 
-# There doesn't seem to be any way to specify the doc string for __init__ when
-# using "-builtin" (see http://stackoverflow.com/q/11913492/15275), so skip
-# this test in this case.
-if not doxygen_parsing.is_python_builtin():
-    comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeAnotherClass.__init__),
+comment_verifier.check(inspect.getdoc(doxygen_parsing.SomeAnotherClass.__init__),
     r"""*Overload 1:*
 First overloaded constructor.
 

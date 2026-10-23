@@ -45,7 +45,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
       obj = SWIG_InternalNewPointerObj(constants[i].pvalue, *(constants[i]).ptype,0);
       break;
     case SWIG_PY_BINARY:
-      obj = SWIG_NewPackedObj(constants[i].pvalue, constants[i].lvalue, *(constants[i].ptype));
+      obj = SWIG_NewPackedObj(constants[i].pvalue, (size_t)constants[i].lvalue, *(constants[i].ptype));
       break;
     default:
       obj = 0;
@@ -83,9 +83,9 @@ SWIG_Python_FixMethods(PyMethodDef *methods, const swig_const_info *const_table,
       if (ci) {
 	void *ptr = (ci->type == SWIG_PY_POINTER) ? ci->pvalue : 0;
 	if (ptr) {
-	  size_t shift = (ci->ptype) - types;
+	  size_t shift = (size_t)((ci->ptype) - types);
 	  swig_type_info *ty = types_initial[shift];
-	  size_t ldoc = (c - methods[i].ml_doc);
+	  size_t ldoc = (size_t)(c - methods[i].ml_doc);
 	  size_t lptr = strlen(ty->name)+2*sizeof(void*)+2;
 	  char *ndoc = (char*)malloc(ldoc + lptr + 10);
 	  if (ndoc) {
@@ -153,11 +153,7 @@ SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), P
     if (ml)
       func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
   }
-#if PY_VERSION_HEX >= 0x03000000
   return PyInstanceMethod_New(func);
-#else
-  return PyMethod_New(func, NULL, NULL);
-#endif
 }
 
 /* -----------------------------------------------------------------------------
@@ -196,14 +192,9 @@ extern "C"
 #endif
 
 SWIGEXPORT 
-#if PY_VERSION_HEX >= 0x03000000
-  PyObject*
-#else
-  void
-#endif
+PyObject*
 SWIG_init(void) {
 
-#if PY_VERSION_HEX >= 0x03000000
   static PyModuleDef_Slot SwigSlots[] = {
     { Py_mod_exec, (void *)SWIG_mod_exec },
 #ifdef SWIGPYTHON_NOGIL
@@ -227,12 +218,6 @@ SWIG_init(void) {
   };
 
   return PyModuleDef_Init(&SWIG_module);
-#else
-  PyObject *m = Py_InitModule(SWIG_name, SwigMethods);
-  if (m && SWIG_mod_exec(m) != 0) {
-    Py_DECREF(m);
-  }
-#endif
 }
 
 SWIGINTERN int SWIG_mod_exec(PyObject *m) {

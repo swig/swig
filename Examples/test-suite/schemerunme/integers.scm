@@ -12,6 +12,14 @@
 	  (check-equality (throws-exception? (,function (- ,from 1))) #t)
 	  (check-equality (throws-exception? (,function (+ ,to 1))) #t)))
 
+(define-macro (check-char-range function)
+  `(begin (check-equality (,function (integer->char 0)) (integer->char 0))
+	  (check-equality (,function (integer->char 127)) (integer->char 127))
+	  (check-equality (,function (integer->char 128)) (integer->char 128))
+	  (check-equality (,function (integer->char 255)) (integer->char 255))
+	  (check-equality (throws-exception? (,function (integer->char 256))) #t)
+	  (check-equality (throws-exception? (,function 65)) #t)))
+
 (let ((signed-short-min   (- (expt 2 (- (* (signed-short-size) 8) 1))))
       (signed-short-max   (- (expt 2 (- (* (signed-short-size) 8) 1)) 1))
       (unsigned-short-max (- (expt 2 (* (unsigned-short-size) 8)) 1))
@@ -26,9 +34,14 @@
       (unsigned-long-long-max  (- (expt 2 (* (unsigned-long-long-size) 8)) 1))
      )
 
-     ;;; signed char, unsigned char typemaps deal with characters, not integers.
-     ;; (check-range signed-char-identity (- (expt 2 7)) (- (expt 2 7) 1))
-     ;; (check-range unsigned-char-identity 0 (- (expt 2 8) 1))
+     ;;; signed char, unsigned char typemaps deal with characters, not integers, from 0 to 255, -128 to -1 being 128 to 255.
+     (check-char-range signed-char-identity)
+     (check-char-range unsigned-char-identity)
+     (check-equality (signed-char-to-int (integer->char 127)) 127)
+     (check-equality (signed-char-to-int (integer->char 128)) -128)
+     (check-equality (signed-char-to-int (integer->char 255)) -1)
+     (check-equality (unsigned-char-to-int (integer->char 128)) 128)
+     (check-equality (unsigned-char-to-int (integer->char 255)) 255)
      (check-range signed-short-identity signed-short-min signed-short-max)
      (check-range unsigned-short-identity 0 unsigned-short-max)
      (check-range signed-int-identity signed-int-min signed-int-max)

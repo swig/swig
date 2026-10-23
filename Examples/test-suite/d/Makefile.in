@@ -8,20 +8,17 @@ HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
 HAVE_CXX17   = @HAVE_CXX17@
 HAVE_CXX20   = @HAVE_CXX20@
+HAVE_CXX23   = @HAVE_CXX23@
+HAVE_CXX26   = @HAVE_CXX26@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	d_nativepointers \
-	exception_partial_info
+	exception_partial_info \
 
 CPP11_TEST_CASES = \
-	cpp11_shared_ptr_const \
-	cpp11_shared_ptr_crtp_upcast \
-	cpp11_shared_ptr_nullptr_in_containers \
-	cpp11_shared_ptr_overload \
-	cpp11_shared_ptr_upcast \
 
 # "D classes support the single inheritance paradigm" https://dlang.org/spec/class.html
 FAILING_CPP_TESTS += \

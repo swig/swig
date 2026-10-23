@@ -29,12 +29,14 @@
 <li><a href="#CPlusPlus11_lambda_functions_and_expressions">Lambda functions and expressions</a>
 <li><a href="#CPlusPlus11_alternate_function_syntax">Alternate function syntax</a>
 <li><a href="#CPlusPlus11_object_construction_improvement">Object construction improvement</a>
+<li><a href="#CPlusPlus11_using_declaration_template_base">Inheriting members through a template parameter base</a>
 <li><a href="#CPlusPlus11_explicit_overrides_final">Explicit overrides and final</a>
 <li><a href="#CPlusPlus11_null_pointer_constant">Null pointer constant</a>
 <li><a href="#CPlusPlus11_strongly_typed_enumerations">Strongly typed enumerations</a>
 <li><a href="#CPlusPlus11_double_angle_brackets">Double angle brackets</a>
 <li><a href="#CPlusPlus11_explicit_conversion_operators">Explicit conversion operators</a>
-<li><a href="#CPlusPlus11_alias_templates">Type alias and alias templates</a>
+<li><a href="#CPlusPlus11_type_aliases">Type aliases</a>
+<li><a href="#CPlusPlus11_alias_templates">Alias templates</a>
 <li><a href="#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="#CPlusPlus11_variadic_templates">Variadic templates</a>
 <li><a href="#CPlusPlus11_new_char_literals">New character literals</a>
@@ -191,6 +193,15 @@ MyClass mc3 = mc.MoveAssign(mc); // Use of mc again will fail
 It is of course perfectly possible in C++ for a function/constructor to not move an object passed to it in an rvalue reference parameter. The assumption that SWIG makes would then not hold and customisation of the appropriate input typemaps would be required.
 For scripting languages, this would be for the 'in' typemap and for the non-scripting languages additional typemaps such as the 'javain' typemap, which is used to set the memory ownership of the underlying C++ object for Java, would also need copying and modifying appropriately.
 </p>
+
+<p>
+An rvalue reference to an array, such as the parameter below, is instead wrapped in the same way as a <a href="SWIGPlus.html#SWIGPlus_nn18">reference to an array</a>.
+No ownership is passed to the function, as the target language does not own an array it has a pointer to:
+</p>
+
+<div class="code"><pre>
+int sum(int (&amp;&amp;values)[4]);
+</pre></div>
 
 <p>
 <b>Compatibility note:</b>
@@ -733,6 +744,20 @@ decltype(i+j) k;
 <tt>i+j</tt> both have type <tt>int</tt>.
 </p>
 
+<p>A parenthesised name is an lvalue rather than the name itself, so a <tt>decltype</tt> of one gives a
+reference to the type the name was declared with:</p>
+
+<div class="code"><pre>
+int gi = 1;
+int *gp = &amp;gi;
+
+decltype(gp) plain = gp;      // int *
+decltype((gp)) lvalue = gp;   // int *&amp;
+</pre></div>
+
+<p>A scalar is wrapped by value either way, so <tt>decltype((gi))</tt> is wrapped as a plain
+<tt>int</tt>, reading and writing the object the reference refers to.</p>
+
 <p>
 Using an expression for the decltype which SWIG can't handle results in a warning:</p>
 <div class="code"><pre>
@@ -770,6 +795,161 @@ for actually deducing the type as for <tt>decltype()</tt>), and for specifying
 the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
 and <a href="#CPlusPlus11_alternate_function_syntax">functions</a>.</p>
 
+<p>An <tt>auto</tt> variable can carry a declarator, so the placeholder can be decorated with a
+reference, rvalue reference, pointer or cv-qualifier, just like an <tt>auto</tt> function parameter.
+The decoration is kept on the wrapped variable:</p>
+
+<div class="code"><pre>
+int g = 42;
+int *pg = &amp;g;
+
+auto&amp; r1 = g;            // int &amp;
+const auto&amp; r2 = g;      // const int &amp;
+auto&amp;&amp; r3 = 42;          // int &amp;&amp;
+auto&amp;&amp; r4 = g;           // int &amp; - a forwarding reference bound to an lvalue
+auto* p1 = &amp;g;           // int *
+auto* const p2 = &amp;g;     // int *const
+auto** p3 = &amp;pg;         // int **
+auto const* p4 = &amp;g;     // const int * - a cv-qualifier may also follow the placeholder
+</pre></div>
+
+<p>The type is deduced from the initialiser, using the declaration a name in the initialiser refers to,
+so the declarator of that declaration is part of the deduced type. Taking the address of something in
+scope deduces a pointer to it, and a named cast deduces the type it casts to:</p>
+
+<div class="code"><pre>
+int fn(int x);
+
+auto v1 = pg;                       // int *
+auto v2 = &amp;fn;                      // int (*)(int)
+auto v3 = static_cast&lt;double&gt;(g);   // double
+</pre></div>
+
+<p>A new-expression deduces a pointer to the type it allocates, or for an array to its first element,
+whatever the placement and initialiser. The allocated type can itself be the <tt>auto</tt> placeholder,
+which is deduced from the initialiser:</p>
+
+<div class="code"><pre>
+struct Widget { Widget(int a, int b); };
+char buffer[64];
+
+auto n1 = new int(5);                  // int *
+auto n2 = new Widget{1, 2};            // Widget *
+auto n3 = new double[g];               // double *
+auto n4 = new int[2][3];               // int (*)[3]
+auto n5 = new (buffer) Widget(1, 2);   // Widget *
+auto n6 = new auto(2.5);               // double *
+</pre></div>
+
+<p>As C++ requires, the top level cv-qualifiers of the initialiser are dropped unless the variable is a
+reference, so <tt>r2</tt> above is a <tt>const int &amp;</tt> while a by value <tt>auto</tt> initialised
+from a <tt>const int</tt> is a plain <tt>int</tt>. A name that refers to a reference stands for the type
+the reference refers to, and an array decays to a pointer to its first element unless the variable is a
+reference:</p>
+
+<div class="code"><pre>
+int &amp;rg = g;
+int arr[4] = {1, 2, 3, 4};
+
+auto v4 = rg;    // int
+auto&amp; v5 = rg;   // int &amp;
+auto v6 = arr;   // int *
+auto&amp; v7 = arr;  // int (&amp;)[4]
+</pre></div>
+
+<p>A braced initialiser holding a single element deduces the type of that element, which is the C++17
+rule for this form:</p>
+
+<div class="code"><pre>
+auto v4{42};   // int
+auto* v5{&amp;g};  // int *
+</pre></div>
+
+<p>A declaration declaring more than one variable is wrapped a variable at a time, each declarator keeping
+its own decoration:</p>
+
+<div class="code"><pre>
+auto v6 = 1, v7 = 2;    // two ints
+auto v8 = 3, *v9 = &amp;g;  // an int and an int *
+</pre></div>
+
+<p>C++ requires every declarator in the list to deduce to the same type, so a declarator SWIG cannot
+deduce a type from takes the type deduced for the others, whichever of them that was:</p>
+
+<div class="code"><pre>
+auto v10 = fn(1), v11 = 2;  // both int, deduced from '2'
+</pre></div>
+
+<p>Two declarators deducing different types is not valid C++, and SWIG says so while wrapping each
+variable with the type its own initialiser deduces, so that</p>
+
+<div class="code"><pre>
+auto v12 = 1, v13 = 2.5;
+</pre></div>
+
+<p>gives:</p>
+
+<div class="shell"><pre>
+example.i:28: Warning 348: Inconsistent auto type deduction for variable 'v13': initialiser '2.5' deduces 'double', not 'int'.
+</pre></div>
+
+<p>Only fundamental types are compared this way, because a typedef cannot be resolved while the
+declaration is being parsed, so a mismatch involving anything else goes unreported.</p>
+
+<p>The type still has to be deducible from the initialiser. Where no declarator of a declaration deduces
+one, the variables are dropped after issuing warning 346, and the warning says what got in the way. An
+initialiser SWIG understands but cannot deduce a type from, such as a function call or the
+<a href="#CPlusPlus11_null_pointer_constant"><tt>nullptr</tt></a> literal, names the initialiser:</p>
+
+<div class="code"><pre>
+auto v14 = nullptr;
+</pre></div>
+
+<div class="shell"><pre>
+example.i:30: Warning 346: Unable to deduce auto type for variable 'v14' from initialiser 'nullptr' (ignored).
+</pre></div>
+
+<p>A braced initialiser list is reported as one. Copy-list-initialisation deduces a
+<tt>std::initializer_list</tt>, which SWIG declares only as a stub that warns rather than
+wrapping it:</p>
+
+<div class="code"><pre>
+auto v15 = {g, 1};
+</pre></div>
+
+<div class="shell"><pre>
+example.i:32: Warning 346: Unable to deduce auto type for variable 'v15' from a braced initialiser list (ignored).
+</pre></div>
+
+<p>while an initialiser in a form SWIG has no grammar for, such as a throw-expression, says only that:</p>
+
+<div class="code"><pre>
+auto v16 = throw 1;
+</pre></div>
+
+<div class="shell"><pre>
+example.i:34: Warning 346: Unable to deduce auto type for variable 'v16' from an unsupported initialiser (ignored).
+</pre></div>
+
+<p>A new-expression is reported naming the initialiser where it is only part of the initialiser, or where
+SWIG does not parse its type-id, which is the case for a parenthesised type-id and for a placeholder other
+than a plain or cv-qualified <tt>auto</tt>:</p>
+
+<div class="code"><pre>
+auto v17 = new int[3] + 1;
+auto v18 = new (int *[3]);
+auto v19 = new std::integral auto(5);
+</pre></div>
+
+<div class="shell"><pre>
+example.i:36: Warning 346: Unable to deduce auto type for variable 'v17' from initialiser 'new int[3] + 1' (ignored).
+example.i:37: Warning 346: Unable to deduce auto type for variable 'v18' from initialiser 'new (int *[3])' (ignored).
+example.i:38: Warning 346: Unable to deduce auto type for variable 'v19' from initialiser 'new std::integral auto(5)' (ignored).
+</pre></div>
+
+<p>The usual workaround for any of them is to ignore the variable, or to declare it with its actual type
+in the interface file, in the same way as for a <tt>decltype</tt> SWIG cannot deduce.</p>
+
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
 
 
@@ -786,6 +966,16 @@ auto sum = [](int x, int y) { return x+y; };
 auto sum = [](int x, int y) -&gt; int { return x+y; };
 </pre></div>
 
+<p>
+The explicit trailing return type can be any type, just as it can be for an
+<a href="#CPlusPlus11_alternate_function_syntax">ordinary function</a>:
+</p>
+
+<div class="code"><pre>
+auto address = [](int &amp;x) -&gt; int * { return &amp;x; };
+auto value = [](int &amp;x) -&gt; const int &amp; { return x; };
+</pre></div>
+
 <p>The lambda functions are removed from the wrappers for now, because of the lack of support
 for closures (scope of the lambda functions) in the target languages.</p>
 
@@ -800,6 +990,12 @@ auto six = [](int x, int y) { return x+y; }(4, 2);
 
 <p>
 Better support should be available in a later release.
+</p>
+
+<p>
+Lambdas are most useful at the SWIG boundary when returned to the target language as a
+<tt>std::function</tt> object - see
+<a href="#CPlusPlus11_polymorphous_wrappers_for_function_objects">Polymorphic wrappers for function objects</a>.
 </p>
 
 <H3><a name="CPlusPlus11_alternate_function_syntax">7.2.9 Alternate function syntax</a></H3>
@@ -836,6 +1032,64 @@ auto SomeStruct::FuncName(int x, int y) -&gt; int {
 <div class="code"><pre>
 auto square(float a, float b) -&gt; decltype(a);
 </pre></div>
+
+<p>
+The parameter is seen with the type C++ gives it, so a parameter declared with
+an array type has the type "pointer to element" and one declared with a
+function type has the type "pointer to function":
+</p>
+<div class="code"><pre>
+auto array_parameter(int values[10]) -&gt; decltype(values);  // int *
+auto function_parameter(int fn(int)) -&gt; decltype(fn);      // int (*)(int)
+</pre></div>
+
+<p>
+An arithmetic expression over parameters of arithmetic types is deduced from the parameter types.
+A decltype of any other expression over parameters, such as the common <tt>decltype(t + u)</tt> in a function template,
+cannot be deduced and would not compile in a wrapper, where the parameters are not in scope, so the function is ignored with a warning:
+</p>
+<div class="code"><pre>
+auto sum(int a, double b) -&gt; decltype(a + b);                      // double
+template&lt;class T, class U&gt; auto add(T t, U u) -&gt; decltype(t + u);  // Warning 344: ... (ignored).
+</pre></div>
+
+<p>
+Class members are handled in the same way.
+A data member, <tt>this-&gt;member</tt> and a call to a member function that is not overloaded are deduced,
+and any other expression over members or <tt>this</tt> that cannot be deduced makes the function ignored with a warning:
+</p>
+<div class="code"><pre>
+struct S {
+  int d;
+  int h();
+  auto a() -&gt; decltype(this-&gt;d + 1);  // int
+  auto b() -&gt; decltype(h());          // int
+};
+</pre></div>
+
+<p>
+The trailing return type can be any type, including a pointer, a reference to a primitive type, an array reference or a function pointer:
+</p>
+
+<div class="code"><pre>
+struct MoreTrailing {
+  auto count() -&gt; const int&amp;;
+  auto data() -&gt; int *;
+  auto values() -&gt; int (&amp;)[3];
+  auto callback() -&gt; int (*)(int);
+};
+</pre></div>
+
+<p>
+SWIG has one restriction that C++ does not: a pointer to member trailing return type has to be written with parentheses, <tt>auto member() -&gt; int (MoreTrailing::*);</tt>.
+C++ accepts the unparenthesised <tt>auto member() -&gt; int MoreTrailing::*;</tt> equally well, but SWIG reports a syntax error for that spelling.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to accept a pointer or a reference to a primitive type as a trailing return type.
+Earlier versions accepted only a small set of trailing return types and reported a syntax error for the rest.
+SWIG-4.6.0 is also the first version to apply the array and function parameter adjustments to a parameter named by a <tt>decltype</tt> in a trailing return type.
+</p>
 
 <H3><a name="CPlusPlus11_object_construction_improvement">7.2.10 Object construction improvement</a></H3>
 
@@ -901,7 +1155,68 @@ public:
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_explicit_overrides_final">7.2.11 Explicit overrides and final</a></H3>
+<H3><a name="CPlusPlus11_using_declaration_template_base">7.2.11 Inheriting members through a template parameter base</a></H3>
+
+
+<p>
+A class template that takes a type-template parameter as its base class - a form of the <i>mixin</i> idiom -
+can pull inherited members into the derived scope with a using-declaration whose qualifier is the template parameter itself:
+</p>
+
+<div class="code"><pre>
+struct IntCase {
+  std::string call(int v) const;
+};
+
+template &lt;typename I&gt;
+struct Derived : I {
+  using I::call;
+};
+
+%template(DerivedInt) Derived&lt;IntCase&gt;;
+</pre></div>
+
+<p>
+SWIG substitutes the template parameter during instantiation, so the using-declaration
+in <tt>DerivedInt</tt> resolves to <tt>IntCase::call</tt> and a <tt>call</tt> wrapper is emitted on the
+derived proxy just as if the using-declaration had named <tt>IntCase::call</tt> directly.
+</p>
+
+<p>
+The same applies to inheriting constructors, even when the immediate base class is named through a typedef rather
+than by its class name. This is common when the base is a template instantiation:
+</p>
+
+<div class="code"><pre>
+struct A {
+  A();
+  A(int a);
+};
+
+template &lt;typename Parent&gt;
+struct C : Parent {
+  using Parent::Parent;
+};
+
+%template(CA) C&lt;A&gt;;
+
+struct D : C&lt;A&gt; {
+  typedef C&lt;A&gt; base_type;
+  using base_type::base_type;     // inherit C&lt;A&gt;'s constructors through the typedef
+};
+</pre></div>
+
+<p>
+SWIG resolves the typedef qualifier to the base class, so both <tt>CA</tt> and <tt>D</tt> wrap the inherited
+<tt>int</tt> constructor and can be constructed with an integer argument from the target language.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.5.0 is the first version to resolve a using-declaration whose qualifier is a
+bare type-template parameter or a typedef for the base class, including the inheriting-constructor forms.
+</p>
+
+<H3><a name="CPlusPlus11_explicit_overrides_final">7.2.12 Explicit overrides and final</a></H3>
 
 
 <p>
@@ -920,6 +1235,7 @@ struct DerivedStruct : BaseStruct {
   virtual void ab() const override;
   virtual void cd() final;
   virtual void ef() final override;
+  virtual void gh() final;
   virtual ~DerivedStruct() override;
 };
 </pre></div>
@@ -935,15 +1251,36 @@ struct FinalDerivedStruct final : BaseStruct {
 </pre></div>
 
 <p>
-<b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+A method marked <tt>final</tt> cannot be overridden, so when
+<a href="SWIGPlus.html#SWIGPlus_director_classes_introduction">directors</a> are
+enabled no director override is generated for that method and it cannot be overridden from
+the target language either.  In the example above, a director for <tt>DerivedStruct</tt> covers
+<tt>ab</tt>, which is an ordinary override, but not <tt>cd</tt>, <tt>ef</tt> or <tt>gh</tt>.
+Where the <tt>final</tt> appears makes no difference: <tt>gh</tt> is a new virtual method that
+<tt>DerivedStruct</tt> declares and marks final, while <tt>cd</tt> and <tt>ef</tt> mark a virtual
+method inherited from <tt>BaseStruct</tt> as final.
 </p>
 
-<H3><a name="CPlusPlus11_null_pointer_constant">7.2.12 Null pointer constant</a></H3>
+<p>
+<b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+SWIG-4.6.0 is the first version to leave a final method out of the director vtable when the final declaration overrides an inherited virtual method; before that the generated director class overrode it and did not compile.
+</p>
+
+<H3><a name="CPlusPlus11_null_pointer_constant">7.2.13 Null pointer constant</a></H3>
 
 
-<p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. In the few places it has an effect, it is treated like <tt>NULL</tt>.</p>
+<p>The <tt>nullptr</tt> constant is mostly unimportant in wrappers. Where it is the default value of a
+function parameter and the target language writes default values of its own rather than leaving them to
+the C++ layer, <tt>nullptr</tt> becomes that language's null rather than the C++ spelling, so a parameter
+defaulted to <tt>nullptr</tt> is generated as defaulted to <tt>None</tt> by Python and is documented as
+defaulted to <tt>nil</tt> by Ruby. Elsewhere it is treated like <tt>NULL</tt>.</p>
 
-<H3><a name="CPlusPlus11_strongly_typed_enumerations">7.2.13 Strongly typed enumerations</a></H3>
+<p>SWIG does not deduce a type from <tt>nullptr</tt>, so an
+<a href="#CPlusPlus11_type_inference"><tt>auto</tt></a> variable initialised with it trips warning 346
+(<i>Unable to deduce auto type for variable 'v' from initialiser 'nullptr' (ignored)</i>) and is dropped,
+the same as for any other initialiser SWIG cannot deduce a type from.</p>
+
+<H3><a name="CPlusPlus11_strongly_typed_enumerations">7.2.14 Strongly typed enumerations</a></H3>
 
 
 <p>SWIG supports strongly typed enumerations and parses the new <tt>enum class</tt> syntax and forward declarator for the enums, such as:</p>
@@ -996,7 +1333,9 @@ The equivalent in Java is:
 </p>
 
 <div class="targetlang"><pre>
-System.out.println(Color.RainbowColors.Red.swigValue() + " " + Color.WarmColors.Red.swigValue() + " " + Color.PrimeColors.Red.swigValue());
+System.out.println(Color.RainbowColors.Red.swigValue() + " "
+                   + Color.WarmColors.Red.swigValue() + " "
+                   + Color.PrimeColors.Red.swigValue());
 </pre></div>
 
 <p>
@@ -1015,7 +1354,7 @@ The C++11 enum base type, such as <tt>unsigned int</tt>, in the example above, i
   }
 </pre></div>
 
-<H3><a name="CPlusPlus11_double_angle_brackets">7.2.14 Double angle brackets</a></H3>
+<H3><a name="CPlusPlus11_double_angle_brackets">7.2.15 Double angle brackets</a></H3>
 
 
 <p>SWIG correctly parses the symbols &gt;&gt; as closing the
@@ -1026,7 +1365,7 @@ shift operator &gt;&gt; otherwise.</p>
 std::vector&lt;std::vector&lt;int&gt;&gt; myIntTable;
 </pre></div>
 
-<H3><a name="CPlusPlus11_explicit_conversion_operators">7.2.15 Explicit conversion operators</a></H3>
+<H3><a name="CPlusPlus11_explicit_conversion_operators">7.2.16 Explicit conversion operators</a></H3>
 
 
 <p>SWIG correctly parses the keyword <tt>explicit</tt> for operators in addition to constructors now.
@@ -1069,56 +1408,128 @@ Conversion operators either with or without <tt>explicit</tt> need renaming to a
 them available as a normal proxy method.
 </p>
 
-<H3><a name="CPlusPlus11_alias_templates">7.2.16 Type alias and alias templates</a></H3>
+<H3><a name="CPlusPlus11_type_aliases">7.2.17 Type aliases</a></H3>
 
 
 <p>
-A type alias is a statement of the form:
+A type alias introduces a new name for an existing type using the C++11 <tt>using</tt> syntax:
 </p>
 
 <div class="code"><pre>
-using PFD = void (*)(double); // New introduced syntax
+using PFD = void (*)(double); // C++11 type alias
 </pre></div>
 
 <p>
-which is equivalent to the old style typedef:
+which is equivalent to the older <tt>typedef</tt>:
 </p>
 
 <div class="code"><pre>
-typedef void (*PFD)(double);  // The old style
+typedef void (*PFD)(double);  // Equivalent typedef
 </pre></div>
 
 <p>
-The following is an example of an alias template:
+SWIG handles a type alias exactly as it handles the equivalent <tt>typedef</tt>, so no special
+treatment is required.
+</p>
+
+<p>
+A function type can also be written with the
+<a href="#CPlusPlus11_alternate_function_syntax">alternate function syntax</a>, in an alias
+declaration or an alias template:
+</p>
 
 <div class="code"><pre>
-template&lt; typename T1, typename T2, int N &gt;
+using alt_callback_t = auto (*)(int) -&gt; int;
+using alt_function_t = auto (int) -&gt; int;
+
+template&lt;typename T&gt; using alt_fn_t = auto (*)(T) -&gt; T;
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.6.0 is the first version to accept a trailing return type in an alias declaration.
+The equivalent <tt>typedef</tt> spelling was already accepted.
+</p>
+
+<H3><a name="CPlusPlus11_alias_templates">7.2.18 Alias templates</a></H3>
+
+
+<p>
+An alias template is a template whose instantiation yields a type alias - in effect a family of type
+aliases parameterised like a class template.  It is written with the <tt>using</tt> syntax and may fix
+some of the underlying template's parameters while leaving others open:
+</p>
+
+<div class="code"><pre>
+template&lt;typename T1, typename T2, int N&gt;
 class SomeType {
 public:
   T1 a;
   T2 b;
 };
 
-template&lt; typename T2 &gt;
+// Alias template: fixes T1 and N, leaves T2 open.
+template&lt;typename T2&gt;
 using TypedefName = SomeType&lt;char*, T2, 5&gt;;
 </pre></div>
 
 <p>
-SWIG supports both type aliasing and alias templates.
-However, in order to use an alias template, two <tt>%template</tt> directives must be used:
+SWIG does not automatically instantiate templates, so an alias template instantiation has to be
+registered before it can be wrapped.  This takes two <tt>%template</tt> directives - one for the
+underlying template and an empty one for the alias:
 </p>
 
 <div class="code"><pre>
-%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;;
-%template() TypedefName&lt;bool&gt;;
+%template(SomeTypeBool) SomeType&lt;char*, bool, 5&gt;; // instantiate the underlying template
+%template()             TypedefName&lt;bool&gt;;        // register the alias instantiation
 </pre></div>
 
-<p>Firstly, the actual template is instantiated with a name to be used by the target language, as per any template being wrapped.
-Secondly, the empty template instantiation, <tt>%template()</tt>, is required for the alias template.
-This second requirement is necessary to add the appropriate instantiated template type into the type system as SWIG does not automatically instantiate templates.
-See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for more general information on wrapping templates.
+<p>
+The first directive instantiates the underlying template under a name the target language will use, as
+for any wrapped template.  The empty <tt>%template()</tt> adds the alias instantiation to the type
+system, telling SWIG that <tt>TypedefName&lt;bool&gt;</tt> denotes <tt>SomeType&lt;char*, bool, 5&gt;</tt>.
+Once both directives have been processed the alias and the underlying instantiation are
+interchangeable: a function returning <tt>TypedefName&lt;bool&gt;</tt>, for example, is wrapped using the
+<tt>SomeTypeBool</tt> class.  See the <a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a> section for
+more on wrapping templates.
+</p>
 
-<H3><a name="CPlusPlus11_unrestricted_unions">7.2.17 Unrestricted unions</a></H3>
+<p>
+Once registered, the alias can be used wherever the underlying instantiation can: as a base class, and
+as the scope qualifier of a using-declaration that imports inherited members or constructors.  For
+example, given the following classes:
+</p>
+
+<div class="code"><pre>
+template&lt;typename T&gt; struct Adder {
+  T add(T a, T b) { return a + b; }
+};
+template&lt;typename T&gt; using AdderAlias = Adder&lt;T&gt;;
+
+struct Calc : AdderAlias&lt;int&gt; {   // alias template as a base class
+  using AdderAlias&lt;int&gt;::add;     // alias template as a using-declaration qualifier
+};
+</pre></div>
+
+<p>
+The underlying <tt>Adder</tt> template needs to be instantiated as usual and the alias instantiation
+<tt>AdderAlias&lt;int&gt;</tt> should be registered with an empty <tt>%template()</tt> so that it resolves to
+<tt>Adder&lt;int&gt;</tt> both as <tt>Calc</tt>'s base class and as the using-declaration qualifier.  If the
+empty <tt>%template()</tt> is omitted SWIG does not recognise the alias instantiation and issues a
+'Nothing known about' warning - Warning 401 for the base class, Warning 315 for the using-declaration:
+</p>
+
+<div class="code"><pre>
+%template(AdderInt) Adder&lt;int&gt;;
+%template()         AdderAlias&lt;int&gt;; // register the alias instantiation used as the base
+</pre></div>
+
+<p>
+For alias templates whose template parameters carry a C++20 concept constraint, see
+<a href="CPlusPlus20.html#CPlusPlus20_constrained_alias_templates">Constrained alias templates</a>
+in the C++20 chapter.
+</p>
+
+<H3><a name="CPlusPlus11_unrestricted_unions">7.2.19 Unrestricted unions</a></H3>
 
 
 <p>SWIG fully supports any type inside a union even if it does not
@@ -1144,7 +1555,7 @@ union P {
 } p1;
 </pre></div>
 
-<H3><a name="CPlusPlus11_variadic_templates">7.2.18 Variadic templates</a></H3>
+<H3><a name="CPlusPlus11_variadic_templates">7.2.20 Variadic templates</a></H3>
 
 
 <p>SWIG supports the variadic templates including the &lt;&gt;
@@ -1212,7 +1623,7 @@ In the above example <tt>SIZE</tt> is of course wrapped as a constant.
 SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
-<H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>
+<H3><a name="CPlusPlus11_new_char_literals">7.2.21 New character literals</a></H3>
 
 
 <p>
@@ -1229,7 +1640,7 @@ char32_t b = U'b';
 <b>Compatibility note:</b> SWIG-4.0.0 was the first version to support these Universal Coded Character Set (UCS) character literals.
 </p>
 
-<H3><a name="CPlusPlus11_new_string_literals">7.2.20 New string literals</a></H3>
+<H3><a name="CPlusPlus11_new_string_literals">7.2.22 New string literals</a></H3>
 
 
 <p>SWIG supports wide string and Unicode string constants and raw string literals.</p>
@@ -1259,7 +1670,7 @@ Note: There is a bug currently where SWIG's preprocessor incorrectly parses an o
 inside raw string literals.
 </p>
 
-<H3><a name="CPlusPlus11_user_defined_literals">7.2.21 User-defined literals</a></H3>
+<H3><a name="CPlusPlus11_user_defined_literals">7.2.23 User-defined literals</a></H3>
 
 
 <p>
@@ -1326,7 +1737,7 @@ OutputType var2 = 1234_suffix;
 OutputType var3 = 3.1416_suffix;
 </pre></div>
 
-<H3><a name="CPlusPlus11_thread_local_storage">7.2.22 Thread-local storage</a></H3>
+<H3><a name="CPlusPlus11_thread_local_storage">7.2.24 Thread-local storage</a></H3>
 
 
 <p>SWIG correctly parses the <tt>thread_local</tt> keyword. For example, variables
@@ -1346,7 +1757,7 @@ A variable will be thread local if accessed from different threads from the targ
 same way that it will be thread local if accessed from C++ code.
 </p>
 
-<H3><a name="CPlusPlus11_defaulted_deleted">7.2.23 Explicitly defaulted functions and deleted functions</a></H3>
+<H3><a name="CPlusPlus11_defaulted_deleted">7.2.25 Explicitly defaulted functions and deleted functions</a></H3>
 
 
 <p>SWIG handles explicitly defaulted functions, that is, <tt>= default</tt> added to a function declaration. Deleted definitions, which are also called deleted functions, have <tt>= delete</tt> added to the function declaration.
@@ -1384,12 +1795,12 @@ This is a C++ compile time check and SWIG does not make any attempt to detect if
 so in this case it is entirely possible to pass an int instead of a double to <tt>f</tt> from Java, Python etc.
 </p>
 
-<H3><a name="CPlusPlus11_type_long_long_int">7.2.24 Type long long int</a></H3>
+<H3><a name="CPlusPlus11_type_long_long_int">7.2.26 Type long long int</a></H3>
 
 
 <p>SWIG correctly parses and uses the new <tt>long long</tt> type already introduced in C99 some time ago.</p>
 
-<H3><a name="CPlusPlus11_static_assertions">7.2.25 Static assertions</a></H3>
+<H3><a name="CPlusPlus11_static_assertions">7.2.27 Static assertions</a></H3>
 
 
 <p>
@@ -1405,7 +1816,7 @@ struct Check {
 };
 </pre></div>
 
-<H3><a name="CPlusPlus11_sizeof">7.2.26 Allow sizeof to work on members of classes without an explicit object</a></H3>
+<H3><a name="CPlusPlus11_sizeof">7.2.28 Allow sizeof to work on members of classes without an explicit object</a></H3>
 
 
 <p>
@@ -1426,7 +1837,7 @@ const int SIZE = sizeof(A::member); // does not work with C++03. Okay with C++11
 8
 </pre></div>
 
-<H3><a name="CPlusPlus11_noexcept">7.2.27 Exception specifications and noexcept</a></H3>
+<H3><a name="CPlusPlus11_noexcept">7.2.29 Exception specifications and noexcept</a></H3>
 
 
 <p>
@@ -1442,7 +1853,7 @@ int noex2(int) noexcept(true);
 int noex3(int, bool) noexcept(false);
 </pre></div>
 
-<H3><a name="CPlusPlus11_alignment">7.2.28 Control and query object alignment</a></H3>
+<H3><a name="CPlusPlus11_alignment">7.2.30 Control and query object alignment</a></H3>
 
 
 <p>
@@ -1474,7 +1885,7 @@ Use the preprocessor to work around this for now:
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_attributes">7.2.29 Attributes</a></H3>
+<H3><a name="CPlusPlus11_attributes">7.2.31 Attributes</a></H3>
 
 
 <p>
@@ -1490,7 +1901,7 @@ int [[attr1]] i [[attr2, attr3]];
 </pre></div>
 
 
-<H3><a name="CPlusPlus11_ref_qualifiers">7.2.30 Methods with ref-qualifiers</a></H3>
+<H3><a name="CPlusPlus11_ref_qualifiers">7.2.32 Methods with ref-qualifiers</a></H3>
 
 
 <p>
@@ -1654,8 +2065,9 @@ Users would need to write their own typemaps if wrapper references are being use
 
 <p>
 SWIG supports functor classes in a few languages in a very natural way.
-However nothing is provided yet for the new <tt>std::function</tt> template.
-SWIG will parse usage of the template like any other template.
+A plain functor - a class with <tt>operator()</tt> - can be wrapped
+directly; from Python the rename to <tt>__call__</tt> makes the wrapped
+instance directly invocable as a function:
 </p>
 
 <div class="code"><pre>
@@ -1664,21 +2076,33 @@ SWIG will parse usage of the template like any other template.
 struct Test {
   bool operator()(int x, int y); // function object
 };
-
-#include &lt;functional&gt;
-std::function&lt;void (int, int)&gt; pF = Test;   // function template wrapper
-
 </pre></div>
-
-<p>
-Example of supported usage of the plain functor from Python is shown below.
-It does not involve <tt>std::function</tt>.
-</p>
 
 <div class="targetlang"><pre>
 t = Test()
 b = t(1, 2) # invoke C++ function object
 </pre></div>
+
+<p>
+For the polymorphic <tt>std::function</tt> wrapper, SWIG provides
+<tt>std_function.i</tt> in the SWIG library. It wraps the partial specialisation
+<tt>std::function&lt;RET(ARGS...)&gt;</tt> so that any C++ callable - a
+free function, a lambda, a bound member function, or a functor - can be
+returned from C++ to the target language and invoked there. See
+<a href="Library.html#Library_std_function">std::function</a>
+in the SWIG library chapter for the worked example, the supported pattern,
+and the list of caveats.
+</p>
+
+<p>
+<tt>std::function</tt> moves a callable from C++ <i>out</i> to the target
+language. To go the other way - have C++ accept a callable defined in
+the target language - see
+<a href="SWIG.html#SWIG_nn30">Pointers to functions and callbacks</a>
+for the C-side <tt>%callback</tt> mechanism, and
+<a href="SWIGPlus.html#SWIGPlus_target_language_callbacks">Callbacks to the target language</a>
+for the C++ director-based mechanism.
+</p>
 
 <H3><a name="CPlusPlus11_type_traits_for_metaprogramming">7.3.9 Type traits for metaprogramming</a></H3>
 

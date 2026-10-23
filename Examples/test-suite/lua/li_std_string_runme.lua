@@ -1,15 +1,8 @@
-require("import")	-- the import fn
-import("li_std_string")	-- import lib
-
-for k,v in pairs(li_std_string) do _G[k]=v end -- move to global
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require_to_globs("li_std_string")
+catch_undef_globs() -- catch "undefined" global variables
 
 -- helper to check type
-function is_std_string(s) 
+function is_std_string(s)
 	return type(s)=='userdata' and swig_type(s)=='std::string *'
 end
 
@@ -52,19 +45,19 @@ assert(test_reference_output()=="output")
 
 -- throwing string
 ok,ex=pcall(test_throw)
-assert(ok==false and type(ex)=="string")	-- failed & threw string
+assert(not ok and type(ex)=="string")	-- failed & threw string
 
 ok,ex=pcall(test_const_reference_throw)
-assert(ok==false and type(ex)=="string")	-- failed & threw string
+assert(not ok and type(ex)=="string")	-- failed & threw string
 
 -- const ptrs are now converted to lua strings
 -- they used to be std::string*
 ok,ex=pcall(test_const_pointer_throw)
-assert(ok==false and type(ex)=="string")	-- failed & threw object
+assert(not ok and type(ex)=="string")	-- failed & threw object
 
--- ditto non const ptrs 
+-- ditto non const ptrs
 ok,ex=pcall(test_pointer_throw)
-assert(ok==false and type(ex)=="string")	-- failed & threw object
+assert(not ok and type(ex)=="string")	-- failed & threw object
 
 -- testing std::string variables
 -- Global variables
@@ -94,14 +87,14 @@ assert(type(struc.MemberString2)=="string") -- typemaps make this a string
 assert(type(struc.ConstMemberString)=="string")
 
 -- set a const (should fail with error)
-assert(pcall(function () struc.ConstMemberString="c" end)==false)
+assert(not pcall(function () struc.ConstMemberString="c" end))
 --print(struc.MemberString:data(),struc.MemberString2,struc.ConstMemberString:data())
 
 --check type again
 assert(type(struc.MemberString2)=="string") -- typemaps make this a string
 assert(type(struc.ConstMemberString)=="string")
 
--- for static types: they are really variables, 
+-- for static types: they are really variables,
 -- so we must still use the module name
 
 -- check static type
@@ -110,7 +103,7 @@ assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
 
 -- try setting (should fail with error)
 --li_std_string.Structure_StaticMemberString2='e'
-assert(pcall(function () li_std_string.Structure_ConstStaticMemberString='f' end)==false)
+assert(not pcall(function () li_std_string.Structure_ConstStaticMemberString='f' end))
 --[[print(li_std_string.Structure_StaticMemberString:data(),
 		li_std_string.Structure_StaticMemberString2,
 		li_std_string.Structure_ConstStaticMemberString:data())]]

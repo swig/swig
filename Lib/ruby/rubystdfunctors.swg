@@ -1,4 +1,4 @@
-/**
+/*
  * @file   rubystdfunctors.swg
  * @date   Sun May  6 00:44:33 2007
  * 

@@ -3,10 +3,7 @@
 // Testing templated methods in a template
 // Including variadic templated method reported in https://github.com/swig/swig/issues/2794
 
-#if defined(SWIGGO)
-// Several: Warning 507: No Go typemap defined for eprosima::fastrtps::rtps::octet &&
-# pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
-#elif defined(SWIGLUA) || defined(SWIGOCAML)
+#if defined(SWIGLUA) || defined(SWIGOCAML)
 %rename(end_renamed) end;
 %rename(begin_renamed) begin;
 #endif

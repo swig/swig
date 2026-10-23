@@ -1,0 +1,22 @@
+local v=require("constructor_copy_non_const")
+
+local ccb2 = v.CCBase2(v.CCBase2())
+assert(ccb2 ~= nil)
+local ccd = v.CCDerived(v.CCDerived())
+assert(ccd ~= nil)
+local ccmd = v.CCMoreDerived(v.CCMoreDerived())
+assert(ccmd ~= nil)
+local ccmd2 = v.CCMoreDerived2(v.CCMoreDerived2())
+assert(ccmd2 ~= nil)
+local ccmmd2 = v.CCMoreMoreDerived2(v.CCMoreMoreDerived2())
+assert(ccmmd2 ~= nil)
+
+-- no copy ctor v.CCProtectedBase2
+local ccd = v.CCProtectedDerived(v.CCProtectedDerived())
+assert(ccd ~= nil)
+local ccmd = v.CCProtectedMoreDerived(v.CCProtectedMoreDerived())
+assert(ccmd ~= nil)
+local ccmd2 = v.CCProtectedMoreDerived2(v.CCProtectedMoreDerived2())
+assert(ccmd2 ~= nil)
+local ccmmd2 = v.CCProtectedMoreMoreDerived2(v.CCProtectedMoreMoreDerived2())
+assert(ccmmd2 ~= nil)

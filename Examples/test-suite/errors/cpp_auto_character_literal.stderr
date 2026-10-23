@@ -1,0 +1,6 @@
+cpp_auto_character_literal.i:6: Warning 346: Unable to deduce auto type for variable 'char_utf8' from a character literal with a 'u8' prefix (ignored).
+cpp_auto_character_literal.i:7: Warning 346: Unable to deduce auto type for variable 'char_char16' from a character literal with a 'u' prefix (ignored).
+cpp_auto_character_literal.i:8: Warning 346: Unable to deduce auto type for variable 'char_char32' from a character literal with a 'U' prefix (ignored).
+cpp_auto_character_literal.i:9: Warning 346: Unable to deduce auto type for variable 'char_paren' from a character literal with a 'u' prefix (ignored).
+cpp_auto_character_literal.i:10: Warning 346: Unable to deduce auto type for variable 'dauto_char32' from a character literal with a 'U' prefix (ignored).
+cpp_auto_character_literal.i:11: Warning 346: Unable to deduce auto type for variable 'cref_char16' from a character literal with a 'u' prefix (ignored).

@@ -133,6 +133,11 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCo
     }
     *piAllocated = 0;
   }
+  else if (isEmptyMatrix(pvApiCtx, piAddrVar)) {
+    *iRows = 0;
+    *iCols = 0;
+    *piValue = NULL;
+  }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;

@@ -58,6 +58,8 @@ char16_t char16_t_char = u'a';
 char32_t char32_t_char = U'b';
 %}
 
+%constant const wchar_t *ll = L"Wide string constant";
+
 /* Raw string literals */
 %inline %{
 const char      *xx =        ")I'm an \"ascii\" \\ string.";
@@ -66,6 +68,16 @@ wstring          ff =  LR"XXX(I'm a "raw wide" \ string.)XXX";
 const char      *gg = reinterpret_cast<const char*>(u8R"XXX(I'm a "raw UTF-8" \ string.)XXX");
 const char16_t  *hh =  uR"XXX(I'm a "raw UTF-16" \ string.)XXX";
 const char32_t  *ii =  UR"XXX(I'm a "raw UTF-32" \ string.)XXX";
+%}
+
+// A wide raw string literal has the type and value of a wide string literal
+%constant const wchar_t *nn = LR"XXX(I'm a "raw wide" \ string constant.)XXX";
+%feature("compactdefaultargs") raw_wide_default_length;
+
+%inline %{
+#include <cwchar>
+static constexpr auto ww = LR"XXX(I'm a "raw wide" \ auto.)XXX";
+size_t raw_wide_default_length(const wchar_t *s = LR"XXX(abcd)XXX") { return wcslen(s); }
 %}
 
 // Constants

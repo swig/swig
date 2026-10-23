@@ -3,9 +3,9 @@
 class B : public A_Intermediate
 { 
  public: 
-  B() {};
+  B() {}
   
-  void bye() {} ;
+  void bye() {}
 
   virtual MemberEnum member_virtual_test(MemberEnum e) { return memberenum2; }
   virtual GlobalEnum global_virtual_test(GlobalEnum e) { return globalenum2; }

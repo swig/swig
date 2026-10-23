@@ -6,8 +6,6 @@
 #define TESTCASE_THROW3(T1, T2, T3)
 %}
 
-%include <exception.i> // for throws(...) typemap
-
 %catches(int, const char *, const ThreeException&) test_catches(int i);
 %catches(int, ...) test_exception_specification(int i); // override the exception specification
 %catches(...) test_catches_all(int i);

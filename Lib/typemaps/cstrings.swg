@@ -33,7 +33,7 @@
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
   $1 = ($1_ltype) buf;					       
-  $2 = ($2_ltype) size - 1;				       
+  $2 = ($2_ltype) (size ? size - 1 : 0);
 }
 %typemap(freearg,noblock=1,match="in") (TYPEMAP, SIZE) {
   if (alloc$argnum == SWIG_NEWOBJ) %delete_array(buf$argnum);
@@ -225,7 +225,7 @@
   if (buff$argnum) %delete_array(buff$argnum);
 } 
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize) (TYPEMAP,SIZE) { 
-  %append_output(SWIG_FromCharPtrAndSize($1,*$2));
+  %append_output(SWIG_FromCharPtrAndSize($1,(size_t)(*$2)));
 }
 %enddef
 
@@ -278,7 +278,7 @@
 %typemap(freearg,match="in") (TYPEMAP,SIZE) ""
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize)(TYPEMAP,SIZE) {   
   if (*$1) {
-    %append_output(SWIG_FromCharPtrAndSize(*$1,*$2));
+    %append_output(SWIG_FromCharPtrAndSize(*$1,(size_t)(*$2)));
     RELEASE;
   }
 }

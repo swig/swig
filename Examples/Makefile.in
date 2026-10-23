@@ -42,12 +42,14 @@ else
 SRCDIR_INCLUDE = -I. -I$(SRCDIR)
 endif
 
+ROOT_DIR   = @ROOT_DIR@
 TARGET     =
 CC         = @CC@
 CXX        = @CXX@
+BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 CPPFLAGS   = $(SRCDIR_INCLUDE) $(EXTRA_CPPFLAGS)
 CFLAGS     = @PLATCFLAGS@ $(EXTRA_CFLAGS)
-CXXFLAGS   = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ $(EXTRA_CXXFLAGS)
+CXXFLAGS   = $(BOOST_CPPFLAGS) @PLATCXXFLAGS@ $(EXTRA_CXXFLAGS)
 LDFLAGS    = $(EXTRA_LDFLAGS)
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
@@ -402,19 +404,23 @@ d_clean:
 #####                       Go                              ######
 ##################################################################
 
+# Use to print the commands 'go build' use during build
+# GOBUILDDBG=-x
 GO = @GO@
 GOGCC = @GOGCC@
 GCCGO = @GCCGO@
 GOOPT = @GOOPT@
 GCCGOOPT = @GCCGOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
+GOMINVER = @GOMINVER@
+GO_CYGPATH = @GO_CYGPATH@
 
+GOBUILDARG=$(GOBUILDDBG)
 ifneq (false, $(GOGCC))
 GOSWIGARG = -gccgo
-GOBUILDARG = -compiler=gccgo
+GOBUILDARG+= -compiler=gccgo
 else
 GOSWIGARG =
-GOBUILDARG =
 endif
 
 GOSRCS = $(INTERFACE:.i=.go)
@@ -430,63 +436,65 @@ GOPATHDIR = $(GOPATHPARENTDIR)/$(INTERFACE:.i=)
 # ----------------------------------------------------------------
 
 $(GOPATHPARENTDIR)/go.mod:
-	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/$(GOMOD) 2>/dev/null || true
-	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
-	@mkdir $(GOPATHDIR) 2>/dev/null || true
-	echo "module swigtests" > $(GOPATHDIR)/go.mod
-	echo "" >> $(GOPATHDIR)/go.mod
-	echo "go 1.20" >> $(GOPATHDIR)/go.mod
-	mv -f $(GOPATHDIR)/go.mod $(GOPATHPARENTDIR)/go.mod
+	mkdir -p "$(@D)"
+	printf "module swigtests\n\ngo $(GOMINVER)\n" > "$@"
 
 go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	mkdir -p "$(GOPATHDIR)"
 	$(SWIG) -go -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/$(GOMOD) 2>/dev/null || true
-	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
-	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	rm -rf $(GOPATHDIR)/*
-	cp $(ISRCS) $(GOPATHDIR)/
-	if test -f $(IWRAP:.i=.h); then \
-	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
+	cp "$(ISRCS)" "$(GOPATHDIR)/"
+	if test -f "$(IWRAP:.i=.h)"; then \
+	  cp "$(IWRAP:.i=.h)" "$(GOPATHDIR)/"; \
 	fi
 	if test -n "$(SRCDIR_SRCS)"; then \
-	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
+	  cp "$(SRCDIR_SRCS)" "$(GOPATHDIR)/"; \
 	fi
-	cp $(GOSRCS) $(GOPATHDIR)/
-	@if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/runme 2>/dev/null || true; \
-	  rm -f gopath/$(GOMOD)/src/runme/*; \
+	cp $(GOSRCS) "$(GOPATHDIR)/"
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/runme"; \
+	  rm -f $(GOPATHPARENTDIR)/runme/*; \
 	fi
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  cp "$(SRCDIR)$(RUNME).go" "$(GOPATHPARENTDIR)/runme/"; \
 	fi
 	GOPATH=`pwd`/gopath/$(GOMOD); \
-	export GOPATH; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
-	export CGO_CPPFLAGS; \
-	CGO_CFLAGS="$(CFLAGS)"; \
-	export CGO_CFLAGS; \
-	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
-	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
+	includes="$(INCLUDES) -I `pwd` "; \
+	if test -n '$(SRCDIR)'; then \
+	  includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	fi; \
+	if test -n "$(GO_CYGPATH)"; then \
+	  n_includes=''; \
+	  for n in $${includes//-I}; do \
+	    if test -d "$$n"; then \
+	      n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	    else \
+	      n_includes="$$n_includes $$n"; \
+	    fi; \
+	  done; \
+	  includes="$$n_includes"; \
+	fi; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	CGO_CFLAGS="$(CFLAGS) $$includes"; \
+	CGO_LDFLAGS="$(LDFLAGS)"; \
+	export GOPATH CGO_CPPFLAGS CGO_CFLAGS CGO_LDFLAGS; \
+	(cd "$(GOPATHDIR)" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \
-	if test $$stat != 0; then \
+	if test $$stat -ne 0; then \
 	  exit $$stat; \
 	fi; \
 	if $(GOGCC); then \
-	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
+	  cp "$(GOPATHDIR)/$(GOPACKAGE)" "$(GOPATHDIR)/$(GOPACKAGE:.a=.gox)"; \
 	fi; \
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
-	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
-	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
-	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)"; \
+	  cp $(GOPATHDIR)/* "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)/"; \
+	  (cd "$(GOPATHPARENTDIR)/runme" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
 	  stat=$$?; \
-	  if test $$stat != 0; then \
+	  if test $$stat -ne 0; then \
 	    exit $$stat; \
 	  fi; \
-	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
+	  cp "$(GOPATHPARENTDIR)/runme/runme" "$(RUNME)"; \
 	fi
 
 # ----------------------------------------------------------------
@@ -494,58 +502,65 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 # ----------------------------------------------------------------
 
 go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	mkdir -p "$(GOPATHDIR)"
 	$(SWIG) -go -c++ -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/$(GOMOD) 2>/dev/null || true
-	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
-	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	rm -rf $(GOPATHDIR)/*
-	cp $(ICXXSRCS) $(GOPATHDIR)/
-	if test -f $(IWRAP:.i=.h); then \
-	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
+	cp "$(ICXXSRCS)" "$(GOPATHDIR)/"
+	if test -f "$(IWRAP:.i=.h)"; then \
+	  cp "$(IWRAP:.i=.h)" "$(GOPATHDIR)/"; \
 	fi
 	if test -n "$(SRCDIR_CXXSRCS)"; then \
-	  cp $(SRCDIR_CXXSRCS) $(GOPATHDIR)/; \
+	  cp "$(SRCDIR_CXXSRCS)" "$(GOPATHDIR)/"; \
 	fi
 	if test -n "$(SRCDIR_SRCS)"; then \
-	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
+	  cp "$(SRCDIR_SRCS)" "$(GOPATHDIR)/"; \
 	fi
-	cp $(GOSRCS) $(GOPATHDIR)/
-	@if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/runme 2>/dev/null || true; \
-	  rm -f gopath/$(GOMOD)/src/runme/*; \
+	cp $(GOSRCS) "$(GOPATHDIR)/"
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/runme"; \
+	  rm -f $(GOPATHPARENTDIR)/runme/*; \
 	fi
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  cp "$(SRCDIR)$(RUNME).go" "$(GOPATHPARENTDIR)/runme/"; \
 	fi
 	GOPATH=`pwd`/gopath/$(GOMOD); \
-	export GOPATH; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
-	export CGO_CPPFLAGS; \
-	CGO_CFLAGS="$(CFLAGS)"; \
-	export CGO_CFLAGS; \
-	CGO_CXXFLAGS="$(CXXFLAGS)"; \
-	export CGO_CXXFLAGS; \
-	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
-	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
+	includes="$(INCLUDES) -I `pwd` "; \
+	if test -n '$(SRCDIR)'; then \
+	  includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	fi; \
+	if test -n "$(GO_CYGPATH)"; then \
+	  n_includes=''; \
+	  includes="$$includes $(BOOST_CPPFLAGS)"; \
+	  for n in $${includes//-I}; do \
+	    if test -d "$$n"; then \
+	      n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	    else \
+	      n_includes="$$n_includes $$n"; \
+	    fi; \
+	  done; \
+	  includes="$$n_includes"; \
+	fi; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	CGO_CXXFLAGS="$(CXXFLAGS) $$includes"; \
+	CGO_LDFLAGS="$(LDFLAGS)"; \
+	export GOPATH CGO_CXXFLAGS CGO_LDFLAGS; \
+	(cd "$(GOPATHDIR)" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \
-	if test $$stat != 0; then \
+	if test $$stat -ne 0; then \
 	  exit $$stat; \
 	fi; \
 	if $(GOGCC); then \
-	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
+	  cp "$(GOPATHDIR)/$(GOPACKAGE)" "$(GOPATHDIR)/$(GOPACKAGE:.a=.gox)"; \
 	fi; \
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
-	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
-	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
-	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)"; \
+	  cp $(GOPATHDIR)/* "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)/"; \
+	  (cd "$(GOPATHPARENTDIR)/runme" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
 	  stat=$$?; \
-	  if test $$stat != 0; then \
+	  if test $$stat -ne 0; then \
 	    exit $$stat; \
 	  fi; \
-	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
+	  cp "$(GOPATHPARENTDIR)/runme/runme" "$(RUNME)"; \
 	fi
 
 # -----------------------------------------------------------------
@@ -727,7 +742,6 @@ java_clean:
 # There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
 # create a configuration for a new example.
 
-ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@
@@ -755,7 +769,7 @@ endif
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
-NAPI_DIR = @NODENAPI_DIR@
+NAPI_INCLUDE = @NAPI_INCLUDE@
 
 javascript_wrapper:
 ifneq (jsc,$(JSENGINE))
@@ -771,10 +785,10 @@ javascript_build: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else ifeq (napi,$(JSENGINE))
+else ifeq (napi,$(JSENGINE)) # napi must be compiled as c++
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else ifeq (v8,$(JSENGINE))
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(NAPI_INCLUDE)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (v8,$(JSENGINE)) # v8 must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else
@@ -785,7 +799,7 @@ endif
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) $(NAPI_INCLUDE)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -803,8 +817,8 @@ ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else ifeq (v8, $(ENGINE)) # v8 must be compiled as c++
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else # node and napi must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -1277,24 +1291,13 @@ php_clean:
 ##################################################################
 
 # Make sure these locate your Python installation
-ifneq (,$(PY2))
-  PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PYTHON_LIB    = @PYLIB@
-  PYTHON        = @PYTHON@
-else
-  PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PYTHON_LIB    = @PY3LIB@
-  PYTHON        = @PYTHON3@
-endif
+PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
+PYTHON_LIB    = @PY3LIB@
+PYTHON        = @PYTHON3@
 
 # Extra Python specific linking options
-ifneq (,$(PY2))
-  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
-  PYTHON_LINK   = @PYLINK@
-else
-  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
-  PYTHON_LINK   = @PY3LINK@
-endif
+PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
+PYTHON_LINK   = @PY3LINK@
 
 # Set PY_ABI_VER to the target ABI version, such as 3.4, if wanting a stable ABI build
 PY_ABI_VER =
@@ -1308,6 +1311,8 @@ endif
 PYFLAGS           = -Werror
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
+PYREFLY           = @PYREFLY@
+PYREFLY_FLAGS     = --summary=none --preset=default --python-interpreter-path=$(PYTHON) --search-path=. --ignore=missing-import
 PYABI3AUDIT	  = @PYABI3AUDIT@
 
 # ----------------------------------------------------------------
@@ -1339,27 +1344,6 @@ endif
 endif
 
 # -----------------------------------------------------------------
-# Build statically linked Python interpreter
-#
-# These should only be used in conjunction with the %include embed.i
-# library file
-# -----------------------------------------------------------------
-
-#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
-TKINTER =
-PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
-
-python_static: $(SRCDIR_SRCS)
-	$(SWIG) -python -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
-
-python_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -python -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
-
-# -----------------------------------------------------------------
 # Running a Python example
 # -----------------------------------------------------------------
 
@@ -1368,6 +1352,11 @@ PYSCRIPT = $(RUNME).py
 python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
 	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
+endif
+ifneq (,$(PYREFLY))
+ifneq (,$(filter -typehints,$(SWIG_FEATURES)))
+	$(COMPILETOOL) $(PYREFLY) check $(PYREFLY_FLAGS) $(PYREFLY_EXTRA_FLAGS) *.py $(if $(filter -pyi,$(SWIG_FEATURES)),$(wildcard *.pyi))
+endif
 endif
 	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(PYSCRIPT) $(RUNPIPE)
 
@@ -1392,7 +1381,7 @@ python_clean:
 	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
-	rm -f $(TARGET).py
+	rm -f $(TARGET).py* _$(TARGET).pyi
 	rm -f *_abi3_report.json
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 
@@ -1409,7 +1398,9 @@ R_SCRIPT=$(SRCDIR)$(RUNME).R
 
 # need to compile .cxx files outside of R build system to make sure that
 # we get -fPIC
-# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
+# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command.
+# Its stderr is filtered to drop the "using C/C++ compiler:" banner from R >=4.3.0.
+SHLIB_STDERR_FILTER = grep -v -E '^using (C|C\+\+) compiler:|^using C\+\+[0-9]|^using SDK:'
 
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C)
@@ -1420,7 +1411,7 @@ r: $(SRCDIR_SRCS)
 ifneq ($(SRCDIR_SRCS),)
 	$(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(R_CFLAGS) $(SRCDIR_SRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null 2> $(TARGET)_shlib.stderr ; status=$$? ; $(SHLIB_STDERR_FILTER) $(TARGET)_shlib.stderr >&2 || true ; rm -f $(TARGET)_shlib.stderr ; exit $$status )
 
 # ----------------------------------------------------------------
 # Build a R dynamically loadable module (C++)
@@ -1430,7 +1421,7 @@ r_cpp: $(SRCDIR_CXXSRCS)
 ifneq ($(SRCDIR_CXXSRCS),)
 	$(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(R_CFLAGS) $(SRCDIR_CXXSRCS) $(INCLUDES)
 endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null 2> $(TARGET)_shlib.stderr ; status=$$? ; $(SHLIB_STDERR_FILTER) $(TARGET)_shlib.stderr >&2 || true ; rm -f $(TARGET)_shlib.stderr ; exit $$status )
 
 # -----------------------------------------------------------------
 # Run R example
@@ -1587,11 +1578,10 @@ scilab_clean:
 
 # Set these to your local copy of Tcl
 
-TCLSH       = tclsh
+TCLSH       = @TCLSH@
 TCL_INCLUDE = @TCLINCLUDE@
 TCL_LIB     = @TCLLIB@
 TCL_OPTS    = @LIBS@
-TK_OPTS     = -ltk -ltcl @LIBS@
 
 # Extra Tcl specific dynamic linking options
 TCL_DLNK   = @TCLDYNAMICLINKING@

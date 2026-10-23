@@ -43,7 +43,9 @@ public class doxygen_checker{
 
         doc.LoadXml(fileContent);
         _root = doc.DocumentElement; //get the root element.
-        _namespace_prefix = namespaceName +"Namespace." +  className + ".";
+        _namespace_prefix = namespaceName + "Namespace.";
+        if (!String.IsNullOrEmpty(className))
+          _namespace_prefix = _namespace_prefix + className + ".";
     }
 
     /// <summary>Check general content (not included in a tag) of an object </summary>

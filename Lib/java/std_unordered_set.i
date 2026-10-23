@@ -14,7 +14,6 @@
 
 %{
 #include <unordered_set>
-#include <stdexcept>
 %}
 
 %fragment("SWIG_UnorderedSetSize", "header", fragment="SWIG_JavaIntFromSize_t") {

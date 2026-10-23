@@ -17,6 +17,7 @@ class Base1 {
   int val;
 public:
   Base1(int a = 0) : val(a) {}
+  virtual ~Base1() {}
   virtual int Base1Func() const { return val; }
 };
 

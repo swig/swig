@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("extend_constructor_destructor")	-- import lib into global
-ecd=extend_constructor_destructor --alias
-
--- catching undefined variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+ecd=require("extend_constructor_destructor")
+catch_undef_globs() -- catch "undefined" global variables
 
 a1 = ecd.AStruct(101)
 assert(a1.ivar == 101)

@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * pyiterators.swg
  *
- * Implement a python 'output' iterator for Python 2.2 or higher.
+ * Implement a python 'output' iterator.
  *
  * Users can derive form the SwigPyIterator to implement their
  * own iterators. As an example (real one since we use it for STL/STD
@@ -63,7 +63,7 @@ namespace swig {
     // C++ common/needed methods
     virtual SwigPyIterator *copy() const = 0;
 
-    PyObject *next()     
+    PyObject *__next__()
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK; // disable threads       
       PyObject *obj = value();
@@ -72,12 +72,6 @@ namespace swig {
           obj = NULL;
       SWIG_PYTHON_THREAD_END_BLOCK; // re-enable threads
       return obj;     
-    }
-
-    /* Make an alias for Python 3.x */
-    PyObject *__next__()
-    {
-      return next();
     }
 
     PyObject *previous()
@@ -92,7 +86,7 @@ namespace swig {
 
     SwigPyIterator *advance(ptrdiff_t n)
     {
-      return  (n > 0) ?  incr(n) : decr(-n);
+      return  (n > 0) ?  incr((size_t)n) : decr((size_t)(-n));
     }
       
     bool operator == (const SwigPyIterator& x)  const
@@ -133,9 +127,9 @@ namespace swig {
     }
       
     static swig_type_info* descriptor() {
-      static swig_type_info* desc = SWIG_TypeQuery("swig::SwigPyIterator *");
+      static swig_type_info* desc = SWIG_TypeQuery("swig::" SWIG_STRINGIFY(SwigPyIterator) " *");
       return desc;
-    }    
+    }
   };
 
 %#if defined(SWIGPYTHON_BUILTIN)
@@ -169,7 +163,7 @@ namespace swig {
     }
 
     
-    bool equal (const SwigPyIterator &iter) const
+    bool equal (const SwigPyIterator &iter) const SWIG_OVERRIDE
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -179,7 +173,7 @@ namespace swig {
       }
     }
     
-    ptrdiff_t distance(const SwigPyIterator &iter) const
+    ptrdiff_t distance(const SwigPyIterator &iter) const SWIG_OVERRIDE
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -221,16 +215,16 @@ namespace swig {
     {
     }
     
-    PyObject *value() const {
+    PyObject *value() const SWIG_OVERRIDE {
       return from(static_cast<const value_type&>(*(base::current)));
     }
     
-    SwigPyIterator *copy() const
+    SwigPyIterator *copy() const SWIG_OVERRIDE
     {
       return new self_type(*this);
     }
 
-    SwigPyIterator *incr(size_t n = 1)
+    SwigPyIterator *incr(size_t n = 1) SWIG_OVERRIDE
     {
       // Open iterator does not raise StopIteration
       while (n--) {
@@ -258,7 +252,7 @@ namespace swig {
     {
     }
 
-    SwigPyIterator *decr(size_t n = 1)
+    SwigPyIterator *decr(size_t n = 1) SWIG_OVERRIDE
     {
       // Open iterator does not raise StopIteration
       while (n--) {
@@ -285,7 +279,7 @@ namespace swig {
     {
     }
     
-    PyObject *value() const {
+    PyObject *value() const SWIG_OVERRIDE {
       if (base::current == end) {
 	base::raise_stop_iteration();
 	return NULL;
@@ -294,12 +288,12 @@ namespace swig {
       }
     }
     
-    SwigPyIterator *copy() const
+    SwigPyIterator *copy() const SWIG_OVERRIDE
     {
       return new self_type(*this);
     }
 
-    SwigPyIterator *incr(size_t n = 1)
+    SwigPyIterator *incr(size_t n = 1) SWIG_OVERRIDE
     {
       while (n--) {
 	if (base::current == end) {
@@ -335,7 +329,7 @@ namespace swig {
     {
     }
 
-    SwigPyIterator *decr(size_t n = 1)
+    SwigPyIterator *decr(size_t n = 1) SWIG_OVERRIDE
     {
       while (n--) {
 	if (base::current == base0::begin) {
@@ -443,7 +437,6 @@ namespace swig
     // C++ common/needed methods
     virtual SwigPyIterator *copy() const = 0;
 
-    PyObject *next();
     PyObject *__next__();
     PyObject *previous();
     SwigPyIterator *advance(ptrdiff_t n);

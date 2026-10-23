@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------------- */
 
 %include <csharphead.swg>
+%include <swigcommon.swg>
 
 /* The ctype, imtype and cstype typemaps work together and so there should be one of each. 
  * The ctype typemap contains the PInvoke type used in the PInvoke (C/C++) code. 
@@ -475,12 +476,31 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}
 %typemap(out) SWIGTYPE [] %{ $result = $1; %} 
 
-/* char arrays - treat as String */
-%typemap(in) char[ANY], char[] %{ $1 = ($1_ltype)$input; %}
-%typemap(out) char[ANY], char[] %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
+/* char arrays - treat as String, copying into a zero filled array when the size is known */
+%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char[ANY] (char temp[$1_dim0])
+%{ $1 = 0;
+   if ($input) {
+     if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+       SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
+       return $null;
+     }
+     $1 = ($1_ltype)temp;
+   } %}
+%typemap(in) char[] %{ $1 = ($1_ltype)$input; %}
+%typemap(out, fragment="SWIG_CharArrayString") char[ANY] %{ {
+     const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
+     $result = SWIG_csharp_string_callback(swig_str);
+     SWIG_DeleteCharArrayString(swig_str, (const char *)$1);
+   } %}
+%typemap(out) char[] %{ $result = SWIG_csharp_string_callback((const char *)$1); %}
 
 %typemap(directorout) char[ANY], char[] %{ $result = ($1_ltype)$input; %}
-%typemap(directorin) char[ANY], char[] %{ $input = SWIG_csharp_string_callback((const char *)$1); %}
+%typemap(directorin, fragment="SWIG_CharArrayString") char[ANY] %{ {
+     const char *swig_str = SWIG_CharArrayString((const char *)$1, $1_dim0);
+     $input = SWIG_csharp_string_callback(swig_str);
+     SWIG_DeleteCharArrayString(swig_str, (const char *)$1);
+   } %}
+%typemap(directorin) char[] %{ $input = SWIG_csharp_string_callback((const char *)$1); %}
 
 %typemap(csdirectorin) char[ANY], char[] "$iminput"
 %typemap(csdirectorout) char[ANY], char[] "$cscall"
@@ -1076,7 +1096,19 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
+%apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
+/* Unlike for a char array, NULL is not accepted, as a reference cannot be bound to NULL */
+%typemap(in, canthrow=1, fragment="SWIG_CopyCharArray") char (&)[ANY] (char temp[$1_dim0]), char (&&)[ANY] (char temp[$1_dim0])
+%{ if (!$input) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
+     return $null;
+   }
+   if (!SWIG_CopyCharArray(temp, $1_dim0, $input, strlen($input))) {
+     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentException, "string too long for char array", 0);
+     return $null;
+   }
+   $1 = ($1_ltype)temp; %}
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

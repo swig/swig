@@ -14,7 +14,6 @@
 
 %{
 #include <map>
-#include <stdexcept>
 %}
 
 %fragment("SWIG_MapSize", "header", fragment="SWIG_JavaIntFromSize_t") {

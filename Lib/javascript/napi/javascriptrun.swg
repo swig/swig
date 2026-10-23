@@ -21,7 +21,6 @@
  * These must be functions instead of macros to use the C++ overloading to
  * resolve the arguments
  */
-#define SWIG_exception(code, msg)               SWIG_Error(code, msg)
 #define SWIG_fail                               goto fail
 
 #ifdef NAPI_CPP_EXCEPTIONS
@@ -140,7 +139,7 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
         size(0),
         info(nullptr)
         {}
-    virtual ~SWIG_NAPI_ObjectWrap_templ() {};
+    virtual ~SWIG_NAPI_ObjectWrap_templ() {}
 
     Napi::Value ToString(const Napi::CallbackInfo &info);
 };

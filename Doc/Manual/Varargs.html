@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="Varargs">17 Variable Length Arguments</a></H1>
+<H1><a name="Varargs">19 Variable Length Arguments</a></H1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -43,7 +43,7 @@ added in SWIG-1.3.12.  Most other wrapper generation tools have
 wisely chosen to avoid this issue.
 </p>
 
-<H2><a name="Varargs_nn2">17.1 Introduction</a></H2>
+<H2><a name="Varargs_nn2">19.1 Introduction</a></H2>
 
 
 <p>
@@ -140,7 +140,7 @@ List make_list(const char *s, ...) {
 </pre>
 </div>
 
-<H2><a name="Varargs_nn3">17.2 The Problem</a></H2>
+<H2><a name="Varargs_nn3">19.2 The Problem</a></H2>
 
 
 <p>
@@ -233,7 +233,7 @@ can also support real varargs wrapping (with stack-frame manipulation) if you
 are willing to get hands dirty.  Keep reading.
 </p>
 
-<H2><a name="Varargs_nn4">17.3 Default varargs support</a></H2>
+<H2><a name="Varargs_nn4">19.3 Default varargs support</a></H2>
 
 
 <p>
@@ -302,7 +302,7 @@ Read on for further solutions.
 </p>
 
 
-<H2><a name="Varargs_nn5">17.4 Argument replacement using %varargs</a></H2>
+<H2><a name="Varargs_nn5">19.4 Argument replacement using %varargs</a></H2>
 
 
 <p>
@@ -413,7 +413,7 @@ mixed argument types such as <tt>printf()</tt>.  Providing general purpose
 wrappers to such functions presents special problems (covered shortly).  
 </p>
 
-<H2><a name="Varargs_nn6">17.5 Varargs and typemaps</a></H2>
+<H2><a name="Varargs_nn6">19.5 Varargs and typemaps</a></H2>
 
 
 <p>
@@ -452,7 +452,7 @@ To illustrate, here is a safer version of wrapping <tt>printf()</tt> in Python:
 <pre>
 %typemap(in) (const char *fmt, ...) {
     $1 = "%s";                                /* Fix format string to %s */
-    $2 = (void *) PyString_AsString($input);  /* Get string argument */
+    $2 = (void *) PyUnicode_AsUTF8($input);   /* Get string argument */
 };
 ...
 int printf(const char *fmt, ...);
@@ -476,7 +476,7 @@ wrap_printf() {
   int   result;
 
   arg1 = "%s";
-  arg2 = (void *) PyString_AsString(arg2obj);
+  arg2 = (void *) PyUnicode_AsUTF8(arg2obj);
   ...
   result = printf(arg1, arg2);
   ...
@@ -522,7 +522,6 @@ like this:
   for (i = 0; i &lt; argc; i++) {
     PyObject *pyobj = PyTuple_GetItem(varargs, i);
     char *str = 0;
-%#if PY_VERSION_HEX&gt;=0x03000000
     const char *strtmp = 0;
     PyObject *pystr;
     if (!PyUnicode_Check(pyobj)) {
@@ -538,25 +537,16 @@ like this:
     if (str)
       strcpy(str, strtmp);
     Py_DecRef(pystr);
-%#else  
-    if (!PyString_Check(pyobj)) {
-      PyErr_SetString(PyExc_ValueError, "Expected a string");
-      SWIG_fail;
-    }
-    str = PyString_AsString(pyobj);
-%#endif
     vargs[i] = str;
   }
   $1 = (void *)vargs;
 }
 
 %typemap(freearg) (...) {
-%#if PY_VERSION_HEX&gt;=0x03000000
   int i;
   for (i = 0; i &lt; 10; i++) {
     free(vargs$argnum[i]);
   }
-%#endif
 }
 </pre>
 </div>
@@ -597,7 +587,7 @@ really want to elevate your guru status and increase your job
 security, continue to the next section.
 </p>
 
-<H2><a name="Varargs_nn7">17.6 Varargs wrapping with libffi</a></H2>
+<H2><a name="Varargs_nn7">19.6 Varargs wrapping with libffi</a></H2>
 
 
 <p>
@@ -641,12 +631,12 @@ example. For example:
   argv = (char **) malloc(sizeof(char *)*(argc+1));
   for (i = 0; i &lt; argc; i++) {
     PyObject *o = PyTuple_GetItem(varargs, i);
-    if (!PyString_Check(o)) {
+    if (!PyUnicode_Check(o)) {
       free(argv);
       PyErr_SetString(PyExc_ValueError, "Expected a string");
       SWIG_fail;
     }
-    argv[i] = PyString_AsString(o);
+    argv[i] = (char *) PyUnicode_AsUTF8(o);
   }
   argv[i] = NULL;
   $1 = (void *) argv;
@@ -734,22 +724,22 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
   int    i;
 
   /* Format string */
-  $1 = PyString_AsString($input);
+  $1 = PyUnicode_AsUTF8($input);
 
   /* Variable length arguments */
   argc = PyTuple_Size(varargs);
   argv = (vtype *) malloc(argc*sizeof(vtype));
   for (i = 0; i &lt; argc; i++) {
     PyObject *o = PyTuple_GetItem(varargs, i);
-    if (PyInt_Check(o)) {
+    if (PyLong_Check(o)) {
       argv[i].type = VT_INT;
-      argv[i].val.ivalue = PyInt_AsLong(o);
+      argv[i].val.ivalue = PyLong_AsLong(o);
     } else if (PyFloat_Check(o)) {
       argv[i].type = VT_DOUBLE;
       argv[i].val.dvalue = PyFloat_AsDouble(o);
-    } else if (PyString_Check(o)) {
+    } else if (PyUnicode_Check(o)) {
       argv[i].type = VT_POINTER;
-      argv[i].val.pvalue = (void *) PyString_AsString(o);
+      argv[i].val.pvalue = (void *) PyUnicode_AsUTF8(o);
     } else {
       free(argv);
       PyErr_SetString(PyExc_ValueError, "Unsupported argument type");
@@ -849,7 +839,7 @@ provide an argument number for the first extra argument.  This can be used to in
 values.   Please consult the chapter on each language module for more details.
 </p>
 
-<H2><a name="Varargs_nn8">17.7 Wrapping of va_list</a></H2>
+<H2><a name="Varargs_nn8">19.7 Wrapping of va_list</a></H2>
 
 
 <p>
@@ -903,7 +893,7 @@ int my_vprintf(const char *fmt, ...) {
 </pre>
 </div>
 
-<H2><a name="Varargs_nn9">17.8 C++ Issues</a></H2>
+<H2><a name="Varargs_nn9">19.8 C++ Issues</a></H2>
 
 
 <p>
@@ -972,7 +962,7 @@ design or to provide an alternative interface using a helper function than it is
 fully general wrapper to a varargs C++ member function.
 </p>
 
-<H2><a name="Varargs_nn10">17.9 Discussion</a></H2>
+<H2><a name="Varargs_nn10">19.9 Discussion</a></H2>
 
 
 <p>

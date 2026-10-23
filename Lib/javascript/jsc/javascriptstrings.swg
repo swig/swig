@@ -42,7 +42,7 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
 }
 }
 
-%fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+%fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor",fragment="<string.h>") {
 SWIGINTERNINLINE JSValueRef
 SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t size)
 {
@@ -56,17 +56,13 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
     } else {
       JSStringRef jsstring;
       JSValueRef result;
-      if(size < 2) {
-        char c[2];
-        int i;
-        for(i=0;i<size;++i) {
-          c[i] = carray[i];
-        }
-        c[size] = 0;
-        jsstring = JSStringCreateWithUTF8CString(c);
-      } else {
-        jsstring = JSStringCreateWithUTF8CString(carray);
-      }
+      /* The size chars need not be NUL terminated, such as a full char array, so terminate a copy for JSC */
+      char *cstr = (char *)%new_array(size + 1, char);
+      if (size)
+        memcpy(cstr, carray, size);
+      cstr[size] = 0;
+      jsstring = JSStringCreateWithUTF8CString(cstr);
+      %delete_array(cstr);
       result = JSValueMakeString(context, jsstring);
       JSStringRelease(jsstring);
       return result;
@@ -108,26 +104,24 @@ SWIG_JSC_From##CharName##Array(JSContextRef context, const Char *cptr, size_t si
 %define_as(SWIG_As##CharName##Ptr(obj, val, alloc), SWIG_JSC_AsCharPtrAndSize(context, obj, val, NULL, alloc))
 }
 
-%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize) {
+%fragment("SWIG_As" #CharName "Array","header",fragment=#SWIG_AsCharPtrAndSize,fragment="SWIG_Copy" #CharName "Array") {
 SWIGINTERN int
 SWIG_JSC_As##CharName##Array(JSContextRef context, SWIG_Object obj, Char *val, size_t size)
 {
   Char* cptr = 0; size_t csize = 0; int alloc = SWIG_OLDOBJ;
   int res = SWIG_JSC_AsCharPtrAndSize(context, obj, &cptr, &csize, &alloc);
   if (SWIG_IsOK(res)) {
-    if ((csize == size + 1) && cptr && !(cptr[csize-1])) --csize;
-    if (csize <= size) {
-      if (val) {
-        if (csize) memcpy(val, cptr, csize*sizeof(Char));
-        if (csize < size) memset(val + csize, 0, (size - csize)*sizeof(Char));
-      }
-      if (alloc == SWIG_NEWOBJ) {
-        SWIG_DeleteCharArray(cptr);
-        res = SWIG_DelNewMask(res);
-      }
-      return res;
+    int copied;
+    if (!cptr)
+      return SWIG_NullReferenceError;
+    /* csize includes the NUL terminator */
+    copied = SWIG_Copy##CharName##Array(val, size, cptr, csize - 1);
+    if (alloc == SWIG_NEWOBJ) {
+      SWIG_DeleteCharArray(cptr);
+      res = SWIG_DelNewMask(res);
     }
-    if (alloc == SWIG_NEWOBJ) SWIG_DeleteCharArray(cptr);
+    if (copied)
+      return res;
   }
   return SWIG_TypeError;
 }
@@ -153,7 +147,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 {
   int res = SWIG_As##CharName##Array(obj, val, 1);
-  if (!SWIG_IsOK(res)) {
+  /* NULL is not a char, nor is it converted as a number, which gives 0 in Perl for undef. A type error lets an overload
+   * dispatcher that tries each overload in turn, as in Javascript, try the next one. */
+  if (res == SWIG_NullReferenceError) {
+    res = SWIG_TypeError;
+  } else if (!SWIG_IsOK(res)) {
     long v;
     res = SWIG_AddCast(SWIG_AsVal(long)(obj, &v));
     if (SWIG_IsOK(res)) {

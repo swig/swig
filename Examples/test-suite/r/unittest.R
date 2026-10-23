@@ -41,3 +41,9 @@ unittest_sequence <- function (x,y) {
   print("FAIL")
   stop("Test failed")
 }
+
+error_message <- function(f) {
+  msg <- ""
+  tryCatch(f(), error = function(e) msg <<- conditionMessage(e))
+  msg
+}

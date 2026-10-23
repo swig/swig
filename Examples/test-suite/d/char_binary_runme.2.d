@@ -27,6 +27,14 @@ void main() {
       throw new Exception("bad multi-arg typemap");
    }
 
+   if (t.strlen(null) != 0) {
+      throw new Exception("bad multi-arg typemap");
+   }
+
+   if (t.ustrlen(null) != 0) {
+      throw new Exception("bad multi-arg typemap");
+   }
+
    // creating a raw char*
    auto pc = new_pchar(5);
    pchar_setitem(pc, 0, 'h');

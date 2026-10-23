@@ -6,7 +6,7 @@
 
 %module(ruby_minherit="1") minherit
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL) || defined(SWIGGO)
+#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGOCAML) || defined(SWIGOCTAVE) || defined(SWIGPERL) || defined(SWIGGO) || defined(SWIGLUA)
 
 %inline %{
 
@@ -16,7 +16,7 @@ private:
 public:
     Foo() { x = 1; }
     virtual ~Foo() {}
-    virtual int  xget() {  return x; };
+    virtual int  xget() {  return x; }
 };
 typedef Foo *FooPtr;
 

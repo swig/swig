@@ -1,3 +1,5 @@
+from swig_test_utils import swig_get_annotations
+
 import li_std_string_extra
 
 x = "hello"
@@ -156,3 +158,30 @@ if li_std_string_extra.c_empty() != "":
 
 if li_std_string_extra.c_null() != None:
     raise RuntimeError
+
+
+def get_annotations(obj):
+    return swig_get_annotations(obj, "li_std_string_extra", li_std_string_extra.is_python_fastproxy())
+
+
+def check_annotations(obj, expected):
+    anno = get_annotations(obj)
+    if anno != expected:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
+
+# The basic_string methods are annotated str only where they are converted to and from a Python str.
+# Annotations are only generated with -typehints, hence checking that there are some at all first.
+if get_annotations(li_std_string_extra.string.substr):
+    # Returned by value, so converted to a str
+    check_annotations(li_std_string_extra.string.substr, {"return": "str"})
+    check_annotations(li_std_string_extra.string.__str__, {"return": "str"})
+
+    # Returned as a pointer to the proxy class rather than converted to a str
+    check_annotations(li_std_string_extra.string.__add__, {"v": "typing.Any", "return": "typing.Any"})
+
+    # __eq__ accepts any object, so must not be annotated with the type the C++ takes
+    check_annotations(li_std_string_extra.string.__eq__, {"v": "typing.Any", "return": "bool"})
+
+    # An instantiation that is not converted to a str keeps the catch-all type
+    check_annotations(li_std_string_extra.MyString.substr, {"return": "typing.Any"})

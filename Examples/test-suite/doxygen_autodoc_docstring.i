@@ -64,12 +64,3 @@ class ClassWithDoxygenComment2 {};
  */
 void functionWithDoxygenComment2(int number) {}
 %}
-
-%inline %{
-#ifdef SWIGPYTHON_BUILTIN
-bool is_python_builtin() { return true; }
-#else
-bool is_python_builtin() { return false; }
-#endif
-%}
-

@@ -1,0 +1,1 @@
+cpp_decltype_missing_rparenthesis.i:5: Error: Missing ')'. Reached end of input.

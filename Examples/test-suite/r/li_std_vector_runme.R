@@ -13,6 +13,20 @@ unittest(average(testvec), mean(testvec))
 vlen <- 13
 stringvec <- paste(letters[1:vlen], as.character(rnorm(vlen)))
 unittest(rev(stringvec), RevStringVec(stringvec))
+
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() halve_in_place(NULL))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() vector_append(NULL, 1))), TRUE)
+
+# NULL is NULL and an empty vector is an empty std::vector, or a type error where R does not convert a vector
+unittest(length(vecintptr(integer(0))), 0)
+unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(list()))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() vecstruct(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(Structure()))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() vecstruct(integer(0)))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() halve_in_place(numeric(0)))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() RevStringVec(NULL))), TRUE)
+unittest(length(RevStringVec(character(0))), 0)
+unittest(grepl("^SWIG:TypeError", error_message(function() average(NULL))), TRUE)
 q(save="no")
 
 

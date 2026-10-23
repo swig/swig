@@ -1,6 +1,6 @@
 
 %define CONVERT_BOOL_IN(lvar,t,invar)
-  lvar = (t) zval_is_true(&invar);
+  lvar = (t) zend_is_true(&invar);
 %enddef
 
 %define CONVERT_INT_IN(lvar,t,invar)

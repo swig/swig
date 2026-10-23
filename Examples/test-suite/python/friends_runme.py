@@ -1,4 +1,5 @@
 import friends
+from swig_test_utils import swig_check_stub_declares
 
 def check_equal(a, b):
     if a != b:
@@ -55,3 +56,6 @@ check_equal(friends.friend_definition_compiler(), 20)
 check_equal(friends.friend_declaration_compiler(), 21)
 check_equal(friends.friend_args_definition_compiler(foe), 111)
 check_equal(friends.friend_args_declaration_compiler(foe), 111)
+
+# A friend is declared inside the class but wrapped as a module scope function, so the stub must agree
+swig_check_stub_declares("friends", "friend_declaration", "friend_definition", "get_val1", "mix")

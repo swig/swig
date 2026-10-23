@@ -73,7 +73,8 @@ struct MultipleDerived4 : MBase4a, MBase4b {};
 %typemap(csbase, notderived="1") SWIGTYPE "TargetLanguageBase2"
 
 %inline %{
-struct BaseX            { virtual ~BaseX() {}; void basex() {} };
+struct BaseX            { virtual ~BaseX() {}
+                          void basex() {} };
 struct DerivedX : BaseX { void derivedx() {} };
 %}
 

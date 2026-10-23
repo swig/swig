@@ -18,33 +18,10 @@
 extern "C" {
 #endif
 
-
-/* In the code below, use guile 2.0 compatible functions where possible.
-   Functions that don't exist in older versions will be mapped to
-   a deprecated equivalent for those versions only */
-#if defined (SCM_MAJOR_VERSION) && (SCM_MAJOR_VERSION < 2)
-
-static SCM
-scm_module_variable (SCM module, SCM sym)
-{
-  return scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
-}
-
-#define scm_to_utf8_string scm_to_locale_string
-#define scm_from_utf8_string scm_from_locale_string
-#endif
-
-#if SCM_MAJOR_VERSION >= 2
-/* scm_c_define_gsubr takes a different parameter type depending on the guile version */
-
-typedef scm_t_subr swig_guile_proc;
-#else
-typedef SCM (*swig_guile_proc)();
-#endif
-typedef SCM (*guile_destructor)(SCM);
+typedef SCM (*swig_guile_destructor)(SCM);
 
 typedef struct swig_guile_clientdata {
-  guile_destructor destroy;
+  swig_guile_destructor destroy;
   SCM goops_class;
 } swig_guile_clientdata;
 
@@ -52,6 +29,10 @@ typedef struct swig_guile_clientdata {
   SWIG_Guile_scm2newstr(s, NULL)
 #define SWIG_str02scm(str) \
   str ? scm_from_utf8_string(str) : SCM_BOOL_F 
+/* The Guile functions scm_char_to_integer() and scm_to_uint8() raise wrong-type-arg for anything other than a
+ * character and out-of-range for a character outside 0 to 255, the range SCM_MAKE_CHAR gives for a char */
+#define SWIG_scm2char(s) \
+  ((char) scm_to_uint8(scm_char_to_integer(s)))
 # define SWIG_malloc(size) \
   scm_malloc(size)
 # define SWIG_free(mem) \
@@ -191,11 +172,9 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   if (scm_is_null(smob)) {
     *result = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
-#if SCM_MAJOR_VERSION >= 2
   } else if (SCM_POINTER_P(s)) {
     *result = SCM_POINTER_VALUE(s);
     return SWIG_OK;
-#endif /* if SCM_MAJOR_VERSION >= 2 */
   } else if (SWIG_Guile_IsValidSmob(smob)) {
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return SWIG_ERROR;

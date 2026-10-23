@@ -20,9 +20,25 @@ SWIGINTERN size_t
 SWIG_strnlen(const char* s, size_t maxlen)
 {
   const char *p;
+  if (!s)
+    return 0;
   for (p = s; maxlen-- && *p; p++)
     ;
-  return p - s;
+  return (size_t)(p - s);
+}
+}
+
+%fragment("SWIG_NewCopyCharArray","header") {
+SWIGINTERNINLINE char *SWIG_NewCopyCharArray(const char *cptr, size_t size)
+{
+  char *ret = NULL;
+  if (size > 0 && cptr != NULL) {
+    ret = %new_array(size,char);
+    if (ret != NULL) {
+      memcpy(ret, cptr, size * sizeof(char));
+    }
+  }
+  return ret;
 }
 }
 
@@ -31,4 +47,5 @@ SWIG_strnlen(const char* s, size_t maxlen)
 		 SWIGWARN_TYPEMAP_CHARLEAK_MSG,
 		 char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize,
 		 strlen, SWIG_strnlen,
+		 SWIG_NewCopyCharArray,
 		"<limits.h>", CHAR_MIN, CHAR_MAX)

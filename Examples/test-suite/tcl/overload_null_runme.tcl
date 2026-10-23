@@ -50,3 +50,12 @@ check "testX" 20 [$o byval2fwdptr $x]
 check "testX" 21 [$o byval1fwdref $x]
 
 check "testX" 22 [$o byval2fwdref $x]
+
+check "test23" 23 [$o bychar1 "a"]
+
+# An array of char is a string, for which NULL is just the string "NULL"
+check "test37" 37 [$o bychararray $x]
+check "test38" 38 [$o bychararray "ab"]
+
+check "test39" 39 [$o byunsizedchararray $x]
+check "test40" 40 [$o byunsizedchararray "ab"]

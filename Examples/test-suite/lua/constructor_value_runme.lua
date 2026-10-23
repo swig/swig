@@ -1,0 +1,5 @@
+local v=require("constructor_value")
+local f = v.Foo(7)
+assert(swig_type(f) == "Foo *")
+local b = v.Bar(f)
+assert(swig_type(b) == "Bar *")

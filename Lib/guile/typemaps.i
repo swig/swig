@@ -54,7 +54,7 @@
   $1 = *(($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0));
 }
 
-%typemap(varin) SWIGTYPE [] {
+%typemap(varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) SWIGTYPE [], SWIGTYPE (&)[], SWIGTYPE (&&)[] {
   scm_wrong_type_arg(FUNC_NAME, 1, $input);
 }
 
@@ -63,6 +63,8 @@
   int ii;
   $1_basetype *b = 0;
   temp = SWIG_MustGetPtr($input, $1_descriptor, 1, 0);
+  if (!temp)
+    scm_misc_error(FUNC_NAME, "invalid null reference in variable '$name' of type '$1_type'", SCM_EOL);
   b = ($1_basetype *) $1;
   for (ii = 0; ii < $1_size; ii++) b[ii] = *(($1_basetype *) temp + ii);
 }
@@ -296,9 +298,9 @@
 %enddef
 
  SIMPLE_MAP(bool, scm_is_true, scm_from_bool, boolean);
- SIMPLE_MAP(char, SCM_CHAR, SCM_MAKE_CHAR, char);
- SIMPLE_MAP(unsigned char, SCM_CHAR, SCM_MAKE_CHAR, char);
- SIMPLE_MAP(signed char, SCM_CHAR, SCM_MAKE_CHAR, char);
+ SIMPLE_MAP(char, SWIG_scm2char, SCM_MAKE_CHAR, char);
+ SIMPLE_MAP(unsigned char, SWIG_scm2char, SCM_MAKE_CHAR, char);
+ SIMPLE_MAP(signed char, SWIG_scm2char, SCM_MAKE_CHAR, char);
  SIMPLE_MAP(int, scm_to_int, scm_from_long, integer);
  SIMPLE_MAP(short, scm_to_short, scm_from_long, integer);
  SIMPLE_MAP(long, scm_to_long, scm_from_long, integer);
@@ -328,6 +330,48 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
  %typemap (varin,  doc="NEW-VALUE is a string")  char * {$1 = ($1_ltype)SWIG_scm2str($input);}
  %typemap (out,    doc="<string>")              char * {$result = SWIG_str02scm((const char *)$1);}
  %typemap (varout, doc="<string>")              char * {$result = SWIG_str02scm($1);}
+
+ /* A string is copied into a char array argument as in the other languages: zero filled, with an error if too long
+    to fit with its NUL.  An array of unknown size is passed the converted string itself. */
+ %typemap (in,     doc="$NAME is a string", fragment="SWIG_CopyCharArray") char [ANY](char temp[$1_dim0]) {
+   size_t swig_len = 0;
+   char *swig_str = SWIG_Guile_scm2newstr($input, &swig_len);
+   int swig_copied = SWIG_CopyCharArray(temp, $1_dim0, swig_str, swig_len);
+   SWIG_free(swig_str);
+   if (!swig_copied)
+     scm_wrong_type_arg(FUNC_NAME, $argnum, $input);
+   $1 = ($1_ltype)temp;
+ }
+ %typemap (in,     doc="$NAME is a string")      char [](char *swig_str = 0) {
+   swig_str = SWIG_scm2str($input);
+   $1 = ($1_ltype)swig_str;
+ }
+ %typemap (freearg)                              char [] {if (swig_str$argnum) SWIG_free(swig_str$argnum);}
+ %typemap (out,    doc="<string>", fragment="SWIG_CharArrayLength") char [ANY] {
+   $result = $1 ? scm_from_utf8_stringn((const char *)$1, SWIG_CharArrayLength((const char *)$1, $1_dim0)) : SCM_BOOL_F;
+ }
+ %typemap (varout, doc="<string>", fragment="SWIG_CharArrayLength") char [ANY] {
+   $result = $1 ? scm_from_utf8_stringn((const char *)$1, SWIG_CharArrayLength((const char *)$1, $1_dim0)) : SCM_BOOL_F;
+ }
+ %typemap (out,    doc="<string>")               char [] {$result = SWIG_str02scm((const char *)$1);}
+ %typemap (varout, doc="<string>")               char [] {$result = SWIG_str02scm((const char *)$1);}
+ %typemap (varin,  doc="NEW-VALUE is a string", fragment="SWIG_CopyCharArray") char [ANY] {
+   size_t swig_len = 0;
+   char *swig_str = SWIG_Guile_scm2newstr($input, &swig_len);
+   int swig_copied = SWIG_CopyCharArray((char *)$1, $1_dim0, swig_str, swig_len);
+   SWIG_free(swig_str);
+   if (!swig_copied)
+     scm_wrong_type_arg(FUNC_NAME, 1, $input);
+ }
+ /* An array of unknown size is read only, as for SWIGTYPE [], there being no size to bound the copy by. */
+ %typemap (varin, warning=SWIGWARN_TYPEMAP_VARIN_UNDEF_MSG) char [] {
+   scm_wrong_type_arg(FUNC_NAME, 1, $input);
+ }
+ %typemap (in, doc="$NAME is a string")          char *&($*1_ltype temp, int must_free = 0), const char *&($*1_ltype temp, int must_free = 0) {
+   temp = ($*1_ltype) SWIG_scm2str($input); $1 = &temp;
+   must_free = 1;
+ }
+ %typemap (out, doc="<string>")                  char *&, const char *& {$result = SWIG_str02scm((const char *)*$1);}
  %typemap (in, doc="$NAME is a string")          char **INPUT(char * temp, int must_free = 0) {
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
@@ -342,7 +386,8 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 /* SWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);"
+%typemap (freearg) char * "if (must_free$argnum) SWIG_free((char *)$1);"
+%typemap (freearg) char *&, const char *& "if (must_free$argnum) SWIG_free((char *)temp$argnum);"
 %typemap (freearg) char **INPUT, char **INOUT "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
@@ -480,7 +525,7 @@ typedef unsigned long SCM;
   $1 = SCM_CHARP($input) ? 1 : 0;
 }
 
-%typecheck(SWIG_TYPECHECK_STRING) char * {
+%typecheck(SWIG_TYPECHECK_STRING) char *, char [], char [ANY] {
   $1 = scm_is_string($input) ? 1 : 0;
 }
 
@@ -510,7 +555,11 @@ typedef unsigned long SCM;
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
+%typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
+%apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
+%typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

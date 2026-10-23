@@ -15,6 +15,11 @@ int do_binop2(binop_t *f, int x, int y) {
 int do_binop3(int f(int,int), int x, int y) {
    return f(x,y);
 }
+
+int add(int a, int b) {
+   return a + b;
+}
+
+binop_t *addfunc = add;
+
 %}
-
-

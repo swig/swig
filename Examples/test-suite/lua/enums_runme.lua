@@ -1,10 +1,5 @@
-require("import")	-- the import fn
-import("enums")	-- import lib
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+require("enums")
+catch_undef_globs() -- catch "undefined" global variables
 
 -- check values
 assert(enums.CSP_ITERATION_FWD==0)
@@ -18,6 +13,9 @@ assert(enums.globalinstance2==1)
 assert(enums.globalinstance3==30)
 assert(enums.AnonEnum1==0)
 assert(enums.AnonEnum2==100)
+assert(enums.WideCharW==string.byte("w"))
+assert(enums.WideCharE==0xE9)
+assert(enums.WideCharSmile==0x263A)
 
 -- In C enums from struct are exported into global namespace (without prefixing with struct name)
 -- In C++ they are prefixed (as compatibility thing).

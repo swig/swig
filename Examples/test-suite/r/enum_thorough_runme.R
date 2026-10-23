@@ -53,6 +53,10 @@ unittest(v, s$speedTest5(v))
 unittest(v, s$speedTest6(v))
 unittest(v, s$speedTest7(v))
 unittest(v, s$speedTest8(v))
+unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest1(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest7(NULL))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest1(c("slow", "medium")))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() s$speedTest7(c("slow", "medium")))), TRUE)
 
 ## speedTest methods not in the class
 
@@ -224,11 +228,8 @@ unittest(v, renameTest2(v))
 
 ## NewName
 N <- NewNameStruct()
-## Only half works:
-unittest("kerboom", NewNameStruct_bang_get())
-## Can't put in "bang" in the call
-## confirm with:
-## get(".__E___OldNameStruct__enumeration")
+## %rename of the enumerator kerboom to bang is honoured in the R layer
+unittest("bang", NewNameStruct_bang_get())
 
 ## TreeClass
 

@@ -187,10 +187,4 @@ struct Foo1750
   /// @}
   int b;
 };
-
-#ifdef SWIGPYTHON_BUILTIN
-bool is_python_builtin() { return true; }
-#else
-bool is_python_builtin() { return false; }
-#endif
 %}

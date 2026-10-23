@@ -1,11 +1,5 @@
-require("import")	-- the import fn
-import("nested_workaround")	-- import lib
-nw=nested_workaround
-
--- catch "undefined" global variables
-local env = _ENV -- Lua 5.2
-if not env then env = getfenv () end -- Lua 5.1
-setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i.."'",2) end})
+nw=require("nested_workaround")
+catch_undef_globs() -- catch "undefined" global variables
 
 i1 = nw.Inner(5)
 assert(i1:getValue() == 5)

@@ -113,4 +113,21 @@ checkequal(inoutr_float(2.5), 2.5, "inoutr_float");
 //f,i = out_foo(10)
 //checkequal(f.a, 10 || i, 20), "");
 
+// Two parameters using the same typemap
+checkequal(in_int_multi(3, 4), 7, "in_int_multi");
+[a, b] = out_int_multi(5, 6);
+checkequal(a + b, 11, "out_int_multi");
+[c, d] = inout_int_multi(7, 8);
+checkequal(c + d, 38, "inout_int_multi");
+
+// A reference cannot be bound to a null pointer, so a null pointer is rejected rather than dereferenced
+ierr = execstr("inr_int(SWIG_ptr(0))", "errcatch");
+if ierr == 0 then
+  swigtesterror("inr_int accepted a null pointer for a reference");
+end
+ierr = execstr("inoutr_int(SWIG_ptr(0))", "errcatch");
+if ierr == 0 then
+  swigtesterror("inoutr_int accepted a null pointer for a reference");
+end
+
 exec("swigtest.quit", -1);

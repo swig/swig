@@ -367,7 +367,6 @@ namespace std {
 %{
 #include <vector>
 #include <algorithm>
-#include <stdexcept>
 %}
 
 %csmethodmodifiers std::vector::empty "private"

@@ -13,7 +13,7 @@
 #define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail
 #define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail
 
-// Include the unified typemap library
+// Include the Unified Typemap Library
 %include <typemaps/swigtypemaps.swg>
 
 /* ---------------------------------------------------------------------------*/
@@ -182,20 +182,31 @@ SWIG_Check_SciDoubleOrInt(void *pvApiCtx, SwigSciObject iVar, int iIntegerType) 
 %scilab_typecheck_integer(SWIG_TYPECHECK_INT32, SCI_INT32,       enum SWIGTYPE)
 %scilab_typecheck_generic(SWIG_TYPECHECK_CHAR, isStringType,     char)
 
-// Arrays
+// Arrays, where an array of unknown size, such as 'int []', does not match an [ANY] typemap
 %scilab_typecheck_generic(SWIG_TYPECHECK_BOOL_ARRAY, isBooleanType,  bool)
 %scilab_typecheck_generic(1016, isDoubleType,                        double [ANY])
+%scilab_typecheck_generic(1016, isDoubleType,                        double [])
 %scilab_typecheck_generic(1017, isDoubleType,                        float [ANY])
+%scilab_typecheck_generic(1017, isDoubleType,                        float [])
 %scilab_typecheck_integer(SWIG_TYPECHECK_INT8_ARRAY, SCI_INT8,       signed char [ANY])
+%scilab_typecheck_integer(SWIG_TYPECHECK_INT8_ARRAY, SCI_INT8,       signed char [])
 %scilab_typecheck_integer(1026, SCI_UINT8,                           unsigned char [ANY])
+%scilab_typecheck_integer(1026, SCI_UINT8,                           unsigned char [])
 %scilab_typecheck_integer(SWIG_TYPECHECK_INT16_ARRAY, SCI_INT16,     short [ANY])
+%scilab_typecheck_integer(SWIG_TYPECHECK_INT16_ARRAY, SCI_INT16,     short [])
 %scilab_typecheck_integer(1036, SCI_UINT16,                          unsigned short [ANY])
+%scilab_typecheck_integer(1036, SCI_UINT16,                          unsigned short [])
 %scilab_typecheck_integer(SWIG_TYPECHECK_INT32_ARRAY, SCI_INT32,     int [ANY])
+%scilab_typecheck_integer(SWIG_TYPECHECK_INT32_ARRAY, SCI_INT32,     int [])
 %scilab_typecheck_integer(SWIG_TYPECHECK_INT32_ARRAY, SCI_INT32,     long [ANY])
+%scilab_typecheck_integer(SWIG_TYPECHECK_INT32_ARRAY, SCI_INT32,     long [])
 %scilab_typecheck_integer(1046, SCI_UINT32,                          unsigned int [ANY])
+%scilab_typecheck_integer(1046, SCI_UINT32,                          unsigned int [])
 %scilab_typecheck_integer(1046, SCI_UINT32,                          unsigned long [ANY])
+%scilab_typecheck_integer(1046, SCI_UINT32,                          unsigned long [])
 %scilab_typecheck_generic(SWIG_TYPECHECK_CHAR_ARRAY, isStringType,   char [ANY])
 %scilab_typecheck_generic(SWIG_TYPECHECK_STRING_ARRAY, isStringType, char *[ANY])
+%scilab_typecheck_generic(SWIG_TYPECHECK_STRING_ARRAY, isStringType, char *[])
 %scilab_typecheck_generic(SWIG_TYPECHECK_STRING_ARRAY, isStringType, char **)
 
 

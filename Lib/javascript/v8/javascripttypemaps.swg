@@ -20,7 +20,7 @@
 
 
 /* ------------------------------------------------------------
- *  Unified typemap section
+ *  Unified Typemap Library section
  * ------------------------------------------------------------ */
 
 /* Javascript types */
@@ -39,5 +39,5 @@
 /* raise */
 #define SWIG_Raise(obj, type, desc)  SWIG_V8_Raise(obj, type)
 
-/* Include the unified typemap library */
+/* Include the Unified Typemap Library */
 %include <typemaps/swigtypemaps.swg>

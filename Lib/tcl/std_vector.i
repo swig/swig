@@ -29,7 +29,6 @@
 // ------------------------------------------------------------------------
 
 %fragment("<string>");
-%fragment("<stdexcept>");
 %fragment("<algorithm>");
 %{
 #include <vector>

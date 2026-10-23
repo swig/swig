@@ -18,7 +18,7 @@ int inout3Input3Ret(int x, int *INOUT, int y, int *INOUT, int z, int *INOUT);
 
 class ClassA {
 public:
-  ClassA() {};
+  ClassA() {}
   int output2Input2Ret(int a, int b, int *OUTPUT, int *OUTPUT);
   int inout2Input2Ret(int a, int b, int *INOUT, int *INOUT);
 };
@@ -106,7 +106,7 @@ int inout3Input3Ret(int x, int *a, int y, int *b, int z, int *c) {
 
 class ClassA {
 public:
-  ClassA() {};
+  ClassA() {}
   int output2Input2Ret(int a, int b, int *c, int *d) {
     *c = a + 1;
     *d = b + 2;

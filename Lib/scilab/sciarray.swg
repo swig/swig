@@ -18,7 +18,7 @@
   if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
     SWIG_fail;
   }
-  $1 = ($1_ltype)MALLOC(sizeof($*1_ltype) * iRows * iCols);
+  $1 = iRows * iCols ? ($1_ltype)MALLOC(sizeof($*1_ltype) * iRows * iCols);
   if ($1 == NULL) {
     if (iAllocated) free(pTempData);
     SWIG_exception_fail(SWIG_MemoryError, "Fail to allocate array");
@@ -38,6 +38,9 @@
   TEMPDATATYPE *pTempData = NULL;
   if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
     SWIG_fail;
+  }
+  if (iRows * iCols == 0) {
+    %variable_nullref("$type", "$name");
   }
   if (iRows*iCols <= $1_dim0) {
     size_t i;
