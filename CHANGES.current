@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-23: wsfulton
+            [Lua, OCaml, Python, Ruby, Tcl] Fix the wrappers not compiling for an overloaded function
+            with a string literal in the type of a parameter, such as:
+
+              int literal_overload(char text[sizeof("abc")]);
+              int literal_overload(int value);
+
+2026-10-23: wsfulton
             [C] Fix the wrappers not compiling for an overloaded function with an array parameter whose
             size is an expression, such as:
 

@@ -3496,7 +3496,7 @@ public:
       String *protoTypes = NewString("");
       do {
         String *fulldecl = Swig_name_decl(sibl);
-        Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+        Printf(protoTypes, "\n\"    %(escape)s\\n\"", fulldecl);
         Delete(fulldecl);
       } while ((sibl = Getattr(sibl, "sym:nextSibling")));
       Append(f->code, "fail:\n");

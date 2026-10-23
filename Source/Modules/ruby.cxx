@@ -2117,23 +2117,25 @@ public:
     // Generate prototype list
     String *protoTypes = NewString("");
     do {
-      Append(protoTypes, "\n\"    ");
+      String *proto = NewStringEmpty();
       if (!isCtor && !Equal(siblNodeType, "using")) {
         SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
-        Printv(protoTypes, type, " ", NIL);
+        Printv(proto, type, " ", NIL);
         Delete(type);
       }
-      Printv(protoTypes, methodName, NIL);
+      Printv(proto, methodName, NIL);
       Parm *p = Getattr(sibl, "wrap:parms");
       if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director))
         p = nextSibling(p);  // skip self
-      Append(protoTypes, "(");
+      Append(proto, "(");
       while (p) {
-        Append(protoTypes, SwigType_str(Getattr(p, "type"), Getattr(p, "name")));
+        Append(proto, SwigType_str(Getattr(p, "type"), Getattr(p, "name")));
         if ((p = nextSibling(p)))
-          Append(protoTypes, ", ");
+          Append(proto, ", ");
       }
-      Append(protoTypes, ")\\n\"");
+      Append(proto, ")");
+      Printf(protoTypes, "\n\"    %(escape)s\\n\"", proto);
+      Delete(proto);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
     Append(f->code, "fail:\n");

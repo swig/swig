@@ -151,3 +151,13 @@ int expression_overload(int value) {
 }
 %}
 
+// A string literal in an array dimension, which is also in the prototypes listed in the error for no matching overload
+%inline %{
+int literal_overload(char text[sizeof("abc")]) {
+  return text[0];
+}
+int literal_overload(int value) {
+  return value;
+}
+%}
+
