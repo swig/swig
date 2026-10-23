@@ -156,7 +156,7 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     $1 = *($&1_ltype) &$input;
 }
 
-%typemap(in) SWIGTYPE "$1 = *($1_ltype *)$input;"
+%typemap(in) SWIGTYPE "$1 = *($&1_ltype)$input;"
 
 %typemap(in) SWIGTYPE * "$1 = ($1_ltype) $input;"
 
