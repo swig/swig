@@ -520,15 +520,15 @@ public:
     if (Strstr(wrapper->code, "SWIG_fail") || Strstr(wrapper->code, "SWIG_exception_fail")) {
       Printv(wrapper->code, "fail:\n", NIL);
       for (param = functionParamsList; param;) {
-	String *tm;
-	if ((tm = Getattr(param, "tmap:freearg"))) {
-	  if (tm && (Len(tm) != 0)) {
-	    Printf(wrapper->code, "%s\n", tm);
-	  }
-	  param = Getattr(param, "tmap:freearg:next");
-	} else {
-	  param = nextSibling(param);
-	}
+        String *tm;
+        if ((tm = Getattr(param, "tmap:freearg"))) {
+          if (tm && (Len(tm) != 0)) {
+            Printf(wrapper->code, "%s\n", tm);
+          }
+          param = Getattr(param, "tmap:freearg:next");
+        } else {
+          param = nextSibling(param);
+        }
       }
       Printv(wrapper->code, "return SWIG_ERROR;\n", NIL);
     }
