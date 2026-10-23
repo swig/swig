@@ -35,3 +35,12 @@ holder.or_grid_member = cvar.or_grid_source
 swig_check(arrays_dimension_expression.or_grid_member_sum(holder), 21)
 holder.or_text_member = "abcdef"
 swig_check(holder.or_text_member, "abcdef")
+
+cvar.literal_text = "abc"
+swig_check(cvar.literal_text, "abc")
+swig_check(arrays_dimension_expression.literal_text_length("abc"), 3)
+try:
+    arrays_dimension_expression.literal_text_length("abcde")
+    raise RuntimeError("literal_text_length did not fail")
+except TypeError as e:
+    swig_check(str(e), "in method 'literal_text_length', argument 1 of type 'char [sizeof(\"abc\")]'")

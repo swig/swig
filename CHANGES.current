@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-23: wsfulton
+            Fix the wrappers not compiling for a type with a string literal in an array dimension,
+            such as the parameter in:
+
+              int literal_text_length(char text[sizeof("abc")]);
+
+2026-10-23: wsfulton
             [C] Fix the wrappers not compiling for a function returning a function pointer when
             wrapping C code, such as:
 

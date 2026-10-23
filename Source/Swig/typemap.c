@@ -1027,6 +1027,20 @@ static int replace_with_override(String *src, const DOHString_or_char *token, co
   return Replace(src, token, replace, flags);
 }
 
+/* Replace the special variable 'var' in 's' with 'rep', a type or an array dimension, which can contain a string literal,
+   as in 'char [sizeof("ab")]'.  In a string literal in 's', such as "$type", 'rep' is escaped for the string literal.
+   'flags' are the DOH_REPLACE flags for finding 'var'. */
+static void replace_type_variable(String *s, const_String_or_char_ptr var, const String *rep, int flags) {
+  if (Strchr(rep, '"') || Strchr(rep, '\\')) {
+    String *escaped = NewStringf("%(escape)s", rep);
+    Replace(s, var, rep, flags | DOH_REPLACE_NOQUOTE);
+    Replace(s, var, escaped, flags);
+    Delete(escaped);
+  } else {
+    Replace(s, var, rep, flags);
+  }
+}
+
 static void replace_local_types(ParmList *p, const String *name, const String *replace) {
   while (p) {
     SwigType *t = Getattr(p, "type");
@@ -1039,7 +1053,7 @@ static void replace_local_types(ParmList *p, const String *name, const String *r
  * start of another variable, as '$1_dim1' is of '$1_dim10'. */
 static void replace_array_size_var(String *s, ParmList *locals, const String *var, const String *size) {
   Parm *p;
-  Replace(s, var, size, DOH_REPLACE_NUMBER_END);
+  replace_type_variable(s, var, size, DOH_REPLACE_NUMBER_END);
   for (p = locals; p; p = nextSibling(p)) {
     Replace(Getattr(p, "type"), var, size, DOH_REPLACE_NUMBER_END);
   }
@@ -1191,11 +1205,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       /* Given type : $type */
       ts = SwigType_str(type, 0);
       if (index == 1) {
-        Replace(s, "$type", ts, DOH_REPLACE_ANY);
+        replace_type_variable(s, "$type", ts, DOH_REPLACE_ANY);
         replace_local_types(locals, "$type", type);
       }
       strcpy(varname, "type");
-      Replace(s, var, ts, DOH_REPLACE_ANY);
+      replace_type_variable(s, var, ts, DOH_REPLACE_ANY);
       replace_local_types(locals, var, type);
       Delete(ts);
       sc = Char(s);
@@ -1205,11 +1219,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       ltype = SwigType_ltype(type);
       ts = SwigType_str(ltype, 0);
       if (index == 1) {
-        Replace(s, "$ltype", ts, DOH_REPLACE_ANY);
+        replace_type_variable(s, "$ltype", ts, DOH_REPLACE_ANY);
         replace_local_types(locals, "$ltype", ltype);
       }
       strcpy(varname, "ltype");
-      Replace(s, var, ts, DOH_REPLACE_ANY);
+      replace_type_variable(s, var, ts, DOH_REPLACE_ANY);
       replace_local_types(locals, var, ltype);
       Delete(ts);
       Delete(ltype);
@@ -1258,11 +1272,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
         }
         ts = SwigType_str(star_type, 0);
         if (index == 1) {
-          Replace(s, "$*type", ts, DOH_REPLACE_ANY);
+          replace_type_variable(s, "$*type", ts, DOH_REPLACE_ANY);
           replace_local_types(locals, "$*type", star_type);
         }
         snprintf(varname, varname_size, "$*%d_type", index);
-        Replace(s, varname, ts, DOH_REPLACE_ANY);
+        replace_type_variable(s, varname, ts, DOH_REPLACE_ANY);
         replace_local_types(locals, varname, star_type);
         Delete(ts);
       } else {
@@ -1271,11 +1285,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       star_ltype = SwigType_ltype(star_type);
       ts = SwigType_str(star_ltype, 0);
       if (index == 1) {
-        Replace(s, "$*ltype", ts, DOH_REPLACE_ANY);
+        replace_type_variable(s, "$*ltype", ts, DOH_REPLACE_ANY);
         replace_local_types(locals, "$*ltype", star_ltype);
       }
       snprintf(varname, varname_size, "$*%d_ltype", index);
-      Replace(s, varname, ts, DOH_REPLACE_ANY);
+      replace_type_variable(s, varname, ts, DOH_REPLACE_ANY);
       replace_local_types(locals, varname, star_ltype);
       Delete(ts);
       Delete(star_ltype);
@@ -1307,11 +1321,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     SwigType_add_pointer(amp_type);
     ts = SwigType_str(amp_type, 0);
     if (index == 1) {
-      Replace(s, "$&type", ts, DOH_REPLACE_ANY);
+      replace_type_variable(s, "$&type", ts, DOH_REPLACE_ANY);
       replace_local_types(locals, "$&type", amp_type);
     }
     snprintf(varname, varname_size, "$&%d_type", index);
-    Replace(s, varname, ts, DOH_REPLACE_ANY);
+    replace_type_variable(s, varname, ts, DOH_REPLACE_ANY);
     replace_local_types(locals, varname, amp_type);
     Delete(ts);
 
@@ -1320,11 +1334,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     ts = SwigType_str(amp_ltype, 0);
 
     if (index == 1) {
-      Replace(s, "$&ltype", ts, DOH_REPLACE_ANY);
+      replace_type_variable(s, "$&ltype", ts, DOH_REPLACE_ANY);
       replace_local_types(locals, "$&ltype", amp_ltype);
     }
     snprintf(varname, varname_size, "$&%d_ltype", index);
-    Replace(s, varname, ts, DOH_REPLACE_ANY);
+    replace_type_variable(s, varname, ts, DOH_REPLACE_ANY);
     replace_local_types(locals, varname, amp_ltype);
     Delete(ts);
     Delete(amp_ltype);
@@ -1364,11 +1378,11 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     base_type_str = SwigType_str(base_type, 0);
     base_name = SwigType_namestr(base_type_str);
     if (index == 1) {
-      Replace(s, "$basetype", base_name, DOH_REPLACE_ANY);
+      replace_type_variable(s, "$basetype", base_name, DOH_REPLACE_ANY);
       replace_local_types(locals, "$basetype", base_name);
     }
     strcpy(varname, "basetype");
-    Replace(s, var, base_type_str, DOH_REPLACE_ANY);
+    replace_type_variable(s, var, base_type_str, DOH_REPLACE_ANY);
     replace_local_types(locals, var, base_name);
 
     base_mangle = SwigType_manglestr(base_type);
@@ -1383,9 +1397,9 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
 
     lex_type = SwigType_base(rtype);
     if (index == 1)
-      Replace(s, "$lextype", lex_type, DOH_REPLACE_ANY);
+      replace_type_variable(s, "$lextype", lex_type, DOH_REPLACE_ANY);
     strcpy(varname, "lextype");
-    Replace(s, var, lex_type, DOH_REPLACE_ANY);
+    replace_type_variable(s, var, lex_type, DOH_REPLACE_ANY);
     Delete(lex_type);
   }
 
