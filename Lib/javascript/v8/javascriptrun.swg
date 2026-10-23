@@ -490,12 +490,13 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
 
 SWIGRUNTIME
 
-SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj) {
+SWIGV8_VALUE SWIGV8_AppendOutput(SWIGV8_VALUE result, SWIGV8_VALUE obj, int isvoid) {
+  if (result.IsEmpty() || (isvoid && result->IsUndefined())) {
+    return obj;
+  }
+
   SWIGV8_HANDLESCOPE_ESC();
-  
-  if (result->IsUndefined()) {
-    result = SWIGV8_ARRAY_NEW(0);
-  } else if (!result->IsArray()) {
+  if (!result->IsArray()) {
     SWIGV8_ARRAY tmparr = SWIGV8_ARRAY_NEW(0);
     SWIGV8_ARRAY_SET(tmparr, 0, result);
     result = tmparr;
