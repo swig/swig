@@ -107,7 +107,7 @@ SWIG_SciDouble_FromInt(void *pvApiCtx, int iVarOut, int iValue, char *fname){
  */
 %fragment("SWIG_SciDoubleOrInt32_AsIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, char *fname) {
+SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int *piAddrVar = NULL;
@@ -136,9 +136,10 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, in
     }
 
     size = (*iRows) * (*iCols);
-    *piValue = (int*) malloc(size * sizeof(int*));
+    *piValue = (int*) malloc(size * sizeof(int));
     for (i = 0; i < size; i++)
       (*piValue)[i] = (int) pdData[i];
+    *piAllocated = 1;
   }
   else if (iType == sci_ints) {
     int iPrec = 0;
@@ -156,11 +157,13 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, in
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+    *piAllocated = 0;
   }
   else if (iType == sci_implicit_poly) {
     *iRows = -1;
     *iCols = 0;
     *piValue = NULL;
+    *piAllocated = 0;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double matrix expected.\n"), fname, iVar);

@@ -13,14 +13,20 @@
   size_t i = 0;
   int iRows = 0;
   int iCols = 0;
+  int iAllocated = 0;
   TEMPDATATYPE *pTempData = NULL;
-  if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, fname)) {
-    return SWIG_ERROR;
+  if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
+    SWIG_fail;
   }
   $1 = ($1_ltype)MALLOC(sizeof($*1_ltype) * iRows * iCols);
+  if ($1 == NULL) {
+    if (iAllocated) free(pTempData);
+    SWIG_exception_fail(SWIG_MemoryError, "Fail to allocate array");
+  }
   for (i = 0; i < iRows * iCols; i++) {
     $1[i] = ($*1_ltype) pTempData[i];
   }
+  if (iAllocated) free(pTempData);
 }
 %enddef
 
@@ -28,9 +34,10 @@
 %typemap(TYPEMAPTYPE, fragment="FRAGMENTNAME") CTYPE {
   int iRows = 0;
   int iCols = 0;
+  int iAllocated = 0;
   TEMPDATATYPE *pTempData = NULL;
-  if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, fname)) {
-    return SWIG_ERROR;
+  if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
+    SWIG_fail;
   }
   if (iRows*iCols <= $1_dim0) {
     size_t i;
@@ -40,10 +47,12 @@
   }
   else {
     char errmsg[100];
+    if (iAllocated) free(pTempData);
     SWIG_snprintf2(errmsg, sizeof(errmsg), "Size of input data (%d) is too big (maximum is %d)",
                    iRows*iCols, $1_dim0);
     SWIG_exception_fail(SWIG_OverflowError, errmsg);
   }
+  if (iAllocated) free(pTempData);
 }
 %enddef
 
@@ -61,6 +70,12 @@
 
   %apply SWIGTYPE[] { CTYPE[] };
   %scilab_asarray_withallocatecopy(in, ASARRAY_FRAGMENT, CTYPE[], TEMPDATATYPE);
+  %typemap(freearg) CTYPE[ANY] {
+    FREE($1);
+  }
+  %typemap(freearg) CTYPE[] {
+    FREE($1);
+  }
 %enddef
 
 
@@ -110,6 +125,104 @@
   SWIG_SciBoolean_FromBoolArrayAndSize, int);
 
 // Char *
-%scilab_array_typemaps(char *, SWIG_SciString_AsCharPtrArrayAndSize,
-  SWIG_SciString_FromCharPtrArrayAndSize, char *);
+// The Scilab string fragment always allocates the char* array and every
+// string, so the freearg typemaps have to release each element as well
+%typemap(varin, fragment="SWIG_SciString_AsCharPtrArrayAndSize") char *[ANY] (int iRows, int iCols, int iAllocated) {
+  char **pTempData = NULL;
+  size_t i;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
+    SWIG_fail;
+  }
+  if (iRows*iCols > $1_dim0) {
+    char errmsg[100];
+    if (iAllocated) {
+      for (i = 0; i < (size_t)(iRows*iCols); i++) free(pTempData[i]);
+      free(pTempData);
+    }
+    SWIG_snprintf2(errmsg, sizeof(errmsg), "Size of input data (%d) is too big (maximum is %d)",
+                   iRows*iCols, $1_dim0);
+    SWIG_exception_fail(SWIG_OverflowError, errmsg);
+  }
+  for (i = 0; i < (size_t)(iRows*iCols); i++) {
+    $1[i] = (char *) malloc(strlen(pTempData[i]) + 1);
+    if ($1[i] == NULL) {
+      SWIG_exception_fail(SWIG_MemoryError, "Fail to allocate string array");
+    }
+    strcpy($1[i], pTempData[i]);
+  }
+  if (iAllocated) {
+    for (i = 0; i < (size_t)(iRows*iCols); i++) free(pTempData[i]);
+    free(pTempData);
+  }
+}
+%typemap(in, fragment="SWIG_SciString_AsCharPtrArrayAndSize") char *[ANY] (size_t iLen=0, int iRows=0, int iCols=0, int iAllocated=0) {
+  char **pTempData = NULL;
+  size_t i = 0;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
+    SWIG_fail;
+  }
+  if (iRows*iCols > $1_dim0) {
+    char errmsg[100];
+    if (iAllocated) {
+      for (i = 0; i < (size_t)(iRows*iCols); i++) free(pTempData[i]);
+      free(pTempData);
+    }
+    SWIG_snprintf2(errmsg, sizeof(errmsg), "Size of input data (%d) is too big (maximum is %d)",
+                   iRows*iCols, $1_dim0);
+    SWIG_exception_fail(SWIG_OverflowError, errmsg);
+  }
+  iLen = (size_t) iRows * (size_t) iCols;
+  $1 = ($1_ltype)MALLOC(sizeof($*1_ltype) * iLen);
+  if ($1 == NULL) {
+    if (iAllocated) {
+      for (i = 0; i < iLen; i++) free(pTempData[i]);
+      free(pTempData);
+    }
+    iLen = 0;
+    SWIG_exception_fail(SWIG_MemoryError, "Fail to allocate string array");
+  }
+  for (i = 0; i < iLen; i++) {
+    $1[i] = ($*1_ltype) pTempData[i];
+  }
+  if (iAllocated) free(pTempData);
+}
+%scilab_fromarrayandsize(varout, SWIG_SciString_FromCharPtrArrayAndSize, char *[ANY]);
+%scilab_fromarrayandsize(out, SWIG_SciString_FromCharPtrArrayAndSize, char *[ANY]);
+
+%apply SWIGTYPE[] { char *[] };
+%typemap(in, fragment="SWIG_SciString_AsCharPtrArrayAndSize") char *[] (size_t iLen=0, int iRows=0, int iCols=0, int iAllocated=0) {
+  char **pTempData = NULL;
+  size_t i = 0;
+  if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
+    SWIG_fail;
+  }
+  iLen = (size_t) iRows * (size_t) iCols;
+  $1 = ($1_ltype)MALLOC(sizeof($*1_ltype) * iLen);
+  if ($1 == NULL) {
+    if (iAllocated) {
+      for (i = 0; i < iLen; i++) free(pTempData[i]);
+      free(pTempData);
+    }
+    iLen = 0;
+    SWIG_exception_fail(SWIG_MemoryError, "Fail to allocate string array");
+  }
+  for (i = 0; i < iLen; i++) {
+    $1[i] = ($*1_ltype) pTempData[i];
+  }
+  if (iAllocated) free(pTempData);
+}
+%typemap(freearg) char *[ANY] {
+  size_t i;
+  for (i = 0; i < iLen$argnum; i++) {
+    free($1[i]);
+  }
+  FREE($1);
+}
+%typemap(freearg) char *[] {
+  size_t i;
+  for (i = 0; i < iLen$argnum; i++) {
+    free($1[i]);
+  }
+  FREE($1);
+}
 

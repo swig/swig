@@ -105,7 +105,7 @@ SWIG_SciDouble_FromUnsignedChar(void *pvApiCtx, int iVarOut, unsigned char ucVal
  */
 %fragment("SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned char **pucValue, char *fname) {
+SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned char **pucValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -135,9 +135,10 @@ SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *
     }
 
     size = (*iRows) * (*iCols);
-    *pucValue = (unsigned char*) malloc(size * sizeof(int*));
+    *pucValue = (unsigned char*) malloc(size * sizeof(unsigned char));
     for (i = 0; i < size; i++)
       (*pucValue)[i] = (unsigned char) pdData[i];
+    *piAllocated = 1;
   }
   else if (iType == sci_ints) {
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
@@ -156,6 +157,7 @@ SWIG_SciDoubleOrUint8_AsUnsignedCharArrayAndSize(void *pvApiCtx, int iVar, int *
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+    *piAllocated = 0;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit unsigned integer or a double vector expected.\n"), fname, iVar);

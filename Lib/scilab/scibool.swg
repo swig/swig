@@ -53,7 +53,7 @@ SWIG_From_dec(bool)(bool bValue) {
  */
 %fragment("SWIG_SciBoolean_AsBoolArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_AsBoolArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, bool **pbValue, char *fname) {
+SWIG_SciBoolean_AsBoolArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, bool **pbValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   int *piValue = NULL;
@@ -75,6 +75,7 @@ SWIG_SciBoolean_AsBoolArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iC
     *pbValue = (bool*) malloc((*iRows) * (*iCols) * sizeof(bool));
     for (i = 0; i < (*iRows) * (*iCols); i++)
       (*pbValue)[i] = piValue[i] != 0;
+    *piAllocated = 1;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean matrix expected.\n"), fname, iVar);
@@ -114,7 +115,7 @@ SWIG_SciBoolean_FromBoolArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int
  */
 %fragment("SWIG_SciBoolean_AsIntArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciBoolean_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, char *fname) {
+SWIG_SciBoolean_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, int **piValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
 
@@ -130,6 +131,7 @@ SWIG_SciBoolean_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCo
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+    *piAllocated = 0;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A boolean matrix expected.\n"), fname, iVar);

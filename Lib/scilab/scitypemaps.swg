@@ -6,12 +6,12 @@
 // Scilab object type
 #define SWIG_Object int
 
-#define %append_output(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
-#define %set_constant(name, obj)    if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR // Name is managed by the function name
+#define %append_output(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail
+#define %set_constant(name, obj)    if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail // Name is managed by the function name
 #define %raise(obj, type, desc)     SWIG_Scilab_Raise(obj, type, desc)
-#define %set_output(obj)            if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
-#define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
-#define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) return SWIG_ERROR
+#define %set_output(obj)            if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail
+#define %set_varoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail
+#define %set_argoutput(obj)         if (!SWIG_IsOK(SWIG_Scilab_SetOutput(pvApiCtx, obj))) SWIG_fail
 
 // Include the unified typemap library
 %include <typemaps/swigtypemaps.swg>
@@ -28,7 +28,7 @@
 %typemap(TYPEMAPTYPE, fragment="FRAGMENTNAME") CTYPE {
   TEMPTYPE tempValue = TEMPINIT;
   if(FRAGMENTNAME(pvApiCtx, $input, &tempValue, SWIG_Scilab_GetFuncName()) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
   $1 = (CTYPE) tempValue;
 }
@@ -36,7 +36,7 @@
 %define %scilab_inptr_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
   if (FRAGMENTNAME(pvApiCtx, $input, %as_voidptrptr(&$1), SWIG_Scilab_GetFuncName()) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 %enddef
@@ -44,7 +44,7 @@
 %define %scilab_out_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
   if (FRAGMENTNAME(pvApiCtx, $result, $1) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 %enddef
@@ -52,7 +52,7 @@
 %define %scilab_outptr_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
   if (FRAGMENTNAME(pvApiCtx, $result, %as_voidptr($1)) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 %enddef
@@ -60,7 +60,7 @@
 %define %scilab_varout_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
   if (FRAGMENTNAME(pvApiCtx, $result, $value) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 %enddef
@@ -68,7 +68,7 @@
 %define %scilab_varoutptr_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
   if (FRAGMENTNAME(pvApiCtx, $result, %as_voidptr($value)) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 %enddef
@@ -76,7 +76,7 @@
 %define %scilab_in_typemap(TYPEMAPTYPE, FRAGMENTNAME, CTYPE)
 %typemap(TYPEMAPTYPE, noblock=1, fragment="FRAGMENTNAME") CTYPE {
   if (FRAGMENTNAME(pvApiCtx, $input, &$1, SWIG_Scilab_GetFuncName()) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 %enddef
@@ -95,14 +95,14 @@
 
 %typemap(in, noblock=1, fragment=SWIG_AsVal_frag(Enum)) enum SWIGTYPE (int val) {
   if (SWIG_AsVal_dec(Enum)($input, &val) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
   $1 = %static_cast(val, $1_ltype);
 }
 
 %typemap(out, fragment=SWIG_From_frag(Enum)) enum SWIGTYPE {
   if (SWIG_From_dec(Enum)($1) != SWIG_OK) {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
