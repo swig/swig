@@ -806,8 +806,7 @@ SwigType *SwigType_ltype(const SwigType *s) {
  *
  *      -   Qualifiers such as 'const' and 'volatile' are stripped.
  *          Except for member function cv-qualifiers and ref-qualifiers.
- *      -   Arrays are converted into a *single* pointer (i.e.,
- *          double [][] becomes double *).
+ *      -   An array is converted into a pointer to its first element (i.e., double [][] becomes double (*)[]).
  *      -   References are converted into a pointer.
  *      -   Typedef names that refer to read-only types will be replaced
  *          with an equivalent assignable version.
