@@ -689,6 +689,7 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference_array \
 	cpp11_rvalue_reference_move \
 	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_container \
 	cpp11_shared_ptr_crtp_upcast \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \

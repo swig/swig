@@ -216,6 +216,28 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       }
     }
   }
+
+  /* Override the typecheck typemap for the self parameter of a class
+   * that has a smart pointer. When %shared_ptr is used on a class, the
+   * target language proxy wraps the smart pointer rather than the
+   * underlying class, so the overload dispatch typecheck for self needs
+   * to use the smart pointer type descriptor. This is particularly
+   * important for STL container classes whose own typecheck typemaps
+   * (e.g. swig::asptr) take a higher precedence and would otherwise
+   * incorrectly check against the container type. */
+  {
+    Parm *p = l;
+    if (p && Getattr(p, "self") && Getattr(p, "smartptr")) {
+      SwigType *smart = Getattr(p, "smartptr");
+      SwigType *sp = Copy(smart);
+      SwigType_add_pointer(sp);
+      String *tm = NewStringf("int res = SWIG_ConvertPtr($input, 0, SWIGTYPE%s, 0);\n_v = SWIG_CheckState(res);", SwigType_manglestr(sp));
+      Setattr(p, "tmap:typecheck", tm);
+      Delattr(p, "tmap:typecheck:next");
+      Delete(tm);
+      Delete(sp);
+    }
+  }
 }
 
 /* -----------------------------------------------------------------------------
