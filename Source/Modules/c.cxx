@@ -1639,7 +1639,8 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteResolvedTypeSpecialVariable()
    *
-   * Return true if tm is replaced with the declaration of the parameter parm_name.
+   * Return true if tm is replaced with the declaration of parm_name, the name of a parameter or the name and parameters
+   * of a function.
    * ----------------------------------------------------------------------------- */
 
   bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, String *parm_name) {
@@ -1709,7 +1710,7 @@ public:
    * Inputs:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
-   *   parm_name - name of the parameter of type pt, if any
+   *   parm_name - name of the parameter of type pt, or name and parameters of the function returning pt, if any
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
    * Returns true if tm is the declaration of parm_name rather than just its type.
@@ -2325,18 +2326,27 @@ public:
     Delete(over_suffix);
   }
 
-  scoped_dohptr get_wrapper_func_return_type(Node *n) {
+  /* ----------------------------------------------------------------------
+   * get_wrapper_func_return_type()
+   *
+   * Return the type returned by the wrapper of the function n, or the declaration of decl with this return type if decl,
+   * the name and parameters of the wrapper, is given, as in 'int (*name(void))(int,int)' for a function pointer.
+   * ---------------------------------------------------------------------- */
+  scoped_dohptr get_wrapper_func_return_type(Node *n, String *decl = NULL) {
     SwigType *type = Getattr(n, "type");
     String *return_type;
 
     if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
-      substituteResolvedType(type, return_type);
+      if (substituteResolvedType(type, return_type, decl))
+        decl = NULL;
     } else {
       Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
       return_type = NewString("");
     }
 
     Replaceall(return_type, "::", "_");
+    if (decl)
+      Printv(return_type, " ", decl, NIL);
 
     return scoped_dohptr(return_type);
   }
@@ -2454,7 +2464,8 @@ public:
     current_output = output_wrapper_decl;
 
     // add function declaration to the proxy header file
-    Printv(sect_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n).get(), " ", wname, get_wrapper_func_proto(n).get(), ";\n\n", NIL);
+    scoped_dohptr decl(NewStringf("%s%s", wname, get_wrapper_func_proto(n).get()));
+    Printv(sect_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n, decl).get(), ";\n\n", NIL);
   }
 
   void functionWrapperCPPSpecific(Node *n) {

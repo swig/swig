@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-23: wsfulton
+            [C] Fix the wrappers not compiling for a function returning a function pointer when
+            wrapping C code, such as:
+
+              int (*get_operation(void))(int, int);
+
+            The getter of a function pointer variable with the -namespace option is fixed too.
+
+2026-10-23: wsfulton
             Fix %contract checks using a member with the same name as a parameter or as the function,
             or using a parameter's name in a character or string literal, such as:
 

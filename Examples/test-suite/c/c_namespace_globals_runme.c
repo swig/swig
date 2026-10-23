@@ -34,5 +34,15 @@ int main() {
     exit(1);
   }
 
+  if (ns_operation_get()(1, 2) != 3) {
+    fprintf(stderr, "operation failed\n");
+    exit(1);
+  }
+
+  if (ns_get_operation()(3, 4) != 7) {
+    fprintf(stderr, "get_operation failed\n");
+    exit(1);
+  }
+
   return 0;
 }

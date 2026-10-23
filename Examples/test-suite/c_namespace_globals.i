@@ -15,4 +15,14 @@ const int primes[3] = {2, 3, 5};
 const int const_result(int value) {
   return value;
 }
+
+static int add(int a, int b) {
+  return a + b;
+}
+
+int (*operation)(int, int) = add;
+
+int (*get_operation(void))(int, int) {
+  return add;
+}
 %}
