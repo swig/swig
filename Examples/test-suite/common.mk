@@ -976,6 +976,7 @@ C_TEST_CASES += \
 # Multi-module C++ test cases . (Can be run individually using make testcase.multicpptest)
 MULTI_CPP_TEST_CASES += \
 	clientdata_prop \
+	clientdata_teardown \
 	import_share \
 	import_stl \
 	imports \
