@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-17: jschueller
+            [Python] #3309 Fix use after free with compound assignment operators
+            such as operator+=. In place operators no longer use %delobject and
+            %newobject. The original wrapper keeps ownership and 'a += b'
+            rebinds 'a' to itself when the operator returns the same C++
+            object, for example:
+
+              Counter &operator+=(const Counter &o) { val += o.val; return *this; }
+
+            The previous behaviour can be restored per class with:
+
+              %feature("del","1") A::operator+=;
+              %feature("new","1") A::operator+=;
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using
             the nondynamic feature that derives from a nondynamic class from another module.
