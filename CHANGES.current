@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-23: wsfulton
+            [C] Fix the .h file not compiling for a global variable declared with a typedef, other than
+            one of a struct or enum, such as:
+
+              typedef int *Integer;
+              Integer (*funcvar4)();
+
+2026-10-23: wsfulton
             [C] Fix the .h file not compiling for a function pointer parameter or return type when
             wrapping C++ code, such as:
 

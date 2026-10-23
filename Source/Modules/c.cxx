@@ -2793,15 +2793,45 @@ public:
   }
 
   /* ---------------------------------------------------------------------
+   * resolve_undeclared_typedefs()
+   *
+   * Return a copy of type with each typedef that the header file does not declare replaced by the type it stands for,
+   * such as 'int *' for 'Integer' after 'typedef int *Integer'. The header file declares a wrapped struct or enum that is
+   * declared with a typedef by its typedef name, as in 'typedef struct {...} Foo', so the base type is resolved until it
+   * is such a name or it is not a typedef.
+   * --------------------------------------------------------------------- */
+  SwigType *resolve_undeclared_typedefs(SwigType *type) {
+    SwigType *resolved = Copy(type);
+    for (;;) {
+      scoped_dohptr base(SwigType_base(resolved));
+      if (Node *enum_node = enumLookup(base)) {
+        if (Checkattr(enum_node, "allows_typedef", "1") && Equal(Getattr(enum_node, "sym:name"), base))
+          break;
+      } else if (Node *class_node = classLookup(base)) {
+        String *tdname = Getattr(class_node, "tdname");
+        if (tdname && Equal(tdname, base))
+          break;
+      }
+      SwigType *next = SwigType_typedef_resolve(resolved);
+      if (!next)
+        break;
+      Delete(resolved);
+      resolved = next;
+    }
+    return resolved;
+  }
+
+  /* ---------------------------------------------------------------------
    * make_c_var_decl()
    *
    * Return the C declaration for the given node of "variable" kind.
    *
    * If the variable has a type not representable in C, returns NULL, the caller must check for this!
    *
-   * This function accounts for two special cases:
+   * This function accounts for three special cases:
    *  1. If the type is an anonymous enum, "int" is used instead.
    *  2. If the type is an array, its bounds are stripped.
+   *  3. A typedef that the header file does not declare is resolved, see resolve_undeclared_typedefs().
    * --------------------------------------------------------------------- */
   String *make_c_var_decl(Node *n) {
     String *name = Getattr(n, "name");
@@ -2849,6 +2879,8 @@ public:
             Printv(sect_wrappers_types, "#include <stdbool.h>\n\n", NIL);
           }
         }
+        Delete(decl_type);
+        decl_type = resolve_undeclared_typedefs(type);
       }
     }
 

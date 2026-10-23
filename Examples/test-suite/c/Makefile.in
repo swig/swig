@@ -23,8 +23,6 @@ C_TEST_CASES := \
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
     arrays \
-    funcptr \
-    function_typedef \
     nested \
     nested_extend_c \
     nested_structs \
