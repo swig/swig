@@ -7,7 +7,7 @@
 %module(directors="1") director_thread
 #endif
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 

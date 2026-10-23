@@ -5,6 +5,9 @@
 #if defined(SWIGOCAML)
 %rename(valu) val;
 #endif
+#ifdef SWIGKOTLIN_SOURCE
+%warnfilter(SWIGWARN_PARSE_KEYWORD) val;
+#endif
 
 %ignore MoveOnly::operator=;
 //%valuewrapper MoveOnly; // SWIG sets %valuewrapper by default for move-only types (actually when there is no assignment operator)

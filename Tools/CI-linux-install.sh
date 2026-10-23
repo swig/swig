@@ -113,6 +113,14 @@ case "$SWIGLANG" in
 				;;
 		esac
 		;;
+	"kotlin")
+		# kotlin use JVM, but as VER is reserved for kotlin version
+		# We use JVM_VER to detect the Java version used by kotlin
+		if [[ -n "$JVM_VER" ]]; then
+			java_path="JAVA_HOME_${JVM_VER}_X64"
+			update_env 'JAVA_HOME' "${!java_path}"
+		fi
+		;;
 	"guile")
 		$RETRY sudo apt-get -qq install guile-${VER:-2.2}-dev
 		;;

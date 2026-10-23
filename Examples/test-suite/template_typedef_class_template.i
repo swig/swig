@@ -1,6 +1,6 @@
 %module template_typedef_class_template
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 
