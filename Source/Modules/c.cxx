@@ -2805,6 +2805,8 @@ public:
     String *name = Getattr(n, "name");
     SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
+    // the type declared, which SwigType_str() gives with the name inside the declaration, as for a function pointer
+    SwigType *decl_type = Copy(type);
 
     if (Getattr(n, "unnamedinstance")) {
       // If this is an anonymous enum, we can declare the variable as int even though we can't reference this type.
@@ -2821,15 +2823,15 @@ public:
         return SWIG_ERROR;
       }
 
-      String *const int_type_str = NewStringf("int%s", unnamed_end + 1);
-      Delete(type_str);
-      type_str = int_type_str;
+      Delete(decl_type);
+      decl_type = SwigType_prefix(type);
+      Append(decl_type, "int");
     } else {
       scoped_dohptr btype(SwigType_base(type));
       if (SwigType_isenum(btype)) {
         // Enums are special as they can be unknown, i.e. not wrapped by SWIG. In this case we just use int instead.
         if (!enumLookup(btype)) {
-          Replaceall(type_str, btype, "int");
+          Replaceall(decl_type, btype, "int");
         }
       } else {
         // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
@@ -2848,16 +2850,13 @@ public:
       }
     }
 
-    String *const var_decl = NewStringEmpty();
-    if (SwigType_isarray(type)) {
-      String *dims = Strchr(type_str, '[');
-      char *c = Char(type_str);
-      c[Len(type_str) - Len(dims) - 1] = '\0';
-      Printv(var_decl, c, " ", name, "[]", NIL);
-    } else {
-      Printv(var_decl, type_str, " ", name, NIL);
+    if (SwigType_isarray(decl_type)) {
+      Delete(SwigType_pop_arrays(decl_type));
+      SwigType_add_array(decl_type, "");
     }
+    String *const var_decl = SwigType_str(decl_type, name);
 
+    Delete(decl_type);
     Delete(type_str);
 
     return var_decl;

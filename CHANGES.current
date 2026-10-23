@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-23: wsfulton
+            [C] Fix the .h file not compiling for a global variable that is a function pointer or an
+            array of function pointers, such as:
+
+              int (*operation)(int, int);
+              int (*operations[2])(int, int);
+
+2026-10-23: wsfulton
             [Lua, OCaml, Python, Ruby, Tcl] Fix the wrappers not compiling for an overloaded function
             with a string literal in the type of a parameter, such as:
 
