@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-24: wsfulton
+            [C] Fix the declaration in the .h file of the wrapper of a C function with an 'in' typemap
+            with numinputs=0, or a multi-argument 'in' or 'ctype' typemap, which left out parameters,
+            such as 'ignored' here or the last parameter of memmove in cdata.i:
+
+              %typemap(in, numinputs=0) int ignored "$1 = 10;"
+              int ignore_first(int ignored, int b);
+
+            The 'in' typemaps are not used when wrapping C, so the wrapper has all the parameters of
+            the function, as its declaration now does too.
+
+2026-10-24: wsfulton
             [Javascript] Fix the napi engine leaving out some check typemaps for a function with a
             multi-argument 'in' typemap, such as the check typemap for 'b' here:
 

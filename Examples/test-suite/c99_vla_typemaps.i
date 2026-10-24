@@ -237,6 +237,11 @@ void declared_pointer(int n, const void *row) { (void)n; (void)row; }
 }
 %typemap(freearg) int middle[*], int end[*] "free($1);"
 
+#ifdef SWIGC
+// The C target language uses neither these nor a multi-argument 'ctype' typemap when wrapping C, so declares every parameter
+%typemap(ctype) (int start, int n) "int"
+#endif
+
 %inline %{
 #if defined(SWIG) || defined(TEST_C99_VLA)
 int ignored_arguments(int start, int n, int middle[n], int scale, int end[n]);

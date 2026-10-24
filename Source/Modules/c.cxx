@@ -2370,17 +2370,19 @@ public:
     String *proto = NewString("(");
     int gencomma = 0;
 
-    // attach the standard typemaps
+    // attach the standard typemaps, except when wrapping C, as the 'in' typemaps are then not used
     if (wrapper) {
       emit_attach_parm_typemaps(parms, wrapper);
-    } else {
+    } else if (CPlusPlus) {
       // Attach "in" manually, we need it for tmap:in:numinputs below.
       Swig_typemap_attach_parms("in", parms, 0);
     }
     Setattr(n, "wrap:parms", parms);  // never read again?!
 
-    // attach 'ctype' typemaps
-    Swig_typemap_attach_parms("ctype", parms, 0);
+    // attach 'ctype' typemaps, except when wrapping C, as the wrapper then has the parameters of the function, see
+    // functionWrapperCSpecific(), so the 'ctype' typemap of each parameter is looked up on its own below instead
+    if (CPlusPlus)
+      Swig_typemap_attach_parms("ctype", parms, 0);
 
     // prepare function definition
     for (p = parms, gencomma = 0; p;) {
@@ -2389,7 +2391,7 @@ public:
 
       if (wrapper) {
         p = emit_ignored_in_typemaps(p, wrapper->code);
-      } else {
+      } else if (CPlusPlus) {
         while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
           p = Getattr(p, "tmap:in:next");
         }
@@ -2415,7 +2417,14 @@ public:
 
       Printf(arg_name, "c%s", lname);
 
-      if ((tm = Getattr(p, "tmap:ctype"))) {  // set the appropriate type for parameter
+      scoped_dohptr parm_ctype;
+      if (CPlusPlus) {
+        tm = Getattr(p, "tmap:ctype");
+      } else {
+        parm_ctype = Swig_typemap_lookup("ctype", p, "", 0);
+        tm = parm_ctype.get();
+      }
+      if (tm) {  // set the appropriate type for parameter
         c_parm_type = Copy(tm);
         is_parm_decl = substituteResolvedType(type, c_parm_type, arg_name);
 
@@ -2440,8 +2449,10 @@ public:
       }
       gencomma = 1;
 
-      // apply typemaps for input parameter
-      if ((tm = Getattr(p, "tmap:in"))) {
+      // apply typemaps for input parameter, except when wrapping C
+      if (!CPlusPlus) {
+        p = nextSibling(p);
+      } else if ((tm = Getattr(p, "tmap:in"))) {
         Replaceall(tm, "$input", arg_name);
         if (wrapper) {
           canThrow(n, "in", p);
