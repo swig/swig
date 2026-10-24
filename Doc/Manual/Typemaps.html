@@ -4257,7 +4257,15 @@ A dimension with a constant size is written with its size or with <tt>ANY</tt>, 
 </p>
 
 <p>
-A typemap written with <tt>*</tt> is used for a variable length array parameter if there is one.
+A typemap written with the type of the parameter as declared, such as <tt>const double values[n]</tt> or
+<tt>const double[n]</tt> for <tt>values</tt> above, is used before any other.
+It is used in the same way as a typemap written with <tt>*</tt>, so its <tt>$1_dim0</tt> is the size worked out at
+runtime, as described below.
+Its size has to be written as declared, so it does not match <tt>const double values[count]</tt>.
+</p>
+
+<p>
+Otherwise a typemap written with <tt>*</tt> is used for a variable length array parameter if there is one.
 It is used even when a typemap for an array of unknown size matches the parameter more closely, such as one with the
 parameter's qualifiers or typedef name.
 So for <tt>const int a[n]</tt>, a typemap for <tt>int[*]</tt> is used rather than one for <tt>const int[]</tt>.
@@ -4371,9 +4379,9 @@ Its <tt>$2_dim0</tt> is the size of <tt>values</tt> worked out at runtime:
 </div>
 
 <p>
-A typemap for a single parameter has no earlier parameter for a size to refer to, so <tt>[n]</tt> in one is a fixed
-size, which never matches a variable length array parameter.
-Write <tt>[*]</tt> to match a variable length array parameter or <tt>[]</tt> to match any array of unknown size.
+A typemap for a single parameter has no earlier parameter for a size to refer to, so <tt>[n]</tt> in one only matches
+a parameter declared with the size <tt>n</tt>, as described above.
+Write <tt>[*]</tt> to match any variable length array parameter or <tt>[]</tt> to match any array of unknown size.
 </p>
 
 <p>

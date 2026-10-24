@@ -51,6 +51,18 @@ swig_check(seen_size(0), 4)
 typedef_rows(5, None)
 swig_check([seen_size(0), seen_size(1), seen_size(2)], [5, 3, 15])
 
+# A typemap written with the size as declared comes before one written with '[*]'
+declared_named(2, None)
+swig_check([seen_size(0), seen_size(1)], [2, 1])
+declared_unnamed(3, None)
+swig_check([seen_size(0), seen_size(1)], [3, 2])
+declared_other(4, None)
+swig_check([seen_size(0), seen_size(1)], [4, 3])
+declared_multi(5, None, 6)
+swig_check([seen_size(0), seen_size(1)], [5, 6])
+declared_pointer(7, None)
+swig_check(seen_size(1), 4)
+
 # Ignored arguments at the start, in the middle and at the end
 swig_check(ignored_arguments(3, 10), 133)
 swig_check(ignored_arguments(0, 10), 100)

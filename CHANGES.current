@@ -402,6 +402,11 @@ Version 4.6.0 (in progress)
             'int [*]' is used rather than 'const int []' for 'const int a[n]'. The default typemaps are
             looked for in the same order, 'SWIGTYPE [*]' before 'SWIGTYPE []'.
 
+            A typemap written with the size as declared, such as 'const char s[n]' or
+            'const char [n]', is used before any typemap written with '*'. It is used in the same way,
+            so its '$1_dim0' is the size worked out at runtime too. Its size has to be written as
+            declared, so it does not match 'const char s[len]'.
+
             In a multi-argument typemap, an array written with '*', or with a size that refers to an
             earlier parameter of the typemap, only matches a variable length array parameter. Its
             '$2_dim0' and so on are the sizes of that array:
@@ -452,7 +457,8 @@ Version 4.6.0 (in progress)
               int char_length(int n, const char s[n]);
               double trace(int n, double m[n][n]);
 
-            Typemaps for a fixed size array are no longer used for such a parameter.
+            Typemaps for a fixed size array are no longer used for such a parameter. A typemap
+            written with the size as declared, such as 'const char s[n]', is still used.
 
             *** POTENTIAL INCOMPATIBILITY ***
 

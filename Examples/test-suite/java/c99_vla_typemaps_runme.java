@@ -77,6 +77,22 @@ public class c99_vla_typemaps_runme {
     check("typedef_rows", 1, 3);
     check("typedef_rows", 2, 15);
 
+    // A typemap written with the size as declared comes before one written with '[*]'
+    c99_vla_typemaps.declared_named(2, null);
+    check("declared_named", 0, 2);
+    check("declared_named", 1, 1);
+    c99_vla_typemaps.declared_unnamed(3, null);
+    check("declared_unnamed", 0, 3);
+    check("declared_unnamed", 1, 2);
+    c99_vla_typemaps.declared_other(4, null);
+    check("declared_other", 0, 4);
+    check("declared_other", 1, 3);
+    c99_vla_typemaps.declared_multi(5, null, 6);
+    check("declared_multi", 0, 5);
+    check("declared_multi", 1, 6);
+    c99_vla_typemaps.declared_pointer(7, null);
+    check("declared_pointer", 1, 4);
+
     // Ignored arguments at the start, in the middle and at the end
     int ignored = c99_vla_typemaps.ignored_arguments(3, 10);
     if (ignored != 133)

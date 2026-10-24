@@ -3767,6 +3767,8 @@ It is also the first to wrap a variable length array parameter with the typemaps
 array of unknown size.
 Earlier versions wrapped it as a fixed size array, giving wrapper code that did not compile for some types, such as
 an array of <tt>char</tt>.
+A typemap written with the size as declared, such as <tt>const double values[n]</tt>, is still used, but its
+<tt>$1_dim0</tt> is now the size worked out at runtime.
 </p>
 
 <H2><a name="SWIG_nn40">5.7 Code Insertion</a></H2>

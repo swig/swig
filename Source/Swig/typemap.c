@@ -801,6 +801,24 @@ static Hash *typemap_search_vla(int debug_display, const String *tm_method, Swig
   return result;
 }
 
+/* The type 'type' of 'node' with 'name' as shown in the debug output, which is the type searched for first.  For a C99
+   variable length array parameter this is its type as declared or else its type with '*' as the size. */
+static String *search_type_str(const SwigType *type, Node *node, const_String_or_char_ptr name) {
+  SwigType *declared = Swig_vla_declared_type(type, node);
+  SwigType *vla = Swig_vla_parameter_type(type, node);
+  String *typestr;
+  if (declared) {
+    typestr = SwigType_str(declared, name);
+  } else if (vla) {
+    typestr = SwigType_str(vla, name);
+  } else {
+    typestr = SwigType_str(type, name);
+  }
+  Delete(vla);
+  Delete(declared);
+  return typestr;
+}
+
 /* -----------------------------------------------------------------------------
  * typemap_search()
  *
@@ -818,6 +836,7 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
   SwigType *ctype = 0;
   SwigType *ctype_unstripped = 0;
   SwigType *vla = Swig_vla_parameter_type(type, node);
+  SwigType *declared = Swig_vla_declared_type(type, node);
   int isarray;
   const String *cname = 0;
   const String *cqualifiedname = 0;
@@ -830,10 +849,20 @@ static Hash *typemap_search(const_String_or_char_ptr tmap_method, SwigType *type
     cqualifiedname = qualifiedname;
 
   if (debug_display) {
-    /* A C99 variable length array parameter is shown as the type searched for first, with '*' as the size */
-    String *typestr = SwigType_str(vla ? vla : type, cqualifiedname ? cqualifiedname : cname);
+    String *typestr = search_type_str(type, node, cqualifiedname ? cqualifiedname : cname);
     Swig_diagnostic(Getfile(node), Getline(node), "Searching for a suitable '%s' typemap for: %s\n", tmap_method, typestr);
     Delete(typestr);
+  }
+
+  /* A C99 variable length array parameter first looks for a typemap written with its type as declared, as in
+     'double values[n]', which is used as if written for a variable length array, as in 'double values[*]' */
+  if (declared) {
+    tm = get_typemap(declared);
+    result = typemap_search_helper(debug_display, tm, tm_method, declared, cqualifiedname, cname, &backup);
+    if (result && Getattr(result, "code")) {
+      ctype = Copy(vla ? vla : type);
+      goto ret_result;
+    }
   }
 
   /* A C99 variable length array parameter is an array of unknown size, but first look for a typemap written for one */
@@ -935,6 +964,7 @@ ret_result:
     *matchtype = Copy(ctype);
   Delete(ctype);
   Delete(ctype_unstripped);
+  Delete(declared);
   Delete(vla);
   return result;
 }
@@ -964,8 +994,20 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   tm = typemap_search(tmap_method, type, name, 0, &mtype, parms);
   if (tm) {
     SwigType *vla = Swig_vla_parameter_type(type, parms);
+    SwigType *declared = Swig_vla_declared_type(type, parms);
     in_typemap_search_multi++;
-    if (vla) {
+    if (declared) {
+      /* A C99 variable length array parameter first continues a multi-argument typemap written with its type as
+         declared, such as '(double values[n], int m)' without 'n' */
+      multi_tmap_method = NewStringf("%s-%s+%s:", tmap_method, declared, name);
+      tm1 = typemap_search_multi(multi_tmap_method, nextSibling(parms), nmatch);
+      Delete(multi_tmap_method);
+      if (tm1) {
+        Delete(mtype);
+        mtype = Copy(vla ? vla : type);
+      }
+    }
+    if (vla && !tm1) {
       /* A C99 variable length array parameter first continues a multi-argument typemap written for one, such as
          '(int n, double a[*], double b[*])', then one written with an array of unknown size */
       multi_tmap_method = NewStringf("%s-%s+%s:", tmap_method, vla, name);
@@ -986,6 +1028,7 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
       }
     }
     in_typemap_search_multi--;
+    Delete(declared);
     Delete(vla);
     /* The type matched, which typemap_attach_parms() needs for an array, replacing any left by an earlier search */
     if (mtype && SwigType_isarray(mtype)) {
@@ -1009,12 +1052,10 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
   if (typemap_search_debug && (in_typemap_search_multi == 0))
     debug_search_result_display(tm);
   if (typemaps_used_debug && (in_typemap_search_multi == 0) && tm) {
-    SwigType *vla = Swig_vla_parameter_type(type, parms);
-    String *typestr = SwigType_str(vla ? vla : type, name);
+    String *typestr = search_type_str(type, parms, name);
     Swig_diagnostic(Getfile(parms), Getline(parms), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(parms) && Len(Getfile(parms)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
-    Delete(vla);
   }
 
   return tm;
@@ -1648,12 +1689,10 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   if (typemap_search_debug)
     debug_search_result_display(tm);
   if (typemaps_used_debug && tm) {
-    SwigType *vla = Swig_vla_parameter_type(type, node);
-    String *typestr = SwigType_str(vla ? vla : type, qpname ? qpname : pname);
+    String *typestr = search_type_str(type, node, qpname ? qpname : pname);
     Swig_diagnostic(Getfile(node), Getline(node), "Typemap for %s (%s) : %%%s\n", typestr, tmap_method, Getattr(tm, "source"));
     assert(Getfile(node) && Len(Getfile(node)) > 0); /* Missing file and line numbering information */
     Delete(typestr);
-    Delete(vla);
   }
 
   Delete(qpname);

@@ -489,6 +489,7 @@ extern SwigType *Swig_vla_declared_decl(Node *n, const SwigType *decl);
 extern void Swig_vla_star_parms(ParmList *parms);
 extern void Swig_vla_merge_sizes(Node *c, Node *n);
 extern SwigType *Swig_vla_parameter_type(const SwigType *type, Node *node);
+extern SwigType *Swig_vla_declared_type(const SwigType *type, Node *node);
 extern SwigType *Swig_vla_wrapped_type(const SwigType *matchtype);
 extern String *Swig_vla_dimension_operand(Parm *p, ParmList *parms, int i);
 extern void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, SwigType *matchtype, Parm *p, int index, int substituted);

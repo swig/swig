@@ -25,7 +25,9 @@
  * A typemap written for a variable length array parameter has '*' as the size of each variable dimension, as C99 has
  * for a variable length array of unspecified size in a function prototype, such as 'int [*]' or 'double [*][*][3]'.
  * Such a typemap only matches a variable length array parameter.  Its $1_dim0 and $1_size special variables expand to
- * the runtime size, such as '(arg1)', which only some of the typemaps can use, see Swig_vla_check_size_use().
+ * the runtime size, such as '(arg1)', which only some of the typemaps can use, see Swig_vla_check_size_use().  A
+ * typemap written with the type of the parameter as declared, such as 'int [n]', is looked for first and is used in the
+ * same way.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -334,6 +336,24 @@ SwigType *Swig_vla_parameter_type(const SwigType *type, Node *node) {
     }
   }
   return vla;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_vla_declared_type()
+ *
+ * For a parameter 'node' of type 'type' with the size of a C99 variable length array removed, return a copy of its type
+ * as declared, such as 'a(n).q(const).double' for the 'const double values[n]' of 'int n, const double values[n]'.
+ * This is the type of a typemap written with the size as declared, which is looked for before one written with '*' as
+ * the size.  Return 0 if 'type' is not the type of 'node' or no size was removed from it, or if the type as declared
+ * has '*' as the size of a leading array, as only a parameter whose size is known matches a typemap written with '*'.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *Swig_vla_declared_type(const SwigType *type, Node *node) {
+  SwigType *vlatype = node ? Getattr(node, "vlatype") : 0;
+  SwigType *declared = 0;
+  if (vlatype && Equal(type, Getattr(node, "type")) && !SwigType_isarray_vla(vlatype))
+    declared = Copy(vlatype);
+  return declared;
 }
 
 /* -----------------------------------------------------------------------------

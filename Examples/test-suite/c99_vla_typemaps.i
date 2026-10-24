@@ -195,6 +195,36 @@ void typedef_longs(int n, vla_long_t *a) { (void)n; (void)a; }
 void typedef_rows(int n, Row *m) { (void)n; (void)m; }
 %}
 
+// A typemap written with the size as declared is used before one written with '[*]' and has the runtime size too
+
+%typemap(check) const double values[n] "seen[0] = $1_dim0; seen[1] = 1;"
+%typemap(check) const double [n] "seen[0] = $1_dim0; seen[1] = 2;"
+%typemap(check) const double values[*], const double numbers[*] "seen[0] = $1_dim0; seen[1] = 3;"
+%typemap(check) (double data[n], int scale) "seen[0] = $1_dim0; seen[1] = $2;"
+%typemap(check) int (*row)[n] "seen[1] = 4;"
+
+%inline %{
+#if defined(SWIG) || defined(TEST_C99_VLA)
+void declared_named(int n, const double values[n]);
+void declared_unnamed(int n, const double numbers[n]);
+void declared_other(int k, const double values[k]);
+void declared_multi(int n, double data[n], int scale);
+void declared_pointer(int n, int (*row)[n]);
+#endif
+%}
+
+%{
+void declared_named(int n, const double *values) { (void)n; (void)values; }
+void declared_unnamed(int n, const double *numbers) { (void)n; (void)numbers; }
+void declared_other(int k, const double *values) { (void)k; (void)values; }
+void declared_multi(int n, double *data, int scale) { (void)n; (void)data; (void)scale; }
+#if defined(TEST_C99_VLA)
+void declared_pointer(int n, int (*row)[n]) { (void)n; (void)row; }
+#else
+void declared_pointer(int n, const void *row) { (void)n; (void)row; }
+#endif
+%}
+
 // An 'in' typemap with numinputs=0 at the start, in the middle and at the end comes after the earlier arguments are converted
 
 %typemap(in, numinputs=0) int start "$1 = 100;"
