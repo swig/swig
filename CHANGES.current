@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-24: wsfulton
+            The code of an 'in' typemap with numinputs=0 now comes in the wrapper in parameter order,
+            after the code converting the earlier arguments. It came before any argument was
+            converted, so it could not use their values, such as the runtime size of a variable
+            length array parameter. An output array sized by an earlier parameter can now be
+            allocated directly:
+
+              %typemap(in, numinputs=0) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
+              %typemap(freearg) double numbers[*] "free($1);"
+              void squares(int n, double numbers[n]);
+
 2026-10-23: wsfulton
             [C] Fix the .cxx file not compiling for a const function pointer parameter when wrapping C++
             code, such as:
@@ -417,9 +428,8 @@ Version 4.6.0 (in progress)
               %apply ARRAYSOFENUMS[ANY] { name[ANY], name[*] };
 
             The size is only known once the arguments are converted. So it can only be used in the
-            'check', 'argout' and 'freearg' typemaps and in an 'in' typemap without numinputs=0. Using
-            it anywhere else is an error, such as in an 'in' typemap with numinputs=0, a target
-            language typemap or a typemap's local variables or attributes.
+            'in', 'check', 'argout' and 'freearg' typemaps. Using it anywhere else is an error, such
+            as in a target language typemap or a typemap's local variables or attributes.
 
 2026-10-16: vadz
             [Python] Fix "metaclass conflict" TypeError when importing a module with a class using

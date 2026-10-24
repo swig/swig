@@ -50,3 +50,7 @@ typedef_longs(4, None)
 swig_check(seen_size(0), 4)
 typedef_rows(5, None)
 swig_check([seen_size(0), seen_size(1), seen_size(2)], [5, 3, 15])
+
+# Ignored arguments at the start, in the middle and at the end
+swig_check(ignored_arguments(3, 10), 133)
+swig_check(ignored_arguments(0, 10), 100)

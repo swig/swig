@@ -93,33 +93,17 @@ void emit_parameter_variables(ParmList *l, Wrapper *f) {
 }
 
 /* -----------------------------------------------------------------------------
- * emit_attach_parmmaps()
+ * emit_attach_parm_typemaps()
  *
  * Attach the standard parameter related typemaps.
  * ----------------------------------------------------------------------------- */
 
-void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
+void emit_attach_parm_typemaps(ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("in", l, f);
   Swig_typemap_attach_parms("typecheck", l, 0);
   Swig_typemap_attach_parms("argout", l, f);
   Swig_typemap_attach_parms("check", l, f);
   Swig_typemap_attach_parms("freearg", l, f);
-
-  {
-    /* Handle in typemaps with numinputs=0. */
-    Parm *p = l;
-    while (p) {
-      String *tm = Getattr(p, "tmap:in");
-      if (tm) {
-        if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-          Printv(f->code, tm, "\n", NIL);
-        }
-        p = Getattr(p, "tmap:in:next");
-      } else {
-        p = nextSibling(p);
-      }
-    }
-  }
 
   /* Perform a sanity check on "in" and "freearg" typemaps.  These
      must exactly match to avoid chaos.  If a mismatch occurs, we
@@ -145,8 +129,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   }
 
   /* Check for variable length arguments with no input typemap.
-     If no input is defined, we set this to ignore and print a
-     message.
+     If no input is defined, we print a message.
    */
   {
     Parm *p = l;
@@ -159,7 +142,6 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       }
       if (SwigType_isvarargs(Getattr(p, "type"))) {
         Swig_warning(WARN_LANG_VARARGS, input_file, line_number, "Variable length arguments discarded.\n");
-        Setattr(p, "tmap:in", "");
       }
       lp = 0;
       p = nextSibling(p);
@@ -216,6 +198,33 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
       }
     }
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * emit_ignored_in_typemaps()
+ *
+ * Emit into 'code' the code of the "in" typemaps with numinputs=0, whose parameters take no target language argument,
+ * for the parameters from 'p' up to the next parameter that takes one, which is returned.  A target language module
+ * calls this in the loop that converts the arguments, before converting each one and once more after the last one, so
+ * that the code comes in parameter order and can use the arguments converted before it:
+ *
+ *   for (i = 0, p = l; i < num_arguments; i++) {
+ *     p = emit_ignored_in_typemaps(p, code);
+ *     ... emit the "in" typemap for p into code ...
+ *     p = Getattr(p, "tmap:in:next");
+ *   }
+ *   p = emit_ignored_in_typemaps(p, code);
+ *
+ * A loop that runs until there are no more parameters, rather than for the number of arguments, only needs the first
+ * call, followed by a check for the end of the parameters.
+ * ----------------------------------------------------------------------------- */
+
+Parm *emit_ignored_in_typemaps(Parm *p, String *code) {
+  while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
+    Printv(code, Getattr(p, "tmap:in"), "\n", NIL);
+    p = Getattr(p, "tmap:in:next");
+  }
+  return p;
 }
 
 /* -----------------------------------------------------------------------------
@@ -463,7 +472,7 @@ int emit_num_required(ParmList *parms) {
  * emit_isvarargs()
  *
  * Checks if a ParmList is a parameter list containing varargs.
- * This function requires emit_attach_parmmaps to have been called beforehand.
+ * This function requires emit_attach_parm_typemaps to have been called beforehand.
  * ----------------------------------------------------------------------------- */
 
 int emit_isvarargs(ParmList *p) {

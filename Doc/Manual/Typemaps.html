@@ -2863,6 +2863,8 @@ At this time, only zero or one arguments may be converted.
 When <tt>numinputs</tt> is set to 0, the argument is effectively ignored and cannot be supplied from the target language. 
 The argument is still required when making the C/C++ call and the above typemap
 shows the value used is instead obtained from a locally declared variable called <tt>temp</tt>.
+The typemap's code comes in the wrapper in parameter order, after the code converting any earlier arguments, so it can
+use their values, such as the runtime size of a <a href="#Typemaps_variable_length_arrays">variable length array</a>.
 Usually <tt>numinputs</tt> is not specified, whereupon the default value is 1, that is, there is a one to one mapping of the number of arguments when used from the target language to the C/C++ call. 
 <a href="#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a> provide a similar concept where the number of arguments mapped from the target language to C/C++ can be changed for multiple adjacent C/C++ arguments.
 </p>
@@ -4283,9 +4285,7 @@ The code that the typemaps for the parameters supply comes in this order in the 
 </p>
 
 <ol>
-<li>The code of any <a href="#Typemaps_nn26">"in"</a> typemap with <tt>numinputs=0</tt>, before any argument is
-converted.</li>
-<li>The code of the other "in" typemaps, which convert the arguments in turn.</li>
+<li>The code of the <a href="#Typemaps_nn26">"in"</a> typemaps.</li>
 <li>The code of the <a href="#Typemaps_nn31">"check"</a> typemaps.</li>
 <li>The call to the wrapped function.</li>
 <li>The code of the <a href="#Typemaps_nn32">"argout"</a> typemaps.</li>
@@ -4293,10 +4293,9 @@ converted.</li>
 </ol>
 
 <p>
-So the size can only be used in the code of an "in" typemap without <tt>numinputs=0</tt> and in the code of the
-"check", "argout" and "freearg" typemaps.
-Any other use of it is an error, such as in a typemap's local variables or in an "in" typemap with
-<tt>numinputs=0</tt>:
+So the size can be used in the code of the "in", "check", "argout" and "freearg" typemaps.
+Any other use of it is an error, such as in a typemap's local variables, which are declared before any argument is
+converted:
 </p>
 
 <div class="code">
@@ -4306,18 +4305,14 @@ Any other use of it is an error, such as in a typemap's local variables or in an
 %typemap(in) const int[*] (int temp[$1_dim0]) {
   ...
 }
-%typemap(in, numinputs=0) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
 int total(int n, const int values[n]);
-void squares(int n, double numbers[n]);
 </pre>
 </div>
 
 <div class="shell">
 <pre>
-example.i:7: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'values'.
+example.i:6: Error: Typemap local variable 'temp' cannot use the runtime size of variable length array parameter 'values'.
 example.i:3: Error: the size is used in %typemap(in) int const [*].
-example.i:8: Error: An 'in' typemap with numinputs=0 cannot use the runtime size of variable length array parameter 'numbers'.
-example.i:6: Error: the size is used in %typemap(in) double numbers[*].
 </pre>
 </div>
 
@@ -4329,18 +4324,12 @@ typemap.
 <p>
 An output array is usually allocated in an "in" typemap with <tt>numinputs=0</tt>, so that it is not an argument in
 the target language.
-This is not possible for an output array sized by an earlier parameter, such as <tt>numbers</tt> above, as the code of
-such a typemap comes before the size has a value.
-This is a limitation of SWIG.
-Allocate the array in a "check" typemap instead, keeping the "in" typemap with <tt>numinputs=0</tt> just to set it to
-NULL, so that the "freearg" typemap can free it even if converting an argument fails.
-The following typemaps are written in the order that their code comes in the wrapper:
+This works for an output array sized by an earlier parameter too:
 </p>
 
 <div class="code">
 <pre>
-%typemap(in, numinputs=0) double numbers[*] "$1 = 0;"
-%typemap(check) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
+%typemap(in, numinputs=0) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
 %typemap(argout) double numbers[*] {
   ... add the $1_dim0 elements of $1 to $result ...
 }
@@ -4355,7 +4344,6 @@ The wrapper for <tt>squares</tt> then has this code, in outline:
 
 <div class="code">
 <pre>
-arg2 = 0;
 ... convert the first argument into arg1 ...
 arg2 = (double *)calloc((arg1), sizeof(double));
 squares(arg1, arg2);

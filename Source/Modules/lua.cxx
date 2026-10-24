@@ -586,7 +586,7 @@ public:
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
 
     /* Director upcall check - for director classes, we need to detect if we're
        being called from within a director method callback (upcall). This is used to decide
@@ -639,9 +639,7 @@ public:
 
     for (i = 0, p = l; i < num_arguments; i++) {
 
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, argument_parse);
 
       SwigType *pt = Getattr(p, "type");
       /* Look for an input typemap */
@@ -690,6 +688,7 @@ public:
         break;
       }
     }
+    p = emit_ignored_in_typemaps(p, argument_parse);
 
     // add all argcheck code
     Printv(f->code, argument_check, argument_parse, NIL);

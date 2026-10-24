@@ -560,7 +560,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   emit_parameter_variables(parms, f);
   emit_return_variable(n, rettype, f);
-  //  emit_attach_parmmaps(parms,f);
+  //  emit_attach_parm_typemaps(parms,f);
 
   /*  Using weird name and struct to avoid potential conflicts. */
   Wrapper_add_local(f, "r_swig_cb_data", "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
@@ -1784,7 +1784,7 @@ int R::functionWrapper(Node *n) {
   Swig_typemap_attach_parms("rtypecheck", l, f);
 
   emit_parameter_variables(l, f);
-  emit_attach_parmmaps(l, f);
+  emit_attach_parm_typemaps(l, f);
   Setattr(n, "wrap:parms", l);
 
   nargs = emit_num_arguments(l);
@@ -1802,9 +1802,7 @@ int R::functionWrapper(Node *n) {
   Parm *curP;
   for (p = l, i = 0; i < nargs; i++) {
 
-    while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-      p = Getattr(p, "tmap:in:next");
-    }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     SwigType *tt = Getattr(p, "type");
     int nargs = -1;
@@ -1953,6 +1951,7 @@ int R::functionWrapper(Node *n) {
     if (funcptr_name)
       Delete(funcptr_name);
   } /* end of looping over parameters. */
+  p = emit_ignored_in_typemaps(p, f->code);
 
   /* Insert constraint checking code */
   for (p = l; p;) {

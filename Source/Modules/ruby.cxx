@@ -1470,13 +1470,6 @@ public:
     return p;
   }
 
-  Parm *skipIgnoredArgs(Parm *p) {
-    while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-      p = Getattr(p, "tmap:in:next");
-    }
-    return p;
-  }
-
   /* ---------------------------------------------------------------------
    * marshalInputArgs()
    *
@@ -1509,7 +1502,7 @@ public:
     Printf(kwargs, "{ ");
     for (i = 0, p = l; i < numarg; i++) {
 
-      p = skipIgnoredArgs(p);
+      p = emit_ignored_in_typemaps(p, f->code);
 
       String *pn = Getattr(p, "name");
 
@@ -1540,6 +1533,7 @@ public:
         Printf(f->code, "}\n");
       }
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     /* Finish argument marshalling */
     Printf(kwargs, " NULL }");
@@ -1730,7 +1724,7 @@ public:
 
     /* Attach standard typemaps */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      emit_attach_parmmaps(l, f);
+      emit_attach_parm_typemaps(l, f);
     }
     Setattr(n, "wrap:parms", l);
 

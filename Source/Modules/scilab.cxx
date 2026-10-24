@@ -369,7 +369,7 @@ public:
 
     /* Attach typemaps to the parameter list */
     // Add local variables used in typemaps (iRows, iCols, ...)
-    emit_attach_parmmaps(functionParamsList, wrapper);
+    emit_attach_parm_typemaps(functionParamsList, wrapper);
     Setattr(node, "wrap:parms", functionParamsList);
 
     /* Check input/output arguments count */
@@ -392,10 +392,7 @@ public:
     /* Write typemaps(in) */
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
-      // Ignore parameter if the typemap specifies numinputs=0
-      while (checkAttribute(param, "tmap:in:numinputs", "0")) {
-        param = Getattr(param, "tmap:in:next");
-      }
+      param = emit_ignored_in_typemaps(param, wrapper->code);
 
       SwigType *paramType = Getattr(param, "type");
       String *paramTypemap = Getattr(param, "tmap:in");
@@ -424,6 +421,7 @@ public:
         break;
       }
     }
+    param = emit_ignored_in_typemaps(param, wrapper->code);
 
     /* Insert constraint checking code */
     for (param = functionParamsList; param;) {

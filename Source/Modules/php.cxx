@@ -1422,7 +1422,7 @@ public:
     emit_parameter_variables(l, f);
     /* Attach standard typemaps */
 
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
 
     if (wrapperType == memberfn || wrapperType == membervar) {
       // Assign "this" to arg1 and remove first entry from ParmList l.
@@ -1490,10 +1490,7 @@ public:
     // This may mean looking at Language::memberfunctionHandler
 
     for (i = 0, p = l; i < num_arguments; i++) {
-      /* Skip ignored arguments */
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, f->code);
 
       /* Check if optional */
       if (i >= num_required) {
@@ -1531,6 +1528,7 @@ public:
 
       Delete(source);
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     if (is_member_director(n)) {
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");

@@ -76,5 +76,10 @@ public class c99_vla_typemaps_runme {
     check("typedef_rows", 0, 5);
     check("typedef_rows", 1, 3);
     check("typedef_rows", 2, 15);
+
+    // Ignored arguments at the start, in the middle and at the end
+    int ignored = c99_vla_typemaps.ignored_arguments(3, 10);
+    if (ignored != 133)
+      throw new RuntimeException("ignored_arguments: " + ignored);
   }
 }

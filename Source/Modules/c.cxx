@@ -2372,9 +2372,8 @@ public:
 
     // attach the standard typemaps
     if (wrapper) {
-      emit_attach_parmmaps(parms, wrapper);
+      emit_attach_parm_typemaps(parms, wrapper);
     } else {
-      // We can't call emit_attach_parmmaps() without a wrapper, it would just crash.
       // Attach "in" manually, we need it for tmap:in:numinputs below.
       Swig_typemap_attach_parms("in", parms, 0);
     }
@@ -2388,8 +2387,12 @@ public:
       String *tm;
       SwigType *type = NULL;
 
-      while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
+      if (wrapper) {
+        p = emit_ignored_in_typemaps(p, wrapper->code);
+      } else {
+        while (p && checkAttribute(p, "tmap:in:numinputs", "0")) {
+          p = Getattr(p, "tmap:in:next");
+        }
       }
       if (!p)
         break;

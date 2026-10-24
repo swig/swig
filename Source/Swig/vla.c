@@ -449,7 +449,7 @@ static void report_vla_size_use(Parm *p, Hash *tm, const String *what, const Str
  *   int n, char s[n]
  * It only has a value once the arguments are converted, so only these typemaps written with '[*]' can use it, as
  * $1_dim0 or $1_size for 'index' 1:
- *   %typemap(in) with numinputs other than 0
+ *   %typemap(in), whose code comes after the code converting the earlier arguments even with numinputs=0
  *   %typemap(check)
  *   %typemap(argout)
  *   %typemap(freearg)
@@ -468,26 +468,11 @@ void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, Swi
     return;
 
   if (substituted) {
-    if (Equal(tmap_method, "in")) {
-      /* The last numinputs given is the one the wrapper uses, as typemap_attach_kwargs() attaches each in turn */
-      String *numinputs = 0;
-      for (kw = Getattr(tm, "kwargs"); kw; kw = nextSibling(kw)) {
-        if (Equal(Getattr(kw, "name"), "numinputs"))
-          numinputs = Getattr(kw, "value");
-      }
-      allowed = !Equal(numinputs, "0");
-    } else {
-      allowed = Equal(tmap_method, "check") || Equal(tmap_method, "argout") || Equal(tmap_method, "freearg");
-    }
+    allowed = Equal(tmap_method, "in") || Equal(tmap_method, "check") || Equal(tmap_method, "argout") || Equal(tmap_method, "freearg");
   }
 
   if (!allowed && code && uses_vla_size(code, matchtype, index)) {
-    String *what;
-    if (substituted && Equal(tmap_method, "in")) {
-      what = NewString("An 'in' typemap with numinputs=0");
-    } else {
-      what = NewStringf("The '%s' typemap", tmap_method);
-    }
+    String *what = NewStringf("The '%s' typemap", tmap_method);
     report_vla_size_use(p, tm, what, 0);
     Delete(what);
   }

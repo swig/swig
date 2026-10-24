@@ -9,10 +9,16 @@
    */
   goto redefinition_error_means_in_typemap_substituted_more_than_once;
   redefinition_error_means_in_typemap_substituted_more_than_once:
+  undefined_error_means_in_typemap_a_not_substituted:
   $1 = const_cast<char *>("hello");
 %}
-%typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0; called_freearg = 0;"
-%typemap(in,numinputs=0) double ccc "$1 = 8.8;"
+%typemap(in,numinputs=0) int bb "undefined_error_means_in_typemap_bb_not_substituted: $1 = 101; called_argout = 0; called_freearg = 0;"
+%typemap(in,numinputs=0) double ccc "undefined_error_means_in_typemap_ccc_not_substituted: $1 = 8.8;"
+
+// Catch if a target language does not substitute the typemaps above, at the start, in the middle or at the end of the parameters
+%typemap(check) char* a "if (0) goto undefined_error_means_in_typemap_a_not_substituted;"
+%typemap(check) int bb "if (0) goto undefined_error_means_in_typemap_bb_not_substituted;"
+%typemap(check) double ccc "if (0) goto undefined_error_means_in_typemap_ccc_not_substituted;"
 
 %typemap(freearg) char* a "" // ensure freearg is not generated (needed for Java at least)
 

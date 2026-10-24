@@ -647,7 +647,7 @@ public:
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
     Setattr(n, "wrap:parms", l);
 
     /* Get number of required and total arguments */
@@ -671,9 +671,7 @@ public:
 
     for (i = 0, p = l; i < numargs; i++) {
 
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, f->code);
 
       SwigType *pt = Getattr(p, "type");
       int opt_p = (i >= numreq);
@@ -748,6 +746,7 @@ public:
       if (opt_p)
         Printf(f->code, "    }\n");
     }
+    p = emit_ignored_in_typemaps(p, f->code);
     if (Len(doc_body) > 0)
       Printf(doc_body, ".\n");
 

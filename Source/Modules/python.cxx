@@ -3670,7 +3670,7 @@ public:
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
     Setattr(n, "wrap:parms", l);
     /* Get number of required and total arguments */
     tuple_arguments = num_arguments = emit_num_arguments(l);
@@ -3764,9 +3764,7 @@ public:
     int use_parse = 0;
     Append(kwargs, "{");
     for (i = 0, p = l; i < num_arguments; i++) {
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, get_pointers);
 
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
@@ -3855,6 +3853,7 @@ public:
         break;
       }
     }
+    p = emit_ignored_in_typemaps(p, get_pointers);
 
     /* finish argument marshalling */
     Append(kwargs, " NULL }");

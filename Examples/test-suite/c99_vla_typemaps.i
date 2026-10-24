@@ -194,3 +194,35 @@ void typedef_rows(int n, Row m[n]);
 void typedef_longs(int n, vla_long_t *a) { (void)n; (void)a; }
 void typedef_rows(int n, Row *m) { (void)n; (void)m; }
 %}
+
+// An 'in' typemap with numinputs=0 at the start, in the middle and at the end comes after the earlier arguments are converted
+
+%typemap(in, numinputs=0) int start "$1 = 100;"
+%typemap(in, numinputs=0) int middle[*], int end[*] {
+  int i;
+  $1 = (int *)malloc((size_t)$1_dim0 * sizeof(int));
+  for (i = 0; i < $1_dim0; i++) {
+    $1[i] = 1;
+  }
+}
+%typemap(freearg) int middle[*], int end[*] "free($1);"
+
+%inline %{
+#if defined(SWIG) || defined(TEST_C99_VLA)
+int ignored_arguments(int start, int n, int middle[n], int scale, int end[n]);
+#endif
+%}
+
+%{
+#include <stdlib.h>
+
+static int sum(int n, const int *a) {
+  int total = 0;
+  int i;
+  for (i = 0; i < n; i++) {
+    total += a[i];
+  }
+  return total;
+}
+int ignored_arguments(int start, int n, int *middle, int scale, int *end) { return start + scale * sum(n, middle) + sum(n, end); }
+%}

@@ -937,7 +937,7 @@ public:
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
 
     // Parameter overloading
     Setattr(n, "wrap:parms", l);
@@ -960,9 +960,7 @@ public:
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p = l; i < num_arguments; i++) {
 
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, nondir_args);
 
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
@@ -1024,6 +1022,7 @@ public:
       Delete(c_param_type);
       Delete(arg);
     }
+    p = emit_ignored_in_typemaps(p, nondir_args);
 
     Printv(f->code, nondir_args, NIL);
     Delete(nondir_args);

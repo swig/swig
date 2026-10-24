@@ -1466,7 +1466,7 @@ private:
     }
 
     emit_parameter_variables(parms, f);
-    emit_attach_parmmaps(parms, f);
+    emit_attach_parm_typemaps(parms, f);
     int parm_count = emit_num_arguments(parms);
     int required_count = emit_num_required(parms);
 
@@ -1532,7 +1532,7 @@ private:
 
     p = parms;
     for (int i = 0; i < parm_count; ++i) {
-      p = getParm(p);
+      p = emit_ignored_in_typemaps(p, f->code);
       String *tm = Getattr(p, "tmap:in");
       if (!tm) {
         Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "unable to use type %s as a function argument\n", SwigType_str(Getattr(p, "type"), 0));
@@ -1552,6 +1552,7 @@ private:
       }
       p = nextParm(p);
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     Printv(f->code, "\n", NULL);
 
@@ -1592,7 +1593,7 @@ private:
 
   Wrapper *initGoTypemaps(ParmList *parms) {
     Wrapper *dummy = NewWrapper();
-    emit_attach_parmmaps(parms, dummy);
+    emit_attach_parm_typemaps(parms, dummy);
 
     Parm *p = parms;
     int parm_count = emit_num_arguments(parms);
@@ -2844,7 +2845,7 @@ private:
     bool is_static = isStatic(n);
 
     Wrapper *dummy = NewWrapper();
-    emit_attach_parmmaps(parms, dummy);
+    emit_attach_parm_typemaps(parms, dummy);
     DelWrapper(dummy);
 
     Swig_typemap_attach_parms("gotype", parms, NULL);
@@ -3308,7 +3309,7 @@ private:
     Setattr(n, "wrap:parms", parms);
 
     Wrapper *dummy = NewWrapper();
-    emit_attach_parmmaps(parms, dummy);
+    emit_attach_parm_typemaps(parms, dummy);
 
     Swig_typemap_attach_parms("gotype", parms, NULL);
     Swig_typemap_attach_parms("imtype", parms, NULL);
@@ -4802,7 +4803,7 @@ private:
     ParmList *parms = Getattr(n, "parms");
     if (parms) {
       Wrapper *dummy = NewWrapper();
-      emit_attach_parmmaps(parms, dummy);
+      emit_attach_parm_typemaps(parms, dummy);
       int parm_count = emit_num_arguments(parms);
       Parm *p = parms;
 

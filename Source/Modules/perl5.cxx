@@ -704,7 +704,7 @@ public:
            NIL);
 
     emit_parameter_variables(l, f);
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
     Setattr(n, "wrap:parms", l);
 
     num_arguments = emit_num_arguments(l);
@@ -725,11 +725,7 @@ public:
     /* Write code to extract parameters. */
     for (i = 0, p = l; i < num_arguments; i++) {
 
-      /* Skip ignored arguments */
-
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, f->code);
 
       SwigType *pt = Getattr(p, "type");
 
@@ -759,6 +755,7 @@ public:
         Printf(f->code, "    }\n");
       }
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     if (varargs) {
       if (p && (tm = Getattr(p, "tmap:in"))) {
