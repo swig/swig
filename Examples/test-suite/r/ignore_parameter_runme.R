@@ -13,6 +13,7 @@ unittest(ferrari()[[1]], 101)
 unittest(called_argout_get(), 1)
 unittest(called_freearg_get(), 1)
 unittest(fiat(17), 17)
+unittest(peugeot(), 5)
 
 car <- SportsCars()
 unittest(car$daimler(200, 0), "hello")

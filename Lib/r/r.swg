@@ -94,7 +94,7 @@ SWIG_InitializeModule(0);
 }
 }
 
-%typemap(freearg,noblock=1) int *, 
+%typemap(freearg,noblock=1,match="in") int *,
 	     signed int *,
 	     unsigned int *,
              short *,
@@ -207,7 +207,7 @@ std::ptrdiff_t *INOUT
   }
   $1 = temp;
 }
-%typemap(freearg,noblock=1) TYPE [*] {
+%typemap(freearg,noblock=1,match="in") TYPE [*] {
   %delete_array(temp$argnum);
 }
 %typemap(out,noblock=1) TYPE [ANY] (int i) {
@@ -246,7 +246,7 @@ std::ptrdiff_t *INOUT
   $1 = Rf_isNull($input) ? 0 : %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
-%typemap(freearg,noblock=1) char * {
+%typemap(freearg,noblock=1,match="in") char * {
    free($1);
 }
 
@@ -271,7 +271,7 @@ std::ptrdiff_t *INOUT
 }
 
 /* Frees the strings from the in typemap, which the wrapped function may have replaced in the array */
-%typemap(freearg,noblock=1) char *[ANY] {
+%typemap(freearg,noblock=1,match="in") char *[ANY] {
   if ($1) {
     int i;
     for (i = 0; i < (int)($1_dim0); i++) {
@@ -307,7 +307,7 @@ std::ptrdiff_t *INOUT
   }
 }
 
-%typemap(freearg,noblock=1) char *[*] {
+%typemap(freearg,noblock=1,match="in") char *[*] {
   if (copies$argnum) {
     int i;
     for (i = 0; i < len$argnum; i++) {
@@ -347,7 +347,7 @@ std::ptrdiff_t *INOUT
     }
 }
 
-%typemap(freearg,noblock=1) char[] {
+%typemap(freearg,noblock=1,match="in") char[] {
     free($1);
 }
 

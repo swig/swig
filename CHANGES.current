@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-24: wsfulton
+            [R] Fix a crash for a parameter with an 'in' typemap of your own, such as this one, as the
+            freearg typemap for its type freed memory that the 'in' typemap had not allocated:
+
+              %typemap(in, numinputs=0) int *count (int temp) "$1 = &temp;"
+              %typemap(argout) int *count "..."
+              void get_count(int *count);
+
+            For a string or number array parameter, such as 'char *names[3]' or 'int values[n]', the
+            wrapper did not compile instead. The freearg typemaps for 'int *', 'double *' and the other
+            number pointers, 'char *', 'char []' and these arrays are now only used with the 'in'
+            typemap for the same type, as they free what it allocated. If an 'in' typemap of your own
+            allocates memory that one of these typemaps freed, add a freearg typemap to free it.
+
+2026-10-24: wsfulton
             The code of an 'in' typemap with numinputs=0 now comes in the wrapper in parameter order,
             after the code converting the earlier arguments. It came before any argument was
             converted, so it could not use their values, such as the runtime size of a variable

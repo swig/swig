@@ -11,6 +11,7 @@ check(ferrari(), 101)
 check(cvar.called_argout, 1)
 check(cvar.called_freearg, 1)
 check(fiat(17), 17)
+check(peugeot(), 5)
 
 car = SportsCars()
 check(car.daimler(200, 0), "hello")

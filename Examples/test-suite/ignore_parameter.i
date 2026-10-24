@@ -25,6 +25,9 @@
 %typemap(argout) int bb "called_argout = 1;"
 %typemap(freearg) int bb "called_freearg = 1;"
 
+// A library freearg typemap for the type, such as one freeing an 'int *' converted by a library 'in' typemap, must not be used
+%typemap(in,numinputs=0) int *dd (int temp) "temp = 5; $1 = &temp;"
+
 %ignore unignorable;
 // Don't let SWIG expand this function with its default parameter: instead,
 // always "require" the version of the function with a single argument, but
@@ -42,6 +45,7 @@ int lotus(char* aa, int bb, double cc) { return bb; }
 double tvr(char* aaa, int bbb, double ccc) { return ccc; }
 int ferrari(int bb) { return bb; }
 int fiat(int unignorable) { return unignorable; }
+int peugeot(int *dd) { return *dd; }
 
 // member function tests
 struct SportsCars {

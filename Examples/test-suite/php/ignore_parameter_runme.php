@@ -3,7 +3,7 @@
 require "tests.php";
 
 // New functions
-check::functions(array('jaguar','lotus','tvr','ferrari','fiat'));
+check::functions(array('jaguar','lotus','tvr','ferrari','fiat','peugeot'));
 // New classes
 check::classes(array('ignore_parameter','SportsCars','MiniCooper','MorrisMinor','FordAnglia','AustinAllegro'));
 // No new vars
@@ -16,6 +16,7 @@ check::equal(ferrari(),101,'ferrari(2)==101');
 check::equal(called_argout_get(),1,'called_argout_get()==1');
 check::equal(called_freearg_get(),1,'called_freearg_get()==1');
 check::equal(fiat(17),17,'fiat(17)==17');
+check::equal(peugeot(),5,'peugeot()==5');
 
 $sc=new sportscars();
 check::classname("sportscars",$sc);

@@ -12,6 +12,7 @@ int main(int argc, const char *argv[]) {
   assert(ignore_parameter_called_argout_get() == 1);
   assert(ignore_parameter_called_freearg_get() == 1);
   assert(ignore_parameter_fiat(17) == 17);
+  assert(ignore_parameter_peugeot() == 5);
 
   car = ignore_parameter_SportsCars_new();
   assert(strcmp(ignore_parameter_SportsCars_daimler(car, 200, 0), "hello") == 0);
