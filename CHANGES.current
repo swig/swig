@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-24: wsfulton
+            [Javascript] Fix the napi engine leaving out some check typemaps for a function with a
+            multi-argument 'in' typemap, such as the check typemap for 'b' here:
+
+              %typemap(in) (const char *s, int len) "..."
+              %typemap(check) int len "..."
+              %typemap(check) int b "..."
+              void f(const char *s, int len, int b);
+
+2026-10-24: wsfulton
             [R] Fix a crash for a parameter with an 'in' typemap of your own, such as this one, as the
             freearg typemap for its type freed memory that the 'in' typemap had not allocated:
 

@@ -14,9 +14,15 @@
   $1 = &temp;
 }
 
+// Catch if a target language does not emit the check typemap of a parameter in or after a multi-argument 'in' typemap
+%typemap(check) int LEN "undefined_error_means_check_typemap_LEN_not_emitted:;"
+%typemap(check) int *OUTPUT "undefined_error_means_check_typemap_OUTPUT_not_emitted:;"
+
 %typemap(argout) (int *OUTPUT)
 {
   ++temp$argnum;
+  if (0) goto undefined_error_means_check_typemap_LEN_not_emitted;
+  if (0) goto undefined_error_means_check_typemap_OUTPUT_not_emitted;
 }
 
 %typemap(argout, numinputs=1) (char *STR, int LEN)

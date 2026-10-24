@@ -2909,7 +2909,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
-      p = Getattr(p, "tmap:in:next");
+      p = Getattr(p, "tmap:check:next");
     } else {
       p = nextSibling(p);
     }
