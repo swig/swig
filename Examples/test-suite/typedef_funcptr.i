@@ -31,6 +31,22 @@ typedef Integer (*FnPtr_Integer_td)(Integer, Integer);
 Integer do_op_typedef_Integer(Integer x, Integer y, FnPtr_Integer_td op) {
     return (*op)(x,y);
 }
+
+FnPtr_int_td get_op_typedef_int(int subtract) {
+    return subtract ? subf : addf;
+}
+int (*get_op(int subtract))(int, int) {
+    return subtract ? subf : addf;
+}
+
+struct OpHolder {
+    static FnPtr_int_td static_fn;
+    FnPtr_int_td member_fn;
+    OpHolder() : member_fn(addf) {}
+    FnPtr_int_td get_member_op() const { return member_fn; }
+    int (*get_static_op())(int, int) { return static_fn; }
+};
+FnPtr_int_td OpHolder::static_fn = subf;
 %}
 
 %constant int     addf(int x, int y);

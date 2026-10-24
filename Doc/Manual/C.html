@@ -1087,6 +1087,11 @@ Other ones are due to things that could be supported but haven't been implemente
 <ul>
   <li>Only single, not multiple, inheritance is currently supported.</li>
   <li>Only enums using <tt>int</tt> (or smaller type) as underlying type are supported.</li>
+  <li>A function pointer is not supported if a class or an enum is used in its parameters or return type, and
+  warning 761 is given instead. The C++ wrappers use their own classes and enums, which are different types from
+  those in the wrapped C++ code. So a function written for the C++ wrappers, such as one taking a pointer to the
+  C++ wrapper class <tt>Foo</tt>, cannot be passed to the wrapped C++ code, which would call it with a pointer to
+  its own <tt>Foo</tt> class.</li>
 </ul>
 
 <H3><a name="C_additional_possibilities">40.8.1 Additional customization possibilities</a></H3>

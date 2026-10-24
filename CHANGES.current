@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            [C] #3180 Fix the C++ wrappers leaving out a function, a method or a member variable with a
+            function pointer parameter or return type, such as:
+
+              class MyClass {
+              public:
+                void setCreateCallback(void *(*c_callback)(const char *json));
+              };
+
+            These gave warning 761 and were only available as C functions. The C++ wrappers now take
+            or return the same function pointer as the C function, so a C or C++ function can be
+            passed to setCreateCallback in the C++ MyClass class. A function pointer that uses a class
+            or an enum in its parameters or return type still gives warning 761.
+
+2026-10-30: wsfulton
             [C] Fix the C++ wrappers in the .h file not using the names of the parameters, except
             the first one, such as 'y' here:
 

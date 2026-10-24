@@ -252,9 +252,38 @@ Node *find_first_named_import(Node *parent) {
 }
 
 /*
+  Information about a type used in the C++ wrappers, common to the function return type and its parameters.
+ */
+class cxx_type_desc {
+public:
+  // The type is "void" until this function is called. It is either the C++ type given by a typemap, which SwigType_str() outputs as it is, or the SwigType of
+  // a function pointer, which SwigType_str() outputs with the declarator inside it, as in 'int (*f)(int,int)' or 'int (*f(int))(int,int)'.
+  void set_type(SwigType *type) {
+    type_ = Copy(type);
+  }
+
+  // Return the type set by set_type(), or "void" if it was not called.
+  SwigType *type() const {
+    return type_ ? type_ : get_void_type();
+  }
+
+protected:
+  cxx_type_desc() {
+  }
+
+  scoped_dohptr type_;
+
+private:
+  static String *get_void_type() {
+    static String *const void_type = NewString("void");
+    return void_type;
+  }
+};
+
+/*
   Information about the function return type.
  */
-class cxx_rtype_desc {
+class cxx_rtype_desc : public cxx_type_desc {
 public:
   // Default ctor creates a "void" return type.
   cxx_rtype_desc() {
@@ -265,12 +294,7 @@ public:
     return !type_;
   }
 
-  // This function must be called before calling get_return_code().
-  void set_type(String *type) {
-    type_ = Copy(type);
-  }
-
-  // This function must also be called before calling get_return_code().
+  // This function must be called before calling get_return_code(), as must set_type().
   //
   // NB: It takes ownership of the string, the intended use is to pass it NewStringf(...).
   void set_return_value(String *new_string) {
@@ -287,11 +311,6 @@ public:
   // NB: It takes ownership of the string, which is typically returned from Swig_typemap_lookup().
   void apply_out_typemap(String *new_out_tm_string) {
     out_tm_ = new_out_tm_string;
-  }
-
-  // Return the function return type: can always be called, even for void functions (for which it just returns "void").
-  String *type() const {
-    return type_ ? type_ : get_void_type();
   }
 
   // Return the string containing the code for returning the value, previously set by set_return_value().
@@ -352,12 +371,6 @@ public:
   }
 
 private:
-  static String *get_void_type() {
-    static String *const void_type = NewString("void");
-    return void_type;
-  }
-
-  scoped_dohptr type_;
   scoped_dohptr value_;
   scoped_dohptr out_tm_;
 };
@@ -367,20 +380,10 @@ private:
 
   This is similar to cxx_rtype_desc, but is used for the parameters and not the return type.
  */
-class cxx_ptype_desc {
+class cxx_ptype_desc : public cxx_type_desc {
 public:
-  // Ctor initializes the object to an empty/unknown state, call set_type() later to finish initialization.
+  // Ctor initializes the object to an empty/unknown state, call set_type() later to finish initialization, before calling get_param_code().
   cxx_ptype_desc() {
-  }
-
-  // This function must be called (with a non-null string) before calling get_param_code().
-  void set_type(String *type) {
-    type_ = Copy(type);
-  }
-
-  // If this one returns NULL, it means that we don't have any type information at all.
-  String *type() const {
-    return type_;
   }
 
   // This may be called before calling get_param_code() if a translation from C++ to C type is necessary. By default the parameter is passed "as is".
@@ -403,7 +406,6 @@ public:
   }
 
 private:
-  scoped_dohptr type_;
   scoped_dohptr in_tm_;
 };
 
@@ -578,6 +580,34 @@ struct cxx_wrappers {
   String *sect_impls;
 
 private:
+  // Warn that the C++ wrappers do not support the type of a parameter, if ptype_desc is given, or a return type.
+  static void warn_unsupported_type(String *type, cxx_ptype_desc *ptype_desc) {
+    Swig_warning(WARN_C_UNSUPPORTTED,
+                 input_file,
+                 line_number,
+                 "Unsupported C++ wrapper function %s type \"%s\"\n",
+                 ptype_desc ? "parameter" : "return",
+                 SwigType_str(type, 0));
+  }
+
+  // Return true if the base type of the type, or of a parameter of a function type in it, is a class or an enum.
+  static bool uses_class_or_enum(SwigType *type) {
+    scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
+    scoped_dohptr elements = adopt(SwigType_split(resolved_type));
+    for (Iterator i = First(elements); i.item; i = Next(i)) {
+      if (SwigType_isfunction(i.item)) {
+        scoped_dohptr parms = adopt(SwigType_parmlist(i.item));
+        for (Iterator j = First(parms); j.item; j = Next(j)) {
+          if (uses_class_or_enum(j.item))
+            return true;
+        }
+      }
+    }
+
+    scoped_dohptr base_type = adopt(SwigType_base(resolved_type));
+    return SwigType_isenum(base_type) || Language::instance()->classLookup(base_type);
+  }
+
   // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
   //
   // Note that the node here is the function itself, but type may be either its return type or the type of one of its parameters, so it's passed as a different
@@ -627,6 +657,26 @@ private:
     // matching instead of doing it in the code here.
     scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
     scoped_dohptr base_resolved_type(SwigType_base(resolved_type));
+
+    // A function pointer is passed to and returned from the C function as it is, so it has the type that the C function
+    // is declared with. A class or an enum in this type is not supported, as its name would refer to the C++ wrapper class
+    // or enum in the namespace of the C++ wrappers.
+    if (typeKind == Type_Ptr) {
+      scoped_dohptr stripped_type = adopt(SwigType_strip_qualifiers(resolved_type));
+      if (SwigType_isfunctionpointer(stripped_type)) {
+        if (uses_class_or_enum(stripped_type)) {
+          warn_unsupported_type(type, ptype_desc);
+          return false;
+        }
+
+        if (rtype_desc)
+          rtype_desc->set_type(stripped_type);
+        if (ptype_desc)
+          ptype_desc->set_type(stripped_type);
+
+        return true;
+      }
+    }
 
     scoped_dohptr typestr;
     if (SwigType_isenum(base_resolved_type)) {
@@ -744,12 +794,7 @@ private:
       }
 
       if (!classname) {
-        Swig_warning(WARN_C_UNSUPPORTTED,
-                     input_file,
-                     line_number,
-                     "Unsupported C++ wrapper function %s type \"%s\"\n",
-                     ptype_desc ? "parameter" : "return",
-                     SwigType_str(type, 0));
+        warn_unsupported_type(type, ptype_desc);
         return false;
       }
 
@@ -855,7 +900,6 @@ public:
     if (!cxx_wrappers_.lookup_cxx_ret_type(rtype_desc, n))
       return;
 
-    parms_cxx = NewStringEmpty();
     parms_call = NewStringEmpty();
 
     if (p) {
@@ -895,9 +939,13 @@ public:
         if (!cxx_wrappers_.lookup_cxx_parm_type(ptype_desc, n, p))
           return;
 
-        if (Len(parms_cxx))
-          Append(parms_cxx, ", ");
-        Printv(parms_cxx, ptype_desc.type(), " ", name, NIL);
+        Parm *const parm_cxx = NewParm(ptype_desc.type(), name, p);
+        if (parms_cxx) {
+          ParmList_join(parms_cxx, parm_cxx);
+          Delete(parm_cxx);
+        } else {
+          parms_cxx = parm_cxx;
+        }
 
         if (Len(parms_call))
           Append(parms_call, ", ");
@@ -951,14 +999,26 @@ public:
     if (!name)
       name = Getattr(func_node, "sym:name");
 
-    Printv(cxx_wrappers_.sect_impls, "inline ", rtype_desc.type(), " ", name, "(", parms_cxx.get(), ") ", NIL);
+    Printv(cxx_wrappers_.sect_impls, "inline ", get_decl(name, parms_cxx).get(), " ", NIL);
 
     emit_body(parms_call);
+  }
+
+  // Return the declaration of the wrapper with the given name, which may be qualified by the class name, and parameters, which are parms_cxx or none, as a
+  // const member function if is_const is true. A constructor has no return type.
+  scoped_dohptr get_decl(String *name, ParmList *parms, bool is_const = false) const {
+    scoped_dohptr decl = adopt(SwigType_add_function(NewStringEmpty(), parms));
+    if (is_const)
+      SwigType_add_qualifier(decl, "const");
+
+    SwigType *const return_type = Checkattr(func_node, "nodeType", "constructor") ? NULL : rtype_desc.type();
+    return scoped_dohptr(Swig_method_decl(return_type, decl, name, parms, 0));
   }
 
   cxx_wrappers &cxx_wrappers_;
   Node *func_node;
   cxx_rtype_desc rtype_desc;
+  // The parameters of the wrapper, with the C++ types given by the typemaps.
   scoped_dohptr parms_cxx;
   scoped_dohptr parms_call;
   const char *except_check_start;
@@ -1114,7 +1174,7 @@ public:
 
     // Define aliases for the stuff actually stored in the function wrapper object.
     cxx_rtype_desc &rtype_desc = func_wrapper.rtype_desc;
-    String *const parms_cxx = func_wrapper.parms_cxx;
+    ParmList *const parms_cxx = func_wrapper.parms_cxx;
     String *const parms_call = func_wrapper.parms_call;
 
     // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
@@ -1124,34 +1184,30 @@ public:
 
     String *const classname = Getattr(class_node_, "sym:name");
 
+    // The name of the member in its definition outside the class.
+    scoped_dohptr impl_name = adopt(NewStringf("%s::%s", classname, is_ctor ? classname : name));
+
     if (Checkattr(n, "kind", "variable")) {
+      // A getter has no parameters, as it gets the member variable of swig_self() or the static member variable.
       if (Checkattr(n, "memberget", "1")) {
-        Printv(cxx_wrappers_.sect_decls, cindent, rtype_desc.type(), " ", name, "() const;\n", NIL);
+        Printv(cxx_wrappers_.sect_decls, cindent, func_wrapper.get_decl(name, NULL, true).get(), ";\n", NIL);
 
         rtype_desc.set_return_value(NewStringf("%s(swig_self())", Getattr(n, "sym:name")));
         Printv(cxx_wrappers_.sect_impls,
                "inline ",
-               rtype_desc.type(),
-               " ",
-               classname,
-               "::",
-               name,
-               "() const "
+               func_wrapper.get_decl(impl_name, NULL, true).get(),
+               " "
                "{",
                rtype_desc.get_return_code().get(),
                "}\n",
                NIL);
       } else if (Checkattr(n, "memberset", "1")) {
-        Printv(cxx_wrappers_.sect_decls, cindent, "void ", name, "(", parms_cxx, ");\n", NIL);
+        Printv(cxx_wrappers_.sect_decls, cindent, func_wrapper.get_decl(name, parms_cxx).get(), ";\n", NIL);
 
         Printv(cxx_wrappers_.sect_impls,
-               "inline void ",
-               classname,
-               "::",
-               name,
-               "(",
-               parms_cxx,
-               ") "
+               "inline ",
+               func_wrapper.get_decl(impl_name, parms_cxx).get(),
+               " "
                "{ ",
                Getattr(n, "sym:name"),
                "(swig_self(), ",
@@ -1159,32 +1215,24 @@ public:
                "); }\n",
                NIL);
       } else if (Checkattr(n, "varget", "1")) {
-        Printv(cxx_wrappers_.sect_decls, cindent, "static ", rtype_desc.type(), " ", name, "();\n", NIL);
+        Printv(cxx_wrappers_.sect_decls, cindent, "static ", func_wrapper.get_decl(name, NULL).get(), ";\n", NIL);
 
         rtype_desc.set_return_value(NewStringf("%s()", Getattr(n, "sym:name")));
         Printv(cxx_wrappers_.sect_impls,
                "inline ",
-               rtype_desc.type(),
-               " ",
-               classname,
-               "::",
-               name,
-               "() "
+               func_wrapper.get_decl(impl_name, NULL).get(),
+               " "
                "{",
                rtype_desc.get_return_code().get(),
                "}\n",
                NIL);
       } else if (Checkattr(n, "varset", "1")) {
-        Printv(cxx_wrappers_.sect_decls, cindent, "static void ", name, "(", parms_cxx, ");\n", NIL);
+        Printv(cxx_wrappers_.sect_decls, cindent, "static ", func_wrapper.get_decl(name, parms_cxx).get(), ";\n", NIL);
 
         Printv(cxx_wrappers_.sect_impls,
-               "inline void ",
-               classname,
-               "::",
-               name,
-               "(",
-               parms_cxx,
-               ") "
+               "inline ",
+               func_wrapper.get_decl(impl_name, parms_cxx).get(),
+               " "
                "{ ",
                Getattr(n, "sym:name"),
                "(",
@@ -1196,16 +1244,12 @@ public:
       }
     } else if (is_ctor) {
       // Delegate to the ctor from opaque C pointer taking ownership of the object.
-      Printv(cxx_wrappers_.sect_decls, cindent, classname, "(", parms_cxx, ");\n", NIL);
+      Printv(cxx_wrappers_.sect_decls, cindent, func_wrapper.get_decl(classname, parms_cxx).get(), ";\n", NIL);
 
       Printv(cxx_wrappers_.sect_impls,
              "inline ",
-             classname,
-             "::",
-             classname,
-             "(",
-             parms_cxx,
-             ") : ",
+             func_wrapper.get_decl(impl_name, parms_cxx).get(),
+             " : ",
              classname,
              "{",
              func_wrapper.except_check_start,
@@ -1284,17 +1328,11 @@ public:
       Printv(cxx_wrappers_.sect_decls,
              cindent,
              is_static ? "static " : get_virtual_prefix(n),
-             rtype_desc.type(),
-             " ",
-             name,
-             "(",
-             parms_cxx,
-             ")",
-             get_const_suffix(n),
+             func_wrapper.get_decl(name, parms_cxx, is_const(n)).get(),
              ";\n",
              NIL);
 
-      Printv(cxx_wrappers_.sect_impls, "inline ", rtype_desc.type(), " ", classname, "::", name, "(", parms_cxx, ")", get_const_suffix(n), " ", NIL);
+      Printv(cxx_wrappers_.sect_impls, "inline ", func_wrapper.get_decl(impl_name, parms_cxx, is_const(n)).get(), " ", NIL);
 
       func_wrapper.emit_body(wparms);
     } else {
@@ -1437,10 +1475,9 @@ private:
     return Checkattr(n, "storage", "virtual") ? "virtual " : "";
   }
 
-  // Return " const" for a const or const volatile function, empty string otherwise. The C++ wrapper itself is never
-  // volatile, as the swig_self() function it calls is not.
-  static const char *get_const_suffix(Node *n) {
-    return SwigType_isconst(Getattr(n, "qualifier")) ? " const" : "";
+  // Return true for a const or const volatile function. The C++ wrapper itself is never volatile, as the swig_self() function it calls is not.
+  static bool is_const(Node *n) {
+    return SwigType_isconst(Getattr(n, "qualifier"));
   }
 
   cxx_wrappers &cxx_wrappers_;
