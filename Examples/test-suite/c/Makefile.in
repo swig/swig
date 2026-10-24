@@ -233,14 +233,16 @@ syntax_check_testcase = \
 	  C_HEADER=$1_wrap.h \
 	  c_syntax_check$2
 
-# Compiles C files then runs the testcase unconditionally.
+# Compiles then runs each runme of the testcase unconditionally, a C one, a C++ one or both.
 do_run_testcase = \
-	$(MAKE) -C $* -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  SRCDIR='$(SRCDIR)' \
-	  RUNME=$*$(RUNMESUFFIX) \
-	  RUNME_EXT=$(patsubst .%,%,$(suffix $(wildcard $(srcdir)/$*$(RUNMESUFFIX).c*))) \
-	  TARGET='$*' \
-	  c_run
+	for ext in $(patsubst .%,%,$(suffix $(wildcard $(srcdir)/$*$(RUNMESUFFIX).c*))); do \
+	  $(MAKE) -C $* -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	    SRCDIR='$(SRCDIR)' \
+	    RUNME=$*$(RUNMESUFFIX) \
+	    RUNME_EXT=$$ext \
+	    TARGET='$*' \
+	    c_run || exit 1; \
+	done
 
 # Clean: remove testcase directories
 %.clean:
