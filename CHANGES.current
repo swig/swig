@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-25: wsfulton
+            Fix %apply giving no warning when it applies nothing. Warning 453 was not given if the
+            last parameter of the pattern being applied had any typemaps, even ones that are not part
+            of the pattern, such as the 'int' typemaps here:
+
+              %apply (double *NOSUCH, int) { (double *arr, int len) };
+
+            An existing %apply that never did anything now gives Warning 453:
+
+              example.i:1: Warning 453: Can't apply (double *NOSUCH,int). No typemaps are defined.
+
 2026-10-24: wsfulton
             Fix the 'warning' attribute of a typemap giving the same warning more than once for a
             parameter or function, such as 3 times in Python and up to 5 times in Go for 'x' here:

@@ -424,6 +424,8 @@ void Swig_typemap_clear(const_String_or_char_ptr tmap_method, ParmList *parms) {
  *
  * Multi-argument %apply directive.  This is pretty horrible so I sure hope
  * it works.
+ *
+ * Returns 1 if the source pattern has typemaps and 0 if it has none.
  * ----------------------------------------------------------------------------- */
 
 static int count_args(String *s) {
@@ -515,7 +517,6 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
     /* Got a typemap.  Need to only merge attributes for methods that match our signature */
     Iterator ki;
     Hash *deferred_add;
-    match = 1;
 
     /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm.
      * Create a temporary hash of typemaps to add immediately after. */
@@ -523,25 +524,25 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
     for (ki = First(sm); ki.key; ki = Next(ki)) {
       /* Check for a signature match with the source signature */
       if ((count_args(ki.key) == narg) && (Strstr(ki.key, ssig))) {
-        String *oldm;
-        /* A typemap we have to copy */
-        String *nkey = Copy(ki.key);
-        Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
+        Hash *sm1 = ki.item;
+        /* An entry with no code is not a typemap of the source.  It was cleared or it is for the earlier parameters of
+           a multi-argument typemap. */
+        if (Getattr(sm1, "code")) {
+          String *oldm;
+          /* A typemap we have to copy */
+          String *nkey = Copy(ki.key);
+          match = 1;
+          Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
 
-        /* Make sure the typemap doesn't already exist in the target map */
-        oldm = Getattr(tm, nkey);
-        if (!oldm || (!Getattr(tm, "code"))) {
-          String *code;
-          Hash *sm1 = ki.item;
-
-          code = Getattr(sm1, "code");
-          if (code) {
+          /* Make sure the typemap doesn't already exist in the target map */
+          oldm = Getattr(tm, nkey);
+          if (!oldm || (!Getattr(tm, "code"))) {
             Replace(nkey, dsig, "", DOH_REPLACE_ANY);
             Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
             Setattr(deferred_add, nkey, sm1);
           }
+          Delete(nkey);
         }
-        Delete(nkey);
       }
     }
 
