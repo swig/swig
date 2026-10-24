@@ -147,7 +147,4 @@ to a Tcl variable you might do this :
 
 %apply_checkctypes(%typemaps_inoutn)
 
-%apply size_t& { std::size_t& };
-%apply ptrdiff_t& { std::ptrdiff_t& };
-
 #endif
