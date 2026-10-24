@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-24: wsfulton
+            Fix the 'warning' attribute of a typemap giving the same warning more than once for a
+            parameter or function, such as 3 times in Python and up to 5 times in Go for 'x' here:
+
+              %typemap(in, warning="901:in typemap used") int x "..."
+              int f(int x);
+
+            The warning is now given once for each parameter or function the typemap is used for.
+
+2026-10-24: wsfulton
             [C] Fix the declaration in the .h file of the wrapper of a C function with an 'in' typemap
             with numinputs=0, or a multi-argument 'in' or 'ctype' typemap, which left out parameters,
             such as 'ignored' here or the last parameter of memmove in cdata.i:

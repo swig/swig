@@ -1543,6 +1543,21 @@ static String *typemap_warn(const_String_or_char_ptr tmap_method, Parm *p) {
   return w ? Copy(w) : 0;
 }
 
+/* Issue 'warning', the expanded warning message of a typemap used for 'node', unless it has already been issued at the
+   location of 'node'.  A target language module can look up or attach the same typemaps more than once, such as for
+   each of the wrappers it writes for a function. */
+static void typemap_warning_issue(Node *node, const String *warning) {
+  static Hash *issued = 0;
+  String *key = NewStringf("%s:%d:%s", Getfile(node), Getline(node), warning);
+  if (!issued)
+    issued = NewHash();
+  if (!Getattr(issued, key)) {
+    Swig_warning(0, Getfile(node), Getline(node), "%s\n", warning);
+    Setattr(issued, key, "1");
+  }
+  Delete(key);
+}
+
 /* -----------------------------------------------------------------------------
  * typemap_merge_fragment_kwargs()
  *
@@ -1865,7 +1880,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
     Replace(warning, "$name", pname, DOH_REPLACE_ANY);
     if (symname)
       Replace(warning, "$symname", symname, DOH_REPLACE_ANY);
-    Swig_warning(0, Getfile(node), Getline(node), "%s\n", warning);
+    typemap_warning_issue(node, warning);
     Delete(warning);
   }
 
@@ -2217,7 +2232,7 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
       SwigType *matchtype = mtype ? mtype : type;
       typemap_replace_vars(warning, 0, matchtype, type, pname, lname, 1, override_vars);
       Replace(warning, "$argnum", temp, DOH_REPLACE_ANY);
-      Swig_warning(0, Getfile(firstp), Getline(firstp), "%s\n", warning);
+      typemap_warning_issue(firstp, warning);
       Delete(warning);
     }
 
