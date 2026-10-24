@@ -104,6 +104,9 @@
 <li><a href="#Typemaps_apply_typedefs">Typedefs and %apply</a>
 </ul>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
+<ul>
+<li><a href="#Typemaps_match_attribute">The match typemap attribute</a>
+</ul>
 <li><a href="#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="#Typemaps_nn51">Where to go for more information?</a>
 </ul>
@@ -3262,6 +3265,12 @@ be used in other typemaps whenever a wrapper function needs to abort
 prematurely.
 </p>
 
+<p>
+A "freearg" typemap that frees what one "in" typemap allocated or that uses its local variables should be written with
+<tt>match="in"</tt>, so that it is not used for a parameter with a different "in" typemap.
+See <a href="#Typemaps_match_attribute">The match typemap attribute</a>.
+</p>
+
 <H3><a name="Typemaps_nn34">16.5.9 "newfree" typemap</a></H3>
 
 
@@ -5844,6 +5853,110 @@ such as <tt>temp1</tt> and <tt>temp2</tt>.   It should be noted that there are
 plenty of opportunities to break the universe here and that accessing locals
 in this manner should probably be avoided.  At the very least, you should make
 sure that the typemaps sharing information have exactly the same types and names.
+</p>
+
+<H3><a name="Typemaps_match_attribute">16.16.1 The match typemap attribute</a></H3>
+
+
+<p>
+Typemaps that share data like this are usually written together for the same type, but SWIG looks for the typemap of
+each method separately.
+So a parameter that has a different "in" typemap, such as one written for the parameter's name, still gets the other
+typemaps for its type.
+In the following, the "argout" typemap for <tt>int *</tt> is also used for <tt>reserved</tt>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) int * (int temp) {
+  temp = (int)PyLong_AsLong($input);
+  $1 = &amp;temp;
+}
+%typemap(argout) int * {
+  $result = SWIG_AppendOutput($result, PyLong_FromLong(temp$argnum));
+}
+
+%typemap(in, numinputs=0) int *reserved "$1 = NULL;"
+
+void twice(int *value, int *reserved);
+</pre>
+</div>
+
+<p>
+The wrapper for <tt>twice</tt> does not compile, as the "argout" code for <tt>reserved</tt> uses <tt>temp2</tt>, which
+is not declared.
+A "freearg" typemap that frees the memory its "in" typemap allocated is worse.
+Used with a different "in" typemap, it frees memory that was never allocated, which usually crashes at runtime.
+</p>
+
+<p>
+One fix is an empty "argout" typemap for <tt>int *reserved</tt>, which is used instead as it matches more closely:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout) int *reserved ""
+</pre>
+</div>
+
+<p>
+The <tt>match</tt> attribute is a fix that does not need such a typemap for every parameter like <tt>reserved</tt>.
+A typemap written with <tt>match="in"</tt> is only used for a parameter if the parameter's "in" typemap was written
+for the same type pattern, that is for the same type and either the same parameter name or no name in both.
+Adding it to the "argout" typemap for <tt>int *</tt> fixes the wrapper:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout, match="in") int * {
+  $result = SWIG_AppendOutput($result, PyLong_FromLong(temp$argnum));
+}
+</pre>
+</div>
+
+<p>
+The "argout" typemap is still used for <tt>value</tt>, whose "in" typemap is the one for <tt>int *</tt>.
+It is no longer used for <tt>reserved</tt>, whose "in" typemap is the one for <tt>int *reserved</tt>:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; example.twice(21)
+42
+</pre>
+</div>
+
+<p>
+When a typemap with <tt>match="in"</tt> is not used for a parameter, SWIG does not look for another typemap of the same
+method instead.
+Write one for the same type pattern as the parameter's "in" typemap if the parameter needs it, like the "argout"
+typemap for <tt>int *reserved</tt> above.
+Typemaps copied together with <tt>%apply</tt> are copied to the same type pattern, so they still match.
+</p>
+
+<p>
+A typemap with <tt>match="in"</tt> is also not used for a parameter whose "in" typemap has <tt>numinputs=0</tt>, even
+one written for the same type pattern.
+So do not use it on the typemaps that go with such an "in" typemap, for example the "argout" typemap of an output
+parameter.
+</p>
+
+<p>
+Only the type patterns are compared, not the code.
+An "in" typemap that replaces another for the same type pattern must still declare the local variables that the other
+typemaps use.
+</p>
+
+<p>
+The attribute can be used on the <a href="#Typemaps_nn27">"typecheck"</a>, <a href="#Typemaps_nn31">"check"</a>,
+<a href="#Typemaps_nn32">"argout"</a> and <a href="#Typemaps_nn33">"freearg"</a> typemaps.
+It is ignored on a typemap for a return value, such as an "out" typemap.
+</p>
+
+<p>
+The SWIG library uses <tt>match="in"</tt> on many of its "freearg" typemaps, such as those for strings, so that they are
+not used with an "in" typemap of your own.
+If your "in" typemap allocates memory, free it in a "freearg" typemap written for the same type pattern.
 </p>
 
 
