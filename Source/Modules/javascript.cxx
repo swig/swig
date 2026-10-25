@@ -3093,6 +3093,10 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
   // process arguments
   int i = 0;
   for (p = parms; p;) {
+    p = emit_ignored_in_typemaps(p, wrapper->code);
+    if (!p)
+      break;
+
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
