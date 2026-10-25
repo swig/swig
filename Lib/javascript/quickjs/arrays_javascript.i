@@ -34,26 +34,30 @@
   int length;
   JSValue array;
 
-  if (!JS_IsArray(ctx, $input)) {
-    SWIG_exception_fail(SWIG_ERROR, "input is not an array");
-  }
-  array = $input;
-  length = ANYLENGTH;
-  $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * length);
+  if (JS_IsArray(ctx, $input)) {
+	  array = $input;
+	  length = ANYLENGTH;
+	  $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * length);
 
-  /* Get each element from array */
-  for (i = 0; i < length; i++) {
-    JSValue jsvalue = JS_GetPropertyUint32(ctx, array, i);
-    $*1_ltype temp;
+	  /* Get each element from array */
+	  for (i = 0; i < length; i++) {
+		JSValue jsvalue = JS_GetPropertyUint32(ctx, array, i);
+		$*1_ltype temp;
 
-    /* Get the primitive value of the JSValue */
-    int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
-    if (!SWIG_IsOK(res)) {
-      SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to array item type");
-    }
-    arg$argnum[i] = temp;
-    JS_FreeValue(ctx, jsvalue);
+		/* Get the primitive value of the JSValue */
+		int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
+		if (!SWIG_IsOK(res)) {
+		  SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to array item type");
+		}
+		arg$argnum[i] = temp;
+		JS_FreeValue(ctx, jsvalue);
+	  }
+  } else if (JS_IsNull($input)) {
+	  $1 = 0;
+  } else {
+    SWIG_exception_fail(SWIG_ERROR, "$input is not an array");
   }
+
 }
 
 %typemap(freearg) CTYPE[ANY] {
