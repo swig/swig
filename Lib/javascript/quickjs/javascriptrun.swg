@@ -4,7 +4,6 @@
  * ---------------------------------------------------------------------------*/
 
 #define SWIG_Error(code, msg)     SWIG_QuickJS_exception(ctx, code, msg)
-#define SWIG_exception(code, msg) do { SWIG_QuickJS_exception(ctx, code, msg); SWIG_fail; } while (0)
 #define SWIG_fail                 goto fail
 
 #ifdef __cplusplus
