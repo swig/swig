@@ -2,28 +2,25 @@ name: macos
 
 on:
   push:
-    paths-ignore:
+    paths-ignore: &paths-ignore
       - '.agents/**'
+      - '.claude/**'
+      - '.github/pull_request_template.md'
+      - '.github/skills/**'
       - '.github/workflows/linux.yml'
       - '.github/workflows/windows.yml'
       - '.github/workflows/cmake.yml'
       - 'AGENTS.md'
       - 'CHANGES*'
+      - 'CONTRIBUTING.md'
       - 'Doc/**'
+      - 'README'
       - 'Tools/CI-linux-*'
       - 'Tools/GHA-linux-*'
+      - 'Tools/git-hooks/**'
   pull_request:
     branches: master
-    paths-ignore:
-      - '.agents/**'
-      - '.github/workflows/linux.yml'
-      - '.github/workflows/windows.yml'
-      - '.github/workflows/cmake.yml'
-      - 'AGENTS.md'
-      - 'CHANGES*'
-      - 'Doc/**'
-      - 'Tools/CI-linux-*'
-      - 'Tools/GHA-linux-*'
+    paths-ignore: *paths-ignore # the same list as for push, a YAML alias
 
 # Cancel a run superseded by a newer push to the same branch or pull request. Runs on master and runs started by the
 # users in the list below each get a concurrency group of their own instead, so they are never cancelled or queued.
