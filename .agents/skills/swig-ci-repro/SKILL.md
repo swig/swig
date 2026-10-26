@@ -15,6 +15,9 @@ argument-hint: 'Optionally specify the failing language and version, e.g. ruby 3
 Linux jobs only. macOS and Windows runners cannot be containerised - for those, re-run the job with
 a debug session, use a self hosted runner, or a local VM.
 
+First check whether master fails the same way, for example with `gh run list -R swig/swig -b master -L 4`.
+If master is red, the failure is probably not caused by the branch.
+
 ## How GHA Linux jobs are defined
 - The matrix is in `.github/workflows/linux.yml`. Each entry sets `SWIGLANG`, `VER` and `CPPSTD`;
   jobs without an explicit `os` default to `ubuntu-22.04`. Find the matrix row that matches the

@@ -137,7 +137,7 @@ If gdb cannot call into the binary (optimised build, release distro, awkward env
 
 ## Try `-debug-*` first
 
-The built in command line flags often answer the question without needing gdb at all. Full list (from `Doc/Manual/Extending.html` §40.11):
+The built in command line flags often answer the question without needing gdb at all. Full list (from `Doc/Manual/Extending.html#Extending_debugging_options`):
 
 | Flag | Purpose |
 |---|---|
@@ -177,7 +177,7 @@ Recommended starting incantations:
 
 ### XML dump
 
-The parse tree can also be serialised as XML. Three modes (from `Extending.html` §40.4.4):
+The parse tree can also be serialised as XML. Three modes (from `Extending.html#Extending_nn13`):
 
 ```bash
 swig -python -c++ -xmlout out.xml  example.i   # final tree (~ -debug-top 4), with target language processing
@@ -222,5 +222,5 @@ Memory intensive — only enable while diagnosing.
 - Authoritative references:
   - `Doc/Devel/internals.html` §7 — debugging SWIG, DOH casts, memory pools
   - `Doc/Devel/tree.html` — parse tree node attributes and the "Debugging Functions" list
-  - `Doc/Manual/Extending.html` §40.4.3 (parse trees), §40.10 (test suite tooling: `SWIGTOOL`/`RUNTOOL`/`SWIG_FEATURES`/valgrind/gdb), §40.11 (`-debug-*` options), §40.12 (per node attribute reference)
+  - `Doc/Manual/Extending.html`: `#Extending_nn8` (parse trees), `#Extending_test_suite` (test suite tooling: `SWIGTOOL`/`RUNTOOL`/`SWIG_FEATURES`/valgrind/gdb), `#Extending_debugging_options` (`-debug-*` options), `#Extending_nn46` (per node attribute reference)
   - `Tools/swig.gdb` — helper command definitions

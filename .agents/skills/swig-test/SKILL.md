@@ -1,6 +1,6 @@
 ---
 name: swig-test
-description: 'Run SWIG test suite for specific languages. Use when testing SWIG changes, verifying language support, debugging test failures, or running regression tests.'
+description: 'Run the SWIG test suite for specific languages or one test case across every configured language. Use when testing SWIG changes, adding or changing a test case, verifying language support, debugging test failures or running regression tests.'
 argument-hint: 'Specify language (e.g., python, java) and optionally a single test name'
 ---
 

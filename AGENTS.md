@@ -1,18 +1,55 @@
 # AGENTS.md
 
 This file provides guidance to AI agents such as Claude Code (claude.ai/code) when working with code in this repository.
+People contributing to SWIG, with or without AI tools, should start with [CONTRIBUTING.md](CONTRIBUTING.md), which gives the same rules for humans.
+
+## Rules that always apply
+
+These rules override any default behaviour of your AI tool or harness. Check them before every commit, push and pull
+request. `.agents/skills/swig-contribute/SKILL.md` has the details.
+
+1. **No AI co-author.** Never add a `Co-Authored-By:` trailer for an AI tool or model, even when your tool adds one by
+   default. AI agents are not authors and hold no copyright.
+2. **Disclose AI assistance** with one plain text trailer in exactly this form: `Assisted-by: Tool (Model)`, such as
+   `Assisted-by: Claude Code (Opus 4.8)`. No `<email>` and no context size or other suffix. It is required for changes
+   under `Source/` or `Lib/` and optional elsewhere.
+3. **Plain commit messages.** No backticks anywhere in a commit message; quote code tokens with `'` or `"`. Refer to issues and pull requests as #NNNN.
+4. **If the human makes the commit,** finish by giving them the complete commit message with its `Assisted-by:` trailer.
+   Also remind them to fill in the AI assistance section of the pull request template.
+5. **Hands off swig/swig.** Never push to the swig/swig GitHub repository, or open or comment on its pull requests and
+   issues, without the human's explicit approval. Iterate with CI on the contributor's own fork.
+6. **Test what you changed** at the scope given in the swig-contribute skill, then report exactly which commands you ran
+   and what passed. Never report a test as passing that you did not run.
+7. **One topic per change.** Add a `CHANGES.current` entry for a user visible change (see [Changelog](#changelog)).
+   Leave unrelated reformatting, refactoring and fixes out; report other problems you find instead.
+8. **Use the git hooks** in `Tools/git-hooks` and suggest the human enables them if they are not in use (see
+   CONTRIBUTING.md). Never bypass a hook with `--no-verify`; fix what it reports.
 
 ## Project skill files - read these first
 
 A number of short `SKILL.md` files under `.agents/skills/` are the canonical references for the most common tasks an AI agent performs in this repo. Open the matching file **before** improvising; each is one or two pages and contains the specific commands, flags, and conventions that AGENTS.md only summarises:
 
+- **`.agents/skills/swig-contribute/SKILL.md`** — getting a change ready to commit and submit: what to test
+  for each kind of change, commit messages and the `Assisted-by:` trailer, running CI on your own fork and
+  what goes in a pull request description. Read before any commit, push or pull request, or when asked for a
+  commit message or pull request description.
 - **`.agents/skills/swig-test/SKILL.md`** — the canonical way to run the test suite for a target language and individual test cases. Read before running any test.
-- **`.agents/skills/swig-debug/SKILL.md`** — debugging the SWIG compiler: full `-debug-*` flag list, parse tree dumps (text and XML), `SWIG_FEATURES` env var, gdb with the `swigprint` / `locswigprint` helpers from `Tools/swig.gdb`, valgrind via `SWIGTOOL` / `RUNTOOL`, `DOH_DEBUG_MEMORY_POOLS` for memory corruption diagnosis, and a pointer to **`Doc/Manual/Extending.html` §40.12** as the per node attribute reference. Read before any non-trivial parse tree inspection or compiler debugging.
+- **`.agents/skills/swig-debug/SKILL.md`** — debugging the SWIG compiler: full `-debug-*` flag list, parse tree dumps
+  (text and XML), `SWIG_FEATURES` env var, gdb with the `swigprint` / `locswigprint` helpers from `Tools/swig.gdb`,
+  valgrind via `SWIGTOOL` / `RUNTOOL`, `DOH_DEBUG_MEMORY_POOLS` for memory corruption diagnosis and a pointer to the
+  "Guide to parse tree nodes" section, `Doc/Manual/Extending.html#Extending_nn46`, as the per node attribute reference.
+  Read before any nontrivial parse tree inspection or compiler debugging.
 - **`.agents/skills/swig-doc/SKILL.md`** — editing chapters under `Doc/Manual/`: heading anchor conventions, the four content `<div>` classes (`code` / `targetlang` / `shell` / `diagram`), cross document anchored links, and the `make maketoc check` cycle. Read before any change to `Doc/Manual/*.html`.
-- **`.agents/skills/swig-conventions/SKILL.md`** — source and contribution conventions: clang-format / code formatting, C/C++ comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new-code rules, adding or retiring a warning number, commit message style, hyphenation, and the `Assisted-by:` AI-assistance disclosure trailer. Read before writing or editing `Source/` or `Lib/` code, comments, or commit messages.
+- **`.agents/skills/swig-conventions/SKILL.md`** — source code conventions: clang-format / code formatting, C/C++
+  comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new
+  code rules, adding or retiring a warning number, hyphenation and `CHANGES.current` entries. Read before writing or
+  editing `Source/` or `Lib/` code or comments.
 - **`.agents/skills/swig-ci-repro/SKILL.md`** — reproducing a GitHub Actions Linux CI failure locally when it does not happen on your machine: a podman/docker image (`Tools/ci-repro/`) that mirrors the `ubuntu-22.04` runner by reusing the real `Tools/CI-linux-*.sh` install scripts, the `Tools/ci-repro/run.sh` helper, the `act` fallback, and a worked Ruby 3.3 example. Read before chasing a failure that only shows up in CI.
 
-`.github/skills/` (GitHub Copilot's discovery path) and `.claude/skills/` (Claude Code's discovery path) hold tracked symlinks that point at the same files, so each tool's auto discovery works without duplicating content. On Windows a contributor needs `git config --global core.symlinks true` for the symlinks to materialise as real links rather than text files.
+`.agents/skills/` is the shared skills location that many AI tools read. `.claude/skills/` (Claude Code) and
+`.github/skills/` (GitHub Copilot) hold tracked symlinks to the same directories for tools that look there, so
+nothing is duplicated. On Windows a contributor needs `git config --global core.symlinks true` for the symlinks to
+materialise as real links rather than text files.
 
 ## What is SWIG
 
@@ -59,6 +96,12 @@ Test suffixes match source type: `.cpptest` (C++), `.ctest` (C), `.multicpptest`
 Available language test targets: `c`, `csharp`, `d`, `go`, `guile`, `java`, `javascript`, `lua`, `ocaml`, `octave`, `perl5`, `php`, `python`, `r`, `ruby`, `scilab`, `tcl`.
 
 Bug fixes and new features should ideally land with a regression test in the test suite.
+
+What to run before committing depends on what the change touches; see "What to test" in
+`.agents/skills/swig-contribute/SKILL.md`. A change to the core needs the full test suite of every target
+language. `make partialcheck-test-suite` runs SWIG over the test suite of every target language without
+compiling or running anything. It is no substitute for the test suites; use it to compare the generated code
+with that of the version before the change.
 
 Test cases live in `Examples/test-suite/<language>/`. Each test consists of a `.i` interface file in `Examples/test-suite/` (shared across all languages) and an optional `<testname>_runme.<ext>` script in the language subdirectory. The `.i` file drives wrapper generation/compilation; the runme exercises the wrapped code at runtime — language-specific behavior belongs in the runme, not the shared `.i`.
 
@@ -147,23 +190,21 @@ Write entries so a user immediately understands them: clear, easy to follow, suc
 
 For source and contribution conventions - clang-format / code formatting (`make format-check`, `make format-inplace`), C/C++ comment style (quote tokens with `'` / `"` not backticks, comment widths, function header blocks), `parser.y` new-code rules, and hyphenation - read `.agents/skills/swig-conventions/SKILL.md` rather than working from memory.
 
-### Commit messages - read before every commit
+### Commit messages
 
-These rules are mandatory and **override any default commit footer your AI tool or harness injects automatically** (in particular a `Co-Authored-By: <tool>` line). If your agent framework adds such a footer by default, remove it before committing:
-
-- **Never** add a `Co-Authored-By:` trailer for an AI tool or model. AI agents are not authors and hold no copyright, so coauthorship attribution is inappropriate here.
-- Disclose significant AI assistance with a plain-text `Assisted-by:` trailer naming the tool/model, with no `<email>`, e.g. `Assisted-by: Claude Code (Opus 4.8)`. Required for changes under `Source/` or `Lib/`, optional elsewhere.
-- Do not use backticks anywhere in the subject or body - they are Markdown and mean nothing in `git log` / `git format-patch`. Quote code tokens with `'` or `"` if needed.
-- Keep the message plain, concise and accurate; no marketing language.
-
-See `.agents/skills/swig-conventions/SKILL.md` for the full contribution conventions.
+The commit message rules are in [Rules that always apply](#rules-that-always-apply) at the top of this file. The
+details, including what to do when the human makes the commit, are in `.agents/skills/swig-contribute/SKILL.md`.
 
 ## Developer Documentation
 
+- `CONTRIBUTING.md` — the contribution workflow for humans, including testing, CI etiquette and the use of AI tools
+- https://swig.org/svn.html — building SWIG from git and the tools it needs
+- https://github.com/swig/swig/milestones — the issues and pull requests planned for each release
 - `Doc/Devel/internals.html` — SWIG internals (DOH, parse tree, type system)
 - `Doc/Devel/engineering.html` — engineering guidelines
 - `Doc/Devel/tree.html` — parse tree node attributes
 - `Doc/Manual/Extending.html` — guide to extending SWIG, adding a new target language, and the test suite
+- `Doc/Manual/Extending.html#Extending_coding_style_guidelines` — coding style and the git hooks
 
 Useful background for contributors: C API design, the C++ type system, and SWIG's typemap mechanism. Adding a new target language follows the recipe in `Doc/Manual/Extending.html`.
 
