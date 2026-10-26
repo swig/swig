@@ -3362,8 +3362,14 @@ files</a>.
 
 <p>
 A test driven development approach is central to the improvement and development of SWIG.
-Most modifications to SWIG are accompanied by additional regression tests and checking all 
+Most modifications to SWIG are accompanied by additional regression tests and checking all
 tests to ensure that no regressions have been introduced.
+</p>
+
+<p>
+The <a href="https://github.com/swig/swig/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a> file says which tests to run
+for each kind of change before submitting it.
+It also describes running the GitHub Actions continuous integration tests on your own fork first.
 </p>
 
 <p>
@@ -3981,7 +3987,9 @@ Below are some practical steps that should help meet these requirements.
   Source code can be formatted correctly using the info in the <a href="#Extending_coding_style_guidelines">coding style guidelines</a> section.
   </li>
   <li>
-  When ready, post a patch on Github, join the swig-devel mailing list and email the SWIG developers with a demonstration of
+  When ready, open a pull request on Github as described in
+  <a href="https://github.com/swig/swig/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a>, join the swig-devel mailing
+  list and email the SWIG developers with a demonstration of
   commitment to maintaining the language module,
   certainly in the short term and ideally long term.
   </li>

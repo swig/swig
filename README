@@ -130,6 +130,10 @@ Please report any errors and submit patches (if possible)!  We only
 have access to a limited variety of hardware (Linux, Solaris, OS-X,
 and Windows). All contributions help.
 
+Please read CONTRIBUTING.md before opening a pull request. It covers
+building from git, testing, CI etiquette and using AI tools, which are
+welcome.
+
 If you would like to join the SWIG development team or contribute a
 language module to the distribution, please contact the swig-devel
 mailing list, details at https://www.swig.org/mail.html.
