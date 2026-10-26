@@ -3739,18 +3739,29 @@ $ make format CLANG_FORMAT=
 </pre></div>
 
 <p>
-Developers are also urged to use the SWIG pre-commit git hook script which is available in <tt>Tools/pre-commit</tt>.
-This is useful for preventing accidental commits with incorrectly formatted code.
+Developers are also urged to use the SWIG git hook scripts which are available in the <tt>Tools/git-hooks</tt> directory.
+The pre-commit hook is useful for preventing accidental commits with incorrectly formatted code.
 It invokes clang-format to validate the formatting is correct on all modified (both git staged and unstaged) files in the Source directory.
-Find the .git/hooks directory for the SWIG repository (usually in your git working directory) and copy it there, such as:
+The commit-msg hook checks the commit message rules given in the <a href="https://github.com/swig/swig/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a> file.
+Use them by running the following in your git working directory:
 </p>
 
 <div class="shell"><pre>
-$ cp Tools/pre-commit .git/hooks/
+$ git config core.hooksPath Tools/git-hooks
 </pre></div>
 
 <p>
-Modify the <tt>clang_format</tt> variable in the script if clang-format is not the name of the clang-format executable that is version 18 or later.
+The setting applies to every git worktree of the clone and each worktree uses the hooks in its own checkout.
+Git then no longer runs any hooks in the .git/hooks directory.
+If you have hooks of your own there, or need to modify a hook, copy the SWIG hooks into the .git/hooks directory instead:
+</p>
+
+<div class="shell"><pre>
+$ cp Tools/git-hooks/* .git/hooks/
+</pre></div>
+
+<p>
+Modify the <tt>clang_format</tt> variable in the pre-commit script if clang-format is not the name of the clang-format executable that is version 18 or later.
 Then when committing code, you'll see something like the following if the code is not formatted correctly:
 </p>
 

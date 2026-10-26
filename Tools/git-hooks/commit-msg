@@ -1,0 +1,47 @@
+#!/bin/sh
+# Commit message git hook for the SWIG repository, checking the commit message rules in CONTRIBUTING.md
+# Use all the hooks in this directory by running: git config core.hooksPath Tools/git-hooks
+
+msg_file=$1
+
+# Drop git's comment lines (but not a line starting with an issue number such as #3554) and everything below the
+# scissors line added by 'git commit --verbose'
+msg=$(sed -e '/^# -* >8 -*$/,$d' -e '/^#[0-9]/!{/^#/d;}' "$msg_file")
+
+errors=0
+
+ai_tools='anthropic|claude[ -]?(code|opus|sonnet|haiku|fable)|copilot|cursor|codex|openai|chatgpt|gemini|aider|deepseek'
+ai_tools="$ai_tools|opencode|ampcode|windsurf|codeium"
+ai_coauthor=$(printf '%s\n' "$msg" | grep -n -i -E "^[[:space:]]*co-authored-by:.*($ai_tools)")
+if [ -n "$ai_coauthor" ]; then
+  printf 'Error: an AI tool is not a co-author, remove this Co-authored-by line:\n%s\n' "$ai_coauthor" >&2
+  printf 'Disclose AI assistance with an Assisted-by trailer instead, such as: Assisted-by: Claude Code (Opus 4.8)\n' >&2
+  errors=1
+fi
+
+backticks=$(printf '%s\n' "$msg" | grep -n '`')
+if [ -n "$backticks" ]; then
+  printf "Error: do not use backticks in a commit message, quote code with ' or \" instead:\n%s\n" "$backticks" >&2
+  errors=1
+fi
+
+bad_assisted_by=$(printf '%s\n' "$msg" | grep -i '^[[:space:]]*assisted-by:' | grep -v -E '^Assisted-by: [^][()<>]+ \([^][()<>]+\)$')
+context_assisted_by=$(printf '%s\n' "$msg" | grep -i '^[[:space:]]*assisted-by:.*context')
+if [ -n "$bad_assisted_by$context_assisted_by" ]; then
+  printf 'Error: write the Assisted-by trailer as "Assisted-by: Tool (Model)" without an email or context size, such as:\n' >&2
+  printf 'Assisted-by: Claude Code (Opus 4.8)\n' >&2
+  printf '%s\n' "$bad_assisted_by" "$context_assisted_by" | grep -v '^$' | sort -u >&2
+  errors=1
+fi
+
+if [ $errors -ne 0 ]; then
+  printf 'The commit message is saved in %s\n' "$msg_file" >&2
+  exit 1
+fi
+
+# A reminder only, as whether AI tools were used cannot be checked
+if ! printf '%s\n' "$msg" | grep -q '^Assisted-by:' && [ -n "$(git diff --cached --name-only -- Source Lib)" ]; then
+  printf 'Note: if AI tools helped with this change to Source or Lib, add an Assisted-by trailer, see CONTRIBUTING.md\n' >&2
+fi
+
+exit 0

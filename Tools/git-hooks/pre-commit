@@ -1,5 +1,6 @@
 #!/bin/sh
-# Pre-commit git hook for SWIG repository, copy to .git/hooks/pre-commit
+# Pre-commit git hook for the SWIG repository, see Doc/Manual/Extending.html#Extending_coding_style_guidelines
+# Use all the hooks in this directory by running: git config core.hooksPath Tools/git-hooks
 
 clang_format=clang-format
 files_to_format=$(git diff-index --diff-filter=d --name-only HEAD ':Source/*/*.c' ':Source/*/*.cxx' ':Source/*/*.h')
