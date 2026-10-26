@@ -25,6 +25,13 @@ on:
       - 'Tools/CI-linux-*'
       - 'Tools/GHA-linux-*'
 
+# Cancel a run superseded by a newer push to the same branch or pull request. Runs on master and runs started by the
+# users in the list below each get a concurrency group of their own instead, so they are never cancelled or queued.
+# Keep the list the same in all the workflow files. Regular contributors can ask the SWIG maintainers to be added.
+concurrency:
+  group: ${{ github.workflow }}-${{ (github.ref == 'refs/heads/master' || contains(fromJSON('["wsfulton"]'), github.actor)) && github.run_id || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
