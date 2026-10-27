@@ -151,7 +151,10 @@ Each language backend (e.g., `python.cxx`, `java.cxx`) subclasses `Language` and
 
 ### Parse tree
 
-The parse tree is built from DOH nodes (hash-like objects). Key node attributes are documented in `Doc/Devel/tree.html`. The tree is walked by language modules using `Swig_symbol_*` and direct node traversal.
+The parse tree is built from DOH nodes (hash-like objects). The attributes of each kind of node are documented
+in the "Guide to parse tree nodes" (`Doc/Manual/Extending.html#Extending_nn46`). The functions for navigating
+and changing the tree are in `Doc/Devel/tree.html`. The tree is walked by language modules using
+`Swig_symbol_*` and direct node traversal.
 
 ### Typemaps
 
@@ -202,7 +205,7 @@ details, including what to do when the human makes the commit, are in `.agents/s
 - https://github.com/swig/swig/milestones — the issues and pull requests planned for each release
 - `Doc/Devel/internals.html` — SWIG internals (DOH, parse tree, type system)
 - `Doc/Devel/engineering.html` — engineering guidelines
-- `Doc/Devel/tree.html` — parse tree node attributes
+- `Doc/Devel/tree.html` — parse tree navigation and manipulation functions
 - `Doc/Manual/Extending.html` — guide to extending SWIG, adding a new target language, and the test suite
 - `Doc/Manual/Extending.html#Extending_coding_style_guidelines` — coding style and the git hooks
 

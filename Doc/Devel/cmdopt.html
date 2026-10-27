@@ -57,18 +57,21 @@ The following function is used to check all of the command line options after pa
 and issues an error message if any unconsumed arguments are found.
 
 <p>
-<b><tt>void Swig_check_options()</tt></b>
+<b><tt>void Swig_check_options(int check_input)</tt></b>
 <blockquote>
 Checks all command line options to see if they have all been processed.  If not, an error message is generated and
 SWIG exits.   This function is currently invoked in <tt>Source/Modules/main.cxx</tt> just before SWIG starts any processing of input files.
+If <tt>check_input</tt> is nonzero, the last argument is taken to be the input file and is not checked.
+SWIG then also exits with an error message if this last argument has been marked, as no input file was given.
 </blockquote>
 
 <h2>Utility Function</h2>
 <p>
-<b><tt>void Swig_arg_error())</tt></b>
+<b><tt>void Swig_arg_error()</tt></b>
 
 <blockquote>
 A generic function that issues an error message about being unable to parse command line options and SWIG exits.
+</blockquote>
 
 </body>
 </html>

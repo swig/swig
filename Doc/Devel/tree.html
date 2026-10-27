@@ -13,7 +13,7 @@
 This document describes the functions related to the handling of
 parse trees in SWIG.  The structure of SWIG parse trees has been influenced heavily by ideas
 from XML-DOM trees.  In fact, the functions in the API and attribute names are nearly identical.  
-The header file <tt>Source/swig/swigtree.h</tt> contains the functions and macros described in
+The header file <tt>Source/Swig/swigtree.h</tt> contains the functions and macros described in
 this document. This API is
 considered to be stable.
 
@@ -117,7 +117,9 @@ The following functions are used to help with the management and construction of
 <p>
 <b><tt>void appendChild(Node *node, Node *child)</tt></b>
 <blockquote>
-Adds a new child to <tt>node</tt>.  This function takes care of adjusting the "firstChild" and "lastChild" attributes of <tt>node</tt> to appropriate values.   After calling this function, the "lastChild" attribute will point to <tt>child</tt>.
+Adds a new child to <tt>node</tt>. This function takes care of adjusting the "firstChild" and "lastChild" attributes of
+<tt>node</tt> to appropriate values. Any next siblings of <tt>child</tt> are also added. After calling this function,
+the "lastChild" attribute will point to <tt>child</tt> or to the last of these siblings.
 </blockquote>
 
 <p>
@@ -205,6 +207,7 @@ This function restores a node to the state it was in prior to the last <tt>Swig_
 
 <p>
 The following functions can be used to help debug any SWIG DOH object.
+They are declared in <tt>Source/Swig/swig.h</tt>.
 </p>
 
 <b><tt>void Swig_print(DOH *object, int count = -1)</tt></b>
@@ -219,8 +222,8 @@ The number of nested Hash types to expand is set by count (default is 1 if count
 <b><tt>void Swig_print_with_location(DOH *object, int count = -1)</tt></b>
 
 <blockquote>
-Prints to stdout a string representation of any DOH type, within [] brackets
-for Hash and List types, prefixed by line and file information.
+Prints to stdout a string representation of any DOH type, within [] brackets,
+prefixed by line and file information.
 The number of nested Hash types to expand is set by count (default is 1 if count&lt;0). See Swig_set_max_hash_expand() to change default.
 <pre>
 </pre>
@@ -241,8 +244,8 @@ This function is called by the <tt>-debug-tags</tt> option to SWIG.
 
 <pre>
 % swig -debug-tags -python example.i
-:1:  . top
-:1:  . top . include
+:EOF:  . top
+:EOF:  . top . include
 /usr/share/swig/swig.swg:320:  . top . include . include
 /usr/share/swig/swigwarnings.swg:39:  . top . include . include . include
 ...

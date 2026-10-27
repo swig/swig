@@ -221,6 +221,8 @@ Memory intensive — only enable while diagnosing.
 - `make` after editing source — the test suite uses `./preinst-swig`, which calls the freshly built `./swig`, so no install is needed.
 - Authoritative references:
   - `Doc/Devel/internals.html` §7 — debugging SWIG, DOH casts, memory pools
-  - `Doc/Devel/tree.html` — parse tree node attributes and the "Debugging Functions" list
-  - `Doc/Manual/Extending.html`: `#Extending_nn8` (parse trees), `#Extending_test_suite` (test suite tooling: `SWIGTOOL`/`RUNTOOL`/`SWIG_FEATURES`/valgrind/gdb), `#Extending_debugging_options` (`-debug-*` options), `#Extending_nn46` (per node attribute reference)
+  - `Doc/Devel/tree.html` — parse tree navigation and manipulation functions and the "Debugging Functions" list
+  - `Doc/Manual/Extending.html`: `#Extending_nn8` (parse trees), `#Extending_test_suite` (test suite tooling:
+    `SWIGTOOL`/`RUNTOOL`/`SWIG_FEATURES`/valgrind/gdb), `#Extending_debugging_options` (`-debug-*` options),
+    `#Extending_nn46` (per node attribute reference)
   - `Tools/swig.gdb` — helper command definitions

@@ -24,10 +24,11 @@ This document describes the functions related to management of function paramete
 The following utility functions are used to create and copy individual parameters.  In their most basic form, a parameter merely contains a type, a name, and an optional default value.
 
 <p>
-<b><tt>Parm *NewParm(SwigType *type, const String_or_char *name)</tt></b>
+<b><tt>Parm *NewParm(SwigType *type, const String_or_char *name, Node *from_node)</tt></b>
 
 <blockquote>
 Creates a new parameter object with type <tt>type</tt> and name <tt>name</tt>.  The type is stored in the attribute "type" and the name is stored in the attribute "name".
+The file and line number of the new parameter are copied from <tt>from_node</tt>.
 </blockquote>
 
 <p>

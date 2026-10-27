@@ -49,8 +49,9 @@ accessible variable in the target language.  The action of these two functions
 is to provide a way for multiple modules to share information.  The SetModule
 function should create a new global var named something like
 "swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME
-SWIG_RUNTIME_VERSION is currently defined as "2", and SWIG_TYPE_TABLE_NAME is
-defined by the -DSWIG_TYPE_TABLE=mytable option when compiling the wrapper.
+SWIG_RUNTIME_VERSION is currently defined as "5" in Lib/swigrun.swg.
+SWIG_TYPE_TABLE_NAME is defined by the -DSWIG_TYPE_TABLE=mytable option when
+compiling the wrapper.
 
 Alternatively, if the language supports modules, a module named
 "swig_runtime_data" SWIG_RUNTIME_VERSION can be created, and a global variable
@@ -93,8 +94,8 @@ be referenced during the InitializeModule call.  After InitializeModule returns,
 clientdata does not need to be valid any more.
 
 This method is not preferred, because it makes external access to the type
-system more complicated.  See the Modules chapter of the documentation, and read
-the "External access to the run-time" section.  Then take a look at
+system more complicated.  See the "External access to the runtime" section in
+the Modules chapter of the documentation.  Then take a look at
 Lib/runtime.swg.  Anybody that calls SWIG_TypeQuery needs to pass along the
 clientdata pointer, and that is the reason for defining
 SWIG_MODULE_CLIENTDATA_TYPE.
@@ -122,12 +123,13 @@ result, and the function should return 0 on success, non-zero on error.
 A sample ConvertPtr is given here:
 
   swig_cast_info *cast;
+  int newmemory = 0;
 
   if (<obj is a wrapped pointer type>) {
     cast = SWIG_TypeCheck(<obj type name>, type);
     cast = SWIG_TypeCheckStruct(<obj type structure>, type);
     if (cast) {
-      *result = SWIG_TypeCast(cast, <obj pointer>);
+      *result = SWIG_TypeCast(cast, <obj pointer>, &newmemory);
       return 0;
     }
   }
@@ -139,6 +141,10 @@ the TypeCheck function should be used, while if obj stores the void pointer and
 a pointer to the swig_type_info structure, then the TypeCheckStruct function
 should be called.  The TypeCheckStruct is slightly faster, since it does a
 pointer comparison instead of a strcmp.  
+SWIG_TypeCast sets newmemory to SWIG_CAST_NEW_MEMORY when the cast creates a
+new object, as for a smart pointer cast to a base class smart pointer.
+ConvertPtr must then pass this back to the caller so that the new object is
+deleted, see SWIG_Ruby_ConvertPtrAndOwn in Lib/ruby/rubyrun.swg.
 
 The flag argument to ConvertPtr is used in some languages for disowning a
 pointer.  If the wrapped C function is taking ownership of the pointer (that

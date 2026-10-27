@@ -76,7 +76,7 @@ Returns the current search path.
 <b><tt>FILE *Swig_open(const String_or_char *name)</tt></b>
 
 <blockquote>
-Opens a file, using the applicable search paths, and returns an open <tt>FILE *</tt> object if found.  Returns NULL if the file is not found.
+Opens a file without using the search paths.  Returns an open <tt>FILE *</tt> object if found.  Returns NULL if the file is not found.
 </blockquote>
 
 <p>
@@ -103,7 +103,7 @@ Searches for an include file <tt>name</tt> and returns its contents as
 a string if found.  Returns NULL if not found.  All of the applicable
 search paths are searched when trying to locate the file, but
 preference is given to system paths first. This mimics the behavior
-of <tt>#include &lt;file&gt;</tt> in the preprocessor.
+of <tt>#include &lt;file&gt;</tt> in the preprocessor.  However, <tt>name</tt> as given, relative to the current directory, is tried before any search path.
 </blockquote>
 
 <p>
@@ -120,13 +120,13 @@ Returns 0 on success, -1 if the file couldn't be found.
 <b><tt>String *Swig_last_file()</tt></b>
 
 <blockquote>
-Returns the full pathname of the file last opened or included.
+Returns the pathname of the file last opened or included.  This is the name as given, prefixed by the search path directory the file was found in (if any).
 </blockquote>
 
 <h2>Named files</h2>
 
 <p>
-<b><tt>void *Swig_register_filebyname(const String_or_char *filename, File *outfile)</tt></b>
+<b><tt>void Swig_register_filebyname(const String_or_char *filename, File *outfile)</tt></b>
 
 <blockquote>
 Registers a file object <tt>outfile</tt> with a specific name <tt>filename</tt>.   This function is
@@ -145,30 +145,32 @@ is used to implement the %insert directive.
 <h2>Filename utilities</h2>
 
 <p>
-<b><tt>char *Swig_file_suffix(const String_or_char *filename)</tt></b>
+<b><tt>String *Swig_file_extension(const String_or_char *filename)</tt></b>
 <blockquote>
-Returns the suffix of a filename.  For instance, if the filename is "foo.txt", it returns ".txt".
+Returns the suffix of a filename.  For instance, if the filename is "foo.txt", it returns ".txt".  The result is a new string, which the caller should delete.
 </blockquote>
 
 <p>
-<b><tt>char *Swig_file_basename(const String_or_char *filename)</tt></b>
+<b><tt>String *Swig_file_basename(const String_or_char *filename)</tt></b>
 <blockquote>
 Returns the filename without the suffix attached to it.  For instance, if the filename is "foo.txt", it returns
-"foo".  The result is stored in a static variable. If you need to save it, make your own copy.
+"foo".  The result is a new string, which the caller should delete.
 </blockquote>
 
 <p>
-<b><tt>char *Swig_file_filename(const String_or_char *filename)</tt></b>
+<b><tt>String *Swig_file_filename(const String_or_char *filename)</tt></b>
 <blockquote>
 Returns the filename without any leading directories.  For instance, if the filename is "/bar/spam/foo.txt", it
-returns "foo.txt".   This function is aware of local naming conventions on the machine (e.g., forward versus back slashes on Unix and Windows).   The result is stored in a static variable.  If you need to save the value, make a copy.
+returns "foo.txt". This function is aware of local naming conventions on the machine (e.g., forward versus back slashes
+on Unix and Windows). The result is a new string, which the caller should delete.
 </blockquote>
 
 <p>
-<b><tt>char *Swig_file_dirname(const String_or_char *filename)</tt></b>
+<b><tt>String *Swig_file_dirname(const String_or_char *filename)</tt></b>
 <blockquote>
 Returns the directory name (if any).  For instance, if the filename is "/bar/spam/foo.txt", it
-returns "/bar/spam/".   This function is aware of local naming conventions on the machine (e.g., forward versus back slashes on Unix and Windows).  The result is stored in a static variable.  If you need to save the value, make a copy.
+returns "/bar/spam/". This function is aware of local naming conventions on the machine (e.g., forward versus back
+slashes on Unix and Windows). The result is a new string, which the caller should delete.
 </blockquote>
 
 <p>
