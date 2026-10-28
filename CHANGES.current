@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-28: wsfulton
+            Fix the CMake build on macOS using the PCRE2 header from one install and the PCRE2
+            library from another. With PCRE2 installed by Homebrew, the build compiled against the
+            Homebrew header but linked against the older PCRE2 library that comes with macOS.
+            'swig -pcreversion' then showed a different version to the one CMake reported. The
+            library is now taken from the same install as the header.
+
 2026-10-25: wsfulton
             Fix %apply giving no warning when it applies nothing. Warning 453 was not given if the
             last parameter of the pattern being applied had any typemaps, even ones that are not part
