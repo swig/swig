@@ -1573,6 +1573,7 @@ static int look(Scanner *s) {
 int Scanner_token(Scanner *s) {
   int t;
   Delete(s->error);
+  s->error = 0;
   if (s->nexttoken >= 0) {
     t = s->nexttoken;
     s->nexttoken = -1;
