@@ -7,7 +7,7 @@
 </head>
 
 <body bgcolor="#ffffff">
-<H1><a name="CPlusPlus17">9 SWIG and C++17</a></H1>
+<h1 id="CPlusPlus17">9 SWIG and C++17</h1>
 <!-- INDEX -->
 <div class="sectiontoc">
 <ul>
@@ -31,7 +31,7 @@
 
 
 
-<H2><a name="CPlusPlus17_introduction">9.1 Introduction</a></H2>
+<h2 id="CPlusPlus17_introduction">9.1 Introduction</h2>
 
 
 <p>This chapter gives you a brief overview about the SWIG
@@ -44,10 +44,10 @@ C++17 support.
 <b>Compatibility note:</b> SWIG-4.0.0 is the first version to support any C++17 features.
 </p>
 
-<H2><a name="CPlusPlus17_core_language_changes">9.2 Core language changes</a></H2>
+<h2 id="CPlusPlus17_core_language_changes">9.2 Core language changes</h2>
 
 
-<H3><a name="CPlusPlus17_nested_namespaces">9.2.1 Nested namespace definitions</a></H3>
+<h3 id="CPlusPlus17_nested_namespaces">9.2.1 Nested namespace definitions</h3>
 
 
 <p>
@@ -79,7 +79,7 @@ namespace A {
 </pre>
 </div>
 
-<H3><a name="CPlusPlus17_u8_char_literals">9.2.2 UTF-8 character literals</a></H3>
+<h3 id="CPlusPlus17_u8_char_literals">9.2.2 UTF-8 character literals</h3>
 
 
 <p>
@@ -94,7 +94,7 @@ char a = u8'a';
 </pre>
 </div>
 
-<H3><a name="CPlusPlus17_hexadecimal_floating_literals">9.2.3 Hexadecimal floating literals</a></H3>
+<h3 id="CPlusPlus17_hexadecimal_floating_literals">9.2.3 Hexadecimal floating literals</h3>
 
 
 <p>
@@ -108,7 +108,7 @@ double f = 0xF.68p2;
 </pre>
 </div>
 
-<H3><a name="CPlusPlus17_fold_expressions">9.2.4 Fold expressions</a></H3>
+<h3 id="CPlusPlus17_fold_expressions">9.2.4 Fold expressions</h3>
 
 
 <p>
@@ -118,7 +118,7 @@ not supported currently.  Also the same restrictions that apply to other
 expressions apply here too.
 </p>
 
-<H3><a name="CPlusPlus17_using_pack_expansion">9.2.5 Pack expansion in using-declaration</a></H3>
+<h3 id="CPlusPlus17_using_pack_expansion">9.2.5 Pack expansion in using-declaration</h3>
 
 
 <p>
@@ -210,7 +210,7 @@ proxy has no such method.
 using-declaration and to expand it during <tt>%template</tt> instantiation.
 </p>
 
-<H3><a name="CPlusPlus17_class_template_argument_deduction">9.2.6 Class template argument deduction</a></H3>
+<h3 id="CPlusPlus17_class_template_argument_deduction">9.2.6 Class template argument deduction</h3>
 
 
 <p>
@@ -258,7 +258,7 @@ declaration cleanly; earlier versions generated uncompilable wrapper code that n
 template without arguments.
 </p>
 
-<H3><a name="CPlusPlus17_deduction_guides">9.2.7 User-defined deduction guides</a></H3>
+<h3 id="CPlusPlus17_deduction_guides">9.2.7 User-defined deduction guides</h3>
 
 
 <p>
@@ -295,7 +295,7 @@ discards it.  A guide may carry the optional <tt>explicit</tt> specifier, which 
 earlier versions reported a syntax error.
 </p>
 
-<H3><a name="CPlusPlus17_structured_bindings">9.2.8 Structured bindings</a></H3>
+<h3 id="CPlusPlus17_structured_bindings">9.2.8 Structured bindings</h3>
 
 
 <p>
@@ -354,7 +354,7 @@ class scope reaches the parser.
 bindings; earlier versions reported a syntax error.
 </p>
 
-<H3><a name="CPlusPlus17_noexcept_function_type">9.2.9 Exception specification in the function type</a></H3>
+<h3 id="CPlusPlus17_noexcept_function_type">9.2.9 Exception specification in the function type</h3>
 
 
 <p>
@@ -381,7 +381,7 @@ SWIG handles each of these as it handles the same alias without the <tt>noexcept
 specifier in a function type alias written with the alternate function syntax.
 </p>
 
-<H2><a name="CPlusPlus17_standard_library_changes">9.3 Standard library changes</a></H2>
+<h2 id="CPlusPlus17_standard_library_changes">9.3 Standard library changes</h2>
 
 
 </body>
