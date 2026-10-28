@@ -12,6 +12,30 @@
 #error "implement dll loading"
 #endif
 
+class JSCString {
+private:
+  std::string _cppString;
+  JSStringRef _JSString = NULL;
+public:
+  JSCString(const std::string &_string) : _cppString(_string),
+    _JSString(JSStringCreateWithUTF8CString(_string.c_str())) { }
+  JSCString(JSContextRef context, JSValueRef ref) {
+    _JSString = JSValueToStringCopy(context, ref, NULL);
+    size_t numChars = JSStringGetMaximumUTF8CStringSize(_JSString);
+    char *stringUTF8 = new char[numChars];
+    JSStringGetUTF8CString(_JSString, stringUTF8, numChars);
+    _cppString = stringUTF8;
+    delete[] stringUTF8;
+  }
+  ~JSCString() {
+    if (_JSString != NULL)
+        JSStringRelease(_JSString);
+  }
+  JSStringRef JSString() { return _JSString; }
+  const std::string &cppString() const { return _cppString; }
+  const char *cString() const { return _cppString.c_str(); }
+};
+
 class JSCShell: public JSShell {
 
 typedef int (*JSCIntializer)(JSGlobalContextRef context, JSObjectRef *module);
@@ -74,9 +98,8 @@ bool JSCShell::InitializeEngine() {
     std::cerr << "Could not register the shell in the Javascript context" << std::endl;
     return false;
   }
-  JSStringRef shellKey = JSStringCreateWithUTF8CString("__shell__");
-  JSObjectSetProperty(context, globalObject, shellKey, __shell__, kJSPropertyAttributeReadOnly, NULL);
-  JSStringRelease(shellKey);
+  JSCString shellKey("__shell__");
+  JSObjectSetProperty(context, globalObject, shellKey.JSString(), __shell__, kJSPropertyAttributeReadOnly, NULL);
 
   JSCShell::RegisterFunction(context, globalObject, "print", JSCShell::Print);
   JSCShell::RegisterFunction(context, globalObject, "require", JSCShell::Require);
@@ -85,13 +108,10 @@ bool JSCShell::InitializeEngine() {
 }
 
 bool JSCShell::ExecuteScript(const std::string& source, const std::string& scriptPath) {
-  JSStringRef jsScript;
-  JSStringRef sourceURL;
   JSValueRef ex;
-  jsScript = JSStringCreateWithUTF8CString(source.c_str());
-  sourceURL = JSStringCreateWithUTF8CString(scriptPath.c_str());
-  JSValueRef jsResult = JSEvaluateScript(context, jsScript, 0, sourceURL, 0, &ex);
-  JSStringRelease(jsScript);
+  JSCString jsScript(source);
+  JSCString sourceURL(scriptPath);
+  JSValueRef jsResult = JSEvaluateScript(context, jsScript.JSString(), NULL, sourceURL.JSString(), 0, &ex);
   if (jsResult == NULL && ex != NULL) {
       JSCShell::PrintError(context, ex);
       return false;
@@ -110,13 +130,8 @@ JSValueRef JSCShell::Print(JSContextRef context, JSObjectRef object,
                            const JSValueRef args[], JSValueRef* ex) {
   if (argc > 0)
   {
-    JSStringRef string = JSValueToStringCopy(context, args[0], NULL);
-    size_t numChars = JSStringGetMaximumUTF8CStringSize(string);
-    char *stringUTF8 = new char[numChars];
-    JSStringGetUTF8CString(string, stringUTF8, numChars);
-    printf("%s\n", stringUTF8);
-
-    delete[] stringUTF8;
+    JSCString messega(context, args[0]);
+    printf("%s\n", messega.cString());
   }
 
   return JSValueMakeUndefined(context);
@@ -128,33 +143,24 @@ JSValueRef JSCShell::Print(JSContextRef context, JSObjectRef object,
 JSValueRef JSCShell::Require(JSContextRef context, JSObjectRef object,
                            JSObjectRef globalObj, size_t argc,
                            const JSValueRef args[], JSValueRef* ex) {
-  JSObjectRef module;
+  JSObjectRef module = NULL;
 
-  JSStringRef shellKey = JSStringCreateWithUTF8CString("__shell__");
-  JSValueRef shellAsVal = JSObjectGetProperty(context, globalObj, shellKey, NULL);
-  JSStringRelease(shellKey);
+  JSCString shellKey("__shell__");
+  JSValueRef shellAsVal = JSObjectGetProperty(context, globalObj, shellKey.JSString(), NULL);
   JSObjectRef shell = JSValueToObject(context, shellAsVal, 0);
   JSCShell *_this = (JSCShell*) (long) JSObjectGetPrivate(shell);
 
   if (argc > 0)
   {
-    JSStringRef string = JSValueToStringCopy(context, args[0], NULL);
-    size_t numChars = JSStringGetMaximumUTF8CStringSize(string);
-    char *stringUTF8 = new char[numChars];
-    JSStringGetUTF8CString(string, stringUTF8, numChars);
-
-    std::string modulePath(stringUTF8);
-    module = _this->Import(modulePath);
-
-    delete[] stringUTF8;
+    JSCString modulePath(context, args[0]);
+    module = _this->Import(modulePath.cppString());
   }
 
-  if (module) {
-    return module;
-  } else {
+  if (module == NULL) {
     printf("Ooops.\n");
     return JSValueMakeUndefined(context);
   }
+  return module;
 }
 
 JSObjectRef JSCShell::Import(const std::string& module_path) {
@@ -183,49 +189,31 @@ JSObjectRef JSCShell::Import(const std::string& module_path) {
 
 bool JSCShell::RegisterFunction(JSGlobalContextRef context, JSObjectRef object,
                         const char* functionName, JSObjectCallAsFunctionCallback callback) {
-    JSStringRef js_functionName = JSStringCreateWithUTF8CString(functionName);
-    JSObjectSetProperty(context, object, js_functionName,
-                        JSObjectMakeFunctionWithCallback(context, js_functionName, callback),
+    JSCString js_functionName(functionName);
+    JSObjectSetProperty(context, object, js_functionName.JSString(),
+                        JSObjectMakeFunctionWithCallback(context, js_functionName.JSString(), callback),
                         kJSPropertyAttributeNone, NULL);
-    JSStringRelease(js_functionName);
     return true;
 }
 
 void JSCShell::PrintError(JSContextRef ctx, JSValueRef err) {
-  char *buffer;
-  size_t length;
 
-  JSStringRef string = JSValueToStringCopy(ctx, err, 0);
-  length = JSStringGetLength(string);
-  buffer   = new char[length+1];
-  JSStringGetUTF8CString(string, buffer, length+1);
-  std::string errMsg(buffer);
-  JSStringRelease(string);
-  delete[] buffer;
-
+  JSCString errMsg(ctx, err);
   JSObjectRef errObj = JSValueToObject(ctx, err, 0);
 
   if(errObj == 0) {
-    std::cerr << errMsg << std::endl;
+    std::cerr << errMsg.cppString() << std::endl;
     return;
   }
 
-  JSStringRef sourceURLKey = JSStringCreateWithUTF8CString("sourceURL");
-  JSStringRef sourceURLStr = JSValueToStringCopy(ctx, JSObjectGetProperty(ctx, errObj, sourceURLKey, 0), 0);
-  length = JSStringGetLength(sourceURLStr);
-  buffer   = new char[length+1];
-  JSStringGetUTF8CString(sourceURLStr, buffer, length+1);
-  std::string sourceURL(buffer);
-  delete[] buffer;
-  JSStringRelease(sourceURLStr);
-  JSStringRelease(sourceURLKey);
+  JSCString sourceURLKey("sourceURL");
+  JSCString sourceURL(ctx, JSObjectGetProperty(ctx, errObj, sourceURLKey.JSString(), NULL));
 
-  JSStringRef lineKey = JSStringCreateWithUTF8CString("line");
-  JSValueRef jsLine = JSObjectGetProperty(ctx, errObj, lineKey, 0);
+  JSCString lineKey("line");
+  JSValueRef jsLine = JSObjectGetProperty(ctx, errObj, lineKey.JSString(), NULL);
   int line = (int) JSValueToNumber(ctx, jsLine, 0);
-  JSStringRelease(lineKey);
 
-  std::cerr << sourceURL << ':' << line << ':' << errMsg << std::endl;
+  std::cerr << sourceURL.cppString() << ':' << line << ':' << errMsg.cppString() << std::endl;
 }
 
 JSShell* JSCShell_Create() {
