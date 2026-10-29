@@ -289,6 +289,13 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
 
   SWIG_InitializeModule(0);
 
+  /* Each module releases its own runtime statics through its own capsule when it is
+   * garbage collected. The shared capsule destructor only covers the first module loaded. */
+  SWIG_Python_AttachPerModuleCapsule(m, &swig_module);
+  /* Only the first module loaded goes through SWIG_Python_SetModule, so every module must
+   * obtain its own reference to the shared capsule for lifetime pinning of owned objects. */
+  SWIG_Python_RefreshCapsuleGlobal();
+
 #ifdef SWIGPYTHON_BUILTIN
   swigpyobject = SwigPyObject_TypeOnce();
 

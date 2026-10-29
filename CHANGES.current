@@ -736,6 +736,18 @@ Version 4.6.0 (in progress)
             NULL reference error, as in the other target languages, instead of passing a NULL reference to
             the wrapped function.
 
+2026-10-11: jschueller
+            [Python] #2037 #2638 Fix object destruction and memory leaks when
+            several modules share types. Each module now keeps its own
+            reference to the shared capsule, so owned objects created by any
+            module keep the shared type information alive until they are
+            freed, and each module releases its own runtime statics through
+            its own capsule when it is garbage collected. The shared capsule
+            destructor then releases every module's type clientdata once
+            nothing needs it anymore. Previously the 'no destructor found'
+            message could be shown for live objects, and the global variable
+            link object of all but the first module loaded was leaked.
+
 2026-10-11: wsfulton
             [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] SWIG_CATCH_STDEXCEPT now catches
             std::bad_cast and raises SWIG_TypeError, as it already did in the other target languages,
