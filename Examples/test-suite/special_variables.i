@@ -107,6 +107,8 @@ namespace SpaceNamespace {
   struct ABC {
     ABC(int a, double b) {}
     ABC() {}
+    // Before staticmethod, as the Python decorator of a static method after it would name the method instead of the builtin
+    static int (*funcptrmethod(int x))(int, int) { return 0; }
     static short * staticmethod(int x, bool b) { return 0; }
     short * instancemethod(int x, bool b = false) { return 0; }
     short * constmethod(int x) const { return 0; }

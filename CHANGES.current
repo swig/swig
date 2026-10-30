@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            Fix the $fulldecl special variable for a function returning a function pointer, such as:
+
+              struct ABC {
+                static int (*funcptrmethod(int x))(int, int);
+              };
+
+            $fulldecl put the return type in front of the name, giving
+            'int (*)(int,int) ABC::funcptrmethod(int)', and now gives the declaration as it is
+            written in C++, 'int (*ABC::funcptrmethod(int))(int,int)'. The same is fixed for a
+            variable with a function pointer or array type, such as 'int ABC::arr[10]' instead of
+            'int [10] ABC::arr'. There is no longer a space between a pointer or reference return
+            type and the name, so 'short * ABC::method(int)' is now 'short *ABC::method(int)'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-30: wsfulton
             [R] Fix the generated code not compiling for a function with a function pointer
             parameter whose return type is const, such as:
 

@@ -14,13 +14,15 @@ let _ =
   let a = new_ABC '() in
   assert (_declaration '() as string = "SpaceNamespace::ABC::ABC() SpaceNamespace::ABC::ABC()");
   ignore (a -> instancemethod (1));
-  assert (_declaration '() as string = "short * SpaceNamespace::ABC::instancemethod(int) SpaceNamespace::ABC::instancemethod(int)");
+  assert (_declaration '() as string = "short *SpaceNamespace::ABC::instancemethod(int) SpaceNamespace::ABC::instancemethod(int)");
   ignore (a -> instancemethod (1, false));
-  assert (_declaration '() as string = "short * SpaceNamespace::ABC::instancemethod(int,bool) SpaceNamespace::ABC::instancemethod(int,bool)");
+  assert (_declaration '() as string = "short *SpaceNamespace::ABC::instancemethod(int,bool) SpaceNamespace::ABC::instancemethod(int,bool)");
   ignore (a -> constmethod (1));
-  assert (_declaration '() as string = "short * SpaceNamespace::ABC::constmethod(int) const SpaceNamespace::ABC::constmethod(int) const");
+  assert (_declaration '() as string = "short *SpaceNamespace::ABC::constmethod(int) const SpaceNamespace::ABC::constmethod(int) const");
   ignore (_ABC_staticmethod '(0, false));
-  assert (_declaration '() as string = "short * SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)");
+  assert (_declaration '() as string = "short *SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)");
+  ignore (_ABC_funcptrmethod '(0));
+  assert (_declaration '() as string = "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)");
   ignore (a -> "~" ());
   assert (_declaration '() as string = "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
   let abc = new_TemplateABC '() in

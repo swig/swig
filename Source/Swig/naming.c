@@ -1900,6 +1900,7 @@ String *Swig_name_str(Node *n) {
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
  *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
+ *   "MyNameSpace::ABC::funcptrmethod(int)"
  *   "MyNameSpace::ABC::variablename"
  *   "MyNameSpace::ABC::MyClass"
  * ----------------------------------------------------------------------------- */
@@ -1937,10 +1938,12 @@ String *Swig_name_decl(Node *n) {
  *
  * Return a stringified version of a C/C++ declaration including the return type.
  * The node passed in is expected to be a function, constructor or destructor.
- * Some example return values:
+ * The return type is put around the declaration from Swig_name_decl() as in C/C++ code, so that the declaration goes
+ * inside a function pointer return type. Some example return values:
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
- *   "int * MyNameSpace::ABC::constmethod(int) const"
+ *   "int *MyNameSpace::ABC::constmethod(int) const"
+ *   "int (*MyNameSpace::ABC::funcptrmethod(int))(int,int)"
  *
  * ----------------------------------------------------------------------------- */
 
@@ -1953,10 +1956,8 @@ String *Swig_name_fulldecl(Node *n) {
   if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
     fulldecl = decl;
   } else {
-    String *t = SwigType_str(type, 0);
-    fulldecl = NewStringf("%s %s", t, decl);
+    fulldecl = SwigType_str(type, decl);
     Delete(decl);
-    Delete(t);
   }
   return fulldecl;
 }
