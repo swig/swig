@@ -12,6 +12,9 @@ int addf(int x, int y) {
 int subf(int x, int y) {
    return x-y;
 }
+const char *namef(int i) {
+   return i == 1 ? "one" : "many";
+}
 %}
 
 %inline %{
@@ -39,10 +42,26 @@ int (*get_op(int subtract))(int, int) {
     return subtract ? subf : addf;
 }
 
+// Function pointers with a const return type
+typedef const char *(*FnPtr_name_td)(int);
+#if !defined(SWIGR)
+// TODO: Fix R callback assigned to the parameter without a cast
+const char *do_name(int i, const char *(*namer)(int)) {
+    return (*namer)(i);
+}
+#endif
+const char *do_name_typedef(int i, FnPtr_name_td namer) {
+    return (*namer)(i);
+}
+const char *(*get_name_op())(int) {
+    return namef;
+}
+
 struct OpHolder {
     static FnPtr_int_td static_fn;
     FnPtr_int_td member_fn;
-    OpHolder() : member_fn(addf) {}
+    FnPtr_name_td name_fn;
+    OpHolder() : member_fn(addf), name_fn(namef) {}
     FnPtr_int_td get_member_op() const { return member_fn; }
     int (*get_static_op())(int, int) { return static_fn; }
 };

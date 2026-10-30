@@ -22,6 +22,16 @@ Version 4.6.0 (in progress)
             or an enum in its parameters or return type still gives warning 761.
 
 2026-10-30: wsfulton
+            [C] Fix the .h file dropping the const in the return type of a function pointer, so
+            passing a function returning 'const char *' to this function failed to compile:
+
+              void set_namer(const char *(*namer)(int));
+
+            The C function and its C++ wrapper took a 'char *(*)(int)' parameter and now take a
+            'char const *(*)(int)' parameter. The same applies to a function returning such a
+            function pointer and to a member variable of this type.
+
+2026-10-30: wsfulton
             [C] Fix the C++ wrappers in the .h file not using the names of the parameters, except
             the first one, such as 'y' here:
 

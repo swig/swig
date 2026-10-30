@@ -1,5 +1,6 @@
 #include "typedef_funcptr/typedef_funcptr_wrap.h"
 #include <assert.h>
+#include <string.h>
 
 using namespace typedef_funcptr;
 
@@ -9,6 +10,10 @@ static int add(int x, int y) {
 
 static int subtract(int x, int y) {
   return x - y;
+}
+
+static const char *number_name(int i) {
+  return i == 2 ? "two" : "other";
 }
 
 int main(int argc, const char *argv[]) {
@@ -25,6 +30,11 @@ int main(int argc, const char *argv[]) {
   assert(get_op_typedef_int(0)(a, b) == 110);
   assert(get_op(1)(a, b) == 90);
 
+  assert(strcmp(do_name(2, number_name), "two") == 0);
+  assert(strcmp(do_name_typedef(2, number_name), "two") == 0);
+  const char *(*namer)(int) = get_name_op();
+  assert(strcmp(namer(1), "one") == 0);
+
   OpHolder holder;
   const OpHolder &const_holder = holder;
   assert(const_holder.get_member_op()(a, b) == 110);
@@ -33,5 +43,10 @@ int main(int argc, const char *argv[]) {
   assert(const_holder.member_fn()(a, b) == 90);
   OpHolder::static_fn(add);
   assert(OpHolder::static_fn()(a, b) == 110);
+  namer = const_holder.name_fn();
+  assert(strcmp(namer(1), "one") == 0);
+  holder.name_fn(number_name);
+  namer = const_holder.name_fn();
+  assert(strcmp(namer(2), "two") == 0);
   return 0;
 }

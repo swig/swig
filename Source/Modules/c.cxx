@@ -659,10 +659,11 @@ private:
     scoped_dohptr base_resolved_type(SwigType_base(resolved_type));
 
     // A function pointer is passed to and returned from the C function as it is, so it has the type that the C function
-    // is declared with. A class or an enum in this type is not supported, as its name would refer to the C++ wrapper class
-    // or enum in the namespace of the C++ wrappers.
+    // is declared with. Only its top level qualifiers are removed, as those of its return type, such as the 'const' of
+    // 'const char *(*)(int)', are part of this type. A class or an enum in this type is not supported, as its name would
+    // refer to the C++ wrapper class or enum in the namespace of the C++ wrappers.
     if (typeKind == Type_Ptr) {
-      scoped_dohptr stripped_type = adopt(SwigType_strip_qualifiers(resolved_type));
+      scoped_dohptr stripped_type = adopt(SwigType_remove_qualifier(Copy(resolved_type)));
       if (SwigType_isfunctionpointer(stripped_type)) {
         if (uses_class_or_enum(stripped_type)) {
           warn_unsupported_type(type, ptype_desc);
@@ -1718,7 +1719,8 @@ public:
       // function pointer cannot be followed by a '*' or a name, so it is declared in this way in the header file for C++ too.
       if (!CPlusPlus ||
           (current_output == output_wrapper_decl && Strcmp(classnamespecialvariable, "$resolved_type") == 0 && SwigType_isfunctionpointer(classnametype))) {
-        String *const s = SwigType_lstr(classnametype, parm_name);
+        // SwigType_lstr() would also remove the qualifiers of the return type of a function pointer, which are part of its type
+        String *const s = SwigType_isfunctionpointer(classnametype) ? SwigType_str(classnametype, parm_name) : SwigType_lstr(classnametype, parm_name);
         Clear(tm);
         Append(tm, s);
         Delete(s);
@@ -1769,7 +1771,13 @@ public:
 
   bool substituteResolvedType(SwigType *pt, String *tm, String *parm_name = NULL) {
     SwigType *type = SwigType_typedef_resolve_all(pt);
-    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    // The qualifiers of the return type of a function pointer are part of its type, but SwigType_strip_qualifiers() would
+    // remove them too, so only the top level qualifiers are removed from a function pointer
+    SwigType *strippedtype = SwigType_remove_qualifier(Copy(type));
+    if (!SwigType_isfunctionpointer(strippedtype)) {
+      Delete(strippedtype);
+      strippedtype = SwigType_strip_qualifiers(type);
+    }
     bool is_parm_decl = false;
 
     if (Strstr(tm, "$resolved_type")) {
