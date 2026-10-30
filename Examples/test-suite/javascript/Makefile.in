@@ -13,6 +13,7 @@ SO = @SO@
 # is appended after the flags node-gyp adds itself, so the last -O option wins - override with -O2 to compile optimised.
 GYP_OPTFLAGS = -O0
 GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ @NAPI_INCLUDE@ $(GYP_OPTFLAGS)
+QUICKJS = @JSQUICKJSBIN@
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -57,8 +58,12 @@ else
 ifneq (, @JSV8ENABLED@)
     JSENGINE=v8
 else
+ifneq (, @JSQUICKJSENABLED@)
+    JSENGINE=quickjs
+else
     # Shouldn't happen, but avoid empty value if it does.
     JSENGINE=node
+endif
 endif
 endif
 endif
@@ -80,7 +85,7 @@ SWIGOPT += -$(JSENGINE)
 
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   SWIGOPT += -DBUILDING_NODE_EXTENSION=1
-  
+
   # shut up some warnings
 
   # dunno... ignoring generously
@@ -111,7 +116,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
 		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g;' \
 			$(srcdir)/node_template/index.js.in > $*/index.js
-		
+
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
 		$(setup_node) && \
