@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            [C] Fix the C++ wrappers not compiling when the name of a struct or class is a part of
+            'const' or 'volatile', such as 's' here:
+
+              typedef struct s {...} S;
+              int get_x(const S *p);
+
+            The C++ wrapper class name S replaced every 's' in the parameter type, giving
+            'S conSt *p'. Now only the type name is replaced, as in 'S const *p'.
+
+2026-10-30: wsfulton
             [C] #3180 Fix the C++ wrappers leaving out a function, a method or a member variable with a
             function pointer parameter or return type, such as:
 

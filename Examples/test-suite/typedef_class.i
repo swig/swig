@@ -29,4 +29,11 @@ public:
   int *aa_method(double d) { return 0; }
   static int *aa_static_method(bool b) { return 0; }
 } BB;
+
+// The C++ wrappers of the C target language gave 'S conSt *' for 'const S *'
+typedef struct s {
+  int s_var;
+} S;
+
+int get_s_var(const S *p) { return p->s_var; }
 %} 

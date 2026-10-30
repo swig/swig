@@ -758,10 +758,12 @@ private:
         case Type_Ptr:
           // If this is a pointer passed by const reference, we return just the pointer directly because we don't have any pointer-valued variable to give out
           // a reference to.
-          if (strncmp(Char(resolved_type), "r.q(const).", 11) == 0) {
-            scoped_dohptr deref_type(Copy(resolved_type));
-            Delslice(deref_type, 0, 11);
-            typestr = SwigType_str(deref_type, 0);
+          if (SwigType_isreference(resolved_type)) {
+            scoped_dohptr deref_type = adopt(SwigType_del_reference(Copy(resolved_type)));
+            if (SwigType_isconst(deref_type)) {
+              SwigType_del_qualifier(deref_type);
+              resolved_type = deref_type.release();
+            }
           }
           break;
 
@@ -778,18 +780,13 @@ private:
           break;
         }
 
-        if (!typestr)
-          typestr = SwigType_str(resolved_type, 0);
-
         classname = Getattr(class_node, "sym:name");
 
         // We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
         // class name, which is not.
-        scoped_dohptr basetype(SwigType_base(resolved_type));
-        scoped_dohptr basetypestr(SwigType_str(basetype, 0));
-        if (Cmp(basetypestr, classname) != 0) {
-          Replaceall(typestr, basetypestr, classname);
-        }
+        scoped_dohptr cxx_type = adopt(SwigType_prefix(resolved_type));
+        Append(cxx_type, classname);
+        typestr = SwigType_str(cxx_type, 0);
       } else {
         classname = NULL;
       }
