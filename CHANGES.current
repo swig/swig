@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            [C] Fix the C++ wrapper of a member function declared 'const volatile', which was not a
+            const method, so it could not be called on a const C++ wrapper object. For example:
+
+              struct S {
+                int cv() const volatile;
+              };
+
+            gave 'int cv();' in the C++ wrapper class S and now gives:
+
+              int cv() const;
+
+2026-10-30: wsfulton
             [OCaml] Fix a director method returning a function pointer, a member function pointer or
             a pointer to an array failing to compile, as the type was passed to CAMLreturnT(), as in
             'CAMLreturnT(int (*)(int,int), ...)'. A typedef of such a type is now passed instead.

@@ -1432,10 +1432,10 @@ private:
     return Checkattr(n, "storage", "virtual") ? "virtual " : "";
   }
 
-  // Return " const" if this is a const function, empty string otherwise.
+  // Return " const" for a const or const volatile function, empty string otherwise. The C++ wrapper itself is never
+  // volatile, as the swig_self() function it calls is not.
   static const char *get_const_suffix(Node *n) {
-    String *const qualifier = Getattr(n, "qualifier");
-    return qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0 ? " const" : "";
+    return SwigType_isconst(Getattr(n, "qualifier")) ? " const" : "";
   }
 
   cxx_wrappers &cxx_wrappers_;
