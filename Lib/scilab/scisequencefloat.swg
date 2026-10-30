@@ -36,7 +36,8 @@ SWIGINTERN int
 SWIG_AsGet_Sequence_dec(float)(SwigSciObject obj, float **pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
-  return (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFuncName()));
+  int iAllocated;
+  return (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, &iAllocated, SWIG_Scilab_GetFuncName()));
 }
 }
 
@@ -48,7 +49,9 @@ SWIG_AsSize_Sequence_dec(float)(SwigSciObject obj, int *piSize) {
   float *pdblMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
-  if (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
+  int iAllocated;
+  if (SWIG_SciDouble_AsFloatArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, &iAllocated, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
+    if (iAllocated) free(pdblMatrix);
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
       Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A float vector is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
       return SWIG_ERROR;

@@ -36,7 +36,8 @@ SWIGINTERN int
 SWIG_AsGet_Sequence_dec(double)(SwigSciObject obj, double **pSequence) {
   int iMatrixRowCount;
   int iMatrixColCount;
-  return (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, SWIG_Scilab_GetFuncName()));
+  int iAllocated;
+  return (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, pSequence, &iAllocated, SWIG_Scilab_GetFuncName()));
 }
 }
 
@@ -48,12 +49,15 @@ SWIG_AsSize_Sequence_dec(double)(SwigSciObject obj, int *piSize) {
   double *pdblMatrix;
   int iMatrixRowCount;
   int iMatrixColCount;
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
+  int iAllocated;
+  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, obj, &iMatrixRowCount, &iMatrixColCount, &pdblMatrix, &iAllocated, SWIG_Scilab_GetFuncName()) == SWIG_OK) {
     if ((iMatrixRowCount > 1) && (iMatrixColCount > 1)) {
       Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong size for input argument #%d: A double vector is expected.\n"), SWIG_Scilab_GetFuncName(), obj);
+      if (iAllocated) free(pdblMatrix);
       return SWIG_ERROR;
     }
     *piSize = iMatrixRowCount * iMatrixColCount;
+    if (iAllocated) free(pdblMatrix);
     return SWIG_OK;
   }
   return SWIG_ERROR;

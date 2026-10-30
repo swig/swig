@@ -104,7 +104,7 @@ SWIG_SciDouble_FromUnsignedShort(void *pvApiCtx, int iVarOut, unsigned short usV
  */
 %fragment("SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned short **pusValue, char *fname) {
+SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, unsigned short **pusValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -134,9 +134,10 @@ SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int
     }
 
     size = (*iRows) * (*iCols);
-    *pusValue = (unsigned short*) malloc(size * sizeof(int*));
+    *pusValue = (unsigned short*) malloc(size * sizeof(unsigned short));
     for (i = 0; i < size; i++)
       (*pusValue)[i] = (unsigned short) pdData[i];
+    *piAllocated = 1;
   }
   else if (iType == sci_ints) {
     sciErr = getMatrixOfIntegerPrecision(pvApiCtx, piAddrVar, &iPrec);
@@ -155,6 +156,7 @@ SWIG_SciDoubleOrUint16_AsUnsignedShortArrayAndSize(void *pvApiCtx, int iVar, int
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+    *piAllocated = 0;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit unsigned integer or a double vector expected.\n"), fname, iVar);
