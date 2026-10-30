@@ -134,10 +134,11 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
  * Swig_method_decl()
  *
  * Return a stringified version of a C/C++ declaration.
+ * The declarator, the id followed by the parameters and qualifiers, goes inside the return type, as in
+ * 'int (*id(int x) const)(int,int)' for a method returning a function pointer.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args) {
-  String *result = NewString("");
   bool conversion_operator = Strstr(id, "operator ") != 0 && !return_base_type;
 
   Parm *parm = args;
@@ -155,36 +156,23 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
 
   String *rettype = Copy(decl);
   String *quals = SwigType_pop_function_qualifiers(rettype);
-  String *qualifiers = 0;
-  if (quals)
-    qualifiers = SwigType_str(quals, 0);
-
   String *popped_decl = SwigType_pop_function(rettype);
   if (return_base_type)
     Append(rettype, return_base_type);
 
-  if (!conversion_operator) {
-    SwigType *rettype_stripped = SwigType_strip_qualifiers(rettype);
-    String *rtype = SwigType_str(rettype, 0);
-    Append(result, rtype);
-    if ((SwigType_issimple(rettype_stripped) && return_base_type) || SwigType_isqualifier(rettype))
-      Append(result, " ");
-    Delete(rtype);
-    Delete(rettype_stripped);
+  String *args_string = default_args ? ParmList_str_defaultargs(args) : ParmList_str(args);
+  String *declarator = NewStringf("%s(%s)", id, args_string);
+  if (quals) {
+    String *qualifiers = SwigType_str(quals, 0);
+    Printv(declarator, " ", qualifiers, NIL);
+    Delete(qualifiers);
   }
 
-  if (id)
-    Append(result, id);
+  String *result = conversion_operator ? Copy(declarator) : SwigType_str(rettype, declarator);
 
-  String *args_string = default_args ? ParmList_str_defaultargs(args) : ParmList_str(args);
-  Printv(result, "(", args_string, ")", NIL);
-
-  if (qualifiers)
-    Printv(result, " ", qualifiers, NIL);
-
+  Delete(declarator);
   Delete(args_string);
   Delete(popped_decl);
-  Delete(qualifiers);
   Delete(quals);
   Delete(rettype);
   return result;

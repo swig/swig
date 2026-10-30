@@ -7,6 +7,28 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-30: wsfulton
+            [OCaml] Fix a director method returning a function pointer, a member function pointer or
+            a pointer to an array failing to compile, as the type was passed to CAMLreturnT(), as in
+            'CAMLreturnT(int (*)(int,int), ...)'. A typedef of such a type is now passed instead.
+
+2026-10-30: wsfulton
+            [Perl, Python, Ruby] Fix the wrapper of a director method returning a function pointer
+            failing to compile, as it released the ownership of the function pointer as if it were
+            a pointer to an object.
+
+2026-10-30: wsfulton
+            Fix a director method returning a function pointer failing to compile, such as:
+
+              %feature("director") FuncPtrClass;
+              class FuncPtrClass {
+              public:
+                virtual int (*getFuncPtr(int which))(int, int);
+              };
+
+            The director class declared the method as 'int (*)(int,int)getFuncPtr(int which)' and
+            now declares it as 'int (*getFuncPtr(int which))(int,int)'.
+
 2026-10-28: wsfulton
             Fix the CMake build on macOS using the PCRE2 header from one install and the PCRE2
             library from another. With PCRE2 installed by Homebrew, the build compiled against the

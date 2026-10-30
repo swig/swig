@@ -1424,6 +1424,34 @@ public:
    */
 
   /* ---------------------------------------------------------------
+   * camlreturn_type()
+   *
+   * Return the type t to use in 'CAMLreturnT(type, result)', which declares a variable as 'type caml__temp_result'.
+   * That is not valid for a type written around the variable name, such as the function pointer 'int (*)(int,int)',
+   * so a typedef for such a type is added to code and the typedef name is returned instead.
+   * --------------------------------------------------------------- */
+
+  String *camlreturn_type(SwigType *t, String *code) {
+    bool around_name = false;
+    List *elements = SwigType_split(t);
+    for (Iterator it = First(elements); it.item; it = Next(it)) {
+      if (SwigType_isfunction(it.item) || SwigType_isarray(it.item)) {
+        around_name = true;
+      }
+    }
+    Delete(elements);
+
+    if (!around_name) {
+      return SwigType_str(t, 0);
+    }
+    String *typedef_name = NewString("swig_return_type");
+    String *typedef_decl = SwigType_str(t, typedef_name);
+    Printf(code, "typedef %s;\n", typedef_decl);
+    Delete(typedef_decl);
+    return typedef_name;
+  }
+
+  /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
    * Emit a virtual director method to pass a method call on to the
@@ -1532,10 +1560,13 @@ public:
     if (ignored_method) {
       if (!pure_virtual) {
         String *super_call = Swig_method_call(super, l);
-        if (is_void)
+        if (is_void) {
           Printf(w->code, "%s;\n", super_call);
-        else
-          Printf(w->code, "CAMLreturnT(%s, %s);\n", SwigType_str(returntype, 0), super_call);
+        } else {
+          String *rettype = camlreturn_type(returntype, w->code);
+          Printf(w->code, "CAMLreturnT(%s, %s);\n", rettype, super_call);
+          Delete(rettype);
+        }
         Delete(super_call);
       } else {
         Printf(w->code,
@@ -1728,7 +1759,7 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-        String *rettype = SwigType_str(returntype, 0);
+        String *rettype = camlreturn_type(returntype, w->code);
         if (!SwigType_isreference(returntype)) {
           Printf(w->code, "CAMLreturnT(%s, (%s)c_result);\n", rettype, rettype);
         } else {

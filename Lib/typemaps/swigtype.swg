@@ -662,6 +662,9 @@
     %dirout_fail(swig_res,"$type");
   }
 }
+
+/* A function pointer is not owned, so it is not released as the SWIGTYPE * directorfree typemap does */
+%typemap(directorfree) SWIGTYPE ((*)(ANY)) ""
 #endif
 
 %apply SWIGTYPE ((*)(ANY)) { SWIGTYPE ((* const)(ANY)) }

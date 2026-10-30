@@ -6,6 +6,7 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) MyClass::pmethod;
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) ConstPtrClass::getConstPtr;
+%warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) FuncPtrClass::getFuncPtr;
 
  %{
  #include <string>
@@ -188,6 +189,20 @@ class ConstPtrClass {
 public:
   virtual ~ConstPtrClass() {}
   virtual int *const getConstPtr() = 0;
+};
+
+ %}
+
+ %feature("director") FuncPtrClass;
+
+ %inline %{
+
+int funcPtrAdd(int a, int b) { return a + b; }
+
+class FuncPtrClass {
+public:
+  virtual ~FuncPtrClass() {}
+  virtual int (*getFuncPtr(int which))(int, int) { return funcPtrAdd; }
 };
 
  %}
