@@ -8,6 +8,23 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            Fix the wrong operator->() being called for a const volatile method accessed through a
+            smart pointer class that has both a const and a non-const operator->(), such as get()
+            here:
+
+              struct Foo {
+                int get() const volatile;
+              };
+              struct FooPtr {
+                Foo *operator->();
+                const Foo *operator->() const;
+              };
+
+            The wrapper for get() through FooPtr called the non-const operator->(). It now calls
+            the const operator->(), as it already did for a const method. The same goes for a const
+            volatile method added to Foo with %extend.
+
+2026-10-30: wsfulton
             Fix the $fulldecl special variable for a function returning a function pointer, such as:
 
               struct ABC {

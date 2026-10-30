@@ -37,6 +37,8 @@ struct Foo {
    int access1;
    Foo() : x1(0), xp(&x1), y(0), yp(&y), access1(0) { }
    int getx1() const { return x1; }
+   int getx1cv() const volatile { return x1; }
+   int getx1v() volatile { return x1; }
    void setx1(int x_) { x1 = x_; }
    static void statMethod() {}
 };
@@ -44,6 +46,7 @@ struct Foo {
 
 %extend Foo {
    int getx2() const { return self->x1; }
+   int getx2cv() const volatile { return self->x1; }
    void setx2(int x_) { self->x1 = x_; }
 };
 

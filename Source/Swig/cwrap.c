@@ -972,6 +972,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   Parm *p;
   String *self = 0;
   int is_smart_pointer_overload = 0;
+  int is_smart_pointer_const = 0;
   String *qualifier = Getattr(n, "qualifier");
   String *directorScope = NewString(nspace);
 
@@ -980,9 +981,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
     if (flags & CWRAP_SMART_POINTER_OVERLOAD) {
-      if (qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0) {
+      if (SwigType_isconst(qualifier)) {
         self = NewString("(*(this))->");
         is_smart_pointer_overload = 1;
+        is_smart_pointer_const = 1;
       } else if (Swig_storage_isstatic(n)) {
         String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
         String *ctname = SwigType_namestr(cname);
@@ -1005,7 +1007,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   parms = CopyParmList(nonvoid_parms(Getattr(n, "parms")));
 
   type = NewString(classname);
-  if (qualifier) {
+  if (is_smart_pointer_const) {
+    /* Make the smart pointer just const to call its const operator->(), as neither can be called on a volatile one */
+    SwigType_add_qualifier(type, "const");
+  } else if (qualifier) {
     SwigType_push(type, qualifier);
   }
   SwigType_add_pointer(type);
