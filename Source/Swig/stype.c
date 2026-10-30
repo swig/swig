@@ -545,9 +545,10 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   int nelements, i;
 
   if (id) {
-    /* Stringify the id expanding templates, for example when the id is a fully qualified class template name */
+    /* Stringify the id expanding templates, for example when the id is a fully qualified class template name. The id is
+     * not split into type elements as the declarator 'f(int x)' would otherwise lose its name 'f' as a function element. */
     String *id_str = NewString(id); /* unfortunate copy due to current const limitations */
-    result = SwigType_str(id_str, 0);
+    result = SwigType_namestr(id_str);
     Delete(id_str);
   } else {
     result = NewStringEmpty();
