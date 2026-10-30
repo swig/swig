@@ -1929,8 +1929,13 @@ int R::functionWrapper(Node *n) {
       }
 
       Printf(f->code, "%s\n", tm);
-      if (funcptr_name)
-        Printf(f->code, "} else {\n%s = %s;\nR_SWIG_pushCallbackFunctionData(%s, NULL);\n}\n", lname, funcptr_name, name);
+      if (funcptr_name) {
+        /* The local variable's type from SwigType_lstr() drops the qualifiers of the function pointer's return type, such
+           as the const in 'const char *(*)(int)', but the callback stub keeps them, so cast the stub to the local type. */
+        String *lstr = SwigType_lstr(tt, 0);
+        Printf(f->code, "} else {\n%s = (%s) %s;\nR_SWIG_pushCallbackFunctionData(%s, NULL);\n}\n", lname, lstr, funcptr_name, name);
+        Delete(lstr);
+      }
       Printv(f->def, inFirstArg ? "" : ", ", "SEXP ", name, NIL);
       if (Len(name) != 0)
         inFirstArg = false;

@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            [R] Fix the generated code not compiling for a function with a function pointer
+            parameter whose return type is const, such as:
+
+              const char *do_name(int i, const char *(*namer)(int));
+
+            The C++ compiler gave an invalid conversion error, as the code that calls an R
+            function passed as the callback returned 'const char *' while the parameter was held
+            in a variable whose function pointer type returned 'char *'. The wrapper now compiles
+            and an R function or a C function pointer can be passed for the parameter.
+
+2026-10-30: wsfulton
             [C] Fix the generated code not compiling for a method with a volatile and a const
             volatile overload with the same parameters, such as:
 

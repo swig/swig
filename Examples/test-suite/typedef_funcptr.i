@@ -44,12 +44,9 @@ int (*get_op(int subtract))(int, int) {
 
 // Function pointers with a const return type
 typedef const char *(*FnPtr_name_td)(int);
-#if !defined(SWIGR)
-// TODO: Fix R callback assigned to the parameter without a cast
 const char *do_name(int i, const char *(*namer)(int)) {
     return (*namer)(i);
 }
-#endif
 const char *do_name_typedef(int i, FnPtr_name_td namer) {
     return (*namer)(i);
 }
