@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            [C] Fix the C++ wrappers in the .h file not using the names of the parameters, except
+            the first one, such as 'y' here:
+
+              int add(int x, int y);
+
+            The C++ wrappers now use the parameter names of the wrapped function.
+
+2026-10-30: wsfulton
             [C] Fix the C++ wrapper of a member function declared 'const volatile', which was not a
             const method, so it could not be called on a const C++ wrapper object. For example:
 
