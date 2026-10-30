@@ -2562,13 +2562,16 @@ public:
             first_param = nextSibling(first_param);
 
             // A special case of overloading on const/non-const "this" pointer only, we still need to distinguish between those.
-            if (SwigType_isconst(Getattr(n, "decl"))) {
-              const char *const nonconst = Char(Getattr(n, "decl")) + 9 /* strlen("q(const).") */;
+            SwigType *const decl = Getattr(n, "decl");
+            if (SwigType_isconst(decl)) {
               for (Node *nover = Getattr(n, "sym:overloaded"); nover; nover = Getattr(nover, "sym:nextSibling")) {
-                if (nover == n)
+                SwigType *const over_decl = Getattr(nover, "decl");
+                if (nover == n || !over_decl || SwigType_isconst(over_decl))
                   continue;
 
-                if (Cmp(Getattr(nover, "decl"), nonconst) == 0) {
+                // The non-const overload, which is volatile if this one is, has the decl of this one once 'const' is added to it.
+                scoped_dohptr const_decl = adopt(SwigType_add_qualifier(Copy(over_decl), "const"));
+                if (Equal(const_decl, decl)) {
                   // We have an overload differing by const only, disambiguate.
                   Append(name, "_const");
                   break;

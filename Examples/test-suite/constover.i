@@ -8,6 +8,8 @@
 %rename(test_pconstm) test(const char *) const;
 %rename(test_cvm) test(char *) const volatile;
 
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) FooVolatileOverloaded::overloaded;
+
 %inline %{
 
 char *test(char *x) {
@@ -43,6 +45,18 @@ char *test(const char *x) {
    }
    char *test(char *x) const volatile {
      return (char *) "test_cvmethod";
+   }
+ };
+
+ // The C target language gave both overloads the same name
+ class FooVolatileOverloaded {
+ public:
+   FooVolatileOverloaded() { }
+   char *overloaded(char *x) volatile {
+     return (char *) "overloaded_volatilemethod";
+   }
+   char *overloaded(char *x) const volatile {
+     return (char *) "overloaded_cvmethod";
    }
  };
 

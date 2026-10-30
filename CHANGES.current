@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            [C] Fix the generated code not compiling for a method with a volatile and a const
+            volatile overload with the same parameters, such as:
+
+              struct V {
+                int f(int) volatile;
+                int f(int) const volatile;
+              };
+
+            Both overloads were given the same C function name. The const volatile overload now
+            gets the '_const' suffix in its C function name, as a const overload does.
+
+2026-10-30: wsfulton
             [C] Fix the C++ wrappers not compiling when the name of a struct or class is a part of
             'const' or 'volatile', such as 's' here:
 

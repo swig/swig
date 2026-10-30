@@ -6,6 +6,7 @@ int main(int argc, const char *argv[]) {
   char x[] = "test";
   constover_Foo *f;
   constover_FooVolatile *fv;
+  constover_FooVolatileOverloaded *fvo;
 
   assert(strcmp(constover_test(x), "test") == 0);
   assert(strcmp(constover_test_pconst(x), "test_pconst") == 0);
@@ -21,5 +22,10 @@ int main(int argc, const char *argv[]) {
   assert(strcmp(constover_FooVolatile_test(fv, x), "test_volatilemethod") == 0);
   assert(strcmp(constover_FooVolatile_test_cvm(fv, x), "test_cvmethod") == 0);
   constover_FooVolatile_delete(fv);
+
+  fvo = constover_FooVolatileOverloaded_new();
+  assert(strcmp(constover_FooVolatileOverloaded_overloaded_pc(fvo, x), "overloaded_volatilemethod") == 0);
+  assert(strcmp(constover_FooVolatileOverloaded_overloaded_const_pc(fvo, x), "overloaded_cvmethod") == 0);
+  constover_FooVolatileOverloaded_delete(fvo);
   return 0;
 }
