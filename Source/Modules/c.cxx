@@ -251,6 +251,17 @@ Node *find_first_named_import(Node *parent) {
   return NULL;
 }
 
+// Return the declaration of the function with the given return type, which is NULL for a constructor, name and parameters, as a
+// const member function if is_const is true. Each type is either type text, which SwigType_str() outputs as it is, or a SwigType,
+// which SwigType_str() outputs with the declarator inside it for a function pointer, as in 'int (*f(int x))(int,int)'.
+scoped_dohptr get_func_decl(SwigType *return_type, String *name, ParmList *parms, bool is_const = false) {
+  scoped_dohptr decl = adopt(SwigType_add_function(NewStringEmpty(), parms));
+  if (is_const)
+    SwigType_add_qualifier(decl, "const");
+
+  return scoped_dohptr(Swig_method_decl(return_type, decl, name, parms, 0));
+}
+
 /*
   Information about a type used in the C++ wrappers, common to the function return type and its parameters.
  */
@@ -937,13 +948,7 @@ public:
         if (!cxx_wrappers_.lookup_cxx_parm_type(ptype_desc, n, p))
           return;
 
-        Parm *const parm_cxx = NewParm(ptype_desc.type(), name, p);
-        if (parms_cxx) {
-          ParmList_join(parms_cxx, parm_cxx);
-          Delete(parm_cxx);
-        } else {
-          parms_cxx = parm_cxx;
-        }
+        parms_cxx = ParmList_join(parms_cxx.release(), NewParm(ptype_desc.type(), name, p));
 
         if (Len(parms_call))
           Append(parms_call, ", ");
@@ -1005,12 +1010,8 @@ public:
   // Return the declaration of the wrapper with the given name, which may be qualified by the class name, and parameters, which are parms_cxx or none, as a
   // const member function if is_const is true. A constructor has no return type.
   scoped_dohptr get_decl(String *name, ParmList *parms, bool is_const = false) const {
-    scoped_dohptr decl = adopt(SwigType_add_function(NewStringEmpty(), parms));
-    if (is_const)
-      SwigType_add_qualifier(decl, "const");
-
     SwigType *const return_type = Checkattr(func_node, "nodeType", "constructor") ? NULL : rtype_desc.type();
-    return scoped_dohptr(Swig_method_decl(return_type, decl, name, parms, 0));
+    return get_func_decl(return_type, name, parms, is_const);
   }
 
   cxx_wrappers &cxx_wrappers_;
@@ -1686,11 +1687,10 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteResolvedTypeSpecialVariable()
    *
-   * Return true if tm is replaced with the declaration of parm_name, the name of a parameter or the name and parameters
-   * of a function.
+   * Return true if tm is replaced with a SwigType rather than with C type text, see substituteResolvedType().
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, String *parm_name) {
+  bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
     scoped_dohptr btype(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
       Node *const enum_node = enumLookup(btype);
@@ -1716,12 +1716,11 @@ public:
       // function pointer cannot be followed by a '*' or a name, so it is declared in this way in the header file for C++ too.
       if (!CPlusPlus ||
           (current_output == output_wrapper_decl && Strcmp(classnamespecialvariable, "$resolved_type") == 0 && SwigType_isfunctionpointer(classnametype))) {
-        // SwigType_lstr() would also remove the qualifiers of the return type of a function pointer, which are part of its type
-        String *const s = SwigType_isfunctionpointer(classnametype) ? SwigType_str(classnametype, parm_name) : SwigType_lstr(classnametype, parm_name);
+        // SwigType_ltype() would also remove the qualifiers of the return type of a function pointer, which are part of its type
+        scoped_dohptr ltype = adopt(SwigType_isfunctionpointer(classnametype) ? Copy(classnametype) : SwigType_ltype(classnametype));
         Clear(tm);
-        Append(tm, s);
-        Delete(s);
-        return parm_name != NULL;
+        Append(tm, ltype);
+        return true;
       }
 
       String *typestr = NIL;
@@ -1760,13 +1759,14 @@ public:
    * Inputs:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
-   *   parm_name - name of the parameter of type pt, or name and parameters of the function returning pt, if any
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
-   * Returns true if tm is the declaration of parm_name rather than just its type.
+   * Returns true if tm is replaced with a SwigType, which SwigType_str() outputs with the declarator inside it for a
+   * function pointer, rather than with C type text. This is the original C type when wrapping C and the type of a
+   * function pointer in the header file when wrapping C++.
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedType(SwigType *pt, String *tm, String *parm_name = NULL) {
+  bool substituteResolvedType(SwigType *pt, String *tm) {
     SwigType *type = SwigType_typedef_resolve_all(pt);
     // The qualifiers of the return type of a function pointer are part of its type, but SwigType_strip_qualifiers() would
     // remove them too, so only the top level qualifiers are removed from a function pointer
@@ -1775,34 +1775,34 @@ public:
       Delete(strippedtype);
       strippedtype = SwigType_strip_qualifiers(type);
     }
-    bool is_parm_decl = false;
+    bool is_swigtype = false;
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type", parm_name))
-        is_parm_decl = true;
+      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type"))
+        is_swigtype = true;
       Delete(classnametype);
     }
     if (Strstr(tm, "$*resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-        if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type", parm_name))
-          is_parm_decl = true;
+        if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type"))
+          is_swigtype = true;
       }
       Delete(classnametype);
     }
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type", parm_name))
-        is_parm_decl = true;
+      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type"))
+        is_swigtype = true;
       Delete(classnametype);
     }
 
     Delete(strippedtype);
     Delete(type);
-    return is_parm_decl;
+    return is_swigtype;
   }
 
   /*----------------------------------------------------------------------
@@ -1816,8 +1816,13 @@ public:
     if (cxx_wrappers_.is_initialized() && cxx_wrappers_.replaceSpecialVariables(method, tm, parm))
       return;
 
+    // The typemap that $typemap() expands to is put into the text of another typemap, so it needs C type text
     SwigType *type = Getattr(parm, "type");
-    substituteResolvedType(type, tm);
+    if (substituteResolvedType(type, tm)) {
+      scoped_dohptr ctype = adopt(SwigType_str(tm, 0));
+      Clear(tm);
+      Append(tm, ctype);
+    }
   }
 
   /* ------------------------------------------------------------
@@ -2263,8 +2268,6 @@ public:
     SwigType *return_type = NULL;
     ParmList *parms = Getattr(n, "parms");
     Parm *p;
-    String *proto = NewString("");
-    int gencomma = 0;
     bool is_void_return = (SwigType_type(type) == T_VOID);
 
     // create new function wrapper object
@@ -2291,19 +2294,16 @@ public:
     return_type = SwigType_str(type, 0);
 
     // emit wrapper prototype and code
-    for (p = parms, gencomma = 0; p; p = nextSibling(p)) {
+    scoped_dohptr parms_c;
+    for (p = parms; p; p = nextSibling(p)) {
       scoped_dohptr parm_type(SwigType_decay_array(Getattr(p, "type")));
-      String *parm_decl = SwigType_str(parm_type, Getattr(p, "lname"));
-      Printv(proto, gencomma ? ", " : "", parm_decl, NIL);
-      Delete(parm_decl);
-      gencomma = 1;
+      parms_c = ParmList_join(parms_c.release(), NewParm(parm_type, Getattr(p, "lname"), p));
     }
 
     // the name goes inside the declaration, as for a function returning a pointer to an array, which is what the getter
     // of an array variable returns, as in 'int (*name(void))[3]'
     scoped_dohptr def_type(SwigType_decay_array(type));
-    scoped_dohptr decl(NewStringf("%s(%s)", wname.get(), proto));
-    Printv(wrapper->def, scoped_dohptr(SwigType_str(def_type, decl)).get(), " {\n", NIL);
+    Printv(wrapper->def, get_func_decl(def_type, wname, parms_c).get(), " {\n", NIL);
 
     // the result variable is assigned to, so it does not have the qualifiers of a const return type
     if (!is_void_return) {
@@ -2367,7 +2367,6 @@ public:
     emit_wrapper_func_decl(n, wname);
 
     // cleanup
-    Delete(proto);
     Delete(return_type);
     DelWrapper(wrapper);
   }
@@ -2388,41 +2387,37 @@ public:
   /* ----------------------------------------------------------------------
    * get_wrapper_func_return_type()
    *
-   * Return the type returned by the wrapper of the function n, or the declaration of decl with this return type if decl,
-   * the name and parameters of the wrapper, is given, as in 'int (*name(void))(int,int)' for a function pointer.
+   * Return the type returned by the wrapper of the function n, which is C type text or a SwigType, see substituteResolvedType().
    * ---------------------------------------------------------------------- */
-  scoped_dohptr get_wrapper_func_return_type(Node *n, String *decl = NULL) {
+  scoped_dohptr get_wrapper_func_return_type(Node *n) {
     SwigType *type = Getattr(n, "type");
     String *return_type;
 
     if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
-      if (substituteResolvedType(type, return_type, decl))
-        decl = NULL;
+      substituteResolvedType(type, return_type);
     } else {
       Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
       return_type = NewString("");
     }
 
     Replaceall(return_type, "::", "_");
-    if (decl)
-      Printv(return_type, " ", decl, NIL);
 
     return scoped_dohptr(return_type);
   }
 
   /* ----------------------------------------------------------------------
-   * get_wrapper_func_proto()
+   * get_wrapper_func_parms()
    *
-   * Return the function signature, i.e. the comma-separated list of argument types and names surrounded by parentheses.
+   * Return the parameters of the wrapper of the function n with the C types and names used for them, none after an error.
+   * Each type is C type text or a SwigType, see substituteResolvedType().
    * If a non-null wrapper is specified, it is used to emit typemap-defined code in it and it also determines whether we're generating the prototype for the
    * declarations or the definitions, which changes the type used for the C++ objects.
    * ---------------------------------------------------------------------- */
-  scoped_dohptr get_wrapper_func_proto(Node *n, Wrapper *wrapper = NULL) {
+  scoped_dohptr get_wrapper_func_parms(Node *n, Wrapper *wrapper = NULL) {
     ParmList *parms = Getattr(n, "parms");
 
     Parm *p;
-    String *proto = NewString("(");
-    int gencomma = 0;
+    scoped_dohptr parms_c;
 
     // attach the standard typemaps, except when wrapping C, as the 'in' typemaps are then not used
     if (wrapper) {
@@ -2439,7 +2434,7 @@ public:
       Swig_typemap_attach_parms("ctype", parms, 0);
 
     // prepare function definition
-    for (p = parms, gencomma = 0; p;) {
+    for (p = parms; p;) {
       String *tm;
       SwigType *type = NULL;
 
@@ -2467,7 +2462,6 @@ public:
       String *lname = Getattr(p, "lname");
       String *c_parm_type = 0;
       String *arg_name = NewString("");
-      bool is_parm_decl = false;
 
       Printf(arg_name, "c%s", lname);
 
@@ -2480,11 +2474,11 @@ public:
       }
       if (tm) {  // set the appropriate type for parameter
         c_parm_type = Copy(tm);
-        is_parm_decl = substituteResolvedType(type, c_parm_type, arg_name);
+        bool const is_swigtype = substituteResolvedType(type, c_parm_type);
 
         // We prefer to keep typedefs in the wrapper functions signatures as it makes them more readable, but we can't do it for nested typedefs as
-        // they're not valid in C, so resolve them in this case.
-        if (!is_parm_decl && strstr(Char(c_parm_type), "::")) {
+        // they're not valid in C, so resolve them in this case. A SwigType from substituteResolvedType() is already resolved.
+        if (!is_swigtype && strstr(Char(c_parm_type), "::")) {
           SwigType *const tdtype = SwigType_typedef_resolve_all(c_parm_type);
           Delete(c_parm_type);
           c_parm_type = tdtype;
@@ -2494,14 +2488,11 @@ public:
         Replaceall(c_parm_type, "$tt", SwigType_lstr(type, 0));
       } else {
         Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
+        // the parameter is declared without a type, an invalid declaration, as a parameter needs a type
+        c_parm_type = NewStringEmpty();
       }
 
-      if (is_parm_decl) {
-        Printv(proto, gencomma ? ", " : "", c_parm_type, NIL);
-      } else {
-        Printv(proto, gencomma ? ", " : "", c_parm_type, " ", arg_name, NIL);
-      }
-      gencomma = 1;
+      parms_c = ParmList_join(parms_c.release(), NewParm(c_parm_type, arg_name, p));
 
       // apply typemaps for input parameter, except when wrapping C
       if (!CPlusPlus) {
@@ -2523,8 +2514,7 @@ public:
       Delete(c_parm_type);
     }
 
-    Printv(proto, ")", NIL);
-    return scoped_dohptr(proto);
+    return parms_c;
   }
 
   /* ----------------------------------------------------------------------
@@ -2537,8 +2527,9 @@ public:
     current_output = output_wrapper_decl;
 
     // add function declaration to the proxy header file
-    scoped_dohptr decl(NewStringf("%s%s", wname, get_wrapper_func_proto(n).get()));
-    Printv(sect_wrappers_decl, "SWIGIMPORT ", get_wrapper_func_return_type(n, decl).get(), ";\n\n", NIL);
+    scoped_dohptr parms_c = get_wrapper_func_parms(n);
+    scoped_dohptr return_type = get_wrapper_func_return_type(n);
+    Printv(sect_wrappers_decl, "SWIGIMPORT ", get_func_decl(return_type, wname, parms_c).get(), ";\n\n", NIL);
   }
 
   void functionWrapperCPPSpecific(Node *n) {
@@ -2627,10 +2618,8 @@ public:
     }
 
     // create wrapper function prototype
-    Printv(wrapper->def, "SWIGEXPORTC ", return_type.get(), " ", wname.get(), NIL);
-
-    Printv(wrapper->def, get_wrapper_func_proto(n, wrapper).get(), NIL);
-    Printv(wrapper->def, " {", NIL);
+    scoped_dohptr parms_c = get_wrapper_func_parms(n, wrapper);
+    Printv(wrapper->def, "SWIGEXPORTC ", get_func_decl(return_type, wname, parms_c).get(), " {", NIL);
 
     // emit variables for holding parameters
     emit_parameter_variables(parms, wrapper);
