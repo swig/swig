@@ -3653,6 +3653,27 @@ static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms
   declarator_add_function(decl, drop_explicit_object_parameter(parms, &decl->explicit_object_type), qualifiers->qualifier);
 }
 
+/* Whether the qualifiers after a declarator of the type 'type' are those of the declared function, as for the 'const' in
+     int f(int) const;
+   They follow the last parameter list, so they are those of the last function type in 'type', which is not that of the
+   declared function when there is another, as for the member function pointed to in:
+     int (C::*f())(int) const;
+   nor when the declarator does not declare a function, as for a variable or typedef of a member function pointer.  A type
+   without a function type has no qualifiers to give to one, so they are left with the declaration. */
+static int declarator_qualifiers_are_own(SwigType *type) {
+  List *elements = SwigType_split(type);
+  int functions = 0;
+  int own;
+  Iterator element;
+  for (element = First(elements); element.item; element = Next(element)) {
+    if (SwigType_isfunction(element.item))
+      functions++;
+  }
+  own = functions == 0 || (functions == 1 && SwigType_isfunction(Getitem(elements, 0)));
+  Delete(elements);
+  return own;
+}
+
 /* Use the qualifiers kept in the declarator decl by declarator_add_qualified_function() as the trailing qualifiers
    cpp_const of the declaration, so that the declarations of f and g here get the same refqualifier attribute:
      typedef int (*IntFuncPtr)(int);
@@ -3661,9 +3682,10 @@ static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms
    The type of the declarator has the qualifiers already, so they are only used for checks and attributes like this.
    The qualifiers and exception specification kept in decl are those of the declared function, so they are used in
    place of any after the declarator, which are those of the function pointed to, as for the second 'const' in:
-     int (C::*f() const)(int) const; */
+     int (C::*f() const)(int) const;
+   The declared function has no qualifiers when decl has none and those after the declarator are not its own. */
 static void use_declarator_qualifiers(struct Define *cpp_const, const struct Decl *decl) {
-  if (decl->qualifier) {
+  if (decl->qualifier || !declarator_qualifiers_are_own(decl->type)) {
     cpp_const->qualifier = decl->qualifier;
     cpp_const->refqualifier = decl->refqualifier;
   }

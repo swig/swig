@@ -56,6 +56,7 @@ check::equal(40.0, member_pointer_const::do_op_td($s, $perim_pt), "Square perim"
 $getter = new MemberPointerGetter();
 check::equal(100.0, member_pointer_const::do_op($s, $getter->getAreaPt()), "Square area");
 check::equal(100.0, member_pointer_const::do_op($s, $getter->getConstAreaPt()), "Square area");
+check::equal(100.0, member_pointer_const::do_op($s, MemberPointerGetter::getStaticAreaPt()), "Square area");
 
 # Member pointers to a namespaced class
 $adder = new Adder();

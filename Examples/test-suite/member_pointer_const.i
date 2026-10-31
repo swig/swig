@@ -154,7 +154,14 @@ struct MemberPointerGetter {
   double (Shape::*getAreaPt() const)(void) const { return &Shape::area; }
   double (Shape::* const getConstAreaPt() const)(void) const { return &Shape::area; }
   int * (Funktions::*getAddByPointer() const)(const int &, int) const { return &Funktions::addByPointer; }
+  /* Static, as the 'const' is that of the member function pointed to */
+  static double (Shape::*getStaticAreaPt())(void) const { return &Shape::area; }
+  static double (Shape::*staticAreaVar)(void) const;
 };
+%}
+
+%{
+double (Shape::*MemberPointerGetter::staticAreaVar)(void) const = &Shape::area;
 %}
 
 %{

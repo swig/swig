@@ -56,6 +56,7 @@ public class member_pointer_const_runme {
     MemberPointerGetter getter = new MemberPointerGetter();
     check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getAreaPt()) );
     check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getConstAreaPt()) );
+    check( "Square area ", 100.0, member_pointer_const.do_op(s,MemberPointerGetter.getStaticAreaPt()) );
 
     // Member pointers to a namespaced class
     Adder adder = new Adder();

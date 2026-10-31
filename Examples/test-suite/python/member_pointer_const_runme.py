@@ -50,6 +50,7 @@ check("Square perim", 40.0, do_op_td(s, perim_pt));
 getter = MemberPointerGetter()
 check("Square area ", 100.0, do_op(s, getter.getAreaPt()))
 check("Square area ", 100.0, do_op(s, getter.getConstAreaPt()))
+check("Square area ", 100.0, do_op(s, MemberPointerGetter.getStaticAreaPt()))
 
 # Member pointers to a namespaced class
 adder = Adder()

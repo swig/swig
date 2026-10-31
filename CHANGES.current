@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix the false error 'Static function f() cannot have a qualifier' for a static member
+            function or variable whose type is a pointer to a const member function of a class C:
+
+              struct C {
+                static int (C::*f())(int) const;
+                static int (C::*v)(int) const;
+              };
+
+            The const is that of the member function pointed to, not that of f or v.
+
+2026-10-31: wsfulton
             #2087 Fix the wrappers for a parameter of a noexcept function pointer type, such as g:
 
               void f(int (*g)(int) noexcept);

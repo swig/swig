@@ -40,6 +40,7 @@ check("Square perim", 40, v.do_op_td(s, perim_pt))
 local getter = v.MemberPointerGetter()
 check("Square area ", 100, v.do_op(s, getter:getAreaPt()))
 check("Square area ", 100, v.do_op(s, getter:getConstAreaPt()))
+check("Square area ", 100, v.do_op(s, v.MemberPointerGetter.getStaticAreaPt()))
 
 -- Member pointers to a namespaced class
 local adder = v.Adder()
