@@ -30,5 +30,8 @@ int main(int argc, const char *argv[]) {
 
   h(Hola);
   assert(*hcp() == Hola);
+  assert(*hcpr() == Hola);
+  assign_hp(hcpr());
+  assert(hp() == hcp());
   return 0;
 }

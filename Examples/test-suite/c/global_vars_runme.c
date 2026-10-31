@@ -43,6 +43,9 @@ int main(int argc, const char *argv[])
 
     global_vars_h_set(global_vars_Hola);
     assert(*global_vars_hcp_get() == global_vars_Hola);
+    assert(*global_vars_hcpr_get() == global_vars_Hola);
+    global_vars_assign_hp(global_vars_hcpr_get());
+    assert(global_vars_hp_get() == global_vars_hcp_get());
 
     return 0;
 }

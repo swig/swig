@@ -36,6 +36,7 @@
   Hello &hr = h;
   Hello *const hcp = &h;
   A *const &acpr = acp;
+  Hello *const &hcpr = hcp;
 
   void init() {
     b = "string b";
@@ -47,6 +48,8 @@
   void clear_xp() { xp = 0; }
 
   void assign_ap(A *const p) { ap = p; }
+
+  void assign_hp(Hello *const &p) { hp = p; }
 
   std::string read_b() { return b; }
 %}

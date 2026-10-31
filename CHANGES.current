@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the C++ wrappers of a pointer to an enum passed or returned by const reference
+            taking and returning a reference to the enum instead of the pointer, for example:
+
+              enum E { A, B };
+              void set(E *const &p);
+              E *const &get();
+
+2026-10-31: wsfulton
             [C] Fix a pointer to a class passed or returned by const reference using the wrong
             pointer, which could crash, given a class Foo, in:
 

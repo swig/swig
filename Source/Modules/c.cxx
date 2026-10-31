@@ -836,9 +836,11 @@ private:
         typestr = NewString("int");
       }
 
-      if (SwigType_ispointer(type))
+      // A pointer passed by const reference is passed and returned as just the pointer, as for a class below
+      scoped_dohptr passed_type = adopt(typeKind == Type_Ptr ? SwigType_remove_qualifier_reference(Copy(type)) : Copy(type));
+      if (SwigType_ispointer(passed_type))
         Append(typestr, " *");
-      else if (SwigType_isreference(type))
+      else if (SwigType_isreference(passed_type))
         Append(typestr, " &");
 
       if (enumname) {
