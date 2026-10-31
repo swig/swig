@@ -95,3 +95,17 @@ struct NoExceptFuncPtrReturn {
 extern "C" void f2087a(int (*g)() noexcept) { (void)g; }
 extern "C" void f2087b(int const (*g)() noexcept) { (void)g; }
 %}
+
+// noexcept on the type of the function pointed to, not on the declared function
+%inline %{
+int noexceptAddTwo(int i) noexcept { return i + 2; }
+int noexceptCallIntFunc(int (*f)(int), int i) { return f(i); }
+int (*noexceptGetAddTwo())(int) noexcept { return noexceptAddTwo; }
+extern "C" int noexceptCallNoExceptFunc(int (*f)(int) noexcept, int i) { return f(i); }
+struct NoExceptFuncPtrMember {
+  int (*ptr)(int) noexcept;
+  NoExceptFuncPtrMember() : ptr(noexceptAddTwo) {}
+};
+std::string (*noexceptGetAddOne() noexcept)(int) { return noexceptAddOne; }
+std::string (*(*noexceptGetGetter())() noexcept)(int) { return noexceptGetAddOne; }
+%}

@@ -1921,51 +1921,61 @@ static void mark_nodes_as_extend(Node *n) {
 /* -----------------------------------------------------------------------------
  * add_qualifier_to_declarator()
  *
- * Normally the qualifier is pushed on to the front of the type.
- * Adding a qualifier to a pointer to member function is a special case.
- * For example       : typedef double (Cls::*pmf)(void) const;
+ * The qualifier after a declarator belongs to the function type whose parameter list it follows, which is the last
+ * function type in the declarator's type.  It is the declared function's, as for the 'f(void).' of
+ *   double f(void) const;
+ * or that of the function pointed to by a pointer to member function, for example:
+ *   typedef double (Cls::*pmf)(void) const;
  * The qualifier is  : q(const).
  * The declarator is : m(Cls).f(void).
  * We need           : m(Cls).q(const).f(void).
+ * The qualifier is pushed on to the front of a type without a function type.
  * ----------------------------------------------------------------------------- */
 
 static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) {
-  int is_pointer_to_member_function = 0;
-  String *decl = Copy(type);
-  String *poppedtype = NewString("");
+  List *elements = SwigType_split(type);
+  int last_function = -1;
+  int i;
+  String *decl;
   assert(qualifier);
 
-  while (decl) {
-    if (SwigType_ismemberpointer(decl)) {
-      String *memberptr = SwigType_pop(decl);
-      if (SwigType_isfunction(decl)) {
-	is_pointer_to_member_function = 1;
-	SwigType_push(decl, qualifier);
-	SwigType_push(decl, memberptr);
-	Insert(decl, 0, poppedtype);
-	Delete(memberptr);
-	break;
-      } else {
-	Append(poppedtype, memberptr);
-      }
-      Delete(memberptr);
-    } else {
-      String *popped = SwigType_pop(decl);
-      if (!popped)
-	break;
-      Append(poppedtype, popped);
-      Delete(popped);
-    }
+  for (i = 0; i < Len(elements); i++) {
+    if (SwigType_isfunction(Getitem(elements, i)))
+      last_function = i;
   }
-
-  if (!is_pointer_to_member_function) {
-    Delete(decl);
+  if (last_function < 0) {
     decl = Copy(type);
     SwigType_push(decl, qualifier);
+  } else {
+    decl = NewStringEmpty();
+    for (i = 0; i < Len(elements); i++) {
+      if (i == last_function)
+        Append(decl, qualifier);
+      Append(decl, Getitem(elements, i));
+    }
   }
-
-  Delete(poppedtype);
+  Delete(elements);
   return decl;
+}
+
+/* Return the qualifiers of a function type, a cv-qualifier and ref-qualifier such as 'r.q(const).' or 0 for none, with
+   'noexcept' added for its noexcept-specifier, nexcept, which is 0 for none, 'true' or the expression in parentheses.  It
+   goes with the cv-qualifiers, which follow any ref-qualifier, as in 'r.q(const noexcept).'.  A 'noexcept(false)' adds
+   nothing. */
+static SwigType *add_noexcept_qualifier(SwigType *qualifier, String *nexcept) {
+  SwigType *qualifiers;
+  String *refqualifier = 0;
+  if (!nexcept || Equal(nexcept, "false"))
+    return qualifier;
+  qualifiers = qualifier ? Copy(qualifier) : NewStringEmpty();
+  if (SwigType_isanyreference(qualifiers))
+    refqualifier = SwigType_pop(qualifiers);
+  SwigType_add_qualifier(qualifiers, "noexcept");
+  if (refqualifier) {
+    SwigType_push(qualifiers, refqualifier);
+    Delete(refqualifier);
+  }
+  return qualifiers;
 }
 
 %}
@@ -3640,17 +3650,20 @@ static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type
    decl, as for the member function f in the parentheses of this declaration of f returning a pointer to a function:
      int (*f() const)(int);
    When the function is the one declared, rather than what decl declares a pointer to, the qualifiers and the
-   exception specification in qualifiers are also kept in decl for use_declarator_qualifiers().  Otherwise the
-   exception specification is dropped, as the type of the function pointed to does not keep one. */
+   exception specification in qualifiers are also kept in decl for use_declarator_qualifiers().  Otherwise a 'noexcept'
+   is part of the type of the function pointed to, which does not keep a 'throw' exception specification. */
 static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms, const struct Define *qualifiers) {
+  SwigType *qualifier = qualifiers->qualifier;
   if (!decl->type || Len(decl->type) == 0) {
     decl->qualifier = qualifiers->qualifier;
     decl->refqualifier = qualifiers->refqualifier;
     decl->throws = qualifiers->throws;
     decl->throwf = qualifiers->throwf;
     decl->nexcept = qualifiers->nexcept;
+  } else {
+    qualifier = add_noexcept_qualifier(qualifier, qualifiers->nexcept);
   }
-  declarator_add_function(decl, drop_explicit_object_parameter(parms, &decl->explicit_object_type), qualifiers->qualifier);
+  declarator_add_function(decl, drop_explicit_object_parameter(parms, &decl->explicit_object_type), qualifier);
 }
 
 /* Whether the qualifiers after a declarator of the type 'type' are those of the declared function, as for the 'const' in
@@ -3672,6 +3685,22 @@ static int declarator_qualifiers_are_own(SwigType *type) {
   own = functions == 0 || (functions == 1 && SwigType_isfunction(Getitem(elements, 0)));
   Delete(elements);
   return own;
+}
+
+/* Return the type of the declarator decl with the qualifiers cpp_const after it added, see add_qualifier_to_declarator().
+   When they are not the declared function's, a 'noexcept' is part of the function type that they belong to, as for
+   the function pointed to in:
+     int (*f())(int) noexcept;
+   and the exception specification is taken out of cpp_const, as it is not that of the declared function.  A 'throw' exception specification is dropped. */
+static SwigType *qualified_declarator_type(const struct Decl *decl, struct Define *cpp_const) {
+  SwigType *qualifier = cpp_const->qualifier;
+  if (!declarator_qualifiers_are_own(decl->type)) {
+    qualifier = add_noexcept_qualifier(qualifier, cpp_const->nexcept);
+    cpp_const->throws = 0;
+    cpp_const->throwf = 0;
+    cpp_const->nexcept = 0;
+  }
+  return qualifier ? add_qualifier_to_declarator(decl->type, qualifier) : decl->type;
 }
 
 /* Use the qualifiers kept in the declarator decl by declarator_add_qualified_function() as the trailing qualifiers
@@ -5227,11 +5256,10 @@ c_declaration   : c_decl {
    ------------------------------------------------------------ */
 
 c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
-	      String *decl = $declarator.type;
+	      String *decl;
               check_parameter_only_array(&$declarator);
               $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier)
-	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+              decl = qualified_declarator_type(&$declarator, &$cpp_const);
               use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
 	      Setattr($$,"type",$type);
@@ -5318,10 +5346,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
-	      String *decl = $declarator.type;
+	      String *decl = qualified_declarator_type(&$declarator, &$cpp_const);
 	      $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier)
-	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
               use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
 	      Setattr($$, "type", $type);
@@ -8296,12 +8322,7 @@ parameter_declarator : declarator def_args {
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
             | direct_declarator LPAREN fn_parms RPAREN qualifiers_exception_specification {
-              SwigType *qualifier = $qualifiers_exception_specification.qualifier;
-              if ($qualifiers_exception_specification.nexcept) {
-                if (!qualifier)
-                  qualifier = NewStringEmpty();
-                SwigType_add_qualifier(qualifier, "noexcept");
-              }
+              SwigType *qualifier = add_noexcept_qualifier($qualifiers_exception_specification.qualifier, $qualifiers_exception_specification.nexcept);
               reject_explicit_object_parameter($fn_parms);
               $$ = $direct_declarator;
               declarator_add_function(&$$, $fn_parms, qualifier);

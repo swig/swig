@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            #2087 Fix a noexcept after the declarator of a function returning a function pointer or
+            of a function pointer variable, which belongs to the function pointed to:
+
+              int (*f())(int) noexcept;
+              struct S {
+                int (*v)(int) noexcept;
+              };
+
+            It was taken to be that of f, which is not noexcept, and the wrapper for setting v did
+            not compile. The pointer that f returns can still be passed for a parameter of type
+            'int (*)(int)'. A noexcept inside the parentheses for the function pointed to was
+            dropped, such as for g in:
+
+              int (*(*g)() noexcept)(int);
+
+2026-10-31: wsfulton
             Fix the false error 'Static function f() cannot have a qualifier' for a static member
             function or variable whose type is a pointer to a const member function of a class C:
 
