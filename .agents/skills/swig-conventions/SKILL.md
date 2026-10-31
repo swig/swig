@@ -26,24 +26,32 @@ Format config: `Source/.clang-format` (Google style, 160 column limit).
 
 ## Comment style
 
-In source code comments under `Source/` and `Lib/`, prefer single quotes (`'`) or double quotes (`"`) when quoting a token, identifier, keyword or short type such as `'char [*]'`. Do not use backticks (`` ` ``) - they are a Markdown convention and have no meaning in C/C++ comments. For example, write `'requires' keyword`, not the backtick wrapped form.
+In source code comments under `Source/` and `Lib/`, prefer single quotes (`'`) or double quotes (`"`) when quoting a
+token, keyword, short type or other code such as `'char [*]'`. Do not use backticks (`` ` ``) - they are a Markdown
+convention and have no meaning in C/C++ comments. For example, write `'requires' keyword`, not the backtick wrapped
+form.
+
+Do not quote the name of a variable, parameter, struct member or function in the code being described. Write it as it
+is, as in `Returns the function type, t, constructed from the parameters, parms` in typeobj.c, and write a function
+with its parentheses, as in `SwigType_str()`. A name too short to read on its own in a comment, such as a one-letter
+parameter, is better renamed, for example `d` to `decl`, than quoted.
 
 Do not put a code statement, declaration or a series of code examples inline in a comment's prose, quoted or not. Show the code as an indented block instead, one statement or example per line without quotes, indented two spaces further than the comment's text, and continue the prose on the next line. This:
 
 ```c
 /* A function declared again with the same type, which C allows, can give the size of a C99 variable length array
-   parameter that the first declaration 'c', the one that is wrapped, does not.  For example:
+   parameter that the first declaration c, the one that is wrapped, does not.  For example:
      void f(int, int a[*]);
      void f(int n, int a[n]);
-   Keep the size from the later declaration 'n' for a typemap written with '[*]'. */
+   Keep the size n from the later declaration for a typemap written with '[*]'. */
 ```
 
 not this:
 
 ```c
 /* A function declared again with the same type, which C allows, can give the size of a C99 variable length array
-   parameter that the first declaration 'c', the one that is wrapped, does not.  For example, 'void f(int, int a[*]);'
-   followed by 'void f(int n, int a[n]);'.  Keep the size from the later declaration 'n' for a typemap written with
+   parameter that the first declaration c, the one that is wrapped, does not.  For example, 'void f(int, int a[*]);'
+   followed by 'void f(int n, int a[n]);'.  Keep the size n from the later declaration for a typemap written with
    '[*]'. */
 ```
 
