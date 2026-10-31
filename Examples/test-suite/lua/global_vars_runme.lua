@@ -11,6 +11,10 @@ a1 = gv.A()
 a1.x = 11
 gv.a = a1
 assert(gv.a.x == 11)
+assert(gv.acvp.x == 11)
+
+gv.avp = a1
+assert(gv.avp.x == 11)
 
 gv.x = 10
 assert(gv.x == 10)

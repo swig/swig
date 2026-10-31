@@ -11,6 +11,13 @@ check::classname('A', $an);
 ap_set($an);
 check::classname('A', ap_get());
 check::equivalent(ap_get(), $an, "global var assignment");
+avp_set($an);
+check::classname('A', avp_get());
+check::equivalent(avp_get(), $an, "volatile pointer global var assignment");
+
+a_get()->x = 7;
+check::classname('A', acvp_get());
+check::equal(acvp_get()->x, 7, "const volatile pointer global var");
 
 x_set(17);
 check::equal(x_get(), 17, "global var assignment");

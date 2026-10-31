@@ -28,4 +28,11 @@ unittest(d$mutable_var, 85)
 unittest(grepl("read only", error_message(function() d$specific_immutable_var <- 86)), TRUE)
 unittest(d$specific_immutable_var, 41)
 
+p <- PointerVars(v)
+unittest(p$volatile_ptr_var$mutable_var, 80)
+p$volatile_ptr_var <- d
+unittest(p$volatile_ptr_var$mutable_var, 85)
+unittest(grepl("read only", error_message(function() p$const_volatile_ptr_var <- v)), TRUE)
+unittest(p$const_volatile_ptr_var$const_var, 42)
+
 q(save="no")

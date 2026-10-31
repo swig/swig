@@ -79,7 +79,7 @@
 
 %typemap(out)    SWIGTYPE    =  SWIGTYPE INSTANCE;
 %typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
-%typemap(out)    SWIGTYPE *const  =  SWIGTYPE *;
+%typemap(out)    SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile  =  SWIGTYPE *;
 %typemap(out)    SWIGTYPE &  =  SWIGTYPE &INSTANCE;
 %typemap(out)    SWIGTYPE && =  SWIGTYPE &&INSTANCE;
 %typemap(out)    SWIGTYPE [] =  SWIGTYPE INSTANCE[];

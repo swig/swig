@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [Java, Octave, Python, Ruby, Scilab, Tcl]
+            The wrappers of a variable whose type is a pointer with a top level volatile
+            qualifier, such as 'Foo *volatile' or 'Foo *const volatile', did not compile. A
+            function parameter of such a type was wrapped as a pointer to the pointer instead
+            of as a pointer to Foo. Such a pointer is now wrapped the same way as 'Foo *const'.
+
+2026-10-31: wsfulton
+            [C#, D, Go, Guile, Javascript, Lua, OCaml, Perl, PHP, R]
+            A variable or function parameter whose type is a pointer with a top level volatile
+            qualifier, such as 'Foo *volatile' or 'Foo *const volatile', was wrapped as a
+            pointer to the pointer instead of as a pointer to Foo. Such a pointer is now
+            wrapped the same way as 'Foo *const'.
+
+2026-10-31: wsfulton
             Remove a stray space from a const pointer to a function or array with no name in
             warnings and runtime error messages, which was shown as 'int (*const )(int,int)' and
             is now 'int (*const)(int,int)'.

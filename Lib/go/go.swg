@@ -851,7 +851,7 @@
     SWIGTYPE (CLASS::*)
     ""
 
-%apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 %apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }

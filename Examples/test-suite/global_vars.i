@@ -17,11 +17,8 @@
   const A *cap;
   A &ar = a;
   A *const acp = &a;
-#if !defined(SWIGJAVA) && !defined(SWIGOCTAVE) && !defined(SWIGPYTHON) && !defined(SWIGRUBY) && !defined(SWIGSCILAB) && !defined(SWIGTCL)
-  // TODO: fix the generated code not compiling for a volatile pointer variable
   A *volatile avp;
   A *const volatile acvp = &a;
-#endif
 
   int x;
   int *xp;

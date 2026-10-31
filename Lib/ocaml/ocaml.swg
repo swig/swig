@@ -468,7 +468,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 

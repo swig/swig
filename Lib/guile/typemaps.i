@@ -571,8 +571,8 @@ typedef unsigned long SCM;
 %typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

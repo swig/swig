@@ -699,8 +699,8 @@
  " $1 = (Z_TYPE($input) == IS_STRING); "
 %apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

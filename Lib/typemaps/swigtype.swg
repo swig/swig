@@ -694,7 +694,7 @@
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
 }
 
-%apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 
 /* ------------------------------------------------------------
  * --- Special typemaps ---

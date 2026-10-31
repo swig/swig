@@ -115,8 +115,8 @@
   return ret;
 }
 
-// Use the same typemaps for const pointers.
-%apply SWIGTYPE * { SWIGTYPE *const }
+// Use the same typemaps for const and volatile pointers.
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 
 
 /*

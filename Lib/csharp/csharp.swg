@@ -1124,8 +1124,8 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
    $1 = ($1_ltype)temp; %}
 %apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
