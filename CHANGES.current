@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix a g++ -Wextra warning, "type qualifiers ignored on cast result type", in the
+            generated code for a variable or function parameter whose type has a top level
+            volatile qualifier, such as for:
+
+              volatile int vi;
+
+            whose setter did:
+
+              vi = (int volatile )arg1;
+
+            The top level volatile is now left out of the cast, as a top level const already
+            was.
+
+2026-10-31: wsfulton
             [Java] Fix the generated code not compiling for a pointer to a class passed by const
             volatile reference, such as 'Foo *const volatile &', or by const reference to a typedef
             of a const or volatile pointer, such as 'const CFP &' given:

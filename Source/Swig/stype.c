@@ -871,7 +871,8 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
 
   result = NewStringEmpty();
 
-  if (SwigType_isconst(s)) {
+  /* Leave out the top level cv-qualifiers, except for a member pointer: a cast of a value does not need them and g++ warns that they are ignored */
+  if (SwigType_isqualifier(s) || SwigType_isconst(s)) {
     tc = Copy(s);
     Delete(SwigType_pop(tc));
     if (SwigType_ismemberpointer(tc))
