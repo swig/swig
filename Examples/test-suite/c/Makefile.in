@@ -24,11 +24,9 @@ C_TEST_CASES := \
 
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
-    arrays \
     nested \
     nested_extend_c \
     nested_structs \
-    union_parameter \
     unions \
 
 FAILING_CPP_TESTS := \
@@ -44,8 +42,6 @@ FAILING_CPP_TESTS := \
     enum_thorough \
     extend \
     extend_default \
-    extern_c \
-    grouping \
     import_nomodule \
     li_attribute \
     li_attribute_template \
@@ -67,16 +63,13 @@ FAILING_CPP_TESTS := \
     template_template_parameters \
     typedef_array_member \
     typedef_inherit_using \
-    typedef_struct_cpp \
     typemap_namespace \
     typemap_various \
     using_extend \
     using_extend_flatten \
     varargs \
     varargs_overload \
-    virtual_poly \
     cpp11_ref_qualifiers_typemaps \
-    cpp11_result_of \
     cpp11_rvalue_reference2 \
     cpp11_rvalue_reference_array \
     cpp11_template_pack \
