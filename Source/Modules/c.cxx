@@ -283,6 +283,44 @@ SwigType *get_function_cv_qualifier(SwigType *decl) {
   return SwigType_isqualifier(function) ? SwigType_pop(function) : NULL;
 }
 
+// Return the parameter list of the member function with the given decl without its qualifiers, such as 'f(int).' for
+// the decl 'r.q(const).f(int).p.' of 'int *f(int) const &', or NULL if decl is not a function.
+SwigType *get_function_parms_type(SwigType *decl) {
+  if (!SwigType_isfunction(decl))
+    return NULL;
+
+  scoped_dohptr return_type = adopt(Copy(decl));
+  scoped_dohptr function = adopt(SwigType_pop_function(return_type));
+  Delete(SwigType_pop_function_qualifiers(function));
+  return function.release();
+}
+
+// Return true if the cv-qualifier, such as 'q(const volatile).', which may be NULL, has 'volatile'. Adding 'volatile' to
+// such a cv-qualifier gives the same cv-qualifier.
+bool is_volatile_qualifier(SwigType *cv_qualifier) {
+  if (!cv_qualifier)
+    return false;
+
+  scoped_dohptr volatile_qualifier = adopt(SwigType_add_qualifier(Copy(cv_qualifier), "volatile"));
+  return Equal(volatile_qualifier, cv_qualifier);
+}
+
+// The qualifiers of the member function with the given decl, which an overload with the same parameters differs in.
+struct FunctionQualifiers {
+  explicit FunctionQualifiers(SwigType *decl) {
+    scoped_dohptr cv_qualifier = adopt(get_function_cv_qualifier(decl));
+    is_const = SwigType_isconst(cv_qualifier);
+    is_volatile = is_volatile_qualifier(cv_qualifier);
+
+    // The decl of a function starts with its ref-qualifier.
+    is_rvalue = SwigType_isfunction(decl) && SwigType_isrvalue_reference(decl);
+  }
+
+  bool is_const;
+  bool is_volatile;
+  bool is_rvalue;
+};
+
 /*
   Information about a type used in the C++ wrappers, common to the function return type and its parameters.
  */
@@ -2471,6 +2509,58 @@ public:
   }
 
   /* ----------------------------------------------------------------------
+   * functionWrapperAppendQualifiers()
+   *
+   * Appends to name, the C name of the overloaded member function n, a suffix distinguishing it from its overloads with
+   * the same parameters, which differ from n only in their qualifiers. The suffix has '_const', '_volatile' and
+   * '_rvalue', in this order, for each of the 'const', 'volatile' and '&&' qualifiers of n that one of these overloads
+   * does not have. So each combination of the qualifiers gets a different name. For example, these overloads get the
+   * suffixes '', '_const' and '_volatile':
+   *   int f(int);
+   *   int f(int) const;
+   *   int f(int) volatile;
+   * A qualifier that all of them have adds nothing, so these overloads get the suffixes '' and '_const':
+   *   int g(int) volatile;
+   *   int g(int) const volatile;
+   * ---------------------------------------------------------------------- */
+
+  void functionWrapperAppendQualifiers(String *name, Node *n) {
+    SwigType *const decl = Getattr(n, "decl");
+    scoped_dohptr parms_type = adopt(get_function_parms_type(decl));
+    if (!parms_type)
+      return;
+
+    FunctionQualifiers const qualifiers(decl);
+    bool add_const = false;
+    bool add_volatile = false;
+    bool add_rvalue = false;
+    for (Node *nover = Getattr(n, "sym:overloaded"); nover; nover = Getattr(nover, "sym:nextSibling")) {
+      if (nover == n)
+        continue;
+
+      SwigType *const over_decl = Getattr(nover, "decl");
+      scoped_dohptr over_parms_type = adopt(get_function_parms_type(over_decl));
+      if (!Equal(over_parms_type, parms_type))
+        continue;
+
+      FunctionQualifiers const over_qualifiers(over_decl);
+      if (qualifiers.is_const && !over_qualifiers.is_const)
+        add_const = true;
+      if (qualifiers.is_volatile && !over_qualifiers.is_volatile)
+        add_volatile = true;
+      if (qualifiers.is_rvalue && !over_qualifiers.is_rvalue)
+        add_rvalue = true;
+    }
+
+    if (add_const)
+      Append(name, "_const");
+    if (add_volatile)
+      Append(name, "_volatile");
+    if (add_rvalue)
+      Append(name, "_rvalue");
+  }
+
+  /* ----------------------------------------------------------------------
    * get_wrapper_func_return_type()
    *
    * Return the type returned by the wrapper of the function n, which is C type text or a SwigType, see substituteResolvedType().
@@ -2638,23 +2728,8 @@ public:
           if (!Checkattr(n, "nodeType", "constructor") && Checkattr(n, "ismember", "1") && !Getattr(n, "cplus:staticbase")) {
             first_param = nextSibling(first_param);
 
-            // A special case of overloading on const/non-const "this" pointer only, we still need to distinguish between those.
-            SwigType *const decl = Getattr(n, "decl");
-            if (SwigType_isconst(decl)) {
-              for (Node *nover = Getattr(n, "sym:overloaded"); nover; nover = Getattr(nover, "sym:nextSibling")) {
-                SwigType *const over_decl = Getattr(nover, "decl");
-                if (nover == n || !over_decl || SwigType_isconst(over_decl))
-                  continue;
-
-                // The non-const overload, which is volatile if this one is, has the decl of this one once 'const' is added to it.
-                scoped_dohptr const_decl = adopt(SwigType_add_qualifier(Copy(over_decl), "const"));
-                if (Equal(const_decl, decl)) {
-                  // We have an overload differing by const only, disambiguate.
-                  Append(name, "_const");
-                  break;
-                }
-              }
-            }
+            // A special case of overloading on the qualifiers of "this" only, we still need to distinguish between those.
+            functionWrapperAppendQualifiers(name, n);
           }
 
           functionWrapperAppendOverloaded(name, first_param);

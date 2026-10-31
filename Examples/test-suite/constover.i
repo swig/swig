@@ -9,6 +9,9 @@
 %rename(test_cvm) test(char *) const volatile;
 
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) FooVolatileOverloaded::overloaded;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) FooQualifiersOverloaded::v;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) FooQualifiersOverloaded::cv;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) FooQualifiersOverloaded::vc;
 
 %inline %{
 
@@ -57,6 +60,30 @@ char *test(const char *x) {
    }
    char *overloaded(char *x) const volatile {
      return (char *) "overloaded_cvmethod";
+   }
+ };
+
+ // The C target language gave the overloads of each pair the same name
+ class FooQualifiersOverloaded {
+ public:
+   FooQualifiersOverloaded() { }
+   char *v(char *x) {
+     return (char *) "v_method";
+   }
+   char *v(char *x) volatile {
+     return (char *) "v_volatilemethod";
+   }
+   char *cv(char *x) {
+     return (char *) "cv_method";
+   }
+   char *cv(char *x) const volatile {
+     return (char *) "cv_cvmethod";
+   }
+   char *vc(char *x) volatile {
+     return (char *) "vc_volatilemethod";
+   }
+   char *vc(char *x) const {
+     return (char *) "vc_constmethod";
    }
  };
 

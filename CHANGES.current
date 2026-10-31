@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the generated code not compiling for the overloads of a member function that
+            differ only in their qualifiers, unless one is just the const overload of the other.
+            For example:
+
+              struct S {
+                int g(int);
+                int g(int) volatile;
+                int h(int);
+                int h(int) const volatile;
+              };
+
+            The overloads of each pair were given the same C function name. An overload now gets
+            the '_const', '_volatile' and '_rvalue' suffixes in its C function name for each of
+            its 'const', 'volatile' and '&&' qualifiers that another overload with the same
+            parameters does not have. So the second overloads of g and h are now S_g_volatile_i
+            and S_h_const_volatile_i.
+
+2026-10-31: wsfulton
             [C] Fix the C++ wrapper of a member function with both a cv-qualifier and a
             ref-qualifier, which was not a const method, so it could not be called on a const C++
             wrapper object. For example:

@@ -145,6 +145,21 @@ struct ConversionOperators2 {
 };
 %}
 
+// Overloads differing only in their qualifiers, which the C target language gave the same name
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) QualifierOverloads::r;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) QualifierOverloads::rc;
+%feature("ignore", "0") QualifierOverloads::r(int i) &&;
+%feature("ignore", "0") QualifierOverloads::rc(int i) const &&;
+
+%inline %{
+struct QualifierOverloads {
+  int r(int i) & { return i + 1; }
+  int r(int i) && { return i + 2; }
+  int rc(int i) & { return i + 3; }
+  int rc(int i) const && { return i + 4; }
+};
+%}
+
 // Default arguments: the overloads added for the defaulted parameters keep the method's qualifiers
 %feature("except") DefaultArgs::vol(int a = 1, int b = 2) volatile %{ result = 100; %}
 %feature("except") DefaultArgs::lref(int a = 1, int b = 2) & %{ result = 200; %}
