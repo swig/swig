@@ -8,6 +8,23 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [OCaml] Fix a compile error in a director class template with more than one template
+            parameter and an ignored virtual method, such as ignored() here:
+
+              %feature("director") Base;
+              %ignore Base::ignored;
+              template <typename X, typename Y> class Base {
+              public:
+                virtual int ignored() { return 1; }
+                virtual ~Base() {}
+              };
+              %template(BaseII) Base<int, int>;
+
+            The call to the base class method was passed to the CAMLreturnT macro, which took the
+            comma in 'Base< int,int >' as a separator between its arguments. The call is now in
+            parentheses.
+
+2026-10-31: wsfulton
             [OCaml] Fix a parameter that is a const reference to a member pointer, such as m in:
 
               struct Shape {

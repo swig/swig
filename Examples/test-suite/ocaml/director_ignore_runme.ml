@@ -16,3 +16,8 @@ let _DAbstractIgnoresDerived ob meth args =
 
 let a = new_derived_object new_DAbstractIgnores (_DAbstractIgnoresDerived) '()
 let _ = assert (a -> Quadruple (5) as int = 20)
+
+let _DTemplateTwoParmsIgnoresDerived ob meth args = (invoke ob) meth args
+
+let a = new_derived_object new_DTemplateTwoParmsIgnoresIntDouble (_DTemplateTwoParmsIgnoresDerived) '()
+let _ = assert (a -> Quadruple (5) as int = 20)

@@ -83,9 +83,20 @@ template <typename T> class DTemplateAbstractIgnores
     virtual double OverloadedProtectedMethod(int n, int xoffset = 0, int yoffset = 0) = 0;
     virtual double OverloadedProtectedMethod() = 0;
 };
+
+template <typename T, typename U> class DTemplateTwoParmsIgnores
+{
+  public:
+    virtual ~DTemplateTwoParmsIgnores() {}
+    virtual int Quadruple(int n) { return n*4; }
+    virtual int& References(int& n) { static int nn; nn=n; return nn; }
+    virtual int* Pointers(int* n) { static int nn; nn=*n; return &nn; }
+    virtual double PublicMethod1() { return 0.0; }
+};
 %}
 
 %template(DTemplateAbstractIgnoresInt) DTemplateAbstractIgnores<int>;
+%template(DTemplateTwoParmsIgnoresIntDouble) DTemplateTwoParmsIgnores<int, double>;
 
 class DIgnoreConstructor
 {

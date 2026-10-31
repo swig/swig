@@ -1565,7 +1565,8 @@ public:
           Printf(w->code, "%s;\n", super_call);
         } else {
           String *rettype = camlreturn_type(returntype, w->code);
-          Printf(w->code, "CAMLreturnT(%s, %s);\n", rettype, super_call);
+          /* The parentheses keep a comma in a template name in super_call, such as 'Base< int,int >::f()', in one macro argument */
+          Printf(w->code, "CAMLreturnT(%s, (%s));\n", rettype, super_call);
           Delete(rettype);
         }
         Delete(super_call);
