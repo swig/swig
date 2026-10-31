@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the members of a struct declared in the .h file when wrapping C code losing
+            their pointer, array or function pointer declarators, for example for:
+
+              struct Members {
+                int *ip;
+                int (*fp)(int);
+                int arr[4];
+              };
+
+            The .h file declared 'int ip; int fp; int arr;', so the struct had a different layout
+            from the one the wrappers were compiled with. A function pointer returning void gave
+            'void fptr;', which did not compile. The members are now declared as in the original
+            struct.
+
+2026-10-31: wsfulton
             [C] Fix the .h file declaring a struct passed or returned by value as a pointer to it
             when wrapping C code, for example for:
 

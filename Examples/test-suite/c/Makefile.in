@@ -27,7 +27,6 @@ FAILING_C_TESTS := \
     nested \
     nested_extend_c \
     nested_structs \
-    typedef_struct \
     union_parameter \
     unions \
 

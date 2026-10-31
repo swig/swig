@@ -2309,7 +2309,7 @@ public:
     // can't do it when using a global namespace prefix neither.
     if (!ns_prefix && !scoped_dohptr(Swig_scopename_prefix(Getattr(n, "name")))) {
       // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
-      if (String *const var_decl = make_c_var_decl(n)) {
+      if (String *const var_decl = make_c_var_decl(n, Getattr(n, "type"), false)) {
         Printv(sect_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
         Delete(var_decl);
         return SWIG_OK;
@@ -3166,18 +3166,19 @@ public:
   /* ---------------------------------------------------------------------
    * make_c_var_decl()
    *
-   * Return the C declaration for the given node of "variable" kind.
+   * Return the C declaration of the variable n, a global variable or a struct member, with the given type, which for a
+   * struct member is given by its "type" and "decl" attributes, see emit_c_struct_def().
    *
    * If the variable has a type not representable in C, returns NULL, the caller must check for this!
    *
    * This function accounts for three special cases:
    *  1. If the type is an anonymous enum, "int" is used instead.
-   *  2. If the type is an array, its bounds are stripped.
+   *  2. If the type of a global variable is an array, its bounds are stripped. A struct member keeps them, as they give
+   *     the size and layout of the struct.
    *  3. A typedef that the header file does not declare is resolved, see resolve_undeclared_typedefs().
    * --------------------------------------------------------------------- */
-  String *make_c_var_decl(Node *n) {
+  String *make_c_var_decl(Node *n, SwigType *type, bool is_struct_member) {
     String *name = Getattr(n, "name");
-    SwigType *type = Getattr(n, "type");
     String *type_str = SwigType_str(type, 0);
     // the type declared, which SwigType_str() gives with the name inside the declaration, as for a function pointer
     SwigType *decl_type = Copy(type);
@@ -3226,7 +3227,7 @@ public:
       }
     }
 
-    if (SwigType_isarray(decl_type)) {
+    if (!is_struct_member && SwigType_isarray(decl_type)) {
       Delete(SwigType_pop_arrays(decl_type));
       SwigType_add_array(decl_type, "");
     }
@@ -3250,13 +3251,14 @@ public:
     for (Node *node = firstChild(n); node; node = nextSibling(node)) {
       String *const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
-        SwigType *t = NewString(Getattr(node, "type"));
-        SwigType_push(t, Getattr(node, "decl"));
-        t = SwigType_typedef_resolve_all(t);
+        // The type of a member is given by its "type" and "decl" attributes, as in 'p.f(int).int' for 'int (*fp)(int)'
+        scoped_dohptr member_type = adopt(NewString(Getattr(node, "type")));
+        SwigType_push(member_type, Getattr(node, "decl"));
+        scoped_dohptr t = adopt(SwigType_typedef_resolve_all(member_type));
         if (SwigType_isfunction(t)) {
           Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number, "Extending C struct with %s is not currently supported, ignored.\n", SwigType_str(t, 0));
         } else {
-          String *const var_decl = make_c_var_decl(node);
+          String *const var_decl = make_c_var_decl(node, member_type, true);
           Printv(out, cindent, var_decl, ";\n", NIL);
           Delete(var_decl);
         }
