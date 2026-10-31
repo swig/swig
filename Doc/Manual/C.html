@@ -339,7 +339,60 @@ accessor functions are named after the variable, see <a href="#C_cxx_wrappers">C
 </p>
 
 <p>
-There is a difference in the semantics of <tt>struct</tt> definition in C and C++. When handling C <tt>struct</tt>, SWIG simply rewrites its declaration. In C++ <tt>struct</tt> is handled as class declaration.
+There is a difference in the semantics of <tt>struct</tt> definition in C and C++. When wrapping C code, SWIG copies
+the declaration of a <tt>struct</tt> or <tt>union</tt> to the generated header, as the wrapper functions use the
+original type. The declaration keeps the <tt>struct</tt> or <tt>union</tt> keyword, the tag and the typedef name of the
+original code, which the <tt>-namespace</tt> option does not change. For example, the declarations:
+</p>
+
+<div class="code"><pre>
+struct Point {
+  int x;
+  int y;
+};
+
+typedef struct Size {
+  int width;
+  int height;
+} Size;
+
+typedef union {
+  int i;
+  double d;
+} Value;
+
+void draw(struct Point *p, Size *s, Value *v);
+</pre></div>
+
+<p>
+are declared in the generated header as:
+</p>
+
+<div class="targetlang"><pre>
+struct Point {
+  int x;
+  int y;
+};
+
+typedef struct Size {
+  int width;
+  int height;
+} Size;
+
+typedef union {
+  int i;
+  double d;
+} Value;
+
+SWIGIMPORT void example_draw(struct Point *carg1,struct Size *carg2,Value *carg3);
+</pre></div>
+
+<p>
+The wrapper function declarations use the tag for a typedef of a <tt>struct</tt> or <tt>union</tt> with a tag, such as
+<tt>struct Size *</tt> for <tt>Size *</tt>, so C code can use either name. A <tt>union</tt> without a tag, such as
+<tt>Value</tt>, only has its typedef name. A typedef that is separate from the declaration, such as
+<tt>typedef struct Point PointRef;</tt>, is not copied to the header and a <tt>PointRef *</tt> parameter is declared as
+<tt>struct Point *</tt>. In C++ <tt>struct</tt> is handled as class declaration.
 </p>
 
 <p>
@@ -368,7 +421,7 @@ In application code:
 </p>
 
 <div class="targetlang"><pre>
-struct my_struct ms;
+my_struct ms;
 ms.x = 123;
 ms.d = 123.123;
 </pre></div>

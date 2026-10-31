@@ -3386,18 +3386,20 @@ public:
 
       return Language::classHandler(n);
     } else {
-      // this is C struct, just declare it in the proxy
+      // this is a C struct or union, declare it in the proxy as in the original code, as the wrappers use the original type
       String *struct_def = NewStringEmpty();
       String *const tdname = Getattr(n, "tdname");
       if (tdname)
-        Append(struct_def, "typedef struct {\n");
-      else
-        Printv(struct_def, "struct ", name, " {\n", NIL);
+        Append(struct_def, "typedef ");
+      Append(struct_def, Getattr(n, "kind"));
+      if (!Getattr(n, "unnamed"))
+        Printv(struct_def, " ", Getattr(n, "name"), NIL);
+      Append(struct_def, " {\n");
       emit_c_struct_def(struct_def, n);
+      Append(struct_def, "}");
       if (tdname)
-        Printv(struct_def, "} ", tdname, ";\n\n", NIL);
-      else
-        Append(struct_def, "};\n\n");
+        Printv(struct_def, " ", tdname, NIL);
+      Append(struct_def, ";\n\n");
 
       Printv(sect_wrappers_types, struct_def, NIL);
       Delete(struct_def);

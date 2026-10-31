@@ -8,6 +8,23 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the declarations of C structs and unions in the generated header when wrapping
+            C code, which did not match the wrapper functions, for example for:
+
+              typedef struct Size { int width; int height; } Size;
+              typedef union Value { int i; double d; } Value;
+              struct Point { int x; int y; };
+              void draw(struct Point *p, Size *s, Value *v);
+
+            The header declared 'typedef struct {...} Size;' without the tag, but the wrapper
+            function with a 'struct Size *' parameter, so C code calling it got an incompatible
+            pointer type error. A union was declared as a struct, so it did not have the layout of
+            the union. With the -namespace option, 'struct Point' was declared as
+            'struct ns_Point'. The header now declares them as in the original code.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [C] Fix the C declarations in the .h file when wrapping C++ code for a pointer to a
             pointer of a builtin type, which had a pointer too many, and for a variable that is an
             array of arrays of unknown size, which was a syntax error, such as:
