@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-10-31: wsfulton
+            [C#, D, Java] A director method returning a function pointer, such as getFuncPtr in:
+
+              class FuncPtrClass {
+              public:
+                virtual int (*getFuncPtr(int which))(int, int);
+              };
+
+            gave Warning 473 "Returning a reference, pointer or pointer wrapper in a director method
+            is not recommended." This warning is about the lifetime of an object returned by pointer
+            or reference. A function pointer does not point to such an object, so the warning is no
+            longer given, as in the other target languages.
+
 2026-10-30: wsfulton
             Fix syntax error for a reference to a function pointer as a parameter, return type or
             variable, for example:

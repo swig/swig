@@ -6,7 +6,6 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE,SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) MyClass::pmethod;
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) ConstPtrClass::getConstPtr;
-%warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) FuncPtrClass::getFuncPtr;
 
  %{
  #include <string>
@@ -203,6 +202,10 @@ class FuncPtrClass {
 public:
   virtual ~FuncPtrClass() {}
   virtual int (*getFuncPtr(int which))(int, int) { return funcPtrAdd; }
+#if !defined(SWIGC)
+  // TODO: Fix the C target language returning a const function pointer as if it were an object
+  virtual int (*const getConstFuncPtr())(int, int) { return funcPtrAdd; }
+#endif
 };
 
  %}

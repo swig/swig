@@ -444,6 +444,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %{ $result = ($1_ltype)$input; %}
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
 %{ $result = ($1_ltype)$input; %}
+/* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
+%typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
+%{ $result = ($1_ltype)$input; %}
 
 %typemap(directorin) SWIGTYPE *
 %{ $input = (void *) $1; %}

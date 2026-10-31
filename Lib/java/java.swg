@@ -719,6 +719,9 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ $result = *($&1_ltype)&$input; %}
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
 %{ $result = *($&1_ltype)&$input; %}
+/* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
+%typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
+%{ $result = *($&1_ltype)&$input; %}
 
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
