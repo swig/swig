@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] When wrapping C code, the generated header now declares a struct or union that SWIG
+            has not seen defined before a wrapper function taking a pointer to it, such as Tree,
+            which is only declared in a %{ %} block, in:
+
+              %{
+              struct Tree;
+              %}
+              void clear_tree_flags(struct Tree *tp, int i);
+
+            The struct was first named in the parameter list of the wrapper function, giving a
+            compiler warning that it is not visible outside it. A pointer to the struct declared
+            by the caller then had an incompatible pointer type for the wrapper function.
+
+2026-10-31: wsfulton
             [C] Fix the declarations of C structs and unions in the generated header when wrapping
             C code, which did not match the wrapper functions, for example for:
 

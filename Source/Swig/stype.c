@@ -274,6 +274,20 @@ int SwigType_isenum(const SwigType *t) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_isclasskey()
+ *
+ * Returns 1 if the type t starts with a class-key as defined by the C++ standard, that is "class", "struct" or "union",
+ * as in 'struct S', otherwise 0.  SwigType_isenum() is the equivalent for an enum.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isclasskey(const SwigType *t) {
+  char *c = Char(t);
+  if (!t)
+    return 0;
+  return (strncmp(c, "struct ", 7) == 0) || (strncmp(c, "union ", 6) == 0) || (strncmp(c, "class ", 6) == 0);
+}
+
 int SwigType_issimple(const SwigType *t) {
   char *c = Char(t);
   if (!t)

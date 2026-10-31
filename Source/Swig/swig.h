@@ -173,6 +173,7 @@ extern int SwigType_ismutable(const SwigType *t);
 extern int SwigType_isvarargs(const SwigType *t);
 extern int SwigType_istemplate(const SwigType *t);
 extern int SwigType_isenum(const SwigType *t);
+extern int SwigType_isclasskey(const SwigType *t);
 extern int SwigType_isauto(const SwigType *t);
 extern int SwigType_isconcept(const SwigType *t);
 extern String *SwigType_concept_name(const SwigType *t);

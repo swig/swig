@@ -1630,6 +1630,9 @@ class C : public Language {
   String *sect_wrappers_types;
   String *sect_wrappers_decl;
 
+  // The structs and unions declared in sect_wrappers_types when wrapping C code because SWIG has not seen them.
+  scoped_dohptr forward_declared_types_;
+
   // This one contains wrapper functions definitions and end up in the output C++ file.
   String *sect_wrappers;
 
@@ -1945,6 +1948,11 @@ public:
         scoped_dohptr c_enumname = adopt(getEnumCType(c_btype));
         ctype = SwigType_prefix(ctype);
         Append(ctype, c_enumname);
+      } else if (SwigType_isclasskey(c_btype) && !classLookup(c_btype) && !Getattr(forward_declared_types_, c_btype)) {
+        // A struct or union that SWIG has not seen defined, as one only declared in a %{ %} block, is not declared in the header file
+        // with the others, but one first named in a parameter list is not visible outside it, so it is declared before it is used.
+        Printf(sect_wrappers_types, "%s;\n\n", c_btype.get());
+        Setattr(forward_declared_types_, c_btype, "1");
       }
       Clear(tm);
       Append(tm, ctype);
@@ -2233,6 +2241,7 @@ public:
       // functions declarations go directly to f_wrappers_decl we write both of them to f_wrappers_h at the end.
       sect_wrappers_types = NewString("");
       sect_wrappers_decl = NewString("");
+      forward_declared_types_ = NewHash();
 
       {
         cplusplus_output_guard cplusplus_guard_wrappers(sect_wrappers), cplusplus_guard_wrappers_h(sect_wrappers_decl);
