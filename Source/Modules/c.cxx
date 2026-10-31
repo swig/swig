@@ -251,14 +251,18 @@ Node *find_first_named_import(Node *parent) {
   return NULL;
 }
 
-// Return true if the type is a function pointer or a pointer or reference to one, with any cv-qualifiers, as in
-// 'int (*const &)(int)' or 'int (**)(int)', which SwigType_str() outputs with the declarator inside it.
+// Return true if the type is a pointer or a reference to a function, or to a pointer to one and so on, with any
+// cv-qualifiers, as in 'int (*const &)(int)', 'int (**)(int)' or 'int (&)(int)', which SwigType_str() outputs with the
+// declarator inside it.
 bool is_funcptr_type(const SwigType *type) {
-  scoped_dohptr ptr_type = adopt(SwigType_remove_qualifier_reference(SwigType_remove_qualifier(Copy(type))));
-  while (SwigType_ispointer(ptr_type) && !SwigType_isfunctionpointer(ptr_type)) {
-    SwigType_remove_qualifier(SwigType_del_pointer(ptr_type));
+  scoped_dohptr ptr_type = adopt(SwigType_remove_qualifier(Copy(type)));
+  while (SwigType_ispointer(ptr_type) || SwigType_isanyreference(ptr_type)) {
+    Delete(SwigType_pop(ptr_type));
+    SwigType_remove_qualifier(ptr_type);
+    if (SwigType_isfunction(ptr_type))
+      return true;
   }
-  return SwigType_isfunctionpointer(ptr_type);
+  return false;
 }
 
 // Return the type with a pointer in place of each reference in it and in the parameters of any function in it, as
@@ -1843,25 +1847,28 @@ public:
    * ----------------------------------------------------------------------------- */
 
   bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
-    // The type of a function pointer, or of a pointer or reference to one, cannot be followed by a '*' or a name, so it
-    // is given as it is when not using C++, as any other type below, and in the header file for C++, using the C names
-    // of the classes and enums in it. This is checked first, as the return type of a function pointer can be an enum.
-    if (is_funcptr_type(classnametype) && (!CPlusPlus || current_output == output_wrapper_decl)) {
+    // The type of a function pointer, or of a pointer or reference to one or to a function, cannot be followed by a '*'
+    // or a name, so it is given as it is when not using C++, as any other type below, and in the header file for C++,
+    // using the C names of the classes and enums in it. This is checked first, as the return type of a function pointer
+    // can be an enum.
+    if (!CPlusPlus || current_output == output_wrapper_decl) {
       scoped_dohptr ctype = adopt(Copy(classnametype));
-      if (CPlusPlus) {
-        // C has no references, so each reference becomes a pointer, as in 'int (**carg1)(int)' for 'int (*&)(int)' or
-        // 'int *(*carg1)(int const *)' for 'int &(*)(int const &)'. This includes the reference removed by
-        // "$*resolved_type" in the 'SWIGTYPE &' typemaps and one in the type given by "$resolved_type" in the
-        // 'SWIGTYPE *const &' typemap.
-        if (Strcmp(classnamespecialvariable, "$*resolved_type") == 0) {
-          SwigType_add_pointer(ctype);
-        }
-        ctype = references_to_pointers(ctype);
-        ctype = getCNamesType(ctype);
+      // C has no references, so the reference removed by "$*resolved_type" in the 'SWIGTYPE &' typemaps becomes a
+      // pointer, as in 'int (*carg1)(int)' for 'int (&)(int)' or 'int (**carg1)(int)' for 'int (*&)(int)'.
+      if (CPlusPlus && Strcmp(classnamespecialvariable, "$*resolved_type") == 0) {
+        SwigType_add_pointer(ctype);
       }
-      Clear(tm);
-      Append(tm, ctype);
-      return true;
+      if (is_funcptr_type(ctype)) {
+        if (CPlusPlus) {
+          // Each other reference becomes a pointer too, as in 'int *(*carg1)(int const *)' for 'int &(*)(int const &)'
+          // or in the type given by "$resolved_type" in the 'SWIGTYPE *const &' typemap.
+          ctype = references_to_pointers(ctype);
+          ctype = getCNamesType(ctype);
+        }
+        Clear(tm);
+        Append(tm, ctype);
+        return true;
+      }
     }
 
     scoped_dohptr btype(SwigType_base(classnametype));
@@ -1917,14 +1924,14 @@ public:
    *   tm - typemap contents complete with the special variable substitution
    * Returns true if tm is replaced with a SwigType, which SwigType_str() outputs with the declarator inside it for a
    * function pointer, rather than with C type text. This is the original C type when wrapping C and the C type of a
-   * function pointer, or of a pointer or reference to one, in the header file when wrapping C++.
+   * function pointer, or of a pointer or reference to one or to a function, in the header file when wrapping C++.
    * ----------------------------------------------------------------------------- */
 
   bool substituteResolvedType(SwigType *pt, String *tm) {
     SwigType *type = SwigType_typedef_resolve_all(pt);
     // The qualifiers of the return type of a function pointer are part of its type, but SwigType_strip_qualifiers()
-    // would remove them too, so only the top level qualifiers are removed from a function pointer or a pointer or
-    // reference to one
+    // would remove them too, so only the top level qualifiers are removed from a pointer or reference to a function or
+    // to a pointer to one
     SwigType *strippedtype = SwigType_remove_qualifier(Copy(type));
     if (!is_funcptr_type(strippedtype)) {
       Delete(strippedtype);

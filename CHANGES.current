@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a reference to a function, such as in:
+
+              int call_ref(int (&f)(const int &, int), int a, int b);
+              int (&get_ref())(const int &, int);
+
+            These were declared with an 'int (int const &,int)* carg1' parameter and as returning
+            'int (int const &,int)*', and are now declared with a pointer to the function, as in
+            'int (*carg1)(int const *,int)' and 'int (*get_ref())(int const *,int)'.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling for a reference in the parameters or return type of a
             function pointer, such as in:
 
