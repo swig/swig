@@ -62,7 +62,7 @@ int main(int argc, const char *argv[]) {
   typedef_funcptr_set_op_ptr(&op, 0);
   assert(op(a, b) == 110);
   assert(typedef_funcptr_do_op_ref(a, b, &op) == 110);
-  assert(typedef_funcptr_do_op_const_ref(a, b, &op) == 110);
+  assert(typedef_funcptr_do_op_const_ref(a, b, op) == 110);
   assert((*typedef_funcptr_get_op_ref())(a, b) == 110);
   *typedef_funcptr_get_op_ref() = subtract;
   assert((*typedef_funcptr_get_op_ref())(a, b) == 90);

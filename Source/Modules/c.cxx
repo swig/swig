@@ -779,10 +779,11 @@ private:
 
     // A function pointer is passed to and returned from the C function as it is, so it has the type that the C function
     // is declared with. Only its top level qualifiers are removed, as those of its return type, such as the 'const' of
-    // 'const char *(*)(int)', are part of this type. A class or an enum in this type is not supported, as its name would
-    // refer to the C++ wrapper class or enum in the namespace of the C++ wrappers.
+    // 'const char *(*)(int)', are part of this type. A function pointer passed by const reference is passed as the
+    // function pointer. A class or an enum in this type is not supported, as its name would refer to the C++ wrapper
+    // class or enum in the namespace of the C++ wrappers.
     if (typeKind == Type_Ptr) {
-      scoped_dohptr stripped_type = adopt(SwigType_remove_qualifier(Copy(resolved_type)));
+      scoped_dohptr stripped_type = adopt(SwigType_remove_qualifier_reference(Copy(resolved_type)));
       if (SwigType_isfunctionpointer(stripped_type)) {
         if (uses_base_type(stripped_type, is_class_or_enum)) {
           warn_unsupported_type(type, ptype_desc);
@@ -1922,7 +1923,6 @@ public:
       if (is_ptr_to_func_or_array(ctype)) {
         if (CPlusPlus) {
           // Each other reference becomes a pointer too, as in 'int *(*carg1)(int const *)' for 'int &(*)(int const &)'
-          // or in the type given by "$resolved_type" in the 'SWIGTYPE *const &' typemap.
           ctype = references_to_pointers(ctype);
           ctype = getCNamesType(ctype);
         }
@@ -2034,7 +2034,8 @@ public:
     bool is_swigtype = false;
 
     if (Strstr(tm, "$resolved_type")) {
-      SwigType *classnametype = Copy(strippedtype);
+      // A pointer passed by const reference, as in the 'SWIGTYPE *const &' typemap, is passed as the pointer, so it has the type of the pointer
+      SwigType *classnametype = SwigType_remove_qualifier_reference(Copy(strippedtype));
       if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type", file_line_node))
         is_swigtype = true;
       Delete(classnametype);

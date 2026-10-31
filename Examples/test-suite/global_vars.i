@@ -35,6 +35,7 @@
   Hello *hp;
   Hello &hr = h;
   Hello *const hcp = &h;
+  A *const &acpr = acp;
 
   void init() {
     b = "string b";

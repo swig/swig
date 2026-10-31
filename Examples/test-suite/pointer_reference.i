@@ -51,6 +51,31 @@ int pointer_reference_const_volatile(Struct *const volatile & s) {
 }
 %}
 
+// A pointer to a class that is not wrapped
+%inline %{
+struct Opaque;
+Opaque *opaque_pointer();
+Opaque *const& opaque_pointer_reference();
+int opaque_value(Opaque *const& o);
+%}
+
+%{
+struct Opaque {
+  int value;
+};
+Opaque opaque_instance = { 30 };
+Opaque *opaque_instance_pointer = &opaque_instance;
+Opaque *opaque_pointer() {
+  return opaque_instance_pointer;
+}
+Opaque *const& opaque_pointer_reference() {
+  return opaque_instance_pointer;
+}
+int opaque_value(Opaque *const& o) {
+  return o->value;
+}
+%}
+
 %{
 Struct Struct::instance = Struct(10);
 Struct *Struct::pInstance = &Struct::instance;

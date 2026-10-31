@@ -21,6 +21,7 @@ int main(int argc, const char *argv[]) {
   assert(call1(add_by_value, 10, 11) == 21);
   assert(call3(add_by_reference, 14, 15) == 29);
   assert(callconst1(add_by_value, 2, 3) == 5);
+  assert(callptrref2(add_by_value, 5, 6) == 11);
 
   AddByValueGetter getter;
   assert(call1(getter.getPtr(), 7, 8) == 15);

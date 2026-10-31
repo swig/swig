@@ -24,6 +24,9 @@ int main(int argc, const char *argv[]) {
   A *cvp = acvp();
   assert(cvp->x() == 7);
   delete cvp;
+  A *cpr = acpr();
+  assert(cpr->x() == 7);
+  delete cpr;
 
   h(Hola);
   assert(*hcp() == Hola);

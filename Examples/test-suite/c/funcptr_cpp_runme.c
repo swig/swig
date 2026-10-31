@@ -29,6 +29,7 @@ int main(int argc, const char *argv[]) {
   assert(funcptr_cpp_callref1(add_by_value, 1, 2) == 3);
   assert(funcptr_cpp_callref2(funcptr_cpp_getAddByValueRef1(), 3, 4) == 7);
   assert(funcptr_cpp_callptrref1(&fn, 9, 10) == 19);
+  assert(funcptr_cpp_callptrref2(fn, 5, 6) == 11);
   assert((*funcptr_cpp_getAddByValuePtrRef())(&array[0], 2) == 3);
 
   assert(funcptr_cpp_arrayRefSum(funcptr_cpp_getArrayRef1()) == 100);

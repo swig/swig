@@ -39,6 +39,7 @@ int main(int argc, const char *argv[])
     global_vars_A_x_set(global_vars_a_get(), 7);
     assert(global_vars_A_x_get(global_vars_acp_get()) == 7);
     assert(global_vars_A_x_get(global_vars_acvp_get()) == 7);
+    assert(global_vars_A_x_get(global_vars_acpr_get()) == 7);
 
     global_vars_h_set(global_vars_Hola);
     assert(*global_vars_hcp_get() == global_vars_Hola);

@@ -115,6 +115,8 @@ same_action(TM, size_t, ACTION, ACTION_CREF, no_attrs);
 %typemap(ctype) const void&, const void* "const void *"
 %typemap(ctype) void**, void*& "void **"
 %typemap(ctype) const void**, const void*& "const void **"
+%typemap(ctype) void *const & "void *"
+%typemap(ctype) const void *const & "const void *"
 // constant pointers
 %typemap(ctype) void* * const "void* * const"
 %typemap(ctype) const void* * const "const void* * const"
@@ -170,6 +172,11 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
 
 %typemap(in) SWIGTYPE * "$1 = ($1_ltype) $input;"
 
+%typemap(in) SWIGTYPE *const & ($*1_ltype temp = 0) %{
+  temp = ($*1_ltype) $input;
+  $1 = ($1_ltype) &temp;
+%}
+
 %typemap(in) SWIGTYPE *[ANY] {
   if ($input) {
     $1 = ($1_ltype) malloc($1_dim0 * sizeof($1_basetype));
@@ -221,6 +228,7 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 %typemap(out) SWIGTYPE "$result = (SwigObj*)new $1_ltype($1);"
 
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && "$result = (SwigObj*) $1;"
+%typemap(out) SWIGTYPE *const & "$result = (SwigObj*) *$1;"
 
 %typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
   static SwigObj **_temp = 0;
@@ -360,6 +368,8 @@ same_macro_all_primitive_types_but_void(null_checked_reference_in, in);
 %typemap(in) enum SWIGTYPE & = SWIGTYPE &;
 
 %apply SWIGTYPE * { SWIGTYPE ((*const)(ANY)) };
+
+%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 %insert("runtime") %{
 #ifdef __cplusplus

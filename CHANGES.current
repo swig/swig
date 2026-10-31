@@ -8,6 +8,28 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix a pointer to a class passed or returned by const reference using the wrong
+            pointer, which could crash, given a class Foo, in:
+
+              void set(Foo *const &p);
+              Foo *const &get();
+
+            The pointer itself is now passed and returned, as the .h file declares. Any other
+            pointer passed or returned by const reference is now also passed and returned as the
+            pointer, as in the other target languages, and the .h file declares it as it declares
+            the pointer. For example, 'void *const &' was declared as 'void **' and is now declared
+            as 'void *', and a function pointer passed by const reference, such as
+            'int (*const &)(int)', is declared as 'int (*)(int)'. A pointer to a class that is not
+            wrapped, such as X given only:
+
+              struct X;
+
+            passed as 'X *const &', was declared as 'SWIGTYPE_p_p_X *' and is now declared as
+            'SWIGTYPE_p_X *'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             Fix an rvalue reference to a function used as a parameter or return type, such as:
 
               typedef int Fn(int);

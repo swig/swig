@@ -50,6 +50,8 @@ int main(int argc, const char *argv[]) {
   namer = const_holder.name_fn();
   assert(strcmp(namer(2), "two") == 0);
 
+  assert(do_op_const_ref(a, b, add) == 110);
+
   assert(do_op_const(a, b, add) == 110);
   assert(do_op_typedef_const(a, b, subtract) == 90);
   assert(get_const_op(1)(a, b) == 90);
