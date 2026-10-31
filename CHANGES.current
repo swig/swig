@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix an rvalue reference to a function used as a parameter or return type, such as:
+
+              typedef int Fn(int);
+              int call(int (&&fn)(int), int i);
+              int call_typedef(Fn &&fn, int i);
+              int (&&get())(int);
+
+            The wrapper code did not compile in most target languages, as it took ownership of the
+            function from the target language and deleted it after the call. It is now wrapped in the
+            same way as a reference to a function, so a function pointer constant or the result of
+            get() can be passed to call().
+
+2026-10-31: wsfulton
             [OCaml] Fix a compile error in a director class template with more than one template
             parameter and an ignored virtual method, such as ignored() here:
 

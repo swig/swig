@@ -210,7 +210,7 @@
 
 // Treat references to arrays like references to a single element.
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
 
 /*

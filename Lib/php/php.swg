@@ -697,7 +697,7 @@
 }
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char (&)[ANY], char (&&)[ANY]
  " $1 = (Z_TYPE($input) == IS_STRING); "
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

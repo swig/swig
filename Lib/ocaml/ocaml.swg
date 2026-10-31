@@ -464,7 +464,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     }
     $1 = ($1_ltype)temp;
 }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 %typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 

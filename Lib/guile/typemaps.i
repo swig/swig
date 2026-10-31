@@ -567,7 +567,7 @@ typedef unsigned long SCM;
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 %typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 

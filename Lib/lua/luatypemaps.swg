@@ -439,7 +439,7 @@ parameters match which function
 %typecheck(SWIG_TYPECHECK_STRING) char (&)[ANY], char (&&)[ANY] {
   $1 = lua_isstring(L,$input);
 }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

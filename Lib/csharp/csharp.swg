@@ -1122,7 +1122,7 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
      return $null;
    }
    $1 = ($1_ltype)temp; %}
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

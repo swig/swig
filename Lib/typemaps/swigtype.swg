@@ -671,10 +671,10 @@
 
 /* ------------------------------------------------------------
  * --- function reference typemaps ---
- * A reference to a function is passed and returned as a function pointer.
+ * A reference to a function, lvalue or rvalue, is passed and returned as a function pointer that is not owned.
  * ------------------------------------------------------------ */
 
-%typemap(in) SWIGTYPE ((&)(ANY)) {
+%typemap(in) SWIGTYPE ((&)(ANY)), SWIGTYPE ((&&)(ANY)) {
   int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -684,13 +684,13 @@
   }
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)) {
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)), SWIGTYPE ((&&)(ANY)) {
   void *ptr = 0;
   int res = SWIG_ConvertFunctionPtr($input, &ptr, $descriptor);
   $1 = ptr ? SWIG_CheckState(res) : 0;
 }
 
-%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)) {
+%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)), SWIGTYPE ((&&)(ANY)) {
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
 }
 

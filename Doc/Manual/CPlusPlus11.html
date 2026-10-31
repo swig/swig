@@ -205,6 +205,16 @@ int sum(int (&amp;&amp;values)[4]);
 </pre></div>
 
 <p>
+Likewise, an rvalue reference to a function, such as the parameter below, is wrapped in the same way as a reference to a function,
+which is a <a href="SWIG.html#SWIG_nn30">pointer to a function</a> in the target language.
+No ownership is passed to the function:
+</p>
+
+<div class="code"><pre>
+int call(int (&amp;&amp;fn)(int), int i);
+</pre></div>
+
+<p>
 <b>Compatibility note:</b>
 SWIG-4.1.0 changed the way that rvalue reference parameters were handled and implemented typemaps assuming that the
 proxy class owns the underlying C++ object and transfers ownership of the object when a function/constructor with an rvalue reference parameter is called.

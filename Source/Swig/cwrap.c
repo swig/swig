@@ -378,14 +378,20 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
       String *const_lvalue_str;
       String *lstr = SwigType_lstr(t, 0);
       SwigType *tt = Copy(t);
+      SwigType *resolved;
       SwigType_del_rvalue_reference(tt);
-      SwigType_add_qualifier(tt, "const");
+      resolved = SwigType_typedef_resolve_all(tt);
+      /* A function type cannot be const qualified and a call returning an rvalue reference to a function is an lvalue already */
+      if (!SwigType_isfunction(resolved)) {
+        SwigType_add_qualifier(tt, "const");
+      }
       SwigType_add_reference(tt);
       const_lvalue_str = SwigType_rcaststr(tt, 0);
 
       Printf(fcall, "%s = (%s) &%s", name, lstr, const_lvalue_str);
 
       Delete(const_lvalue_str);
+      Delete(resolved);
       Delete(tt);
       Delete(lstr);
     }
