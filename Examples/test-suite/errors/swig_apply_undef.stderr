@@ -4,3 +4,5 @@ swig_apply_undef.i:11: Warning 453: Can't apply (char *str). No typemaps are def
 swig_apply_undef.i:12: Warning 453: Can't apply (int *CLEARED). No typemaps are defined.
 swig_apply_undef.i:13: Warning 453: Can't apply (float *NOSUCH). No typemaps are defined.
 swig_apply_undef.i:14: Warning 453: Can't apply (float *NOSUCH,float *NOSUCH2). No typemaps are defined.
+swig_apply_undef.i:15: Warning 453: Can't apply (int (*const)(int,int)). No typemaps are defined.
+swig_apply_undef.i:16: Warning 453: Can't apply (double (*const)[4]). No typemaps are defined.

@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Remove a stray space from a const pointer to a function or array with no name in
+            warnings and runtime error messages, which was shown as 'int (*const )(int,int)' and
+            is now 'int (*const)(int,int)'.
+
+2026-10-31: wsfulton
             Fix a const reference to a typedef of a const pointer, such as 'const CFP &' given:
 
               typedef Foo *const CFP;
