@@ -44,6 +44,7 @@ int main(int argc, const char *argv[]) {
   typedef_funcptr_OpHolder *holder = typedef_funcptr_OpHolder_new();
   assert(typedef_funcptr_OpHolder_get_member_op(holder)(a, b) == 110);
   assert(typedef_funcptr_OpHolder_get_static_op(holder)(a, b) == 90);
+  assert(typedef_funcptr_OpHolder_get_const_member_op(holder)(a, b) == 110);
   typedef_funcptr_OpHolder_member_fn_set(holder, subtract);
   assert(typedef_funcptr_OpHolder_member_fn_get(holder)(a, b) == 90);
   typedef_funcptr_OpHolder_static_fn_set(add);
@@ -65,6 +66,10 @@ int main(int argc, const char *argv[]) {
   assert((*typedef_funcptr_get_op_ref())(a, b) == 110);
   *typedef_funcptr_get_op_ref() = subtract;
   assert((*typedef_funcptr_get_op_ref())(a, b) == 90);
+
+  assert(typedef_funcptr_do_op_const(a, b, add) == 110);
+  assert(typedef_funcptr_do_op_typedef_const(a, b, subtract) == 90);
+  assert(typedef_funcptr_get_const_op(1)(a, b) == 90);
 
   typedef_funcptr_Point *point = typedef_funcptr_Point_new();
   typedef_funcptr_Point_x_set(point, 5);

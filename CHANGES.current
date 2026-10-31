@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix a const function pointer parameter or return type, such as in:
+
+              int call_op(int (*const op)(int, int));
+              int (*const get_op())(int, int);
+
+            When wrapping C++, call_op took a pointer to the function pointer and had no C++
+            wrapper, giving warning 761, and the wrapper of get_op, or of a member function
+            returning a const function pointer, did not compile. When wrapping C, the .h file
+            declared call_op and get_op as taking and returning a pointer to the function pointer,
+            unlike the C functions. They now take and return the function pointer, as for a
+            non-const function pointer, and have C++ wrappers.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling for a reference or a pointer to a function pointer,
             such as the parameters in:
 

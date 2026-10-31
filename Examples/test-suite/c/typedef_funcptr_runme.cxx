@@ -39,6 +39,7 @@ int main(int argc, const char *argv[]) {
   const OpHolder &const_holder = holder;
   assert(const_holder.get_member_op()(a, b) == 110);
   assert(holder.get_static_op()(a, b) == 90);
+  assert(const_holder.get_const_member_op()(a, b) == 110);
   holder.member_fn(subtract);
   assert(const_holder.member_fn()(a, b) == 90);
   OpHolder::static_fn(add);
@@ -48,5 +49,9 @@ int main(int argc, const char *argv[]) {
   holder.name_fn(number_name);
   namer = const_holder.name_fn();
   assert(strcmp(namer(2), "two") == 0);
+
+  assert(do_op_const(a, b, add) == 110);
+  assert(do_op_typedef_const(a, b, subtract) == 90);
+  assert(get_const_op(1)(a, b) == 90);
   return 0;
 }

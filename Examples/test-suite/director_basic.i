@@ -202,10 +202,7 @@ class FuncPtrClass {
 public:
   virtual ~FuncPtrClass() {}
   virtual int (*getFuncPtr(int which))(int, int) { return funcPtrAdd; }
-#if !defined(SWIGC)
-  // TODO: Fix the C target language returning a const function pointer as if it were an object
   virtual int (*const getConstFuncPtr())(int, int) { return funcPtrAdd; }
-#endif
 };
 
  %}

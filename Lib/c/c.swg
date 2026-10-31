@@ -347,6 +347,8 @@ typedef struct SwigObj SwigObj;
 same_macro_all_primitive_types_but_void(null_checked_reference_in, in);
 %typemap(in) enum SWIGTYPE & = SWIGTYPE &;
 
+%apply SWIGTYPE * { SWIGTYPE ((*const)(ANY)) };
+
 %insert("runtime") %{
 #ifdef __cplusplus
 extern "C" {

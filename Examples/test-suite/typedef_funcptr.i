@@ -61,6 +61,7 @@ struct OpHolder {
     OpHolder() : member_fn(addf), name_fn(namef) {}
     FnPtr_int_td get_member_op() const { return member_fn; }
     int (*get_static_op())(int, int) { return static_fn; }
+    int (*const get_const_member_op() const)(int, int) { return member_fn; }
 };
 FnPtr_int_td OpHolder::static_fn = subf;
 
@@ -80,6 +81,17 @@ int do_op_const_ref(int x, int y, const FnPtr_int_td &op) {
 FnPtr_int_td &get_op_ref() {
     static FnPtr_int_td op = addf;
     return op;
+}
+
+// Const function pointers
+int do_op_const(int x, int y, int (*const op)(int, int)) {
+    return (*op)(x,y);
+}
+int do_op_typedef_const(int x, int y, const FnPtr_int_td op) {
+    return (*op)(x,y);
+}
+int (*const get_const_op(int subtract))(int, int) {
+    return subtract ? subf : addf;
 }
 
 // Function pointers using a class or an enum in a namespace
