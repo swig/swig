@@ -59,7 +59,10 @@ In a comment whose lines start with ` * `, indent the code two spaces after the 
 
 Use plain `/* ... */` block comments. Do not use Doxygen markers (`/**`, `/*!`, `///`, `//!`): SWIG source is not run through Doxygen, so the extra marker is just noise.
 
-For all code everywhere, aim for comment lines around 120 characters wide. If wrapping at 120 leaves a stub second line, stretch the first line up to the 160 characters permitted by `clang-format` and keep the comment on one line, or rebalance so both lines carry meaningful content.
+For all code everywhere, a comment that fits in the 160 columns permitted by `clang-format` stays on one line. Never
+break a line that is only just over 120 columns into a second short line: a short last line never looks good. Wrap
+only a comment longer than 160 columns, at around 120 columns, and widen its lines up to 160 columns or rebalance them
+so that the last line also carries meaningful content.
 
 ## Function comment headers
 
