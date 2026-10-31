@@ -143,17 +143,6 @@ static void showUsage() {
   fputs(usage, stdout);
 }
 
-static bool expandTypedef(SwigType *t) {
-  if (SwigType_isenum(t))
-    return false;
-  String *prefix = SwigType_prefix(t);
-  if (Strncmp(prefix, "f", 1))
-    return false;
-  if (Strncmp(prefix, "p.f", 3))
-    return false;
-  return true;
-}
-
 /* -------------------------------------------------------------
  * Determine whether  we should add a .copy argument to the S function
  * that wraps/interfaces to the routine that returns the given type.
@@ -518,7 +507,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   if (debugMode)
     Printf(stdout, "<createFunctionPointerHandler> Defining %s\n", t);
 
-  SwigType *rettype = Copy(Getattr(n, "type"));
+  SwigType *rettype = Copy(t);
   SwigType *funcparams = SwigType_functionpointer_decompose(rettype);
   String *rtype = SwigType_str(rettype, 0);
 
@@ -1676,40 +1665,10 @@ int R::functionWrapper(Node *n) {
     Append(sfname, overname);
   }
 
-  if (debugMode)
-    Printf(stdout, "<functionWrapper> processing parameters\n");
-
   ParmList *l = Getattr(n, "parms");
   Parm *p;
   String *tm;
 
-  p = l;
-  while (p) {
-    SwigType *resultType = Getattr(p, "type");
-    if (expandTypedef(resultType) && SwigType_istypedef(resultType)) {
-      SwigType *resolved = SwigType_typedef_resolve_all(resultType);
-      if (expandTypedef(resolved)) {
-        if (debugMode) {
-          Printf(stdout, "Setting type: %s\n", resolved);
-        }
-        Setattr(p, "type", Copy(resolved));
-      }
-    }
-    p = nextSibling(p);
-  }
-
-  String *unresolved_return_type = Copy(returntype);
-  if (expandTypedef(returntype) && SwigType_istypedef(returntype)) {
-    SwigType *resolved = SwigType_typedef_resolve_all(returntype);
-    if (debugMode)
-      Printf(stdout, "<functionWrapper> resolved %s\n", Copy(unresolved_return_type));
-    if (expandTypedef(resolved)) {
-      returntype = Copy(resolved);
-      Setattr(n, "type", returntype);
-    }
-  }
-  if (debugMode)
-    Printf(stdout, "<functionWrapper> unresolved_return_type %s\n", unresolved_return_type);
   if (processing_member_access_function) {
     if (debugMode)
       Printf(stdout, "<functionWrapper memberAccess> '%s' '%s' '%s' '%s'\n", fname, iname, member_name, class_name);
@@ -1748,10 +1707,7 @@ int R::functionWrapper(Node *n) {
   Wrapper *sfun = NewWrapper();
 
   int isVoidReturnType = (Strcmp(returntype, "void") == 0);
-  // Need to use the unresolved returntype since
-  // typedef resolution removes the const which causes a
-  // mismatch with the function action
-  emit_return_variable(n, unresolved_return_type, f);
+  emit_return_variable(n, returntype, f);
 
   SwigType *rtype = Getattr(n, "type");
   int addCopyParam = 0;
@@ -2726,29 +2682,27 @@ extern "C" Language *swig_r(void) {
  * Needs to be reworked.
  *----------------------------------------------------------------------- */
 String *R::processType(SwigType *t, Node *n, int *nargs) {
-  // XXX Need to handle typedefs, e.g.
-  //   a type which is a typedef to a function pointer.
-
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)
     Printf(stdout, "processType %s (tdname = %s)(SwigType = %s)\n", Getattr(n, "name"), tmp, Copy(t));
 
-  if (expandTypedef(t) && SwigType_istypedef(t)) {
-    SwigType *resolved = SwigType_typedef_resolve_all(t);
-    if (expandTypedef(resolved)) {
-      t = Copy(resolved);
-    }
+  /* A typedef of a function pointer, or a pointer to a typedef of a function, is resolved to take an R function too */
+  SwigType *resolved = NULL;
+  if (!SwigType_isfunctionpointer(t) && SwigType_istypedef(t)) {
+    resolved = SwigType_typedef_resolve_all(t);
+    t = resolved;
   }
 
+  String *funcptr_name = NULL;
   if (SwigType_isfunctionpointer(t)) {
     if (debugMode)
       Printf(stdout, "<processType> Defining pointer handler %s\n", t);
 
-    String *tmp = createFunctionPointerHandler(t, n, nargs);
-    return tmp;
+    funcptr_name = createFunctionPointerHandler(t, n, nargs);
   }
 
-  return NULL;
+  Delete(resolved);
+  return funcptr_name;
 }
 
 /* -----------------------------------------------------------------------

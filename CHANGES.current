@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix a parameter whose type is a typedef of a function pointer not taking an R
+            function. Passing one gave an error such as "SWIG:TypeError in method 'apply',
+            argument 2 of type 'FnPtr'" for:
+
+              typedef int (*FnPtr)(int);
+              int apply(int i, FnPtr fn);
+
+            It now takes an R function, as a function pointer written out in full does.
+
+2026-10-31: wsfulton
             [C] Fix a const function pointer parameter or return type, such as in:
 
               int call_op(int (*const op)(int, int));
