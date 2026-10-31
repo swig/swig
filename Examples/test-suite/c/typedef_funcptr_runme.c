@@ -14,6 +14,14 @@ static const char *number_name(int i) {
   return i == 2 ? "two" : "other";
 }
 
+static int point_x_plus_one(typedef_funcptr_Point *p) {
+  return typedef_funcptr_Point_x_get(p) + 1;
+}
+
+static enum typedef_funcptr_Shade darken(enum typedef_funcptr_Shade s) {
+  return s == typedef_funcptr_Light ? typedef_funcptr_Dark : s;
+}
+
 int main(int argc, const char *argv[]) {
   int a = 100;
   int b = 10;
@@ -46,5 +54,13 @@ int main(int argc, const char *argv[]) {
   namer = typedef_funcptr_OpHolder_name_fn_get(holder);
   assert(strcmp(namer(2), "two") == 0);
   typedef_funcptr_OpHolder_delete(holder);
+
+  typedef_funcptr_Point *point = typedef_funcptr_Point_new();
+  typedef_funcptr_Point_x_set(point, 5);
+  assert(typedef_funcptr_do_point(point, point_x_plus_one) == 6);
+  assert(typedef_funcptr_get_point_getter()(point) == 5);
+  typedef_funcptr_Point_delete(point);
+  assert(typedef_funcptr_do_shade(typedef_funcptr_Light, darken) == typedef_funcptr_Dark);
+  assert(typedef_funcptr_get_shader()(typedef_funcptr_Dark) == typedef_funcptr_Light);
   return 0;
 }

@@ -48,7 +48,6 @@ FAILING_CPP_TESTS := \
     extend_default \
     extern_c \
     funcptr_cpp \
-    global_scope_types \
     grouping \
     import_nomodule \
     li_attribute \
@@ -71,9 +70,7 @@ FAILING_CPP_TESTS := \
     template_default \
     template_enum \
     template_explicit \
-    template_function_parm \
     template_template_parameters \
-    template_typedef_fnc \
     typedef_array_member \
     typedef_inherit_using \
     typedef_struct_cpp \

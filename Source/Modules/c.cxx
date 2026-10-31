@@ -1685,39 +1685,86 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * getEnumCType()
+   *
+   * Return the C type of the enum type enumtype.
+   * ----------------------------------------------------------------------------- */
+
+  String *getEnumCType(SwigType *enumtype) {
+    Node *const enum_node = enumLookup(enumtype);
+    String *const enumname = enum_node ? getEnumName(enum_node) : NULL;
+
+    // We use the enum name in the wrapper declaration if it's available, as this makes it more type safe, but we always use just int for the function
+    // definition because we don't have the enum declaration in scope there. This obviously only actually works if the actual enum underlying type is int (or
+    // smaller).
+    if (current_output == output_wrapper_decl && enumname) {
+      // We need to add "enum" iff this is not already a typedef for the enum.
+      if (Checkattr(enum_node, "allows_typedef", "1"))
+        return Copy(enumname);
+      return NewStringf("enum %s", enumname);
+    }
+    return NewString("int");
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getCNamesType()
+   *
+   * Return the type, whose typedefs are resolved, with the C names of the classes and enums in its base type and in
+   * the parameters of any function in it, as in a function pointer, as their C++ names are not valid in C. The
+   * returned SwigType must be freed by the caller.
+   * ----------------------------------------------------------------------------- */
+
+  SwigType *getCNamesType(SwigType *type) {
+    scoped_dohptr elements = adopt(SwigType_split(type));
+    int const last = Len(elements) - 1;
+    SwigType *const base = Getitem(elements, last);
+    SwigType *c_names_type = SwigType_isenum(base) ? getEnumCType(base) : getClassProxyName(base);
+    if (!c_names_type)
+      c_names_type = Copy(base);
+
+    for (int i = last - 1; i >= 0; i--) {
+      SwigType *const element = Getitem(elements, i);
+      if (SwigType_isfunction(element)) {
+        ParmList *const parms = SwigType_function_parms(element, NULL);
+        for (Parm *p = parms; p; p = nextSibling(p)) {
+          scoped_dohptr c_parm_type = adopt(getCNamesType(Getattr(p, "type")));
+          Setattr(p, "type", c_parm_type);
+        }
+        SwigType_add_function(c_names_type, parms);
+        Delete(parms);
+      } else {
+        SwigType_push(c_names_type, element);
+      }
+    }
+    return c_names_type;
+  }
+
+  /* -----------------------------------------------------------------------------
    * substituteResolvedTypeSpecialVariable()
    *
    * Return true if tm is replaced with a SwigType rather than with C type text, see substituteResolvedType().
    * ----------------------------------------------------------------------------- */
 
   bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+    // The type of a function pointer cannot be followed by a '*' or a name, so it is given as it is when not using C++,
+    // as any other type below, and in the header file for C++, using the C names of the classes and enums in it. This
+    // is checked first, as the return type of a function pointer can be an enum.
+    if (SwigType_isfunctionpointer(classnametype) &&
+        (!CPlusPlus || (current_output == output_wrapper_decl && Strcmp(classnamespecialvariable, "$resolved_type") == 0))) {
+      scoped_dohptr ctype = adopt(CPlusPlus ? getCNamesType(classnametype) : Copy(classnametype));
+      Clear(tm);
+      Append(tm, ctype);
+      return true;
+    }
+
     scoped_dohptr btype(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
-      Node *const enum_node = enumLookup(btype);
-      String *const enumname = enum_node ? getEnumName(enum_node) : NULL;
-
-      // We use the enum name in the wrapper declaration if it's available, as this makes it more type safe, but we always use just int for the function
-      // definition because we don't have the enum declaration in scope there. This obviously only actually works if the actual enum underlying type is int (or
-      // smaller).
-      maybe_owned_dohptr c_enumname;
-      if (current_output == output_wrapper_decl && enumname) {
-        // We need to add "enum" iff this is not already a typedef for the enum.
-        if (Checkattr(enum_node, "allows_typedef", "1"))
-          c_enumname.assign_non_owned(enumname);
-        else
-          c_enumname.assign_owned(NewStringf("enum %s", enumname));
-      } else {
-        c_enumname.assign_owned(NewString("int"));
-      }
-
+      scoped_dohptr c_enumname = adopt(getEnumCType(btype));
       Replaceall(tm, classnamespecialvariable, c_enumname);
     } else {
-      // Just use the original C type when not using C++, we know that this type can be used in the wrappers. The type of a
-      // function pointer cannot be followed by a '*' or a name, so it is declared in this way in the header file for C++ too.
-      if (!CPlusPlus ||
-          (current_output == output_wrapper_decl && Strcmp(classnamespecialvariable, "$resolved_type") == 0 && SwigType_isfunctionpointer(classnametype))) {
-        // SwigType_ltype() would also remove the qualifiers of the return type of a function pointer, which are part of its type
-        scoped_dohptr ltype = adopt(SwigType_isfunctionpointer(classnametype) ? Copy(classnametype) : SwigType_ltype(classnametype));
+      // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
+      if (!CPlusPlus) {
+        scoped_dohptr ltype = adopt(SwigType_ltype(classnametype));
         Clear(tm);
         Append(tm, ltype);
         return true;
@@ -2394,13 +2441,13 @@ public:
     String *return_type;
 
     if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
-      substituteResolvedType(type, return_type);
+      // a SwigType from substituteResolvedType() already uses the C names of the classes and enums
+      if (!substituteResolvedType(type, return_type))
+        Replaceall(return_type, "::", "_");
     } else {
       Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
       return_type = NewString("");
     }
-
-    Replaceall(return_type, "::", "_");
 
     return scoped_dohptr(return_type);
   }

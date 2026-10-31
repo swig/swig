@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a function pointer that uses a class or an enum
+            in its parameters or return type, such as:
+
+              namespace ns {
+                struct Foo {...};
+                enum Color { RED, GREEN };
+              }
+              void set_cb(void (*cb)(ns::Foo *));
+              void set_shader(ns::Color (*shader)(int));
+
+            The C declarations used the C++ name of the class, as in 'void (*carg1)(ns::Foo *)',
+            and declared set_shader as taking a pointer to the enum instead of the function
+            pointer. They now use the C names of the class and the enum that the .h file uses
+            elsewhere, as in 'void (*carg1)(mod_Foo *)' and 'enum mod_Color (*carg1)(int)' with
+            -namespace mod. When wrapping C, a function pointer returning an enum was declared as
+            a pointer to the enum too and is now declared as it is.
+
+2026-10-31: wsfulton
             Fix the typedefs in the parameters of a function pointer not being resolved when it
             returns a class or an enum in a namespace, such as after:
 

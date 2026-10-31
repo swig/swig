@@ -63,6 +63,32 @@ struct OpHolder {
     int (*get_static_op())(int, int) { return static_fn; }
 };
 FnPtr_int_td OpHolder::static_fn = subf;
+
+// Function pointers using a class or an enum in a namespace
+namespace FuncPtrNS {
+struct Point {
+    int x;
+};
+enum Shade { Light, Dark };
+}
+int point_x(FuncPtrNS::Point *p) {
+    return p->x;
+}
+FuncPtrNS::Shade invert(FuncPtrNS::Shade s) {
+    return s == FuncPtrNS::Light ? FuncPtrNS::Dark : FuncPtrNS::Light;
+}
+int do_point(FuncPtrNS::Point *p, int (*getter)(FuncPtrNS::Point *)) {
+    return (*getter)(p);
+}
+FuncPtrNS::Shade do_shade(FuncPtrNS::Shade s, FuncPtrNS::Shade (*shader)(FuncPtrNS::Shade)) {
+    return (*shader)(s);
+}
+int (*get_point_getter())(FuncPtrNS::Point *) {
+    return point_x;
+}
+FuncPtrNS::Shade (*get_shader())(FuncPtrNS::Shade) {
+    return invert;
+}
 %}
 
 %constant int     addf(int x, int y);
