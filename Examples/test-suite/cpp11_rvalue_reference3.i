@@ -77,3 +77,15 @@ struct IContain {
     {}
 };
 %}
+
+%inline %{
+#if !defined(SWIGC) // TODO: Fix the C target language's C header for a reference to a function pointer
+int (*&& funcptr_global_rvalue_ref)(int) = 0;
+
+int (*&& funcptr_returnit())(int) { return std::move(funcptr_global_rvalue_ref); }
+
+void funcptr_takeit1(int (*&& t)(int)) {}
+void funcptr_takeit2(int (*const&& t)(int)) {}
+void funcptr_takeit3(int * (*&& t)(int)) {}
+#endif
+%}

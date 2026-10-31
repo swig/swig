@@ -8,6 +8,25 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            Fix syntax error for a reference to a function pointer as a parameter, return type or
+            variable, for example:
+
+              void ref_op(int (*&r)(int));
+              int (*&getFuncPtrRef())(int, int);
+
+            These are now wrapped in the same way as when the function pointer type is a typedef, as
+            in 'IntOp &' given:
+
+              typedef int (*IntOp)(int);
+
+            An rvalue reference such as 'int (*&&r)(int)' is fixed too. So are a reference to a
+            const pointer such as 'int (*const &r)(int)' and a reference to a pointer to an array
+            such as 'int (*&a)[4]'.
+
+            The exception is a director method returning a reference to a function pointer, which
+            does not compile in some target languages unless the function pointer type is a typedef.
+
+2026-10-30: wsfulton
             Fix syntax error for a member function returning a pointer or reference to a function
             when the member function has a cv-qualifier or ref-qualifier, which is written inside
             the parentheses of the declarator, such as f here:

@@ -8505,6 +8505,25 @@ notso_direct_declarator : idcolon {
 		    }
 		    $$.type = $pointer;
                   }
+                  /* A reference to a pointer, such as the reference to a pointer to a function in 'int *(*&r)(int)' */
+                  | LPAREN pointer AND qualified_notso_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
+                  | LPAREN pointer LAND qualified_notso_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_rvalue_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
                   | LPAREN idcolon DSTAR notso_direct_declarator[in] RPAREN {
 		    SwigType *t;
 		    $$ = $in;
@@ -8570,6 +8589,25 @@ direct_declarator : idcolon {
 		      Delete($$.type);
 		    }
 		    $$.type = $pointer;
+                  }
+                  /* A reference to a pointer, such as the reference to a pointer to a function in 'int (*&r)(int)' */
+                  | LPAREN pointer AND qualified_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
+                  | LPAREN pointer LAND qualified_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_rvalue_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
                   }
                   /* The reference applies to what the inner declarator yields, such as the return type in 'int (&f())(int)' */
                   | LPAREN AND qualified_direct_declarator[in] RPAREN {

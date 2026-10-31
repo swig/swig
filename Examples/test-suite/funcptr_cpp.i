@@ -62,6 +62,12 @@ struct AddByValueGetter {
   int (*getPtr() const)(const int &, int) { return addByValue; }
   int (&getRef() const)(const int &, int) { return addByValue; }
 };
+
+// Reference to a pointer to a function as a parameter or return type
+int callptrref1(int (*&d)(const int &, int), int a, int b) { return d(a, b); }
+int callptrref2(int (* const &d)(const int &, int), int a, int b) { return d(a, b); }
+int callptrref3(int * (*&d)(const int &, int), int a, int b) { return *d(a, b); }
+int (*&getAddByValuePtrRef())(const int &, int) { static int (*ptr)(const int &, int) = addByValue; return ptr; }
 %}
 
 %{
@@ -74,4 +80,7 @@ typedef int Array4[4];
 int (&getArrayRef1())[4] { return array4; }
 Array4 &getArrayRef2() { return array4; }
 int arrayRefSum(int (*a)[4]) { return (*a)[0] + (*a)[1] + (*a)[2] + (*a)[3]; }
+
+// Reference to a pointer to an array as a parameter
+int arrayPtrRefSum(int (*&a)[4]) { return arrayRefSum(a); }
 %}

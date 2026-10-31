@@ -33,5 +33,8 @@ getter = AddByValueGetter()
 swig_check(call1(getter.getPtr(), 7, 8), 15)
 swig_check(callref1(getter.getRef(), 8, 9), 17)
 
+swig_check(callptrref1(getAddByValuePtrRef(), 9, 10), 19)
+swig_check(callptrref2(ADD_BY_VALUE, 10, 11), 21)
+
 swig_check(arrayRefSum(getArrayRef1()), 100)
 swig_check(arrayRefSum(getArrayRef2()), 100)

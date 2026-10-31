@@ -57,3 +57,10 @@ if (funcptr_cpp.call1(getter.getPtr(), 7, 8) != 15) {
 if (funcptr_cpp.callref1(getter.getRef(), 8, 9) != 17) {
     throw new Error;
 }
+
+if (funcptr_cpp.callptrref1(funcptr_cpp.getAddByValuePtrRef(), 9, 10) != 19) {
+    throw new Error;
+}
+if (funcptr_cpp.callptrref2(funcptr_cpp.ADD_BY_VALUE, 10, 11) != 21) {
+    throw new Error;
+}
