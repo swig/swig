@@ -1843,12 +1843,12 @@ List *Swig_make_inherit_list(String *clsname, List *names, String *Namespacepref
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_str()
+ * Swig_name_str()
  *
  * Return a stringified version of a C/C++ symbol from a node.
  * The node passed in is expected to be a function, constructor, destructor or
  * variable. Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate"
+ *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate"
  *   "MyNameSpace::ABC::ABC"
  *   "MyNameSpace::ABC::constmethod"
  *   "MyNameSpace::ABC::variablename"
@@ -1890,13 +1890,13 @@ String *Swig_name_str(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_decl()
+ * Swig_name_decl()
  *
  * Return a stringified version of a C/C++ declaration without the return type.
  * The node passed in is usually a function, constructor, destructor.
  * Other nodes result in a simple fully qualified string of the symbol.
  * Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
  *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
@@ -1934,14 +1934,16 @@ String *Swig_name_decl(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_fulldecl()
+ * Swig_name_fulldecl()
  *
  * Return a stringified version of a C/C++ declaration including the return type.
  * The node passed in is expected to be a function, constructor or destructor.
  * The return type is put around the declaration from Swig_name_decl() as in C/C++ code, so that the declaration goes
- * inside a function pointer return type. Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ * inside a function pointer return type. A constructor, destructor or conversion operator has no return type in its
+ * declaration. Some example return values:
+ *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
+ *   "MyNameSpace::ABC::operator int() const"
  *   "int *MyNameSpace::ABC::constmethod(int) const"
  *   "int (*MyNameSpace::ABC::funcptrmethod(int))(int,int)"
  *
@@ -1953,7 +1955,7 @@ String *Swig_name_fulldecl(Node *n) {
   String *nodetype = nodeType(n);
   String *fulldecl;
   /* add on the return type */
-  if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
+  if ((nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) || GetFlag(n, "conversion_operator")) {
     fulldecl = decl;
   } else {
     fulldecl = SwigType_str(type, decl);

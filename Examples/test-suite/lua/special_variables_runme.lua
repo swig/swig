@@ -18,6 +18,8 @@ v.ABC.staticmethod(0, false)
 assert(v.declaration == "short *SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)")
 v.ABC.funcptrmethod(0)
 assert(v.declaration == "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)")
+a:toInt()
+assert(v.declaration == "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const")
 a = nil
 collectgarbage()
 -- TODO no %exception on delete

@@ -37,6 +37,8 @@ public class special_variables_runme {
     verify(special_variables.getDeclaration(), "short *SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)");
     ABC.funcptrmethod(0);
     verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)");
+    a.toInt();
+    verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const");
     a.delete();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
     TemplateABC abc = new TemplateABC();

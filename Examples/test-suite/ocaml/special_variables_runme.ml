@@ -23,6 +23,8 @@ let _ =
   assert (_declaration '() as string = "short *SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)");
   ignore (_ABC_funcptrmethod '(0));
   assert (_declaration '() as string = "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)");
+  ignore (a -> toInt ());
+  assert (_declaration '() as string = "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const");
   ignore (a -> "~" ());
   assert (_declaration '() as string = "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
   let abc = new_TemplateABC '() in

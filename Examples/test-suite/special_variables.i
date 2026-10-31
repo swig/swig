@@ -102,6 +102,12 @@ std::string declaration;
   declaration = "$fulldecl $decl";
 }
 
+%rename(toInt) SpaceNamespace::ABC::operator int;
+#ifdef SWIGC
+// TODO: Fix the C target language's C++ wrapper giving a conversion operator a return type
+%feature("cxxignore") SpaceNamespace::ABC::operator int;
+#endif
+
 %inline %{
 namespace SpaceNamespace {
   struct ABC {
@@ -112,6 +118,8 @@ namespace SpaceNamespace {
     static short * staticmethod(int x, bool b) { return 0; }
     short * instancemethod(int x, bool b = false) { return 0; }
     short * constmethod(int x) const { return 0; }
+    static int (*funcptrmethod(int x))(int, int) { return 0; }
+    operator int() const { return 0; }
   };
   template<typename T> struct Template {
     std::string tmethod(T t) { return ""; }

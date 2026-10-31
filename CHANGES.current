@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix the $fulldecl special variable for a conversion operator, which gave a return type in
+            front of the declaration, such as 'int ABC::operator int() const' for:
+
+              struct ABC {
+                operator int() const;
+              };
+
+            It now gives 'ABC::operator int() const'.
+
+2026-10-31: wsfulton
             [C] Fix a pointer to a class with top level qualifiers, such as 'Foo *const' or
             'Foo *volatile', being wrapped as an object passed by value, as in:
 
