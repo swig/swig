@@ -3315,11 +3315,14 @@ Node *Language::classLookup(const SwigType *s) {
                                (Strcmp(prefix, "r.") == 0) ||               // reference
                                (Strcmp(prefix, "z.") == 0) ||               // rvalue reference
                                SwigType_prefix_is_simple_1D_array(prefix);  // Simple 1D array (not arrays of pointers/references)
-      // Also accept pointer by const reference, not non-const pointer reference
-      if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {
-        Delete(prefix);
-        prefix = SwigType_prefix(ty1);
-        acceptable_prefix = (Strncmp(prefix, "r.q(const", 9) == 0);
+      // Also accept a pointer passed by const reference, which the 'SWIGTYPE *const&' typemaps wrap as the class. Any other
+      // reference to a pointer, such as 'Foo *&' or 'Foo *const volatile &', is wrapped by the 'SWIGTYPE &' typemaps instead.
+      if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0) && SwigType_isreference(ty1)) {
+        SwigType *referred = SwigType_del_reference(Copy(ty1));
+        SwigType *const_pointer = SwigType_add_qualifier(SwigType_remove_qualifier(Copy(referred)), "const");
+        acceptable_prefix = Equal(referred, const_pointer);
+        Delete(const_pointer);
+        Delete(referred);
       }
       if (acceptable_prefix) {
         SwigType *cs = Copy(s);

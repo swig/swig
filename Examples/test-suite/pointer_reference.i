@@ -45,6 +45,10 @@ int overloading(Struct *const& s) {
 int pointer_reference_value(Struct *& s) {
   return s ? s->value : -1;
 }
+// So does a const volatile reference to a pointer
+int pointer_reference_const_volatile(Struct *const volatile & s) {
+  return s ? s->value : -1;
+}
 %}
 
 %{

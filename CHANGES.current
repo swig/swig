@@ -8,6 +8,28 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [Java] Fix the generated code not compiling for a pointer to a class passed by const
+            volatile reference, such as 'Foo *const volatile &', or by const reference to a typedef
+            of a const or volatile pointer, such as 'const CFP &' given:
+
+              typedef Foo *const CFP;
+
+            These are wrapped as a reference to a pointer, as for 'Foo *&', but the native method
+            also had a parameter of the proxy class Foo, as for 'Foo *const &'.
+
+2026-10-31: wsfulton
+            [PHP] Fix the declared type of a parameter that is a pointer to a class passed by const
+            volatile reference, such as 'Foo *const volatile &', which was the class Foo. It is now
+            the type of the pointer to a pointer that the parameter takes, as for 'Foo *&'. The same
+            is fixed for a const reference to a typedef of a const or volatile pointer.
+
+2026-10-31: wsfulton
+            [C] Fix the C++ wrappers not compiling for a pointer to a class passed by const volatile
+            reference, such as 'Foo *const volatile &', or by const reference to a typedef of a
+            const or volatile pointer. Such a function is now left out of the C++ wrappers with
+            warning 761, as for 'Foo *&'.
+
+2026-10-31: wsfulton
             [R] Fix a string returned by an R function passed for a 'const char *(*)(int)' or
             similar function pointer possibly being freed by the garbage collector before the C
             code used it, for example a string built by paste0(). The R value returned is now kept
