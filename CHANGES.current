@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a pointer or a reference to an array, such as in:
+
+              int sum(int (*a)[4]);
+              int sum_ptr_ref(int (*&a)[4]);
+              int (&get_array())[4];
+
+            These were declared with an 'int (*)[4]* carg1' parameter and as returning 'int [4]*',
+            and are now declared with 'int (*carg1)[4]' and 'int (**carg1)[4]' parameters and as
+            'int (*get_array())[4]'.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling for a reference to a function, such as in:
 
               int call_ref(int (&f)(const int &, int), int a, int b);
