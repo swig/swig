@@ -3122,7 +3122,7 @@ private:
 
     Printv(f_c_directors_h, "  virtual ~SwigDirector_", class_name, "()", NULL);
 
-    String *throws = buildThrow(n);
+    String *throws = Swig_director_exception_specification(n);
     if (throws) {
       Printv(f_c_directors_h, " ", throws, NULL);
     }
@@ -4000,23 +4000,18 @@ private:
       // Declare the method for the director class.
 
       SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0);
+      String *exception_specification = Swig_director_exception_specification(n);
+      String *decl = Swig_method_decl(rtype, Getattr(n, "decl"), Getattr(n, "name"), parms, 0, exception_specification);
       Printv(f_c_directors_h, "  virtual ", decl, NULL);
       Delete(decl);
 
       String *qname = NewString("");
       Printv(qname, "SwigDirector_", class_name, "::", Getattr(n, "name"), NULL);
-      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0);
+      decl = Swig_method_decl(rtype, Getattr(n, "decl"), qname, parms, 0, exception_specification);
       Printv(w->def, decl, NULL);
       Delete(decl);
       Delete(qname);
-
-      String *throws = buildThrow(n);
-      if (throws) {
-        Printv(f_c_directors_h, " ", throws, NULL);
-        Printv(w->def, " ", throws, NULL);
-        Delete(throws);
-      }
+      Delete(exception_specification);
 
       Printv(f_c_directors_h, ";\n", NULL);
 
@@ -4226,39 +4221,6 @@ private:
   int classDirectorDisown(Node *n) {
     (void)n;
     return SWIG_OK;
-  }
-
-  /*----------------------------------------------------------------------
-   * buildThrow()
-   *
-   * Build and return a throw clause if needed.
-   *--------------------------------------------------------------------*/
-
-  String *buildThrow(Node *n) {
-    if (Getattr(n, "noexcept"))
-      return NewString("noexcept");
-    ParmList *throw_parm_list = Getattr(n, "throws");
-    if (!throw_parm_list && !Getattr(n, "throw"))
-      return NULL;
-    String *ret = NewString("throw(");
-    if (throw_parm_list) {
-      Swig_typemap_attach_parms("throws", throw_parm_list, NULL);
-    }
-    bool first = true;
-    for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
-      if (Getattr(p, "tmap:throws")) {
-        if (first) {
-          first = false;
-        } else {
-          Printv(ret, ", ", NULL);
-        }
-        String *s = SwigType_str(Getattr(p, "type"), 0);
-        Printv(ret, s, NULL);
-        Delete(s);
-      }
-    }
-    Printv(ret, ")", NULL);
-    return ret;
   }
 
   /*----------------------------------------------------------------------

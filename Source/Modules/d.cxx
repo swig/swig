@@ -2272,42 +2272,15 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    String *exception_specification = Swig_director_exception_specification(n);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, exception_specification);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1, exception_specification);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
-
-    // Add any exception specifications to the methods in the director class
-    if (Getattr(n, "noexcept")) {
-      Append(w->def, " noexcept");
-      Append(declaration, " noexcept");
-    }
-    ParmList *throw_parm_list = NULL;
-    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-      int gencomma = 0;
-
-      Append(w->def, " throw(");
-      Append(declaration, " throw(");
-
-      if (throw_parm_list)
-        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-      for (p = throw_parm_list; p; p = nextSibling(p)) {
-        if (Getattr(p, "tmap:throws")) {
-          if (gencomma++) {
-            Append(w->def, ", ");
-            Append(declaration, ", ");
-          }
-          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
-          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
-        }
-      }
-
-      Append(w->def, ")");
-      Append(declaration, ")");
-    }
+    Delete(exception_specification);
 
     Append(w->def, " {");
     Append(declaration, ";\n");

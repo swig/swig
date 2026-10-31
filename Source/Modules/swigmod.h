@@ -400,8 +400,10 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
-String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args);
+String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args,
+                         const_String_or_char_ptr exception_specification = 0);
 String *Swig_director_declaration(Node *n);
+String *Swig_director_exception_specification(Node *n);
 bool Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);
 bool Swig_director_can_unwrap(Node *n);

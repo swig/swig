@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C#, D, Go, Java, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
+            Fix the director method of a virtual method with an exception specification inside the
+            parentheses of the declarator, as for a method returning a function pointer:
+
+              struct D {
+                virtual int (*f() const noexcept)(int);
+              };
+
+            It was declared as 'int (*f() const)(int) noexcept' in the director class, which does
+            not compile.
+
+2026-10-31: wsfulton
             #2087 Fix a noexcept after the declarator of a function returning a function pointer or
             of a function pointer variable, which belongs to the function pointed to:
 

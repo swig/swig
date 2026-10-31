@@ -15,6 +15,9 @@ class MyFoo(cpp11_directors.Foo):
     def pyng(self):
         return 6
 
+class MyFuncPtrReturner(cpp11_directors.FuncPtrReturner):
+    pass
+
 class MyMoveNode(cpp11_directors.MoveOnlyNode):
     def rvalues_mo(self, o):
         pass
@@ -32,6 +35,8 @@ swig_check(f.pang(), 3)
 swig_check(f.peng(), 4)
 swig_check(f.pung(), 5)
 swig_check(f.pyng(), 6)
+
+swig_check(cpp11_directors.callFuncPtrs(MyFuncPtrReturner(), 1), 6)
 
 m = MyMoveNode()
 m2 = MyMoveNode()

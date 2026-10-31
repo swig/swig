@@ -134,11 +134,12 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
  * Swig_method_decl()
  *
  * Return a stringified version of a C/C++ declaration.
- * The declarator, the id followed by the parameters and qualifiers, goes inside the return type, as in
- * 'int (*id(int x) const)(int,int)' for a method returning a function pointer.
+ * The declarator, the id followed by the parameters, qualifiers and exception_specification, if any, goes inside the
+ * return type, as in 'int (*id(int x) const noexcept)(int,int)' for a method returning a function pointer.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args) {
+String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args,
+                         const_String_or_char_ptr exception_specification) {
   bool conversion_operator = Strstr(id, "operator ") != 0 && !return_base_type;
 
   Parm *parm = args;
@@ -167,6 +168,8 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
     Printv(declarator, " ", qualifiers, NIL);
     Delete(qualifiers);
   }
+  if (exception_specification)
+    Printv(declarator, " ", exception_specification, NIL);
 
   String *result = conversion_operator ? Copy(declarator) : SwigType_str(rettype, declarator);
 
@@ -176,6 +179,38 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
   Delete(quals);
   Delete(rettype);
   return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_director_exception_specification()
+ *
+ * Return the exception specification for the director method of the member function n, which is 'noexcept' or a
+ * 'throw' exception specification, or NULL if n has none.  The 'throw' one lists the exceptions of n that have a
+ * "throws" typemap, which is attached to the "throws" parameters of n.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_director_exception_specification(Node *n) {
+  if (Getattr(n, "noexcept"))
+    return NewString("noexcept");
+  ParmList *throw_parm_list = Getattr(n, "throws");
+  if (!throw_parm_list && !Getattr(n, "throw"))
+    return NULL;
+  String *exception_specification = NewString("throw(");
+  if (throw_parm_list)
+    Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+  bool first = true;
+  for (Parm *p = throw_parm_list; p; p = nextSibling(p)) {
+    if (Getattr(p, "tmap:throws")) {
+      if (!first)
+        Append(exception_specification, ", ");
+      first = false;
+      String *str = SwigType_str(Getattr(p, "type"), 0);
+      Append(exception_specification, str);
+      Delete(str);
+    }
+  }
+  Append(exception_specification, ")");
+  return exception_specification;
 }
 
 /* -----------------------------------------------------------------------------
