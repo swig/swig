@@ -2579,8 +2579,9 @@ public:
     Append(wrapper->code, prepend_feature(n));
     Append(wrapper->code, scoped_dohptr(emit_action(n)).get());
     Append(wrapper->code, append_feature(n));
+    // The result variable has no qualifiers, so it is cast back to the return type, as a 'char **' cannot be returned as a 'const char **' without a cast
     if (!is_void_return)
-      Printf(wrapper->code, "return result;\n");
+      Printv(wrapper->code, "return ", scoped_dohptr(SwigType_rcaststr(type, "result")).get(), ";\n", NIL);
 
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
     if (SwigType_type(resolved_type) == T_USER) {

@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the wrapper of a C function returning a pointer to a const pointer, such as:
+
+              const char **names_get(void);
+              const char *(*namer_get(void))(int);
+
+            not compiling with gcc 14 and later when wrapping C code, with the error "returning
+            'char **' from a function with incompatible return type 'const char **'". The result
+            is now cast back to the return type.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling as C before C23 for a bool used only in a function
             pointer type, such as in:
 
