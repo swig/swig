@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix the wrapper of a member function with both a cv-qualifier and a ref-qualifier, which
+            called it on a non-const object, so it called an overload without the cv-qualifier
+            instead, if there was one. For example, with:
+
+              %rename(cl_const) X::cl() const &;
+              struct X {
+                int cl() &;
+                int cl() const &;
+              };
+
+            cl_const called 'int cl() &' and now calls 'int cl() const &'. As SWIG does not evaluate
+            constraints, an instantiation of such a C++20 member function template that does not
+            satisfy its constraints now has to be ignored, as its wrapper no longer compiles, see
+            the C++20 chapter.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [C] Fix a pointer to a class wrapped with %shared_ptr passed or returned by const
             reference using the wrong object, which could crash, given a class Klass, in:
 

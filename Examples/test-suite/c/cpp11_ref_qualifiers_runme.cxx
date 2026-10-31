@@ -28,5 +28,14 @@ int main(int argc, const char *argv[]) {
   assert(cd.cvref() == 3);
   assert(cd.cvref(10) == 12);
   assert(cd.cvref(10, 20) == 30);
+
+  ConstOverloads cvo;
+  const ConstOverloads &ccvo = cvo;
+  assert(cvo.cl() == 1);
+  assert(ccvo.cl() == 2);
+  assert(cvo.cr() == 3);
+  assert(ccvo.cr() == 4);
+  assert(cvo.cvl() == 5);
+  assert(ccvo.cvl() == 6);
   return 0;
 }

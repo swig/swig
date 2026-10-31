@@ -1066,13 +1066,13 @@ int Language::cDeclaration(Node *n) {
         }
       }
     }
-    /* This needs to check qualifiers */
-    if (SwigType_isqualifier(ty)) {
-      SwigType *qual = SwigType_pop(ty);
-      Setattr(n, "qualifier", qual);
-      Delete(qual);
-    }
-    Delete(SwigType_pop_function(ty));
+    /* The "qualifier" attribute is the cv-qualifier of a member function, which follows any ref-qualifier, as in 'r.q(const).f().' for 'int f() const &' */
+    SwigType *function = SwigType_pop_function(ty);
+    SwigType *qualifier = SwigType_remove_reference(SwigType_pop_function_qualifiers(function));
+    if (SwigType_isqualifier(qualifier))
+      Setattr(n, "qualifier", qualifier);
+    Delete(qualifier);
+    Delete(function);
     DohIncref(type);
     Setattr(n, "type", ty);
 

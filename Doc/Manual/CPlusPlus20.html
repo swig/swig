@@ -960,6 +960,16 @@ struct Holder {
 A target language with no ref-qualifiers keeps one of the two and reports warning 516
 (<i>Overloaded method 'declaration' ignored, using 'declaration' instead</i>).
 </p>
+<p>
+SWIG does not evaluate the constraints though, so <tt>%template</tt> also instantiates the second function template
+with <tt>int</tt>, which does not satisfy its constraint, and a wrapper of it does not compile.
+Ignore it with:
+</p>
+<div class="code">
+<pre>
+%ignore Holder::get&lt;int&gt;(int) const &amp;;
+</pre>
+</div>
 
 <H4><a name="CPlusPlus20_constrained_overload_directives">10.2.5.5 Naming a constrained overload in a directive</a></H4>
 

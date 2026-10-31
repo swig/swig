@@ -25,6 +25,8 @@
 
 // A target language that has no ref-qualifiers keeps one of Holder::get and drops the other.
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) Holder::get;
+// Ignore get<int> from the const template, which int does not satisfy, as SWIG does not evaluate the constraints and its wrapper does not compile
+%ignore Holder::get<int>(int) const &;
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) respaced;
 %warnfilter(SWIGWARN_PARSE_REDEFINED) respaced_requirement;

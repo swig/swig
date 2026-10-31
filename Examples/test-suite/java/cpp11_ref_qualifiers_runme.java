@@ -52,6 +52,12 @@ public class cpp11_ref_qualifiers_runme {
     ConversionOperators2 co2 = new ConversionOperators2();
     s = co2.StringConvertMove();
 
+    // The overloads with a cv-qualifier
+    ConstOverloads cvo = new ConstOverloads();
+    if (cvo.cl() != 1 || cvo.cl_const() != 2) throw new RuntimeException("cl");
+    if (cvo.cr() != 3 || cvo.cr_const() != 4) throw new RuntimeException("cr");
+    if (cvo.cvl() != 5 || cvo.cvl_const_volatile() != 6) throw new RuntimeException("cvl");
+
     // Default arguments
     DefaultArgs d = new DefaultArgs();
     if (d.vol() != 100 || d.vol(10) != 100 || d.vol(10, 20) != 100) throw new RuntimeException("vol");

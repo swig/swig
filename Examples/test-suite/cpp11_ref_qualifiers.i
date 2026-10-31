@@ -160,6 +160,25 @@ struct QualifierOverloads {
 };
 %}
 
+// The overloads with a cv-qualifier are called on a cv-qualified object
+%rename(cl_const) ConstOverloads::cl() const &;
+%rename(cr_const) ConstOverloads::cr() const &&;
+%rename(cvl_const_volatile) ConstOverloads::cvl() const volatile &;
+// Unignore the overloads with an rvalue ref-qualifier, as they are ignored by default
+%feature("ignore", "0") ConstOverloads::cr() &&;
+%feature("ignore", "0") ConstOverloads::cr() const &&;
+
+%inline %{
+struct ConstOverloads {
+  int cl() & { return 1; }
+  int cl() const & { return 2; }
+  int cr() && { return 3; }
+  int cr() const && { return 4; }
+  int cvl() & { return 5; }
+  int cvl() const volatile & { return 6; }
+};
+%}
+
 // Default arguments: the overloads added for the defaulted parameters keep the method's qualifiers
 %feature("except") DefaultArgs::vol(int a = 1, int b = 2) volatile %{ result = 100; %}
 %feature("except") DefaultArgs::lref(int a = 1, int b = 2) & %{ result = 200; %}

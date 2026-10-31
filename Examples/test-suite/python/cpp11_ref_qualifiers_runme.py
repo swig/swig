@@ -55,6 +55,15 @@ s = co.StringConvertMove()
 co2 = cpp11_ref_qualifiers.ConversionOperators2()
 s = co2.StringConvertMove()
 
+# The overloads with a cv-qualifier
+cvo = cpp11_ref_qualifiers.ConstOverloads()
+swig_check(cvo.cl(), 1)
+swig_check(cvo.cl_const(), 2)
+swig_check(cvo.cr(), 3)
+swig_check(cvo.cr_const(), 4)
+swig_check(cvo.cvl(), 5)
+swig_check(cvo.cvl_const_volatile(), 6)
+
 # Default arguments
 from swig_test_utils import swig_assert, swig_check
 

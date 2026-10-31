@@ -1082,7 +1082,8 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
       Setfile(memory_header, Getfile(n));
       Setline(memory_header, Getline(n));
       Swig_fragment_emit(memory_header);
-      self = NewString("std::move(*this).");
+      /* Swig_cmethod_call() casts '*(this)' to the cv-qualified class, unlike '*this', so a 'const &&' method is called rather than its '&&' overload */
+      self = NewString(qualifier ? "std::move(*(this))." : "std::move(*this).");
       Delete(memory_header);
     }
 

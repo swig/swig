@@ -33,3 +33,12 @@ s = co:StringConvertMove()
 
 local co2 = v.ConversionOperators2()
 s = co2:StringConvertMove()
+
+-- The overloads with a cv-qualifier
+local cvo = v.ConstOverloads()
+assert(cvo:cl() == 1)
+assert(cvo:cl_const() == 2)
+assert(cvo:cr() == 3)
+assert(cvo:cr_const() == 4)
+assert(cvo:cvl() == 5)
+assert(cvo:cvl_const_volatile() == 6)
