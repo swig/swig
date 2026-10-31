@@ -1420,6 +1420,18 @@ int Swig_DestructorToFunction(Node *n, const_String_or_char_ptr nspace, String *
 }
 
 /* -----------------------------------------------------------------------------
+ * set_variable_wrapper_type()
+ *
+ * Replaces the type of variable n with the return type of its get or set wrapper. The type of the variable is kept in
+ * "wrap:vartype" for the declaration of the variable in $fulldecl, see Swig_name_fulldecl().
+ * ----------------------------------------------------------------------------- */
+
+static void set_variable_wrapper_type(Node *n, const_String_or_char_ptr wrapper_type) {
+  Setattr(n, "wrap:vartype", Getattr(n, "type"));
+  Setattr(n, "type", wrapper_type);
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_MembersetToFunction()
  *
  * This function creates a C wrapper for setting a structure member.
@@ -1494,7 +1506,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     Delete(call);
     Delete(cres);
   }
-  Setattr(n, "type", void_type);
+  set_variable_wrapper_type(n, void_type);
   Setattr(n, "parms", parms);
   Delete(parms);
   Delete(ty);
@@ -1576,7 +1588,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     Delete(call);
     Delete(cres);
   }
-  Setattr(n, "type", ty);
+  set_variable_wrapper_type(n, ty);
   Setattr(n, "parms", parms);
   Delete(parms);
   Delete(ty);
@@ -1631,7 +1643,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
       Delete(call);
     }
   }
-  Setattr(n, "type", "void");
+  set_variable_wrapper_type(n, "void");
   Setattr(n, "parms", parms);
   Delete(parms);
   Delete(ty);
@@ -1679,7 +1691,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
     Delete(nname);
   }
 
-  Setattr(n, "type", ty);
+  set_variable_wrapper_type(n, ty);
   Delattr(n, "parms");
   Delete(cres);
   Delete(call);

@@ -20,6 +20,18 @@ v.ABC.funcptrmethod(0)
 assert(v.declaration == "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)")
 a:toInt()
 assert(v.declaration == "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const")
+a.funcptrvar = nil
+assert(v.declaration == "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar")
+local f = a.funcptrvar
+assert(v.declaration == "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar")
+a.stringvar = "abc"
+assert(v.declaration == "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar")
+local s = a.stringvar
+assert(v.declaration == "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar")
+v.globalfuncptrvar = nil
+assert(v.declaration == "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar")
+f = v.globalfuncptrvar
+assert(v.declaration == "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar")
 a = nil
 collectgarbage()
 -- TODO no %exception on delete

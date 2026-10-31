@@ -39,6 +39,18 @@ public class special_variables_runme {
     verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)");
     a.toInt();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const");
+    a.setFuncptrvar(null);
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar");
+    a.getFuncptrvar();
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar");
+    a.setStringvar("abc");
+    verify(special_variables.getDeclaration(), "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar");
+    a.getStringvar();
+    verify(special_variables.getDeclaration(), "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar");
+    special_variables.setGlobalfuncptrvar(null);
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
+    special_variables.getGlobalfuncptrvar();
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
     a.delete();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
     TemplateABC abc = new TemplateABC();

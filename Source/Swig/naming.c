@@ -1937,21 +1937,25 @@ String *Swig_name_decl(Node *n) {
  * Swig_name_fulldecl()
  *
  * Return a stringified version of a C/C++ declaration including the return type.
- * The node passed in is expected to be a function, constructor or destructor.
+ * The node passed in is expected to be a function, constructor, destructor or variable.
  * The return type is put around the declaration from Swig_name_decl() as in C/C++ code, so that the declaration goes
  * inside a function pointer return type. A constructor, destructor or conversion operator has no return type in its
- * declaration. Some example return values:
+ * declaration. A variable gives the declaration of the variable for both its get and set wrappers, which replace the
+ * type of the node with their own return type and keep the type of the variable in "wrap:vartype".
+ * Some example return values:
  *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::operator int() const"
  *   "int *MyNameSpace::ABC::constmethod(int) const"
  *   "int (*MyNameSpace::ABC::funcptrmethod(int))(int,int)"
+ *   "int (*MyNameSpace::ABC::funcptrvariable)(int)"
  *
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_fulldecl(Node *n) {
   String *decl = Swig_name_decl(n);
-  String *type = Getattr(n, "type");
+  String *vartype = Getattr(n, "wrap:vartype");
+  String *type = vartype ? vartype : Getattr(n, "type");
   String *nodetype = nodeType(n);
   String *fulldecl;
   /* add on the return type */

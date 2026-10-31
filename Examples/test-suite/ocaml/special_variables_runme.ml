@@ -25,6 +25,18 @@ let _ =
   assert (_declaration '() as string = "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)");
   ignore (a -> toInt ());
   assert (_declaration '() as string = "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const");
+  let funcptr = a -> "[funcptrvar]" () in
+  assert (_declaration '() as string = "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar");
+  ignore (a -> "[funcptrvar]" (funcptr));
+  assert (_declaration '() as string = "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar");
+  ignore (a -> "[stringvar]" ("abc"));
+  assert (_declaration '() as string = "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar");
+  ignore (a -> "[stringvar]" ());
+  assert (_declaration '() as string = "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar");
+  let funcptr = _globalfuncptrvar '() in
+  assert (_declaration '() as string = "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
+  ignore (_globalfuncptrvar '(funcptr));
+  assert (_declaration '() as string = "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
   ignore (a -> "~" ());
   assert (_declaration '() as string = "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
   let abc = new_TemplateABC '() in

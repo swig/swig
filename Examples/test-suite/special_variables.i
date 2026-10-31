@@ -108,23 +108,29 @@ std::string declaration;
 %feature("cxxignore") SpaceNamespace::ABC::operator int;
 #endif
 
+%allowexception SpaceNamespace::ABC::funcptrvar;
+%allowexception SpaceNamespace::ABC::stringvar;
+%allowexception SpaceNamespace::globalfuncptrvar;
+
 %inline %{
 namespace SpaceNamespace {
   struct ABC {
-    ABC(int a, double b) {}
-    ABC() {}
+    ABC(int a, double b) : funcptrvar(0) {}
+    ABC() : funcptrvar(0) {}
     // Before staticmethod, as the Python decorator of a static method after it would name the method instead of the builtin
     static int (*funcptrmethod(int x))(int, int) { return 0; }
     static short * staticmethod(int x, bool b) { return 0; }
     short * instancemethod(int x, bool b = false) { return 0; }
     short * constmethod(int x) const { return 0; }
-    static int (*funcptrmethod(int x))(int, int) { return 0; }
     operator int() const { return 0; }
+    int (*funcptrvar)(int);
+    std::string stringvar;
   };
   template<typename T> struct Template {
     std::string tmethod(T t) { return ""; }
   };
   void globtemplate(Template<ABC> t) {}
+  int (*globalfuncptrvar)(int) = 0;
 }
 %}
 

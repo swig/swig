@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix the $fulldecl special variable in the get and set wrappers of a variable used with
+            %allowexception. A set wrapper gave the void return type and the variable name, such as
+            'void ABC::funcptrvar' for:
+
+              struct ABC {
+                int (*funcptrvar)(int);
+              };
+
+            The get wrapper of a variable of class type gave a pointer or const reference type. Both
+            wrappers now give the declaration of the variable, such as 'int (*ABC::funcptrvar)(int)'.
+
+2026-10-31: wsfulton
             Fix the $fulldecl special variable for a conversion operator, which gave a return type in
             front of the declaration, such as 'int ABC::operator int() const' for:
 
