@@ -1001,9 +1001,11 @@ public:
 
   // Do emit the function wrapper.
   void emit() {
-    // The wrapper function name should be sym:name, but we change it to include the namespace prefix in our own globalvariableHandler(), so now we have to undo
-    // this by using the value saved there, if available. This is definitely clumsy and it would be better to avoid it, but this would probably need to be done
-    // by separating C and C++ wrapper generation in two different passes and so would require significantly more changes than this hack.
+    // The wrapper function name should be sym:name, but the sym:name of a global variable accessor is the name of its C
+    // wrapper, with the namespace prefix, if any, added by our own globalvariableHandler(). So use the name of the
+    // variable saved there instead, if available. This is definitely clumsy and it would be better to avoid it, but this
+    // would probably need to be done by separating C and C++ wrapper generation in two different passes and so would
+    // require significantly more changes than this hack.
     String *name = Getattr(func_node, "c:globalvariableHandler:sym:name");
     if (!name)
       name = Getattr(func_node, "sym:name");
@@ -2162,13 +2164,20 @@ public:
       }
     }
 
-    // We have to prepend the global prefix to the names of the accessors for this variable, if we use one.
-    //
-    // Note that we can't just register the name format using the prefix for "get" and "set", as we do it for "member", and using it for both would result in
-    // the prefix being used twice for the member variables getters and setters, so we have to work around it here instead.
-    if (ns_prefix && !getCurrentClass()) {
+    // Save the sym:name of the variable, which names the C++ wrappers of its accessors, as for a member variable, for
+    // cxx_function_wrapper::emit(). The sym:name of an accessor is the name of the C wrapper that the C++ one calls.
+    if (!getCurrentClass()) {
       Swig_require("c:globalvariableHandler", n, "*sym:name", NIL);
-      Setattr(n, "sym:name", NewStringf("%s_%s", ns_prefix, Getattr(n, "sym:name")));
+
+      // We have to prepend the global prefix to the names of the accessors for this variable, if we use one.
+      //
+      // Note that we can't just register the name format using the prefix for "get" and "set", as we do it for
+      // "member". Using it for both would result in the prefix being used twice for the member variables getters and
+      // setters, so we have to work around it here instead.
+      if (ns_prefix) {
+        scoped_dohptr prefixed_name = adopt(NewStringf("%s_%s", ns_prefix, Getattr(n, "sym:name")));
+        Setattr(n, "sym:name", prefixed_name);
+      }
     }
 
     // Otherwise, e.g. if it's of a C++-only type, or a reference, generate accessor functions for it.

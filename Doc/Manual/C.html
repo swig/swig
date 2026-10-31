@@ -87,7 +87,6 @@ Flattening C++ language constructs into a set of C-style functions obviously com
 
 <ul>
     <li>Enums with a context like class or namespace are broken</li>
-    <li>Global variables are not supported</li>
     <li>Qualifiers are stripped</li>
     <li>Vararg functions are not supported.</li>
 </ul>
@@ -335,7 +334,8 @@ SWIGIMPORT int ns_limit_get();
 
 <p>
 When wrapping C++ code, accessor functions are also used for a variable in a namespace and for a variable whose type is
-not a builtin type or a pointer to one, such as a class, an enum, a typedef or a reference.
+not a builtin type or a pointer to one, such as a class, an enum, a typedef or a reference. The C++ wrappers of the
+accessor functions are named after the variable, see <a href="#C_cxx_wrappers">C++ Wrappers</a>.
 </p>
 
 <p>
@@ -402,7 +402,7 @@ By default, SWIG attempts to build a natural C interface to your C/C++ code.
   <tr>
     <td>Public, immutable member variable <tt>Foo Example::bar</tt></td>
     <td><div class="targetlang"><pre>
-      Example_foo_get(Example *e);
+      Example_bar_get(Example *e);
     </pre></div></td>
   </tr>
 </table>
@@ -1093,6 +1093,27 @@ Other ones are due to things that could be supported but haven't been implemente
   C++ wrapper class <tt>Foo</tt>, cannot be passed to the wrapped C++ code, which would call it with a pointer to
   its own <tt>Foo</tt> class.</li>
 </ul>
+
+<p>
+A variable is wrapped by a function named after it, which returns its value, and, unless the variable is read only, by
+an overload of this function taking the value to set. A member variable gives these functions as members of the C++
+wrapper class, such as <tt>x()</tt> and <tt>x(int)</tt> for the member <tt>int x</tt>. A global variable that is
+declared in the header has no C++ wrapper, as it can be used directly. A global variable wrapped with accessor
+functions, see <a href="#C_variables">Variables</a>, gives these functions in the namespace of the C++ wrappers. For
+example, with <tt>-namespace ns</tt>, the variables <tt>counter</tt> and <tt>limit</tt> of the example in that section
+are used as:
+</p>
+
+<div class="targetlang"><pre>
+ns::counter(10);
+int n = ns::counter() + ns::limit();
+</pre></div>
+
+<p>
+A variable of a class type is handled as a pointer, as described in
+<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a>, so its getter returns a pointer, through which
+the member functions of the variable can be called, and its setter takes a pointer.
+</p>
 
 <H3><a name="C_additional_possibilities">40.8.1 Additional customization possibilities</a></H3>
 

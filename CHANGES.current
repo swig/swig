@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the C++ wrappers of the accessor functions of a global variable without the
+            -namespace option, which called themselves instead of the C accessor functions with the
+            same names. For example:
+
+              namespace space {
+                int number = 1;
+              }
+
+            gave a C++ wrapper number_set() that crashed on infinite recursion. The C++ wrapper of
+            the getter of a variable of class type did not compile. The C++ wrappers are now named
+            after the variable, as they are with -namespace, so number(1) sets the variable and
+            number() gets it.
+
+2026-10-31: wsfulton
             Fix the $fulldecl special variable in the get and set wrappers of a variable used with
             %allowexception. A set wrapper gave the void return type and the variable name, such as
             'void ABC::funcptrvar' for:
