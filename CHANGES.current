@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix two dimensional arrays in the .h file when wrapping C code, for example for:
+
+              int grid[2][3];
+              int sum_grid(int a[2][3]);
+
+            The global variable was declared as 'SWIGIMPORT int grid[];'. The parameter used
+            'int **' instead of the pointer to an array that the wrapper uses, as did the accessor
+            functions of the variable with -namespace, so C code using them did not compile. They
+            are now declared as:
+
+              SWIGIMPORT int grid[][3];
+              SWIGIMPORT int grid_sum_grid(int (*carg1)[3]);
+
+2026-10-31: wsfulton
             [C] Fix the members of a struct declared in the .h file when wrapping C code losing
             their pointer, array or function pointer declarators, for example for:
 

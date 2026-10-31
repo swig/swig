@@ -122,6 +122,16 @@ same_action(TM, size_t, ACTION, ACTION_CREF, no_attrs);
 same_macro_all_primitive_types_but_void(same_type,ctype);
 same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 
+#ifndef SWIG_CPPMODE
+// When wrapping C, the wrapper has the parameters of the C function, so a two dimensional array decays to a pointer
+// to an array, as in 'int (*carg1)[4]', not to a pointer to a pointer
+%define c_twodim_array_type(TM, T, ATTRS)
+%typemap(TM ATTRS) T[ANY][ANY], const T[ANY][ANY] "$resolved_type"
+%enddef
+
+same_macro_all_primitive_types_but_void(c_twodim_array_type,ctype);
+#endif
+
 // trivial typemap for arrays of void pointers to avoid applying the object typemaps to them
 %typemap(ctype) void*[ANY], void*[] "void **"
 

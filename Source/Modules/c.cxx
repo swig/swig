@@ -3173,8 +3173,8 @@ public:
    *
    * This function accounts for three special cases:
    *  1. If the type is an anonymous enum, "int" is used instead.
-   *  2. If the type of a global variable is an array, its bounds are stripped. A struct member keeps them, as they give
-   *     the size and layout of the struct.
+   *  2. If the type of a global variable is an array, the bound of its first dimension is stripped, as in 'int x[][4]'
+   *     for 'int x[3][4]'. A struct member keeps it, as it gives the size and layout of the struct.
    *  3. A typedef that the header file does not declare is resolved, see resolve_undeclared_typedefs().
    * --------------------------------------------------------------------- */
   String *make_c_var_decl(Node *n, SwigType *type, bool is_struct_member) {
@@ -3228,8 +3228,7 @@ public:
     }
 
     if (!is_struct_member && SwigType_isarray(decl_type)) {
-      Delete(SwigType_pop_arrays(decl_type));
-      SwigType_add_array(decl_type, "");
+      SwigType_array_setdim(decl_type, 0, "");
     }
     String *const var_decl = SwigType_str(decl_type, name);
 

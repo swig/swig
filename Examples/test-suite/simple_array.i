@@ -16,6 +16,7 @@ extern struct BarArray bars[2];
 int x[10];
 double y[7];
 struct BarArray bars[2]; 
+int xy[2][3];
 
 void
 initArray()
