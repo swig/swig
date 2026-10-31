@@ -557,6 +557,11 @@ typedef unsigned long SCM;
   $1 = SWIG_CheckState(res);
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*)
+%{ char swig_memberptr[sizeof($1_ltype)];
+   int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $descriptor);
+   $1 = SWIG_CheckState(res); %}
+
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, 0, 0);

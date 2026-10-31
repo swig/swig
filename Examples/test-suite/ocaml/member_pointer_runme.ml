@@ -31,6 +31,9 @@ let _ =
   assert (_call1 '(add_by_value, 1, 2) as int = 3);
   assert (_call2 '(add_by_pointer, 3, 4) as int = 7);
   assert (_call3 '(add_by_reference, 5, 6) as int = 11);
+  assert (_call_overloaded '(add_by_value, 1, 2) as int = 3);
+  assert (_call_overloaded '(add_by_pointer, 3, 4) as int = -7);
+  assert (_call_overloaded '(10, 5, 6) as int = 110);
   (try
     ignore (_do_op '(s, add_by_value)); assert false
   with Failure _ -> ());

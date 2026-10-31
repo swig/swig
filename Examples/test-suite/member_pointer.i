@@ -159,3 +159,13 @@ int call3(int & (Funktions::*d)(const int &, int), int a, int b) { Funktions f; 
 %constant int * (Funktions::*ADD_BY_POINTER)(const int &, int) = &Funktions::addByPointer;
 %constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) = &Funktions::addByReference;
 
+%inline %{
+/* Functions returning member pointers for PHP, which does not wrap member pointer constants */
+int (Funktions::*addbyvaluept())(const int &, int) { return &Funktions::addByValue; }
+int * (Funktions::*addbypointerpt())(const int &, int) { return &Funktions::addByPointer; }
+
+/* Overloaded on the member pointer type */
+int call_overloaded(int (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return (f.*d)(a, b); }
+int call_overloaded(int * (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return -*(f.*d)(a, b); }
+int call_overloaded(int c, int a, int b) { return c * (a + b); }
+%}

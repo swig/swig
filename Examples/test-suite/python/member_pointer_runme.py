@@ -49,3 +49,8 @@ check("Square perim", 40.0, do_op_td(s, perim_pt));
 check("Add by value", 3, call1(ADD_BY_VALUE, 1, 2))
 check("Add by pointer", 7, call2(ADD_BY_POINTER, 3, 4))
 check("Add by reference", 11, call3(ADD_BY_REFERENCE, 5, 6))
+
+# Overloaded on the member pointer type
+check("Overload by value", 3, call_overloaded(ADD_BY_VALUE, 1, 2))
+check("Overload by pointer", -7, call_overloaded(ADD_BY_POINTER, 3, 4))
+check("Overload by int", 110, call_overloaded(10, 5, 6))

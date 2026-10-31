@@ -563,6 +563,12 @@
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE (CLASS::*) {
+  char swig_memberptr[sizeof($1_ltype)];
+  int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $descriptor);
+  $1 = SWIG_CheckState(res);
+}
+
 %typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
   %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }

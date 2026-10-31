@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 12;
 # member_pointer using pointers to member functions
 
 BEGIN { use_ok('member_pointer') }
@@ -49,3 +49,8 @@ $memberPtr = $member_pointer::NULLPT;
 is(100.0, member_pointer::do_op($s,$member_pointer::AREAPT), "Square area");
 is(40.0, member_pointer::do_op($s,$member_pointer::PERIMPT), "Square perim");
 
+# Overloaded on the member pointer type
+
+is(3, member_pointer::call_overloaded($member_pointer::ADD_BY_VALUE, 1, 2), "Overload by value");
+is(-7, member_pointer::call_overloaded($member_pointer::ADD_BY_POINTER, 3, 4), "Overload by pointer");
+is(110, member_pointer::call_overloaded(10, 5, 6), "Overload by int");

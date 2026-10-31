@@ -614,7 +614,7 @@
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char [], char [ANY]
  " $1 = (Z_TYPE($input) == IS_STRING || Z_TYPE($input) == IS_NULL); "
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE, SWIGTYPE (CLASS::*)
 {
   void *tmp;
   $1 = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, SWIG_POINTER_NO_NULL) >= 0);

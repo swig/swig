@@ -38,3 +38,7 @@ memberPtr = mp.NULLPT
 check ("Square area ", 100.0, mp.do_op(s,mp.AREAPT))
 check ("Square perim", 40.0, mp.do_op(s,mp.PERIMPT))
 
+-- Overloaded on the member pointer type
+check ("Overload by value", 3, mp.call_overloaded(mp.ADD_BY_VALUE, 1, 2))
+check ("Overload by pointer", -7, mp.call_overloaded(mp.ADD_BY_POINTER, 3, 4))
+check ("Overload by int", 110, mp.call_overloaded(10, 5, 6))

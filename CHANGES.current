@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [Guile, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl]
+            Fix an overloaded function with a member pointer parameter, such as call_overloaded in:
+
+              struct Funktions {
+                int addByValue(const int &a, int b);
+              };
+              int call_overloaded(int (Funktions::*d)(const int &, int), int a, int b);
+              int call_overloaded(int c, int a, int b);
+
+            A member pointer never matched the member pointer parameter when choosing the overload
+            to call, so a call passing one failed with an error such as "Wrong number or type of
+            arguments for overloaded function". The overload taking the member pointer is now
+            called.
+
+2026-10-31: wsfulton
             [Java, Octave, Python, Ruby, Scilab, Tcl]
             The wrappers of a variable whose type is a pointer with a top level volatile
             qualifier, such as 'Foo *volatile' or 'Foo *const volatile', did not compile. A

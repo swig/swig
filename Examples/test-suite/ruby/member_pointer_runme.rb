@@ -52,3 +52,8 @@ memberPtr = Member_pointer::NULLPT
 check "Square area ", 100.0, Member_pointer::do_op(s, Member_pointer::AREAPT)
 check "Square perim", 40.0, Member_pointer::do_op(s, Member_pointer::PERIMPT)
 
+# Overloaded on the member pointer type
+
+check "Overload by value", 3, Member_pointer::call_overloaded(Member_pointer::ADD_BY_VALUE, 1, 2)
+check "Overload by pointer", -7, Member_pointer::call_overloaded(Member_pointer::ADD_BY_POINTER, 3, 4)
+check "Overload by int", 110, Member_pointer::call_overloaded(10, 5, 6)

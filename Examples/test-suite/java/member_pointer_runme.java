@@ -51,6 +51,11 @@ public class member_pointer_runme {
 
     // Typedefs
     check( "Square perim", 40.0, member_pointer.do_op_td(s,perim_pt) );
+
+    // Overloaded on the member pointer type
+    check( "Overload by value", 3, member_pointer.call_overloaded(member_pointer.ADD_BY_VALUE, 1, 2) );
+    check( "Overload by pointer", -7, member_pointer.call_overloaded(member_pointer.ADD_BY_POINTER, 3, 4) );
+    check( "Overload by int", 110, member_pointer.call_overloaded(10, 5, 6) );
   }
 
   private static void check(String what, double expected, double actual) {
