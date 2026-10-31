@@ -8537,6 +8537,27 @@ notso_direct_declarator : idcolon {
                     }
                     $$.type = $pointer;
                   }
+                  /* A reference to what the inner declarator yields, such as the return type in 'int *(&f())(int)' */
+                  | LPAREN AND qualified_notso_direct_declarator[in] RPAREN {
+                    SwigType *t = NewStringEmpty();
+                    $$ = $in;
+                    SwigType_add_reference(t);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
+                  }
+                  | LPAREN LAND qualified_notso_direct_declarator[in] RPAREN {
+                    SwigType *t = NewStringEmpty();
+                    $$ = $in;
+                    SwigType_add_rvalue_reference(t);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
+                  }
                   | LPAREN idcolon DSTAR qualified_notso_direct_declarator[in] RPAREN {
 		    SwigType *t;
 		    $$ = $in;

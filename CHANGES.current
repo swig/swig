@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix syntax error for a reference to a function returning a pointer as a parameter or
+            return type, for example:
+
+              int callref(int *(&d)(int), int i);
+              int *(&g())(int);
+
+            These are now wrapped in the same way as when the function type is a typedef, as in
+            'PIntFn &' given:
+
+              typedef int *PIntFn(int);
+
+2026-10-31: wsfulton
             Fix syntax error for a member function returning a pointer to a member function when
             the member function has a cv-qualifier or ref-qualifier, which is written inside the
             parentheses of the declarator, such as f here:

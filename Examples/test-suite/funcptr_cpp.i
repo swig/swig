@@ -51,6 +51,8 @@ int callref1(int (&d)(const int &, int), int a, int b) { return d(a, b); }
 int callref2(AddByValueTypedef &d, int a, int b) { return d(a, b); }
 int (&getAddByValueRef1())(const int &, int) { return addByValue; }
 AddByValueTypedef &getAddByValueRef2() { return addByValue; }
+int callref3(int * (&d)(const int &, int), int a, int b) { return *d(a, b); }
+int * (&getAddByPointerRef())(const int &, int) { return addByPointer; }
 struct AddByValueRefHolder {
   AddByValueTypedef &fnRef;
   AddByValueRefHolder(AddByValueTypedef &f) : fnRef(f) {}
