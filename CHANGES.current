@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix the error for a value of the wrong type returned by an R function passed for a
+            function pointer having '$symname' and '$argnum' in it. It now names the function
+            pointer type and argument 0, such as "in method '_p_f_int__int', argument 0 of type
+            'int'".
+
+2026-10-31: wsfulton
             [R] Fix an R function passed for function pointer types that differ only in the
             qualifiers of their return type, such as 'char *(*)(int)' and 'const char *(*)(int)'.
             The value it returned was converted for whichever of the types was wrapped first. So a

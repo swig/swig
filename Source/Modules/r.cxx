@@ -664,10 +664,14 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
        Is this still true? If so, will a SwigType_push() solve things?
     */
     Parm *bbase = NewParmNode(rettype, n);
+    /* An error converting the return value gives the function pointer type as the method and 0 as the argument number,
+       as for the return value of a director method */
+    Setattr(bbase, "sym:name", className);
     String *returnTM = Swig_typemap_lookup("in", bbase, Swig_cresult_name(), f);
     if (returnTM) {
       String *tm = returnTM;
       Replaceall(tm, "$input", "r_swig_cb_data->retValue");
+      Replaceall(tm, "$argnum", "0");
       replaceRClass(tm, rettype);
       Replaceall(tm, "$owner", "0");
       Replaceall(tm, "$disown", "0");
