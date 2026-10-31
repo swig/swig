@@ -12,4 +12,11 @@ int main(int argc, const char *argv[]) {
         li_boost_shared_ptr::Klass k{li_boost_shared_ptr_factorycreate()};
         assert( k.getValue() == "factorycreate" );
     }
+
+    {
+        li_boost_shared_ptr::Klass k("me oh my");
+        li_boost_shared_ptr::Klass *kret = li_boost_shared_ptr::pointerreftest(&k);
+        assert( kret->getValue() == "me oh my pointerreftest" );
+        delete kret;
+    }
 }

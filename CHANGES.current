@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix a pointer to a class wrapped with %shared_ptr passed or returned by const
+            reference using the wrong object, which could crash, given a class Klass, in:
+
+              %shared_ptr(Klass)
+              Klass *const &pointerreftest(Klass *const &k);
+
+2026-10-31: wsfulton
             [C] Fix the C++ wrappers of a pointer to an enum passed or returned by const reference
             taking and returning a reference to the enum instead of the pointer, for example:
 

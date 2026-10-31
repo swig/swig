@@ -49,6 +49,14 @@
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE * %{
   $result = $1 ? (SwigObj*) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;%}
 
+// Plain type pointer passed by const reference.
+%typemap(in) CONST TYPE *const& ($*1_ltype temp = 0, SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
+  smartarg = (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > *)$input;
+  temp = (TYPE *)(smartarg ? smartarg->get() : 0);
+  $1 = &temp;%}
+%typemap(out, fragment="SWIG_null_deleter") CONST TYPE *const& %{
+  $result = *$1 ? (SwigObj*) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >(*$1 SWIG_NO_NULL_DELETER_$owner) : 0;%}
+
 // Plain type references.
 %typemap(in, canthrow=1) CONST TYPE & (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
   smartarg = (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > *)$input;
