@@ -140,8 +140,8 @@ R_SWIG_popCallbackFunctionData(RCallbackFunctionData *base)
   }
 }
 
-/* A wrapper pushes an entry for each R function passed for a function pointer parameter and pops them all when it returns. An entry gives the name of
-   the stub that calls the R function, as a stub looks up the entry by its name, and the top of the stack before the wrapper pushed any entries. */
+/* A wrapper pushes an entry for each R function passed for a function pointer parameter and pops them all when it returns. The stub that calls the R
+   function looks up the entry by the stub's name. The entry also has the top of the stack from before the wrapper pushed any entries. */
 SWIGRUNTIME RCallbackFunctionData *
 R_SWIG_pushCallbackFunctionData(SEXP fun, SEXP userData, const char *stub, RCallbackFunctionData *base)
 {

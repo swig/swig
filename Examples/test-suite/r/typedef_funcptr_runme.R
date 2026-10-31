@@ -35,6 +35,18 @@ unittest(do_op_twice(1, 2, function(x, y) {
 }), 5)
 invisible(error_message(function() do_op(1, 2, function(x, y) x * 2)))
 
+# The memory R_alloc() gives optim() for the R function it minimizes is kept when that calls an R function twice
+f <- function(p) sum((p - c(3, 4))^2)
+expected <- optim(c(1, 2), f, control = list(maxit = 30))$par
+unittest(optim(c(1, 2), function(p) {
+  do_op_twice(1, 2, function(x, y) {
+    gc()
+    junk <- lapply(1:500, function(i) rep(i + 0.5, i %% 16 + 1))
+    as.integer(x + y)
+  })
+  f(p)
+}, control = list(maxit = 30))$par, expected)
+
 # An R function kept by the C code cannot be called once the function it was passed to returns
 OpHolder_static_fn_set(function(x, y) as.integer(x * y))
 unittest(error_message(function() do_op(2, 3, OpHolder_static_fn_get())),

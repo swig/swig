@@ -516,8 +516,8 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   }
   Delete(stubType);
 
-  /* A stub finds the R function to call by its own name, so a parameter of a type that an earlier parameter of the same function has gets another stub,
-     named like those for the qualifiers, given by usedStubs */
+  /* A stub looks up the R function to call by the stub's name, so a parameter with the same type as an earlier parameter
+     of the function, whose stubs are in usedStubs, gets another stub, named with a number added as for the qualifiers */
   for (Iterator it = First(typeStubs); it.item; it = Next(it)) {
     if (!usedStubs || !Getattr(usedStubs, it.item)) {
       if (usedStubs)
@@ -650,7 +650,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   if (r_tmp_needed)
     Wrapper_add_local(f, "r_tmp", "SEXP r_tmp");             // for use in converting arguments to R objects for call.
   Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0");  // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0");        // for use in converting arguments to R objects for call.
+  Wrapper_add_localv(f, "r_vmax", "VMAXTYPE", "r_vmax = vmaxget()", NIL);
 
   Printf(f->code, "Rf_protect(%s->expr = Rf_allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
   Printf(f->code, "r_nprotect++;\n");
@@ -675,8 +675,8 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
 
   if (!isVoidType) {
     Printv(f->code, "Rf_protect(r_swig_cb_data->retValue);\n", "r_nprotect++;\n", NIL);
-    /* A pointer or reference converted from the R value returned can point into it, such as into its string for a 'const char *', so the value is kept
-       from the garbage collector until the wrapped function returns */
+    /* A pointer or reference converted from the value returned by the R function can point into it, such as into its
+       string for a 'const char *', so the value is kept from the garbage collector until the wrapped function returns */
     SwigType *resolvedRet = SwigType_typedef_resolve_all(rettype);
     if (SwigType_ispointer(resolvedRet) || SwigType_isreference(resolvedRet) || SwigType_isrvalue_reference(resolvedRet))
       Printv(f->code, "R_SWIG_keepCallbackValue(r_swig_cb_data, r_swig_cb_data->retValue);\n", NIL);

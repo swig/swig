@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix calling an R function passed for a function pointer freeing all the memory
+            given by R_alloc() to the code that called R. The R function optim() from the stats
+            package, for example, keeps its work vectors in such memory while it calls the R
+            function that it minimizes. Given a wrapped function taking a function pointer:
+
+              int do_op(int a, int b, int (*op)(int, int));
+
+            R could crash when the function minimized by optim() called it, as in:
+
+              optim(c(1, 2), function(p) { do_op(1, 2, function(x, y) x + y); sum(p^2) })
+
+            The memory is now kept until the code that allocated it releases it.
+
+2026-10-31: wsfulton
             [R] Fix R functions passed for function pointer parameters, which could be called
             only once. A C function calling its function pointer twice failed with "Supposedly
             impossible error occurred in the SWIG callback mechanism". For a function with two
