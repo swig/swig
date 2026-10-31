@@ -21,13 +21,20 @@ let _ =
   assert (_do_op_td '(s, perim_pt) as float = 40.);
   let perim_td = _perimeterpt_td '() in
   assert (_do_op_td '(s, perim_td) as float = 40.);
+  assert (_do_op_cref '(s, area_pt) as float = 100.);
+  let perim_cref = _perimetervar_td_cref '() in
+  assert (_do_op_cref '(s, perim_cref) as float = 40.);
+  assert (_do_op '(s, perim_cref) as float = 40.);
   let add_by_value = _ADD_BY_VALUE '() in
   let add_by_pointer = _ADD_BY_POINTER '() in
   let add_by_reference = _ADD_BY_REFERENCE '() in
   assert (_call1 '(add_by_value, 1, 2) as int = 3);
   assert (_call2 '(add_by_pointer, 3, 4) as int = 7);
   assert (_call3 '(add_by_reference, 5, 6) as int = 11);
-  try
+  (try
     ignore (_do_op '(s, add_by_value)); assert false
+  with Failure _ -> ());
+  try
+    ignore (_do_op_cref '(s, add_by_value)); assert false
   with Failure _ -> ()
 ;;

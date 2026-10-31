@@ -331,6 +331,25 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     args = caml_list_append(args, caml_val_member((void *)&$1, sizeof($1), $1_descriptor));
 }
 
+%typemap(in) (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) %{
+    caml_member_val($input, (void *)&temp, sizeof(temp), $*1_descriptor);
+    $1 = &temp;
+%}
+%typemap(out) SWIGTYPE (CLASS::*const&) %{
+    $result = caml_val_member((void *)$1, sizeof(*$1), $*1_descriptor);
+%}
+%typemap(varout) SWIGTYPE (CLASS::*const&) %{
+    $result = caml_val_member((void *)&$1, sizeof($1), $*1_descriptor);
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE (CLASS::*const&) %{
+    static SwigTypeIdentity< $*1_ltype >::type swig_temp;
+    caml_member_val($input, (void *)&swig_temp, sizeof(swig_temp), $*1_descriptor);
+    $result = &swig_temp;
+%}
+%typemap(directorin) SWIGTYPE (CLASS::*const&) %{
+    args = caml_list_append(args, caml_val_member((void *)&$1, sizeof($1), $*1_descriptor));
+%}
+
 /* Arrays, as a pointer to the first element */
 %typemap(in) SWIGTYPE [] = SWIGTYPE *;
 %typemap(out) SWIGTYPE [] = SWIGTYPE *;
@@ -452,5 +471,4 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

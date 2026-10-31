@@ -8,6 +8,23 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [OCaml] Fix a parameter that is a const reference to a member pointer, such as m in:
+
+              struct Shape {
+                virtual double area();
+              };
+              double do_op(Shape *s, double (Shape::*const &m)());
+
+            Any C_string was accepted for it with no type check and the text was read as a member
+            pointer, so passing a member pointer value could crash. It is now passed as a member
+            pointer value with its type checked, as a const reference to a simple type is passed as
+            a value. A const reference to a member pointer returned from a function or variable is
+            now a member pointer value instead of a C_ptr to the member pointer. A director method
+            gets and returns such a type as a member pointer value too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [C] When wrapping C code, the generated header now declares a struct or union that SWIG
             has not seen defined before a wrapper function taking a pointer to it, such as Tree,
             which is only declared in a %{ %} block, in:

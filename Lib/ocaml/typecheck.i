@@ -148,6 +148,10 @@
   $1 = caml_member_packed($input, sizeof($1_ltype), $1_descriptor) != NULL;
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*const&) {
+  $1 = caml_member_packed($input, sizeof($*1_ltype), $*1_descriptor) != NULL;
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   swig_type_info *typeinfo;
   if (!Is_block($input)) {

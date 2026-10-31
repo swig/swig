@@ -60,6 +60,10 @@ extern PerimeterFunc_td perimeterpt_td();
 extern double (Shape::*areavar)(void);
 extern double (Shape::*perimetervar)(void);
 extern PerimeterFunc_td perimetervar_td;
+
+/* Const references to member pointers */
+extern double do_op_cref(Shape *s, double (Shape::*const &m)(void));
+extern const PerimeterFunc_td &perimetervar_td_cref();
 %}
 
 %{
@@ -113,6 +117,14 @@ PerimeterFunc_td perimeterpt_td() {
 double (Shape::*areavar)(void) = &Shape::area;
 double (Shape::*perimetervar)(void) = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
+
+double do_op_cref(Shape *s, double (Shape::*const &m)(void)) {
+  return (s->*m)();
+}
+
+const PerimeterFunc_td &perimetervar_td_cref() {
+  return perimetervar_td;
+}
 %}
 
 
