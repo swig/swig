@@ -8,6 +8,25 @@
 
 %include <std_string.i>
 
+#if defined(SWIGC)
+// TODO: the C target language does not support a pointer to a member function yet
+%ignore MemberFuncPtrs;
+%ignore cc1;
+%ignore ccextra2;
+%ignore ccextra3;
+%ignore ccextra4;
+%ignore cc2;
+%ignore cc3;
+%ignore cc4;
+%ignore cc5;
+%ignore cc6;
+%ignore cc7;
+%ignore call1;
+// TODO: the C++ wrappers do not support conversion operators yet
+%feature("cxxignore") ConversionOperators;
+%feature("cxxignore") ConversionOperators2;
+#endif
+
 %ignore Host::h() const &;
 
 // Basic testing

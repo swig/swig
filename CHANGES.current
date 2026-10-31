@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the C++ wrapper of a member function with both a cv-qualifier and a
+            ref-qualifier, which was not a const method, so it could not be called on a const C++
+            wrapper object. For example:
+
+              struct Host {
+                int cl() const &;
+              };
+
+            gave 'int cl();' in the C++ wrapper class Host and now gives:
+
+              int cl() const;
+
+2026-10-31: wsfulton
             [C] Fix the C++ wrappers of the accessor functions of a global variable without the
             -namespace option, which called themselves instead of the C accessor functions with the
             same names. For example:

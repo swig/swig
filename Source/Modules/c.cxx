@@ -272,6 +272,17 @@ scoped_dohptr get_func_decl(SwigType *return_type, String *name, ParmList *parms
   return scoped_dohptr(Swig_method_decl(return_type, decl, name, parms, 0));
 }
 
+// Return the cv-qualifier of the member function with the given decl, such as 'q(const).' for both 'int f() const' and
+// 'int f() const &', or NULL if it has none. The decl of the latter is 'r.q(const).f().', which does not start with the
+// cv-qualifier, so Language::cDeclaration() does not give it the "qualifier" attribute.
+SwigType *get_function_cv_qualifier(SwigType *decl) {
+  if (!SwigType_isfunction(decl))
+    return NULL;
+
+  scoped_dohptr function = adopt(SwigType_remove_reference(Copy(decl)));
+  return SwigType_isqualifier(function) ? SwigType_pop(function) : NULL;
+}
+
 /*
   Information about a type used in the C++ wrappers, common to the function return type and its parameters.
  */
@@ -1482,9 +1493,11 @@ private:
     return Checkattr(n, "storage", "virtual") ? "virtual " : "";
   }
 
-  // Return true for a const or const volatile function. The C++ wrapper itself is never volatile, as the swig_self() function it calls is not.
+  // Return true for a const or const volatile function, which may also be ref-qualified. The C++ wrapper itself is never
+  // volatile, as the swig_self() function it calls is not.
   static bool is_const(Node *n) {
-    return SwigType_isconst(Getattr(n, "qualifier"));
+    scoped_dohptr cv_qualifier = adopt(get_function_cv_qualifier(Getattr(n, "decl")));
+    return SwigType_isconst(cv_qualifier);
   }
 
   cxx_wrappers &cxx_wrappers_;
