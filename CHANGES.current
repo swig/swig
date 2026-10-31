@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a function pointer using a class that is not
+            wrapped, as it is only declared or is ignored, such as:
+
+              struct Opaque;
+              void set_cb(void (*cb)(Opaque *));
+
+            The parameter was declared as 'void (*carg1)(Opaque *)' and the C++ wrapper of set_cb
+            did not compile. The class is now the opaque struct used for it elsewhere in the .h
+            file, as in 'void (*carg1)(SWIGTYPE_p_Opaque *)', and the C++ wrapper is left out with
+            warning 761.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling for a pointer or a reference to an array, such as in:
 
               int sum(int (*a)[4]);

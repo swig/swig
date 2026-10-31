@@ -20,3 +20,4 @@ assert(fc.AddByValueRefHolder(fc.ADD_BY_VALUE):call(5, 6) == 11)
 
 assert(fc.callColourFn(fc.getColourFn(), 1) == fc.Green)
 assert(fc.callHolderFn(fc.getHolderFn(), 2) == 2)
+assert(fc.callNotWrappedFn(fc.NOT_WRAPPED_VALUE, fc.getNotWrapped()) == 42)

@@ -77,3 +77,6 @@ if (funcptr_cpp.callColourFn(funcptr_cpp.getColourFn(), 1) != funcptr_cpp.Green)
 if (funcptr_cpp.callHolderFn(funcptr_cpp.getHolderFn(), 2) != 2) {
     throw new Error;
 }
+if (funcptr_cpp.callNotWrappedFn(funcptr_cpp.NOT_WRAPPED_VALUE, funcptr_cpp.getNotWrapped()) != 42) {
+    throw new Error;
+}

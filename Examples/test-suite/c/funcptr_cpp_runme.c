@@ -11,6 +11,10 @@ static int *add_by_pointer(const int *a, int b) {
   return &val;
 }
 
+static int not_wrapped_value_plus_one(SWIGTYPE_p_NotWrapped *p) {
+  return funcptr_cpp_notWrappedValue(p) + 1;
+}
+
 int main(int argc, const char *argv[]) {
   int (*fn)(const int *, int) = add_by_value;
   int array[4] = {1, 2, 3, 4};
@@ -26,5 +30,7 @@ int main(int argc, const char *argv[]) {
   assert(funcptr_cpp_arrayRefSum(funcptr_cpp_getArrayRef1()) == 100);
   assert(funcptr_cpp_arrayRefSum(&array) == 10);
   assert((*funcptr_cpp_getArrayRef2())[3] == 40);
+
+  assert(funcptr_cpp_callNotWrappedFn(not_wrapped_value_plus_one, funcptr_cpp_getNotWrapped()) == 43);
   return 0;
 }

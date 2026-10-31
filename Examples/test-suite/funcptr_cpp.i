@@ -101,3 +101,17 @@ int arrayRefSum(int (*a)[4]) { return (*a)[0] + (*a)[1] + (*a)[2] + (*a)[3]; }
 // Reference to a pointer to an array as a parameter
 int arrayPtrRefSum(int (*&a)[4]) { return arrayRefSum(a); }
 %}
+
+%ignore NotWrapped;
+
+%inline %{
+// Function pointers using a class that is not wrapped
+struct NotWrapped {
+  int value;
+};
+NotWrapped *getNotWrapped() { static NotWrapped notWrapped = { 42 }; return &notWrapped; }
+int notWrappedValue(NotWrapped *p) { return p->value; }
+int callNotWrappedFn(int (*fn)(NotWrapped *), NotWrapped *p) { return fn(p); }
+%}
+
+%constant int (*NOT_WRAPPED_VALUE)(NotWrapped *) = notWrappedValue;

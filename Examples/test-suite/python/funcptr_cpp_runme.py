@@ -43,3 +43,4 @@ swig_check(arrayRefSum(getArrayRef2()), 100)
 
 swig_check(callColourFn(getColourFn(), 1), Green)
 swig_check(callHolderFn(getHolderFn(), 2), 2)
+swig_check(callNotWrappedFn(NOT_WRAPPED_VALUE, getNotWrapped()), 42)

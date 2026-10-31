@@ -694,7 +694,8 @@ private:
                  SwigType_str(type, 0));
   }
 
-  // Return true if the base type of the type, or of a parameter of a function type in it, is a class or an enum.
+  // Return true if the base type of the type, or of a parameter of a function type in it, is a class, wrapped or not, or
+  // an enum.
   static bool uses_class_or_enum(SwigType *type) {
     scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
     scoped_dohptr elements = adopt(SwigType_split(resolved_type));
@@ -709,7 +710,7 @@ private:
     }
 
     scoped_dohptr base_type = adopt(SwigType_base(resolved_type));
-    return SwigType_isenum(base_type) || Language::instance()->classLookup(base_type);
+    return SwigType_isenum(base_type) || SwigType_isclass(base_type) || Language::instance()->classLookup(base_type);
   }
 
   // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
@@ -1813,6 +1814,20 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * getOpaqueTypeName()
+   *
+   * Return the name of the opaque struct used in the header file for the type, which SWIG does not wrap, as in
+   * 'SWIGTYPE_p_Foo' for 'Foo *', and declare it in the header file.
+   * ----------------------------------------------------------------------------- */
+
+  String *getOpaqueTypeName(SwigType *type) {
+    scoped_dohptr mangled_type = adopt(SwigType_manglestr(type));
+    String *const typestr = NewStringf("SWIGTYPE%s", mangled_type.get());
+    Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+    return typestr;
+  }
+
+  /* -----------------------------------------------------------------------------
    * getCNamesType()
    *
    * Return the type, whose typedefs are resolved, with the C names of the classes and enums in its base type and in
@@ -1825,6 +1840,12 @@ public:
     int const last = Len(elements) - 1;
     SwigType *const base = Getitem(elements, last);
     SwigType *c_names_type = SwigType_isenum(base) ? getEnumCType(base) : getClassProxyName(base);
+    if (!c_names_type && SwigType_isclass(base)) {
+      // A class that is not wrapped is the opaque struct that a pointer to it points to elsewhere in the header file, as
+      // in 'SWIGTYPE_p_Foo *' for a 'Foo *' parameter
+      scoped_dohptr ptr_type = adopt(SwigType_add_pointer(Copy(base)));
+      c_names_type = getOpaqueTypeName(ptr_type);
+    }
     if (!c_names_type)
       c_names_type = Copy(base);
 
@@ -1901,10 +1922,7 @@ public:
             typestr = SwigType_str(classnametype, 0);
           } else {
             // Swig doesn't know anything about this type, use descriptor for it.
-            typestr = NewStringf("SWIGTYPE%s", SwigType_manglestr(classnametype));
-
-            // And make sure it is declared before it is used.
-            Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+            typestr = getOpaqueTypeName(classnametype);
           }
         }
       }
