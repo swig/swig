@@ -10,3 +10,12 @@ assert(g.test3 == 42)
 
 assert(g.NEGATE ~= nil)
 assert(g.do_unary(5, g.NEGATE) == -5)
+
+assert(g.test4(42).value == 42)
+assert(g.test5() == 37)
+assert(g.test6(42) == 42)
+
+local gr = g.MemberGrouping()
+assert(gr:method1(42) == 42)
+assert(g.MemberGrouping.method2(42) == 42)
+assert(gr:method3() == 37)

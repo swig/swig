@@ -8,6 +8,28 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            #45 Fix a member function with its name in parentheses, as is done to stop a
+            function-like macro of the same name expanding, such as:
+
+              struct Foo {
+                int (foo)(int i);
+              };
+
+            It was ignored with the warning below and is now wrapped in the same way as when its
+            name is not in parentheses:
+
+              Warning 504: Function Foo::int(foo) must have a return type. Ignored.
+
+            The syntax error for 'const', 'noexcept' or '= 0' after the parameters of such a
+            function is fixed, outside a class too. So are a function template and a function with
+            a qualified return type, which were dropped without a warning, such as:
+
+              std::string (bar)(int i);
+
+            Outside a class, such a function now gets the overloaded wrappers for its default
+            arguments.
+
+2026-10-31: wsfulton
             Fix syntax error for a reference to a function returning a pointer as a parameter or
             return type, for example:
 

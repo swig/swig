@@ -2115,7 +2115,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
      * which are written inside the declarator's parentheses:
      *   int (*f() const)(int);
      * The type member already has them. They are kept for what else c_decl does with the qualifiers of a member
-     * function. An exception specification written there is kept in throws, throwf and nexcept. */
+     * function. An exception specification written there is kept in throws, throwf and nexcept. In ctor_end, they
+     * are the qualifiers of a function whose name is in parentheses, see parenthesised_name_function_end(). */
     SwigType  *qualifier;
     String    *refqualifier;
   } decl;
@@ -3673,6 +3674,65 @@ static void use_declarator_qualifiers(struct Define *cpp_const, const struct Dec
   }
 }
 
+/* The end of the declaration of a function whose name is in parentheses, which ctor_end matches after the name, see
+   new_parenthesised_name_decl().  It has the function's parameters parms and the trailing qualifiers cpp_const. */
+static struct Decl parenthesised_name_function_end(ParmList *parms, const struct Define *cpp_const) {
+  struct Decl decl = default_decl;
+  decl.parms = parms;
+  decl.have_parms = 1;
+  decl.qualifier = cpp_const->qualifier;
+  decl.refqualifier = cpp_const->refqualifier;
+  decl.throws = cpp_const->throws;
+  decl.throwf = cpp_const->throwf;
+  decl.nexcept = cpp_const->nexcept;
+  decl.final = cpp_const->final;
+  decl.constraint_node = cpp_const->constraint_node;
+  return decl;
+}
+
+/* A new declaration of a function or variable whose name is in parentheses, as for f and v in:
+     int (f)(int i) const;
+     int (v);
+   The grammar parses these as a constructor declaration with the name as the type of its only parameter, parms, which
+   has no name of its own.  The parameters and qualifiers of the function, if any, are in ctor_end with what else follows. */
+static Node *new_parenthesised_name_decl(String *storage, SwigType *type, ParmList *parms, const struct Decl *ctor_end) {
+  Node *n = new_node("cdecl");
+  Setattr(n, "type", type);
+  Setattr(n, "storage", storage);
+  Setattr(n, "name", Getattr(parms, "type"));
+  if (ctor_end->have_parms) {
+    SwigType *decl = NewStringEmpty();
+    Swig_vla_unsize_parms(ctor_end->parms);
+    SwigType_add_function(decl, ctor_end->parms);
+    if (ctor_end->qualifier)
+      SwigType_push(decl, ctor_end->qualifier);
+    Setattr(n, "decl", decl);
+    Setattr(n, "parms", ctor_end->parms);
+    Setattr(n, "refqualifier", ctor_end->refqualifier);
+    Delete(decl);
+    if (Len(scanner_ccode)) {
+      String *code = Copy(scanner_ccode);
+      Setattr(n, "code", code);
+      Delete(code);
+    }
+  }
+  if (ctor_end->defarg)
+    Setattr(n, "value", ctor_end->defarg);
+  if (ctor_end->stringdefarg)
+    Setattr(n, "stringval", ctor_end->stringdefarg);
+  if (ctor_end->numdefarg)
+    Setattr(n, "numval", ctor_end->numdefarg);
+  Setattr(n, "throws", ctor_end->throws);
+  Setattr(n, "throw", ctor_end->throwf);
+  Setattr(n, "noexcept", ctor_end->nexcept);
+  Setattr(n, "final", ctor_end->final);
+  if (ctor_end->constraint_node)
+    Setattr(n, "constraint", ctor_end->constraint_node);
+  if (ctor_end->qualifier && storage && Strstr(storage, "static"))
+    Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl(n));
+  return n;
+}
+
 /* Whether explicit object parameter type 'type' is an rvalue reference to the class, the C++23 spelling of an '&&'
    ref-qualifier; a forwarding reference such as 'this auto&&' or 'this Self&&' binds lvalues too, so is not.  The class
    is Classprefix in a class body, else the qualifier on the member's name; with neither, the answer is no. */
@@ -3808,6 +3868,7 @@ declaration    : swig_directive
                | c_constructor_decl { 
                   if ($$) {
    		      add_symbols($$);
+                      default_arguments($$);
                   }
                   $$ = $c_constructor_decl; 
 	       }              
@@ -6080,41 +6141,14 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                     int err = 0;
                     $$ = 0;
 
-		    if ((ParmList_len($parms) == 1) && (!Swig_scopename_check($type))) {
-		      SwigType *ty = Getattr($parms,"type");
-		      String *name = Getattr($parms,"name");
-		      err = 1;
-		      if (!name) {
-			$$ = new_node("cdecl");
-			Setattr($$,"type",$type);
-			Setattr($$,"storage",$storage_class);
-			Setattr($$,"name",ty);
-
-			if ($ctor_end.have_parms) {
-			  SwigType *decl = NewStringEmpty();
-                          Swig_vla_unsize_parms($ctor_end.parms);
-			  SwigType_add_function(decl,$ctor_end.parms);
-			  Setattr($$,"decl",decl);
-			  Setattr($$,"parms",$ctor_end.parms);
-			  if (Len(scanner_ccode)) {
-			    String *code = Copy(scanner_ccode);
-			    Setattr($$,"code",code);
-			    Delete(code);
-			  }
-			}
-			if ($ctor_end.defarg)
-			  Setattr($$, "value", $ctor_end.defarg);
-			if ($ctor_end.stringdefarg)
-			  Setattr($$, "stringval", $ctor_end.stringdefarg);
-			if ($ctor_end.numdefarg)
-			  Setattr($$, "numval", $ctor_end.numdefarg);
-			Setattr($$,"throws",$ctor_end.throws);
-			Setattr($$,"throw",$ctor_end.throwf);
-			Setattr($$,"noexcept",$ctor_end.nexcept);
-			Setattr($$,"final",$ctor_end.final);
-			err = 0;
-		      }
-		    }
+                    /* A constructor of a scoped type is one defined out of its class, unless parameters follow */
+                    if ((ParmList_len($parms) == 1) && (!Swig_scopename_check($type) || $ctor_end.have_parms)) {
+                      err = 1;
+                      if (!Getattr($parms, "name")) {
+                        $$ = new_parenthesised_name_decl($storage_class, $type, $parms, &$ctor_end);
+                        err = 0;
+                      }
+                    }
 		    Delete($storage_class);
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
@@ -7341,7 +7375,7 @@ cpp_members_builder : cpp_member {
 cpp_member_no_dox : c_declaration
              | cpp_constructor_decl { 
                  $$ = $cpp_constructor_decl; 
-		 if (extendmode && current_class) {
+                 if (extendmode && current_class && $$ && Equal(nodeType($$), "constructor")) {
 		   String *symname;
 		   symname= make_name($$,Getattr($$,"name"), Getattr($$,"decl"));
 		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
@@ -7406,7 +7440,11 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 	      /* Cannot be a constructor declaration/definition if parsed as a friend destructor/constructor
 	         or a badly declared friend function without return type */
 	      int isfriend = Strstr($storage_class, "friend") != NULL;
-	      if (!isfriend && (inclass || extendmode)) {
+              if ($ctor_end.have_parms && ParmList_len($parms) == 1 && !Getattr($parms, "name")) {
+                /* Parameters cannot follow those of a constructor, so this is a function with its name in
+                 * parentheses, such as 'int (foo)(int i);', as in c_constructor_decl. */
+                $$ = new_parenthesised_name_decl($storage_class, $type, $parms, &$ctor_end);
+              } else if (!isfriend && (inclass || extendmode)) {
 	        String *name = SwigType_templateprefix($type); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
@@ -10572,17 +10610,16 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.final = $cpp_const.final;
 		    $$.constraint_node = $cpp_const.constraint_node;
                }
-               | LPAREN parms RPAREN SEMI { 
-                    Clear(scanner_ccode); 
-		    $$ = default_decl;
-                    $$.parms = $parms; 
-                    $$.have_parms = 1; 
+               | LPAREN parms RPAREN cpp_const def_args SEMI {
+                    Clear(scanner_ccode);
+                    $$ = parenthesised_name_function_end($parms, &$cpp_const);
+                    $$.defarg = $def_args.val;
+                    $$.stringdefarg = $def_args.stringval;
+                    $$.numdefarg = $def_args.numval;
                }
-               | LPAREN parms RPAREN LBRACE {
+               | LPAREN parms RPAREN cpp_const LBRACE {
                     if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-		    $$ = default_decl;
-                    $$.parms = $parms; 
-                    $$.have_parms = 1; 
+                    $$ = parenthesised_name_function_end($parms, &$cpp_const);
                }
                | EQUAL definetype SEMI { 
 		    $$ = default_decl;

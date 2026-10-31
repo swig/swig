@@ -28,4 +28,41 @@ int negate(int x) {
 
 %}
 
+// More function names in parentheses
+%inline %{
+namespace GroupingSpace {
+  struct Number {
+    int value;
+  };
+}
+
+GroupingSpace::Number (test4)(int x) {
+  GroupingSpace::Number n;
+  n.value = x;
+  return n;
+}
+
+int (test5)(int x = 37) {
+  return x;
+}
+
+template<typename T> T (test6)(T x) {
+  return x;
+}
+
+struct MemberGrouping {
+  int (method1)(int x) {
+    return x;
+  }
+  static int (method2)(int x) {
+    return x;
+  }
+  int (method3)(int x = 37) const {
+    return x;
+  }
+};
+%}
+
+%template(test6) test6<int>;
+
 %constant UnaryOp *NEGATE = negate;
