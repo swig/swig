@@ -19,6 +19,7 @@
   public:
     virtual void handle(const std::vector<unsigned char> data) = 0; // Note: not instantiated with %template
     virtual void handle2(TwoTemplateParms<int, double> data) = 0;
+    virtual TwoTemplateParms<int, double> get2() = 0;
     virtual ~HandleBytes() {}
   };
 

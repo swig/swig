@@ -1427,8 +1427,9 @@ public:
    * camlreturn_type()
    *
    * Return the type t to use in 'CAMLreturnT(type, result)', which declares a variable as 'type caml__temp_result'.
-   * That is not valid for a type written around the variable name, such as the function pointer 'int (*)(int,int)',
-   * so a typedef for such a type is added to code and the typedef name is returned instead.
+   * That is not valid for a type written around the variable name, such as the function pointer 'int (*)(int,int)'.
+   * The preprocessor also splits a template type such as 'Pair< int,int >' into two macro arguments at the comma.
+   * A typedef for either kind of type is added to code and the typedef name is returned instead.
    * --------------------------------------------------------------- */
 
   String *camlreturn_type(SwigType *t, String *code) {
@@ -1441,7 +1442,7 @@ public:
     }
     Delete(elements);
 
-    if (!around_name) {
+    if (!around_name && !SwigType_istemplate(t)) {
       return SwigType_str(t, 0);
     }
     String *typedef_name = NewString("swig_return_type");

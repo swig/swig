@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [OCaml] Fix a compile error in a director method returning a class template type with
+            more than one template argument, such as getPair() here:
+
+              %feature("director") Base;
+              template <typename X, typename Y> class Pair {};
+              struct Base {
+                virtual Pair<int, int> getPair();
+              };
+
+            The return type was passed to the CAMLreturnT macro, which took the comma in
+            'Pair< int,int >' as a separator between its arguments. A local typedef for the return
+            type is now used in the macro instead.
+
+2026-10-31: wsfulton
             [C#, D, Java] A director method returning a function pointer, such as getFuncPtr in:
 
               class FuncPtrClass {
