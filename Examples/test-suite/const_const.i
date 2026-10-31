@@ -23,4 +23,12 @@ const char **names_get(void) {
 }
 
 const char *(*namer_get(void))(int) { return number_name; }
+
+struct Point {
+  int x;
+};
+enum Colour { RED, GREEN };
+
+int point_x(const struct Point *p) { return p->x; }
+int colour_value(const enum Colour *const *c) { return (int)**c; }
 %}

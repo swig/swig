@@ -1918,19 +1918,26 @@ public:
       }
     }
 
+    // Just use the original C type when not using C++, we know that this type can be used in the wrappers. It keeps its qualifiers, as in
+    // 'struct S const *', but an array decays to a pointer, as for a function parameter. An enum has its C name, see getEnumCType().
+    if (!CPlusPlus) {
+      scoped_dohptr ctype = adopt(SwigType_decay_array(classnametype));
+      scoped_dohptr c_btype = adopt(SwigType_base(ctype));
+      if (SwigType_isenum(c_btype)) {
+        scoped_dohptr c_enumname = adopt(getEnumCType(c_btype));
+        ctype = SwigType_prefix(ctype);
+        Append(ctype, c_enumname);
+      }
+      Clear(tm);
+      Append(tm, ctype);
+      return true;
+    }
+
     scoped_dohptr btype(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
       scoped_dohptr c_enumname = adopt(getEnumCType(btype));
       Replaceall(tm, classnamespecialvariable, c_enumname);
     } else {
-      // Just use the original C type when not using C++, we know that this type can be used in the wrappers.
-      if (!CPlusPlus) {
-        scoped_dohptr ltype = adopt(SwigType_ltype(classnametype));
-        Clear(tm);
-        Append(tm, ltype);
-        return true;
-      }
-
       String *typestr = NIL;
       if (current_output == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
         // Special case, just leave it unchanged.
@@ -1976,9 +1983,10 @@ public:
     SwigType *type = SwigType_typedef_resolve_all(pt);
     // The qualifiers of the return type of a function pointer, or of the elements of an array, are part of its type,
     // but SwigType_strip_qualifiers() would remove them too, so only the top level qualifiers are removed from a
-    // pointer or reference to a function or an array or to a pointer to one
+    // pointer or reference to a function or an array or to a pointer to one. When not using C++, only the top level
+    // qualifiers are removed from any type, as the original C type is used.
     SwigType *strippedtype = SwigType_remove_qualifier(Copy(type));
-    if (!is_ptr_to_func_or_array(strippedtype)) {
+    if (CPlusPlus && !is_ptr_to_func_or_array(strippedtype)) {
       Delete(strippedtype);
       strippedtype = SwigType_strip_qualifiers(type);
     }

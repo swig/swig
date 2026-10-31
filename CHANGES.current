@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file dropping the inner qualifiers of a pointer type when wrapping C code,
+            for example for:
+
+              int point_x(const struct Point *p);
+              int colour_value(const enum Colour *const *c);
+
+            The parameters were declared as 'struct Point *carg1' and 'enum Colour* carg1', so C
+            code passing a pointer to a const struct got a discarded qualifier warning. A pointer
+            to a pointer to an enum also lost a pointer. They are now declared as in the C
+            function, as 'struct Point const *carg1' and 'enum Colour const *const *carg1'.
+
+2026-10-31: wsfulton
             [C] Fix the wrapper of a C function returning a pointer to a const pointer, such as:
 
               const char **names_get(void);
