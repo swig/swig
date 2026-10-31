@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix R functions passed for function pointer parameters, which could be called
+            only once. A C function calling its function pointer twice failed with "Supposedly
+            impossible error occurred in the SWIG callback mechanism". For a function with two
+            function pointer parameters, the first called the R function passed for the second
+            and the second called the one passed for the first. An R function that the C code did
+            not call could be called later in place of another. An R function can now be called
+            any number of times until the wrapped function returns. Calling it after that, such
+            as through a function pointer that the C code kept, now gives an R error instead of
+            calling some other R function or one that may have been freed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [C#, D, Go, Java, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
             Fix the director method of a virtual method with an exception specification inside the
             parentheses of the declarator, as for a method returning a function pointer:
@@ -648,7 +661,7 @@ Version 4.6.0 (in progress)
             [R] Fix a string returned by an R function passed for a 'const char *(*)(int)' or
             similar function pointer possibly being freed by the garbage collector before the C
             code used it, for example a string built by paste0(). The R value returned is now kept
-            until an R function is next called for the same function pointer type.
+            until the wrapped function returns.
 
 2026-10-31: wsfulton
             [R] Fix the error for a value of the wrong type returned by an R function passed for a

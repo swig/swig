@@ -279,8 +279,8 @@ protected:
     Append(namespaceMethods, name);
   }
 
-  String *processType(SwigType *t, Node *n, int *nargs = NULL);
-  String *createFunctionPointerHandler(SwigType *t, Node *n, int *nargs);
+  String *processType(SwigType *t, Node *n, int *nargs = NULL, Hash *usedStubs = NULL);
+  String *createFunctionPointerHandler(SwigType *t, Node *n, int *nargs, Hash *usedStubs);
   int addFunctionPointerProxy(String *name, SwigType *t, String *s_paramTypes) {
     Setattr(SClassDefs, name, name);
     Printv(s_classes,
@@ -491,7 +491,7 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
  * copying.
  * ------------------------------------------------------------------------ */
 
-String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
+String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash *usedStubs) {
   /* The stubs are kept by R class name, which is the mangled name of the type, and then by the type with its typedefs
      resolved. The mangled name drops the qualifiers of the return type, such as the const in 'const char *(*)(int)', but
      the stub converts the value returned by the R function to the return type with its qualifiers. So a type that differs
@@ -508,18 +508,32 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     Setattr(functionPointerProxyTable, className, stubs);
     Delete(stubs);
   }
-
-  /* See if we have already processed this one. */
-  String *funName = Getattr(stubs, stubType);
-  if (funName) {
-    Delete(stubType);
-    Delete(className);
-    return Copy(funName);
+  List *typeStubs = Getattr(stubs, stubType);
+  if (!typeStubs) {
+    typeStubs = NewList();
+    Setattr(stubs, stubType, typeStubs);
+    Delete(typeStubs);
   }
-  int stubCount = Len(stubs);
-  funName = stubCount == 0 ? Copy(className) : NewStringf("%s__SWIG_%d", className, stubCount);
-  Setattr(stubs, stubType, funName);
   Delete(stubType);
+
+  /* A stub finds the R function to call by its own name, so a parameter of a type that an earlier parameter of the same function has gets another stub,
+     named like those for the qualifiers, given by usedStubs */
+  for (Iterator it = First(typeStubs); it.item; it = Next(it)) {
+    if (!usedStubs || !Getattr(usedStubs, it.item)) {
+      if (usedStubs)
+        Setattr(usedStubs, it.item, it.item);
+      Delete(className);
+      return Copy(it.item);
+    }
+  }
+  int stubCount = 0;
+  for (Iterator it = First(stubs); it.key; it = Next(it)) {
+    stubCount += Len(it.item);
+  }
+  String *funName = stubCount == 0 ? Copy(className) : NewStringf("%s__SWIG_%d", className, stubCount);
+  Append(typeStubs, funName);
+  if (usedStubs)
+    Setattr(usedStubs, funName, funName);
 
   if (debugMode)
     Printf(stdout, "<createFunctionPointerHandler> Defining %s\n", t);
@@ -569,7 +583,9 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   //  emit_attach_parm_typemaps(parms,f);
 
   /*  Using weird name and struct to avoid potential conflicts. */
-  Wrapper_add_local(f, "r_swig_cb_data", "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
+  String *getData = NewStringf("RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData(\"%s\")", funName);
+  Wrapper_add_local(f, "r_swig_cb_data", getData);
+  Delete(getData);
   String *lvar = NewString("r_swig_cb_data");
   bool r_tmp_needed = false;
 
@@ -645,12 +661,12 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   Printf(f->code, "%s\n\n", setExprElements);
 
-  Printv(f->code, "r_swig_cb_data->retValue = R_tryEval(", "r_swig_cb_data->expr,", " R_GlobalEnv,", " &r_swig_cb_data->errorOccurred", ");\n", NIL);
+  Printv(f->code, "R_SWIG_callCallbackFunction(r_swig_cb_data);\n", NIL);
 
   Printv(f->code,
          "\n",
          "if(r_swig_cb_data->errorOccurred) {\n",
-         "R_SWIG_popCallbackFunctionData(1);\n",
+         "R_SWIG_popCallbackFunctionData(r_swig_cb_data->base);\n",
          "Rf_error(\"error in calling R function as a function pointer (",
          className,
          ")\");\n",
@@ -658,16 +674,13 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
          NIL);
 
   if (!isVoidType) {
-    /* The converted return value can point into the R object returned by the R function, such as into its string for a
-       'const char *', so the object is kept from the garbage collector until the stub is called again */
-    Wrapper_add_local(f, "r_swig_cb_retValue", "static SEXP r_swig_cb_retValue = NULL");
-    Printv(f->code,
-           "R_PreserveObject(r_swig_cb_data->retValue);\n",
-           "if (r_swig_cb_retValue) {\n",
-           "  R_ReleaseObject(r_swig_cb_retValue);\n",
-           "}\n",
-           "r_swig_cb_retValue = r_swig_cb_data->retValue;\n",
-           NIL);
+    Printv(f->code, "Rf_protect(r_swig_cb_data->retValue);\n", "r_nprotect++;\n", NIL);
+    /* A pointer or reference converted from the R value returned can point into it, such as into its string for a 'const char *', so the value is kept
+       from the garbage collector until the wrapped function returns */
+    SwigType *resolvedRet = SwigType_typedef_resolve_all(rettype);
+    if (SwigType_ispointer(resolvedRet) || SwigType_isreference(resolvedRet) || SwigType_isrvalue_reference(resolvedRet))
+      Printv(f->code, "R_SWIG_keepCallbackValue(r_swig_cb_data, r_swig_cb_data->retValue);\n", NIL);
+    Delete(resolvedRet);
 
     /* Need to deal with the return type of the function pointer, not the function pointer itself.
        So build a new node that has the relevant pieces.
@@ -691,7 +704,6 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     Delete(bbase);
   }
 
-  Printv(f->code, "R_SWIG_popCallbackFunctionData(1);\n", NIL);
   Printv(f->code, "\n", UnProtectWrapupCode, NIL);
 
   if (SwigType_isreference(rettype)) {
@@ -1789,6 +1801,7 @@ int R::functionWrapper(Node *n) {
   String *s_inputMap = NewString("");
   bool inFirstArg = true;
   bool inFirstType = true;
+  Hash *usedStubs = NewHash();
   Parm *curP;
   for (p = l, i = 0; i < nargs; i++) {
 
@@ -1796,7 +1809,7 @@ int R::functionWrapper(Node *n) {
 
     SwigType *tt = Getattr(p, "type");
     int nargs = -1;
-    String *funcptr_name = processType(tt, p, &nargs);
+    String *funcptr_name = processType(tt, p, &nargs, usedStubs);
 
     String *name = makeParameterName(n, p, i + 1, false);
     String *lname = Getattr(p, "lname");
@@ -1923,7 +1936,9 @@ int R::functionWrapper(Node *n) {
         /* The local variable's type from SwigType_lstr() drops the qualifiers of the function pointer's return type, such
            as the const in 'const char *(*)(int)', but the callback stub keeps them, so cast the stub to the local type. */
         String *lstr = SwigType_lstr(tt, 0);
-        Printf(f->code, "} else {\n%s = (%s) %s;\nR_SWIG_pushCallbackFunctionData(%s, NULL);\n}\n", lname, lstr, funcptr_name, name);
+        Printf(f->code, "} else {\n%s = (%s) %s;\n", lname, lstr, funcptr_name);
+        Printf(f->code, "R_SWIG_pushCallbackFunctionData(%s, NULL, \"%s\", r_swig_cb_base);\n}\n", name, funcptr_name);
+        Wrapper_add_local(f, "r_swig_cb_base", "RCallbackFunctionData *r_swig_cb_base = R_SWIG_topCallbackFunctionData()");
         Delete(lstr);
       }
       Printv(f->def, inFirstArg ? "" : ", ", "SEXP ", name, NIL);
@@ -1946,6 +1961,7 @@ int R::functionWrapper(Node *n) {
     if (funcptr_name)
       Delete(funcptr_name);
   } /* end of looping over parameters. */
+  Delete(usedStubs);
   p = emit_ignored_in_typemaps(p, f->code);
 
   /* Insert constraint checking code */
@@ -1988,6 +2004,9 @@ int R::functionWrapper(Node *n) {
       p = nextSibling(p);
     }
   }
+  /* The R functions passed for function pointer parameters can be called only until the wrapped function returns */
+  if (Wrapper_check_local(f, "r_swig_cb_base"))
+    Printv(cleanup, "R_SWIG_popCallbackFunctionData(r_swig_cb_base);\n", NIL);
 
   String *outargs = NewString("");
   int numOutArgs = isVoidReturnType ? -1 : 0;
@@ -2715,7 +2734,7 @@ extern "C" Language *swig_r(void) {
 /* -----------------------------------------------------------------------
  * Needs to be reworked.
  *----------------------------------------------------------------------- */
-String *R::processType(SwigType *t, Node *n, int *nargs) {
+String *R::processType(SwigType *t, Node *n, int *nargs, Hash *usedStubs) {
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)
     Printf(stdout, "processType %s (tdname = %s)(SwigType = %s)\n", Getattr(n, "name"), tmp, Copy(t));
@@ -2732,7 +2751,7 @@ String *R::processType(SwigType *t, Node *n, int *nargs) {
     if (debugMode)
       Printf(stdout, "<processType> Defining pointer handler %s\n", t);
 
-    funcptr_name = createFunctionPointerHandler(t, n, nargs);
+    funcptr_name = createFunctionPointerHandler(t, n, nargs, usedStubs);
   }
 
   Delete(resolved);

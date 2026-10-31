@@ -38,6 +38,14 @@ Integer do_op_typedef_Integer(Integer x, Integer y, FnPtr_Integer_td op) {
 FnPtr_int_td get_op_typedef_int(int subtract) {
     return subtract ? subf : addf;
 }
+
+// A function pointer called twice and two function pointer parameters of the same type
+int do_op_twice(int x, int y, FnPtr_int_td op) {
+    return (*op)((*op)(x, y), y);
+}
+int do_two_ops(int x, int y, int (*op1)(int, int), int (*op2)(int, int)) {
+    return (*op1)(x, y) * 10 + (*op2)(x, y);
+}
 int (*get_op(int subtract))(int, int) {
     return subtract ? subf : addf;
 }
