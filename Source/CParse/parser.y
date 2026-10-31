@@ -2115,7 +2115,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
      * which are written inside the declarator's parentheses:
      *   int (*f() const)(int);
      * The type member already has them. They are kept for what else c_decl does with the qualifiers of a member
-     * function. */
+     * function. An exception specification written there is kept in throws, throwf and nexcept. */
     SwigType  *qualifier;
     String    *refqualifier;
   } decl;
@@ -2276,6 +2276,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 /* Misc */
 %type <id>       identifier;
 %type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
+%type <dtype>    exception_specification_no_virt_specifier function_qualifiers;
 %type <str>      storage_class;
 %type <intvalue> storage_class_raw storage_class_list;
 %type <pl>       parms fn_parms rawparms varargs_parms ;
@@ -3636,12 +3637,16 @@ static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type
 /* Add a function with the parameters parms and the cv-qualifier and ref-qualifier in qualifiers to the declarator
    decl, as for the member function f in the parentheses of this declaration of f returning a pointer to a function:
      int (*f() const)(int);
-   When the function is the one declared, rather than what decl declares a pointer to, the qualifiers are also kept in
-   decl for use_declarator_qualifiers(). */
+   When the function is the one declared, rather than what decl declares a pointer to, the qualifiers and the
+   exception specification in qualifiers are also kept in decl for use_declarator_qualifiers().  Otherwise the
+   exception specification is dropped, as the type of the function pointed to does not keep one. */
 static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms, const struct Define *qualifiers) {
   if (!decl->type || Len(decl->type) == 0) {
     decl->qualifier = qualifiers->qualifier;
     decl->refqualifier = qualifiers->refqualifier;
+    decl->throws = qualifiers->throws;
+    decl->throwf = qualifiers->throwf;
+    decl->nexcept = qualifiers->nexcept;
   }
   declarator_add_function(decl, drop_explicit_object_parameter(parms, &decl->explicit_object_type), qualifiers->qualifier);
 }
@@ -3652,11 +3657,18 @@ static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms
      typedef int (*IntFuncPtr)(int);
      int (*f() const &)(int);
      IntFuncPtr g() const &;
-   The type of the declarator has the qualifiers already, so they are only used for checks and attributes like this. */
+   The type of the declarator has the qualifiers already, so they are only used for checks and attributes like this.
+   The exception specification kept in decl is that of the declared function, so it is used in place of any after
+   the declarator, which is that of the function pointed to. */
 static void use_declarator_qualifiers(struct Define *cpp_const, const struct Decl *decl) {
   if (!cpp_const->qualifier) {
     cpp_const->qualifier = decl->qualifier;
     cpp_const->refqualifier = decl->refqualifier;
+  }
+  if (decl->throwf || decl->nexcept) {
+    cpp_const->throws = decl->throws;
+    cpp_const->throwf = decl->throwf;
+    cpp_const->nexcept = decl->nexcept;
   }
 }
 
@@ -8546,20 +8558,20 @@ notso_direct_declarator : idcolon {
                   ;
 
 /* The declarator in the parentheses of a member function returning a pointer or reference to a function, which ends
-   in the function's cv-qualifier and ref-qualifier, if any, such as the 'f() const' in:
+   in the function's cv-qualifier, ref-qualifier and exception specification, if any, such as the 'f() const' in:
      int (*f() const)(int);
    Outside parentheses, the qualifiers follow the whole declarator and are matched by cpp_const. */
 qualified_notso_direct_declarator : notso_direct_declarator
-                  | notso_direct_declarator[in] LPAREN fn_parms RPAREN cv_ref_qualifier {
+                  | notso_direct_declarator[in] LPAREN fn_parms RPAREN function_qualifiers {
                     $$ = $in;
-                    declarator_add_qualified_function(&$$, $fn_parms, &$cv_ref_qualifier);
+                    declarator_add_qualified_function(&$$, $fn_parms, &$function_qualifiers);
                   }
                   ;
 
 qualified_direct_declarator : direct_declarator
-                  | direct_declarator[in] LPAREN fn_parms RPAREN cv_ref_qualifier {
+                  | direct_declarator[in] LPAREN fn_parms RPAREN function_qualifiers {
                     $$ = $in;
-                    declarator_add_qualified_function(&$$, $fn_parms, &$cv_ref_qualifier);
+                    declarator_add_qualified_function(&$$, $fn_parms, &$function_qualifiers);
                   }
                   ;
 
@@ -10418,15 +10430,24 @@ noexcept_specifier_opt : %empty {
                }
                ;
 
-exception_specification : THROW LPAREN parms RPAREN {
-		    $$ = default_dtype;
+/* A 'throw' or 'noexcept' specifier, which is exception_specification without its virt-specifiers, for the end of a
+   function declarator in the parentheses of another declarator. */
+exception_specification_no_virt_specifier : THROW LPAREN parms RPAREN {
+                    $$ = default_dtype;
                     $$.throws = $parms;
                     $$.throwf = NewString("1");
-	       }
-	       | NOEXCEPT {
-		    $$ = default_dtype;
+               }
+               | NOEXCEPT {
+                    $$ = default_dtype;
                     $$.nexcept = NewString("true");
-	       }
+               }
+               | NOEXCEPT LPAREN expr RPAREN {
+                    $$ = default_dtype;
+                    $$.nexcept = $expr.val;
+               }
+               ;
+
+exception_specification : exception_specification_no_virt_specifier
 	       | virt_specifier_seq {
 		    $$ = default_dtype;
                     $$.final = $virt_specifier_seq;
@@ -10442,11 +10463,24 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.nexcept = NewString("true");
 		    $$.final = $virt_specifier_seq;
 	       }
-	       | NOEXCEPT LPAREN expr RPAREN {
-		    $$ = default_dtype;
-                    $$.nexcept = $expr.val;
-	       }
 	       ;	
+
+/* The qualifiers that can end a function declarator in the parentheses of another declarator, as for the member
+   function f in:
+     int (*f() const noexcept)(int);
+   They are those of qualifiers_exception_specification except for a virt-specifier, which follows the whole declarator. */
+function_qualifiers : cv_ref_qualifier {
+                    $$ = default_dtype;
+                    $$.qualifier = $cv_ref_qualifier.qualifier;
+                    $$.refqualifier = $cv_ref_qualifier.refqualifier;
+               }
+               | exception_specification_no_virt_specifier
+               | cv_ref_qualifier exception_specification_no_virt_specifier {
+                    $$ = $exception_specification_no_virt_specifier;
+                    $$.qualifier = $cv_ref_qualifier.qualifier;
+                    $$.refqualifier = $cv_ref_qualifier.refqualifier;
+               }
+               ;
 
 qualifiers_exception_specification : cv_ref_qualifier {
 		    $$ = default_dtype;

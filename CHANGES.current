@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix syntax error for a member function returning a pointer or reference to a function
+            when the member function has a 'noexcept' or 'throw' exception specification, which is
+            written inside the parentheses of the declarator, such as f here:
+
+              typedef int (*IntOp)(int);
+              struct S {
+                int (*f() const noexcept)(int);
+                IntOp g() const noexcept;
+              };
+
+            f is now wrapped in the same way as g, which declares the same member function with a
+            typedef for its return type.
+
+2026-10-31: wsfulton
             [C] The C function names of some overloads change, as the mangled types of their
             parameters, which are appended to the names, no longer drop the closing parenthesis
             from an array size, such as for the parameter of:

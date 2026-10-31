@@ -1,5 +1,7 @@
 %module cpp11_noexcept
 
+%include <std_string.i>
+
 %ignore NoExceptAbstract::operator std::string;
 %ignore NoExceptAbstract::operator int;
 %ignore NoExceptClass(NoExceptClass&&);
@@ -60,6 +62,25 @@ struct NoExceptDefaultDelete {
   ~NoExceptDefaultDelete() noexcept = default;
 };
 
+%}
+
+// throw is invalid in C++17 and later, only SWIG to use it
+#define TESTCASE_THROW0() throw()
+%{
+#define TESTCASE_THROW0()
+%}
+
+// Member functions returning a pointer to a function, the exception specification goes inside the parentheses
+%inline %{
+std::string noexceptAddOne(int i) { return std::to_string(i + 1); }
+std::string noexceptCallStringFunc(std::string (*f)(int), int i) { return f(i); }
+struct NoExceptFuncPtrReturn {
+  std::string (*ptr1() noexcept)(int) { return noexceptAddOne; }
+  std::string (*ptr2() const noexcept)(int) { return noexceptAddOne; }
+  std::string (*ptr3() noexcept(true))(int) { return noexceptAddOne; }
+  std::string (*ptr4() TESTCASE_THROW0())(int) { return noexceptAddOne; }
+  std::string (*ptr5() const TESTCASE_THROW0())(int) { return noexceptAddOne; }
+};
 %}
 
 // Regression tests for #2087 (noexcept on a function pointer parameter type).
