@@ -2111,6 +2111,13 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Node      *constraint_node;
     /* SWIG_ARRAY_* bits for C99 syntax in the declarator's array brackets that only a function parameter can have. */
     int        parmonly_array;
+    /* The cv-qualifier and ref-qualifier, or 0, of a member function returning a pointer or reference to a function,
+     * which are written inside the declarator's parentheses:
+     *   int (*f() const)(int);
+     * The type member already has them. They are kept for what else c_decl does with the qualifiers of a member
+     * function. */
+    SwigType  *qualifier;
+    String    *refqualifier;
   } decl;
   Parm         *tparms;
   struct {
@@ -2314,6 +2321,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <includetype> includetype;
 %type <type>     pointer primitive_type type_id_pointer;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
+%type <decl>     qualified_direct_declarator qualified_notso_direct_declarator;
 %type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
@@ -3623,6 +3631,33 @@ static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type
     return parms;
   *type = Getattr(parms, "type");
   return nextSibling(parms);
+}
+
+/* Add a function with the parameters parms and the cv-qualifier and ref-qualifier in qualifiers to the declarator
+   decl, as for the member function f in the parentheses of this declaration of f returning a pointer to a function:
+     int (*f() const)(int);
+   When the function is the one declared, rather than what decl declares a pointer to, the qualifiers are also kept in
+   decl for use_declarator_qualifiers(). */
+static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms, const struct Define *qualifiers) {
+  if (!decl->type || Len(decl->type) == 0) {
+    decl->qualifier = qualifiers->qualifier;
+    decl->refqualifier = qualifiers->refqualifier;
+  }
+  declarator_add_function(decl, drop_explicit_object_parameter(parms, &decl->explicit_object_type), qualifiers->qualifier);
+}
+
+/* Use the qualifiers kept in the declarator decl by declarator_add_qualified_function() as the trailing qualifiers
+   cpp_const of a declaration that has none, so that the declarations of f and g here get the same refqualifier
+   attribute:
+     typedef int (*IntFuncPtr)(int);
+     int (*f() const &)(int);
+     IntFuncPtr g() const &;
+   The type of the declarator has the qualifiers already, so they are only used for checks and attributes like this. */
+static void use_declarator_qualifiers(struct Define *cpp_const, const struct Decl *decl) {
+  if (!cpp_const->qualifier) {
+    cpp_const->qualifier = decl->qualifier;
+    cpp_const->refqualifier = decl->refqualifier;
+  }
 }
 
 /* Whether explicit object parameter type 'type' is an rvalue reference to the class, the C++23 spelling of an '&&'
@@ -5101,6 +5136,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier)
 	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+              use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
 	      Setattr($$,"type",$type);
 	      Setattr($$,"storage",$storage_class);
@@ -5190,6 +5226,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier)
 	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+              use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
 	      Setattr($$, "type", $type);
 	      Setattr($$, "storage", $storage_class);
@@ -5566,6 +5603,7 @@ c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
                  check_parameter_only_array(&$declarator);
 		 $$ = new_node("cdecl");
 		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
+                 use_declarator_qualifiers(&$cpp_const, &$declarator);
 		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
 		 Setattr($$,"name",$declarator.id);
 		 Setattr($$,"decl",$declarator.type);
@@ -8459,7 +8497,7 @@ notso_direct_declarator : idcolon {
                   }
 */
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
-                  | LPAREN pointer notso_direct_declarator[in] RPAREN {
+                  | LPAREN pointer qualified_notso_direct_declarator[in] RPAREN {
 		    $$ = $in;
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8488,6 +8526,24 @@ notso_direct_declarator : idcolon {
                   }
                   ;
 
+/* The declarator in the parentheses of a member function returning a pointer or reference to a function, which ends
+   in the function's cv-qualifier and ref-qualifier, if any, such as the 'f() const' in:
+     int (*f() const)(int);
+   Outside parentheses, the qualifiers follow the whole declarator and are matched by cpp_const. */
+qualified_notso_direct_declarator : notso_direct_declarator
+                  | notso_direct_declarator[in] LPAREN fn_parms RPAREN cv_ref_qualifier {
+                    $$ = $in;
+                    declarator_add_qualified_function(&$$, $fn_parms, &$cv_ref_qualifier);
+                  }
+                  ;
+
+qualified_direct_declarator : direct_declarator
+                  | direct_declarator[in] LPAREN fn_parms RPAREN cv_ref_qualifier {
+                    $$ = $in;
+                    declarator_add_qualified_function(&$$, $fn_parms, &$cv_ref_qualifier);
+                  }
+                  ;
+
 direct_declarator : idcolon {
                 /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
 		 $$ = default_decl;
@@ -8507,7 +8563,7 @@ direct_declarator : idcolon {
                   }
 */
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
-                  | LPAREN pointer direct_declarator[in] RPAREN {
+                  | LPAREN pointer qualified_direct_declarator[in] RPAREN {
 		    $$ = $in;
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8516,7 +8572,7 @@ direct_declarator : idcolon {
 		    $$.type = $pointer;
                   }
                   /* The reference applies to what the inner declarator yields, such as the return type in 'int (&f())(int)' */
-                  | LPAREN AND direct_declarator[in] RPAREN {
+                  | LPAREN AND qualified_direct_declarator[in] RPAREN {
                     SwigType *t = NewStringEmpty();
                     $$ = $in;
                     SwigType_add_reference(t);
@@ -8526,7 +8582,7 @@ direct_declarator : idcolon {
                     }
                     $$.type = t;
                   }
-                  | LPAREN LAND direct_declarator[in] RPAREN {
+                  | LPAREN LAND qualified_direct_declarator[in] RPAREN {
                     SwigType *t = NewStringEmpty();
                     $$ = $in;
                     SwigType_add_rvalue_reference(t);

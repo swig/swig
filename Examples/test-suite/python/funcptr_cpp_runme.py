@@ -29,5 +29,9 @@ swig_check(refholder.fnRef(6, 7), 13)
 with swig_assert_raises(TypeError):
     callref1(None, 1, 2)
 
+getter = AddByValueGetter()
+swig_check(call1(getter.getPtr(), 7, 8), 15)
+swig_check(callref1(getter.getRef(), 8, 9), 17)
+
 swig_check(arrayRefSum(getArrayRef1()), 100)
 swig_check(arrayRefSum(getArrayRef2()), 100)

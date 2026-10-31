@@ -48,6 +48,19 @@ string TypedefHost::t2() && { return string(); }
 string TypedefHost::t3() && { return string(); }
 %}
 
+// Member functions returning a pointer to a function, p2 is ignored by default like h3
+%rename(p3Renamed) FuncPtrHost::p3() const &;
+
+%inline %{
+int addOne(int i) { return i + 1; }
+int callIntFunc(int (*f)(int), int i) { return f(i); }
+struct FuncPtrHost {
+  int (*p1() &)(int) { return addOne; }
+  int (*p2() &&)(int) { return addOne; }
+  int (*p3() const &)(int) { return addOne; }
+};
+%}
+
 // %feature testing
 %feature("except") F1() & %{ result = "F1"; %}
 %feature("except") F2 %{ result = "F2"; %}

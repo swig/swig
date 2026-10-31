@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-30: wsfulton
+            Fix syntax error for a member function returning a pointer or reference to a function
+            when the member function has a cv-qualifier or ref-qualifier, which is written inside
+            the parentheses of the declarator, such as f here:
+
+              typedef int (*IntOp)(int, int);
+              struct S {
+                int (*f() const)(int, int);
+                IntOp g() const;
+              };
+
+            f is now wrapped in the same way as g, which declares the same member function with a
+            typedef for its return type. So f is a const method. A member function with an '&&'
+            ref-qualifier is ignored by default as usual.
+
+2026-10-30: wsfulton
             Fix the wrong operator->() being called for a const volatile method accessed through a
             smart pointer class that has both a const and a non-const operator->(), such as get()
             here:

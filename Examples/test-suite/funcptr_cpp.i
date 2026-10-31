@@ -56,6 +56,12 @@ struct AddByValueRefHolder {
   AddByValueRefHolder(AddByValueTypedef &f) : fnRef(f) {}
   int call(int a, int b) { return fnRef(a, b); }
 };
+
+// Const member functions returning a pointer or reference to a function
+struct AddByValueGetter {
+  int (*getPtr() const)(const int &, int) { return addByValue; }
+  int (&getRef() const)(const int &, int) { return addByValue; }
+};
 %}
 
 %{

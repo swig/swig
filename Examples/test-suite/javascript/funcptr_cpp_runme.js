@@ -49,3 +49,11 @@ if (refholder.call(5, 6) != 11) {
 if (refholder.fnRef(6, 7) != 13) {
     throw new Error;
 }
+
+var getter = new funcptr_cpp.AddByValueGetter();
+if (funcptr_cpp.call1(getter.getPtr(), 7, 8) != 15) {
+    throw new Error;
+}
+if (funcptr_cpp.callref1(getter.getRef(), 8, 9) != 17) {
+    throw new Error;
+}

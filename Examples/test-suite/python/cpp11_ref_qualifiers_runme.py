@@ -1,5 +1,5 @@
 import cpp11_ref_qualifiers
-from swig_test_utils import swig_assert
+from swig_test_utils import swig_assert, swig_check
 
 h = cpp11_ref_qualifiers.Host()
 
@@ -15,6 +15,11 @@ th = cpp11_ref_qualifiers.TypedefHost()
 th.t1()
 swig_assert(not hasattr(th, "t2"), "t2 should be ignored")
 swig_assert(not hasattr(th, "t3"), "t3 should be ignored")
+
+fh = cpp11_ref_qualifiers.FuncPtrHost()
+swig_check(cpp11_ref_qualifiers.callIntFunc(fh.p1(), 1), 2)
+swig_assert(not hasattr(fh, "p2"), "p2 should be ignored")
+swig_check(cpp11_ref_qualifiers.callIntFunc(fh.p3Renamed(), 2), 3)
 
 # %feature testing
 f = cpp11_ref_qualifiers.Features()
