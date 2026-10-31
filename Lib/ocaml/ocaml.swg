@@ -307,8 +307,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 %typemap(how) SWIGTYPE (CLASS::*) {
-    void *v = caml_ptr_val($input,$1_descriptor);
-    memcpy(& $1, &v, sizeof(v));
+    caml_member_val($input, (void *)&$1, sizeof($1), $1_descriptor);
 }
 %enddef
 
@@ -318,9 +317,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_ptr_out(how)
 %typemap(how) SWIGTYPE (CLASS::*) {
-    void *v;
-    memcpy(&v,& $1, sizeof(void *));
-    $result = caml_val_ptr (v,$1_descriptor);
+    $result = caml_val_member((void *)&$1, sizeof($1), $1_descriptor);
 }
 %enddef
 
@@ -331,9 +328,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swigtype_ptr_out(varout);
 
 %typemap(directorin) SWIGTYPE (CLASS::*) {
-    void *v;
-    memcpy(&v,& $1, sizeof(void *));
-    args = caml_list_append(args, caml_val_ptr(v,$1_descriptor));
+    args = caml_list_append(args, caml_val_member((void *)&$1, sizeof($1), $1_descriptor));
 }
 
 /* Arrays, as a pointer to the first element */

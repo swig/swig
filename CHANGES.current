@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [OCaml] Fix member function pointers, which were cut short to the size of a pointer when
+            passed between C++ and OCaml. A member function pointer is twice that size with GCC and
+            Clang, so calling a member function through one could crash. A member pointer is now a
+            C_string value holding the whole member pointer and its type name, instead of a C_ptr.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [OCaml] Fix a compile error in a director method returning a class template type with
             more than one template argument, such as getPair() here:
 
