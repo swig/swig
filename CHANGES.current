@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix an R function passed for a function pointer returning a value that cannot be
+            converted to the return type, such as two integers for an int. In C++ R was terminated
+            by an uncaught C++ exception. In C the C code was given an unconverted value and R
+            warned of a stack imbalance. Now the R function gives an R error, such as
+            "SWIG:TypeError in method '_p_f_int_int__int', argument 0 of type 'int'".
+
+2026-10-31: wsfulton
             [R] Fix calling an R function passed for a function pointer freeing all the memory
             given by R_alloc() to the code that called R. The R function optim() from the stats
             package, for example, keeps its work vectors in such memory while it calls the R

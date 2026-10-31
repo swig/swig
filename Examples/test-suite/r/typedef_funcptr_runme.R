@@ -35,6 +35,10 @@ unittest(do_op_twice(1, 2, function(x, y) {
 }), 5)
 invisible(error_message(function() do_op(1, 2, function(x, y) x * 2)))
 
+# A value returned by an R function that cannot be converted gives an R error
+unittest(error_message(function() do_op(1, 2, function(x, y) c(1L, 2L))), "SWIG:TypeError in method '_p_f_int_int__int', argument 0 of type 'Integer'")
+unittest(error_message(function() do_name(1, function(i) 1L)), "SWIG:TypeError in method '_p_f_int__p_char', argument 0 of type 'char const *'")
+
 # The memory R_alloc() gives optim() for the R function it minimizes is kept when that calls an R function twice
 f <- function(p) sum((p - c(3, 4))^2)
 expected <- optim(c(1, 2), f, control = list(maxit = 30))$par

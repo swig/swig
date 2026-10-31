@@ -646,6 +646,9 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   }
 
   Printf(f->def, ") {\n");
+  /* An error converting the value returned by the R function is raised after a block in which the C++ local variables are destroyed, as in a wrapper */
+  if (!isVoidType && CPlusPlus)
+    Append(f->def, "{\n");
 
   if (r_tmp_needed)
     Wrapper_add_local(f, "r_tmp", "SEXP r_tmp");             // for use in converting arguments to R objects for call.
@@ -713,9 +716,15 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   } else if (!isVoidType) {
     Printv(f->code, "return ", Swig_cresult_name(), ";\n", NIL);
   }
+  if (!isVoidType) {
+    /* The wrapper does not return after the R error, so its entries are popped as for an error in the R function */
+    Printv(f->code, "fail: SWIGUNUSED;\n", "R_SWIG_popCallbackFunctionData(r_swig_cb_data->base);\n", NIL);
+    if (CPlusPlus)
+      Append(f->code, "}\n");
+    Printv(f->code, "Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
+  }
 
   Printv(f->code, "\n}\n", NIL);
-  Replaceall(f->code, "SWIG_exception_fail", "SWIG_exception_noreturn");
 
   /* To coerce correctly in S, we really want to have an extra/intermediate
      function that handles the scoerceout.
