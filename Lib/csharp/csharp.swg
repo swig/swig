@@ -442,16 +442,23 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
 %{ $result = ($1_ltype)$input; %}
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
-%{ $result = ($1_ltype)$input; %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*)
+%{ SWIG_UnpackData($input, (void *)&$result, sizeof($result)); %}
 /* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
 %typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
 %{ $result = ($1_ltype)$input; %}
 
 %typemap(directorin) SWIGTYPE *
 %{ $input = (void *) $1; %}
-%typemap(directorin) SWIGTYPE (CLASS::*)
-%{ $input = (void *) $1; %}
+%typemap(directorin, fragment="SWIG_PackData") SWIGTYPE (CLASS::*)
+%{
+  {
+    char buf[128];
+    char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+    *data = '\0';
+    $input = SWIG_csharp_string_callback(buf);
+  }
+%}
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
@@ -470,10 +477,12 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) SWIGTYPE &&
 %{ $input = ($1_ltype) &$1; %}
 
-%typemap(csdirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($iminput == global::System.IntPtr.Zero) ? null : new $csclassname($iminput, false)"
+%typemap(csdirectorin) SWIGTYPE * "($iminput == global::System.IntPtr.Zero) ? null : new $csclassname($iminput, false)"
+%typemap(csdirectorin) SWIGTYPE (CLASS::*) "($iminput == null) ? null : new $csclassname($iminput, false)"
 %typemap(csdirectorin) SWIGTYPE & "new $csclassname($iminput, false)"
 %typemap(csdirectorin) SWIGTYPE && "new $csclassname($iminput, false)"
-%typemap(csdirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$csclassname.getCPtr($cscall).Handle"
+%typemap(csdirectorout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && "$csclassname.getCPtr($cscall).Handle"
+%typemap(csdirectorout) SWIGTYPE (CLASS::*) "$csclassname.getCMemberPtr($cscall)"
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = ($1_ltype)$input; %}

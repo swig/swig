@@ -528,6 +528,28 @@
   memcpy(&$1, p, sizeof($1));
 }
 
+%typemap(directorin) SWIGTYPE (CLASS::*)
+%{
+  {
+    void * p = emalloc(sizeof($1));
+    memcpy(p, &$1, sizeof($1));
+    ZVAL_UNDEF($input);
+    SWIG_SetPointerZval($input, (void *)p, $&1_descriptor, 1);
+  }
+%}
+
+%typemap(directorout) SWIGTYPE (CLASS::*)
+%{
+  {
+    void *argp = 0;
+    if (SWIG_ConvertPtr($input, &argp, $&1_descriptor, 0) < 0 || argp == NULL) {
+      zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
+      SWIG_fail;
+    }
+    memcpy(&$result, argp, sizeof($result));
+  }
+%}
+
 %typemap(out, phptype="?SWIGTYPE") SWIGTYPE *DYNAMIC
 {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **) &$1);

@@ -310,15 +310,12 @@
 %}
 
 %typemap(directorin) SWIGTYPE (CLASS::*)
-%{ $input = *($&1_ltype)$1; %}
+%{ $input = (void *)&$1; %}
 
 %typemap(godirectorin) SWIGTYPE (CLASS::*) ""
 
 %typemap(directorout) SWIGTYPE (CLASS::*)
-%{
-  $result = new $1_ltype($input);
-  swig_acquire_pointer(&swig_mem, $result);
-%}
+%{ $result = *($&1_ltype)$input; %}
 
 /* Pointers.  */
 

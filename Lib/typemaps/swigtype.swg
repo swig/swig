@@ -604,6 +604,9 @@
     %dirout_fail(swig_res,"$type");
   }
 }
+
+/* A member pointer is not owned, so it is not released as the SWIGTYPE * directorfree typemap does */
+%typemap(directorfree) SWIGTYPE (CLASS::*) ""
 #endif
 
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }

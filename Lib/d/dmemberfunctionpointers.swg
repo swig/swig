@@ -28,13 +28,21 @@
   $result = SWIG_d_string_callback(buf);
 %}
 
-%typemap(directorin) SWIGTYPE (CLASS::*) "$input = (void *) $1;"
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
-  "$result = ($1_ltype)$input;"
+%typemap(directorin, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
+  {
+    char buf[128];
+    char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+    *data = '\0';
+    $input = SWIG_d_string_callback(buf);
+  }
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{
+  SWIG_UnpackData($input, (void *)&$result, sizeof($result));
+%}
 
 %typemap(ddirectorin) SWIGTYPE (CLASS::*)
   "($winput is null) ? null : new $dclassname($winput, false)"
-%typemap(ddirectorout) SWIGTYPE (CLASS::*) "$dclassname.swigGetCPtr($dcall)"
+%typemap(ddirectorout) SWIGTYPE (CLASS::*) "$dclassname.swigGetCMemberPtr($dcall)"
 
 %typemap(din) SWIGTYPE (CLASS::*) "$dclassname.swigGetCMemberPtr($dinput)"
 %typemap(dout, excode=SWIGEXCODE) SWIGTYPE (CLASS::*) {

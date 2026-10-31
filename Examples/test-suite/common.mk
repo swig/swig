@@ -216,6 +216,7 @@ CPP_TEST_CASES += \
 	director_frob \
 	director_ignore \
 	director_langobj \
+	director_member_pointer \
 	director_minimal \
 	director_multiple_inheritance \
 	director_namespace_clash \

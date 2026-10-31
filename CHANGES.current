@@ -8,6 +8,36 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [Go] Fix the generated code of a director class with a method taking or returning a
+            member pointer, such as MemberPtrDirector in the entry below, which did not compile. Go
+            cannot override such a method, as the member pointer type has no exported Go name, so a
+            C++ call of the method calls the C++ method through the director. Such a call of a
+            method returning a member pointer still panics, as cgo does not allow a Go callback to
+            return the Go memory holding the member pointer.
+
+2026-10-31: wsfulton
+            [Perl, Python, Ruby] Fix a director method returning a member pointer, such as
+            getMemberPtr in the entry below. The generated code did not compile.
+
+2026-10-31: wsfulton
+            [C#, D, Java, Lua, PHP] Fix a director method with a member pointer parameter or return
+            type, such as:
+
+              struct Funcs {
+                int increment(int x);
+              };
+              %feature("director") MemberPtrDirector;
+              class MemberPtrDirector {
+              public:
+                virtual ~MemberPtrDirector();
+                virtual int useMemberPtr(int (Funcs::*m)(int), int x);
+                virtual int (Funcs::*getMemberPtr())(int);
+              };
+
+            The generated code did not compile. Such a method can now be overridden in the target
+            language.
+
+2026-10-31: wsfulton
             [Guile, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl]
             Fix an overloaded function with a member pointer parameter, such as call_overloaded in:
 

@@ -717,16 +717,30 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
 %{ $result = *($&1_ltype)&$input; %}
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*)
-%{ $result = *($&1_ltype)&$input; %}
+%typemap(directorout, noblock=1, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) {
+  if ($input) {
+    const char *temp = JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!temp) return $null;
+    SWIG_UnpackData(temp, (void *)&$result, sizeof($result));
+    JCALL2(ReleaseStringUTFChars, jenv, $input, temp);
+  }
+}
 /* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
 %typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
 %{ $result = *($&1_ltype)&$input; %}
 
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
-%typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE (CLASS::*)
-%{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
+%typemap(directorin,descriptor="L$packagepath/$javaclassname;", noblock=1, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) {
+  {
+    char buf[128];
+    char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+    *data = '\0';
+    $input = JCALL1(NewStringUTF, jenv, buf);
+    if (!$input) return $null;
+  }
+  Swig::LocalRefGuard $1_refguard(jenv, $input);
+}
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
@@ -745,10 +759,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE &&
 %{ *($&1_ltype)&$input = ($1_ltype) &$1; %}
 
-%typemap(javadirectorin) SWIGTYPE *, SWIGTYPE (CLASS::*) "($jniinput == 0) ? null : new $javaclassname($jniinput, false)"
+%typemap(javadirectorin) SWIGTYPE * "($jniinput == 0) ? null : new $javaclassname($jniinput, false)"
+%typemap(javadirectorin) SWIGTYPE (CLASS::*) "($jniinput == null) ? null : new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) SWIGTYPE & "new $javaclassname($jniinput, false)"
 %typemap(javadirectorin) SWIGTYPE && "new $javaclassname($jniinput, false)"
-%typemap(javadirectorout) SWIGTYPE *, SWIGTYPE (CLASS::*), SWIGTYPE &, SWIGTYPE && "$javaclassname.getCPtr($javacall)"
+%typemap(javadirectorout) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && "$javaclassname.getCPtr($javacall)"
+%typemap(javadirectorout) SWIGTYPE (CLASS::*) "$javaclassname.getCMemberPtr($javacall)"
 
 /* Default array handling */
 %typemap(in) SWIGTYPE [] %{ $1 = *($&1_ltype)&$input; %}

@@ -40,6 +40,7 @@ FAILING_CPP_TESTS := \
     assign_reference \
     cpp_enum \
     constant_pointers \
+    director_member_pointer \
     enum_thorough \
     extend \
     extend_default \

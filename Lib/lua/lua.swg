@@ -234,6 +234,9 @@
 %typemap(directorin) SWIGTYPE &&
   "SWIG_NewPointerObj(L, (void *)&$1, $1_descriptor, 0);"
 
+%typemap(directorin) SWIGTYPE (CLASS::*)
+  "SWIG_NewMemberObj(L, (void *)&$1, sizeof($1), $1_descriptor);"
+
 /* pass by value - use a temporary to avoid macro comma issues with templates */
 %typemap(directorin) SWIGTYPE %{
   $1_ltype *SWIG_temp_$1 = new $1_ltype(SWIG_STD_MOVE($1));
@@ -301,6 +304,12 @@
   }
   $result = *($1_ltype *)argp;
 }
+
+%typemap(directorout) SWIGTYPE (CLASS::*) %{
+  if (!SWIG_IsOK(SWIG_ConvertMember(L, $input, (void *)&$result, sizeof($result), $1_descriptor))) {
+    Swig::DirectorTypeMismatchException::raise(L, "Failed to convert return value to $1_type");
+  }
+%}
 
 /* pass by value */
 %typemap(directorout) SWIGTYPE {
