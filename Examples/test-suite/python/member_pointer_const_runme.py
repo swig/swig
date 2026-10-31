@@ -46,6 +46,11 @@ check("Square perim", 40.0, do_op(s, PERIMPT))
 # Typedefs
 check("Square perim", 40.0, do_op_td(s, perim_pt));
 
+# Member functions returning member pointers
+getter = MemberPointerGetter()
+check("Square area ", 100.0, do_op(s, getter.getAreaPt()))
+check("Square area ", 100.0, do_op(s, getter.getConstAreaPt()))
+
 check("Add by value", 3, call1(ADD_BY_VALUE, 1, 2))
 #check("Add by pointer", 7, call2(ADD_BY_POINTER, 3, 4))
 #check("Add by reference", 11, call3(ADD_BY_REFERENCE, 5, 6))

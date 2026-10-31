@@ -147,3 +147,12 @@ int call1(int (Funktions::*d)(const int &, int) const, int a, int b) { Funktions
 %constant int (Funktions::*ADD_BY_VALUE)(const int &, int) const = &Funktions::addByValue;
 //%constant int * (Funktions::*ADD_BY_POINTER)(const int &, int) const = &Funktions::addByPointer;
 //%constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) const = &Funktions::addByReference;
+
+%inline %{
+/* Const member functions returning a pointer to a const member function */
+struct MemberPointerGetter {
+  double (Shape::*getAreaPt() const)(void) const { return &Shape::area; }
+  double (Shape::* const getConstAreaPt() const)(void) const { return &Shape::area; }
+  int * (Funktions::*getAddByPointer() const)(const int &, int) const { return &Funktions::addByPointer; }
+};
+%}

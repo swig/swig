@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix syntax error for a member function returning a pointer to a member function when
+            the member function has a cv-qualifier or ref-qualifier, which is written inside the
+            parentheses of the declarator, such as f here:
+
+              struct C {};
+              typedef int (C::*CMemFn)(int) const;
+              struct S {
+                int (C::*f() const)(int) const;
+                CMemFn g() const;
+              };
+
+            f is now wrapped in the same way as g, which declares the same member function with a
+            typedef for its return type.
+
+2026-10-31: wsfulton
             Fix syntax error for a member function returning a pointer or reference to a function
             when the member function has a 'noexcept' or 'throw' exception specification, which is
             written inside the parentheses of the declarator, such as f here:

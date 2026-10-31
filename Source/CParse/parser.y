@@ -2323,6 +2323,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     pointer primitive_type type_id_pointer;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
 %type <decl>     qualified_direct_declarator qualified_notso_direct_declarator;
+%type <decl>     qualified_function_declarator qualified_declarator;
 %type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
@@ -3652,16 +3653,16 @@ static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms
 }
 
 /* Use the qualifiers kept in the declarator decl by declarator_add_qualified_function() as the trailing qualifiers
-   cpp_const of a declaration that has none, so that the declarations of f and g here get the same refqualifier
-   attribute:
+   cpp_const of the declaration, so that the declarations of f and g here get the same refqualifier attribute:
      typedef int (*IntFuncPtr)(int);
      int (*f() const &)(int);
      IntFuncPtr g() const &;
    The type of the declarator has the qualifiers already, so they are only used for checks and attributes like this.
-   The exception specification kept in decl is that of the declared function, so it is used in place of any after
-   the declarator, which is that of the function pointed to. */
+   The qualifiers and exception specification kept in decl are those of the declared function, so they are used in
+   place of any after the declarator, which are those of the function pointed to, as for the second 'const' in:
+     int (C::*f() const)(int) const; */
 static void use_declarator_qualifiers(struct Define *cpp_const, const struct Decl *decl) {
-  if (!cpp_const->qualifier) {
+  if (decl->qualifier) {
     cpp_const->qualifier = decl->qualifier;
     cpp_const->refqualifier = decl->refqualifier;
   }
@@ -8536,7 +8537,7 @@ notso_direct_declarator : idcolon {
                     }
                     $$.type = $pointer;
                   }
-                  | LPAREN idcolon DSTAR notso_direct_declarator[in] RPAREN {
+                  | LPAREN idcolon DSTAR qualified_notso_direct_declarator[in] RPAREN {
 		    SwigType *t;
 		    $$ = $in;
 		    t = NewStringEmpty();
@@ -8569,10 +8570,22 @@ qualified_notso_direct_declarator : notso_direct_declarator
                   ;
 
 qualified_direct_declarator : direct_declarator
-                  | direct_declarator[in] LPAREN fn_parms RPAREN function_qualifiers {
+                  | qualified_function_declarator
+                  ;
+
+qualified_function_declarator : direct_declarator[in] LPAREN fn_parms RPAREN function_qualifiers {
                     $$ = $in;
                     declarator_add_qualified_function(&$$, $fn_parms, &$function_qualifiers);
                   }
+                  ;
+
+/* The declarator after a pointer to member in the parentheses of a member function returning a pointer to a member
+   function, which can end in the function's qualifiers too, such as the 'f() const' in:
+     int (C::*f() const)(int) const;
+   Any declarator can go there, which already includes a direct_declarator, so it is qualified_function_declarator
+   that is added to it rather than qualified_direct_declarator. */
+qualified_declarator : declarator
+                  | qualified_function_declarator
                   ;
 
 direct_declarator : idcolon {
@@ -8642,9 +8655,9 @@ direct_declarator : idcolon {
                     }
                     $$.type = t;
                   }
-                  | LPAREN idcolon DSTAR declarator RPAREN {
+                  | LPAREN idcolon DSTAR qualified_declarator[in] RPAREN {
 		    SwigType *t;
-		    $$ = $declarator;
+                    $$ = $in;
 		    t = NewStringEmpty();
 		    SwigType_add_memberpointer(t,$idcolon);
 		    if ($$.type) {
@@ -8653,9 +8666,9 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = t;
 		  }
-                  | LPAREN idcolon DSTAR type_qualifier declarator RPAREN {
+                  | LPAREN idcolon DSTAR type_qualifier qualified_declarator[in] RPAREN {
 		    SwigType *t;
-		    $$ = $declarator;
+                    $$ = $in;
 		    t = NewStringEmpty();
 		    SwigType_add_memberpointer(t, $idcolon);
 		    SwigType_push(t, $type_qualifier);

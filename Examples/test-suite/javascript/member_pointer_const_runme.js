@@ -45,6 +45,11 @@ check("Square perim", 40.0, member_pointer_const.do_op(s, member_pointer_const.P
 // Typedefs
 check("Square perim", 40.0, member_pointer_const.do_op_td(s, perim_pt));
 
+// Member functions returning member pointers
+getter = new member_pointer_const.MemberPointerGetter();
+check("Square area ", 100.0, member_pointer_const.do_op(s, getter.getAreaPt()));
+check("Square area ", 100.0, member_pointer_const.do_op(s, getter.getConstAreaPt()));
+
 check("Add by value", 3, member_pointer_const.call1(member_pointer_const.ADD_BY_VALUE, 1, 2));
 // TODO: For some reason, these are commented out in the shared interface file?
 //check("Add by pointer", 7, member_pointer_const.call2(member_pointer_const.ADD_BY_POINTER, 3, 4));

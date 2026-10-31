@@ -51,6 +51,11 @@ public class member_pointer_const_runme {
 
     // Typedefs
     check( "Square perim", 40.0, member_pointer_const.do_op_td(s,perim_pt) );
+
+    // Member functions returning member pointers
+    MemberPointerGetter getter = new MemberPointerGetter();
+    check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getAreaPt()) );
+    check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getConstAreaPt()) );
   }
 
   private static void check(String what, double expected, double actual) {

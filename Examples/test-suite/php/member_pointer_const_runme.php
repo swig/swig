@@ -6,7 +6,7 @@ require "tests.php";
 check::functions(array('do_op','do_op_td','areapt','perimeterpt','perimeterpt_td','call1'));
 
 // Check classes.
-check::classes(array('member_pointer_const','Circle','Funktions','Shape','Square'));
+check::classes(array('member_pointer_const','Circle','Funktions','MemberPointerGetter','Shape','Square'));
 
 // Check global variables.
 check::globals(array('areavar','perimetervar','perimetervar_td'));
@@ -51,6 +51,11 @@ check::equal(40.0, member_pointer_const::do_op($s, member_pointer_const::PERIMPT
 
 # Typedefs
 check::equal(40.0, member_pointer_const::do_op_td($s, $perim_pt), "Square perim");
+
+# Member functions returning member pointers
+$getter = new MemberPointerGetter();
+check::equal(100.0, member_pointer_const::do_op($s, $getter->getAreaPt()), "Square area");
+check::equal(100.0, member_pointer_const::do_op($s, $getter->getConstAreaPt()), "Square area");
 
 /*
 check::equal(3, member_pointer_const::call1(member_pointer_const::ADD_BY_VALUE, 1, 2), "Add by value");

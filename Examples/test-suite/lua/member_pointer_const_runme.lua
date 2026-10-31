@@ -35,4 +35,10 @@ check("Square perim", 40, v.do_op(s, v.PERIMPT))
 
 -- Typedefs
 check("Square perim", 40, v.do_op_td(s, perim_pt))
+
+-- Member functions returning member pointers
+local getter = v.MemberPointerGetter()
+check("Square area ", 100, v.do_op(s, getter:getAreaPt()))
+check("Square area ", 100, v.do_op(s, getter:getConstAreaPt()))
+
 check("Add by value", 3, v.call1(v.ADD_BY_VALUE, 1, 2))
