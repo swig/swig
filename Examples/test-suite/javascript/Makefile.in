@@ -93,6 +93,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   member_pointer_const.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   typedef_funcptr.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  cpp11_noexcept.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	# Run with asan:
 	# ASAN=1 ENGINE=napi make <test_name>.cpptest

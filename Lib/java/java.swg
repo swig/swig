@@ -726,8 +726,15 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 }
 /* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
+/* A function pointer is copied using memcpy, as a cast to a pointer to a pointer to a noexcept function is not valid before C++17 */
 %typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
-%{ $result = *($&1_ltype)&$input; %}
+%{ memcpy(&$result, &$input, sizeof($result)); %}
+%typemap(in) SWIGTYPE ((*)(ANY))
+%{ memcpy(&$1, &$input, sizeof($1)); %}
+%typemap(out) SWIGTYPE ((*)(ANY))
+%{ memcpy(&$result, &$1, sizeof($1)); %}
+%typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE ((*)(ANY))
+%{ memcpy(&$input, &$1, sizeof($1)); %}
 
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}

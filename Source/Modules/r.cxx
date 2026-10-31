@@ -530,7 +530,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   // ParmList *parms = Getattr(n, "parms");
   // memory leak
-  ParmList *parms = SwigType_function_parms(SwigType_del_pointer(Copy(t)), n);
+  ParmList *parms = SwigType_function_parms(funcparams, n);
 
   if (debugMode) {
     Printf(stdout, "Type: %s\n", t);

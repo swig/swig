@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            #2087 Fix the wrappers for a parameter of a noexcept function pointer type, such as g:
+
+              void f(int (*g)(int) noexcept);
+
+            They did not compile, as the noexcept was put before the declarator, as in the cast
+            '(int noexcept (*)(int))', and a pointer to a function without noexcept was passed.
+
+2026-10-31: wsfulton
             [Go] Fix the generated code of a director class with a method taking or returning a
             member pointer, such as MemberPtrDirector in the entry below, which did not compile. Go
             cannot override such a method, as the member pointer type has no exported Go name, so a

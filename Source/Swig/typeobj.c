@@ -709,15 +709,28 @@ SwigType *SwigType_remove_qualifier_reference(SwigType *t) {
  *                                Function Pointers
  * ----------------------------------------------------------------------------- */
 
+/* -----------------------------------------------------------------------------
+ * SwigType_isfunctionpointer()
+ *
+ * Returns 1 if t is a pointer to a function, which can have qualifiers, as in 'p.q(noexcept).f(int).int'.
+ * ----------------------------------------------------------------------------- */
+
 int SwigType_isfunctionpointer(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
   c = Char(t);
-  if (strncmp(c, "p.f(", 4) == 0) {
-    return 1;
+  if (strncmp(c, "p.", 2) != 0)
+    return 0;
+  c += 2;
+  if (strncmp(c, "q(", 2) == 0) {
+    /* Skip over the qualifiers of the function */
+    c = strchr(c, '.');
+    if (!c)
+      return 0;
+    c++;
   }
-  return 0;
+  return strncmp(c, "f(", 2) == 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -726,6 +739,7 @@ int SwigType_isfunctionpointer(const SwigType *t) {
  * Decompose the function pointer into the parameter list and the return type
  * t - input and on completion contains the return type
  * returns the function's parameters
+ * Any qualifiers of the function, such as 'noexcept', are dropped.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_functionpointer_decompose(SwigType *t) {
@@ -733,6 +747,8 @@ SwigType *SwigType_functionpointer_decompose(SwigType *t) {
   assert(SwigType_isfunctionpointer(t));
   p = SwigType_pop(t);
   Delete(p);
+  if (SwigType_isqualifier(t))
+    Delete(SwigType_pop(t));
   p = SwigType_pop(t);
   return p;
 }

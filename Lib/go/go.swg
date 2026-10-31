@@ -340,6 +340,12 @@
 %typemap(directorout) SWIGTYPE *
 %{ $result = *($&1_ltype)&$input; %}
 
+/* A function pointer is copied using memcpy, as a cast to a pointer to a pointer to a noexcept function is not valid before C++17 */
+%typemap(in) SWIGTYPE ((*)(ANY)) %{ memcpy(&$1, &$input, sizeof($1)); %}
+%typemap(out) SWIGTYPE ((*)(ANY)) %{ memcpy(&$result, &$1, sizeof($1)); %}
+%typemap(directorin) SWIGTYPE ((*)(ANY)) %{ memcpy(&$input, &$1, sizeof($1)); %}
+%typemap(directorout) SWIGTYPE ((*)(ANY)) %{ memcpy(&$result, &$input, sizeof($result)); %}
+
 /* Pointer references.  */
 
 %typemap(gotype) SWIGTYPE *const&

@@ -300,6 +300,7 @@ bool uses_base_type(SwigType *type, bool (*is_used)(SwigType *base_type)) {
 
 // Return the type with a pointer in place of each reference in it and in the parameters of any function in it, as
 // C has no references, as in 'int *(*)(int const *,int)' for 'int &(*)(int const &,int)'.
+// The qualifiers of each function type, such as the 'noexcept' of 'int (*)(int) noexcept', are dropped too, as C does not have them.
 SwigType *references_to_pointers(const SwigType *type) {
   scoped_dohptr elements = adopt(SwigType_split(type));
   int const last = Len(elements) - 1;
@@ -308,6 +309,8 @@ SwigType *references_to_pointers(const SwigType *type) {
     SwigType *const element = Getitem(elements, i);
     if (SwigType_isanyreference(element)) {
       SwigType_add_pointer(c_type);
+    } else if (SwigType_isqualifier(element) && SwigType_isfunction(Getitem(elements, i + 1))) {
+      // Drop the qualifiers of the function type at i + 1, which C does not have
     } else if (SwigType_isfunction(element)) {
       ParmList *const parms = SwigType_function_parms(element, NULL);
       for (Parm *p = parms; p; p = nextSibling(p)) {
