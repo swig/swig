@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file declaring a struct passed or returned by value as a pointer to it
+            when wrapping C code, for example for:
+
+              typedef struct { int myInt; short myShort; } test;
+              test get_test();
+              int get_my_int(test t);
+
+            The .h file declared 'test *mod_get_test()' and 'int mod_get_my_int(test *carg1)' for
+            a module named mod, but the wrappers pass and return the struct by value, as the C
+            functions do. The .h file now declares them by value too.
+
+2026-10-31: wsfulton
             [C] Fix the .h file dropping the inner qualifiers of a pointer type when wrapping C code,
             for example for:
 

@@ -2009,7 +2009,10 @@ public:
     }
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      SwigType_add_pointer(classnametype);
+      // A C++ object passed or returned by value is a pointer in C, but when not using C++, the original C type of a
+      // struct passed or returned by value is used, as the wrapper passes or returns it by value too
+      if (CPlusPlus)
+        SwigType_add_pointer(classnametype);
       if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type", file_line_node))
         is_swigtype = true;
       Delete(classnametype);
