@@ -143,6 +143,7 @@ extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node
 extern List *SwigType_split(const SwigType *t);
 extern String *SwigType_pop(SwigType *t);
 extern void SwigType_push(SwigType *t, String *s);
+extern void SwigType_push_merge_qualifiers(SwigType *t, String *prefix);
 extern SwigType *SwigType_last(const SwigType *t);
 extern List *SwigType_parmlist(const SwigType *p);
 extern String *SwigType_parm(const SwigType *p);

@@ -16,5 +16,6 @@ int main() {
 
   assert(overloading(1) == 111);
   assert(overloading(&ss) == 222);
+  assert(pointer_reference_typedef_const(&ss) == 20);
   return 0;
 }

@@ -49,6 +49,16 @@ int pointer_reference_value(Struct *& s) {
 int pointer_reference_const_volatile(Struct *const volatile & s) {
   return s ? s->value : -1;
 }
+typedef Struct *const StructConstPtr;
+typedef Struct *volatile StructVolatilePtr;
+// A const reference to a typedef of a const pointer is a 'Struct *const&'
+int pointer_reference_typedef_const(const StructConstPtr & s) {
+  return s ? s->value : -1;
+}
+// A const reference to a typedef of a volatile pointer is a 'Struct *const volatile&'
+int pointer_reference_typedef_volatile(const StructVolatilePtr & s) {
+  return s ? s->value : -1;
+}
 %}
 
 // A pointer to a class that is not wrapped

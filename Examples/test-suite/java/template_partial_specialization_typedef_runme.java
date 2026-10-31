@@ -25,6 +25,7 @@ public class template_partial_specialization_typedef_runme {
     new F().f();
     new G().g();
     new H().h();
+    new P().p();
 
     new J().j();
     new K().k();

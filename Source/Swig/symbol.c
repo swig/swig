@@ -2059,7 +2059,7 @@ SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
       if (decl) {
         SwigType_push(nt, decl);
       }
-      SwigType_push(nt, prefix);
+      SwigType_push_merge_qualifiers(nt, prefix);
       Delete(base);
       Delete(prefix);
       ntab = Getattr(n, "sym:symtab");

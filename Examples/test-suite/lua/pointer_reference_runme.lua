@@ -9,3 +9,4 @@ assert(pointer_reference.Struct_instance.value == 20)
 
 assert(pointer_reference.overloading(1) == 111)
 assert(pointer_reference.overloading(ss) == 222)
+assert(pointer_reference.pointer_reference_typedef_const(ss) == 20)

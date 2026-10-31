@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix a const reference to a typedef of a const pointer, such as 'const CFP &' given:
+
+              typedef Foo *const CFP;
+
+            The wrappers did not compile, as it was not wrapped as 'Foo *const &' by the
+            'SWIGTYPE *const&' typemaps but as a const reference to 'Foo *const const'. It is
+            now wrapped as 'Foo *const &' is. Likewise a const reference to a typedef of a
+            volatile pointer is now wrapped as 'Foo *const volatile &' is. A template
+            instantiated with 'const CFP' now uses an explicit or partial specialization for
+            'Foo *const' and is the same instantiation as one with 'Foo *const', so
+            instantiating both gives warning 404.
+
+2026-10-31: wsfulton
             Fix the wrappers not compiling for a pointer to a member of a class in a namespace
             when the class is written without the namespace, as in the return type of memfuncptr in:
 

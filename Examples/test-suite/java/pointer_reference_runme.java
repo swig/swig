@@ -22,5 +22,6 @@ public class pointer_reference_runme {
 
     if (pointer_reference.overloading(1) != 111) throw new RuntimeException("overload test 1 failed");
     if (pointer_reference.overloading(ss) != 222) throw new RuntimeException("overload test 2 failed");
+    if (pointer_reference.pointer_reference_typedef_const(ss) != 20) throw new RuntimeException("typedef const pointer test failed");
   }
 }

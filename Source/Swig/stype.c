@@ -196,6 +196,37 @@ void SwigType_push(SwigType *t, String *cons) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_push_merge_qualifiers()
+ *
+ * Pushes prefix, the prefix of a type that names a typedef, onto t, the type that the typedef resolves to.  A qualifier at the end of prefix
+ * is merged with one that t starts with and goes after any arrays that t starts with, as C++ qualifies the elements of an array.  For example,
+ * pushing 'r.q(const).' onto 'q(volatile).p.Foo' and 'q(const).' onto 'a(7).q(volatile).double' gives
+ *   r.q(const volatile).p.Foo           Foo *const volatile &
+ *   a(7).q(const volatile).double       double const volatile [7]
+ * rather than, as SwigType_push() gives,
+ *   r.q(const).q(volatile).p.Foo        Foo *volatile const &
+ *   q(const).a(7).q(volatile).double    double volatile const[7]
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_push_merge_qualifiers(SwigType *t, String *prefix) {
+  SwigType *last = SwigType_last(prefix);
+  if (last && SwigType_isqualifier(last) && (SwigType_isarray(t) || SwigType_isqualifier(t))) {
+    SwigType *arrays = SwigType_isarray(t) ? SwigType_pop_arrays(t) : 0;
+    String *qualifiers = SwigType_parm(last);
+    String *rest = SwigType_prefix(prefix);
+    SwigType_add_qualifier(t, qualifiers);
+    SwigType_push(t, arrays);
+    SwigType_push(t, rest);
+    Delete(rest);
+    Delete(qualifiers);
+    Delete(arrays);
+  } else {
+    SwigType_push(t, prefix);
+  }
+  Delete(last);
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_ispointer_return()
  *
  * Testing functions for querying a raw datatype

@@ -14,3 +14,6 @@ if pointer_reference.overloading(1) != 111:
 
 if pointer_reference.overloading(ss) != 222:
     raise RuntimeError("overload test 2 failed")
+
+if pointer_reference.pointer_reference_typedef_const(ss) != 20:
+    raise RuntimeError("typedef const pointer test failed")

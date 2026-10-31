@@ -24,6 +24,10 @@ int main() {
     fprintf(stderr, "overload test 2 failed\n");
     exit(1);
   }
+  if (pointer_reference_pointer_reference_typedef_const(s) != 5) {
+    fprintf(stderr, "pointer_reference_typedef_const failed\n");
+    exit(1);
+  }
 
   /* So is a const reference to a pointer to a class that is not wrapped */
   if (pointer_reference_opaque_value(pointer_reference_opaque_pointer()) != 30) {
@@ -42,6 +46,10 @@ int main() {
   }
   if (pointer_reference_pointer_reference_const_volatile(&s) != 5) {
     fprintf(stderr, "pointer_reference_const_volatile failed\n");
+    exit(1);
+  }
+  if (pointer_reference_pointer_reference_typedef_volatile(&s) != 5) {
+    fprintf(stderr, "pointer_reference_typedef_volatile failed\n");
     exit(1);
   }
 

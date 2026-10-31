@@ -21,6 +21,10 @@ unittest(s, 111)
 s = overloading(ss)
 unittest(s, 222)
 
+s = pointer_reference_typedef_const(ss)
+unittest(s, 20)
+
 unittest(grepl("^SWIG:TypeError", error_message(function() pointer_reference_value(ss))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() pointer_reference_typedef_volatile(ss))), TRUE)
 
 
