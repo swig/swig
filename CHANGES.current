@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a reference in the parameters or return type of a
+            function pointer, such as in:
+
+              int call(int &(*op)(const int &, int), int a, int b);
+
+            The parameter was declared as 'int &(*carg1)(int const &,int)'. As C has no references,
+            each reference in a function pointer type is now declared as a pointer, as in
+            'int *(*carg1)(int const *,int)', and the C++ wrapper casts the function pointer.
+
+2026-10-31: wsfulton
             #45 Fix a member function with its name in parentheses, as is done to stop a
             function-like macro of the same name expanding, such as:
 

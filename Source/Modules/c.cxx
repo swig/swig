@@ -261,6 +261,31 @@ bool is_funcptr_type(const SwigType *type) {
   return SwigType_isfunctionpointer(ptr_type);
 }
 
+// Return the type with a pointer in place of each reference in it and in the parameters of any function in it, as
+// C has no references, as in 'int *(*)(int const *,int)' for 'int &(*)(int const &,int)'.
+SwigType *references_to_pointers(const SwigType *type) {
+  scoped_dohptr elements = adopt(SwigType_split(type));
+  int const last = Len(elements) - 1;
+  SwigType *c_type = Copy(Getitem(elements, last));
+  for (int i = last - 1; i >= 0; i--) {
+    SwigType *const element = Getitem(elements, i);
+    if (SwigType_isanyreference(element)) {
+      SwigType_add_pointer(c_type);
+    } else if (SwigType_isfunction(element)) {
+      ParmList *const parms = SwigType_function_parms(element, NULL);
+      for (Parm *p = parms; p; p = nextSibling(p)) {
+        scoped_dohptr c_parm_type = adopt(references_to_pointers(Getattr(p, "type")));
+        Setattr(p, "type", c_parm_type);
+      }
+      SwigType_add_function(c_type, parms);
+      Delete(parms);
+    } else {
+      SwigType_push(c_type, element);
+    }
+  }
+  return c_type;
+}
+
 // Return the declaration of the function with the given return type, which is NULL for a constructor, name and parameters, as a
 // const member function if is_const is true. Each type is either type text, which SwigType_str() outputs as it is, or a SwigType,
 // which SwigType_str() outputs with the declarator inside it for a function pointer, as in 'int (*f(int x))(int,int)'.
@@ -738,6 +763,19 @@ private:
         if (uses_class_or_enum(stripped_type)) {
           warn_unsupported_type(type, ptype_desc);
           return false;
+        }
+
+        // The C function is declared with a pointer in place of each reference in this type, as C has no references.
+        scoped_dohptr c_type = adopt(references_to_pointers(stripped_type));
+        if (!Equal(c_type, stripped_type)) {
+          if (rtype_desc) {
+            scoped_dohptr cxx_type_str = adopt(SwigType_str(stripped_type, 0));
+            rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", cxx_type_str.get()));
+          }
+          if (ptype_desc) {
+            scoped_dohptr c_type_str = adopt(SwigType_str(c_type, 0));
+            ptype_desc->apply_in_typemap(NewStringf("(%s)$1", c_type_str.get()));
+          }
         }
 
         if (rtype_desc)
@@ -1811,14 +1849,14 @@ public:
     if (is_funcptr_type(classnametype) && (!CPlusPlus || current_output == output_wrapper_decl)) {
       scoped_dohptr ctype = adopt(Copy(classnametype));
       if (CPlusPlus) {
-        // C has no references, so a reference becomes a pointer, as in 'int (**carg1)(int)' for 'int (*&)(int)'. This
-        // is the reference removed by "$*resolved_type" in the 'SWIGTYPE &' typemaps or one in the type given by
-        // "$resolved_type" in the 'SWIGTYPE *const &' typemap.
-        if (SwigType_isanyreference(ctype)) {
-          SwigType_add_pointer(SwigType_remove_reference(ctype));
-        } else if (Strcmp(classnamespecialvariable, "$*resolved_type") == 0) {
+        // C has no references, so each reference becomes a pointer, as in 'int (**carg1)(int)' for 'int (*&)(int)' or
+        // 'int *(*carg1)(int const *)' for 'int &(*)(int const &)'. This includes the reference removed by
+        // "$*resolved_type" in the 'SWIGTYPE &' typemaps and one in the type given by "$resolved_type" in the
+        // 'SWIGTYPE *const &' typemap.
+        if (Strcmp(classnamespecialvariable, "$*resolved_type") == 0) {
           SwigType_add_pointer(ctype);
         }
+        ctype = references_to_pointers(ctype);
         ctype = getCNamesType(ctype);
       }
       Clear(tm);
