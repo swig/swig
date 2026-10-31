@@ -64,6 +64,24 @@ struct OpHolder {
 };
 FnPtr_int_td OpHolder::static_fn = subf;
 
+// References and pointers to function pointers
+void set_op_ref(FnPtr_int_td &op, int subtract) {
+    op = subtract ? subf : addf;
+}
+void set_op_ptr(FnPtr_int_td *op, int subtract) {
+    *op = subtract ? subf : addf;
+}
+int do_op_ref(int x, int y, int (*&op)(int, int)) {
+    return (*op)(x,y);
+}
+int do_op_const_ref(int x, int y, const FnPtr_int_td &op) {
+    return (*op)(x,y);
+}
+FnPtr_int_td &get_op_ref() {
+    static FnPtr_int_td op = addf;
+    return op;
+}
+
 // Function pointers using a class or an enum in a namespace
 namespace FuncPtrNS {
 struct Point {

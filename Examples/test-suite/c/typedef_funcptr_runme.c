@@ -55,6 +55,17 @@ int main(int argc, const char *argv[]) {
   assert(strcmp(namer(2), "two") == 0);
   typedef_funcptr_OpHolder_delete(holder);
 
+  int (*op)(int, int) = 0;
+  typedef_funcptr_set_op_ref(&op, 1);
+  assert(op(a, b) == 90);
+  typedef_funcptr_set_op_ptr(&op, 0);
+  assert(op(a, b) == 110);
+  assert(typedef_funcptr_do_op_ref(a, b, &op) == 110);
+  assert(typedef_funcptr_do_op_const_ref(a, b, &op) == 110);
+  assert((*typedef_funcptr_get_op_ref())(a, b) == 110);
+  *typedef_funcptr_get_op_ref() = subtract;
+  assert((*typedef_funcptr_get_op_ref())(a, b) == 90);
+
   typedef_funcptr_Point *point = typedef_funcptr_Point_new();
   typedef_funcptr_Point_x_set(point, 5);
   assert(typedef_funcptr_do_point(point, point_x_plus_one) == 6);

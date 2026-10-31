@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a reference or a pointer to a function pointer,
+            such as the parameters in:
+
+              typedef int (*IntOp)(int, int);
+              void set_op(IntOp &op);
+              void set_op_ptr(IntOp *op);
+
+            These were declared as 'int (*)(int,int)* carg1' or similar. As C has no references,
+            they are now declared as a pointer to the function pointer, 'int (**carg1)(int,int)'.
+            The same is fixed for an rvalue reference and for a function returning a reference or
+            a pointer to a function pointer.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling for a function pointer that uses a class or an enum
             in its parameters or return type, such as:
 
