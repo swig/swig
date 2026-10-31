@@ -80,3 +80,6 @@ if (funcptr_cpp.callHolderFn(funcptr_cpp.getHolderFn(), 2) != 2) {
 if (funcptr_cpp.callNotWrappedFn(funcptr_cpp.NOT_WRAPPED_VALUE, funcptr_cpp.getNotWrapped()) != 42) {
     throw new Error;
 }
+if (funcptr_cpp.callBoolFn(funcptr_cpp.NOT_BOOL, 0) != 1) {
+    throw new Error;
+}

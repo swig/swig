@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file not compiling as C before C23 for a bool used only in a function
+            pointer type, such as in:
+
+              int call(bool (*fn)(bool), int i);
+
+            The .h file now includes stdbool.h for it, as it does for a bool parameter.
+
+2026-10-31: wsfulton
             [C] Fix the .h file not compiling for a function pointer using a class that is not
             wrapped, as it is only declared or is ignored, such as:
 

@@ -270,6 +270,34 @@ bool is_ptr_to_func_or_array(const SwigType *type) {
   return false;
 }
 
+// Append the base type, whose typedefs are resolved, of the type and of each parameter of a function type in it, as in a function pointer, to base_types.
+void append_base_types(SwigType *type, List *base_types) {
+  scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
+  scoped_dohptr elements = adopt(SwigType_split(resolved_type));
+  for (Iterator i = First(elements); i.item; i = Next(i)) {
+    if (SwigType_isfunction(i.item)) {
+      scoped_dohptr parms = adopt(SwigType_parmlist(i.item));
+      for (Iterator j = First(parms); j.item; j = Next(j)) {
+        append_base_types(j.item, base_types);
+      }
+    }
+  }
+
+  scoped_dohptr base_type = adopt(SwigType_base(resolved_type));
+  Append(base_types, base_type);
+}
+
+// Return true if is_used() is true for one of the base types of the type, see append_base_types().
+bool uses_base_type(SwigType *type, bool (*is_used)(SwigType *base_type)) {
+  scoped_dohptr base_types = adopt(NewList());
+  append_base_types(type, base_types);
+  for (Iterator i = First(base_types); i.item; i = Next(i)) {
+    if (is_used(i.item))
+      return true;
+  }
+  return false;
+}
+
 // Return the type with a pointer in place of each reference in it and in the parameters of any function in it, as
 // C has no references, as in 'int *(*)(int const *,int)' for 'int &(*)(int const &,int)'.
 SwigType *references_to_pointers(const SwigType *type) {
@@ -694,23 +722,9 @@ private:
                  SwigType_str(type, 0));
   }
 
-  // Return true if the base type of the type, or of a parameter of a function type in it, is a class, wrapped or not, or
-  // an enum.
-  static bool uses_class_or_enum(SwigType *type) {
-    scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
-    scoped_dohptr elements = adopt(SwigType_split(resolved_type));
-    for (Iterator i = First(elements); i.item; i = Next(i)) {
-      if (SwigType_isfunction(i.item)) {
-        scoped_dohptr parms = adopt(SwigType_parmlist(i.item));
-        for (Iterator j = First(parms); j.item; j = Next(j)) {
-          if (uses_class_or_enum(j.item))
-            return true;
-        }
-      }
-    }
-
-    scoped_dohptr base_type = adopt(SwigType_base(resolved_type));
-    return SwigType_isenum(base_type) || SwigType_isclass(base_type) || Language::instance()->classLookup(base_type);
+  // Return true if the type is a class, wrapped or not, or an enum.
+  static bool is_class_or_enum(SwigType *type) {
+    return SwigType_isenum(type) || SwigType_isclass(type) || Language::instance()->classLookup(type);
   }
 
   // Replace "resolved_type" occurrences in the string with the value corresponding to the given type.
@@ -770,7 +784,7 @@ private:
     if (typeKind == Type_Ptr) {
       scoped_dohptr stripped_type = adopt(SwigType_remove_qualifier(Copy(resolved_type)));
       if (SwigType_isfunctionpointer(stripped_type)) {
-        if (uses_class_or_enum(stripped_type)) {
+        if (uses_base_type(stripped_type, is_class_or_enum)) {
           warn_unsupported_type(type, ptype_desc);
           return false;
         }
@@ -1872,7 +1886,7 @@ public:
    * Return true if tm is replaced with a SwigType rather than with C type text, see substituteResolvedType().
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable) {
+  bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, Node *file_line_node) {
     // The type of a pointer or reference to a function or an array, or to a pointer to one, cannot be followed by a '*' or a
     // name, so it is given as it is when not using C++, as any other type below, and in the header file for C++, using the C
     // names of the classes and enums in it. This is checked first, as the return type of a function pointer can be an enum.
@@ -1890,6 +1904,13 @@ public:
           // or in the type given by "$resolved_type" in the 'SWIGTYPE *const &' typemap.
           ctype = references_to_pointers(ctype);
           ctype = getCNamesType(ctype);
+        }
+        // The 'ctype' typemap of each base type in it is looked up for the fragments it uses, such as "stdbool_inc" for a bool
+        scoped_dohptr base_types = adopt(NewList());
+        append_base_types(ctype, base_types);
+        for (Iterator i = First(base_types); i.item; i = Next(i)) {
+          scoped_dohptr base_parm = adopt(NewParm(i.item, 0, file_line_node));
+          scoped_dohptr base_tm = adopt(Swig_typemap_lookup("ctype", base_parm, "", 0));
         }
         Clear(tm);
         Append(tm, ctype);
@@ -1943,6 +1964,7 @@ public:
    * Inputs:
    *   pt - parameter type
    *   tm - typemap contents that might contain the special variable to be replaced
+   *   file_line_node - node whose file and line are used for the typemaps looked up
    * Outputs:
    *   tm - typemap contents complete with the special variable substitution
    * Returns true if tm is replaced with a SwigType, which SwigType_str() outputs with the declarator inside it for a
@@ -1950,7 +1972,7 @@ public:
    * pointer or reference to a function or an array, or to a pointer to one, in the header file when wrapping C++.
    * ----------------------------------------------------------------------------- */
 
-  bool substituteResolvedType(SwigType *pt, String *tm) {
+  bool substituteResolvedType(SwigType *pt, String *tm, Node *file_line_node) {
     SwigType *type = SwigType_typedef_resolve_all(pt);
     // The qualifiers of the return type of a function pointer, or of the elements of an array, are part of its type,
     // but SwigType_strip_qualifiers() would remove them too, so only the top level qualifiers are removed from a
@@ -1964,7 +1986,7 @@ public:
 
     if (Strstr(tm, "$resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
-      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type"))
+      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$resolved_type", file_line_node))
         is_swigtype = true;
       Delete(classnametype);
     }
@@ -1972,7 +1994,7 @@ public:
       SwigType *classnametype = Copy(strippedtype);
       Delete(SwigType_pop(classnametype));
       if (Len(classnametype) > 0) {
-        if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type"))
+        if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$*resolved_type", file_line_node))
           is_swigtype = true;
       }
       Delete(classnametype);
@@ -1980,7 +2002,7 @@ public:
     if (Strstr(tm, "$&resolved_type")) {
       SwigType *classnametype = Copy(strippedtype);
       SwigType_add_pointer(classnametype);
-      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type"))
+      if (substituteResolvedTypeSpecialVariable(classnametype, tm, "$&resolved_type", file_line_node))
         is_swigtype = true;
       Delete(classnametype);
     }
@@ -2003,7 +2025,7 @@ public:
 
     // The typemap that $typemap() expands to is put into the text of another typemap, so it needs C type text
     SwigType *type = Getattr(parm, "type");
-    if (substituteResolvedType(type, tm)) {
+    if (substituteResolvedType(type, tm, parm)) {
       scoped_dohptr ctype = adopt(SwigType_str(tm, 0));
       Clear(tm);
       Append(tm, ctype);
@@ -2658,7 +2680,7 @@ public:
 
     if ((return_type = Swig_typemap_lookup("ctype", n, "", 0))) {
       // a SwigType from substituteResolvedType() already uses the C names of the classes and enums
-      if (!substituteResolvedType(type, return_type))
+      if (!substituteResolvedType(type, return_type, n))
         Replaceall(return_type, "::", "_");
     } else {
       Swig_warning(WARN_C_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s\n", SwigType_str(type, 0));
@@ -2737,7 +2759,7 @@ public:
       }
       if (tm) {  // set the appropriate type for parameter
         c_parm_type = Copy(tm);
-        bool const is_swigtype = substituteResolvedType(type, c_parm_type);
+        bool const is_swigtype = substituteResolvedType(type, c_parm_type, p);
 
         // We prefer to keep typedefs in the wrapper functions signatures as it makes them more readable, but we can't do it for nested typedefs as
         // they're not valid in C, so resolve them in this case. A SwigType from substituteResolvedType() is already resolved.

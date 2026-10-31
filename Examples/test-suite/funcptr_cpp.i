@@ -115,3 +115,14 @@ int callNotWrappedFn(int (*fn)(NotWrapped *), NotWrapped *p) { return fn(p); }
 %}
 
 %constant int (*NOT_WRAPPED_VALUE)(NotWrapped *) = notWrappedValue;
+
+%{
+bool notBool(bool b) { return !b; }
+%}
+
+%constant bool (*NOT_BOOL)(bool) = notBool;
+
+%inline %{
+// Function pointer using bool, which no other declaration here uses
+int callBoolFn(bool (*fn)(bool), int i) { return fn(i != 0) ? 1 : 0; }
+%}
