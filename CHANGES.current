@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix an R function passed for function pointer types that differ only in the
+            qualifiers of their return type, such as 'char *(*)(int)' and 'const char *(*)(int)'.
+            The value it returned was converted for whichever of the types was wrapped first. So a
+            'char *' it returned could point into the R string instead of being a copy. C code
+            changing that string then changed the R string. Each type now has its own conversion.
+
+2026-10-31: wsfulton
             [R] Fix a parameter whose type is a typedef of a function pointer not taking an R
             function. Passing one gave an error such as "SWIG:TypeError in method 'apply',
             argument 2 of type 'FnPtr'" for:

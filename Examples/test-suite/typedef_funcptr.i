@@ -53,6 +53,13 @@ const char *do_name_typedef(int i, FnPtr_name_td namer) {
 const char *(*get_name_op())(int) {
     return namef;
 }
+// Differs from FnPtr_name_td only in the const of the return type
+char *do_name_modify(int i, char *(*namer)(int)) {
+    char *name = (*namer)(i);
+    if (name)
+        name[0] = 'N';
+    return name;
+}
 
 struct OpHolder {
     static FnPtr_int_td static_fn;

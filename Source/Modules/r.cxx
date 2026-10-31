@@ -281,13 +281,7 @@ protected:
 
   String *processType(SwigType *t, Node *n, int *nargs = NULL);
   String *createFunctionPointerHandler(SwigType *t, Node *n, int *nargs);
-  int addFunctionPointerProxy(String *name, Node *n, SwigType *t, String *s_paramTypes) {
-    /*XXX Do we need to put the t in there to get the return type later. */
-    if (!functionPointerProxyTable)
-      functionPointerProxyTable = NewHash();
-
-    Setattr(functionPointerProxyTable, name, n);
-
+  int addFunctionPointerProxy(String *name, SwigType *t, String *s_paramTypes) {
     Setattr(SClassDefs, name, name);
     Printv(s_classes,
            "setClass('",
@@ -498,11 +492,34 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
  * ------------------------------------------------------------------------ */
 
 String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
-  String *funName = SwigType_manglestr(t);
+  /* The stubs are kept by R class name, which is the mangled name of the type, and then by the type with its typedefs
+     resolved. The mangled name drops the qualifiers of the return type, such as the const in 'const char *(*)(int)', but
+     the stub converts the value returned by the R function to the return type with its qualifiers. So a type that differs
+     from another only in these qualifiers gets a stub of its own, named after the R class with a number added. */
+  String *className = SwigType_manglestr(t);
+  SwigType *resolved = SwigType_typedef_resolve_all(t);
+  SwigType *stubType = SwigType_typedef_qualified(resolved);
+  Delete(resolved);
+  if (!functionPointerProxyTable)
+    functionPointerProxyTable = NewHash();
+  Hash *stubs = Getattr(functionPointerProxyTable, className);
+  if (!stubs) {
+    stubs = NewHash();
+    Setattr(functionPointerProxyTable, className, stubs);
+    Delete(stubs);
+  }
 
   /* See if we have already processed this one. */
-  if (functionPointerProxyTable && Getattr(functionPointerProxyTable, funName))
-    return funName;
+  String *funName = Getattr(stubs, stubType);
+  if (funName) {
+    Delete(stubType);
+    Delete(className);
+    return Copy(funName);
+  }
+  int stubCount = Len(stubs);
+  funName = stubCount == 0 ? Copy(className) : NewStringf("%s__SWIG_%d", className, stubCount);
+  Setattr(stubs, stubType, funName);
+  Delete(stubType);
 
   if (debugMode)
     Printf(stdout, "<createFunctionPointerHandler> Defining %s\n", t);
@@ -635,7 +652,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
          "if(r_swig_cb_data->errorOccurred) {\n",
          "R_SWIG_popCallbackFunctionData(1);\n",
          "Rf_error(\"error in calling R function as a function pointer (",
-         funName,
+         className,
          ")\");\n",
          "}\n",
          NIL);
@@ -687,7 +704,9 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   Wrapper_print(f, f_wrapper);
 
-  addFunctionPointerProxy(funName, n, t, s_paramTypes);
+  if (!Getattr(SClassDefs, className))
+    addFunctionPointerProxy(className, t, s_paramTypes);
+  Delete(className);
   Delete(s_paramTypes);
   Delete(rtype);
   Delete(rettype);

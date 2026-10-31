@@ -19,3 +19,8 @@ unittest(do_op_typedef_int(10, 3, function(x, y) as.integer(x - y)), 7)
 unittest(do_op_typedef_Integer(10, 3, function(x, y) as.integer(x + y)), 13)
 unittest(do_name(1, function(i) "one"), "one")
 unittest(do_name_typedef(1, function(i) "one"), "one")
+
+# A 'char *' returned by an R function is a copy that can be modified
+name <- paste0("abc", "def")
+unittest(do_name_modify(1, function(i) name), "Nbcdef")
+unittest(name, "abcdef")
