@@ -37,6 +37,11 @@ let _ =
   assert (_declaration '() as string = "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
   ignore (_globalfuncptrvar '(funcptr));
   assert (_declaration '() as string = "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
+  let holder = new_UnnamedEnumHolder '() in
+  let e = holder -> "[unnamedenumvar]" () in
+  assert (_declaration '() as string = "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar");
+  ignore (holder -> "[unnamedenumvar]" (e));
+  assert (_declaration '() as string = "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar");
   ignore (a -> "~" ());
   assert (_declaration '() as string = "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
   let abc = new_TemplateABC '() in

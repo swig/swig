@@ -51,6 +51,14 @@ public class special_variables_runme {
     verify(special_variables.getDeclaration(), "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
     special_variables.getGlobalfuncptrvar();
     verify(special_variables.getDeclaration(), "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
+    // The first use of UnnamedEnumItem calls its wrapper
+    if (special_variables.UnnamedEnumItem != 0) throw new RuntimeException("UnnamedEnumItem");
+    verify(special_variables.getDeclaration(), "enum SpaceNamespace::UnnamedEnumItem SpaceNamespace::UnnamedEnumItem");
+    UnnamedEnumHolder holder = new UnnamedEnumHolder();
+    holder.setUnnamedenumvar(UnnamedEnumHolder.UnnamedMemberEnumItem);
+    verify(special_variables.getDeclaration(), "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar");
+    holder.getUnnamedenumvar();
+    verify(special_variables.getDeclaration(), "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar");
     a.delete();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
     TemplateABC abc = new TemplateABC();

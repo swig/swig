@@ -111,6 +111,8 @@ std::string declaration;
 %allowexception SpaceNamespace::ABC::funcptrvar;
 %allowexception SpaceNamespace::ABC::stringvar;
 %allowexception SpaceNamespace::globalfuncptrvar;
+%allowexception SpaceNamespace::UnnamedEnumHolder::unnamedenumvar;
+%allowexception SpaceNamespace::UnnamedEnumItem;
 
 %inline %{
 namespace SpaceNamespace {
@@ -131,6 +133,11 @@ namespace SpaceNamespace {
   };
   void globtemplate(Template<ABC> t) {}
   int (*globalfuncptrvar)(int) = 0;
+  struct UnnamedEnumHolder {
+    UnnamedEnumHolder() : unnamedenumvar(UnnamedMemberEnumItem) {}
+    enum { UnnamedMemberEnumItem } unnamedenumvar;
+  };
+  enum { UnnamedEnumItem };
 }
 %}
 

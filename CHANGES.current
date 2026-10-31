@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix '$fulldecl' for an unnamed enum. It gave the name that SWIG makes up for the enum in
+            the declaration of a variable of the enum and two spaces after 'enum' in the
+            declaration of an enumerator. For example, for:
+
+              enum { EA, EB } unnamedenumvar;
+
+            it gave 'enum $unnamed1$ unnamedenumvar' and 'enum  EA' and now gives
+            'enum unnamedenumvar' and 'enum EA'.
+
+2026-10-31: wsfulton
             Fix the wrapper of a member function with both a cv-qualifier and a ref-qualifier, which
             called it on a non-const object, so it called an overload without the cv-qualifier
             instead, if there was one. For example, with:

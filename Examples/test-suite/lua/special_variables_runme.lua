@@ -32,6 +32,11 @@ v.globalfuncptrvar = nil
 assert(v.declaration == "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar")
 f = v.globalfuncptrvar
 assert(v.declaration == "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar")
+local holder = v.UnnamedEnumHolder()
+holder.unnamedenumvar = v.UnnamedEnumHolder.UnnamedMemberEnumItem
+assert(v.declaration == "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar")
+local e = holder.unnamedenumvar
+assert(v.declaration == "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar")
 a = nil
 collectgarbage()
 -- TODO no %exception on delete

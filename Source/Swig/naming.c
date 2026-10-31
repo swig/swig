@@ -1933,6 +1933,24 @@ String *Swig_name_decl(Node *n) {
   return decl;
 }
 
+/* A copy of type, the type of n, for Swig_name_fulldecl(), with an unnamed enum as just 'enum'.  An unnamed enum is otherwise
+ * 'enum ' in the type of its enumerators and has the name made up for it, such as 'enum $unnamed1$', in the type of its variables. */
+static SwigType *fulldecl_type(Node *n, SwigType *type) {
+  String *unnamed = Getattr(n, "unnamed");
+  String *unnamed_enum = NewStringf("enum %s", unnamed ? unnamed : "");
+  SwigType *base = SwigType_base(type);
+  SwigType *result;
+  if (Equal(base, unnamed_enum)) {
+    result = SwigType_prefix(type);
+    Append(result, "enum");
+  } else {
+    result = Copy(type);
+  }
+  Delete(base);
+  Delete(unnamed_enum);
+  return result;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_name_fulldecl()
  *
@@ -1949,6 +1967,7 @@ String *Swig_name_decl(Node *n) {
  *   "int *MyNameSpace::ABC::constmethod(int) const"
  *   "int (*MyNameSpace::ABC::funcptrmethod(int))(int,int)"
  *   "int (*MyNameSpace::ABC::funcptrvariable)(int)"
+ *   "enum MyNameSpace::ABC::unnamedenumvariable"
  *
  * ----------------------------------------------------------------------------- */
 
@@ -1962,7 +1981,9 @@ String *Swig_name_fulldecl(Node *n) {
   if ((nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) || GetFlag(n, "conversion_operator")) {
     fulldecl = decl;
   } else {
-    fulldecl = SwigType_str(type, decl);
+    SwigType *decl_type = fulldecl_type(n, type);
+    fulldecl = SwigType_str(decl_type, decl);
+    Delete(decl_type);
     Delete(decl);
   }
   return fulldecl;
