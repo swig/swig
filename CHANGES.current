@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] The C function names of some overloads change, as the mangled types of their
+            parameters, which are appended to the names, no longer drop the closing parenthesis
+            from an array size, such as for the parameter of:
+
+              void f(char text[sizeof("abc")]);
+
+            which was mangled as 'asizeof_Sp__S22_abc_S22_c' and is now
+            'asizeof_Sp__S22_abc_S22__SP_c'. The mangled types of a reference to a function, a
+            pointer to a pointer to a function and a pointer to a member of a class template
+            instance change too, such as 'int (&)(int)', which was 'rf_Sp_inti' and is now
+            'rf_ii'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [C] Fix the generated code not compiling for the overloads of a member function that
             differ only in their qualifiers, unless one is just the const overload of the other.
             For example:

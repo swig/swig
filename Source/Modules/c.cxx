@@ -2319,54 +2319,81 @@ public:
 
   /* ----------------------------------------------------------------------
    * get_mangled_type()
+   *
+   * Returns the mangled type of a parameter of an overloaded function, which is appended to the C name of the function
+   * to distinguish it from its other overloads. A pointer, or a pointer to member, to a function is mangled as 'f'.
+   * Otherwise each element of the type before its base type is mangled as:
+   *   'p' for a pointer
+   *   'r' for a reference
+   *   'z' for an rvalue reference
+   *   'c' for 'const' and 'v' for 'volatile'
+   *   'a' followed by the size for an array
+   *   'm' followed by the mangled class for a pointer to member
+   *   'f' followed by the mangled type of each parameter, each one after '_', for a function
+   *   'v' for a variadic type
+   * The base type is mangled as its first letter for a builtin type, 'e' followed by its name for an enum or its
+   * mangled name otherwise.
    * ---------------------------------------------------------------------- */
 
   String *get_mangled_type(SwigType *type_arg) {
-    String *result = NewString("");
-    SwigType *type = 0;
-    SwigType *tdtype = SwigType_typedef_resolve_all(type_arg);
-    if (tdtype)
-      type = tdtype;
-    else
-      type = Copy(type_arg);
+    scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type_arg));
 
-    // special cases for ptr to function as an argument
-    if (SwigType_ismemberpointer(type)) {
-      SwigType_del_memberpointer(type);
-      SwigType_add_pointer(type);
+    // A pointer, or a pointer to member, to a function is mangled as 'f', without its parameter and return types. Any
+    // other pointer is mangled from type_arg, without resolving its typedefs, unlike any other type.
+    SwigType *type = resolved_type;
+    if (SwigType_ispointer(resolved_type) || SwigType_ismemberpointer(resolved_type)) {
+      scoped_dohptr pointee = adopt(Copy(resolved_type));
+      Delete(SwigType_pop(pointee));
+      if (SwigType_isfunction(pointee))
+        return NewString("f");
+      type = type_arg;
     }
-    if (SwigType_ispointer(type)) {
-      SwigType_del_pointer(type);
-      if (SwigType_isfunction(type)) {
-        Printf(result, "f");
-        Delete(type);
-        return result;
+
+    scoped_dohptr prefix = adopt(NewStringEmpty());
+    scoped_dohptr type_prefix = adopt(SwigType_prefix(type));
+    scoped_dohptr elements = adopt(SwigType_split(type_prefix));
+    for (Iterator i = First(elements); i.item; i = Next(i)) {
+      SwigType *const element = i.item;
+      if (SwigType_ispointer(element)) {
+        Append(prefix, "p");
+      } else if (SwigType_isreference(element)) {
+        Append(prefix, "r");
+      } else if (SwigType_isrvalue_reference(element)) {
+        Append(prefix, "z");
+      } else if (SwigType_isqualifier(element)) {
+        if (SwigType_isconst(element))
+          Append(prefix, "c");
+        if (is_volatile_qualifier(element))
+          Append(prefix, "v");
+      } else if (SwigType_isarray(element)) {
+        scoped_dohptr size = adopt(SwigType_array_getdim(element, 0));
+        Printv(prefix, "a", size.get(), NIL);
+      } else if (SwigType_ismemberpointer(element)) {
+        scoped_dohptr class_name = adopt(SwigType_parm(element));
+        scoped_dohptr mangled_class_name = adopt(Swig_name_mangle_type(class_name));
+        Printv(prefix, "m", mangled_class_name.get(), NIL);
+      } else if (SwigType_isfunction(element)) {
+        Append(prefix, "f");
+        scoped_dohptr parm_types = adopt(SwigType_parmlist(element));
+        for (Iterator j = First(parm_types); j.item; j = Next(j)) {
+          scoped_dohptr mangled_parm_type = adopt(get_mangled_type(j.item));
+          Printv(prefix, "_", mangled_parm_type.get(), NIL);
+        }
+      } else if (SwigType_isvariadic(element)) {
+        Append(prefix, "v");
+      } else {
+        Append(prefix, element);
       }
-      Delete(type);
-      type = Copy(type_arg);
     }
 
-    SwigType *prefix = SwigType_prefix(type);
-    if (Len(prefix)) {
-      Replaceall(prefix, ".", "");
-      Replaceall(prefix, "const", "c");
-      Replaceall(prefix, "volatile", "v");
-      Replaceall(prefix, "a(", "a");
-      Replaceall(prefix, "m(", "m");
-      Replaceall(prefix, "q(", "");
-      Replaceall(prefix, ")", "");
-      Replaceall(prefix, " ", "");
-      // an array size can be an expression, such as 'N+1' or 'sizeof("abc")', so mangle what is left of it
-      String *mangled_prefix = Swig_name_mangle_string(prefix);
-      Printf(result, "%s", mangled_prefix);
-      Delete(mangled_prefix);
-    }
+    // An array size can be an expression, such as 'N+1' or 'sizeof("abc")', so mangle it.
+    String *result = Swig_name_mangle_string(prefix);
 
-    type = SwigType_base(type);
-    if (SwigType_isbuiltin(type)) {
-      Printf(result, "%c", *Char(SwigType_base(type)));
-    } else if (SwigType_isenum(type)) {
-      String *enumname = Swig_scopename_last(type);
+    scoped_dohptr base = adopt(SwigType_base(type));
+    if (SwigType_isbuiltin(base)) {
+      Printf(result, "%c", *Char(base));
+    } else if (SwigType_isenum(base)) {
+      scoped_dohptr enumname = adopt(Swig_scopename_last(base));
       const char *s = Char(enumname);
       static const size_t len_enum_prefix = strlen("enum ");
       if (strncmp(s, "enum ", len_enum_prefix) == 0)
@@ -2375,11 +2402,9 @@ public:
     } else {
       // Use Swig_name_mangle_type() here and not Swig_name_mangle_string() to get slightly simpler mangled name for templates (notably avoiding "_Sp_" and
       // "_SP_" fragments for the parentheses used by SWIG internally around template parameters).
-      Printf(result, "%s", Char(Swig_name_mangle_type(SwigType_base(type))));
+      scoped_dohptr mangled_base = adopt(Swig_name_mangle_type(base));
+      Append(result, mangled_base);
     }
-
-    Delete(prefix);
-    Delete(type);
 
     return result;
   }
@@ -2496,16 +2521,10 @@ public:
   }
 
   void functionWrapperAppendOverloaded(String *name, Parm *first_param) {
-    String *over_suffix = NewString("");
-    Parm *p;
-    String *mangled;
-
-    for (p = first_param; p; p = nextSibling(p)) {
-      mangled = get_mangled_type(Getattr(p, "type"));
-      Printv(over_suffix, "_", mangled, NIL);
+    for (Parm *p = first_param; p; p = nextSibling(p)) {
+      scoped_dohptr mangled = adopt(get_mangled_type(Getattr(p, "type")));
+      Printv(name, "_", mangled.get(), NIL);
     }
-    Append(name, over_suffix);
-    Delete(over_suffix);
   }
 
   /* ----------------------------------------------------------------------
