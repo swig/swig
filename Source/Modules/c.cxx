@@ -1962,14 +1962,29 @@ public:
         typestr = NewString("SwigObj");
       } else {
         typestr = getClassProxyName(btype);
-        if (!typestr) {
-          if (SwigType_isbuiltin(btype)) {
-            // This should work just as well in C without any changes.
-            typestr = SwigType_str(classnametype, 0);
-          } else {
-            // Swig doesn't know anything about this type, use descriptor for it.
-            typestr = getOpaqueTypeName(classnametype);
+        if (typestr) {
+          // The typemap adds a '*' to the class name, as in "$resolved_type*", so a pointer to a pointer to a class
+          // keeps its other pointers, as in 'cvoid_S **' for 'S **'. With "$*resolved_type", this '*' is the reference
+          // removed from the type instead, as in 'cvoid_S **' for 'S *&'.
+          scoped_dohptr ptr_type = adopt(Copy(classnametype));
+          if (Strcmp(classnamespecialvariable, "$*resolved_type") != 0 && SwigType_ispointer(ptr_type))
+            SwigType_del_pointer(ptr_type);
+          scoped_dohptr c_type = adopt(NewStringEmpty());
+          while (SwigType_ispointer(ptr_type)) {
+            SwigType_del_pointer(ptr_type);
+            SwigType_add_pointer(c_type);
           }
+          if (Len(c_type) && Equal(ptr_type, btype)) {
+            Append(c_type, typestr);
+            Delete(typestr);
+            typestr = SwigType_str(c_type, 0);
+          }
+        } else if (SwigType_isbuiltin(btype)) {
+          // This should work just as well in C without any changes.
+          typestr = SwigType_str(classnametype, 0);
+        } else {
+          // Swig doesn't know anything about this type, use descriptor for it.
+          typestr = getOpaqueTypeName(classnametype);
         }
       }
 

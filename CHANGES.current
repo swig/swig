@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the C declarations in the .h file when wrapping C++ code losing a pointer of a
+            pointer to a pointer to a class or of a reference to a pointer to a class, such as:
+
+              struct Struct { int value; };
+              Struct **make_ptr_ptr();
+              int pointer_reference_value(Struct *&s);
+
+            These were declared with 'mod_Struct*' with -namespace mod, but the wrappers return
+            and take a pointer to the pointer. They are now declared with 'mod_Struct **'. The same
+            is fixed for a const volatile reference to a pointer, as in 'Struct *const volatile &'.
+
+2026-10-31: wsfulton
             [C] Fix the .h file declaration of a global variable or struct member of a function
             pointer type using an enum that SWIG does not know, as it is only declared in a %{ %}
             block, such as:
