@@ -310,8 +310,6 @@ protected:
 
   void addAccessor(String *memberName, Wrapper *f, String *name, String *methodSetGet);
 
-  static int getFunctionPointerNumArgs(Node *n, SwigType *tt);
-
   // filtering of class member lists by function type. Used in constructing accessors
   // are we allowed to use stl style functors to customise this?
   List *filterMemberList(List *class_member_function_types, List *class_member_other, String *R_MEMBER, bool equal);
@@ -444,18 +442,6 @@ R::R() :
 
 bool R::debugMode = false;
 
-int R::getFunctionPointerNumArgs(Node *n, SwigType *tt) {
-  (void)tt;
-  n = Getattr(n, "type");
-  if (debugMode)
-    Printf(stdout, "type: %s\n", n);
-
-  ParmList *parms = Getattr(n, "parms");
-  if (debugMode)
-    Printf(stdout, "parms = %p\n", parms);
-  return ParmList_len(parms);
-}
-
 void R::addSMethodInfo(String *name, String *argType, int nargs) {
   (void)argType;
 
@@ -492,6 +478,17 @@ void R::addSMethodInfo(String *name, String *argType, int nargs) {
  * ------------------------------------------------------------------------ */
 
 String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash *usedStubs) {
+  SwigType *rettype = Copy(t);
+  SwigType *funcparams = SwigType_functionpointer_decompose(rettype);
+  ParmList *parms = SwigType_function_parms(funcparams, n);
+  int nargs = ParmList_len(parms);
+  /* The R code checks the R function passed can take this many arguments, so it is given for a stub that exists already too */
+  if (numArgs) {
+    *numArgs = nargs;
+    if (debugMode)
+      Printf(stdout, "Setting number of parameters to %d\n", *numArgs);
+  }
+
   /* The stubs are kept by R class name, which is the mangled name of the type, and then by the type with its typedefs
      resolved. The mangled name drops the qualifiers of the return type, such as the const in 'const char *(*)(int)', but
      the stub converts the value returned by the R function to the return type with its qualifiers. So a type that differs
@@ -523,6 +520,9 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
       if (usedStubs)
         Setattr(usedStubs, it.item, it.item);
       Delete(className);
+      Delete(parms);
+      Delete(funcparams);
+      Delete(rettype);
       return Copy(it.item);
     }
   }
@@ -538,13 +538,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   if (debugMode)
     Printf(stdout, "<createFunctionPointerHandler> Defining %s\n", t);
 
-  SwigType *rettype = Copy(t);
-  SwigType *funcparams = SwigType_functionpointer_decompose(rettype);
   String *rtype = SwigType_str(rettype, 0);
-
-  // ParmList *parms = Getattr(n, "parms");
-  // memory leak
-  ParmList *parms = SwigType_function_parms(funcparams, n);
 
   if (debugMode) {
     Printf(stdout, "Type: %s\n", t);
@@ -590,12 +584,6 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   bool r_tmp_needed = false;
 
   p = parms;
-  int nargs = ParmList_len(parms);
-  if (numArgs) {
-    *numArgs = nargs;
-    if (debugMode)
-      Printf(stdout, "Setting number of parameters to %d\n", *numArgs);
-  }
   String *setExprElements = NewString("");
 
   String *s_paramTypes = NewString("");
@@ -745,6 +733,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs, Hash
   Delete(className);
   Delete(s_paramTypes);
   Delete(rtype);
+  Delete(parms);
   Delete(rettype);
   Delete(funcparams);
   DelWrapper(f);
@@ -1860,10 +1849,6 @@ int R::functionWrapper(Node *n) {
       replaceRClass(tm, Getattr(p, "type"));
 
       if (funcptr_name) {
-        // XXX need to get this to return non-zero
-        if (nargs == -1)
-          nargs = getFunctionPointerNumArgs(p, tt);
-
         String *snargs = NewStringf("%d", nargs);
         Printv(sfun->code,
                "if(is.function(",

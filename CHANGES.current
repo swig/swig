@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix the check that an R function passed for a function pointer can take its
+            arguments accepting any R function when the function pointer type had been used
+            before, such as in a typedef. The R function then failed when it was called with
+            "error in calling R function as a function pointer". Now it is rejected before the
+            wrapped function is called.
+
+2026-10-31: wsfulton
             [R] Fix an R function passed for a function pointer returning a value that cannot be
             converted to the return type, such as two integers for an int. In C++ R was terminated
             by an uncaught C++ exception. In C the C code was given an unconverted value and R

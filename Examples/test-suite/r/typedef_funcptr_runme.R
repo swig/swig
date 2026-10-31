@@ -22,6 +22,10 @@ unittest(do_op_typedef_Integer(10, 3, function(x, y) as.integer(x + y)), 13)
 unittest(do_name(1, function(i) "one"), "one")
 unittest(do_name_typedef(1, function(i) "one"), "one")
 
+# An R function taking too few arguments fails the check in the R code, whose error message is empty
+unittest(error_message(function() do_name(1, function() "one")), "")
+unittest(error_message(function() do_op_typedef_int(10, 3, function(x) x)), "")
+
 # An R function called twice and R functions for two parameters of the same type
 unittest(do_op_twice(10, 3, function(x, y) as.integer(x - y)), 4)
 unittest(do_two_ops(10, 3, function(x, y) as.integer(x + y), function(x, y) as.integer(x - y)), 137)
