@@ -68,6 +68,21 @@ int callptrref1(int (*&d)(const int &, int), int a, int b) { return d(a, b); }
 int callptrref2(int (* const &d)(const int &, int), int a, int b) { return d(a, b); }
 int callptrref3(int * (*&d)(const int &, int), int a, int b) { return *d(a, b); }
 int (*&getAddByValuePtrRef())(const int &, int) { static int (*ptr)(const int &, int) = addByValue; return ptr; }
+
+// Function pointers with a typedef parameter returning an enum in a namespace or a pointer to a class
+namespace FuncPtrScope {
+  enum Colour { Red, Green };
+}
+typedef int ColourIndex;
+FuncPtrScope::Colour colourOf(int i) { return i ? FuncPtrScope::Green : FuncPtrScope::Red; }
+FuncPtrScope::Colour (*getColourFn())(int) { return colourOf; }
+FuncPtrScope::Colour callColourFn(FuncPtrScope::Colour (*fn)(ColourIndex), ColourIndex i) { return fn(i); }
+struct ColourHolder {
+  int index;
+};
+ColourHolder *holderOf(int i) { static ColourHolder holder; holder.index = i; return &holder; }
+ColourHolder *(*getHolderFn())(int) { return holderOf; }
+int callHolderFn(ColourHolder *(*fn)(ColourIndex), ColourIndex i) { return fn(i)->index; }
 %}
 
 %{

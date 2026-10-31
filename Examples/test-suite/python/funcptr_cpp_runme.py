@@ -38,3 +38,6 @@ swig_check(callptrref2(ADD_BY_VALUE, 10, 11), 21)
 
 swig_check(arrayRefSum(getArrayRef1()), 100)
 swig_check(arrayRefSum(getArrayRef2()), 100)
+
+swig_check(callColourFn(getColourFn(), 1), Green)
+swig_check(callHolderFn(getHolderFn(), 2), 2)

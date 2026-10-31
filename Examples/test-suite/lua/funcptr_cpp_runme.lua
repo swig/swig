@@ -17,3 +17,6 @@ assert(fc.callref2(fc.ADD_BY_VALUE, 2, 3) == 5)
 assert(fc.callref1(fc.getAddByValueRef1(), 3, 4) == 7)
 assert(fc.callref2(fc.getAddByValueRef2(), 4, 5) == 9)
 assert(fc.AddByValueRefHolder(fc.ADD_BY_VALUE):call(5, 6) == 11)
+
+assert(fc.callColourFn(fc.getColourFn(), 1) == fc.Green)
+assert(fc.callHolderFn(fc.getHolderFn(), 2) == 2)

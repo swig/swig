@@ -64,3 +64,10 @@ if (funcptr_cpp.callptrref1(funcptr_cpp.getAddByValuePtrRef(), 9, 10) != 19) {
 if (funcptr_cpp.callptrref2(funcptr_cpp.ADD_BY_VALUE, 10, 11) != 21) {
     throw new Error;
 }
+
+if (funcptr_cpp.callColourFn(funcptr_cpp.getColourFn(), 1) != funcptr_cpp.Green) {
+    throw new Error;
+}
+if (funcptr_cpp.callHolderFn(funcptr_cpp.getHolderFn(), 2) != 2) {
+    throw new Error;
+}

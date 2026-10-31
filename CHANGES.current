@@ -8,6 +8,26 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix the typedefs in the parameters of a function pointer not being resolved when it
+            returns a class or an enum in a namespace, such as after:
+
+              namespace ns {
+                enum Colour { Red, Green };
+              }
+              typedef int Index;
+              ns::Colour (*get_colour_fn())(int);
+              ns::Colour call_colour_fn(ns::Colour (*fn)(Index), Index i);
+
+            The function pointer returned by get_colour_fn could not be passed to call_colour_fn,
+            giving a TypeError in Python for example, as 'ns::Colour (*)(Index)' was not known to
+            be the same type as 'ns::Colour (*)(int)', and a typemap for the resolved type did not
+            match. The C#, D and Java classes for such function pointer types are now named after
+            the resolved type, such as SWIGTYPE_p_f_int__ns__Colour instead of
+            SWIGTYPE_p_f_Index__ns__Colour.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             [OCaml] Fix member function pointers, which were cut short to the size of a pointer when
             passed between C++ and OCaml. A member function pointer is twice that size with GCC and
             Clang, so calling a member function through one could crash. A member pointer is now a

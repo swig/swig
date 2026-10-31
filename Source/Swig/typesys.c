@@ -664,6 +664,29 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
 }
 
 /* -----------------------------------------------------------------------------
+ * typedef_resolve_prefix()
+ *
+ * For SwigType_typedef_resolve() of a type t whose base is not a typedef, such as a class, or a name in a scope that
+ * cannot be found, as in 'enum ns::Color'. A typedef can still be resolved in the prefix of t, in the parameters of a
+ * function or in the class of a member pointer, as in 'p.f(Integer).' for 'p.f(Integer).Foo'. Returns the prefix with
+ * the typedef resolved followed by base, or NULL if there is no typedef in the prefix.
+ * ----------------------------------------------------------------------------- */
+
+static SwigType *typedef_resolve_prefix(const SwigType *t, const String *base) {
+  SwigType *r = 0;
+  String *prefix = SwigType_prefix(t);
+  char *cr = Char(prefix);
+  if (strstr(cr, "f(") || strstr(cr, "m(")) {
+    r = SwigType_typedef_resolve(prefix);
+    if (r) {
+      Append(r, base);
+    }
+  }
+  Delete(prefix);
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_typedef_resolve()
  *
  * Given a type declaration, this function looks to reduce/resolve the type via a
@@ -755,10 +778,10 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 
             /* Couldn't locate a scope for the type.  */
             if (!s) {
+              r = typedef_resolve_prefix(t, base);
               Delete(base);
               Delete(namebase);
               Delete(nameprefix);
-              r = 0;
               goto return_result;
             }
             /* Try to locate the name starting in the scope */
@@ -823,13 +846,14 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
       Delete(tprefix);
     }
 
+    /* A name that maps to itself, as the name of a class does, is not a typedef */
     if (type && (Equal(base, type))) {
       if (newtype)
         Delete(type);
+      r = typedef_resolve_prefix(t, base);
       Delete(base);
       Delete(namebase);
       Delete(nameprefix);
-      r = 0;
       goto return_result;
     }
 
@@ -889,26 +913,12 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
       type = 0;
     }
   }
-  r = SwigType_prefix(t);
   if (!type) {
-    if (r && Len(r)) {
-      char *cr = Char(r);
-      if ((strstr(cr, "f(") || (strstr(cr, "m(")))) {
-        SwigType *rt = SwigType_typedef_resolve(r);
-        if (rt) {
-          Delete(r);
-          Append(rt, base);
-          Delete(base);
-          r = rt;
-          goto return_result;
-        }
-      }
-    }
-    Delete(r);
+    r = typedef_resolve_prefix(t, base);
     Delete(base);
-    r = 0;
     goto return_result;
   }
+  r = SwigType_prefix(t);
   Delete(base);
 
   /* If 'type' is an array, then the right-most qualifier in 'r' should
