@@ -3,10 +3,10 @@
 require "tests.php";
 
 // Check functions.
-check::functions(array('do_op','do_op_td','areapt','perimeterpt','perimeterpt_td','call1'));
+check::functions(array('do_op','do_op_td','areapt','perimeterpt','perimeterpt_td','call1','getAddPtDeclaration'));
 
 // Check classes.
-check::classes(array('member_pointer_const','Circle','Funktions','MemberPointerGetter','Shape','Square'));
+check::classes(array('member_pointer_const','Adder','Circle','Funktions','MemberPointerGetter','Shape','Square'));
 
 // Check global variables.
 check::globals(array('areavar','perimetervar','perimetervar_td'));
@@ -56,6 +56,11 @@ check::equal(40.0, member_pointer_const::do_op_td($s, $perim_pt), "Square perim"
 $getter = new MemberPointerGetter();
 check::equal(100.0, member_pointer_const::do_op($s, $getter->getAreaPt()), "Square area");
 check::equal(100.0, member_pointer_const::do_op($s, $getter->getConstAreaPt()), "Square area");
+
+# Member pointers to a namespaced class
+$adder = new Adder();
+check::equal(11, $adder->callAddPt($adder->getAddPt(), 10), "Add by member pointer");
+check::equal("int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const", getAddPtDeclaration(), "Declaration");
 
 /*
 check::equal(3, member_pointer_const::call1(member_pointer_const::ADD_BY_VALUE, 1, 2), "Add by value");

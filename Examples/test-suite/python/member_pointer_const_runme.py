@@ -51,6 +51,12 @@ getter = MemberPointerGetter()
 check("Square area ", 100.0, do_op(s, getter.getAreaPt()))
 check("Square area ", 100.0, do_op(s, getter.getConstAreaPt()))
 
+# Member pointers to a namespaced class
+adder = Adder()
+check("Add by member pointer", 11, adder.callAddPt(adder.getAddPt(), 10))
+if getAddPtDeclaration() != "int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const":
+    raise RuntimeError("Incorrect declaration: " + getAddPtDeclaration())
+
 check("Add by value", 3, call1(ADD_BY_VALUE, 1, 2))
 #check("Add by pointer", 7, call2(ADD_BY_POINTER, 3, 4))
 #check("Add by reference", 11, call3(ADD_BY_REFERENCE, 5, 6))

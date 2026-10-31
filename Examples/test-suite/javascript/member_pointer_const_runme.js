@@ -50,6 +50,12 @@ getter = new member_pointer_const.MemberPointerGetter();
 check("Square area ", 100.0, member_pointer_const.do_op(s, getter.getAreaPt()));
 check("Square area ", 100.0, member_pointer_const.do_op(s, getter.getConstAreaPt()));
 
+// Member pointers to a namespaced class
+adder = new member_pointer_const.Adder();
+check("Add by member pointer", 11, adder.callAddPt(adder.getAddPt(), 10));
+if (member_pointer_const.getAddPtDeclaration() != "int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const")
+  throw new Error("Incorrect declaration: " + member_pointer_const.getAddPtDeclaration());
+
 check("Add by value", 3, member_pointer_const.call1(member_pointer_const.ADD_BY_VALUE, 1, 2));
 // TODO: For some reason, these are commented out in the shared interface file?
 //check("Add by pointer", 7, member_pointer_const.call2(member_pointer_const.ADD_BY_POINTER, 3, 4));

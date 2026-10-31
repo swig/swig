@@ -56,6 +56,12 @@ public class member_pointer_const_runme {
     MemberPointerGetter getter = new MemberPointerGetter();
     check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getAreaPt()) );
     check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getConstAreaPt()) );
+
+    // Member pointers to a namespaced class
+    Adder adder = new Adder();
+    check( "Add by member pointer", 11, adder.callAddPt(adder.getAddPt(), 10) );
+    if (!member_pointer_const.getAddPtDeclaration().equals("int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const"))
+      throw new RuntimeException("Incorrect declaration: " + member_pointer_const.getAddPtDeclaration());
   }
 
   private static void check(String what, double expected, double actual) {

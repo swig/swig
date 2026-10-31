@@ -41,4 +41,9 @@ local getter = v.MemberPointerGetter()
 check("Square area ", 100, v.do_op(s, getter:getAreaPt()))
 check("Square area ", 100, v.do_op(s, getter:getConstAreaPt()))
 
+-- Member pointers to a namespaced class
+local adder = v.Adder()
+check("Add by member pointer", 11, adder:callAddPt(adder:getAddPt(), 10))
+assert(v.getAddPtDeclaration() == "int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const")
+
 check("Add by value", 3, v.call1(v.ADD_BY_VALUE, 1, 2))

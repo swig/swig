@@ -1298,6 +1298,12 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
       Printf(result, "a(%s).", ndim);
       Delete(dim);
       Delete(ndim);
+    } else if (SwigType_ismemberpointer(e)) {
+      String *mclass = SwigType_parm(e);
+      String *qmclass = SwigType_typedef_qualified(mclass);
+      Printf(result, "m(%s).", qmclass);
+      Delete(qmclass);
+      Delete(mclass);
     } else {
       Append(result, e);
     }

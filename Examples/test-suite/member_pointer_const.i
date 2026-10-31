@@ -156,3 +156,26 @@ struct MemberPointerGetter {
   int * (Funktions::*getAddByPointer() const)(const int &, int) const { return &Funktions::addByPointer; }
 };
 %}
+
+%{
+namespace MemberPointerSpace {
+const char *addPtDeclaration = "";
+}
+%}
+
+%exception MemberPointerSpace::Adder::getAddPt %{
+  $action
+  MemberPointerSpace::addPtDeclaration = "$fulldecl";
+%}
+
+%inline %{
+/* Member pointers to a namespaced class written unqualified in the class */
+namespace MemberPointerSpace {
+struct Adder {
+  int add(int i) const { return i + 1; }
+  int (Adder::*getAddPt())(int) const { return &Adder::add; }
+  int callAddPt(int (Adder::*m)(int) const, int i) const { return (this->*m)(i); }
+};
+const char *getAddPtDeclaration() { return addPtDeclaration; }
+}
+%}

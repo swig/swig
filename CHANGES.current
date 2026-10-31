@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            Fix the wrappers not compiling for a pointer to a member of a class in a namespace
+            when the class is written without the namespace, as in the return type of memfuncptr in:
+
+              namespace N {
+                struct ABC {
+                  int (ABC::*memfuncptr())(int) const;
+                };
+              }
+
+            The wrappers used the type 'int (ABC::*)(int) const' and $fulldecl was
+            'int (ABC::*N::ABC::memfuncptr())(int) const'. The class is now qualified, as in
+            'int (N::ABC::*)(int) const'. This also changes the mangled name of such a type, so the
+            type wrapper class of a member pointer to a class in a namespace is renamed, such as
+            SWIGTYPE_m_N__ABC__int instead of SWIGTYPE_m_ABC__int for 'int N::ABC::*'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
             Fix '$fulldecl' for an unnamed enum. It gave the name that SWIG makes up for the enum in
             the declaration of a variable of the enum and two spaces after 'enum' in the
             declaration of an enumerator. For example, for:
