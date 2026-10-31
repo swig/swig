@@ -658,6 +658,17 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
          NIL);
 
   if (!isVoidType) {
+    /* The converted return value can point into the R object returned by the R function, such as into its string for a
+       'const char *', so the object is kept from the garbage collector until the stub is called again */
+    Wrapper_add_local(f, "r_swig_cb_retValue", "static SEXP r_swig_cb_retValue = NULL");
+    Printv(f->code,
+           "R_PreserveObject(r_swig_cb_data->retValue);\n",
+           "if (r_swig_cb_retValue) {\n",
+           "  R_ReleaseObject(r_swig_cb_retValue);\n",
+           "}\n",
+           "r_swig_cb_retValue = r_swig_cb_data->retValue;\n",
+           NIL);
+
     /* Need to deal with the return type of the function pointer, not the function pointer itself.
        So build a new node that has the relevant pieces.
        XXX  Have to be a little more clever so that we can deal with struct A * - the * is getting lost.

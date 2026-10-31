@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [R] Fix a string returned by an R function passed for a 'const char *(*)(int)' or
+            similar function pointer possibly being freed by the garbage collector before the C
+            code used it, for example a string built by paste0(). The R value returned is now kept
+            until an R function is next called for the same function pointer type.
+
+2026-10-31: wsfulton
             [R] Fix the error for a value of the wrong type returned by an R function passed for a
             function pointer having '$symname' and '$argnum' in it. It now names the function
             pointer type and argument 0, such as "in method '_p_f_int__int', argument 0 of type

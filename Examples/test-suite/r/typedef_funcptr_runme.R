@@ -24,3 +24,11 @@ unittest(do_name_typedef(1, function(i) "one"), "one")
 name <- paste0("abc", "def")
 unittest(do_name_modify(1, function(i) name), "Nbcdef")
 unittest(name, "abcdef")
+
+# A string built by an R function is kept from the garbage collector until used
+gctorture(TRUE)
+name <- do_name(3, function(i) paste0("name", i))
+name_typedef <- do_name_typedef(4, function(i) paste0("name", i))
+gctorture(FALSE)
+unittest(name, "name3")
+unittest(name_typedef, "name4")
