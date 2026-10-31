@@ -21,6 +21,7 @@ typedef struct AVCodecCtx {
 
 enum AVPixelFormat global_fmt;
 enum AVPixelFormat2 global_fmt2;
+enum AVPixelFormat (*global_fmt_converter)(enum AVPixelFormat2);
 
 enum AVPixelFormat use_pixel_format(enum AVPixelFormat px) {
   return px;

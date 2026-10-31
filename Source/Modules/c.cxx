@@ -1842,42 +1842,60 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
-   * getCNamesType()
+   * replaceBaseTypes()
    *
-   * Return the type, whose typedefs are resolved, with the C names of the classes and enums in its base type and in
-   * the parameters of any function in it, as in a function pointer, as their C++ names are not valid in C. The
-   * returned SwigType must be freed by the caller.
+   * Return a copy of type with its base type and the base types of the parameters of any function in it, as in a
+   * function pointer, replaced by the type that new_base_type() returns for each of them.
    * ----------------------------------------------------------------------------- */
 
-  SwigType *getCNamesType(SwigType *type) {
+  SwigType *replaceBaseTypes(SwigType *type, SwigType *(C::*new_base_type)(SwigType *base)) {
     scoped_dohptr elements = adopt(SwigType_split(type));
     int const last = Len(elements) - 1;
-    SwigType *const base = Getitem(elements, last);
-    SwigType *c_names_type = SwigType_isenum(base) ? getEnumCType(base) : getClassProxyName(base);
-    if (!c_names_type && SwigType_isclass(base)) {
-      // A class that is not wrapped is the opaque struct that a pointer to it points to elsewhere in the header file, as
-      // in 'SWIGTYPE_p_Foo *' for a 'Foo *' parameter
-      scoped_dohptr ptr_type = adopt(SwigType_add_pointer(Copy(base)));
-      c_names_type = getOpaqueTypeName(ptr_type);
-    }
-    if (!c_names_type)
-      c_names_type = Copy(base);
+    SwigType *const result = (this->*new_base_type)(Getitem(elements, last));
 
     for (int i = last - 1; i >= 0; i--) {
       SwigType *const element = Getitem(elements, i);
       if (SwigType_isfunction(element)) {
         ParmList *const parms = SwigType_function_parms(element, NULL);
         for (Parm *p = parms; p; p = nextSibling(p)) {
-          scoped_dohptr c_parm_type = adopt(getCNamesType(Getattr(p, "type")));
-          Setattr(p, "type", c_parm_type);
+          scoped_dohptr parm_type = adopt(replaceBaseTypes(Getattr(p, "type"), new_base_type));
+          Setattr(p, "type", parm_type);
         }
-        SwigType_add_function(c_names_type, parms);
+        SwigType_add_function(result, parms);
         Delete(parms);
       } else {
-        SwigType_push(c_names_type, element);
+        SwigType_push(result, element);
       }
     }
-    return c_names_type;
+    return result;
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getCNameBaseType()
+   *
+   * Return the C name of the class or enum base type, see getCNamesType(), or a copy of any other base type.
+   * ----------------------------------------------------------------------------- */
+
+  SwigType *getCNameBaseType(SwigType *base) {
+    SwigType *c_name = SwigType_isenum(base) ? getEnumCType(base) : getClassProxyName(base);
+    if (!c_name && SwigType_isclass(base)) {
+      // A class that is not wrapped is the opaque struct that a pointer to it points to elsewhere in the header file, as
+      // in 'SWIGTYPE_p_Foo *' for a 'Foo *' parameter
+      scoped_dohptr ptr_type = adopt(SwigType_add_pointer(Copy(base)));
+      c_name = getOpaqueTypeName(ptr_type);
+    }
+    return c_name ? c_name : Copy(base);
+  }
+
+  /* -----------------------------------------------------------------------------
+   * getCNamesType()
+   *
+   * Return the type, whose typedefs are resolved, with the C names of the classes and enums in its base type and in
+   * the parameters of any function in it, as in a function pointer, as their C++ names are not valid in C.
+   * ----------------------------------------------------------------------------- */
+
+  SwigType *getCNamesType(SwigType *type) {
+    return replaceBaseTypes(type, &C::getCNameBaseType);
   }
 
   /* -----------------------------------------------------------------------------
@@ -3164,6 +3182,17 @@ public:
   }
 
   /* ---------------------------------------------------------------------
+   * intForUnknownEnum()
+   *
+   * Return 'int' for an enum base type that SWIG does not know, which the header file cannot declare, as 'int' is used
+   * for a parameter of such an enum type of a wrapper function too, or a copy of any other base type. For example,
+   * replaceBaseTypes() with it gives 'int (*)(int)' for 'enum E (*)(enum EE)' when neither E nor EE is known.
+   * --------------------------------------------------------------------- */
+  SwigType *intForUnknownEnum(SwigType *base) {
+    return (SwigType_isenum(base) && !enumLookup(base)) ? NewString("int") : Copy(base);
+  }
+
+  /* ---------------------------------------------------------------------
    * make_c_var_decl()
    *
    * Return the C declaration of the variable n, a global variable or a struct member, with the given type, which for a
@@ -3171,11 +3200,12 @@ public:
    *
    * If the variable has a type not representable in C, returns NULL, the caller must check for this!
    *
-   * This function accounts for three special cases:
+   * This function accounts for four special cases:
    *  1. If the type is an anonymous enum, "int" is used instead.
    *  2. If the type of a global variable is an array, the bound of its first dimension is stripped, as in 'int x[][4]'
    *     for 'int x[3][4]'. A struct member keeps it, as it gives the size and layout of the struct.
    *  3. A typedef that the header file does not declare is resolved, see resolve_undeclared_typedefs().
+   *  4. An enum that SWIG does not know is replaced by "int", see intForUnknownEnum().
    * --------------------------------------------------------------------- */
   String *make_c_var_decl(Node *n, SwigType *type, bool is_struct_member) {
     String *name = Getattr(n, "name");
@@ -3203,12 +3233,8 @@ public:
       Append(decl_type, "int");
     } else {
       scoped_dohptr btype(SwigType_base(type));
-      if (SwigType_isenum(btype)) {
-        // Enums are special as they can be unknown, i.e. not wrapped by SWIG. In this case we just use int instead.
-        if (!enumLookup(btype)) {
-          Replaceall(decl_type, btype, "int");
-        }
-      } else {
+      // Enums are special as they can be unknown, i.e. not wrapped by SWIG, see below
+      if (!SwigType_isenum(btype)) {
         // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
         if (CPlusPlus) {
           if (SwigType_isanyreference(type))
@@ -3226,6 +3252,12 @@ public:
         decl_type = resolve_undeclared_typedefs(type);
       }
     }
+
+    // An enum that is unknown, i.e. not wrapped by SWIG, is not declared in the header file, so we just use int instead,
+    // also in the parameters of a function pointer.
+    SwigType *const known_enums_type = replaceBaseTypes(decl_type, &C::intForUnknownEnum);
+    Delete(decl_type);
+    decl_type = known_enums_type;
 
     if (!is_struct_member && SwigType_isarray(decl_type)) {
       SwigType_array_setdim(decl_type, 0, "");

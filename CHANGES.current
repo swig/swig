@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the .h file declaration of a global variable or struct member of a function
+            pointer type using an enum that SWIG does not know, as it is only declared in a %{ %}
+            block, such as:
+
+              %{
+              enum E { EA };
+              enum EE { EEA };
+              %}
+              enum E (*fp)(enum EE);
+
+            The declaration was the invalid 'SWIGIMPORT int (*fp)(intE);'. An unknown enum is now
+            declared as int in the parameters of a function pointer too, giving:
+
+              SWIGIMPORT int (*fp)(int);
+
+2026-10-31: wsfulton
             [C] Fix two dimensional arrays in the .h file when wrapping C code, for example for:
 
               int grid[2][3];
