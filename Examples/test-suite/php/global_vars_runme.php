@@ -2,9 +2,9 @@
 
 require "tests.php";
 
-check::functions(array('init','read_b','read_x'));
+check::functions(array('init','read_b','read_x','assign_ap'));
 check::classes(array('A','global_vars'));
-check::globals(array('b','a','ap','cap','ar','x','xp','c_member','vp','h','hp','hr'));
+check::globals(array('b','a','ap','cap','ar','acp','avp','acvp','x','xp','c_member','vp','h','hp','hr','hcp'));
 
 $an = new A();
 check::classname('A', $an);

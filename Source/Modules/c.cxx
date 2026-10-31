@@ -777,15 +777,11 @@ private:
         // Deal with some special cases:
         switch (typeKind) {
         case Type_Ptr:
-          // If this is a pointer passed by const reference, we return just the pointer directly because we don't have any pointer-valued variable to give out
-          // a reference to.
-          if (SwigType_isreference(resolved_type)) {
-            scoped_dohptr deref_type = adopt(SwigType_del_reference(Copy(resolved_type)));
-            if (SwigType_isconst(deref_type)) {
-              SwigType_del_qualifier(deref_type);
-              resolved_type = deref_type.release();
-            }
-          }
+          // A pointer passed by const reference is passed and returned as just the pointer, as we don't have any pointer
+          // valued variable to give out a reference to. The top level qualifiers of the pointer, as in 'Foo *const', are
+          // removed too. They do not change the type of a parameter and are ignored in a return type, while a volatile
+          // parameter or return type is deprecated in C++20.
+          SwigType_remove_qualifier_reference(resolved_type);
           break;
 
         case Type_Obj:

@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix a pointer to a class with top level qualifiers, such as 'Foo *const' or
+            'Foo *volatile', being wrapped as an object passed by value, as in:
+
+              void constptr(Foo *const p);
+              Foo *volatile vfoo;
+
+            The C function for constptr read the 'Foo *' it was given as a pointer to a pointer and
+            the getter of vfoo returned a pointer to a new copy of the pointer. When wrapping C, the
+            header file declared the parameter of constptr as 'struct Foo **'. The C++ wrappers did
+            not compile. These pointers are now wrapped as a 'Foo *', as the other target languages
+            do for 'Foo *const'. A pointer to an enum with top level qualifiers, such as 'E *const',
+            no longer makes SWIG fail an assertion when generating the C++ wrappers. A function
+            pointer with top level qualifiers, such as 'int (*const f)(int)', is now declared in the
+            header file as the function pointer. It was declared as a pointer to the function
+            pointer when wrapping C and as 'int (**)(int)*', which did not compile, when wrapping
+            C++.
+
+2026-10-31: wsfulton
             Fix a g++ -Wextra warning, "type qualifiers ignored on cast result type", in the
             generated code for a variable or function parameter whose type has a top level
             volatile qualifier, such as for:

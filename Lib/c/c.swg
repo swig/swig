@@ -319,6 +319,8 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
     SWIGTYPE (CLASS::*)
     ""
 
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
+
 #ifdef SWIG_CPPMODE
 
 %insert("runtime") %{

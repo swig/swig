@@ -16,6 +16,12 @@
   A *ap;
   const A *cap;
   A &ar = a;
+  A *const acp = &a;
+#if !defined(SWIGJAVA) && !defined(SWIGOCTAVE) && !defined(SWIGPYTHON) && !defined(SWIGRUBY) && !defined(SWIGSCILAB) && !defined(SWIGTCL)
+  // TODO: fix the generated code not compiling for a volatile pointer variable
+  A *volatile avp;
+  A *const volatile acvp = &a;
+#endif
 
   int x;
   int *xp;
@@ -28,6 +34,7 @@
   Hello h;
   Hello *hp;
   Hello &hr = h;
+  Hello *const hcp = &h;
 
   void init() {
     b = "string b";
@@ -37,6 +44,8 @@
   int read_x() { return x; }
 
   void clear_xp() { xp = 0; }
+
+  void assign_ap(A *const p) { ap = p; }
 
   std::string read_b() { return b; }
 %}
