@@ -218,7 +218,7 @@ String *get_c_proxy_name(Node *n) {
     String *nspace = Getattr(n, "sym:nspace");
 
     if (nspace) {
-      scoped_dohptr nspace_mangled(Swig_name_mangle_string(nspace));
+      scoped_dohptr nspace_mangled = adopt(Swig_name_mangle_string(nspace));
       proxyname = NewStringf("%s_%s", (DOH *)nspace_mangled, symname);
     } else {
       proxyname = Swig_name_type(symname);
@@ -466,10 +466,10 @@ public:
     // We need to start by introducing a temporary variable for the C call result because if $cresult is used twice by the typemap, we don't want to call the
     // function twice. Note that just "auto" is enough because C functions can't return references, but we need "auto&&" for C++ result which can be anything
     // (defined by the user in their typemaps).
-    scoped_dohptr code(NewStringf("\n"
-                                  "%sauto swig_cres = %s;\n",
-                                  cindent,
-                                  value_.get()));
+    scoped_dohptr code = adopt(NewStringf("\n"
+                                          "%sauto swig_cres = %s;\n",
+                                          cindent,
+                                          value_.get()));
 
     // We support 2 cases: either typemap is a statement, or multiple statements, containing assignment to $result, in which case this assignment must occur at
     // its beginning.
@@ -534,7 +534,7 @@ public:
     }
 
     // There doesn't seem to be any simple way to use the full SWIG typemap expansion machinery here, so just do it manually.
-    scoped_dohptr code(Copy(in_tm_));
+    scoped_dohptr code = adopt(Copy(in_tm_));
     Replace(code, "$1", value, DOH_REPLACE_NUMBER_END);
     return code;
   }
@@ -776,8 +776,8 @@ private:
     //
     // An even better idea might be to try to define this using cxx{in,out} typemaps for the various types and let the generic SWIG machinery do all the
     // matching instead of doing it in the code here.
-    scoped_dohptr resolved_type(SwigType_typedef_resolve_all(type));
-    scoped_dohptr base_resolved_type(SwigType_base(resolved_type));
+    scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
+    scoped_dohptr base_resolved_type = adopt(SwigType_base(resolved_type));
 
     // A function pointer is passed to and returned from the C function as it is, so it has the type that the C function
     // is declared with. Only its top level qualifiers are removed, as those of its return type, such as the 'const' of
@@ -1207,7 +1207,7 @@ public:
 
     String *const classname = Getattr(n, "sym:name");
 
-    scoped_dohptr base_classes(NewStringEmpty());
+    scoped_dohptr base_classes = adopt(NewStringEmpty());
     if (uses_multiple_inheritance(n, &first_base_)) {
       Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n), "Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n", classname);
 
@@ -1230,11 +1230,11 @@ public:
 
     // If we have any extra code, inject it. Note that we need a hack with an artificial extra node to use Swig_typemap_lookup(), as it needs a "type" attribute
     // which the class node doesn't have.
-    scoped_dohptr dummy(NewHash());
+    scoped_dohptr dummy = adopt(NewHash());
     Setattr(dummy, "type", Getattr(n, "name"));
     Setfile(dummy, Getfile(n));
     Setline(dummy, Getline(n));
-    scoped_dohptr cxxcode(Swig_typemap_lookup("cxxcode", dummy, "", NULL));
+    scoped_dohptr cxxcode = adopt(Swig_typemap_lookup("cxxcode", dummy, "", NULL));
     if (!cxxcode || *Char(cxxcode) != '\n')
       Append(cxx_wrappers_.sect_decls, "\n");
     if (cxxcode) {
@@ -1301,7 +1301,7 @@ public:
     String *const parms_call = func_wrapper.parms_call;
 
     // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
-    scoped_dohptr name_ptr(Swig_scopename_last(Getattr(n, "name")));
+    scoped_dohptr name_ptr = adopt(Swig_scopename_last(Getattr(n, "name")));
     String *const name = name_ptr;
     String *const wname = Getattr(n, "wrap:name");
 
@@ -1439,7 +1439,7 @@ public:
       }
     } else if (is_member) {
       // Wrapper parameters list may or not include "this" pointer and may or not have other parameters, so construct it piecewise for simplicity.
-      scoped_dohptr wparms(NewStringEmpty());
+      scoped_dohptr wparms = adopt(NewStringEmpty());
       if (!is_static)
         Append(wparms, "swig_self()");
       if (Len(parms_call)) {
@@ -1725,7 +1725,7 @@ public:
     if (GetFlag(parentNode(n), "feature:nspace")) {
       scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
       if (scopename_prefix) {
-        scoped_dohptr mangled_prefix(Swig_name_mangle_string(scopename_prefix));
+        scoped_dohptr mangled_prefix = adopt(Swig_name_mangle_string(scopename_prefix));
         scopename_prefix = mangled_prefix;
       }
     }
@@ -1958,7 +1958,7 @@ public:
       return true;
     }
 
-    scoped_dohptr btype(SwigType_base(classnametype));
+    scoped_dohptr btype = adopt(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
       scoped_dohptr c_enumname = adopt(getEnumCType(btype));
       Replaceall(tm, classnamespecialvariable, c_enumname);
@@ -2165,7 +2165,7 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     // initialize I/O
-    const scoped_dohptr f_wrappers_cxx(NewFile(outfile, "w", SWIG_output_files()));
+    const scoped_dohptr f_wrappers_cxx = adopt(NewFile(outfile, "w", SWIG_output_files()));
     if (!f_wrappers_cxx) {
       FileErrorDisplay(outfile);
       Exit(EXIT_FAILURE);
@@ -2177,7 +2177,7 @@ public:
 
     // Open the file where all wrapper declarations will be written to in the end.
     outfile_h = Getattr(n, "outfile_h");
-    const scoped_dohptr f_wrappers_h(NewFile(outfile_h, "w", SWIG_output_files()));
+    const scoped_dohptr f_wrappers_h = adopt(NewFile(outfile_h, "w", SWIG_output_files()));
     if (!f_wrappers_h) {
       FileErrorDisplay(outfile_h);
       Exit(EXIT_FAILURE);
@@ -2186,10 +2186,10 @@ public:
     Swig_banner(f_wrappers_h);
 
     // Associate file with the SWIG sections with the same name, so that e.g. "%header" contents end up in sect_header etc.
-    const scoped_dohptr sect_begin(NewStringEmpty());
-    const scoped_dohptr sect_header(NewStringEmpty());
-    const scoped_dohptr sect_runtime(NewStringEmpty());
-    const scoped_dohptr sect_init(NewStringEmpty());
+    const scoped_dohptr sect_begin = adopt(NewStringEmpty());
+    const scoped_dohptr sect_header = adopt(NewStringEmpty());
+    const scoped_dohptr sect_runtime = adopt(NewStringEmpty());
+    const scoped_dohptr sect_init = adopt(NewStringEmpty());
 
     // This one is used outside of this function, so it's a member variable rather than a local one.
     sect_wrappers = NewStringEmpty();
@@ -2267,7 +2267,7 @@ public:
         Dump(cxx_wrappers_.sect_cxx_h, f_wrappers_h);
 
         // Generate possibly nested namespace declarations, as unfortunately we can't rely on C++17 nested namespace definitions being always available.
-        scoped_dohptr cxx_ns_end(NewStringEmpty());
+        scoped_dohptr cxx_ns_end = adopt(NewStringEmpty());
         for (const char *c = Char(ns_cxx);;) {
           const char *const next = strstr(c, "::");
 
@@ -2323,7 +2323,7 @@ public:
     // We can only do something if we have a module name.
     if (String *const imported_module_name = Getattr(n, "module")) {
       // Start with our header name.
-      scoped_dohptr header_name(Copy(outfile_h));
+      scoped_dohptr header_name = adopt(Copy(outfile_h));
 
       // Strip the output directory from the file name, as it should be common to all generated headers.
       Replace(header_name, SWIG_output_directory(), "", DOH_REPLACE_FIRST);
@@ -2588,13 +2588,13 @@ public:
     // emit wrapper prototype and code
     scoped_dohptr parms_c;
     for (p = parms; p; p = nextSibling(p)) {
-      scoped_dohptr parm_type(SwigType_decay_array(Getattr(p, "type")));
+      scoped_dohptr parm_type = adopt(SwigType_decay_array(Getattr(p, "type")));
       parms_c = ParmList_join(parms_c.release(), NewParm(parm_type, Getattr(p, "lname"), p));
     }
 
     // the name goes inside the declaration, as for a function returning a pointer to an array, which is what the getter
     // of an array variable returns, as in 'int (*name(void))[3]'
-    scoped_dohptr def_type(SwigType_decay_array(type));
+    scoped_dohptr def_type = adopt(SwigType_decay_array(type));
     Printv(wrapper->def, get_func_decl(def_type, wname, parms_c).get(), " {\n", NIL);
 
     // the result variable is assigned to, so it does not have the qualifiers of a const return type
@@ -3012,7 +3012,7 @@ public:
         const char *p = strstr(start, "$result = ");
         if (p == start || (p && p[-1] == ' ')) {
           p += strlen("$result = ");
-          scoped_dohptr result_cast(NewStringf("(%s)", return_type.get()));
+          scoped_dohptr result_cast = adopt(NewStringf("(%s)", return_type.get()));
 
           // However don't add a cast which is already there.
           if (strncmp(p, Char(result_cast), strlen(Char(result_cast))) != 0)
@@ -3054,7 +3054,7 @@ public:
     }
 
     // insert cleanup code, which is run after an error too, so the canthrow attribute is not used for a freearg typemap, which cannot use SWIG_fail
-    scoped_dohptr cleanup(NewStringEmpty());
+    scoped_dohptr cleanup = adopt(NewStringEmpty());
     for (p = parms; p;) {
       String *tm;
       if ((tm = Getattr(p, "tmap:freearg"))) {
@@ -3187,7 +3187,7 @@ public:
   SwigType *resolve_undeclared_typedefs(SwigType *type) {
     SwigType *resolved = Copy(type);
     for (;;) {
-      scoped_dohptr base(SwigType_base(resolved));
+      scoped_dohptr base = adopt(SwigType_base(resolved));
       if (Node *enum_node = enumLookup(base)) {
         if (Checkattr(enum_node, "allows_typedef", "1") && Equal(Getattr(enum_node, "sym:name"), base))
           break;
@@ -3256,7 +3256,7 @@ public:
       decl_type = SwigType_prefix(type);
       Append(decl_type, "int");
     } else {
-      scoped_dohptr btype(SwigType_base(type));
+      scoped_dohptr btype = adopt(SwigType_base(type));
       // Enums are special as they can be unknown, i.e. not wrapped by SWIG, see below
       if (!SwigType_isenum(btype)) {
         // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
