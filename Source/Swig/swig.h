@@ -184,6 +184,7 @@ extern int SwigType_isdecltype(const SwigType *t);
 extern String *SwigType_decltype_expr(const SwigType *t);
 extern int SwigType_check_decl(const SwigType *t, const_String_or_char_ptr decl);
 extern SwigType *SwigType_strip_qualifiers(const SwigType *t);
+extern SwigType *SwigType_strip_qualifiers_except_member_function(const SwigType *t);
 extern SwigType *SwigType_strip_single_qualifier(const SwigType *t);
 extern SwigType *SwigType_functionpointer_decompose(SwigType *t);
 extern String *SwigType_base(const SwigType *t);

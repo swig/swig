@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [Guile, Javascript, Lua, OCaml, Octave, Perl, PHP, Python, R, Ruby, Scilab, Tcl]
+            Fix a pointer to a member function being accepted for a pointer to a member function
+            that differs only in its cv-qualifier. Given:
+
+              struct Funcs {
+                short FF(bool);
+                short CC(bool) const;
+              };
+              int aaa1(short (Funcs::*)(bool) const);
+
+            a pointer to Funcs::FF was accepted for the parameter of aaa1 and a pointer to Funcs::CC
+            for a parameter of type 'short (Funcs::*)(bool)'. Both are now rejected with a type
+            error, as is any pointer to a member function for one with a different cv-qualifier.
+
+2026-11-01: wsfulton
             [R] Fix passing an R integer, such as 1L, for a double parameter. R failed with the
             error "REAL() can only be applied to a 'numeric', not a 'integer'". Likewise an R
             function passed for a function pointer failed when it returned a value of another R

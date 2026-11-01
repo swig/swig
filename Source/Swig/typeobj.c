@@ -1678,6 +1678,56 @@ SwigType *SwigType_strip_qualifiers(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_strip_qualifiers_except_member_function()
+ *
+ * Strip all qualifiers from a type and return a new type, as SwigType_strip_qualifiers() does, except the qualifiers of
+ * a member function type, as member function types with different qualifiers are different types.  For example:
+ *   p.q(const).m(Funcs).q(const).f(bool).short  =>  p.m(Funcs).q(const).f(bool).short
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_strip_qualifiers_except_member_function(const SwigType *t) {
+  static Hash *memoize_stripped = 0;
+  SwigType *r;
+  List *l;
+  Iterator ei;
+  int after_member_pointer = 0;
+  String *member_function_qualifier = 0;
+
+  if (!memoize_stripped)
+    memoize_stripped = NewHash();
+  r = Getattr(memoize_stripped, t);
+  if (r)
+    return Copy(r);
+
+  l = SwigType_split(t);
+  r = NewStringEmpty();
+
+  for (ei = First(l); ei.item; ei = Next(ei)) {
+    if (SwigType_isqualifier(ei.item)) {
+      /* The qualifiers of a member function type follow the member pointer and any ref-qualifier, as in 'm(X).r.q(const).f().int' */
+      if (after_member_pointer)
+        member_function_qualifier = ei.item;
+      continue;
+    }
+    if (member_function_qualifier && SwigType_isfunction(ei.item))
+      Append(r, member_function_qualifier);
+    member_function_qualifier = 0;
+    after_member_pointer = SwigType_ismemberpointer(ei.item) || (after_member_pointer && SwigType_isanyreference(ei.item));
+    Append(r, ei.item);
+  }
+  Delete(l);
+  {
+    String *key, *value;
+    key = Copy(t);
+    value = Copy(r);
+    Setattr(memoize_stripped, key, value);
+    Delete(key);
+    Delete(value);
+  }
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_strip_single_qualifier()
  *
  * If the type contains a qualifier, strip one qualifier and return a new type.

@@ -1706,8 +1706,8 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   qr = SwigType_typedef_qualified(fr);
   Delete(fr);
 
-  /* Added to deal with possible table bug */
-  fr = SwigType_strip_qualifiers(qr);
+  /* Types that differ only in qualifiers are the same runtime type, unlike member function types with different cv-qualifiers */
+  fr = SwigType_strip_qualifiers_except_member_function(qr);
   Delete(qr);
 
   /*Printf(stdout,"t = '%s'\n", t);
