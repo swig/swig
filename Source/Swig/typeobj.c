@@ -1502,9 +1502,7 @@ int SwigType_isconcept(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_concept_name()
  *
- * If any element of t is a 'c(NAME)' concept-id base, returns a newly allocated
- * String holding just NAME (e.g. 'Numeric' for 'r.auto.c(Numeric)').  Returns
- * NULL if t carries no concept-id.
+ * If any element of t is a 'c(NAME)' concept-id base, returns just NAME (e.g. 'Numeric' for 'r.auto.c(Numeric)').  Returns NULL if t carries no concept-id.
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_concept_name(const SwigType *t) {
@@ -1529,12 +1527,11 @@ String *SwigType_concept_name(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_replace_auto_base()
  *
- * Returns a newly allocated SwigType in which the 'auto' placeholder of t
- * (including the optional 'auto.c(<id>)' constrained form) is replaced
- * with new_base.  Any outer decoration ('r.', 'p.', 'q(const).' etc.) is
- * preserved verbatim, so for t = 'r.q(const).auto.c(Numeric)' and
- * new_base = 'X' this returns 'r.q(const).X'.  Returns NULL if t is not an
- * 'auto' form.
+ * Returns a SwigType in which the 'auto' placeholder of t (including the
+ * optional 'auto.c(<id>)' constrained form) is replaced with new_base.  Any
+ * outer decoration ('r.', 'p.', 'q(const).' etc.) is preserved verbatim, so
+ * for t = 'r.q(const).auto.c(Numeric)' and new_base = 'X' this returns
+ * 'r.q(const).X'.  Returns NULL if t is not an 'auto' form.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_replace_auto_base(const SwigType *t, const String *new_base) {
@@ -1601,9 +1598,7 @@ int SwigType_isdecltype(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_decltype_expr()
  *
- * Returns a newly allocated String holding the expression of the decltype that
- * is the base of t, so 'x + 1' for 'p.decltype(x + 1)'.  Returns NULL if the
- * base of t is not a decltype.
+ * Returns the expression of the decltype that is the base of t, so 'x + 1' for 'p.decltype(x + 1)'.  Returns NULL if the base of t is not a decltype.
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_decltype_expr(const SwigType *t) {

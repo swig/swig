@@ -3350,7 +3350,6 @@ public:
    * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
    * is one and hopefully it will compile as Java code - e.g. 20 as in: enum E{e=20};
    * The %javaconstvalue feature overrides all other ways to generate the constant value.
-   * The caller must delete memory allocated for the returned string.
    * ------------------------------------------------------------------------ */
 
   String *enumValue(Node *n) {

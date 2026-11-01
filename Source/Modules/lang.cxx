@@ -3873,7 +3873,7 @@ void Language::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  * attribute on the 'argout' typemap says which of these the typemap builds and is
  * available as the wrap:outputcontainer attribute on n.
  *
- * Returns a new string owned by the caller, or NULL if no type can be composed.
+ * Returns a new string, or NULL if no type can be composed.
  * ---------------------------------------------------------------------- */
 
 String *Language::composeOutputType(Node *n, List *types) {

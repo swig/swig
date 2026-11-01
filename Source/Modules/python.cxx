@@ -1733,8 +1733,7 @@ public:
    * Ignore autodoc if there is a Doxygen comment, otherwise
    * create the autodoc string and append to any docstring.
    *
-   * Return new string to be deleted by caller (never NIL but
-   * may be empty if there is no docstring).
+   * Return new string, never NIL but may be empty if there is no docstring.
    * ------------------------------------------------------------ */
 
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const char *indent = "", bool low_level = false) {

@@ -281,8 +281,7 @@ class Allocate : public Dispatcher {
   }
 
   /* Returns the return type for a function. The node n should be a function.
-     If resolve is true the fully returned type is fully resolved.
-     Caller is responsible for deleting returned string. */
+     If resolve is true the fully returned type is fully resolved. */
   String *function_return_type(Node *n, bool resolve = true) {
     String *ty = Swig_function_return_type(n);
     if (resolve) {

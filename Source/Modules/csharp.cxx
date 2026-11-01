@@ -3552,7 +3552,6 @@ public:
    * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
    * is one and hopefully it will compile as C# code - e.g. 20 as in: enum E{e=20};
    * The %csconstvalue feature overrides all other ways to generate the constant value.
-   * The caller must delete memory allocated for the returned string.
    * ------------------------------------------------------------------------ */
 
   String *enumValue(Node *n) {
@@ -4892,8 +4891,7 @@ public:
    *
    * Get documentation comments, if any
    *
-   * Return new documentation string to be deleted by caller (never NULL but
-   * may be empty if there is no docstring).
+   * Return new documentation string, never NULL but may be empty if there is no docstring.
    *--------------------------------------------------------------------*/
 
   String *docstring(Node *n, const char *indent = "") {

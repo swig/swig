@@ -2819,7 +2819,7 @@ static void clear_expression_form(struct Define *dtype) {
 
 /* The expression with value 'text' and T_* code 'type_code' when the grammar skipped it as raw text, as in 'auto v{(x)};'.
    The text inside any enclosing parentheses is taken to be an id-expression, or with a leading '&' the address of one,
-   never a literal, whose decoded value is unknown.  The caller deletes 'unparenthesised' and 'newtype'. */
+   never a literal, whose decoded value is unknown. */
 static struct Define expression_dtype_from_text(String *text, int type_code) {
   struct Define dtype = default_dtype;
   String *expr;

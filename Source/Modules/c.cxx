@@ -1712,8 +1712,6 @@ public:
   }
 
   // Construct the name to be used for a function with the given name in C wrappers.
-  //
-  // The returned string must be freed by caller.
   maybe_owned_dohptr getFunctionWrapperName(Node *n, String *name) const {
     maybe_owned_dohptr wname;
 
@@ -1746,8 +1744,6 @@ public:
   // The -namespace option puts its prefix in the sym:name of the nodes that use it as their wrapper name. The naming
   // formats registered in main() do so for a class member, constructor or destructor, such as 'ns_Klass_method'.
   // globalvariableHandler() does so for a global variable, giving 'ns_gvar_get' for its getter. So remove the prefix.
-  //
-  // The returned string must be freed by caller.
   String *getSymName(Node *n) const {
     String *const symname = Getattr(n, "sym:name");
     if (ns_prefix && isSymNameWrapperName(n)) {
@@ -1762,7 +1758,7 @@ public:
    * getClassProxyName()
    *
    * Test to see if a type corresponds to something wrapped with a proxy class.
-   * Return NULL if not, otherwise the proxy class name to be freed by the caller.
+   * Return NULL if not, otherwise the proxy class name.
    * ----------------------------------------------------------------------------- */
 
   String *getClassProxyName(SwigType *t) {
