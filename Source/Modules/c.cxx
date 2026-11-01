@@ -102,6 +102,13 @@ protected:
   DOH *obj_;
 };
 
+// Adopts ownership from a raw pointer and transfers it to the returned scoped_dohptr.
+// For explicitly initializing a scoped_dohptr by assignment such as:
+//   scoped_dohptr type = adopt(Copy(t));
+scoped_dohptr adopt(DOH *obj) {
+  return scoped_dohptr(obj);
+}
+
 // Wrapper for a DOH object which can be owned or not.
 class maybe_owned_dohptr : public scoped_dohptr {
 public:
