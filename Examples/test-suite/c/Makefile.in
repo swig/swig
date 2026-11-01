@@ -6,6 +6,7 @@ LANGUAGE     = c
 C            = gcc
 CXX          = g++
 RUNMESUFFIX  = _runme
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -69,10 +70,25 @@ FAILING_CPP_TESTS := \
     using_extend_flatten \
     varargs \
     varargs_overload \
+    cpp11_alternate_function_syntax \
+    cpp11_assign_delete \
+    cpp11_assign_rvalue_reference \
+    cpp11_auto_variable \
+    cpp11_director_using_constructor \
+    cpp11_directors \
+    cpp11_move_only \
+    cpp11_move_typemaps \
     cpp11_ref_qualifiers_typemaps \
     cpp11_rvalue_reference2 \
     cpp11_rvalue_reference_array \
+    cpp11_rvalue_reference_move \
+    cpp11_std_unique_ptr \
     cpp11_template_pack \
+    cpp11_template_parameters_decltype \
+    cpp11_template_templated_methods \
+    cpp11_using_constructor \
+    cpp11_variadic_function_templates \
+    cpp11_variadic_templates \
 
 # Ignore warnings about failing to apply typemaps because none are defined:
 # usually there is no need for special typemaps in C.
