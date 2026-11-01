@@ -8,6 +8,28 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            #2087 Fix the syntax error for a noexcept function type in an abstract declarator, such
+            as that of an unnamed parameter, an alias declaration, a template argument or a
+            trailing return type:
+
+              void f(int (*)(int) noexcept);
+              using FP = int (*)(int) noexcept;
+              %template(HolderFP) Holder<int (*)(int) noexcept>;
+              auto g() -> int (*)(int) noexcept;
+
+            The noexcept is now part of the type, as for a named parameter. It is now also part of
+            the type of a function typedef and of an alias declaration with a trailing return type,
+            which dropped it, so the wrappers for a parameter of type MFP here did not compile:
+
+              typedef int F(int) noexcept;
+              using MFP = auto (C::*)(int) const noexcept -> int;
+
+            A named parameter of a function pointer type with a noexcept or cv-qualifier after its
+            parameter list can now have a default argument, which was a syntax error:
+
+              void h(int (*p)(int) noexcept = nullptr);
+
+2026-11-01: wsfulton
             Fix the qualifiers of the types in a template instantiated with a volatile type, such
             as the parameter types in:
 

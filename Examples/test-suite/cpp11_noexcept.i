@@ -109,3 +109,63 @@ struct NoExceptFuncPtrMember {
 std::string (*noexceptGetAddOne() noexcept)(int) { return noexceptAddOne; }
 std::string (*(*noexceptGetGetter())() noexcept)(int) { return noexceptGetAddOne; }
 %}
+
+#ifdef SWIGC
+// The C target language does not support wrapping a pointer to member yet
+%ignore noexceptGetAddThree;
+%ignore noexceptCallMemberFunc;
+%ignore noexceptCallMemberFuncPtrAlias;
+%ignore noexceptCallMemberFuncPtrTrailing;
+#endif
+
+// noexcept in an abstract declarator, as for an unnamed parameter, a trailing return type or a template argument, extern "C" as C++17 changes the mangled names
+%inline %{
+struct NoExceptMemberFunc {
+  int addThree(int i) const noexcept { return i + 3; }
+};
+int (NoExceptMemberFunc::*noexceptGetAddThree())(int) const noexcept { return &NoExceptMemberFunc::addThree; }
+extern "C" int noexceptCallUnnamed(int (*)(int) noexcept, int i);
+extern "C" int noexceptCallMemberFunc(int (NoExceptMemberFunc::*)(int) const noexcept, const NoExceptMemberFunc &m, int i);
+auto noexceptGetAddTwoTrailing() -> int (*)(int) noexcept { return noexceptAddTwo; }
+template<typename T> struct NoExceptHolder {
+  T ptr;
+  NoExceptHolder(T ptr) : ptr(ptr) {}
+};
+%}
+%{
+extern "C" int noexceptCallUnnamed(int (*f)(int) noexcept, int i) { return f(i); }
+extern "C" int noexceptCallMemberFunc(int (NoExceptMemberFunc::*f)(int) const noexcept, const NoExceptMemberFunc &m, int i) { return (m.*f)(i); }
+%}
+%template(NoExceptFuncPtrHolder) NoExceptHolder<int (*)(int) noexcept>;
+
+// A default argument for a noexcept function pointer parameter, static as C++17 changes the mangled name and extern "C" would use compact default arguments
+%inline %{
+static int noexceptCallDefault(int i, int (*f)(int) noexcept = noexceptAddTwo) { return f(i); }
+%}
+
+// noexcept is in the type of a function typedef or alias, which is only valid C++ from C++17, so only SWIG sees it before then
+#define TESTCASE_NOEXCEPT_TYPE noexcept
+%{
+#if __cplusplus >= 201703L
+#define TESTCASE_NOEXCEPT_TYPE noexcept
+#else
+#define TESTCASE_NOEXCEPT_TYPE
+#endif
+%}
+
+%inline %{
+typedef int NoExceptFuncType(int) TESTCASE_NOEXCEPT_TYPE;
+using NoExceptFuncPtrAlias = int (*)(int) TESTCASE_NOEXCEPT_TYPE;
+using NoExceptFuncPtrTrailing = auto (*)(int) TESTCASE_NOEXCEPT_TYPE -> int;
+using NoExceptMemberFuncPtrAlias = int (NoExceptMemberFunc::*)(int) const TESTCASE_NOEXCEPT_TYPE;
+using NoExceptMemberFuncPtrTrailing = auto (NoExceptMemberFunc::*)(int) const TESTCASE_NOEXCEPT_TYPE -> int;
+int noexceptCallFuncType(NoExceptFuncType *f, int i) { return f(i); }
+int noexceptCallFuncPtrAlias(NoExceptFuncPtrAlias f, int i) { return f(i); }
+int noexceptCallFuncPtrTrailing(NoExceptFuncPtrTrailing f, int i) { return f(i); }
+int noexceptCallMemberFuncPtrAlias(NoExceptMemberFuncPtrAlias f, const NoExceptMemberFunc &m, int i) { return (m.*f)(i); }
+int noexceptCallMemberFuncPtrTrailing(NoExceptMemberFuncPtrTrailing f, const NoExceptMemberFunc &m, int i) { return (m.*f)(i); }
+struct NoExceptFuncTypeMember {
+  NoExceptFuncType addFour;
+};
+int NoExceptFuncTypeMember::addFour(int i) TESTCASE_NOEXCEPT_TYPE { return i + 4; }
+%}

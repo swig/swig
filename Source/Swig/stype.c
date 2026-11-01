@@ -598,6 +598,30 @@ static SwigType *qualifier_noexcept_part(const SwigType *q, int is_noexcept) {
   return result;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_noexcept_qualifier()
+ *
+ * Removes the 'noexcept' from the qualifier element at the start of t, such as the qualifiers 'q(const noexcept).' of a
+ * function type, and the element too if it has no other qualifier.  Returns 1 if t had a 'noexcept' and 0 if not.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_remove_noexcept_qualifier(SwigType *t) {
+  SwigType *noexcept_qualifier;
+  SwigType *other_qualifiers;
+  if (!SwigType_isqualifier(t))
+    return 0;
+  noexcept_qualifier = qualifier_noexcept_part(t, 1);
+  if (!noexcept_qualifier)
+    return 0;
+  other_qualifiers = qualifier_noexcept_part(t, 0);
+  SwigType_del_qualifier(t);
+  if (other_qualifiers)
+    SwigType_push(t, other_qualifiers);
+  Delete(other_qualifiers);
+  Delete(noexcept_qualifier);
+  return 1;
+}
+
 /* Return a copy of the type t without the 'noexcept' of each function type in it, as in 'p.q(noexcept).f(int).int' or
    'm(C).q(const noexcept).f().int', but not in the parameter types of a function. */
 static SwigType *function_noexcept_removed(const SwigType *t) {

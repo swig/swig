@@ -133,6 +133,7 @@ extern SwigType *SwigType_del_qualifier(SwigType *t);
 extern SwigType *SwigType_remove_reference(SwigType *t);
 extern SwigType *SwigType_remove_qualifier(SwigType *t);
 extern SwigType *SwigType_remove_qualifier_reference(SwigType *t);
+extern int SwigType_remove_noexcept_qualifier(SwigType *t);
 extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
 extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
 extern SwigType *SwigType_pop_function(SwigType *t);

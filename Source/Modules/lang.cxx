@@ -1069,6 +1069,11 @@ int Language::cDeclaration(Node *n) {
     /* The "qualifier" attribute is the cv-qualifier of a member function, which follows any ref-qualifier, as in 'r.q(const).f().' for 'int f() const &' */
     SwigType *function = SwigType_pop_function(ty);
     SwigType *qualifier = SwigType_remove_reference(SwigType_pop_function_qualifiers(function));
+    /* A 'noexcept' in the function type is that of the declared function, as for f in:
+         typedef int F(int) noexcept;
+         F f; */
+    if (SwigType_remove_noexcept_qualifier(qualifier))
+      Setattr(n, "noexcept", "true");
     if (SwigType_isqualifier(qualifier))
       Setattr(n, "qualifier", qualifier);
     Delete(qualifier);

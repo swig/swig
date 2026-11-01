@@ -2305,7 +2305,6 @@ static SwigType *add_noexcept_qualifier(SwigType *qualifier, String *nexcept) {
 %type <type>     array_type_id array_element_type type_id type_id_default;
 %type <group>    decltype_prefix;
 %type <type>     conversion_declarator;
-%type <str>      noexcept_specifier_opt;
 %type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
@@ -2335,7 +2334,7 @@ static SwigType *add_noexcept_qualifier(SwigType *qualifier, String *nexcept) {
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
 %type <decl>     qualified_direct_declarator qualified_notso_direct_declarator;
 %type <decl>     qualified_function_declarator qualified_declarator;
-%type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator ctor_end;
+%type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator qualified_direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      using_conversion using_scope;
@@ -3566,7 +3565,7 @@ static void check_parameter_only_array(struct Decl *d) {
 
 /* Add the function declarator '(parms)' to the declarator 'd', extending the declarator's type and recording 'parms'
    as the declarator's parameter list unless an inner declarator already provided one.  'qualifier' is the trailing
-   cv-qualifier and ref-qualifier of the function, or 0 when it has none; it belongs under whatever the enclosing
+   cv-qualifier, ref-qualifier and 'noexcept' of the function, or 0 when it has none; it belongs under whatever the enclosing
    declarator adds, so it has to go on before the declarator's existing type does.  The sizes of any variable length
    array parameters are removed first, which needs the complete parameter list. */
 static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *qualifier) {
@@ -3691,10 +3690,13 @@ static int declarator_qualifiers_are_own(SwigType *type) {
    When they are not the declared function's, a 'noexcept' is part of the function type that they belong to, as for
    the function pointed to in:
      int (*f())(int) noexcept;
-   and the exception specification is taken out of cpp_const, as it is not that of the declared function.  A 'throw' exception specification is dropped. */
-static SwigType *qualified_declarator_type(const struct Decl *decl, struct Define *cpp_const) {
+   and the exception specification is taken out of cpp_const, as it is not that of the declared function.  A 'throw' exception specification is dropped.
+   The qualifiers of a typedef, which declares no function, are not the declared function's either, as in:
+     typedef int F(int) noexcept;
+   The storage parameter is the storage class of the declaration, such as "typedef". */
+static SwigType *qualified_declarator_type(const struct Decl *decl, struct Define *cpp_const, String *storage) {
   SwigType *qualifier = cpp_const->qualifier;
-  if (!declarator_qualifiers_are_own(decl->type)) {
+  if (!declarator_qualifiers_are_own(decl->type) || Equal(storage, "typedef")) {
     qualifier = add_noexcept_qualifier(qualifier, cpp_const->nexcept);
     cpp_const->throws = 0;
     cpp_const->throwf = 0;
@@ -5204,14 +5206,13 @@ c_declaration   : c_decl {
 		  add_symbols($$);
 		}
                 /* Alias declaration for a function type written with the C++11 alternate function syntax, such as
-                   'using FP = auto (*)(int) -> int;'.  */
-                | USING idcolon EQUAL auto_type_holder abstract_declarator noexcept_specifier_opt ARROW cpp_alternate_rettype SEMI {
+                   'using FP = auto (*)(int) -> int;'.  A 'noexcept' before the '->' is in the abstract declarator's type. */
+                | USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
                   $$ = new_node("cdecl");
                   Setattr($$, "type", $cpp_alternate_rettype);
                   Setattr($$, "storage", "typedef");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "decl", $abstract_declarator.type);
-                  Setattr($$, "noexcept", $noexcept_specifier_opt);
                   SetFlag($$, "typealias");
                   if ($auto_type_holder.qualifier)
                     Swig_error(cparse_file, cparse_line, "Alias %s with a trailing return type cannot have a qualifier on 'auto'.\n", $idcolon);
@@ -5232,13 +5233,12 @@ c_declaration   : c_decl {
 		  add_symbols($$);
 		}
                 /* Alias template for a function type written with the C++11 alternate function syntax. */
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator noexcept_specifier_opt ARROW cpp_alternate_rettype SEMI {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
                   $$ = new_node("template");
                   Setattr($$, "type", $cpp_alternate_rettype);
                   Setattr($$, "storage", "typedef");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "decl", $abstract_declarator.type);
-                  Setattr($$, "noexcept", $noexcept_specifier_opt);
                   Setattr($$, "templateparms", $template_parms);
                   Setattr($$, "templatetype", "cdecl");
                   SetFlag($$, "aliastemplate");
@@ -5259,7 +5259,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      String *decl;
               check_parameter_only_array(&$declarator);
               $$ = new_node("cdecl");
-              decl = qualified_declarator_type(&$declarator, &$cpp_const);
+              decl = qualified_declarator_type(&$declarator, &$cpp_const, $storage_class);
               use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
 	      Setattr($$,"type",$type);
@@ -5346,7 +5346,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
-	      String *decl = qualified_declarator_type(&$declarator, &$cpp_const);
+	      String *decl = qualified_declarator_type(&$declarator, &$cpp_const, $storage_class);
 	      $$ = new_node("cdecl");
               use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
@@ -8321,11 +8321,14 @@ parameter_declarator : declarator def_args {
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
-            | direct_declarator LPAREN fn_parms RPAREN qualifiers_exception_specification {
+            | direct_declarator LPAREN fn_parms RPAREN qualifiers_exception_specification def_args {
               SwigType *qualifier = add_noexcept_qualifier($qualifiers_exception_specification.qualifier, $qualifiers_exception_specification.nexcept);
               reject_explicit_object_parameter($fn_parms);
               $$ = $direct_declarator;
               declarator_add_function(&$$, $fn_parms, qualifier);
+              $$.defarg = $def_args.val;
+              $$.stringdefarg = $def_args.stringval;
+              $$.numdefarg = $def_args.numval;
 	    }
             ;
 
@@ -8851,8 +8854,8 @@ abstract_declarator : abstract_declarator_no_memberpointer
                     SwigType_push($$.type, t);
                     Delete(t);
                   }
-                  | pointer idcolon DSTAR direct_abstract_declarator {
-                    $$ = $direct_abstract_declarator;
+                  | pointer idcolon DSTAR qualified_direct_abstract_declarator {
+                    $$ = $qualified_direct_abstract_declarator;
                     SwigType_add_memberpointer($pointer, $idcolon);
                     if ($$.type) {
                       SwigType_push($pointer, $$.type);
@@ -8867,11 +8870,11 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    $$.type = $pointer;
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
                   }
-                  | pointer direct_abstract_declarator { 
-                     $$ = $direct_abstract_declarator;
-                     SwigType_push($pointer,$direct_abstract_declarator.type);
+                  | pointer qualified_direct_abstract_declarator {
+                     $$ = $qualified_direct_abstract_declarator;
+                     SwigType_push($pointer,$qualified_direct_abstract_declarator.type);
 		     $$.type = $pointer;
-		     Delete($direct_abstract_declarator.type);
+		     Delete($qualified_direct_abstract_declarator.type);
                   }
                   | pointer AND variadic_opt {
 		    $$ = default_decl;
@@ -8885,8 +8888,8 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    SwigType_add_rvalue_reference($$.type);
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
 		  }
-                  | pointer AND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | pointer AND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    SwigType_add_reference($pointer);
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8894,8 +8897,8 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    }
 		    $$.type = $pointer;
                   }
-                  | pointer LAND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | pointer LAND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    SwigType_add_rvalue_reference($pointer);
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8903,23 +8906,23 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    }
 		    $$.type = $pointer;
                   }
-                  | direct_abstract_declarator
-                  | AND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | qualified_direct_abstract_declarator
+                  | AND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
-		    if ($direct_abstract_declarator.type) {
-		      SwigType_push($$.type,$direct_abstract_declarator.type);
-		      Delete($direct_abstract_declarator.type);
+		    if ($qualified_direct_abstract_declarator.type) {
+		      SwigType_push($$.type,$qualified_direct_abstract_declarator.type);
+		      Delete($qualified_direct_abstract_declarator.type);
 		    }
                   }
-                  | LAND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | LAND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    $$.type = NewStringEmpty();
 		    SwigType_add_rvalue_reference($$.type);
-		    if ($direct_abstract_declarator.type) {
-		      SwigType_push($$.type,$direct_abstract_declarator.type);
-		      Delete($direct_abstract_declarator.type);
+		    if ($qualified_direct_abstract_declarator.type) {
+		      SwigType_push($$.type,$qualified_direct_abstract_declarator.type);
+		      Delete($qualified_direct_abstract_declarator.type);
 		    }
                   }
                   | AND variadic_opt {
@@ -8958,6 +8961,28 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimen
                   | LPAREN parms RPAREN {
 		    $$ = default_decl;
                     declarator_add_function(&$$, $parms, 0);
+                  }
+                  ;
+
+/* A direct_abstract_declarator, which can also end in a function declarator with an exception specification.  No
+   other declarator follows one, so that a '(' after 'noexcept' always starts its expression.  An abstract declarator
+   does not declare a function, so a 'noexcept' is part of the function type, as for a named function pointer
+   parameter, and a 'throw' exception specification is dropped.  For example, the parameter type of:
+     void f(int (*)(int) noexcept);
+   is 'p.q(noexcept).f(int).int'. */
+qualified_direct_abstract_declarator : direct_abstract_declarator
+                  | direct_abstract_declarator[in] LPAREN parms RPAREN exception_specification_no_virt_specifier {
+                    $$ = $in;
+                    declarator_add_function(&$$, $parms, add_noexcept_qualifier(0, $exception_specification_no_virt_specifier.nexcept));
+                  }
+                  | direct_abstract_declarator[in] LPAREN parms RPAREN cv_ref_qualifier exception_specification_no_virt_specifier {
+                    SwigType *qualifier = add_noexcept_qualifier($cv_ref_qualifier.qualifier, $exception_specification_no_virt_specifier.nexcept);
+                    $$ = $in;
+                    declarator_add_function(&$$, $parms, qualifier);
+                  }
+                  | LPAREN parms RPAREN exception_specification_no_virt_specifier {
+                    $$ = default_decl;
+                    declarator_add_function(&$$, $parms, add_noexcept_qualifier(0, $exception_specification_no_virt_specifier.nexcept));
                   }
                   ;
 
@@ -10534,19 +10559,8 @@ class_virt_specifier_opt : FINAL {
                }
                ;
 
-noexcept_specifier_opt : %empty {
-                 $$ = 0;
-               }
-               | NOEXCEPT {
-                 $$ = NewString("true");
-               }
-               | NOEXCEPT LPAREN expr RPAREN {
-                 $$ = $expr.val;
-               }
-               ;
-
 /* A 'throw' or 'noexcept' specifier, which is exception_specification without its virt-specifiers, for the end of a
-   function declarator in the parentheses of another declarator. */
+   function declarator in the parentheses of another declarator or in an abstract declarator. */
 exception_specification_no_virt_specifier : THROW LPAREN parms RPAREN {
                     $$ = default_dtype;
                     $$.throws = $parms;

@@ -275,7 +275,7 @@
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE (CLASS::*)
-%{ $1 = *($&1_ltype)$input; %}
+%{ memcpy(&$1, $input, sizeof($1)); %}
 
 %typemap(out) SWIGTYPE (CLASS::*)
 %{
