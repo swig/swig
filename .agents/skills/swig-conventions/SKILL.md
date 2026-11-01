@@ -158,6 +158,11 @@ Show a code, interface or generated-output example as an indented block, not squ
             makes the generated Go type Foo again.
 ```
 
+This applies to a single line of code too. Do not quote a whole line of code inline in the prose, such as a declaration, a
+statement or a typedef like 'typedef int (*IntOp)(int);' or a line of the generated code that is now output: put it in
+a block, as above. Only a fragment, such as a type or a parameter, or the previously generated invalid code that the entry
+fixes may be quoted inline with `'`. The same goes for a commit message.
+
 ## Hyphenation
 
 Only hyphenate compounds the C++ standard hyphenates (grammar productions like `using-declaration`, `type-constraint`, `requires-clause`, `simple-template-id`). Drop the hyphen everywhere else: `pack expansion`, `deduction guide`, `parameter pack`, `read only`, `compile time`, `runtime`, `language independent`, `before C++20`. When in doubt, drop it.
