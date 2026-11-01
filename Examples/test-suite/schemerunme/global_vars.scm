@@ -31,4 +31,7 @@
 (x 4)
 (check (= (x) 4))
 
+(assign-hp (hcpr))
+(check (equal? (hp) (hcp)))
+
 (exit 0)

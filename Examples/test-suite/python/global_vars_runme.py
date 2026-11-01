@@ -43,3 +43,7 @@ swig_check(global_vars.cvar.avp, None)
 
 global_vars.cvar.a.x = 7
 swig_check(global_vars.cvar.acvp.x, 7)
+
+# TODO: cvar.hcpr is wrapped as a pointer to the pointer, so it cannot be passed to assign_hp()
+global_vars.assign_hp(global_vars.cvar.hcp)
+swig_check(global_vars.cvar.hp, global_vars.cvar.hcp)

@@ -2,9 +2,9 @@
 
 require "tests.php";
 
-check::functions(array('init','read_b','read_x','assign_ap'));
+check::functions(array('init','read_b','read_x','assign_ap','assign_hp'));
 check::classes(array('A','global_vars'));
-check::globals(array('b','a','ap','cap','ar','acp','avp','acvp','x','xp','c_member','vp','h','hp','hr','hcp'));
+check::globals(array('b','a','ap','cap','ar','acp','avp','acvp','x','xp','c_member','vp','h','hp','hr','hcp','hcpr'));
 
 $an = new A();
 check::classname('A', $an);
@@ -30,5 +30,8 @@ check::equal(b_get(), 'test', "global var assignment");
 check::equal(read_b(), 'test', "PHP global var change visible in C++");
 init();
 check::equal(b_get(), 'string b', "C++ global var change visible in PHP");
+
+assign_hp(hcpr_get());
+check::equivalent(hp_get(), hcp_get(), "enum pointer passed by const reference");
 
 check::done();

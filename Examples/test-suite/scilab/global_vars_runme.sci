@@ -31,4 +31,8 @@ delete_A(sa2);
 x_set(11);
 checkequal(x_get(), 11, "x_get()");
 
+// TODO: hcpr_get() returns a pointer to the pointer, so it cannot be passed to assign_hp()
+assign_hp(hcp_get());
+checkequal(SWIG_this(hp_get()), SWIG_this(hcp_get()), "SWIG_this(hp_get())");
+
 exec("swigtest.quit", -1);

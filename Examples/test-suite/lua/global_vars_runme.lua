@@ -25,6 +25,9 @@ assert(gv.Hola ~= nil)
 gv.h = gv.Hi
 assert(gv.h == gv.Hi)
 
+gv.assign_hp(gv.hcpr)
+assert(swig_type(gv.hp) == swig_type(gv.hcp))
+
 -- It is not clear whether these tests should work or not
 -- Currently they don't.
 --
