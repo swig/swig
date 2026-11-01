@@ -751,9 +751,9 @@ public:
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n, "symtab"));
-    save_value<Node *> oldInclass(inclass);
-    save_value<AccessMode> oldAcessMode(cplus_mode);
-    save_value<int> oldExtendMode(extendmode);
+    SaveValue<Node *> oldInclass(inclass);
+    SaveValue<AccessMode> oldAcessMode(cplus_mode);
+    SaveValue<int> oldExtendMode(extendmode);
     if (Getattr(n, "template"))
       extendmode = 0;
     if (!CPlusPlus) {

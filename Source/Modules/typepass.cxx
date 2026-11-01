@@ -19,14 +19,14 @@
 #include "swigmod.h"
 #include "cparse.h"
 
-struct normal_node {
+struct NormalNode {
   Symtab *symtab;
   Hash *typescope;
   List *normallist;
-  normal_node *next;
+  NormalNode *next;
 };
 
-static normal_node *patch_list = 0;
+static NormalNode *patch_list = 0;
 
 /* Find the class or template aliased by a name by walking the symbol table sibling chain. */
 static Node *symbol_resolve_to_class(Node *n) {
@@ -138,8 +138,8 @@ class TypePass : private Dispatcher {
   void normalize_list() {
     Hash *currentsym = Swig_symbol_current();
 
-    normal_node *nn = patch_list;
-    normal_node *np;
+    NormalNode *nn = patch_list;
+    NormalNode *np;
     while (nn) {
       Swig_symbol_setscope(nn->symtab);
       SwigType_set_scope(nn->typescope);
@@ -565,7 +565,7 @@ class TypePass : private Dispatcher {
     String *unnamed = Getattr(n, "unnamed");
     String *storage = Getattr(n, "storage");
     String *kind = Getattr(n, "kind");
-    save_value<Node *> oldinclass(inclass);
+    SaveValue<Node *> oldinclass(inclass);
     List *olist = normalize;
     Symtab *symtab;
     String *nname = 0;
@@ -697,7 +697,7 @@ class TypePass : private Dispatcher {
 
     /* Normalize deferred types */
     {
-      normal_node *nn = new normal_node();
+      NormalNode *nn = new NormalNode();
       nn->normallist = normalize;
       nn->symtab = Getattr(n, "symtab");
       nn->next = patch_list;
@@ -816,7 +816,7 @@ class TypePass : private Dispatcher {
 
       /* Normalize deferred types */
       {
-        normal_node *nn = new normal_node();
+        NormalNode *nn = new NormalNode();
         nn->normallist = normalize;
         nn->symtab = Getattr(n, "symtab");
         nn->next = patch_list;

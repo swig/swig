@@ -41,7 +41,7 @@ enum exceptions_support {
   exceptions_support_imported   // Needed, but already defined in an imported module.
 };
 
-// When using scoped_dohptr, it's very simple to accidentally pass it to a vararg function, such as Printv() or Printf(), resulting in catastrophic results
+// When using ScopedPtr, it's very simple to accidentally pass it to a vararg function, such as Printv() or Printf(), resulting in catastrophic results
 // during run-time (crash or, worse, junk in the generated output), so make sure gcc warning about this, which is not enabled by default for some reason (see
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=64867 for more information), is enabled.
 #if defined(__GNUC__) && !defined(__clang__)
@@ -49,29 +49,29 @@ enum exceptions_support {
 #endif  // __GNUC__
 
 // Delete a DOH object on scope exit.
-class scoped_dohptr {
+class ScopedPtr {
 public:
-  scoped_dohptr() : obj_(NULL) {
+  ScopedPtr() : obj_(NULL) {
   }
-  explicit scoped_dohptr(DOH *obj) : obj_(obj) {
+  explicit ScopedPtr(DOH *obj) : obj_(obj) {
   }
-  ~scoped_dohptr() {
+  ~ScopedPtr() {
     Delete(obj_);
   }
 
   // This is an std::auto_ptr<>-like "destructive" copy ctor which allows to return objects of this type from functions.
-  scoped_dohptr(scoped_dohptr const &other) : obj_(other.release()) {
+  ScopedPtr(ScopedPtr const &other) : obj_(other.release()) {
   }
 
   // Same for the assignment operator.
-  scoped_dohptr &operator=(scoped_dohptr const &other) {
+  ScopedPtr &operator=(ScopedPtr const &other) {
     reset(other.release());
 
     return *this;
   }
 
   // Assignment operator takes ownership of the pointer, just as the ctor does.
-  scoped_dohptr &operator=(DOH *obj) {
+  ScopedPtr &operator=(DOH *obj) {
     reset(obj);
 
     return *this;
@@ -83,7 +83,7 @@ public:
 
   DOH *release() const /* not really */ {
     DOH *obj = obj_;
-    const_cast<DOH *&>(const_cast<scoped_dohptr *>(this)->obj_) = NULL;
+    const_cast<DOH *&>(const_cast<ScopedPtr *>(this)->obj_) = NULL;
     return obj;
   }
 
@@ -102,33 +102,33 @@ protected:
   DOH *obj_;
 };
 
-// Adopts ownership from a raw pointer and transfers it to the returned scoped_dohptr.
-// For explicitly initializing a scoped_dohptr by assignment such as:
-//   scoped_dohptr type = adopt(Copy(t));
-scoped_dohptr adopt(DOH *obj) {
-  return scoped_dohptr(obj);
+// Adopts ownership from a raw pointer and transfers it to the returned ScopedPtr.
+// For explicitly initializing a ScopedPtr by assignment such as:
+//   ScopedPtr type = adopt(Copy(t));
+ScopedPtr adopt(DOH *obj) {
+  return ScopedPtr(obj);
 }
 
 // Wrapper for a DOH object which can be owned or not.
-class maybe_owned_dohptr : public scoped_dohptr {
+class MaybeOwnedPtr : public ScopedPtr {
 public:
-  explicit maybe_owned_dohptr(DOH *obj = NULL) : scoped_dohptr(obj), owned_(true) {
+  explicit MaybeOwnedPtr(DOH *obj = NULL) : ScopedPtr(obj), owned_(true) {
   }
 
-  maybe_owned_dohptr(maybe_owned_dohptr const &other) : scoped_dohptr(other) {
+  MaybeOwnedPtr(MaybeOwnedPtr const &other) : ScopedPtr(other) {
     owned_ = other.owned_;
 
     // We can live other.owned_ unchanged, as its pointer is null now anyhow.
   }
 
-  maybe_owned_dohptr &operator=(maybe_owned_dohptr const &other) {
+  MaybeOwnedPtr &operator=(MaybeOwnedPtr const &other) {
     reset(other.release());
     owned_ = other.owned_;
 
     return *this;
   }
 
-  ~maybe_owned_dohptr() {
+  ~MaybeOwnedPtr() {
     if (!owned_)
       obj_ = NULL;  // Prevent it from being deleted by the base class dtor.
   }
@@ -150,14 +150,14 @@ private:
 //
 // Used to non-intrusively set a pointer to some object only during this object life-time.
 template <typename T>
-class temp_ptr_setter {
+class TempPtrSetter {
 public:
   // Pointer must be non-null, its current value is restored when this object is destroyed.
-  temp_ptr_setter(T *ptr, T value) : ptr_(ptr), value_orig_(*ptr) {
+  TempPtrSetter(T *ptr, T value) : ptr_(ptr), value_orig_(*ptr) {
     *ptr_ = value;
   }
 
-  ~temp_ptr_setter() {
+  ~TempPtrSetter() {
     *ptr_ = value_orig_;
   }
 
@@ -166,44 +166,44 @@ private:
   T const value_orig_;
 
   // Non copyable.
-  temp_ptr_setter(const temp_ptr_setter &);
-  temp_ptr_setter &operator=(const temp_ptr_setter &);
+  TempPtrSetter(const TempPtrSetter &);
+  TempPtrSetter &operator=(const TempPtrSetter &);
 };
 
 // Helper class to output "begin" fragment in the ctor and "end" in the dtor.
-class begin_end_output_guard {
+class BeginEndOutputGuard {
 public:
-  begin_end_output_guard(File *f, const_String_or_char_ptr begin, const_String_or_char_ptr end) : f_(f), end_(NewString(end)) {
+  BeginEndOutputGuard(File *f, const_String_or_char_ptr begin, const_String_or_char_ptr end) : f_(f), end_(NewString(end)) {
     String *const s = NewString(begin);
     Dump(s, f_);
     Delete(s);
   }
 
-  ~begin_end_output_guard() {
+  ~BeginEndOutputGuard() {
     Dump(end_, f_);
     Delete(end_);
   }
 
 private:
   // Non copyable.
-  begin_end_output_guard(const begin_end_output_guard &);
-  begin_end_output_guard &operator=(const begin_end_output_guard &);
+  BeginEndOutputGuard(const BeginEndOutputGuard &);
+  BeginEndOutputGuard &operator=(const BeginEndOutputGuard &);
 
   File *const f_;
   String *const end_;
 };
 
 // Subclass to output extern "C" guards when compiling as C++.
-class cplusplus_output_guard : private begin_end_output_guard {
+class CPlusPlusOutputGuard : private BeginEndOutputGuard {
 public:
-  explicit cplusplus_output_guard(File *f) :
-    begin_end_output_guard(f,
-                           "#ifdef __cplusplus\n"
-                           "extern \"C\" {\n"
-                           "#endif\n\n",
-                           "#ifdef __cplusplus\n"
-                           "}\n"
-                           "#endif\n\n") {
+  explicit CPlusPlusOutputGuard(File *f) :
+    BeginEndOutputGuard(f,
+                        "#ifdef __cplusplus\n"
+                        "extern \"C\" {\n"
+                        "#endif\n\n",
+                        "#ifdef __cplusplus\n"
+                        "}\n"
+                        "#endif\n\n") {
   }
 };
 
@@ -218,7 +218,7 @@ String *get_c_proxy_name(Node *n) {
     String *nspace = Getattr(n, "sym:nspace");
 
     if (nspace) {
-      scoped_dohptr nspace_mangled = adopt(Swig_name_mangle_string(nspace));
+      ScopedPtr nspace_mangled = adopt(Swig_name_mangle_string(nspace));
       proxyname = NewStringf("%s_%s", (DOH *)nspace_mangled, symname);
     } else {
       proxyname = Swig_name_type(symname);
@@ -256,14 +256,14 @@ Node *find_first_named_import(Node *parent) {
 // with the declarator inside it. An array of a class or an enum, or of pointers to one, is left out, as C has no arrays of the
 // incomplete struct that the header file declares a class as, and the C++ wrappers take a pointer to an enum for it.
 bool is_ptr_to_func_or_array(const SwigType *type) {
-  scoped_dohptr ptr_type = adopt(SwigType_remove_qualifier(Copy(type)));
+  ScopedPtr ptr_type = adopt(SwigType_remove_qualifier(Copy(type)));
   while (SwigType_ispointer(ptr_type) || SwigType_isanyreference(ptr_type)) {
     Delete(SwigType_pop(ptr_type));
     SwigType_remove_qualifier(ptr_type);
     if (SwigType_isfunction(ptr_type))
       return true;
     if (SwigType_isarray(ptr_type)) {
-      scoped_dohptr base_type = adopt(SwigType_base(ptr_type));
+      ScopedPtr base_type = adopt(SwigType_base(ptr_type));
       return !SwigType_isenum(base_type) && SwigType_type(base_type) != T_USER;
     }
   }
@@ -272,24 +272,24 @@ bool is_ptr_to_func_or_array(const SwigType *type) {
 
 // Append the base type, whose typedefs are resolved, of the type and of each parameter of a function type in it, as in a function pointer, to base_types.
 void append_base_types(SwigType *type, List *base_types) {
-  scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
-  scoped_dohptr elements = adopt(SwigType_split(resolved_type));
+  ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type));
+  ScopedPtr elements = adopt(SwigType_split(resolved_type));
   for (Iterator i = First(elements); i.item; i = Next(i)) {
     if (SwigType_isfunction(i.item)) {
-      scoped_dohptr parms = adopt(SwigType_parmlist(i.item));
+      ScopedPtr parms = adopt(SwigType_parmlist(i.item));
       for (Iterator j = First(parms); j.item; j = Next(j)) {
         append_base_types(j.item, base_types);
       }
     }
   }
 
-  scoped_dohptr base_type = adopt(SwigType_base(resolved_type));
+  ScopedPtr base_type = adopt(SwigType_base(resolved_type));
   Append(base_types, base_type);
 }
 
 // Return true if is_used() is true for one of the base types of the type, see append_base_types().
 bool uses_base_type(SwigType *type, bool (*is_used)(SwigType *base_type)) {
-  scoped_dohptr base_types = adopt(NewList());
+  ScopedPtr base_types = adopt(NewList());
   append_base_types(type, base_types);
   for (Iterator i = First(base_types); i.item; i = Next(i)) {
     if (is_used(i.item))
@@ -302,7 +302,7 @@ bool uses_base_type(SwigType *type, bool (*is_used)(SwigType *base_type)) {
 // C has no references, as in 'int *(*)(int const *,int)' for 'int &(*)(int const &,int)'.
 // The qualifiers of each function type, such as the 'noexcept' of 'int (*)(int) noexcept', are dropped too, as C does not have them.
 SwigType *references_to_pointers(const SwigType *type) {
-  scoped_dohptr elements = adopt(SwigType_split(type));
+  ScopedPtr elements = adopt(SwigType_split(type));
   int const last = Len(elements) - 1;
   SwigType *c_type = Copy(Getitem(elements, last));
   for (int i = last - 1; i >= 0; i--) {
@@ -314,7 +314,7 @@ SwigType *references_to_pointers(const SwigType *type) {
     } else if (SwigType_isfunction(element)) {
       ParmList *const parms = SwigType_function_parms(element, NULL);
       for (Parm *p = parms; p; p = nextSibling(p)) {
-        scoped_dohptr c_parm_type = adopt(references_to_pointers(Getattr(p, "type")));
+        ScopedPtr c_parm_type = adopt(references_to_pointers(Getattr(p, "type")));
         Setattr(p, "type", c_parm_type);
       }
       SwigType_add_function(c_type, parms);
@@ -329,12 +329,12 @@ SwigType *references_to_pointers(const SwigType *type) {
 // Return the declaration of the function with the given return type, which is NULL for a constructor, name and parameters, as a
 // const member function if is_const is true. Each type is either type text, which SwigType_str() outputs as it is, or a SwigType,
 // which SwigType_str() outputs with the declarator inside it for a function pointer, as in 'int (*f(int x))(int,int)'.
-scoped_dohptr get_func_decl(SwigType *return_type, String *name, ParmList *parms, bool is_const = false) {
-  scoped_dohptr decl = adopt(SwigType_add_function(NewStringEmpty(), parms));
+ScopedPtr get_func_decl(SwigType *return_type, String *name, ParmList *parms, bool is_const = false) {
+  ScopedPtr decl = adopt(SwigType_add_function(NewStringEmpty(), parms));
   if (is_const)
     SwigType_add_qualifier(decl, "const");
 
-  return scoped_dohptr(Swig_method_decl(return_type, decl, name, parms, 0));
+  return ScopedPtr(Swig_method_decl(return_type, decl, name, parms, 0));
 }
 
 // Return the cv-qualifier of the member function with the given decl, such as 'q(const).' for both 'int f() const' and
@@ -343,7 +343,7 @@ SwigType *get_function_cv_qualifier(SwigType *decl) {
   if (!SwigType_isfunction(decl))
     return NULL;
 
-  scoped_dohptr function = adopt(SwigType_remove_reference(Copy(decl)));
+  ScopedPtr function = adopt(SwigType_remove_reference(Copy(decl)));
   return SwigType_isqualifier(function) ? SwigType_pop(function) : NULL;
 }
 
@@ -353,8 +353,8 @@ SwigType *get_function_parms_type(SwigType *decl) {
   if (!SwigType_isfunction(decl))
     return NULL;
 
-  scoped_dohptr return_type = adopt(Copy(decl));
-  scoped_dohptr function = adopt(SwigType_pop_function(return_type));
+  ScopedPtr return_type = adopt(Copy(decl));
+  ScopedPtr function = adopt(SwigType_pop_function(return_type));
   Delete(SwigType_pop_function_qualifiers(function));
   return function.release();
 }
@@ -365,14 +365,14 @@ bool is_volatile_qualifier(SwigType *cv_qualifier) {
   if (!cv_qualifier)
     return false;
 
-  scoped_dohptr volatile_qualifier = adopt(SwigType_add_qualifier(Copy(cv_qualifier), "volatile"));
+  ScopedPtr volatile_qualifier = adopt(SwigType_add_qualifier(Copy(cv_qualifier), "volatile"));
   return Equal(volatile_qualifier, cv_qualifier);
 }
 
 // The qualifiers of the member function with the given decl, which an overload with the same parameters differs in.
 struct FunctionQualifiers {
   explicit FunctionQualifiers(SwigType *decl) {
-    scoped_dohptr cv_qualifier = adopt(get_function_cv_qualifier(decl));
+    ScopedPtr cv_qualifier = adopt(get_function_cv_qualifier(decl));
     is_const = SwigType_isconst(cv_qualifier);
     is_volatile = is_volatile_qualifier(cv_qualifier);
 
@@ -388,7 +388,7 @@ struct FunctionQualifiers {
 /*
   Information about a type used in the C++ wrappers, common to the function return type and its parameters.
  */
-class cxx_type_desc {
+class CxxTypeDesc {
 public:
   // The type is "void" until this function is called. It is either the C++ type given by a typemap, which SwigType_str() outputs as it is, or the SwigType of
   // a function pointer, which SwigType_str() outputs with the declarator inside it, as in 'int (*f)(int,int)' or 'int (*f(int))(int,int)'.
@@ -402,10 +402,10 @@ public:
   }
 
 protected:
-  cxx_type_desc() {
+  CxxTypeDesc() {
   }
 
-  scoped_dohptr type_;
+  ScopedPtr type_;
 
 private:
   static String *get_void_type() {
@@ -417,10 +417,10 @@ private:
 /*
   Information about the function return type.
  */
-class cxx_rtype_desc : public cxx_type_desc {
+class CxxRTypeDesc : public CxxTypeDesc {
 public:
   // Default ctor creates a "void" return type.
-  cxx_rtype_desc() {
+  CxxRTypeDesc() {
   }
 
   // If this returns true, get_return_code() can't be called.
@@ -452,7 +452,7 @@ public:
   // The returned string ends with a semicolon, i.e. is a complete statement (or possibly more than one).
   //
   // Asserts unless both set_type() and set_return_value() had been called.
-  scoped_dohptr get_return_code() const {
+  ScopedPtr get_return_code() const {
     assert(type_);
     assert(value_);
 
@@ -460,16 +460,16 @@ public:
       // Trivial case when we return the same value, just do it.
       //
       // Add extra spaces after/before opening/closing braces because we keep everything on the same line in this case.
-      return scoped_dohptr(NewStringf(" return %s; ", value_.get()));
+      return ScopedPtr(NewStringf(" return %s; ", value_.get()));
     }
 
     // We need to start by introducing a temporary variable for the C call result because if $cresult is used twice by the typemap, we don't want to call the
     // function twice. Note that just "auto" is enough because C functions can't return references, but we need "auto&&" for C++ result which can be anything
     // (defined by the user in their typemaps).
-    scoped_dohptr code = adopt(NewStringf("\n"
-                                          "%sauto swig_cres = %s;\n",
-                                          cindent,
-                                          value_.get()));
+    ScopedPtr code = adopt(NewStringf("\n"
+                                      "%sauto swig_cres = %s;\n",
+                                      cindent,
+                                      value_.get()));
 
     // We support 2 cases: either typemap is a statement, or multiple statements, containing assignment to $result, in which case this assignment must occur at
     // its beginning.
@@ -505,19 +505,19 @@ public:
   }
 
 private:
-  scoped_dohptr value_;
-  scoped_dohptr out_tm_;
+  ScopedPtr value_;
+  ScopedPtr out_tm_;
 };
 
 /*
   Information about a function parameter.
 
-  This is similar to cxx_rtype_desc, but is used for the parameters and not the return type.
+  This is similar to CxxRTypeDesc, but is used for the parameters and not the return type.
  */
-class cxx_ptype_desc : public cxx_type_desc {
+class CxxPTypeDesc : public CxxTypeDesc {
 public:
   // Ctor initializes the object to an empty/unknown state, call set_type() later to finish initialization, before calling get_param_code().
-  cxx_ptype_desc() {
+  CxxPTypeDesc() {
   }
 
   // This may be called before calling get_param_code() if a translation from C++ to C type is necessary. By default the parameter is passed "as is".
@@ -526,29 +526,29 @@ public:
   }
 
   // Return the full expression needed to pass the given value as parameter to C wrapper function.
-  scoped_dohptr get_param_code(String *value) const {
+  ScopedPtr get_param_code(String *value) const {
     assert(type_);
 
     if (!in_tm_) {
-      return scoped_dohptr(Copy(value));
+      return ScopedPtr(Copy(value));
     }
 
     // There doesn't seem to be any simple way to use the full SWIG typemap expansion machinery here, so just do it manually.
-    scoped_dohptr code = adopt(Copy(in_tm_));
+    ScopedPtr code = adopt(Copy(in_tm_));
     Replace(code, "$1", value, DOH_REPLACE_NUMBER_END);
     return code;
   }
 
 private:
-  scoped_dohptr in_tm_;
+  ScopedPtr in_tm_;
 };
 
 /*
   Struct containing information needed only for generating C++ wrappers.
 */
-struct cxx_wrappers {
+struct CxxWrappers {
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
-  cxx_wrappers() :
+  CxxWrappers() :
     except_check_start(NULL),
     except_check_end(NULL),
     sect_cxx_h(NULL),
@@ -600,7 +600,7 @@ struct cxx_wrappers {
   // Fill the provided rtype_desc with the type information for the given function node.
   //
   // Returns false in case of error, i.e. if function wrapper can't be generated at all.
-  bool lookup_cxx_ret_type(cxx_rtype_desc &rtype_desc, Node *n) {
+  bool lookup_cxx_ret_type(CxxRTypeDesc &rtype_desc, Node *n) {
     String *const func_type = Getattr(n, "type");
     if (SwigType_type(func_type) == T_VOID) {
       // Nothing to do, rtype_desc is void by default.
@@ -608,7 +608,7 @@ struct cxx_wrappers {
     }
 
     // As above, ensure our replaceSpecialVariables() is used.
-    temp_ptr_setter<cxx_rtype_desc *> set(&rtype_desc_, &rtype_desc);
+    TempPtrSetter<CxxRTypeDesc *> set(&rtype_desc_, &rtype_desc);
 
     bool use_cxxout = true;
     String *type(Swig_typemap_lookup("cxxouttype", n, "", NULL));
@@ -639,9 +639,9 @@ struct cxx_wrappers {
   }
 
   // Return the type description for the given parameter of the function.
-  bool lookup_cxx_parm_type(cxx_ptype_desc &ptype_desc, Node *n, Parm *p) {
+  bool lookup_cxx_parm_type(CxxPTypeDesc &ptype_desc, Node *n, Parm *p) {
     // Ensure our own replaceSpecialVariables() is used for $typemap() expansion.
-    temp_ptr_setter<cxx_ptype_desc *> set(&ptype_desc_, &ptype_desc);
+    TempPtrSetter<CxxPTypeDesc *> set(&ptype_desc_, &ptype_desc);
 
     bool use_cxxin = true;
     String *type = Swig_typemap_lookup("cxxintype", p, "", NULL);
@@ -715,7 +715,7 @@ struct cxx_wrappers {
 
 private:
   // Warn that the C++ wrappers do not support the type of a parameter, if ptype_desc is given, or a return type.
-  static void warn_unsupported_type(String *type, cxx_ptype_desc *ptype_desc) {
+  static void warn_unsupported_type(String *type, CxxPTypeDesc *ptype_desc) {
     Swig_warning(WARN_C_UNSUPPORTTED,
                  input_file,
                  line_number,
@@ -736,7 +736,7 @@ private:
   //
   // Also fills in the start/end wrapper parts of the provided type descriptions if they're not null, with the casts needed to translate from C type to C++ type
   // (this is used for the parameters of C++ functions, hence the name) and from C types to C++ types (which is used for the function return values).
-  static bool do_resolve_type(Node *n, String *type, String *s, cxx_ptype_desc *ptype_desc, cxx_rtype_desc *rtype_desc) {
+  static bool do_resolve_type(Node *n, String *type, String *s, CxxPTypeDesc *ptype_desc, CxxRTypeDesc *rtype_desc) {
     enum TypeKind { Type_Ptr, Type_Ref, Type_Obj, Type_Enm, Type_Max } typeKind = Type_Max;
 
     // These correspond to the typemaps for SWIGTYPE*, SWIGTYPE&, SWIGTYPE and enum SWIGTYPE, respectively, defined in c.swg.
@@ -776,8 +776,8 @@ private:
     //
     // An even better idea might be to try to define this using cxx{in,out} typemaps for the various types and let the generic SWIG machinery do all the
     // matching instead of doing it in the code here.
-    scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type));
-    scoped_dohptr base_resolved_type = adopt(SwigType_base(resolved_type));
+    ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type));
+    ScopedPtr base_resolved_type = adopt(SwigType_base(resolved_type));
 
     // A function pointer is passed to and returned from the C function as it is, so it has the type that the C function
     // is declared with. Only its top level qualifiers are removed, as those of its return type, such as the 'const' of
@@ -785,7 +785,7 @@ private:
     // function pointer. A class or an enum in this type is not supported, as its name would refer to the C++ wrapper
     // class or enum in the namespace of the C++ wrappers.
     if (typeKind == Type_Ptr) {
-      scoped_dohptr stripped_type = adopt(SwigType_remove_qualifier_reference(Copy(resolved_type)));
+      ScopedPtr stripped_type = adopt(SwigType_remove_qualifier_reference(Copy(resolved_type)));
       if (SwigType_isfunctionpointer(stripped_type)) {
         if (uses_base_type(stripped_type, is_class_or_enum)) {
           warn_unsupported_type(type, ptype_desc);
@@ -793,14 +793,14 @@ private:
         }
 
         // The C function is declared with a pointer in place of each reference in this type, as C has no references.
-        scoped_dohptr c_type = adopt(references_to_pointers(stripped_type));
+        ScopedPtr c_type = adopt(references_to_pointers(stripped_type));
         if (!Equal(c_type, stripped_type)) {
           if (rtype_desc) {
-            scoped_dohptr cxx_type_str = adopt(SwigType_str(stripped_type, 0));
+            ScopedPtr cxx_type_str = adopt(SwigType_str(stripped_type, 0));
             rtype_desc->apply_out_typemap(NewStringf("(%s)$cresult", cxx_type_str.get()));
           }
           if (ptype_desc) {
-            scoped_dohptr c_type_str = adopt(SwigType_str(c_type, 0));
+            ScopedPtr c_type_str = adopt(SwigType_str(c_type, 0));
             ptype_desc->apply_in_typemap(NewStringf("(%s)$1", c_type_str.get()));
           }
         }
@@ -814,7 +814,7 @@ private:
       }
     }
 
-    scoped_dohptr typestr;
+    ScopedPtr typestr;
     if (SwigType_isenum(base_resolved_type)) {
       String *enumname = NULL;
       if (Node *const enum_node = Language::instance()->enumLookup(base_resolved_type)) {
@@ -839,7 +839,7 @@ private:
       }
 
       // A pointer passed by const reference is passed and returned as just the pointer, as for a class below
-      scoped_dohptr passed_type = adopt(typeKind == Type_Ptr ? SwigType_remove_qualifier_reference(Copy(type)) : Copy(type));
+      ScopedPtr passed_type = adopt(typeKind == Type_Ptr ? SwigType_remove_qualifier_reference(Copy(type)) : Copy(type));
       if (SwigType_ispointer(passed_type))
         Append(typestr, " *");
       else if (SwigType_isreference(passed_type))
@@ -917,7 +917,7 @@ private:
 
         // We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
         // class name, which is not.
-        scoped_dohptr cxx_type = adopt(SwigType_prefix(resolved_type));
+        ScopedPtr cxx_type = adopt(SwigType_prefix(resolved_type));
         Append(cxx_type, classname);
         typestr = SwigType_str(cxx_type, 0);
       } else {
@@ -995,8 +995,8 @@ private:
   }
 
   // These pointers are temporarily set to non-null value only while expanding a typemap for C++ wrappers, see replaceSpecialVariables().
-  cxx_ptype_desc *ptype_desc_;
-  cxx_rtype_desc *rtype_desc_;
+  CxxPTypeDesc *ptype_desc_;
+  CxxRTypeDesc *rtype_desc_;
 
   // This one is set from the outside, so make it public for simplicity.
 public:
@@ -1004,15 +1004,15 @@ public:
 };
 
 /*
-  cxx_function_wrapper
+  CxxFunctionWrapper
 
   Outputs the C++ wrapper function. It's different from the C function because it is declared inside the namespace and so doesn't need the usual prefix and may
   also have different parameter and return types when objects and/or cxx{in,out}type typemaps are involved.
  */
-class cxx_function_wrapper {
+class CxxFunctionWrapper {
 public:
   // Call can_wrap() to check if this wrapper can be emitted later.
-  explicit cxx_function_wrapper(cxx_wrappers &cxx_wrappers, Node *n, Parm *p) : cxx_wrappers_(cxx_wrappers) {
+  explicit CxxFunctionWrapper(CxxWrappers &cxx_wrappers, Node *n, Parm *p) : cxx_wrappers_(cxx_wrappers) {
     func_node = NULL;
 
     except_check_start = except_check_end = "";
@@ -1049,7 +1049,7 @@ public:
         }
 
         // Static variables use fully qualified names, so we need to strip the scope from them.
-        scoped_dohptr name_ptr;
+        ScopedPtr name_ptr;
         if (Strstr(name, "::")) {
           name_ptr = Swig_scopename_last(name);
           name = name_ptr.get();
@@ -1066,7 +1066,7 @@ public:
 
         String *const name = Getattr(p, "lname");
 
-        cxx_ptype_desc ptype_desc;
+        CxxPTypeDesc ptype_desc;
         if (!cxx_wrappers_.lookup_cxx_parm_type(ptype_desc, n, p))
           return;
 
@@ -1133,24 +1133,24 @@ public:
 
   // Return the declaration of the wrapper with the given name, which may be qualified by the class name, and parameters, which are parms_cxx or none, as a
   // const member function if is_const is true. A constructor has no return type.
-  scoped_dohptr get_decl(String *name, ParmList *parms, bool is_const = false) const {
+  ScopedPtr get_decl(String *name, ParmList *parms, bool is_const = false) const {
     SwigType *const return_type = Checkattr(func_node, "nodeType", "constructor") ? NULL : rtype_desc.type();
     return get_func_decl(return_type, name, parms, is_const);
   }
 
-  cxx_wrappers &cxx_wrappers_;
+  CxxWrappers &cxx_wrappers_;
   Node *func_node;
-  cxx_rtype_desc rtype_desc;
+  CxxRTypeDesc rtype_desc;
   // The parameters of the wrapper, with the C++ types given by the typemaps.
-  scoped_dohptr parms_cxx;
-  scoped_dohptr parms_call;
+  ScopedPtr parms_cxx;
+  ScopedPtr parms_call;
   const char *except_check_start;
   const char *except_check_end;
 
 private:
   // Non copyable.
-  cxx_function_wrapper(const cxx_function_wrapper &);
-  cxx_function_wrapper &operator=(const cxx_function_wrapper &);
+  CxxFunctionWrapper(const CxxFunctionWrapper &);
+  CxxFunctionWrapper &operator=(const CxxFunctionWrapper &);
 };
 
 /*
@@ -1158,7 +1158,7 @@ private:
 
   The output first_base parameter is optional and is filled with the first base class (if any).
 */
-bool uses_multiple_inheritance(Node *n, scoped_dohptr *first_base_out = NULL) {
+bool uses_multiple_inheritance(Node *n, ScopedPtr *first_base_out = NULL) {
   if (first_base_out)
     first_base_out->reset();
 
@@ -1166,7 +1166,7 @@ bool uses_multiple_inheritance(Node *n, scoped_dohptr *first_base_out = NULL) {
   if (!baselist)
     return false;
 
-  scoped_dohptr first_base;
+  ScopedPtr first_base;
   for (Iterator i = First(baselist); i.item; i = Next(i)) {
     if (Checkattr(i.item, "feature:ignore", "1"))
       continue;
@@ -1187,16 +1187,16 @@ bool uses_multiple_inheritance(Node *n, scoped_dohptr *first_base_out = NULL) {
 }
 
 /*
-  cxx_class_wrapper
+  CxxClassWrapper
 
-  Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided cxx_wrappers object is initialized.
+  Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided CxxWrappers object is initialized.
 */
-class cxx_class_wrapper {
+class CxxClassWrapper {
 public:
-  // If the provided cxx_wrappers object is not initialized, this class doesn't do anything.
+  // If the provided CxxWrappers object is not initialized, this class doesn't do anything.
   //
   // The node pointer must be valid, point to a class and remain valid for the lifetime of this object.
-  cxx_class_wrapper(cxx_wrappers &cxx_wrappers, Node *n) : cxx_wrappers_(cxx_wrappers) {
+  CxxClassWrapper(CxxWrappers &cxx_wrappers, Node *n) : cxx_wrappers_(cxx_wrappers) {
     class_node_ = NULL;
 
     if (!cxx_wrappers_.is_initialized())
@@ -1207,7 +1207,7 @@ public:
 
     String *const classname = Getattr(n, "sym:name");
 
-    scoped_dohptr base_classes = adopt(NewStringEmpty());
+    ScopedPtr base_classes = adopt(NewStringEmpty());
     if (uses_multiple_inheritance(n, &first_base_)) {
       Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n), "Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n", classname);
 
@@ -1230,11 +1230,11 @@ public:
 
     // If we have any extra code, inject it. Note that we need a hack with an artificial extra node to use Swig_typemap_lookup(), as it needs a "type" attribute
     // which the class node doesn't have.
-    scoped_dohptr dummy = adopt(NewHash());
+    ScopedPtr dummy = adopt(NewHash());
     Setattr(dummy, "type", Getattr(n, "name"));
     Setfile(dummy, Getfile(n));
     Setline(dummy, Getline(n));
-    scoped_dohptr cxxcode = adopt(Swig_typemap_lookup("cxxcode", dummy, "", NULL));
+    ScopedPtr cxxcode = adopt(Swig_typemap_lookup("cxxcode", dummy, "", NULL));
     if (!cxxcode || *Char(cxxcode) != '\n')
       Append(cxx_wrappers_.sect_decls, "\n");
     if (cxxcode) {
@@ -1291,24 +1291,24 @@ public:
       }
     }
 
-    cxx_function_wrapper func_wrapper(cxx_wrappers_, n, p);
+    CxxFunctionWrapper func_wrapper(cxx_wrappers_, n, p);
     if (!func_wrapper.can_wrap())
       return;
 
     // Define aliases for the stuff actually stored in the function wrapper object.
-    cxx_rtype_desc &rtype_desc = func_wrapper.rtype_desc;
+    CxxRTypeDesc &rtype_desc = func_wrapper.rtype_desc;
     ParmList *const parms_cxx = func_wrapper.parms_cxx;
     String *const parms_call = func_wrapper.parms_call;
 
     // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
-    scoped_dohptr name_ptr = adopt(Swig_scopename_last(Getattr(n, "name")));
+    ScopedPtr name_ptr = adopt(Swig_scopename_last(Getattr(n, "name")));
     String *const name = name_ptr;
     String *const wname = Getattr(n, "wrap:name");
 
     String *const classname = Getattr(class_node_, "sym:name");
 
     // The name of the member in its definition outside the class.
-    scoped_dohptr impl_name = adopt(NewStringf("%s::%s", classname, is_ctor ? classname : name));
+    ScopedPtr impl_name = adopt(NewStringf("%s::%s", classname, is_ctor ? classname : name));
 
     if (Checkattr(n, "kind", "variable")) {
       // A getter has no parameters, as it gets the member variable of swig_self() or the static member variable.
@@ -1439,7 +1439,7 @@ public:
       }
     } else if (is_member) {
       // Wrapper parameters list may or not include "this" pointer and may or not have other parameters, so construct it piecewise for simplicity.
-      scoped_dohptr wparms = adopt(NewStringEmpty());
+      ScopedPtr wparms = adopt(NewStringEmpty());
       if (!is_static)
         Append(wparms, "swig_self()");
       if (Len(parms_call)) {
@@ -1464,13 +1464,13 @@ public:
     }
   }
 
-  ~cxx_class_wrapper() {
+  ~CxxClassWrapper() {
     // Don't do anything if generation of the wrapper for this class was disabled in ctor.
     if (!class_node_)
       return;
 
     // This is the name used for the class pointers in C wrappers.
-    scoped_dohptr c_class_ptr = get_c_class_ptr(class_node_);
+    ScopedPtr c_class_ptr = get_c_class_ptr(class_node_);
 
     String *const classname = Getattr(class_node_, "sym:name");
 
@@ -1589,8 +1589,8 @@ private:
   // Return the string containing the pointer type used for representing the objects of the given class in the C wrappers.
   //
   // Returned value includes "*" at the end.
-  static scoped_dohptr get_c_class_ptr(Node *class_node) {
-    return scoped_dohptr(NewStringf("SwigObj_%s*", get_c_proxy_name(class_node)));
+  static ScopedPtr get_c_class_ptr(Node *class_node) {
+    return ScopedPtr(NewStringf("SwigObj_%s*", get_c_proxy_name(class_node)));
   }
 
   // Return "virtual " if this is a virtual function, empty string otherwise.
@@ -1604,7 +1604,7 @@ private:
     return SwigType_isconst(Getattr(n, "qualifier"));
   }
 
-  cxx_wrappers &cxx_wrappers_;
+  CxxWrappers &cxx_wrappers_;
 
   // The class node itself, left null only if we skip generating wrappers for it for whatever reason.
   Node *class_node_;
@@ -1612,7 +1612,7 @@ private:
   // We currently don't support generating C++ wrappers for classes using multiple inheritance. This could be implemented, with some tweaks to allow
   // initializing the other base classes after creating the most-derived object, but hasn't been done yet. Until then we store just the first base class (if
   // any, this member can also be null).
-  scoped_dohptr first_base_;
+  ScopedPtr first_base_;
 
   // Name of the C function used for deleting the owned object, if any.
   String *dtor_wname_;
@@ -1621,8 +1621,8 @@ private:
   bool has_copy_ctor_;
 
   // Non copyable.
-  cxx_class_wrapper(const cxx_class_wrapper &);
-  cxx_class_wrapper &operator=(const cxx_class_wrapper &);
+  CxxClassWrapper(const CxxClassWrapper &);
+  CxxClassWrapper &operator=(const CxxClassWrapper &);
 };
 
 }  // anonymous namespace
@@ -1635,7 +1635,7 @@ class C : public Language {
   String *sect_wrappers_decl;
 
   // The structs and unions declared in sect_wrappers_types when wrapping C code because SWIG has not seen them.
-  scoped_dohptr forward_declared_types_;
+  ScopedPtr forward_declared_types_;
 
   // This one contains wrapper functions definitions and end up in the output C++ file.
   String *sect_wrappers;
@@ -1655,7 +1655,7 @@ class C : public Language {
   String *outfile_h;
 
   // Used only while generating wrappers for an enum and contains the prefix, ending with underscore, to use for enum elements or is empty.
-  scoped_dohptr enum_prefix_;
+  ScopedPtr enum_prefix_;
 
   // Used only while generating wrappers for an enum, as we don't know if enum will have any elements or not in advance and we must not generate an empty enum,
   // so we accumulate the full declaration here and then write it to sect_wrappers_types at once only if there are any elements.
@@ -1668,13 +1668,13 @@ class C : public Language {
   exceptions_support exceptions_support_;
 
   // This object contains information necessary only for C++ wrappers generation, use its is_initialized() to check if this is being done.
-  cxx_wrappers cxx_wrappers_;
+  CxxWrappers cxx_wrappers_;
 
   // Non-owning pointer to the current C++ class wrapper if we're currently generating one or NULL.
-  cxx_class_wrapper *cxx_class_wrapper_;
+  CxxClassWrapper *cxx_class_wrapper_;
 
   // This is parallel to enum_prefix_ but for C++ enum elements.
-  scoped_dohptr cxx_enum_prefix_;
+  ScopedPtr cxx_enum_prefix_;
 
   // This is parallel to enum_decl but for C++ enum declaration.
   String *cxx_enum_decl;
@@ -1712,8 +1712,8 @@ public:
   }
 
   // Construct the name to be used for a function with the given name in C wrappers.
-  maybe_owned_dohptr getFunctionWrapperName(Node *n, String *name) const {
-    maybe_owned_dohptr wname;
+  MaybeOwnedPtr getFunctionWrapperName(Node *n, String *name) const {
+    MaybeOwnedPtr wname;
 
     if (isSymNameWrapperName(n)) {
       wname.assign_non_owned(name);
@@ -1721,11 +1721,11 @@ public:
     }
 
     // Use namespace as the prefix if feature:nspace is in use.
-    scoped_dohptr scopename_prefix;
+    ScopedPtr scopename_prefix;
     if (GetFlag(parentNode(n), "feature:nspace")) {
       scopename_prefix = Swig_scopename_prefix(Getattr(n, "name"));
       if (scopename_prefix) {
-        scoped_dohptr mangled_prefix = adopt(Swig_name_mangle_string(scopename_prefix));
+        ScopedPtr mangled_prefix = adopt(Swig_name_mangle_string(scopename_prefix));
         scopename_prefix = mangled_prefix;
       }
     }
@@ -1838,7 +1838,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   String *getOpaqueTypeName(SwigType *type) {
-    scoped_dohptr mangled_type = adopt(SwigType_manglestr(type));
+    ScopedPtr mangled_type = adopt(SwigType_manglestr(type));
     String *const typestr = NewStringf("SWIGTYPE%s", mangled_type.get());
     Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
     return typestr;
@@ -1852,7 +1852,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   SwigType *replaceBaseTypes(SwigType *type, SwigType *(C::*new_base_type)(SwigType *base)) {
-    scoped_dohptr elements = adopt(SwigType_split(type));
+    ScopedPtr elements = adopt(SwigType_split(type));
     int const last = Len(elements) - 1;
     SwigType *const result = (this->*new_base_type)(Getitem(elements, last));
 
@@ -1861,7 +1861,7 @@ public:
       if (SwigType_isfunction(element)) {
         ParmList *const parms = SwigType_function_parms(element, NULL);
         for (Parm *p = parms; p; p = nextSibling(p)) {
-          scoped_dohptr parm_type = adopt(replaceBaseTypes(Getattr(p, "type"), new_base_type));
+          ScopedPtr parm_type = adopt(replaceBaseTypes(Getattr(p, "type"), new_base_type));
           Setattr(p, "type", parm_type);
         }
         SwigType_add_function(result, parms);
@@ -1884,7 +1884,7 @@ public:
     if (!c_name && SwigType_isclass(base)) {
       // A class that is not wrapped is the opaque struct that a pointer to it points to elsewhere in the header file, as
       // in 'SWIGTYPE_p_Foo *' for a 'Foo *' parameter
-      scoped_dohptr ptr_type = adopt(SwigType_add_pointer(Copy(base)));
+      ScopedPtr ptr_type = adopt(SwigType_add_pointer(Copy(base)));
       c_name = getOpaqueTypeName(ptr_type);
     }
     return c_name ? c_name : Copy(base);
@@ -1912,7 +1912,7 @@ public:
     // name, so it is given as it is when not using C++, as any other type below, and in the header file for C++, using the C
     // names of the classes and enums in it. This is checked first, as the return type of a function pointer can be an enum.
     if (!CPlusPlus || current_output == output_wrapper_decl) {
-      scoped_dohptr ctype = adopt(Copy(classnametype));
+      ScopedPtr ctype = adopt(Copy(classnametype));
       // C has no references, so the reference removed by "$*resolved_type" in the 'SWIGTYPE &' typemaps becomes a
       // pointer, as in 'int (*carg1)(int)' for 'int (&)(int)', 'int (*carg1)[4]' for 'int (&)[4]' or
       // 'int (**carg1)(int)' for 'int (*&)(int)'.
@@ -1926,11 +1926,11 @@ public:
           ctype = getCNamesType(ctype);
         }
         // The 'ctype' typemap of each base type in it is looked up for the fragments it uses, such as "stdbool_inc" for a bool
-        scoped_dohptr base_types = adopt(NewList());
+        ScopedPtr base_types = adopt(NewList());
         append_base_types(ctype, base_types);
         for (Iterator i = First(base_types); i.item; i = Next(i)) {
-          scoped_dohptr base_parm = adopt(NewParm(i.item, 0, file_line_node));
-          scoped_dohptr base_tm = adopt(Swig_typemap_lookup("ctype", base_parm, "", 0));
+          ScopedPtr base_parm = adopt(NewParm(i.item, 0, file_line_node));
+          ScopedPtr base_tm = adopt(Swig_typemap_lookup("ctype", base_parm, "", 0));
         }
         Clear(tm);
         Append(tm, ctype);
@@ -1941,10 +1941,10 @@ public:
     // Just use the original C type when not using C++, we know that this type can be used in the wrappers. It keeps its qualifiers, as in
     // 'struct S const *', but an array decays to a pointer, as for a function parameter. An enum has its C name, see getEnumCType().
     if (!CPlusPlus) {
-      scoped_dohptr ctype = adopt(SwigType_decay_array(classnametype));
-      scoped_dohptr c_btype = adopt(SwigType_base(ctype));
+      ScopedPtr ctype = adopt(SwigType_decay_array(classnametype));
+      ScopedPtr c_btype = adopt(SwigType_base(ctype));
       if (SwigType_isenum(c_btype)) {
-        scoped_dohptr c_enumname = adopt(getEnumCType(c_btype));
+        ScopedPtr c_enumname = adopt(getEnumCType(c_btype));
         ctype = SwigType_prefix(ctype);
         Append(ctype, c_enumname);
       } else if (SwigType_isclasskey(c_btype) && !classLookup(c_btype) && !Getattr(forward_declared_types_, c_btype)) {
@@ -1958,9 +1958,9 @@ public:
       return true;
     }
 
-    scoped_dohptr btype = adopt(SwigType_base(classnametype));
+    ScopedPtr btype = adopt(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
-      scoped_dohptr c_enumname = adopt(getEnumCType(btype));
+      ScopedPtr c_enumname = adopt(getEnumCType(btype));
       Replaceall(tm, classnamespecialvariable, c_enumname);
     } else {
       String *typestr = NIL;
@@ -1976,10 +1976,10 @@ public:
           // The typemap adds a '*' to the name of the class or builtin type, as in "$resolved_type*", so a pointer to a
           // pointer keeps its other pointers, as in 'cvoid_S **' for 'S **'. With "$*resolved_type", this '*' is the
           // reference removed from the type instead, as in 'cvoid_S **' for 'S *&'.
-          scoped_dohptr ptr_type = adopt(Copy(classnametype));
+          ScopedPtr ptr_type = adopt(Copy(classnametype));
           if (Strcmp(classnamespecialvariable, "$*resolved_type") != 0 && SwigType_ispointer(ptr_type))
             SwigType_del_pointer(ptr_type);
-          scoped_dohptr c_type = adopt(NewStringEmpty());
+          ScopedPtr c_type = adopt(NewStringEmpty());
           while (SwigType_ispointer(ptr_type)) {
             SwigType_del_pointer(ptr_type);
             SwigType_add_pointer(c_type);
@@ -2078,7 +2078,7 @@ public:
     // The typemap that $typemap() expands to is put into the text of another typemap, so it needs C type text
     SwigType *type = Getattr(parm, "type");
     if (substituteResolvedType(type, tm, parm)) {
-      scoped_dohptr ctype = adopt(SwigType_str(tm, 0));
+      ScopedPtr ctype = adopt(SwigType_str(tm, 0));
       Clear(tm);
       Append(tm, ctype);
     }
@@ -2165,7 +2165,7 @@ public:
     String *outfile = Getattr(n, "outfile");
 
     // initialize I/O
-    const scoped_dohptr f_wrappers_cxx = adopt(NewFile(outfile, "w", SWIG_output_files()));
+    const ScopedPtr f_wrappers_cxx = adopt(NewFile(outfile, "w", SWIG_output_files()));
     if (!f_wrappers_cxx) {
       FileErrorDisplay(outfile);
       Exit(EXIT_FAILURE);
@@ -2177,7 +2177,7 @@ public:
 
     // Open the file where all wrapper declarations will be written to in the end.
     outfile_h = Getattr(n, "outfile_h");
-    const scoped_dohptr f_wrappers_h = adopt(NewFile(outfile_h, "w", SWIG_output_files()));
+    const ScopedPtr f_wrappers_h = adopt(NewFile(outfile_h, "w", SWIG_output_files()));
     if (!f_wrappers_h) {
       FileErrorDisplay(outfile_h);
       Exit(EXIT_FAILURE);
@@ -2186,10 +2186,10 @@ public:
     Swig_banner(f_wrappers_h);
 
     // Associate file with the SWIG sections with the same name, so that e.g. "%header" contents end up in sect_header etc.
-    const scoped_dohptr sect_begin = adopt(NewStringEmpty());
-    const scoped_dohptr sect_header = adopt(NewStringEmpty());
-    const scoped_dohptr sect_runtime = adopt(NewStringEmpty());
-    const scoped_dohptr sect_init = adopt(NewStringEmpty());
+    const ScopedPtr sect_begin = adopt(NewStringEmpty());
+    const ScopedPtr sect_header = adopt(NewStringEmpty());
+    const ScopedPtr sect_runtime = adopt(NewStringEmpty());
+    const ScopedPtr sect_init = adopt(NewStringEmpty());
 
     // This one is used outside of this function, so it's a member variable rather than a local one.
     sect_wrappers = NewStringEmpty();
@@ -2235,7 +2235,7 @@ public:
                                                    "#endif /* %s */\n",
                                                    include_guard_name);
 
-      begin_end_output_guard include_guard_wrappers_h(f_wrappers_h, include_guard_begin, include_guard_end);
+      BeginEndOutputGuard include_guard_wrappers_h(f_wrappers_h, include_guard_begin, include_guard_end);
 
       // All the struct types used by the functions go to f_wrappers_types so that they're certain to be defined before they're used by any functions. All the
       // functions declarations go directly to f_wrappers_decl we write both of them to f_wrappers_h at the end.
@@ -2244,7 +2244,7 @@ public:
       forward_declared_types_ = NewHash();
 
       {
-        cplusplus_output_guard cplusplus_guard_wrappers(sect_wrappers), cplusplus_guard_wrappers_h(sect_wrappers_decl);
+        CPlusPlusOutputGuard cplusplus_guard_wrappers(sect_wrappers), cplusplus_guard_wrappers_h(sect_wrappers_decl);
 
         // emit code for children
         Language::top(n);
@@ -2267,11 +2267,11 @@ public:
         Dump(cxx_wrappers_.sect_cxx_h, f_wrappers_h);
 
         // Generate possibly nested namespace declarations, as unfortunately we can't rely on C++17 nested namespace definitions being always available.
-        scoped_dohptr cxx_ns_end = adopt(NewStringEmpty());
+        ScopedPtr cxx_ns_end = adopt(NewStringEmpty());
         for (const char *c = Char(ns_cxx);;) {
           const char *const next = strstr(c, "::");
 
-          maybe_owned_dohptr ns_component;
+          MaybeOwnedPtr ns_component;
           if (next) {
             ns_component.assign_owned(NewStringWithSize(c, (int)(next - c)));
           } else {
@@ -2323,7 +2323,7 @@ public:
     // We can only do something if we have a module name.
     if (String *const imported_module_name = Getattr(n, "module")) {
       // Start with our header name.
-      scoped_dohptr header_name = adopt(Copy(outfile_h));
+      ScopedPtr header_name = adopt(Copy(outfile_h));
 
       // Strip the output directory from the file name, as it should be common to all generated headers.
       Replace(header_name, SWIG_output_directory(), "", DOH_REPLACE_FIRST);
@@ -2349,7 +2349,7 @@ public:
 
     // We can't export variables defined inside namespaces to C directly, whatever their type, and we can only export them under their original name, so we
     // can't do it when using a global namespace prefix neither.
-    if (!ns_prefix && !scoped_dohptr(Swig_scopename_prefix(Getattr(n, "name")))) {
+    if (!ns_prefix && !ScopedPtr(Swig_scopename_prefix(Getattr(n, "name")))) {
       // If we can export the variable directly, do it, this will be more convenient to use from C code than accessor functions.
       if (String *const var_decl = make_c_var_decl(n, Getattr(n, "type"), false)) {
         Printv(sect_wrappers_decl, "SWIGIMPORT ", var_decl, ";\n\n", NIL);
@@ -2359,7 +2359,7 @@ public:
     }
 
     // Save the sym:name of the variable, which names the C++ wrappers of its accessors, as for a member variable, for
-    // cxx_function_wrapper::emit(). The sym:name of an accessor is the name of the C wrapper that the C++ one calls.
+    // CxxFunctionWrapper::emit(). The sym:name of an accessor is the name of the C wrapper that the C++ one calls.
     if (!getCurrentClass()) {
       Swig_require("c:globalvariableHandler", n, "*sym:name", NIL);
 
@@ -2369,7 +2369,7 @@ public:
       // "member". Using it for both would result in the prefix being used twice for the member variables getters and
       // setters, so we have to work around it here instead.
       if (ns_prefix) {
-        scoped_dohptr prefixed_name = adopt(NewStringf("%s_%s", ns_prefix, Getattr(n, "sym:name")));
+        ScopedPtr prefixed_name = adopt(NewStringf("%s_%s", ns_prefix, Getattr(n, "sym:name")));
         Setattr(n, "sym:name", prefixed_name);
       }
     }
@@ -2479,22 +2479,22 @@ public:
    * ---------------------------------------------------------------------- */
 
   String *get_mangled_type(SwigType *type_arg) {
-    scoped_dohptr resolved_type = adopt(SwigType_typedef_resolve_all(type_arg));
+    ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type_arg));
 
     // A pointer, or a pointer to member, to a function is mangled as 'f', without its parameter and return types. Any
     // other pointer is mangled from type_arg, without resolving its typedefs, unlike any other type.
     SwigType *type = resolved_type;
     if (SwigType_ispointer(resolved_type) || SwigType_ismemberpointer(resolved_type)) {
-      scoped_dohptr pointee = adopt(Copy(resolved_type));
+      ScopedPtr pointee = adopt(Copy(resolved_type));
       Delete(SwigType_pop(pointee));
       if (SwigType_isfunction(pointee))
         return NewString("f");
       type = type_arg;
     }
 
-    scoped_dohptr prefix = adopt(NewStringEmpty());
-    scoped_dohptr type_prefix = adopt(SwigType_prefix(type));
-    scoped_dohptr elements = adopt(SwigType_split(type_prefix));
+    ScopedPtr prefix = adopt(NewStringEmpty());
+    ScopedPtr type_prefix = adopt(SwigType_prefix(type));
+    ScopedPtr elements = adopt(SwigType_split(type_prefix));
     for (Iterator i = First(elements); i.item; i = Next(i)) {
       SwigType *const element = i.item;
       if (SwigType_ispointer(element)) {
@@ -2509,17 +2509,17 @@ public:
         if (is_volatile_qualifier(element))
           Append(prefix, "v");
       } else if (SwigType_isarray(element)) {
-        scoped_dohptr size = adopt(SwigType_array_getdim(element, 0));
+        ScopedPtr size = adopt(SwigType_array_getdim(element, 0));
         Printv(prefix, "a", size.get(), NIL);
       } else if (SwigType_ismemberpointer(element)) {
-        scoped_dohptr class_name = adopt(SwigType_parm(element));
-        scoped_dohptr mangled_class_name = adopt(Swig_name_mangle_type(class_name));
+        ScopedPtr class_name = adopt(SwigType_parm(element));
+        ScopedPtr mangled_class_name = adopt(Swig_name_mangle_type(class_name));
         Printv(prefix, "m", mangled_class_name.get(), NIL);
       } else if (SwigType_isfunction(element)) {
         Append(prefix, "f");
-        scoped_dohptr parm_types = adopt(SwigType_parmlist(element));
+        ScopedPtr parm_types = adopt(SwigType_parmlist(element));
         for (Iterator j = First(parm_types); j.item; j = Next(j)) {
-          scoped_dohptr mangled_parm_type = adopt(get_mangled_type(j.item));
+          ScopedPtr mangled_parm_type = adopt(get_mangled_type(j.item));
           Printv(prefix, "_", mangled_parm_type.get(), NIL);
         }
       } else if (SwigType_isvariadic(element)) {
@@ -2532,11 +2532,11 @@ public:
     // An array size can be an expression, such as 'N+1' or 'sizeof("abc")', so mangle it.
     String *result = Swig_name_mangle_string(prefix);
 
-    scoped_dohptr base = adopt(SwigType_base(type));
+    ScopedPtr base = adopt(SwigType_base(type));
     if (SwigType_isbuiltin(base)) {
       Printf(result, "%c", *Char(base));
     } else if (SwigType_isenum(base)) {
-      scoped_dohptr enumname = adopt(Swig_scopename_last(base));
+      ScopedPtr enumname = adopt(Swig_scopename_last(base));
       const char *s = Char(enumname);
       static const size_t len_enum_prefix = strlen("enum ");
       if (strncmp(s, "enum ", len_enum_prefix) == 0)
@@ -2545,7 +2545,7 @@ public:
     } else {
       // Use Swig_name_mangle_type() here and not Swig_name_mangle_string() to get slightly simpler mangled name for templates (notably avoiding "_Sp_" and
       // "_SP_" fragments for the parentheses used by SWIG internally around template parameters).
-      scoped_dohptr mangled_base = adopt(Swig_name_mangle_type(base));
+      ScopedPtr mangled_base = adopt(Swig_name_mangle_type(base));
       Append(result, mangled_base);
     }
 
@@ -2555,7 +2555,7 @@ public:
   void functionWrapperCSpecific(Node *n) {
     // this is C function, we don't apply typemaps to it
     String *name = Getattr(n, "sym:name");
-    maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
+    MaybeOwnedPtr wname = getFunctionWrapperName(n, name);
     SwigType *type = Getattr(n, "type");
     SwigType *return_type = NULL;
     ParmList *parms = Getattr(n, "parms");
@@ -2586,20 +2586,20 @@ public:
     return_type = SwigType_str(type, 0);
 
     // emit wrapper prototype and code
-    scoped_dohptr parms_c;
+    ScopedPtr parms_c;
     for (p = parms; p; p = nextSibling(p)) {
-      scoped_dohptr parm_type = adopt(SwigType_decay_array(Getattr(p, "type")));
+      ScopedPtr parm_type = adopt(SwigType_decay_array(Getattr(p, "type")));
       parms_c = ParmList_join(parms_c.release(), NewParm(parm_type, Getattr(p, "lname"), p));
     }
 
     // the name goes inside the declaration, as for a function returning a pointer to an array, which is what the getter
     // of an array variable returns, as in 'int (*name(void))[3]'
-    scoped_dohptr def_type = adopt(SwigType_decay_array(type));
+    ScopedPtr def_type = adopt(SwigType_decay_array(type));
     Printv(wrapper->def, get_func_decl(def_type, wname, parms_c).get(), " {\n", NIL);
 
     // the result variable is assigned to, so it does not have the qualifiers of a const return type
     if (!is_void_return) {
-      Printv(wrapper->code, scoped_dohptr(SwigType_lstr(type, "result")).get(), ";\n", NIL);
+      Printv(wrapper->code, ScopedPtr(SwigType_lstr(type, "result")).get(), ";\n", NIL);
     }
 
     // attach 'check' typemaps
@@ -2630,11 +2630,11 @@ public:
       Setattr(n, "c:canthrow", "1");
 
     Append(wrapper->code, prepend_feature(n));
-    Append(wrapper->code, scoped_dohptr(emit_action(n)).get());
+    Append(wrapper->code, ScopedPtr(emit_action(n)).get());
     Append(wrapper->code, append_feature(n));
     // The result variable has no qualifiers, so it is cast back to the return type, as a 'char **' cannot be returned as a 'const char **' without a cast
     if (!is_void_return)
-      Printv(wrapper->code, "return ", scoped_dohptr(SwigType_rcaststr(type, "result")).get(), ";\n", NIL);
+      Printv(wrapper->code, "return ", ScopedPtr(SwigType_rcaststr(type, "result")).get(), ";\n", NIL);
 
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
     if (SwigType_type(resolved_type) == T_USER) {
@@ -2666,7 +2666,7 @@ public:
 
   void functionWrapperAppendOverloaded(String *name, Parm *first_param) {
     for (Parm *p = first_param; p; p = nextSibling(p)) {
-      scoped_dohptr mangled = adopt(get_mangled_type(Getattr(p, "type")));
+      ScopedPtr mangled = adopt(get_mangled_type(Getattr(p, "type")));
       Printv(name, "_", mangled.get(), NIL);
     }
   }
@@ -2689,7 +2689,7 @@ public:
 
   void functionWrapperAppendQualifiers(String *name, Node *n) {
     SwigType *const decl = Getattr(n, "decl");
-    scoped_dohptr parms_type = adopt(get_function_parms_type(decl));
+    ScopedPtr parms_type = adopt(get_function_parms_type(decl));
     if (!parms_type)
       return;
 
@@ -2702,7 +2702,7 @@ public:
         continue;
 
       SwigType *const over_decl = Getattr(nover, "decl");
-      scoped_dohptr over_parms_type = adopt(get_function_parms_type(over_decl));
+      ScopedPtr over_parms_type = adopt(get_function_parms_type(over_decl));
       if (!Equal(over_parms_type, parms_type))
         continue;
 
@@ -2728,7 +2728,7 @@ public:
    *
    * Return the type returned by the wrapper of the function n, which is C type text or a SwigType, see substituteResolvedType().
    * ---------------------------------------------------------------------- */
-  scoped_dohptr get_wrapper_func_return_type(Node *n) {
+  ScopedPtr get_wrapper_func_return_type(Node *n) {
     SwigType *type = Getattr(n, "type");
     String *return_type;
 
@@ -2741,7 +2741,7 @@ public:
       return_type = NewString("");
     }
 
-    return scoped_dohptr(return_type);
+    return ScopedPtr(return_type);
   }
 
   /* ----------------------------------------------------------------------
@@ -2752,11 +2752,11 @@ public:
    * If a non-null wrapper is specified, it is used to emit typemap-defined code in it and it also determines whether we're generating the prototype for the
    * declarations or the definitions, which changes the type used for the C++ objects.
    * ---------------------------------------------------------------------- */
-  scoped_dohptr get_wrapper_func_parms(Node *n, Wrapper *wrapper = NULL) {
+  ScopedPtr get_wrapper_func_parms(Node *n, Wrapper *wrapper = NULL) {
     ParmList *parms = Getattr(n, "parms");
 
     Parm *p;
-    scoped_dohptr parms_c;
+    ScopedPtr parms_c;
 
     // attach the standard typemaps, except when wrapping C, as the 'in' typemaps are then not used
     if (wrapper) {
@@ -2795,7 +2795,7 @@ public:
 
       if (SwigType_type(type) == T_VARARGS) {
         Swig_error(Getfile(n), Getline(n), "Vararg function %s not supported.\n", Getattr(n, "name"));
-        return scoped_dohptr(NULL);
+        return ScopedPtr(NULL);
       }
 
       String *lname = Getattr(p, "lname");
@@ -2804,7 +2804,7 @@ public:
 
       Printf(arg_name, "c%s", lname);
 
-      scoped_dohptr parm_ctype;
+      ScopedPtr parm_ctype;
       if (CPlusPlus) {
         tm = Getattr(p, "tmap:ctype");
       } else {
@@ -2866,8 +2866,8 @@ public:
     current_output = output_wrapper_decl;
 
     // add function declaration to the proxy header file
-    scoped_dohptr parms_c = get_wrapper_func_parms(n);
-    scoped_dohptr return_type = get_wrapper_func_return_type(n);
+    ScopedPtr parms_c = get_wrapper_func_parms(n);
+    ScopedPtr return_type = get_wrapper_func_return_type(n);
     Printv(sect_wrappers_decl, "SWIGIMPORT ", get_func_decl(return_type, wname, parms_c).get(), ";\n\n", NIL);
   }
 
@@ -2916,8 +2916,8 @@ public:
     current_output = output_wrapper_def;
 
     SwigType *type = Getattr(n, "type");
-    scoped_dohptr return_type = get_wrapper_func_return_type(n);
-    maybe_owned_dohptr wname = getFunctionWrapperName(n, name);
+    ScopedPtr return_type = get_wrapper_func_return_type(n);
+    MaybeOwnedPtr wname = getFunctionWrapperName(n, name);
     bool is_void_return = (SwigType_type(type) == T_VOID);
     // create new function wrapper object
     Wrapper *wrapper = NewWrapper();
@@ -2942,7 +2942,7 @@ public:
     }
 
     // create wrapper function prototype
-    scoped_dohptr parms_c = get_wrapper_func_parms(n, wrapper);
+    ScopedPtr parms_c = get_wrapper_func_parms(n, wrapper);
     Printv(wrapper->def, "SWIGEXPORTC ", get_func_decl(return_type, wname, parms_c).get(), " {", NIL);
 
     // emit variables for holding parameters
@@ -3012,7 +3012,7 @@ public:
         const char *p = strstr(start, "$result = ");
         if (p == start || (p && p[-1] == ' ')) {
           p += strlen("$result = ");
-          scoped_dohptr result_cast = adopt(NewStringf("(%s)", return_type.get()));
+          ScopedPtr result_cast = adopt(NewStringf("(%s)", return_type.get()));
 
           // However don't add a cast which is already there.
           if (strncmp(p, Char(result_cast), strlen(Char(result_cast))) != 0)
@@ -3054,7 +3054,7 @@ public:
     }
 
     // insert cleanup code, which is run after an error too, so the canthrow attribute is not used for a freearg typemap, which cannot use SWIG_fail
-    scoped_dohptr cleanup = adopt(NewStringEmpty());
+    ScopedPtr cleanup = adopt(NewStringEmpty());
     for (p = parms; p;) {
       String *tm;
       if ((tm = Getattr(p, "tmap:freearg"))) {
@@ -3090,12 +3090,12 @@ public:
     emit_wrapper_func_decl(n, wname);
 
     if (cxx_wrappers_.is_initialized()) {
-      temp_ptr_setter<Node *> set(&cxx_wrappers_.node_func_, n);
+      TempPtrSetter<Node *> set(&cxx_wrappers_.node_func_, n);
 
       if (cxx_class_wrapper_) {
         cxx_class_wrapper_->emit_member_function(n);
       } else {
-        cxx_function_wrapper w(cxx_wrappers_, n, Getattr(n, "parms"));
+        CxxFunctionWrapper w(cxx_wrappers_, n, Getattr(n, "parms"));
         if (w.can_wrap())
           w.emit();
       }
@@ -3187,7 +3187,7 @@ public:
   SwigType *resolve_undeclared_typedefs(SwigType *type) {
     SwigType *resolved = Copy(type);
     for (;;) {
-      scoped_dohptr base = adopt(SwigType_base(resolved));
+      ScopedPtr base = adopt(SwigType_base(resolved));
       if (Node *enum_node = enumLookup(base)) {
         if (Checkattr(enum_node, "allows_typedef", "1") && Equal(Getattr(enum_node, "sym:name"), base))
           break;
@@ -3256,7 +3256,7 @@ public:
       decl_type = SwigType_prefix(type);
       Append(decl_type, "int");
     } else {
-      scoped_dohptr btype = adopt(SwigType_base(type));
+      ScopedPtr btype = adopt(SwigType_base(type));
       // Enums are special as they can be unknown, i.e. not wrapped by SWIG, see below
       if (!SwigType_isenum(btype)) {
         // Don't bother with checking if type is representable in C if we're wrapping C and not C++ anyhow: of course it is.
@@ -3307,9 +3307,9 @@ public:
       String *const ntype = nodeType(node);
       if (Cmp(ntype, "cdecl") == 0) {
         // The type of a member is given by its "type" and "decl" attributes, as in 'p.f(int).int' for 'int (*fp)(int)'
-        scoped_dohptr member_type = adopt(NewString(Getattr(node, "type")));
+        ScopedPtr member_type = adopt(NewString(Getattr(node, "type")));
         SwigType_push(member_type, Getattr(node, "decl"));
-        scoped_dohptr t = adopt(SwigType_typedef_resolve_all(member_type));
+        ScopedPtr t = adopt(SwigType_typedef_resolve_all(member_type));
         if (SwigType_isfunction(t)) {
           Swig_warning(WARN_C_UNSUPPORTTED, input_file, line_number, "Extending C struct with %s is not currently supported, ignored.\n", SwigType_str(t, 0));
         } else {
@@ -3351,8 +3351,8 @@ public:
     String *const name = get_c_proxy_name(n);
 
     if (CPlusPlus) {
-      cxx_class_wrapper cxx_class_wrapper_obj(cxx_wrappers_, n);
-      temp_ptr_setter<cxx_class_wrapper *> set_cxx_class_wrapper(&cxx_class_wrapper_, &cxx_class_wrapper_obj);
+      CxxClassWrapper cxx_class_wrapper_obj(cxx_wrappers_, n);
+      TempPtrSetter<CxxClassWrapper *> set_cxx_class_wrapper(&cxx_class_wrapper_, &cxx_class_wrapper_obj);
 
       // inheritance support: attach all members from base classes to this class
       if (List *baselist = Getattr(n, "bases")) {
@@ -3543,8 +3543,8 @@ public:
     // C++ enum names don't use the prefix, as they're defined in namespace or class scope.
     String *cxx_enum_prefix = NULL;
 
-    scoped_dohptr enumname;
-    scoped_dohptr cxx_enumname;
+    ScopedPtr enumname;
+    ScopedPtr cxx_enumname;
 
     // Unnamed enums may just have no name at all or have a synthesized invalid name of the form "$unnamedN$ which is indicated by "unnamed" attribute.
     if (String *const name = Getattr(n, "unnamed") ? NULL : symname) {
@@ -3651,7 +3651,7 @@ public:
     String *value = Getattr(n, "enumvalue");
     if (value) {
       // We can't always use the raw value, check its type to see if we need to transform it.
-      maybe_owned_dohptr cvalue;
+      MaybeOwnedPtr cvalue;
       switch (SwigType_type(Getattr(n, "type"))) {
       case T_BOOL:
         // Boolean constants can't appear in C code, so replace them with their values in the simplest possible case. This is not exhaustive, of course,

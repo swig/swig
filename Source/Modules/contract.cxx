@@ -16,14 +16,14 @@
 /* Contract structure.  This holds rules about the different kinds of contract sections
    and their combination rules */
 
-struct contract {
+struct Contract {
   const char *section;
   const char *combiner;
 };
 /* Contract rules.  This table defines what contract sections are recognized as well as
    how contracts are to combined via inheritance */
 
-static contract Rules[] = {
+static Contract Rules[] = {
   {"require:", "&&"},
   {"ensure:",  "||"},
   {NULL,       NULL}
