@@ -80,6 +80,10 @@ Node *Swig_symbol_is_typedef(Node *n) { ... }
 
 The header is `/* ` plus a row of dashes, then ` * FunctionName()`, a blank ` *` line, the description, then a closing ` * ` dashes ` */` line. Small file-static helpers may use a one-line plain comment or none, but anything exported in a header should get the full block. Match the surrounding headers in the file you are editing.
 
+Describe what a function does and what it returns, not how its memory is handled. Do not write in a function comment
+that the caller must free or delete the returned value, or that the value is newly allocated or owned by the caller:
+the memory handling is clear from the code, such as from the return type.
+
 ## `parser.y` formatting (new code)
 
 `Source/CParse/parser.y` is a long lived Bison file with a mix of historical conventions. For **new code** added to it, follow the same conventions used in `.c` and `.cxx` files:
