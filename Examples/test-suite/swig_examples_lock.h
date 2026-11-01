@@ -3,7 +3,7 @@
 
 #include <windows.h>
 
-namespace SwigExamples {
+namespace Examples {
 
 class CriticalSection {
 public:
@@ -37,7 +37,7 @@ private:
   #define PTHREAD_MUTEX_RECURSIVE_NP PTHREAD_MUTEX_RECURSIVE
 #endif
 
-namespace SwigExamples {
+namespace Examples {
 
 class CriticalSection {
 public:

@@ -22,12 +22,12 @@
 #endif
 %}
 
-%define %generate_swig_version_from_preprocessor()%#define SWIG_VERSION_FROM_SWIG_PREPROCESSOR SWIG_VERSION %enddef
+%define %generate_swig_version_from_preprocessor()%#define VERSION_FROM_SWIG_PREPROCESSOR SWIG_VERSION %enddef
 %insert("header") {
 %generate_swig_version_from_preprocessor()
 }
 %insert("header") %{
-#if SWIG_VERSION != SWIG_VERSION_FROM_SWIG_PREPROCESSOR
+#if SWIG_VERSION != VERSION_FROM_SWIG_PREPROCESSOR
 # error SWIG_VERSION in SWIG preprocessor does not match SWIG_VERSION from C preprocessor
 #endif
 %}

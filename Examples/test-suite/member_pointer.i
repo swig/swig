@@ -67,7 +67,7 @@ extern const PerimeterFunc_td &perimetervar_td_cref();
 %}
 
 %{
-#  define SWIG_M_PI 3.14159265358979323846
+#  define SHAPE_PI 3.14159265358979323846
 
 /* Move the shape to a new location */
 void Shape::move(double dx, double dy) {
@@ -78,11 +78,11 @@ void Shape::move(double dx, double dy) {
 int Shape::nshapes = 0;
 
 double Circle::area(void) {
-  return SWIG_M_PI*radius*radius;
+  return SHAPE_PI*radius*radius;
 }
 
 double Circle::perimeter(void) {
-  return 2*SWIG_M_PI*radius;
+  return 2*SHAPE_PI*radius;
 }
 
 double Square::area(void) {

@@ -1,7 +1,7 @@
 %module wrapmacro
 
 #ifdef SWIGLUA	// lua only has one numeric type, so some overloads shadow each other creating warnings
-%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) SWIGMACRO_maximum;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) MACRO_maximum;
 #endif
 
 /* Testing technique for wrapping macros */
@@ -29,9 +29,9 @@ typedef unsigned short guint16;
 
 /* Here, the auxiliary macro to wrap a macro */
 %define %wrapmacro(type, name, lparams, lnames)
-%rename(name) SWIGMACRO_##name;
+%rename(name) MACRO_##name;
 %inline %{
-type SWIGMACRO_##name(lparams) {
+type MACRO_##name(lparams) {
   return name(lnames);
 }
 %}

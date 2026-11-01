@@ -510,7 +510,7 @@ struct Instances {
 %javaconst(0) ignoreA_thirteen;
 #elif defined(SWIGCSHARP)
 // needed for typesafe enums only
-#ifdef SWIG_TEST_NOCSCONST
+#ifdef TEST_NOCSCONST
   %csconst(0) ignoreA_three;
   %csconst(0) ignoreA_thirteen;
 #endif

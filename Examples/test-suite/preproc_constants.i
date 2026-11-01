@@ -135,7 +135,7 @@ enum MyEnum {
 
 // For detecting when test-suite is run with SWIGWORDSIZE64 defined
 #ifdef SWIGWORDSIZE64
-#define SWIGWORDSIZE64_enabled 1
+#define WORDSIZE64_enabled 1
 #else
-#define SWIGWORDSIZE64_enabled 0
+#define WORDSIZE64_enabled 0
 #endif

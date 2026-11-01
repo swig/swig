@@ -42,15 +42,15 @@ extern "C" {
   static pthread_t thread;
 #endif
 
-  static int swig_thread_terminate = 0;
-  static SwigExamples::CriticalSection critical_section;
+  static int thread_terminate = 0;
+  static Examples::CriticalSection critical_section;
   int get_thread_terminate() {
-    SwigExamples::Lock lock(critical_section);
-    return swig_thread_terminate;
+    Examples::Lock lock(critical_section);
+    return thread_terminate;
   }
   void set_thread_terminate(int value) {
-    SwigExamples::Lock lock(critical_section);
-    swig_thread_terminate = value;
+    Examples::Lock lock(critical_section);
+    thread_terminate = value;
   }
 }
 %}

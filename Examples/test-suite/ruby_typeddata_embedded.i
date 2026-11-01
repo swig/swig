@@ -17,7 +17,7 @@ public:
 /* True when obj's TypedData wrapper is stored inside the Ruby object slot rather
    than a separate allocation. Always false on Ruby older than 3.3, which has no
    embedding support. */
-bool swig_wrapper_embedded(VALUE obj) {
+bool wrapper_embedded(VALUE obj) {
 #ifdef TYPED_DATA_EMBEDDED
   return RTYPEDDATA_EMBEDDED_P(obj) ? true : false;
 #else

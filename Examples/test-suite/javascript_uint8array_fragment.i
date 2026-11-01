@@ -15,13 +15,13 @@
    SWIG_FromUint8Array and SWIG_ToUint8Array have to be usable by the C compiler.
    The typemaps go through these aliases so that %set_output and other SWIG macros
    can still be used - these are not expanded in a verbatim block either. */
-#define swig_fromuint8array(a, b, c, d) SWIG_FromUint8Array(a, b, c, d)
-#define swig_touint8array(a, b) SWIG_ToUint8Array(a, b)
+#define from_uint8array(a, b, c, d) SWIG_FromUint8Array(a, b, c, d)
+#define to_uint8array(a, b) SWIG_ToUint8Array(a, b)
 %}
 
 %typemap(in,fragment="SWIG_FromUint8Array") (const void *data, size_t len) (void *buf = NULL, int alloc = 0) {
   size_t len = 0;
-  int res = swig_fromuint8array($input, &buf, &len, &alloc);
+  int res = from_uint8array($input, &buf, &len, &alloc);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
   }
@@ -36,7 +36,7 @@
 }
 
 %typemap(out,noblock=1,fragment="SWIG_ToUint8Array") struct data_t {
-  %set_output(swig_touint8array($1.data, $1.len));
+  %set_output(to_uint8array($1.data, $1.len));
 }
 
 /* Only the functions are wrapped - the struct is deliberately not exposed, so

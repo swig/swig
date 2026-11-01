@@ -2,25 +2,25 @@
 %include std_vector.i
 
 #if defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGPERL) || defined(SWIGRUBY)
-#define SWIG_GOOD_VECTOR
+#define GOOD_VECTOR
 %ignore std::vector<Flow>::vector(size_type);
 %ignore std::vector<Flow>::resize(size_type);
 #endif
 
 #if defined(SWIGJAVA)
-#define SWIG_GOOD_VECTOR
+#define GOOD_VECTOR
 %ignore std::vector<Flow>::vector(jint);
 %ignore std::vector<Flow>::resize(jint);
 #endif
 
 #if defined(SWIGTCL) || defined(SWIGPERL)
-#define SWIG_GOOD_VECTOR
+#define GOOD_VECTOR
 /* here, for languages with bad declaration */
 %ignore std::vector<Flow>::vector(unsigned int);
 %ignore std::vector<Flow>::resize(unsigned int);
 #endif
 
-#if defined(SWIG_GOOD_VECTOR)
+#if defined(GOOD_VECTOR)
 %inline %{
 class Flow {
 double x;

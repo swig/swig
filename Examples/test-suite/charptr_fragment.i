@@ -20,11 +20,11 @@
    through these aliases so that %set_output can still be used - %set_output is
    itself a SWIG macro, is not expanded inside a verbatim delimited typemap
    either, and its expansion differs per target language. */
-#define swig_charbuf_from(b) SWIG_FromCharPtrAndSize((b).str, (b).len)
+#define charbuf_from(b) SWIG_FromCharPtrAndSize((b).str, (b).len)
 %}
 
 %typemap(out,noblock=1,fragment="SWIG_FromCharPtrAndSize") struct CharBuf {
-  %set_output(swig_charbuf_from($1));
+  %set_output(charbuf_from($1));
 }
 
 #endif
@@ -32,11 +32,11 @@
 #if defined(SWIGUTL) && !defined(SWIGGUILE) && !defined(SWIGTCL) && !defined(SWIGSCILAB) && !defined(SWIGJAVASCRIPT)
 
 %wrapper %{
-#define swig_charbuf_from_binary(b) SWIG_FromBinaryCharPtrAndSize((b).str, (b).len, 0)
+#define charbuf_from_binary(b) SWIG_FromBinaryCharPtrAndSize((b).str, (b).len, 0)
 %}
 
 %typemap(out,noblock=1,fragment="SWIG_FromCharPtrAndSize") struct BinaryCharBuf {
-  %set_output(swig_charbuf_from_binary($1));
+  %set_output(charbuf_from_binary($1));
 }
 
 #endif

@@ -74,19 +74,19 @@ public:
 %include "std_vector.i"
 
 #if defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGR) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGJAVASCRIPT) || defined(SWIGSCILAB)
-#define SWIG_GOOD_VECTOR
+#define GOOD_VECTOR
 %ignore std::vector<Space::Flow>::vector(size_type);
 %ignore std::vector<Space::Flow>::resize(size_type);
 #endif
 
 #if defined(SWIGJAVA)
-#define SWIG_GOOD_VECTOR
+#define GOOD_VECTOR
 %ignore std::vector<Space::Flow>::vector(jint);
 %ignore std::vector<Space::Flow>::resize(jint);
 #endif
 
 #if defined(SWIGTCL) || defined(SWIGPERL)
-#define SWIG_GOOD_VECTOR
+#define GOOD_VECTOR
 /* here, for languages with bad declaration */
 %ignore std::vector<Space::Flow>::vector(unsigned int);
 %ignore std::vector<Space::Flow>::resize(unsigned int);
