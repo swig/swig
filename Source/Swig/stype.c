@@ -1469,11 +1469,13 @@ String *SwigType_manglestr(const SwigType *s) {
  * SwigType_typename_replace()
  *
  * Replaces a typename in a type with something else.  Needed for templates.
- * Collapses duplicate const into a single const.
+ * Merges the qualifiers that meet into one qualifier, which collapses a duplicate const.
  * Reference collapsing probably should be implemented here.
  * Example:
- *   t=r.q(const).T pat=T rep=int           =>  r.q(const).int
- *   t=r.q(const).T pat=T rep=q(const).int  =>  r.q(const).int  (duplicate const removed)
+ *   t=r.q(const).T pat=T rep=int                    =>  r.q(const).int
+ *   t=r.q(const).T pat=T rep=q(const).int           =>  r.q(const).int  (duplicate const removed)
+ *   t=r.q(const).T pat=T rep=q(volatile).int        =>  r.q(const volatile).int
+ *   t=r.q(const).T pat=T rep=q(const volatile).int  =>  r.q(const volatile).int
  * ----------------------------------------------------------------------------- */
 
 void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
@@ -1509,12 +1511,14 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     } else if (SwigType_issimple(e)) {
       if (Equal(e, pat)) {
         /* Replaces a type of the form 'pat' with 'rep<args>' */
-        if (SwigType_isconst(rep) && i > 0 && SwigType_isconst(Getitem(elem, i - 1))) {
-          /* Collapse duplicate const into a single const */
-          SwigType *rep_without_const = Copy(rep);
-          Delete(SwigType_pop(rep_without_const));
-          Replace(e, pat, rep_without_const, DOH_REPLACE_ANY);
-          Delete(rep_without_const);
+        if (SwigType_isqualifier(rep) && i > 0 && SwigType_isqualifier(Getitem(elem, i - 1))) {
+          /* Merge the qualifiers that meet, so 'r.q(const).T' with rep 'q(volatile).int' becomes 'r.q(const volatile).int' */
+          SwigType *merged = Copy(rep);
+          SwigType_push_merge_qualifiers(merged, nt);
+          Clear(nt);
+          Clear(e);
+          Append(e, merged);
+          Delete(merged);
         } else {
           Replace(e, pat, rep, DOH_REPLACE_ANY);
         }

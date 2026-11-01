@@ -8,6 +8,26 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            Fix the qualifiers of the types in a template instantiated with a volatile type, such
+            as the parameter types in:
+
+              template <typename T> struct Holder {
+                int take(const T &);
+                int take_volatile(volatile T &);
+              };
+              %template(HolderVolatileInt) Holder<volatile int>;
+              %template(HolderConstVolatileInt) Holder<const volatile int>;
+
+            The volatile of Holder<const volatile int> was lost from the parameter of take, which
+            was wrapped as 'const int &'. For Holder<volatile int> it did not match a typemap for
+            'const volatile int &'. The wrappers of take_volatile cast to 'int volatile volatile &'
+            and 'int const volatile volatile &', which do not compile. Now the qualifiers are
+            merged. The parameter of take is 'const volatile int &' in both and uses the typemaps
+            for it, which by default are not those of 'const int &'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
             [Guile, Javascript, Lua, OCaml, Octave, Perl, PHP, Python, R, Ruby, Scilab, Tcl]
             Fix a pointer to a member function being accepted for a pointer to a member function
             that differs only in its cv-qualifier. Given:
