@@ -485,7 +485,7 @@ static int classify_template_param_type(const SwigType *type) {
   }
   /* A type named with the 'struct', 'union' or 'class' keyword, such as the 'struct Point' of 'template<struct Point P>',
    * is a class, never a concept, which the lookup below would not find under that name. */
-  if (Strncmp(probe, "struct ", 7) == 0 || Strncmp(probe, "union ", 6) == 0 || Strncmp(probe, "class ", 6) == 0) {
+  if (SwigType_isclasskey(probe)) {
     Delete(probe);
     return TPC_KEEP;
   }

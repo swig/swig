@@ -374,7 +374,7 @@ String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_p
   rmembername = SwigType_namestr(membername);
   r = get_naming_format_for("member", "%n%c_%m");
   cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
+  if (SwigType_isclasskey(rclassname)) {
     cname = strchr(cname, ' ') + 1;
   }
   replace_nspace(r, nspace);
@@ -430,7 +430,7 @@ static String *make_full_name_for(const char *method, const char *def_format, co
   r = get_naming_format_for(method, def_format);
 
   cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
+  if (SwigType_isclasskey(rclassname)) {
     cname = strchr(cname, ' ') + 1;
   }
 
