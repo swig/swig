@@ -10,4 +10,5 @@ unittest(do_op(2, 3, funcvar()), 5)
 
 # R functions
 unittest(do_op(2, 3, function(a, b) as.integer(a * b + 1)), 7)
+unittest(do_op(2, 3, function(a, b) a * b + 1), 7)
 unittest(error_message(function() do_op(2, 3, function(a, b) c(1L, 2L))), "SWIG:TypeError in method '_p_f_int_int__int', argument 0 of type 'int'")

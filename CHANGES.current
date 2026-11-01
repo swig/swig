@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-01: wsfulton
+            [R] Fix passing an R integer, such as 1L, for a double parameter. R failed with the
+            error "REAL() can only be applied to a 'numeric', not a 'integer'". Likewise an R
+            function passed for a function pointer failed when it returned a value of another R
+            type than the C return type, such as a number, which R stores as a double, for an int.
+            Such a value is now converted to the C type.
+
 2026-10-31: wsfulton
             [R] Fix the check that an R function passed for a function pointer can take its
             arguments accepting any R function when the function pointer type had been used

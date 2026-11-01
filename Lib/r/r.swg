@@ -243,7 +243,7 @@ std::ptrdiff_t *INOUT
   if (!Rf_isNull($input) && Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
-  $1 = Rf_isNull($input) ? 0 : %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
+  $1 = Rf_isNull($input) ? 0 : %reinterpret_cast(SWIG_strdup(CHAR(Rf_asChar($input))), $1_ltype);
 }
 
 %typemap(freearg,noblock=1,match="in") char * {
@@ -343,7 +343,7 @@ std::ptrdiff_t *INOUT
       if (Rf_length($input) != 1) {
         %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
       }
-      $1 = SWIG_strdup(CHAR(STRING_ELT($input, 0)));
+      $1 = SWIG_strdup(CHAR(Rf_asChar($input)));
     }
 }
 
@@ -355,7 +355,7 @@ std::ptrdiff_t *INOUT
   if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
-  temp = ($*1_ltype)INTEGER($input)[0];
+  temp = ($*1_ltype)Rf_asInteger($input);
   $1 = &temp;
 }
 
@@ -368,7 +368,7 @@ std::ptrdiff_t *INOUT
   if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
-  $1 = %static_cast(CHAR(STRING_ELT($input, 0))[0],$1_ltype);
+  $1 = %static_cast(CHAR(Rf_asChar($input))[0],$1_ltype);
 }
 
 %typemap(out) char 
@@ -384,7 +384,7 @@ std::ptrdiff_t *INOUT
   if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
-  $1 = %static_cast(INTEGER($input)[0], $1_ltype);
+  $1 = %static_cast(Rf_asInteger($input), $1_ltype);
 }
 
 %typemap(out,noblock=1) int, long
@@ -396,7 +396,7 @@ std::ptrdiff_t *INOUT
   if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
-  $1 = LOGICAL($input)[0] ? true : false;
+  $1 = Rf_asLogical($input) ? true : false;
 }
 
 
@@ -410,7 +410,7 @@ std::ptrdiff_t *INOUT
   if (Rf_length($input) != 1) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
-  $1 = %static_cast(REAL($input)[0], $1_ltype);
+  $1 = %static_cast(Rf_asReal($input), $1_ltype);
 }
 
 /* Why is this here ? */

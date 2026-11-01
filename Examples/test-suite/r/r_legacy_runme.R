@@ -9,6 +9,7 @@ obj <- getObject(1,3)
 unittest(class(obj), "_p_Obj")
 unittest(obj$i, 1)
 unittesttol(obj$d, 3, 0.001)
+unittesttol(getObject(1L, 3L)$d, 3, 0.001)
 unittest(obj$str, "a test string")
 obj$i <- 2
 unittest(obj$i, 2)
