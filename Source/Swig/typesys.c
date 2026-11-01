@@ -675,13 +675,18 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
 static SwigType *typedef_resolve_prefix(const SwigType *t, const String *base) {
   SwigType *r = 0;
   String *prefix = SwigType_prefix(t);
-  char *cr = Char(prefix);
-  if (strstr(cr, "f(") || strstr(cr, "m(")) {
-    r = SwigType_typedef_resolve(prefix);
-    if (r) {
-      Append(r, base);
+  List *elements = SwigType_split(prefix);
+  Iterator it;
+  for (it = First(elements); it.item; it = Next(it)) {
+    if (SwigType_isfunction(it.item) || SwigType_ismemberpointer(it.item)) {
+      r = SwigType_typedef_resolve(prefix);
+      if (r) {
+        Append(r, base);
+      }
+      break;
     }
   }
+  Delete(elements);
   Delete(prefix);
   return r;
 }
