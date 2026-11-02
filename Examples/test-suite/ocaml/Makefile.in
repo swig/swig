@@ -24,13 +24,9 @@ allprotected \
 cpp11_decltype \
 cpp11_director_enums \
 cpp11_strongly_typed_enumerations \
-cpp_enum \
 default_constructor \
 enum_thorough \
 smart_pointer_inherit \
-
-FAILING_C_TESTS = \
-enums \
 
 CPP_TEST_CASES += \
 	ocaml_carray \

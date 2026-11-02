@@ -870,18 +870,38 @@ public:
     Wrapper_add_local(f, "swig_result", "CAMLlocal1(swig_result)");
     Printf(f->code, "swig_result = Val_unit;\n");
 
+    /* An unnamed enum has no OCaml enum type, so a variable of an unnamed enum type, such as x in:
+         enum { A, B } x;
+       is wrapped as an int, as a member variable of an unnamed enum type is.  It is set through an int pointer, as C++ cannot
+       assign an int to an enum. */
+    bool unnamed_enum = SwigType_isenum(t) && Strstr(t, "$unnamed");
+    Node *tm_node = n;
+    String *varin_name = NewString(name);
+    if (unnamed_enum) {
+      SwigType *int_type = NewString("int");
+      tm_node = NewParm(int_type, name, n);
+      Delete(int_type);
+      Insert(varin_name, 0, "*(int *)(void *)&");
+    }
+
     int assignable = !is_immutable(n);
     if (assignable) {
       /* Check for a setting of the variable value */
       Printf(f->code, "if (args != Val_int(0)) {\n");
-      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
+      if (unnamed_enum) {
+        Printf(f->code, "if (sizeof(int) == sizeof(%s)) {\n", name);
+      }
+      if ((tm = Swig_typemap_lookup("varin", tm_node, varin_name, 0))) {
         Replaceall(tm, "$input", "args");
         emit_action_code(n, f->code, tm);
-      } else if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
+      } else if ((tm = Swig_typemap_lookup("in", tm_node, varin_name, 0))) {
         Replaceall(tm, "$input", "args");
         emit_action_code(n, f->code, tm);
       } else {
         throw_unhandled_ocaml_type_error(t, "varin/in");
+      }
+      if (unnamed_enum) {
+        Printf(f->code, "}\n");
       }
       Printf(f->code, "}\n");
     } else {
@@ -892,15 +912,19 @@ public:
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", tm_node, name, 0))) {
       Replaceall(tm, "$result", "swig_result");
       emit_action_code(n, f->code, tm);
-    } else if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
+    } else if ((tm = Swig_typemap_lookup("out", tm_node, name, 0))) {
       Replaceall(tm, "$result", "swig_result");
       emit_action_code(n, f->code, tm);
     } else {
       throw_unhandled_ocaml_type_error(t, "varout/out");
     }
+    if (unnamed_enum) {
+      Delete(tm_node);
+    }
+    Delete(varin_name);
 
     Printf(f->code, "\nCAMLreturn(swig_result);\n");
     Printf(f->code, "}\n");

@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [OCaml] Fix a variable of an unnamed enum type, such as x here, which did not compile:
+
+              enum { A, B } x;
+
+            As there is no OCaml enum type for an unnamed enum, the variable is now an int, as a
+            member variable of an unnamed enum type is.
+
+2026-11-02: wsfulton
             [OCaml] Fix a director method returning a reference, such as Ref() here:
 
               %feature("director") Base;
