@@ -50,4 +50,22 @@ func main() {
 	// Overloaded on the member pointer type, except for ADD_BY_POINTER as Go uses one type for every member pointer
 	check("Overload by value", 3, float64(Call_overloaded(ADD_BY_VALUE, 1, 2)))
 	check("Overload by int", 110, float64(Call_overloaded(10, 5, 6)))
+
+	// NULL member pointers
+	if Get_null_memberpt() != nil {
+		panic("Get_null_memberpt() is not nil")
+	}
+	if !Is_null_memberpt(nil) {
+		panic("Is_null_memberpt(nil) failed")
+	}
+	if NULLPT != nil {
+		panic("NULLPT is not nil")
+	}
+	if Is_null_memberpt(area_pt) {
+		panic("Is_null_memberpt(area_pt) failed")
+	}
+	SetAreavar(nil)
+	if GetAreavar() != nil {
+		panic("areavar is not nil")
+	}
 }

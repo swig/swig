@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Go] Fix passing nil for a member pointer, such as for m in:
+
+              struct Shape {
+                double area();
+              };
+              double do_op(Shape *s, double (Shape::*m)());
+
+            This crashed and now passes a NULL member pointer. A NULL member pointer returned from
+            C++, such as by a function, a variable or a %constant, was not nil and is now nil. So is a
+            NULL member pointer passed to a director method.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [C] Add support for pointers to members, which could not be used, as in:
 
               struct Shape {

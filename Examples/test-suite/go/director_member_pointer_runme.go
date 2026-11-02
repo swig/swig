@@ -17,6 +17,9 @@ type MyMemberPtrDirector struct {
 
 func (p *MyMemberPtrDirector) UseMemberPtr(m wrap.SwigMemberPtr, x int) int {
 	p.stored = m
+	if m == nil {
+		return -1
+	}
 	return wrap.MemberPtrDirectorCallMemberPtr(m, x+10)
 }
 
@@ -37,4 +40,7 @@ func main() {
 	}
 	check(md.CallUseMemberPtr(5), 17, "Director useMemberPtr")
 	check(md.CallGetMemberPtr(5), 7, "Director getMemberPtr")
+
+	// NULL member pointers
+	check(md.CallUseNullMemberPtr(5), -1, "Director useMemberPtr with a nil member pointer")
 }

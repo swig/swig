@@ -320,16 +320,21 @@ func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE (CLASS::*)
-%{ memcpy(&$1, $input, sizeof($1)); %}
+%{
+  $1 = 0;
+  if ($input) {
+    memcpy(&$1, $input, sizeof($1));
+  }
+%}
 
 %typemap(out, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*)
-%{ $result = Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)); %}
+%{ $result = $1 ? Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)) : 0; %}
 
 %typemap(goout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
 %{ $result = swigCopyMemberPtr(uintptr(unsafe.Pointer($1))) %}
 
 %typemap(directorin, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*)
-%{ $input = Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)); %}
+%{ $input = $1 ? Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)) : 0; %}
 
 %typemap(godirectorin, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
 %{ $result = swigCopyMemberPtr(uintptr(unsafe.Pointer($input))) %}
