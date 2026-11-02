@@ -14,13 +14,13 @@ int main(int argc, const char *argv[]) {
   Foo f;
   const Foo &cf = f;
   assert(strcmp(f.test(x), "test") == 0);
-  assert(strcmp(f.test(cx), "test_pconst") == 0);
-  assert(strcmp(cf.test(x), "test_constmethod") == 0);
-  assert(strcmp(cf.test(cx), "test_pconstmethod") == 0);
+  assert(strcmp(f.test_pconst(cx), "test_pconst") == 0);
+  assert(strcmp(cf.test_constm(x), "test_constmethod") == 0);
+  assert(strcmp(cf.test_pconstm(cx), "test_pconstmethod") == 0);
 
   FooVolatile fv;
   const FooVolatile &cfv = fv;
   assert(strcmp(fv.test(x), "test_volatilemethod") == 0);
-  assert(strcmp(cfv.test(x), "test_cvmethod") == 0);
+  assert(strcmp(cfv.test_cvm(x), "test_cvmethod") == 0);
   return 0;
 }

@@ -8,6 +8,26 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix %rename being ignored by the C++ wrappers of member functions, static member
+            functions and member variables, such as in:
+
+              %rename(NewMethod) Foo::OldMethod;
+              struct Foo {
+                int OldMethod();
+              };
+
+            The C++ wrapper class declared the member with its C++ name, OldMethod, while the C
+            function and the C++ wrappers of global functions and variables have the name given by
+            %rename. The C++ wrappers of these members now have the name given by %rename too:
+
+              int NewMethod();
+
+            An operator keeps its C++ name. A static member function added with %extend also gets
+            its own name instead of the name of the function that SWIG generates to implement it.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [C] Fix the generated code not compiling as C++ for a declaration of C++ code that is
             given a name that is a C++ keyword, such as by:
 

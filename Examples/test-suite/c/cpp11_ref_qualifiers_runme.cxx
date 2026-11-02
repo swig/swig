@@ -16,27 +16,27 @@ int main(int argc, const char *argv[]) {
   FuncPtrHost fh;
   const FuncPtrHost &cfh = fh;
   assert(callIntFunc(fh.p1(), 1) == 2);
-  assert(callIntFunc(cfh.p3(), 2) == 3);
+  assert(callIntFunc(cfh.p3Renamed(), 2) == 3);
 
   Renames r;
   const Renames &cr = r;
-  r.R1();
-  cr.S1(0);
+  r.RR1();
+  cr.SS1(0);
 
   DefaultArgs d;
   const DefaultArgs &cd = d;
-  assert(cd.cvref() == 3);
-  assert(cd.cvref(10) == 12);
-  assert(cd.cvref(10, 20) == 30);
+  assert(cd.cvref_renamed() == 3);
+  assert(cd.cvref_renamed(10) == 12);
+  assert(cd.cvref_renamed(10, 20) == 30);
 
   ConstOverloads cvo;
   const ConstOverloads &ccvo = cvo;
   assert(cvo.cl() == 1);
-  assert(ccvo.cl() == 2);
+  assert(ccvo.cl_const() == 2);
   assert(cvo.cr() == 3);
-  assert(ccvo.cr() == 4);
+  assert(ccvo.cr_const() == 4);
   assert(cvo.cvl() == 5);
-  assert(ccvo.cvl() == 6);
+  assert(ccvo.cvl_const_volatile() == 6);
 
   ConversionOperators co;
   std::string s = co;

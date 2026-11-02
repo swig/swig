@@ -1414,6 +1414,11 @@ public:
     } else if (GetFlag(n, "conversion_operator")) {
       conversion_name = get_conversion_name(n, rtype_desc.type());
       name = conversion_name ? conversion_name.get() : get_member_symname(n);
+    } else if (!is_operator(name)) {
+      // A member function or variable has the name given by %rename, as for the C function, while an operator, which is wrapped
+      // only when it is renamed, keeps its C++ name. A constructor or a destructor has no such name.
+      if (String *const symname = get_member_symname(n))
+        name = symname;
     }
     String *const wname = Getattr(n, "wrap:name");
 
@@ -1707,10 +1712,21 @@ private:
     return ScopedPtr(NewStringf("SwigObj_%s*", get_c_proxy_name(class_node)));
   }
 
-  // Return the sym:name of the member function n without the class prefix of the name of its C function.
+  // Return the sym:name of the member function or variable n without the class prefix of the name of its C function, or NULL for any other member.
   static String *get_member_symname(Node *n) {
-    String *const symname = Getattr(n, "memberfunctionHandler:sym:name");
-    return symname ? symname : Getattr(n, "staticmemberfunctionHandler:sym:name");
+    String *symname = Getattr(n, "memberfunctionHandler:sym:name");
+    if (!symname)
+      symname = Getattr(n, "staticmemberfunctionHandler:sym:name");
+    if (!symname)
+      symname = Getattr(n, "membervariableHandler:sym:name");
+    if (!symname)
+      symname = Getattr(n, "staticmembervariableHandler:sym:name");
+    return symname;
+  }
+
+  // Return true if name is the name of an operator, such as 'operator +'.
+  static bool is_operator(String *name) {
+    return Strncmp(name, "operator ", 9) == 0;
   }
 
   // Return the name of the C++ wrapper of the conversion operator n, which converts to the type cxx_type that the C++ wrapper returns, as in 'operator Foo'
