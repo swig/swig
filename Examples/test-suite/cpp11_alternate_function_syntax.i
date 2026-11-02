@@ -3,9 +3,6 @@
 %module cpp11_alternate_function_syntax
 
 #ifdef SWIGC
-// SWIG/C doesn't currently support wrapping pointer to member.
-%ignore addAlternateMemberPtrParm(int x, int (SomeStruct::*mp)(int, int));
-%ignore addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const;
 // SWIG/C doesn't currently support wrapping rvalue reference return types.
 %ignore SomeStruct::output(short);
 #endif

@@ -31,10 +31,8 @@ class Foo {
     int func2(int a) {
       return -a*num;
     }
-    
-#ifndef SWIGC
+
     int (Foo::*func_ptr)(int);
-#endif // SWIGC
 
     const char* __str__() const { return "Foo"; }
 };
@@ -102,7 +100,6 @@ Foo Bar::global_fval = Foo(3);
 %}
 
 /* member function tests */
-#ifndef SWIGC
 %inline %{
 int (Foo::*get_func1_ptr())(int) {
   return &Foo::func1;
@@ -117,7 +114,6 @@ int test_func_ptr(Foo *f, int a) {
 }
 
 %}
-#endif // SWIGC
 
 
 #ifdef __cplusplus

@@ -286,6 +286,38 @@ bool is_ptr_to_func_or_array(const SwigType *type) {
   return false;
 }
 
+// Return true if the type is a pointer to member, or a pointer or a reference to one and so on, with any cv-qualifiers, as in 'int Foo::*',
+// 'int (Foo::*const &)(int)' or 'int Foo::**'.
+bool is_member_pointer_type(const SwigType *type) {
+  ScopedPtr ptr_type = adopt(SwigType_remove_qualifier(Copy(type)));
+  while (SwigType_ispointer(ptr_type) || SwigType_isanyreference(ptr_type)) {
+    Delete(SwigType_pop(ptr_type));
+    SwigType_remove_qualifier(ptr_type);
+  }
+  return SwigType_ismemberpointer(ptr_type);
+}
+
+// Return true if the type is a pointer to member, with any cv-qualifiers, or a const reference to one, as in 'int Foo::*const &', which the typemaps pass and
+// return by value as the struct holding the bytes of the pointer to member, see get_member_pointer_struct_name().
+bool is_member_pointer_value(SwigType *type) {
+  ScopedPtr value_type = adopt(SwigType_typedef_resolve_all(type));
+  SwigType_remove_qualifier(value_type);
+  if (SwigType_isreference(value_type)) {
+    Delete(SwigType_pop(value_type));
+    if (!SwigType_isconst(value_type))
+      return false;
+    SwigType_remove_qualifier(value_type);
+  }
+  return SwigType_ismemberpointer(value_type);
+}
+
+// Return the name of the struct holding the bytes of a pointer to member of the given type, which has no top level cv-qualifiers, in the wrappers, as C has
+// no pointers to members, such as 'SWIGTYPE_m_Shape__f_void__double' for 'double (Shape::*)()'.
+String *get_member_pointer_struct_name(SwigType *type) {
+  ScopedPtr mangled_type = adopt(SwigType_manglestr(type));
+  return NewStringf("SWIGTYPE%s", mangled_type.get());
+}
+
 // Append the base type, whose typedefs are resolved, of the type and of each parameter of a function type in it, as in a function pointer, to base_types.
 void append_base_types(SwigType *type, List *base_types) {
   ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type));
@@ -815,6 +847,25 @@ private:
     // matching instead of doing it in the code here.
     ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type));
     ScopedPtr base_resolved_type = adopt(SwigType_base(resolved_type));
+
+    // A pointer to member is passed to and returned from the C function by value as the struct holding its bytes, which the C++ wrappers use too. A pointer
+    // or a reference to one other than a const reference is an opaque pointer, which is not supported, as for any other type that SWIG does not wrap.
+    if (is_member_pointer_type(resolved_type)) {
+      ScopedPtr member_pointer_type = adopt(SwigType_remove_qualifier_reference(Copy(resolved_type)));
+      if (typeKind != Type_Enm || !SwigType_ismemberpointer(member_pointer_type)) {
+        warn_unsupported_type(type, ptype_desc);
+        return false;
+      }
+
+      ScopedPtr struct_name = adopt(get_member_pointer_struct_name(member_pointer_type));
+      Replaceall(s, typemaps[typeKind], struct_name);
+      if (rtype_desc)
+        rtype_desc->set_type(s);
+      if (ptype_desc)
+        ptype_desc->set_type(s);
+
+      return true;
+    }
 
     // A function pointer is passed to and returned from the C function as it is, so it has the type that the C function
     // is declared with. Only its top level qualifiers are removed, as those of its return type, such as the 'const' of
@@ -1726,6 +1777,9 @@ class C : public Language {
   // The opaque types declared in sect_wrappers_types, see getOpaqueTypeName(), as C before C11 does not allow a typedef to be repeated.
   ScopedPtr opaque_types_;
 
+  // The structs holding the bytes of a pointer to member defined in sect_wrappers, see getMemberPointerStruct().
+  ScopedPtr member_pointer_structs_;
+
   // This one contains wrapper functions definitions and end up in the output C++ file.
   String *sect_wrappers;
 
@@ -1938,6 +1992,34 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * getMemberPointerStruct()
+   *
+   * Return the name of the struct holding the bytes of a pointer to member of the given type, see
+   * get_member_pointer_struct_name(), and define it, unless it is already defined, in the header file or in the wrapper
+   * file, depending on current_output. Its array of 4 pointers has the alignment of a pointer to member in the common
+   * ABIs, which has at most a pointer and three ints, so it is large enough for one. The wrappers check that it is.
+   * The header file of a module importing another one includes the header file of the other one, which may define the
+   * same struct, so the definition is guarded there.
+   * ----------------------------------------------------------------------------- */
+
+  String *getMemberPointerStruct(SwigType *type) {
+    String *const struct_name = get_member_pointer_struct_name(type);
+    bool const is_decl = current_output == output_wrapper_decl;
+    Hash *const defined_structs = is_decl ? opaque_types_ : member_pointer_structs_;
+    if (!Getattr(defined_structs, struct_name)) {
+      String *const out = is_decl ? sect_wrappers_types : sect_wrappers;
+      if (is_decl)
+        Printf(out, "#ifndef %s_DEFINED\n#define %s_DEFINED\n", struct_name, struct_name);
+      Printf(out, "typedef struct %s {\n%svoid *swig_data[4];\n} %s;\n", struct_name, cindent, struct_name);
+      if (is_decl)
+        Printf(out, "#endif\n");
+      Printf(out, "\n");
+      Setattr(defined_structs, Char(struct_name), "1");
+    }
+    return struct_name;
+  }
+
+  /* -----------------------------------------------------------------------------
    * replaceBaseTypes()
    *
    * Return a copy of type with its base type and the base types of the parameters of any function in it, as in a
@@ -2001,6 +2083,25 @@ public:
    * ----------------------------------------------------------------------------- */
 
   bool substituteResolvedTypeSpecialVariable(SwigType *classnametype, String *tm, const char *classnamespecialvariable, Node *file_line_node) {
+    // A pointer to member, or a const reference to one, is passed by value as the struct holding its bytes, see getMemberPointerStruct(). Any other pointer
+    // or reference to one, which the 'SWIGTYPE &' typemaps take as a pointer, is an opaque pointer, as for a type that SWIG does not wrap, as in
+    // 'SWIGTYPE_p_m_Foo__int *' for 'int Foo::*&'.
+    if (CPlusPlus && is_member_pointer_type(classnametype)) {
+      ScopedPtr typestr;
+      if (SwigType_ismemberpointer(classnametype) && Strcmp(classnamespecialvariable, "$resolved_type") == 0) {
+        typestr = getMemberPointerStruct(classnametype);
+      } else if (current_output == output_wrapper_def) {
+        typestr = NewString("SwigObj");
+      } else {
+        ScopedPtr ptr_type = adopt(Copy(classnametype));
+        if (!SwigType_ispointer(ptr_type))
+          SwigType_add_pointer(ptr_type);
+        typestr = getOpaqueTypeName(ptr_type);
+      }
+      Replaceall(tm, classnamespecialvariable, typestr);
+      return false;
+    }
+
     // The type of a pointer or reference to a function or an array, or to a pointer to one, cannot be followed by a '*' or a
     // name, so it is given as it is when not using C++, as any other type below, and in the header file for C++, using the C
     // names of the classes and enums in it. This is checked first, as the return type of a function pointer can be an enum.
@@ -2104,10 +2205,11 @@ public:
     SwigType *type = SwigType_typedef_resolve_all(pt);
     // The qualifiers of the return type of a function pointer, or of the elements of an array, are part of its type,
     // but SwigType_strip_qualifiers() would remove them too, so only the top level qualifiers are removed from a
-    // pointer or reference to a function or an array or to a pointer to one. When not using C++, only the top level
-    // qualifiers are removed from any type, as the original C type is used.
+    // pointer or reference to a function or an array or to a pointer to one. The same goes for a pointer to member, as
+    // a pointer to a const member function is a different type, which has a different name. When not using C++, only
+    // the top level qualifiers are removed from any type, as the original C type is used.
     SwigType *strippedtype = SwigType_remove_qualifier(Copy(type));
-    if (CPlusPlus && !is_ptr_to_func_or_array(strippedtype)) {
+    if (CPlusPlus && !is_ptr_to_func_or_array(strippedtype) && !is_member_pointer_type(strippedtype)) {
       Delete(strippedtype);
       strippedtype = SwigType_strip_qualifiers(type);
     }
@@ -2324,6 +2426,7 @@ public:
       sect_wrappers_decl = NewString("");
       forward_declared_types_ = NewHash();
       opaque_types_ = NewHash();
+      member_pointer_structs_ = NewHash();
 
       {
         CPlusPlusOutputGuard cplusplus_guard_wrappers(sect_wrappers), cplusplus_guard_wrappers_h(sect_wrappers_decl);
@@ -2546,8 +2649,8 @@ public:
    * get_mangled_type()
    *
    * Returns the mangled type of a parameter of an overloaded function, which is appended to the C name of the function
-   * to distinguish it from its other overloads. A pointer, or a pointer to member, to a function is mangled as 'f'.
-   * Otherwise each element of the type before its base type is mangled as:
+   * to distinguish it from its other overloads. A pointer to a function is mangled as 'f'. Otherwise each element of the
+   * type before its base type, which is the return type of a pointer to member function, is mangled as:
    *   'p' for a pointer
    *   'r' for a reference
    *   'z' for an rvalue reference
@@ -2564,13 +2667,15 @@ public:
   String *get_mangled_type(SwigType *type_arg) {
     ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type_arg));
 
-    // A pointer, or a pointer to member, to a function is mangled as 'f', without its parameter and return types. Any
-    // other pointer is mangled from type_arg, without resolving its typedefs, unlike any other type.
+    // A pointer to a function is mangled as 'f', without its parameter and return types. Any other pointer, or a pointer
+    // to member, is mangled from type_arg, without resolving its typedefs, unlike any other type. A pointer to member
+    // function keeps its parameter and return types, as overloads can differ in them only, which the wrappers pass as
+    // different types.
     SwigType *type = resolved_type;
     if (SwigType_ispointer(resolved_type) || SwigType_ismemberpointer(resolved_type)) {
       ScopedPtr pointee = adopt(Copy(resolved_type));
       Delete(SwigType_pop(pointee));
-      if (SwigType_isfunction(pointee))
+      if (SwigType_ispointer(resolved_type) && SwigType_isfunction(pointee))
         return NewString("f");
       type = type_arg;
     }
@@ -3157,7 +3262,13 @@ public:
 
     if (!is_void_return)
       Append(wrapper->code, "return result;\n");
-    emit_fail_label(n, wrapper, cleanup, is_void_return ? NULL : "0");
+    // A pointer to member is returned as a struct, which cannot be 0, so a zero initialised one is returned after an error
+    if (is_member_pointer_value(type)) {
+      if (emit_fail_label(n, wrapper, cleanup, "swig_null_result"))
+        Wrapper_add_localv(wrapper, "swig_null_result", "static", return_type.get(), "swig_null_result", NIL);
+    } else {
+      emit_fail_label(n, wrapper, cleanup, is_void_return ? NULL : "0");
+    }
 
     emit_isvoid_special_variables(n, wrapper->code, is_void_return);
     Replaceall(wrapper->code, "$symname", Getattr(n, "sym:name"));
@@ -3348,6 +3459,11 @@ public:
             return NIL;
 
           if (!SwigType_isbuiltin(btype))
+            return NIL;
+
+          // A pointer to member, such as one to a member function returning an int, is not a C type
+          ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type));
+          if (is_member_pointer_type(resolved_type))
             return NIL;
 
           // Final complication: define bool if it is used here.
@@ -3766,6 +3882,13 @@ public:
    * --------------------------------------------------------------------- */
 
   virtual int constantWrapper(Node *n) {
+    // A pointer to member constant is wrapped by a getter function, as an immutable variable is, since C code cannot use its value, such as '&Foo::bar'
+    ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(Getattr(n, "type")));
+    if (is_member_pointer_type(resolved_type)) {
+      SetFlag(n, "feature:immutable");
+      return globalvariableHandler(n);
+    }
+
     String *name = Getattr(n, "sym:name");
     // We use the "value" and hope that it will work in C as well as in C++.
     String *value = Getattr(n, "value");

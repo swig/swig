@@ -17,5 +17,11 @@ int main(int argc, const char *argv[]) {
   fpd.t(quadruple);
   assert(fpd.t() == quadruple);
   assert(fpd.call(quadruple, 4) == 16);
+
+  MemberHolder mh;
+  MemberPtrDefault_def mpd;
+  MemberFuncPtrDefault_def mfpd;
+  assert(mpd.get(mh, mpd.t()) == 5);
+  assert(mfpd.call(mh, mfpd.t(), 3) == 8);
   return 0;
 }

@@ -164,11 +164,6 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;", 
 
 %typemap(in) SWIGTYPE [] "$1 = ($1_ltype) $input;"
 
-%typemap(in) SWIGTYPE (CLASS::*) {
-  if ($input) 
-    $1 = *($&1_ltype) &$input;
-}
-
 %typemap(in) SWIGTYPE "$1 = *($&1_ltype)$input;"
 
 %typemap(in) SWIGTYPE * "$1 = ($1_ltype) $input;"
@@ -221,10 +216,6 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result
 
 %typemap(out) enum SWIGTYPE "$result = (int) $1;"
 %typemap(out) enum SWIGTYPE &, enum SWIGTYPE * "$result = $1;"
-
-%typemap(out) SWIGTYPE (CLASS::*) {
-  *($&1_ltype) &$result = $1; 
-}
 
 %typemap(out) SWIGTYPE "$result = (SwigObj*)new $1_ltype($1);"
 
@@ -335,7 +326,8 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result
     SWIGTYPE &&,
     SWIGTYPE *const&,
     SWIGTYPE [],
-    SWIGTYPE (CLASS::*)
+    SWIGTYPE (CLASS::*),
+    SWIGTYPE (CLASS::*const&)
     ""
 
 %apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
@@ -370,7 +362,32 @@ same_macro_all_primitive_types_but_void(null_checked_reference_in, in);
 
 %apply SWIGTYPE * { SWIGTYPE ((*const)(ANY)) };
 
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
+// A pointer to member, which C does not have, or a const reference to one is passed and returned by value as a struct holding its bytes, which only the
+// wrappers use, such as 'SWIGTYPE_m_Shape__f_void__double' for 'double (Shape::*)()'. Any other pointer or reference to one is opaque.
+%fragment("SWIG_C_MemberPointer", "header") %{
+template <typename M, typename S> void SWIG_C_MemberPointer_unpack(M &member_pointer, const S &data) {
+  typedef char swig_size_check[sizeof(M) <= sizeof(S) ? 1 : -1];
+  (void)sizeof(swig_size_check);
+  memcpy(&member_pointer, &data, sizeof(M));
+}
+
+template <typename S, typename M> void SWIG_C_MemberPointer_pack(S &data, const M &member_pointer) {
+  typedef char swig_size_check[sizeof(M) <= sizeof(S) ? 1 : -1];
+  (void)sizeof(swig_size_check);
+  memset(&data, 0, sizeof(S));
+  memcpy(&data, &member_pointer, sizeof(M));
+}
+%}
+
+%typemap(ctype) SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::*const&) "$resolved_type"
+%typemap(in, fragment="SWIG_C_MemberPointer") SWIGTYPE (CLASS::*) "SWIG_C_MemberPointer_unpack($1, $input);"
+%typemap(in, fragment="SWIG_C_MemberPointer") (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) %{
+  SWIG_C_MemberPointer_unpack(temp, $input);
+  $1 = &temp;
+%}
+%typemap(out, fragment="SWIG_C_MemberPointer") SWIGTYPE (CLASS::*) "SWIG_C_MemberPointer_pack($result, $1);"
+%typemap(out, fragment="SWIG_C_MemberPointer") SWIGTYPE (CLASS::*const&) "SWIG_C_MemberPointer_pack($result, *$1);"
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 
 %insert("runtime") %{
 #ifdef __cplusplus

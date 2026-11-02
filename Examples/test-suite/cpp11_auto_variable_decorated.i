@@ -48,14 +48,6 @@
 %ignore ref_string_wide;
 %ignore array_first;
 %ignore int_array_address;
-// TODO: Fix the experimental C backend's member pointer support (see member_pointer in FAILING_CPP_TESTS).
-%ignore member_ptr;
-%ignore static_fn_ptr;
-%ignore call_fn0;
-%ignore member_fn_ptr;
-%ignore member_ptr_decltype;
-%ignore use_member_ptr;
-%ignore use_member_fn_ptr;
 #endif
 
 %inline %{

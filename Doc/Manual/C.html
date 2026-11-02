@@ -29,6 +29,7 @@
 <ul>
 <li><a href="#C_enums">Enums</a>
 <li><a href="#C_classes">Classes</a>
+<li><a href="#C_member_pointers">Pointers to members</a>
 </ul>
 <li><a href="#C_developer">Backend Developer Documentation</a>
 <li><a href="#C_typemaps">Typemaps</a>
@@ -552,6 +553,57 @@ After running this we'll get:
 radius: 1.500000
 area: 7.068583
 </pre></div>
+
+<H3><a name="C_member_pointers">40.4.3 Pointers to members</a></H3>
+
+
+<p>
+C has no pointers to members, so a pointer to member, or a const reference to one, is passed to and returned from the
+wrapper functions by value as a struct holding its bytes, which only the wrappers use. The struct is named after the
+type of the pointer to member, as an opaque type is. For example:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+struct Shape {
+  double area() const { return 2.0; }
+};
+double call(const Shape *s, double (Shape::*m)() const) { return (s-&gt;*m)(); }
+double (Shape::*area_pointer())() const { return &amp;Shape::area; }
+%}
+</pre></div>
+
+<p>
+gives these wrapper functions:
+</p>
+
+<div class="targetlang"><pre>
+#ifndef SWIGTYPE_m_Shape__q_const__f___double_DEFINED
+#define SWIGTYPE_m_Shape__q_const__f___double_DEFINED
+typedef struct SWIGTYPE_m_Shape__q_const__f___double {
+  void *swig_data[4];
+} SWIGTYPE_m_Shape__q_const__f___double;
+#endif
+
+double example_call(Shape* carg1,SWIGTYPE_m_Shape__q_const__f___double carg2);
+SWIGTYPE_m_Shape__q_const__f___double example_area_pointer();
+</pre></div>
+
+<p>
+which are used as:
+</p>
+
+<div class="targetlang"><pre>
+double area = example_call(s, example_area_pointer());
+</pre></div>
+
+<p>
+A variable that is a pointer to member is wrapped by accessor functions taking and returning this struct. A
+<tt>%constant</tt> of a pointer to member type is wrapped by a getter function returning it. The C++ wrappers use this
+struct too. Any other pointer or reference to a pointer to member is an opaque pointer.
+</p>
 
 <H2><a name="C_developer">40.5 Backend Developer Documentation</a></H2>
 

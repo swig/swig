@@ -8,6 +8,36 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Add support for pointers to members, which could not be used, as in:
+
+              struct Shape {
+                double area() const;
+              };
+              double call(const Shape *s, double (Shape::*m)() const);
+              double (Shape::*area_pointer())() const;
+
+            The .h file declared them with a C++ type, as in 'double (Shape::*carg2)()', which is
+            not valid C and loses the const, while the wrapper function took a pointer, which
+            cannot hold a pointer to member function. The C++ wrappers left them out. Two overloads
+            differing only in the type of a pointer to member function had the same name. A
+            pointer to member, or a const reference to one, is now passed and returned by value as
+            an opaque struct holding its bytes, which the C++ wrappers use too:
+
+              typedef struct SWIGTYPE_m_Shape__q_const__f___double {
+                void *swig_data[4];
+              } SWIGTYPE_m_Shape__q_const__f___double;
+
+              double example_call(Shape* carg1,SWIGTYPE_m_Shape__q_const__f___double carg2);
+              SWIGTYPE_m_Shape__q_const__f___double example_area_pointer();
+
+            A variable that is a pointer to member is wrapped by accessor functions and a %constant
+            by a getter function. Any other pointer or reference to a pointer to member is an
+            opaque pointer. The name of an overload now has the parameter and return types of a
+            pointer to member function parameter instead of just 'f'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [C] Fix the C++ wrappers not compiling for a conversion operator, such as in:
 
               %rename(toFoo) Bar::operator Foo();

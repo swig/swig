@@ -110,14 +110,6 @@ std::string (*noexceptGetAddOne() noexcept)(int) { return noexceptAddOne; }
 std::string (*(*noexceptGetGetter())() noexcept)(int) { return noexceptGetAddOne; }
 %}
 
-#ifdef SWIGC
-// The C target language does not support wrapping a pointer to member yet
-%ignore noexceptGetAddThree;
-%ignore noexceptCallMemberFunc;
-%ignore noexceptCallMemberFuncPtrAlias;
-%ignore noexceptCallMemberFuncPtrTrailing;
-#endif
-
 // noexcept in an abstract declarator, as for an unnamed parameter, a trailing return type or a template argument, extern "C" as C++17 changes the mangled names
 %inline %{
 struct NoExceptMemberFunc {

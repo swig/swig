@@ -45,7 +45,6 @@ FAILING_CPP_TESTS := \
     assign_reference \
     cpp_enum \
     constant_pointers \
-    director_member_pointer \
     enum_thorough \
     extend \
     extend_default \
@@ -58,9 +57,6 @@ FAILING_CPP_TESTS := \
     li_std_deque \
     li_std_wstring \
     li_windows \
-    member_funcptr_galore \
-    member_pointer \
-    member_pointer_const \
     mixed_types \
     nested_class \
     private_assign \
@@ -74,7 +70,6 @@ FAILING_CPP_TESTS := \
     using_extend_flatten \
     varargs \
     varargs_overload \
-    cpp11_alternate_function_syntax \
     cpp11_assign_delete \
     cpp11_assign_rvalue_reference \
     cpp11_auto_variable \
@@ -82,14 +77,11 @@ FAILING_CPP_TESTS := \
     cpp11_directors \
     cpp11_move_only \
     cpp11_move_typemaps \
-    cpp11_ref_qualifiers_typemaps \
-    cpp11_rvalue_reference2 \
     cpp11_rvalue_reference_array \
     cpp11_rvalue_reference_move \
     cpp11_std_unique_ptr \
     cpp11_template_pack \
     cpp11_using_constructor \
-    cpp11_variadic_templates \
 
 # Ignore warnings about failing to apply typemaps because none are defined:
 # usually there is no need for special typemaps in C.
