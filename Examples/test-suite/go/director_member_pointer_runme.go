@@ -10,10 +10,31 @@ func check(got int, expected int, what string) {
 	}
 }
 
+// GetMemberPtr returns the member pointer last passed to UseMemberPtr
+type MyMemberPtrDirector struct {
+	stored wrap.SwigMemberPtr
+}
+
+func (p *MyMemberPtrDirector) UseMemberPtr(m wrap.SwigMemberPtr, x int) int {
+	p.stored = m
+	return wrap.MemberPtrDirectorCallMemberPtr(m, x+10)
+}
+
+func (p *MyMemberPtrDirector) GetMemberPtr() wrap.SwigMemberPtr {
+	return p.stored
+}
+
 func main() {
-	// Go cannot name the member pointer type so these director methods are not overridden and the Go callbacks call the C++ methods
-	// CallGetMemberPtr is left out as cgo does not allow a Go callback to return the Go memory holding a member pointer
 	d := wrap.NewDirectorMemberPtrDirector(&struct{}{})
 	defer wrap.DeleteDirectorMemberPtrDirector(d)
-	check(d.CallUseMemberPtr(5), 7, "Director useMemberPtr")
+	check(d.CallUseMemberPtr(5), 7, "Base useMemberPtr")
+	check(d.CallGetMemberPtr(5), 6, "Base getMemberPtr")
+
+	md := wrap.NewDirectorMemberPtrDirector(&MyMemberPtrDirector{})
+	defer wrap.DeleteDirectorMemberPtrDirector(md)
+	if !md.CallGetMemberPtrIsNull() {
+		panic("Director getMemberPtr returning nil failed")
+	}
+	check(md.CallUseMemberPtr(5), 17, "Director useMemberPtr")
+	check(md.CallGetMemberPtr(5), 7, "Director getMemberPtr")
 }

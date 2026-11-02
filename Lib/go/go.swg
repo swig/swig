@@ -269,7 +269,52 @@
   swig_acquire_pointer(&swig_mem, $result);
 %}
 
-/* Member pointers.  */
+/* Member pointers.  A member pointer in Go points to a copy of it in Go memory, which is preceded by its size so that it can
+   be copied to C/C++ memory for a Go director method returning it, as cgo does not allow returning a pointer to Go memory.  */
+
+// C/C++ code to copy a member pointer into C/C++ memory for swigCopyMemberPtr.
+%fragment("AllocateMemberPtr", "runtime") %{
+static void *Swig_AllocateMemberPtr(const void *p, intgo size) {
+  struct swig_out_type { intgo size; void* val; } *swig_out;
+  swig_out = (struct swig_out_type*)malloc(sizeof(*swig_out));
+  if (swig_out) {
+    swig_out->size = size;
+    swig_out->val = malloc(size);
+    if (swig_out->val) {
+      memcpy(swig_out->val, p, size);
+    }
+  }
+  return swig_out;
+}
+%}
+
+// Go code to copy a member pointer from C/C++ memory to Go memory and back.
+%fragment("CopyMemberPtr", "go_runtime") %{
+func swigCopyMemberPtr(p uintptr) SwigMemberPtr {
+  type swig_out_type struct { size int; val uintptr }
+  o := (*swig_out_type)(unsafe.Pointer(p))
+  if o == nil || o.val == 0 {
+    return nil
+  }
+  n := int(unsafe.Sizeof(o.size))
+  m := make([]byte, n+o.size)
+  *(*int)(unsafe.Pointer(&m[0])) = o.size
+  copy(m[n:], unsafe.Slice((*byte)(unsafe.Pointer(o.val)), o.size))
+  Swig_free(o.val)
+  Swig_free(p)
+  return &m[n]
+}
+func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
+  if m == nil {
+    return nil
+  }
+  n := int(unsafe.Sizeof(int(0)))
+  size := *(*int)(unsafe.Add(unsafe.Pointer(m), -n))
+  p := Swig_malloc(size)
+  copy(unsafe.Slice((*byte)(unsafe.Pointer(p)), size), unsafe.Slice((*byte)(m), size))
+  return SwigMemberPtr(unsafe.Pointer(p))
+}
+%}
 
 %typemap(gotype) SWIGTYPE (CLASS::*)
 %{$gotypename%}
@@ -277,45 +322,28 @@
 %typemap(in) SWIGTYPE (CLASS::*)
 %{ memcpy(&$1, $input, sizeof($1)); %}
 
-%typemap(out) SWIGTYPE (CLASS::*)
-%{
-  struct swig_out_type { intgo size; void* val; } *swig_out;
-  swig_out = (struct swig_out_type*)malloc(sizeof(*swig_out));
-  if (swig_out) {
-    swig_out->size = sizeof($1_ltype);
-    swig_out->val = malloc(swig_out->size);
-    if (swig_out->val) {
-      *($&1_ltype)(swig_out->val) = $1;
-    }
-  }
-  $result = swig_out;
-%}
+%typemap(out, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*)
+%{ $result = Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)); %}
 
-%typemap(goout) SWIGTYPE (CLASS::*)
-%{
-  {
-    type swig_out_type struct { size int; val uintptr }
-    p := (*swig_out_type)(unsafe.Pointer($1))
-    if p == nil || p.val == 0 {
-      $result = nil
-    } else {
-      m := make([]byte, p.size)
-      a := (*[1024]byte)(unsafe.Pointer(p.val))[:p.size]
-      copy(m, a)
-      Swig_free(p.val)
-      Swig_free(uintptr(unsafe.Pointer(p)))
-      $result = &m[0]
-    }
-  }
-%}
+%typemap(goout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
+%{ $result = swigCopyMemberPtr(uintptr(unsafe.Pointer($1))) %}
 
-%typemap(directorin) SWIGTYPE (CLASS::*)
-%{ $input = (void *)&$1; %}
+%typemap(directorin, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*)
+%{ $input = Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)); %}
 
-%typemap(godirectorin) SWIGTYPE (CLASS::*) ""
+%typemap(godirectorin, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
+%{ $result = swigCopyMemberPtr(uintptr(unsafe.Pointer($input))) %}
+
+%typemap(godirectorout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
+%{ $result = swigAllocateMemberPtr($input) %}
 
 %typemap(directorout) SWIGTYPE (CLASS::*)
-%{ $result = *($&1_ltype)$input; %}
+%{
+  if ($input) {
+    memcpy(&$result, $input, sizeof($result));
+    free($input);
+  }
+%}
 
 /* Pointers.  */
 

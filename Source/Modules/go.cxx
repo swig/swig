@@ -4953,7 +4953,7 @@ private:
     } else if (SwigType_isfunctionpointer(t) || SwigType_isfunction(t)) {
       ret = NewString("_swig_fnptr");
     } else if (SwigType_ismemberpointer(t)) {
-      ret = NewString("_swig_memberptr");
+      ret = NewString("SwigMemberPtr");
     } else if (SwigType_issimple(t)) {
       Node *cn = classLookup(t);
       if (cn) {
@@ -5391,7 +5391,7 @@ private:
     bool is_string = Strcmp(gt, "string") == 0;
     bool is_slice = Strncmp(gt, "[]", 2) == 0;
     bool is_function = Strcmp(gt, "_swig_fnptr") == 0;
-    bool is_member = Strcmp(gt, "_swig_memberptr") == 0;
+    bool is_member = Strcmp(gt, "SwigMemberPtr") == 0;
     bool is_complex64 = Strcmp(gt, "complex64") == 0;
     bool is_complex128 = Strcmp(gt, "complex128") == 0;
     bool is_bool = false;

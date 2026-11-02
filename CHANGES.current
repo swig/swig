@@ -8,6 +8,25 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Go] Fix a director method taking or returning a member pointer, such as:
+
+              %feature("director") MemberPtrDirector;
+              class MemberPtrDirector {
+              public:
+                virtual ~MemberPtrDirector();
+                virtual int useMemberPtr(int (Funcs::*m)(int), int x);
+                virtual int (Funcs::*getMemberPtr())(int);
+              };
+
+            Go could not override these methods, as the Go type of a member pointer, _swig_memberptr,
+            was not exported. A C++ call of getMemberPtr panicked with "result of Go function ...
+            called from cgo is unpinned Go pointer", even when Go did not override it, as the member
+            pointer was returned in Go memory. The Go type of a member pointer is now SwigMemberPtr. A
+            member pointer returned by a Go director method is now copied to C++ memory.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [Go] Fix the wrapper for a parameter with an 'in' typemap of your own that takes no
             input, such as:
 
@@ -468,11 +487,7 @@ Version 4.6.0 (in progress)
 
 2026-10-31: wsfulton
             [Go] Fix the generated code of a director class with a method taking or returning a
-            member pointer, such as MemberPtrDirector in the entry below, which did not compile. Go
-            cannot override such a method, as the member pointer type has no exported Go name, so a
-            C++ call of the method calls the C++ method through the director. Such a call of a
-            method returning a member pointer still panics, as cgo does not allow a Go callback to
-            return the Go memory holding the member pointer.
+            member pointer, such as MemberPtrDirector in the entry below, which did not compile.
 
 2026-10-31: wsfulton
             [Perl, Python, Ruby] Fix a director method returning a member pointer, such as
