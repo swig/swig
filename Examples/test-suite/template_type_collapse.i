@@ -21,8 +21,7 @@ template <typename T> struct DerivedConster : Conster<const T> {
 %template(ConsterInt) Conster<const int>;
 %template(DerivedConsterInt) DerivedConster<const int>;
 
-// The qualifiers merge into 'const volatile int &' in any combination, so these typemaps are used
-%apply const int & { const volatile int & }
+// The qualifiers merge into 'const volatile int &' in any combination, so this typemap is used
 %typemap(in, numinputs=0) const volatile int & (int temp) "temp = 42; $1 = &temp;"
 %inline %{
 template <typename T> struct Volatiler {

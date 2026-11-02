@@ -619,7 +619,7 @@
 %typemap(out) int &
 %{ $result = new intgo(*$1); %}
 
-%typemap(argout) int &
+%typemap(argout, match="in") int &
 %{ *$input = (intgo)e$argnum; %}
 
 %typemap(goout) int & ""
@@ -657,7 +657,7 @@
 %typemap(out) int &&
 %{ $result = new intgo(*$1); %}
 
-%typemap(argout) int &&
+%typemap(argout, match="in") int &&
 %{ *$input = (intgo)e$argnum; %}
 
 %typemap(goout) int && ""

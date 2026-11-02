@@ -13,6 +13,9 @@
 #define TESTCASE_THROW1(T1)
 %}
 
+// A library argout typemap for the type, such as one writing back a 'std::string *', must not be used with an 'in' typemap that takes no input
+%typemap(in, numinputs=0) std::string *ignored (std::string temp) %{ temp = "ignored"; $1 = &temp; %}
+
 %inline %{
 
 std::string test_value(std::string x) {
@@ -43,6 +46,10 @@ void test_const_pointer(const std::string *x) {
 const std::string *test_const_pointer_out() {
    static std::string x = "x";
    return &x;
+}
+
+std::string test_pointer_ignored(std::string *ignored) {
+   return *ignored;
 }
 
 void test_reference(std::string &x) {

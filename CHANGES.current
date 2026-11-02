@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Go] Fix the wrapper for a parameter with an 'in' typemap of your own that takes no
+            input, such as:
+
+              %typemap(in, numinputs=0) int &level (int temp) "temp = 1; $1 = &temp;"
+              void set_level(int &level);
+
+            It did not compile, as the argout typemap for 'int &' was also used. It writes the value
+            back through the input using a local variable of the 'in' typemap for 'int &'. The
+            argout typemaps for 'int &', 'int &&' and 'std::string *' and the goargout typemap for
+            'std::string *' are now only used with the 'in' typemap for the same type and not when
+            it takes no input. If an 'in' typemap of your own relied on one of them to write the
+            value back, add an argout typemap for it.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [OCaml] Fix a const reference to a pointer, such as in:
 
               void set(Struct *const &s);
