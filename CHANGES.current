@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix the C++ wrappers not compiling for an instance of a member function template,
+            such as:
+
+              struct Calculator {
+                template<typename T> T cube(T x) const { return x * x * x; }
+              };
+              %template(cube_int) Calculator::cube<int>;
+
+            The C++ wrapper class declared it with its C++ name, as 'cube< int >', which is not
+            valid in a declaration. It is now declared with the name given by %template, as the C
+            function is:
+
+              int cube_int(int x) const;
+
+2026-11-02: wsfulton
             [Go] Fix a director method taking or returning a member pointer, such as:
 
               %feature("director") MemberPtrDirector;

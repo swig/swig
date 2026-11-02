@@ -1351,7 +1351,10 @@ public:
 
     // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
     ScopedPtr name_ptr = adopt(Swig_scopename_last(Getattr(n, "name")));
-    String *const name = name_ptr;
+    String *name = name_ptr;
+    // A member function template instance has the name given by %template, as for the C function, as a C++ name such as 'f<(int)>' cannot be declared.
+    if (Getattr(n, "template") && !is_ctor)
+      name = get_member_symname(n);
     String *const wname = Getattr(n, "wrap:name");
 
     String *const classname = Getattr(class_node_, "sym:name");
@@ -1640,6 +1643,12 @@ private:
   // Returned value includes "*" at the end.
   static ScopedPtr get_c_class_ptr(Node *class_node) {
     return ScopedPtr(NewStringf("SwigObj_%s*", get_c_proxy_name(class_node)));
+  }
+
+  // Return the sym:name of the member function n without the class prefix of the name of its C function.
+  static String *get_member_symname(Node *n) {
+    String *const symname = Getattr(n, "memberfunctionHandler:sym:name");
+    return symname ? symname : Getattr(n, "staticmemberfunctionHandler:sym:name");
   }
 
   // Return "virtual " if this is a virtual function, empty string otherwise.
