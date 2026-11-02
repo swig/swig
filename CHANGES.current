@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            Fix a g++ -Wextra warning, "type qualifiers ignored on cast result type", in the
+            generated code for a const pointer to member, such as the parameter of:
+
+              struct A {
+                int f(int);
+              };
+              int call(int (A::*const mp)(int));
+
+            whose wrapper did:
+
+              result = (int)call((int (A::*const)(int))arg1);
+
+            The top level const is now left out of the cast, as it already was for other types.
+
+2026-11-02: wsfulton
             [C#, D, Go, Java, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
             Fix the director method of a virtual method declared noexcept(false), such as:
 
