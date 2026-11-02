@@ -54,7 +54,15 @@
 }
 %}
 
-%typemap(classconsttab) SWIGTYPE (CLASS::*) ""
+%typemap(classconsttab,rinit=1) SWIGTYPE (CLASS::*) %{
+{
+  zval z;
+  ZVAL_UNDEF(&z);
+  SWIG_SetPointerZval(&z, (void*)&$value, $&1_descriptor, 0);
+  zval_copy_ctor(&z);
+  zend_declare_class_constant(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, &z);
+}
+%}
 
 %typemap(consttab) int,
                    unsigned int,
@@ -99,5 +107,14 @@
   zend_register_constant(&c);
 }
 
-/* Handled as a global variable. */
-%typemap(consttab) SWIGTYPE (CLASS::*) ""
+%typemap(consttab,rinit=1) SWIGTYPE (CLASS::*) %{
+{
+  zend_constant c;
+  ZVAL_UNDEF(&c.value);
+  SWIG_SetPointerZval(&c.value, (void*)&$value, $&1_descriptor, 0);
+  zval_copy_ctor(&c.value);
+  c.name = zend_string_init("$symname", sizeof("$symname") - 1, 0);
+  ZEND_CONSTANT_SET_FLAGS(&c, CONST_CS, module_number);
+  zend_register_constant(&c);
+}
+%}

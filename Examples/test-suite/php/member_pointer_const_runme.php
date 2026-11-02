@@ -41,14 +41,12 @@ check::equal(40.0, member_pointer_const::do_op($s, member_pointer_const::areavar
 
 # Try the constants
 
-/*
 $memberPtr = member_pointer_const::AREAPT;
 $memberPtr = member_pointer_const::PERIMPT;
 $memberPtr = member_pointer_const::NULLPT;
 
 check::equal(100.0, member_pointer_const::do_op($s, member_pointer_const::AREAPT), "Square area");
 check::equal(40.0, member_pointer_const::do_op($s, member_pointer_const::PERIMPT), "Square perim");
-*/
 
 # Typedefs
 check::equal(40.0, member_pointer_const::do_op_td($s, $perim_pt), "Square perim");
@@ -70,10 +68,6 @@ $adder = new Adder();
 check::equal(11, $adder->callAddPt($adder->getAddPt(), 10), "Add by member pointer");
 check::equal("int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const", getAddPtDeclaration(), "Declaration");
 
-/*
 check::equal(3, member_pointer_const::call1(member_pointer_const::ADD_BY_VALUE, 1, 2), "Add by value");
-check::equal(7, member_pointer_const::call2(member_pointer_const::ADD_BY_VALUE, 3, 4), "Add by pointer");
-check::equal(11, member_pointer_const::call3(member_pointer_const::ADD_BY_VALUE, 5, 6), "Add by reference");
- */
 
 check::done();

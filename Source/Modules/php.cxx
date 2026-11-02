@@ -1716,6 +1716,16 @@ public:
 
     SwigType_remember(type);
 
+    /* A member pointer is wrapped as a pointer to it, so the constant needs a variable to point to */
+    String *mpointer_var = NULL;
+    if (SwigType_type(type) == T_MPOINTER) {
+      mpointer_var = Swig_name_wrapper(iname);
+      String *str = SwigType_str(type, mpointer_var);
+      Printf(s_wrappers, "static %s = %s;\n", str, value);
+      Delete(str);
+      value = mpointer_var;
+    }
+
     String *wrapping_member_constant = Getattr(n, "memberconstantHandler:sym:name");
     if (!wrapping_member_constant) {
       {
@@ -1752,6 +1762,7 @@ public:
       }
     }
 
+    Delete(mpointer_var);
     return SWIG_OK;
   }
 

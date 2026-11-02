@@ -17,7 +17,7 @@ check::equal($m->aaa7(cc7_get()), 0, "aaa7");
 check::equal($m->bbb1(pp1_get()), 0, "bbb1");
 check::equal($m->bbb6(pp6_get()), 0, "bbb6");
 check::equal($m->bbb7(pp7_get()), 0, "bbb7");
-# Not tested: call1(ADD_BY_VALUE, 1, 2) as a member pointer constant is not wrapped
+check::equal(call1(ADD_BY_VALUE, 1, 2), 3, "call1");
 
 # A pointer to a non-const member function is not a pointer to a const member function, nor the reverse
 check_type_error("aaa1 with pp1", fn() => $m->aaa1(pp1_get()));

@@ -160,7 +160,7 @@ int call3(int & (Funktions::*d)(const int &, int), int a, int b) { Funktions f; 
 %constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) = &Funktions::addByReference;
 
 %inline %{
-/* Functions returning member pointers for PHP, which does not wrap member pointer constants */
+/* Functions returning member pointers for the C target language, which does not wrap member pointer constants */
 int (Funktions::*addbyvaluept())(const int &, int) { return &Funktions::addByValue; }
 int * (Funktions::*addbypointerpt())(const int &, int) { return &Funktions::addByPointer; }
 

@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [PHP] A member pointer constant was not wrapped, so ADD_BY_VALUE was not defined for:
+
+              struct Funktions {
+                int addByValue(const int &a, int b);
+              };
+              %constant int (Funktions::*ADD_BY_VALUE)(const int &, int) = &Funktions::addByValue;
+
+            Member pointer constants are now wrapped in the same way as a member pointer returned by
+            a function.
+
+2026-11-02: wsfulton
             [PHP] The type of a member pointer passed by value was not checked. A member pointer of
             another type or any other object was accepted and its bytes were copied as the member
             pointer. Passing null crashed. These now raise a TypeError.
