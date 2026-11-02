@@ -9,6 +9,11 @@ proc check {what expected actual} {
     error "Failed: $what , Expected: $expected , Actual: $actual"
   }
 }
+
+proc check_type_error {what script} {
+  if {![catch {uplevel 1 $script} err_msg]} { error "$what accepted" }
+  if {![string match "*TypeError*" $err_msg]} { error "$what: $err_msg" }
+}
 # Get the pointers
 
 set area_pt [ areapt ]
@@ -43,6 +48,12 @@ set memberPtr $NULLPT
 
 check "Square area " 100.0 [do_op $s $AREAPT]
 check "Square perim" 40.0 [do_op $s $PERIMPT]
+
+# Const references to member pointers
+check "Square area" 100.0 [do_op_cref $s $area_pt]
+check "Square perim" 40.0 [do_op_cref $s [perimetervar_td_cref]]
+check "Square perim" 40.0 [do_op $s [perimetervar_td_cref]]
+check_type_error "do_op_cref with ADD_BY_VALUE" { do_op_cref $s $ADD_BY_VALUE }
 
 # Overloaded on the member pointer type
 check "Overload by value" 3 [call_overloaded $ADD_BY_VALUE 1 2]

@@ -17,6 +17,14 @@ def check(what, expected, actual)
   end
 end
 
+def check_error(what, error_class)
+  begin
+    yield
+    raise RuntimeError, "#{what} accepted"
+  rescue error_class
+  end
+end
+
 # Get the pointers
 
 area_pt = Member_pointer::areapt
@@ -51,6 +59,13 @@ memberPtr = Member_pointer::NULLPT
 
 check "Square area ", 100.0, Member_pointer::do_op(s, Member_pointer::AREAPT)
 check "Square perim", 40.0, Member_pointer::do_op(s, Member_pointer::PERIMPT)
+
+# Const references to member pointers
+
+check "Square area", 100.0, Member_pointer::do_op_cref(s, area_pt)
+check "Square perim", 40.0, Member_pointer::do_op_cref(s, Member_pointer::perimetervar_td_cref)
+check "Square perim", 40.0, Member_pointer::do_op(s, Member_pointer::perimetervar_td_cref)
+check_error("do_op_cref with ADD_BY_VALUE", TypeError) { Member_pointer::do_op_cref(s, Member_pointer::ADD_BY_VALUE) }
 
 # Overloaded on the member pointer type
 

@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Guile, Javascript, Lua, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            Fix a const reference to a member pointer, such as m in:
+
+              struct Shape {
+                virtual double area();
+              };
+              double do_op_cref(Shape *s, double (Shape::*const &m)());
+
+            Passing a member pointer for m failed with a type error, as a pointer to the member
+            pointer was expected. A function or variable of such a type gave a pointer to the
+            member pointer, which could not be passed for a member pointer. A const reference to a
+            member pointer is now passed and returned as the member pointer, with its type checked,
+            as a const reference to a pointer is passed and returned as the pointer. A director
+            method gets and returns such a type as the member pointer too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [C] Fix %rename being ignored by the C++ wrappers of member functions, static member
             functions and member variables, such as in:
 

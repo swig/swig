@@ -27,8 +27,10 @@ class MemberPtrDirector {
 public:
   virtual ~MemberPtrDirector() {}
   virtual int useMemberPtr(int (MemberPtrFuncs::*m)(int), int x) { return callMemberPtr(m, x); }
+  virtual int useMemberPtrCref(int (MemberPtrFuncs::*const &m)(int), int x) { return callMemberPtr(m, x); }
   virtual int (MemberPtrFuncs::*getMemberPtr())(int) { return &MemberPtrFuncs::increment; }
   int callUseMemberPtr(int x) { return useMemberPtr(&MemberPtrAdder::add, x); }
+  int callUseMemberPtrCref(int x) { return useMemberPtrCref(&MemberPtrAdder::add, x); }
   int callGetMemberPtr(int x) { return callMemberPtr(getMemberPtr(), x); }
   int callUseNullMemberPtr(int x) { return useMemberPtr(0, x); }
   bool callGetMemberPtrIsNull() { return getMemberPtr() == 0; }

@@ -52,6 +52,9 @@ public class member_pointer_runme {
     // Typedefs
     check( "Square perim", 40.0, member_pointer.do_op_td(s,perim_pt) );
 
+    // Const references to member pointers
+    check( "Square perim", 40.0, member_pointer.do_op_cref(s,member_pointer.perimetervar_td_cref()) );
+
     // Overloaded on the member pointer type
     check( "Overload by value", 3, member_pointer.call_overloaded(member_pointer.ADD_BY_VALUE, 1, 2) );
     check( "Overload by pointer", -7, member_pointer.call_overloaded(member_pointer.ADD_BY_POINTER, 3, 4) );

@@ -512,6 +512,22 @@ typedef unsigned long SCM;
   %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
 
+%typemap(in) (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) {
+  int res = SWIG_ConvertMember($input, %as_voidptr(&temp), sizeof(temp), $*descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum);
+  }
+  $1 = &temp;
+}
+
+%typemap(out,noblock=1) SWIGTYPE (CLASS::*const&) {
+  %set_output(SWIG_NewMemberObj(%as_voidptr($1), sizeof(*$1), $*descriptor));
+}
+
+%typemap(varout,noblock=1) SWIGTYPE (CLASS::*const&) {
+  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $*descriptor));
+}
+
 /* ------------------------------------------------------------
  * Typechecking rules
  * ------------------------------------------------------------ */
@@ -585,6 +601,12 @@ typedef unsigned long SCM;
    int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $descriptor);
    $1 = SWIG_CheckState(res); %}
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*const&) %{
+  char swig_memberptr[sizeof($*1_ltype)];
+  int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $*descriptor);
+  $1 = SWIG_CheckState(res);
+%}
+
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, 0, 0);
@@ -602,6 +624,5 @@ typedef unsigned long SCM;
 /* const and volatile pointers */
 %apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* typemaps.i ends here */

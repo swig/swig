@@ -14,6 +14,10 @@ unittest(m$bbb6(pp6()), 0)
 unittest(m$bbb7(pp7()), 0)
 # Not tested: call1(ADD_BY_VALUE, 1, 2) as the R module does not wrap constants
 
+# A const reference to a member pointer is passed and returned as the member pointer
+unittest(m$aaa7(cc1()), 0)
+unittest(m$aaa1(cc7()), 0)
+
 # A pointer to a non-const member function is not a pointer to a const member function, nor the reverse
 unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa1(pp1()))), TRUE)
 unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa7(pp7()))), TRUE)

@@ -11,6 +11,12 @@
 (check (= 100.0 (do-op s (areapt))))
 (check (= 40.0 (do-op s (perimeterpt))))
 
+;; Const references to member pointers
+(check (= 100.0 (do-op-cref s (areapt))))
+(check (= 40.0 (do-op-cref s (perimetervar-td-cref))))
+(check (= 40.0 (do-op s (perimetervar-td-cref))))
+(check (eq? 'wrong-type-arg (catch #t (lambda () (do-op-cref s (ADD-BY-VALUE))) (lambda (key . args) key))))
+
 ;; Overloaded on the member pointer type
 (check (= 3 (call-overloaded (ADD-BY-VALUE) 1 2)))
 (check (= -7 (call-overloaded (ADD-BY-POINTER) 3 4)))

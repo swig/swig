@@ -31,6 +31,7 @@ func main() {
 	d := wrap.NewDirectorMemberPtrDirector(&struct{}{})
 	defer wrap.DeleteDirectorMemberPtrDirector(d)
 	check(d.CallUseMemberPtr(5), 7, "Base useMemberPtr")
+	check(d.CallUseMemberPtrCref(5), 7, "Base useMemberPtrCref")
 	check(d.CallGetMemberPtr(5), 6, "Base getMemberPtr")
 
 	md := wrap.NewDirectorMemberPtrDirector(&MyMemberPtrDirector{})

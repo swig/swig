@@ -12,6 +12,7 @@ public class director_member_pointer_runme
   {
     MemberPtrDirector d = new MemberPtrDirector();
     check(d.callUseMemberPtr(5), 7, "Base useMemberPtr");
+    check(d.callUseMemberPtrCref(5), 7, "Base useMemberPtrCref");
     check(d.callGetMemberPtr(5), 6, "Base getMemberPtr");
     MyMemberPtrDirector md = new MyMemberPtrDirector();
     check(md.callUseMemberPtr(5), 17, "Director useMemberPtr");

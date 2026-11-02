@@ -22,6 +22,11 @@ check::equal(3, member_pointer::call1(ADD_BY_VALUE, 1, 2), "Add by value");
 check::equal(7, member_pointer::call2(ADD_BY_POINTER, 3, 4), "Add by pointer");
 check::equal(11, member_pointer::call3(ADD_BY_REFERENCE, 5, 6), "Add by reference");
 
+# Const references to member pointers
+check::equal(100.0, member_pointer::do_op_cref($s, member_pointer::areapt()), "Square area");
+check::equal(40.0, member_pointer::do_op_cref($s, member_pointer::perimetervar_td_cref()), "Square perim");
+check::equal(40.0, member_pointer::do_op($s, member_pointer::perimetervar_td_cref()), "Square perim");
+
 # Overloaded on the member pointer type
 check::equal(3, member_pointer::call_overloaded(member_pointer::addbyvaluept(), 1, 2), "Overload by value");
 check::equal(-7, member_pointer::call_overloaded(member_pointer::addbypointerpt(), 3, 4), "Overload by pointer");

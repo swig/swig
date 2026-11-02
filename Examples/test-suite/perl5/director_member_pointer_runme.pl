@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 8;
 BEGIN { use_ok 'director_member_pointer' }
 require_ok 'director_member_pointer';
 
@@ -11,6 +11,10 @@ require_ok 'director_member_pointer';
     my($self, $m, $x) = @_;
     return director_member_pointer::MemberPtrDirector::callMemberPtr($m, $x + 10);
   }
+  sub useMemberPtrCref {
+    my($self, $m, $x) = @_;
+    return director_member_pointer::MemberPtrDirector::callMemberPtr($m, $x + 20);
+  }
   sub getMemberPtr {
     return director_member_pointer::MemberPtrDirector::addPtr();
   }
@@ -18,7 +22,9 @@ require_ok 'director_member_pointer';
 
 my $d = director_member_pointer::MemberPtrDirector->new();
 is($d->callUseMemberPtr(5), 7, 'Base useMemberPtr');
+is($d->callUseMemberPtrCref(5), 7, 'Base useMemberPtrCref');
 is($d->callGetMemberPtr(5), 6, 'Base getMemberPtr');
 $d = MyMemberPtrDirector->new();
 is($d->callUseMemberPtr(5), 17, 'Director useMemberPtr');
+is($d->callUseMemberPtrCref(5), 27, 'Director useMemberPtrCref');
 is($d->callGetMemberPtr(5), 7, 'Director getMemberPtr');

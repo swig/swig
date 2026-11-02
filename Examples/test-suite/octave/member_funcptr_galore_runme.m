@@ -24,6 +24,10 @@ if (m.bbb6(cvar.pp6) != 0); error("bbb6"); endif
 if (m.bbb7(cvar.pp7) != 0); error("bbb7"); endif
 if (call1(ADD_BY_VALUE, 1, 2) != 3); error("call1"); endif
 
+# A const reference to a member pointer is passed and returned as the member pointer
+if (m.aaa7(cvar.cc1) != 0); error("aaa7 with cc1"); endif
+if (m.aaa1(cvar.cc7) != 0); error("aaa1 with cc7"); endif
+
 # A pointer to a non-const member function is not a pointer to a const member function, nor the reverse
 check_type_error(@() m.aaa1(cvar.pp1));
 check_type_error(@() m.aaa7(cvar.pp7));

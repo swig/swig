@@ -26,6 +26,10 @@ check(0, m.bbb6(member_funcptr_galore.pp6));
 check(0, m.bbb7(member_funcptr_galore.pp7));
 check(3, member_funcptr_galore.call1(member_funcptr_galore.ADD_BY_VALUE, 1, 2));
 
+// A const reference to a member pointer is passed and returned as the member pointer
+check(0, m.aaa7(member_funcptr_galore.cc1));
+check(0, m.aaa1(member_funcptr_galore.cc7));
+
 // A pointer to a non-const member function is not a pointer to a const member function, nor the reverse
 check_type_error(function() { m.aaa1(member_funcptr_galore.pp1); });
 check_type_error(function() { m.aaa7(member_funcptr_galore.pp7); });

@@ -103,5 +103,9 @@ if (argvi >= items) EXTEND(sp, argvi+1);
   SWIG_MakePackedObj($result, (void *) &$1, sizeof($1), $1_descriptor);
 }
 
+%typemap(varout,type="$*1_descriptor") SWIGTYPE (CLASS::*const&) {
+  SWIG_MakePackedObj($result, (void *) &$1, sizeof($1), $*1_descriptor);
+}
+
 %typemap(varout) SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile = SWIGTYPE *;
 

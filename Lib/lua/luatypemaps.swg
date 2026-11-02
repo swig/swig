@@ -288,6 +288,18 @@ $1=($1_ltype)&temp;%}
   SWIG_NewMemberObj(L,(void*)(&$1),sizeof($1),$descriptor); SWIG_arg++;
 %}
 
+%typemap(in,checkfn="lua_isuserdata") (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp)
+%{
+  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&temp),sizeof(temp),$*descriptor)))
+    SWIG_fail_ptr("$symname",$argnum,$*descriptor);
+  $1 = &temp;
+%}
+
+%typemap(out) SWIGTYPE (CLASS::*const&)
+%{
+  SWIG_NewMemberObj(L,(void*)($1),sizeof(*$1),$*descriptor); SWIG_arg++;
+%}
+
 
 // void (must be empty without the SWIG_arg++)
 %typemap(out) void ""
@@ -401,6 +413,11 @@ parameters match which function
   $1 = SWIG_IsOK(SWIG_ConvertMember(L, $input, swig_memberptr, sizeof(swig_memberptr), $descriptor));
 %}
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*const&) %{
+  char swig_memberptr[sizeof($*1_ltype)];
+  $1 = SWIG_IsOK(SWIG_ConvertMember(L, $input, swig_memberptr, sizeof(swig_memberptr), $*descriptor));
+%}
+
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)) {
@@ -449,7 +466,6 @@ parameters match which function
 /* const and volatile pointers */
 %apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };

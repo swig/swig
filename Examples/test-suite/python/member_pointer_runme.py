@@ -1,6 +1,7 @@
 # Example using pointers to member functions
 
 from member_pointer import *
+from swig_test_utils import swig_assert_raises
 
 
 def check(what, expected, actual):
@@ -45,6 +46,13 @@ check("Square perim", 40.0, do_op(s, PERIMPT))
 
 # Typedefs
 check("Square perim", 40.0, do_op_td(s, perim_pt));
+
+# Const references to member pointers
+check("Square area", 100.0, do_op_cref(s, area_pt))
+check("Square perim", 40.0, do_op_cref(s, perimetervar_td_cref()))
+check("Square perim", 40.0, do_op(s, perimetervar_td_cref()))
+with swig_assert_raises(TypeError):
+    do_op_cref(s, ADD_BY_VALUE)
 
 check("Add by value", 3, call1(ADD_BY_VALUE, 1, 2))
 check("Add by pointer", 7, call2(ADD_BY_POINTER, 3, 4))

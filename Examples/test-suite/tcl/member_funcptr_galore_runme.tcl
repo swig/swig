@@ -17,6 +17,10 @@ if {[m bbb6 $pp6] != 0} { error "bbb6" }
 if {[m bbb7 $pp7] != 0} { error "bbb7" }
 if {[call1 $ADD_BY_VALUE 1 2] != 3} { error "call1" }
 
+# A const reference to a member pointer is passed and returned as the member pointer
+if {[m aaa7 $cc1] != 0} { error "aaa7 with cc1" }
+if {[m aaa1 $cc7] != 0} { error "aaa1 with cc7" }
+
 # A pointer to a non-const member function is not a pointer to a const member function, nor the reverse
 check_type_error "aaa1 with pp1" { m aaa1 $pp1 }
 check_type_error "aaa7 with pp7" { m aaa7 $pp7 }
