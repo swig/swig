@@ -71,6 +71,13 @@
     $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $1_descriptor);
 }
 
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE & %{
+    $result = ($ltype) caml_ptr_val($input,$1_descriptor);
+    if (!$result) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "Unexpected null return for type $1_type");
+    }
+%}
+
 #if 0
 %typemap(argout) SWIGTYPE & {
     const value *fromval = caml_named_value("create_$ntype_from_ptr");

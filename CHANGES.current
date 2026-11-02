@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [OCaml] Fix a director method returning a reference, such as Ref() here:
+
+              %feature("director") Base;
+              struct Base {
+                virtual DoubleHolder &Ref(DoubleHolder &x);
+                virtual ~Base();
+              };
+
+            The reference returned to C++ was a NULL reference whatever the method returned in
+            OCaml, so C++ crashed using it, even when the method was not overridden in OCaml. The
+            reference returned in OCaml is now passed to C++. C_void returned for a reference gives
+            an Invalid_argument exception.
+
+2026-11-02: wsfulton
             [OCaml] Fix a pointer or reference parameter accepting any C_string without a type check,
             such as a member pointer value for f or m in:
 
