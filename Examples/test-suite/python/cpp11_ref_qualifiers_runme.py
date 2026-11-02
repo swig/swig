@@ -21,6 +21,11 @@ swig_check(cpp11_ref_qualifiers.callIntFunc(fh.p1(), 1), 2)
 swig_assert(not hasattr(fh, "p2"), "p2 should be ignored")
 swig_check(cpp11_ref_qualifiers.callIntFunc(fh.p3Renamed(), 2), 3)
 
+lh = cpp11_ref_qualifiers.ListHost()
+swig_check(lh.lv(), 1)
+swig_assert(not hasattr(lh, "rv"), "rv should be ignored")
+swig_check(lh.clv(), 3)
+
 # %feature testing
 f = cpp11_ref_qualifiers.Features()
 if f.F1() != "F1":

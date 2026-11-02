@@ -33,3 +33,9 @@ swig_check(cpp11_noexcept.noexceptCallFuncPtrTrailing(cpp11_noexcept.noexceptGet
 swig_check(cpp11_noexcept.noexceptCallMemberFuncPtrAlias(cpp11_noexcept.noexceptGetAddThree(), member, 2), 5)
 swig_check(cpp11_noexcept.noexceptCallMemberFuncPtrTrailing(cpp11_noexcept.noexceptGetAddThree(), member, 3), 6)
 swig_check(cpp11_noexcept.NoExceptFuncTypeMember().addFour(1), 5)
+
+# The declarators after the first in a list
+m = cpp11_noexcept.NoExceptFuncPtrMembers()
+m.ptr2 = cpp11_noexcept.noexceptGetAddTwo2()
+swig_check(cpp11_noexcept.noexceptCallNoExceptFunc(m.ptr2, 4), 6)
+swig_check(cpp11_noexcept.noexceptCallFuncType2(cpp11_noexcept.noexceptGetAddTwo2(), 5), 7)

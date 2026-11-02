@@ -46,5 +46,13 @@ public class cpp11_noexcept_runme {
       throw new RuntimeException("noexceptCallMemberFuncPtrTrailing failed");
     if (new NoExceptFuncTypeMember().addFour(1) != 5)
       throw new RuntimeException("NoExceptFuncTypeMember failed");
+
+    // The declarators after the first in a list
+    NoExceptFuncPtrMembers members = new NoExceptFuncPtrMembers();
+    members.setPtr2(cpp11_noexcept.noexceptGetAddTwo2());
+    if (cpp11_noexcept.noexceptCallNoExceptFunc(members.getPtr2(), 4) != 6)
+      throw new RuntimeException("NoExceptFuncPtrMembers failed");
+    if (cpp11_noexcept.noexceptCallFuncType2(cpp11_noexcept.noexceptGetAddTwo2(), 5) != 7)
+      throw new RuntimeException("noexceptCallFuncType2 failed");
   }
 }

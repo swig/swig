@@ -52,6 +52,12 @@ public class member_pointer_const_runme {
     // Typedefs
     check( "Square perim", 40.0, member_pointer_const.do_op_td(s,perim_pt) );
 
+    // The declarators after the first in a list
+    check( "Square perim", 40.0, member_pointer_const.do_op_list_td(s,perim_pt) );
+    check( "Square perim", 40.0, member_pointer_const.do_op(s,member_pointer_const.perimeterptlist()) );
+    check( "Square perim", 40.0, member_pointer_const.do_op(s,member_pointer_const.getPerimetervarlist()) );
+    check( "Square perim", 40.0, member_pointer_const.do_op(s,new MemberPointerGetter().getPerimeterPtList()) );
+
     // Member functions returning member pointers
     MemberPointerGetter getter = new MemberPointerGetter();
     check( "Square area ", 100.0, member_pointer_const.do_op(s,getter.getAreaPt()) );

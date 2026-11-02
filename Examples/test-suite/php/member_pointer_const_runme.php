@@ -3,13 +3,14 @@
 require "tests.php";
 
 // Check functions.
-check::functions(array('do_op','do_op_td','areapt','perimeterpt','perimeterpt_td','call1','getAddPtDeclaration'));
+check::functions(array('do_op','do_op_td','areapt','perimeterpt','perimeterpt_td','do_op_list_td',
+                       'areaptlist','perimeterptlist','call1','getAddPtDeclaration'));
 
 // Check classes.
 check::classes(array('member_pointer_const','Adder','Circle','Funktions','MemberPointerGetter','Shape','Square'));
 
 // Check global variables.
-check::globals(array('areavar','perimetervar','perimetervar_td'));
+check::globals(array('areavar','perimetervar','perimetervar_td','areavarlist','perimetervarlist'));
 
 # Get the pointers
 
@@ -51,6 +52,12 @@ check::equal(40.0, member_pointer_const::do_op($s, member_pointer_const::PERIMPT
 
 # Typedefs
 check::equal(40.0, member_pointer_const::do_op_td($s, $perim_pt), "Square perim");
+
+# The declarators after the first in a list
+check::equal(40.0, member_pointer_const::do_op_list_td($s, $perim_pt), "Square perim");
+check::equal(40.0, member_pointer_const::do_op($s, member_pointer_const::perimeterptlist()), "Square perim");
+check::equal(40.0, member_pointer_const::do_op($s, member_pointer_const::perimetervarlist_get()), "Square perim");
+check::equal(40.0, member_pointer_const::do_op($s, (new MemberPointerGetter())->getPerimeterPtList()), "Square perim");
 
 # Member functions returning member pointers
 $getter = new MemberPointerGetter();

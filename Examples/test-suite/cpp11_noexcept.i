@@ -169,3 +169,18 @@ struct NoExceptFuncTypeMember {
 };
 int NoExceptFuncTypeMember::addFour(int i) TESTCASE_NOEXCEPT_TYPE { return i + 4; }
 %}
+
+// The declarators after the first in a list, which have the same types as the first
+%inline %{
+struct NoExceptFuncPtrMembers {
+  int (*ptr1)(int) noexcept, (*ptr2)(int) noexcept;
+  NoExceptFuncPtrMembers() : ptr1(noexceptAddTwo), ptr2(noexceptAddTwo) {}
+};
+int (*noexceptGetAddTwo1())(int) noexcept, (*noexceptGetAddTwo2())(int) noexcept;
+typedef int NoExceptFuncType1(int) TESTCASE_NOEXCEPT_TYPE, NoExceptFuncType2(int) TESTCASE_NOEXCEPT_TYPE;
+int noexceptCallFuncType2(NoExceptFuncType2 *f, int i) { return f(i); }
+%}
+%{
+int (*noexceptGetAddTwo1())(int) noexcept { return noexceptAddTwo; }
+int (*noexceptGetAddTwo2())(int) noexcept { return noexceptAddTwo; }
+%}

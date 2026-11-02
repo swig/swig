@@ -36,6 +36,12 @@ check("Square perim", 40, v.do_op(s, v.PERIMPT))
 -- Typedefs
 check("Square perim", 40, v.do_op_td(s, perim_pt))
 
+-- The declarators after the first in a list
+check("Square perim", 40, v.do_op_list_td(s, perim_pt))
+check("Square perim", 40, v.do_op(s, v.perimeterptlist()))
+check("Square perim", 40, v.do_op(s, v.perimetervarlist))
+check("Square perim", 40, v.do_op(s, v.MemberPointerGetter():getPerimeterPtList()))
+
 -- Member functions returning member pointers
 local getter = v.MemberPointerGetter()
 check("Square area ", 100, v.do_op(s, getter:getAreaPt()))

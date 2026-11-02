@@ -3686,6 +3686,13 @@ static int declarator_qualifiers_are_own(SwigType *type) {
   return own;
 }
 
+/* The storage class, such as "typedef", for qualified_declarator_type() to use for the declarators after the first in a
+   declaration, as for G in:
+     typedef int F(int) noexcept, G(int) noexcept;
+   c_decl_list_tail, which parses them, has no storage_class of its own, so c_decl sets this before them and resets it
+   to 0 once the declaration is complete. */
+static String *declarator_list_storage = 0;
+
 /* Return the type of the declarator decl with the qualifiers cpp_const after it added, see add_qualifier_to_declarator().
    When they are not the declared function's, a 'noexcept' is part of the function type that they belong to, as for
    the function pointed to in:
@@ -5255,7 +5262,9 @@ c_declaration   : c_decl {
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
+c_decl  : storage_class type declarator cpp_const initializer {
+              declarator_list_storage = $storage_class;
+            } c_decl_tail {
 	      String *decl;
               check_parameter_only_array(&$declarator);
               $$ = new_node("cdecl");
@@ -5343,6 +5352,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
               /* C++20 abbreviated function template: any parm typed 'auto' becomes an invented type template parameter. */
               if ($$) promote_abbreviated_template($$, 0);
+              declarator_list_storage = 0;
 	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
@@ -5722,13 +5732,14 @@ structured_binding_names : ID {
    without also reaching c_decl_tail's error alternative, which turns an initialiser SWIG cannot parse into a
    fatal error rather than into the ignored declaration an 'auto' variable gets. */
 c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
+                 String *decl;
                  check_parameter_only_array(&$declarator);
 		 $$ = new_node("cdecl");
-		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
+                 decl = qualified_declarator_type(&$declarator, &$cpp_const, declarator_list_storage);
                  use_declarator_qualifiers(&$cpp_const, &$declarator);
 		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
 		 Setattr($$,"name",$declarator.id);
-		 Setattr($$,"decl",$declarator.type);
+                 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$declarator.parms);
 		 Setattr($$,"value",$initializer.val);
 		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);

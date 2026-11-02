@@ -23,6 +23,11 @@ public class cpp11_ref_qualifiers_runme {
 
     h.h();
 
+    // The declarators after the first in a list
+    ListHost lh = new ListHost();
+    if (lh.lv() != 1) throw new RuntimeException("Fail");
+    if (lh.clv() != 3) throw new RuntimeException("Fail");
+
     // %feature testing
     Features f = new Features();
     if (!f.F1().equals("F1")) throw new RuntimeException("Fail");

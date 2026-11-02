@@ -61,6 +61,12 @@ extern PerimeterFunc_td perimeterpt_td();
 extern double (Shape::*areavar)(void) const;
 extern double (Shape::*perimetervar)(void) const;
 extern PerimeterFunc_td perimetervar_td;
+
+/* The declarators after the first in a list */
+typedef double (Shape::*AreaFuncList_td)(void) const, (Shape::*PerimeterFuncList_td)(void) const;
+extern double do_op_list_td(Shape *s, PerimeterFuncList_td m);
+extern double (Shape::*areaptlist())(void) const, (Shape::*perimeterptlist())(void) const;
+extern double (Shape::*areavarlist)(void) const, (Shape::*perimetervarlist)(void) const;
 %}
 
 %{
@@ -114,6 +120,21 @@ PerimeterFunc_td perimeterpt_td() {
 double (Shape::*areavar)(void) const = &Shape::area;
 double (Shape::*perimetervar)(void) const = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
+
+double do_op_list_td(Shape *s, PerimeterFuncList_td m) {
+  return (s->*m)();
+}
+
+double (Shape::*areaptlist())(void) const {
+  return &Shape::area;
+}
+
+double (Shape::*perimeterptlist())(void) const {
+  return &Shape::perimeter;
+}
+
+double (Shape::*areavarlist)(void) const = &Shape::area;
+double (Shape::*perimetervarlist)(void) const = &Shape::perimeter;
 %}
 
 
@@ -157,11 +178,15 @@ struct MemberPointerGetter {
   /* Static, as the 'const' is that of the member function pointed to */
   static double (Shape::*getStaticAreaPt())(void) const { return &Shape::area; }
   static double (Shape::*staticAreaVar)(void) const;
+  /* The declarators after the first in a list */
+  double (Shape::*getAreaPtList() const)(void) const, (Shape::*getPerimeterPtList() const)(void) const;
 };
 %}
 
 %{
 double (Shape::*MemberPointerGetter::staticAreaVar)(void) const = &Shape::area;
+double (Shape::*MemberPointerGetter::getAreaPtList() const)(void) const { return &Shape::area; }
+double (Shape::*MemberPointerGetter::getPerimeterPtList() const)(void) const { return &Shape::perimeter; }
 %}
 
 %{

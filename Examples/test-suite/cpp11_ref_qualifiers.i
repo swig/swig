@@ -80,6 +80,16 @@ struct FuncPtrHost {
 };
 %}
 
+// The declarators after the first in a list, rv is ignored by default like h3
+%inline %{
+struct ListHost {
+  int lv() &, rv() &&, clv() const &;
+};
+int ListHost::lv() & { return 1; }
+int ListHost::rv() && { return 2; }
+int ListHost::clv() const & { return 3; }
+%}
+
 // %feature testing
 %feature("except") F1() & %{ result = "F1"; %}
 %feature("except") F2 %{ result = "F2"; %}

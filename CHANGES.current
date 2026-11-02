@@ -8,6 +8,22 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            Fix the qualifiers after a declarator that is not the first in a declaration, such as
+            those of b, PB and g in:
+
+              int (*a)(int) noexcept, (*b)(int) noexcept;
+              typedef int (C::*PA)(int) const, (C::*PB)(int) const;
+              struct S {
+                int f() &, g() &&;
+              };
+
+            They were not handled as for the first declarator. b was a pointer to a function that
+            is not noexcept, so the wrapper for setting a member variable like b did not compile
+            from C++17. PB was a const pointer to a member function that is not const. g lost its
+            rvalue ref-qualifier, so it was wrapped rather than ignored and the wrapper did not
+            compile. Each declarator now gets the type and qualifiers it gets as the first one.
+
+2026-11-01: wsfulton
             [C] Fix the .h file not compiling as C99 when a type that SWIG does not wrap is used
             more than once, as in:
 
