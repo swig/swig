@@ -7188,12 +7188,13 @@ To target proxy classes that are derived from a wrapped class as well, the "java
 </p>
 
 <p>
-For the typemap to be used in all type wrapper classes, all the different types that type wrapper classes could be used for should be targeted:
+For the typemap to be used in all type wrapper classes, all the different types that type wrapper classes could be used for should be targeted.
+The type wrapper classes for member pointers hold the member pointer in a <tt>String</tt> instead of a <tt>long</tt>, so they need a typemap of their own:
 </p>
 
 <div class="code">
 <pre>
-%typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[], SWIGTYPE (CLASS::*) %{
+%typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[] %{
   private transient long swigCPtr;
 
   protected $javaclassname(long cPtr, boolean bFutureUse) {
@@ -7206,6 +7207,22 @@ For the typemap to be used in all type wrapper classes, all the different types 
 
   protected static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
+  }
+%}
+
+%typemap(javabody) SWIGTYPE (CLASS::*) %{
+  private transient String swigCMemberPtr;
+
+  protected $javaclassname(String cMemberPtr, boolean bFutureUse) {
+    swigCMemberPtr = cMemberPtr;
+  }
+
+  protected $javaclassname() {
+    swigCMemberPtr = null;
+  }
+
+  protected static String getCMemberPtr($javaclassname obj) {
+    return (obj == null) ? null : obj.swigCMemberPtr;
   }
 %}
 </pre>
@@ -8488,16 +8505,15 @@ wrapping C structures, it would not work for C++ classes involved in an inherita
 Each class derived from a base needs a separate <tt>swigCPtr</tt> because C++ compilers sometimes use a different pointer value when casting a derived class to a base.
 Additionally as Java only supports single inheritance, it would not be possible to derive wrapped classes from your own pure Java classes if the base class has been 'used up' by SWIG.
 However, you may want to move some of the common code into a base class. 
-Here is an example which uses a common base class for all proxy classes and type wrapper classes:
+Here is an example which uses a common base class for all proxy classes and type wrapper classes.
+It leaves out the type wrapper classes for member pointers, as they have <tt>swigCMemberPtr</tt> instead of <tt>swigCPtr</tt>:
 </p>
 
 <div class="code">
 <pre>
-%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[],
-                                                         SWIGTYPE (CLASS::*) "SWIG"
+%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[] "SWIG"
 
-%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[],
-                                                         SWIGTYPE (CLASS::*) %{
+%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[] %{
   protected long getPointer() {
     return swigCPtr;
   }
