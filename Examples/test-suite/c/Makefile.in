@@ -19,6 +19,7 @@ top_builddir = ../@top_builddir@
 CPP_TEST_CASES := \
     c_backend_cpp_natural_std_string \
     c_backend_cpp_exception \
+    c_builtin_types \
     c_exceptions \
     c_no_namespace_globals \
 
@@ -180,6 +181,7 @@ typename.cpptest: SWIG_NS = type_name
 SWIG_NAMESPACE = -namespace $(SWIG_NS)
 
 # Tests run without -namespace.
+c_builtin_types.cpptest: SWIG_NAMESPACE =
 c_no_namespace_globals.cpptest: SWIG_NAMESPACE =
 
 %.multicpptest: SWIGOPT += -namespace $*

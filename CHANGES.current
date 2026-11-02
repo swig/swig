@@ -8,6 +8,27 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [C] Fix the builtin types other than void, bool, char, short, int, long, float and
+            double, such as unsigned int, signed char and long long, not being handled as the
+            builtin types they are when wrapping C++ code. For example, given:
+
+              unsigned int count;
+              struct Arrays {
+                unsigned int uints[2];
+              };
+              unsigned int value(unsigned int ***p);
+
+            The member array was wrapped as an array of pointers. Its setter took an
+            'unsigned int **' and wrote pointers into the array, beyond its end on a 64 bit
+            platform. It also freed the pointer passed to it. It now takes an 'unsigned int *' and
+            copies the values, as for an int array. The parameter of value was declared with
+            'SWIGTYPE_p_p_p_unsigned_int *' and is now declared as 'unsigned int ***'. Without
+            -namespace, the global variable is now declared in the .h file, as an int variable is,
+            instead of being wrapped with accessor functions.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
             [C] Fix the C declarations in the .h file when wrapping C++ code for a const reference
             to a pointer to a builtin type and for a pointer to a pointer to an enum, such as in:
 

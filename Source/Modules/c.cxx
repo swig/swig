@@ -18,8 +18,24 @@ extern "C" {
 extern int UseWrapperSuffix;
 }
 
+// Return true if the type is one of the builtin types of the typemaps in c.swg, which the header file declares as they are, such as 'unsigned int'.
 int SwigType_isbuiltin(SwigType *t) {
-  const char *builtins[] = {"void", "short", "int", "long", "char", "float", "double", "bool", 0};
+  const char *builtins[] = {"void",
+                            "bool",
+                            "char",
+                            "signed char",
+                            "unsigned char",
+                            "short",
+                            "unsigned short",
+                            "int",
+                            "unsigned int",
+                            "long",
+                            "unsigned long",
+                            "long long",
+                            "unsigned long long",
+                            "float",
+                            "double",
+                            0};
   int i = 0;
   char *c = Char(t);
   if (!t)
@@ -2495,8 +2511,9 @@ public:
    *   'm' followed by the mangled class for a pointer to member
    *   'f' followed by the mangled type of each parameter, each one after '_', for a function
    *   'v' for a variadic type
-   * The base type is mangled as its first letter for a builtin type, 'e' followed by its name for an enum or its
-   * mangled name otherwise.
+   * The base type is mangled as its first letter for a builtin type whose name is one word, such as 'i' for 'int', 'e'
+   * followed by its name for an enum or its mangled name otherwise, as for 'unsigned int', which would otherwise have the
+   * same first letter as other builtin types.
    * ---------------------------------------------------------------------- */
 
   String *get_mangled_type(SwigType *type_arg) {
@@ -2554,7 +2571,7 @@ public:
     String *result = Swig_name_mangle_string(prefix);
 
     ScopedPtr base = adopt(SwigType_base(type));
-    if (SwigType_isbuiltin(base)) {
+    if (SwigType_isbuiltin(base) && !Strchr(base, ' ')) {
       Printf(result, "%c", *Char(base));
     } else if (SwigType_isenum(base)) {
       ScopedPtr enumname = adopt(Swig_scopename_last(base));
