@@ -320,6 +320,10 @@
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags));
 }
 
+%typemap(varout, noblock=1) SWIGTYPE *const& {
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $*descriptor, %newpointer_flags));
+}
+
 /* References */
 %typemap(varout, noblock=1) SWIGTYPE (&)[ANY], SWIGTYPE (&&)[ANY] {
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $*1_descriptor, %newpointer_flags));
@@ -654,6 +658,14 @@
   %set_constant("$symname", SWIG_NewFunctionPtrObj((void *)$value, $descriptor));
 }
 %typemap(constcode) SWIGTYPE ((* const)(ANY)) = SWIGTYPE ((*)(ANY));
+
+%typemap(out, noblock=1) SWIGTYPE ((*const&)(ANY)) {
+  %set_output(SWIG_NewFunctionPtrObj((void *)(*$1), $*descriptor));
+}
+
+%typemap(varout, noblock=1) SWIGTYPE ((*const&)(ANY)) {
+  %set_varoutput(SWIG_NewFunctionPtrObj((void *)($1), $*descriptor));
+}
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 

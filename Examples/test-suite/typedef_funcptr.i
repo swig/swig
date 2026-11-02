@@ -97,6 +97,10 @@ FnPtr_int_td &get_op_ref() {
     static FnPtr_int_td op = addf;
     return op;
 }
+const FnPtr_int_td &static_op_const_ref = OpHolder::static_fn;
+const FnPtr_int_td &get_op_const_ref() {
+    return OpHolder::static_fn;
+}
 
 // Const function pointers
 int do_op_const(int x, int y, int (*const op)(int, int)) {

@@ -7,6 +7,35 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-02: wsfulton
+            [Octave, Perl, Python, Ruby, Scilab, Tcl]
+            Fix a global or static member variable that is a const reference to a pointer, such as:
+
+              Foo *const &foo_ref = foo_ptr;
+              char *const &str_ref = str_ptr;
+
+            It was wrapped as a pointer to the pointer, so the Foo it points to could not be used
+            through it, nor could it be passed to a function taking a 'Foo *'. It is now wrapped as
+            the pointer it refers to, or as a string for a char pointer such as str_ref, the same
+            as the result of a function returning that type.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            Fix a function returning a const reference to a function pointer and a global or static
+            member variable of that type, such as get_fn_ref and fn_ref in:
+
+              typedef int (*FnPtr)(int, int);
+              const FnPtr &fn_ref = fn_ptr;
+              const FnPtr &get_fn_ref();
+
+            The wrapper of get_fn_ref did not compile. The wrapper of fn_ref did not compile either
+            or wrapped it as a pointer to the function pointer. Both are now wrapped as the function
+            pointer they refer to.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-11-01: wsfulton
             Fix the declarations that the -addextern option adds for a function with an exception
             specification, such as:

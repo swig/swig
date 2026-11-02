@@ -102,7 +102,7 @@
 
 /* varout */
 
-%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtr) Char *, const Char * {
+%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtr) Char *, const Char *, Char *const& {
   %set_varoutput(SWIG_FromCharPtr($1));
 }
 

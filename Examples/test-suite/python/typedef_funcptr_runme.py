@@ -32,3 +32,8 @@ holder.member_fn = typedef_funcptr.subf
 if typedef_funcptr.do_op(a,b,holder.member_fn) != 90:
   raise RuntimeError("member_fn failed")
 
+if typedef_funcptr.do_op(a,b,typedef_funcptr.cvar.static_op_const_ref) != 90:
+  raise RuntimeError("static_op_const_ref failed")
+if typedef_funcptr.do_op_const_ref(a,b,typedef_funcptr.get_op_const_ref()) != 90:
+  raise RuntimeError("get_op_const_ref failed")
+

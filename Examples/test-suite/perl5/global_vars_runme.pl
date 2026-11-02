@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 17;
+use Test::More tests => 18;
 BEGIN { use_ok('global_vars') }
 require_ok('global_vars');
 
@@ -14,6 +14,7 @@ $global_varsc::avp = $an;
 isa_ok($global_varsc::avp, 'global_vars::A');
 $global_vars::a->{x} = 7;
 is($global_vars::acvp->{x}, 7, "const volatile pointer global var");
+is($global_vars::acpr->{x}, 7, "const reference to a const pointer global var");
 
 # Regression test for https://sourceforge.net/p/swig/bugs/564/ - changing the
 # value in C/C++ apparently wasn't reflected in Perl:
@@ -43,6 +44,5 @@ like($@, qr/TypeError/, "pointer global set to a pointer of another type");
 is(${$global_vars::xp}, 0, "pointer global after a failed set");
 is($$hp, $hp_value, "pointer object of another type unchanged");
 
-# TODO: $global_vars::hcpr is wrapped as a pointer to the pointer, so it cannot be passed to assign_hp()
-global_vars::assign_hp($global_vars::hcp);
+global_vars::assign_hp($global_vars::hcpr);
 is(${$global_vars::hp}, ${$global_vars::hcp}, "enum pointer passed by const reference");

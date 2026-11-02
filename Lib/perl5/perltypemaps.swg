@@ -87,6 +87,9 @@ if (argvi >= items) EXTEND(sp, argvi+1);
 %typemap(varout,type="$1_descriptor") SWIGTYPE *, SWIGTYPE []  
     "SWIG_SetPtrVariable($result, PTR2IV($1), $1_descriptor);";
 
+%typemap(varout,type="$*1_descriptor") SWIGTYPE *const&
+    "SWIG_SetPtrVariable($result, PTR2IV($1), $*1_descriptor);";
+
 %typemap(varout,type="$1_descriptor") SWIGTYPE &
     "SWIG_SetPtrVariable($result, PTR2IV(&$1), $1_descriptor);";
 

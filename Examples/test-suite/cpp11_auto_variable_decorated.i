@@ -68,7 +68,6 @@ int deref(int *p) { return *p; }
 int deref2(int **p) { return **p; }
 int call_fn(int (*fn)(int), int x) { return fn(x); }
 int array_first(int (*p)[4]) { return (*p)[0]; }
-const char *string_deref(const char *const *p) { return *p; }
 int first_byte(const unsigned char *p) { return p[0]; }
 int first_char(const void *p) { return *static_cast<const char *>(p); }
 
