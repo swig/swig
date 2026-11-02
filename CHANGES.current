@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [C] Fix the wrappers of std::map not compiling for a mapped type without a default
+            constructor, such as NoDefault in:
+
+              struct NoDefault {
+                NoDefault(int v);
+              };
+              %template(NoDefaultMap) std::map<int, NoDefault>;
+
+            The set function used operator[], which needs a default constructor. It now uses
+            insert_or_assign when the C++17 standard library provides it, as the other target
+            languages do.
+
+2026-11-01: wsfulton
             [C#, Java] Fix a memory leak each time a member pointer was passed between C++ and the
             target language, such as to a function, to set a variable or to a director method. The
             copy of the string holding the member pointer was never freed.
