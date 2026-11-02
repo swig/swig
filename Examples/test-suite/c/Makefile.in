@@ -104,27 +104,18 @@ c_namespace_globals.ctest: SWIGOPT += -namespace ns
 c_structs.ctest: SWIGOPT += -namespace ns
 
 # Tests for which C++ wrappers currently don't compile.
-contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with multiple base classes and hence ignored.
 cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
 cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.
 default_constructor.cpptest: SWIG_NOCXX = -nocxx # Something weird with OSRSpatialReferenceShadow.
-global_namespace.cpptest: SWIG_NOCXX = -nocxx # Const const reference type.
 li_carrays_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays not really supported currently.
 li_cdata_cpp.cpptest: SWIG_NOCXX = -nocxx # No support for multiarg typemaps required here.
 multiple_inheritance_abstract.cpptest: SWIG_NOCXX = -nocxx # Multiple inheritance not supported.
-multiple_inheritance_interfaces.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
-overload_null.cpptest: SWIG_NOCXX = -nocxx
-pure_virtual.cpptest: SWIG_NOCXX = -nocxx
-return_const_value.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
 struct_initialization_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays in initialization not supported.
-template_const_ref.cpptest: SWIG_NOCXX = -nocxx
-template_inherit_abstract.cpptest: SWIG_NOCXX = -nocxx
 typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # Arrays not supported.
-valuewrapper_const.cpptest: SWIG_NOCXX = -nocxx # Misplaced const.
 
 # Avoid conflict with the C++ keyword for some tests.
 SWIG_NS = $*
