@@ -465,6 +465,11 @@ extern "C" {
 	    }
 	    CAMLreturnT(int, caml_ptr_val_internal(caml_callback(*func_val, v), out, descriptor));
 	case C_string:
+	    /* A string has no type to check, so it is only accepted for a 'char *', which has no descriptor, or a 'void *' */
+	    if( descriptor && strcmp(descriptor->name, "_p_void") ) {
+		*out = 0;
+		CAMLreturnT(int, 1);
+	    }
 	    outptr = (void *)String_val(Field(v,0));
 	    break;
 	case C_ptr:

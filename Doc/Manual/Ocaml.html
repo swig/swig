@@ -351,11 +351,13 @@ containing more than one item is wrapped in C_list (i.e. [ C_char
 'a' ; C_char 'b' ] -&gt; C_list [ C_char 'a' ; C_char 'b'
 ]).  This is in order to make return values easier to handle
 when functions have only one return value, such as constructors,
-and operators.  In addition, string, pointer, and object
-values are interchangeable with respect to caml_ptr_val, so you can
-allocate memory as caml strings and still use the resulting
-pointers for C purposes, even using them to construct simple objects
-on.  Note, though, that foreign C++ code does not respect the garbage
+and operators.  In addition, pointer and object values are
+interchangeable with respect to caml_ptr_val.  A string value is also
+accepted by caml_ptr_val for a pointer with no descriptor, as for a
+char *, or for a void *, so you can allocate memory as caml strings
+and still use the resulting pointers for C purposes.  As a string has
+no type to check, it is not accepted for a pointer of any other type.
+Note, though, that foreign C++ code does not respect the garbage
 collector, although the SWIG interface does.</p>
 
 <p>

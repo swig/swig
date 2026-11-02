@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [OCaml] Fix a pointer or reference parameter accepting any C_string without a type check,
+            such as a member pointer value for f or m in:
+
+              struct Funcs {
+                short FF(bool);
+              };
+              typedef short (Funcs::*FuncsPtr)(bool);
+              short call(Funcs *f, FuncsPtr &m);
+
+            The text of the string was used as the object pointed to, so using it could crash. A
+            C_string is now accepted only for a string or a void * parameter, so a member pointer
+            value passed for any other pointer or reference gives a Failure exception. A non-const
+            reference to a member pointer takes a pointer to a member pointer, as in the other
+            target languages.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [Lua] Fix calling an overloaded function with nil when one of the overloads takes a
             member pointer, such as memberpt_or_pointer in:
 

@@ -37,6 +37,10 @@ let _ =
   (try
     ignore (_do_op '(s, add_by_value)); assert false
   with Failure _ -> ());
+  (* A member pointer value is not a pointer to an object *)
+  (try
+    ignore (_do_op '(area_pt, area_pt)); assert false
+  with Failure _ -> ());
   try
     ignore (_do_op_cref '(s, add_by_value)); assert false
   with Failure _ -> ()
