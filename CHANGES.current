@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix the C++ wrappers not compiling for a parameter or variable that is an array of a
+            class, such as the parameter of f() in:
+
+              struct Foo {
+                int x;
+              };
+              void f(const Foo a[3]);
+
+            The C++ wrapper was declared with the array type before the name, as 'Foo const [3] a'.
+            It now takes a pointer to the C++ wrapper class, as the C function takes a pointer to
+            the first element of the array:
+
+              void f(Foo const * a);
+
+2026-11-02: wsfulton
             [C] Fix the .h file of a module importing another one not compiling as C99. It
             repeated typedefs of the .h file of the other module, which it includes, while C99
             does not allow a typedef to be repeated, unlike C11. With -c++, these were:

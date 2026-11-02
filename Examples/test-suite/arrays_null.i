@@ -83,6 +83,9 @@ int arrays_null_items_isnull(ArraysNullItem a[2]) {
 int arrays_null_items_unsized_isnull(ArraysNullItem a[]) {
   return a == 0;
 }
+int arrays_null_const_items_isnull(const ArraysNullItem a[2]) {
+  return a == 0;
+}
 int arrays_null_bools_isnull(bool a[4]) {
   return a == 0;
 }

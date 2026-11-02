@@ -49,6 +49,7 @@ int main() {
   check(arrays_null_arrays_null_enums_unsized_isnull(NULL), "NULL enums unsized parameter");
   check(arrays_null_arrays_null_items_isnull(NULL), "NULL items parameter");
   check(arrays_null_arrays_null_items_unsized_isnull(NULL), "NULL items unsized parameter");
+  check(arrays_null_arrays_null_const_items_isnull(NULL), "NULL const items parameter");
   check(arrays_null_arrays_null_bools_isnull(NULL), "NULL bools parameter");
   check(arrays_null_arrays_null_bools_unsized_isnull(NULL), "NULL bools unsized parameter");
   check(arrays_null_arrays_null_chars_isnull(NULL), "NULL chars parameter");

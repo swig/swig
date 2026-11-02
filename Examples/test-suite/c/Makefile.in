@@ -77,7 +77,6 @@ FAILING_CPP_TESTS := \
     cpp11_directors \
     cpp11_move_only \
     cpp11_move_typemaps \
-    cpp11_rvalue_reference_array \
     cpp11_rvalue_reference_move \
     cpp11_std_unique_ptr \
     cpp11_template_pack \
@@ -107,14 +106,12 @@ c_structs.ctest: SWIGOPT += -namespace ns
 cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
 cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.
 default_constructor.cpptest: SWIG_NOCXX = -nocxx # Something weird with OSRSpatialReferenceShadow.
-li_carrays_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays not really supported currently.
 li_cdata_cpp.cpptest: SWIG_NOCXX = -nocxx # No support for multiarg typemaps required here.
 multiple_inheritance_abstract.cpptest: SWIG_NOCXX = -nocxx # Multiple inheritance not supported.
 multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
-struct_initialization_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays in initialization not supported.
 typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # Arrays not supported.
 
 # Avoid conflict with the C++ keyword for some tests.

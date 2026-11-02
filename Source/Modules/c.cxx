@@ -998,6 +998,8 @@ private:
           // removed too. They do not change the type of a parameter and are ignored in a return type, while a volatile
           // parameter or return type is deprecated in C++20.
           SwigType_remove_qualifier_reference(resolved_type);
+          // An array is passed and returned as a pointer to its first element, as the C function takes and returns this pointer.
+          resolved_type = SwigType_decay_array(resolved_type);
           break;
 
         case Type_Obj:
