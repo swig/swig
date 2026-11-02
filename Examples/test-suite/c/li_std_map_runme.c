@@ -18,6 +18,19 @@ int main() {
 
     assert( !li_std_map_mapA_has_key(mA, 3) );
 
+    /* A const reference to a pointer to a builtin type is passed and returned as the pointer */
+    {
+        const int value = 9;
+        const int *cp = &value;
+        li_std_map_IntConstIntPtrMap* m = li_std_map_IntConstIntPtrMap_new();
+
+        li_std_map_IntConstIntPtrMap_set(m, 1, cp);
+        assert( li_std_map_IntConstIntPtrMap_get(m, 1) == cp );
+        assert( *li_std_map_IntConstIntPtrMap_get(m, 1) == 9 );
+
+        li_std_map_IntConstIntPtrMap_delete(m);
+    }
+
     li_std_map_mapA_delete(mA);
     li_std_map_A_delete(a2);
     li_std_map_A_delete(a1);

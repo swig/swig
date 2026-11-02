@@ -326,6 +326,27 @@ SwigType *references_to_pointers(const SwigType *type) {
   return c_type;
 }
 
+// Return the C type that the special variable, such as "$resolved_type", is replaced with in a typemap for the type, given the C name
+// of its base type, c_name. The typemap adds a '*' after the special variable, as in "$resolved_type*", so a pointer to a pointer
+// keeps its other pointers, as in 'cvoid_S *' for 'S **', which the typemap makes 'cvoid_S **'. With "$*resolved_type", this '*' is
+// the reference removed from the type instead, as in 'cvoid_S *' for 'S *&'. Any other type is replaced with just c_name.
+String *get_special_variable_c_type(SwigType *type, const char *special_variable, String *c_name) {
+  ScopedPtr ptr_type = adopt(Copy(type));
+  if (Strcmp(special_variable, "$*resolved_type") != 0 && SwigType_ispointer(ptr_type))
+    SwigType_del_pointer(ptr_type);
+  ScopedPtr c_type = adopt(NewStringEmpty());
+  while (SwigType_ispointer(ptr_type)) {
+    SwigType_del_pointer(ptr_type);
+    SwigType_add_pointer(c_type);
+  }
+  ScopedPtr base_type = adopt(SwigType_base(type));
+  if (Len(c_type) == 0 || !Equal(ptr_type, base_type))
+    return Copy(c_name);
+
+  Append(c_type, c_name);
+  return SwigType_str(c_type, 0);
+}
+
 // Return the declaration of the function with the given return type, which is NULL for a constructor, name and parameters, as a
 // const member function if is_const is true. Each type is either type text, which SwigType_str() outputs as it is, or a SwigType,
 // which SwigType_str() outputs with the declarator inside it for a function pointer, as in 'int (*f(int x))(int,int)'.
@@ -838,12 +859,24 @@ private:
         typestr = NewString("int");
       }
 
-      // A pointer passed by const reference is passed and returned as just the pointer, as for a class below
-      ScopedPtr passed_type = adopt(typeKind == Type_Ptr ? SwigType_remove_qualifier_reference(Copy(type)) : Copy(type));
-      if (SwigType_ispointer(passed_type))
-        Append(typestr, " *");
-      else if (SwigType_isreference(passed_type))
-        Append(typestr, " &");
+      // The pointers and the reference of the type are kept, as in 'E **' for 'E **' and 'E *&' for 'E *&', as the C
+      // function takes and returns a pointer for each of them, and an array decays to a pointer. A pointer passed by const
+      // reference is passed and returned as just the pointer, as for a class below.
+      ScopedPtr passed_type = adopt(SwigType_strip_qualifiers(resolved_type));
+      if (typeKind == Type_Ptr) {
+        SwigType_remove_qualifier_reference(passed_type);
+        passed_type = SwigType_decay_array(passed_type);
+      }
+      ScopedPtr cxx_type = adopt(NewStringEmpty());
+      // The C function takes a pointer for each of them, as in 'E**' for 'E **' or 'E *&'
+      ScopedPtr c_pointers = adopt(NewStringEmpty());
+      while (SwigType_ispointer(passed_type) || SwigType_isreference(passed_type)) {
+        ScopedPtr element = adopt(SwigType_pop(passed_type));
+        Append(cxx_type, element);
+        Append(c_pointers, "*");
+      }
+      Append(cxx_type, typestr);
+      typestr = SwigType_str(cxx_type, 0);
 
       if (enumname) {
         switch (typeKind) {
@@ -853,7 +886,7 @@ private:
           }
 
           if (ptype_desc) {
-            ptype_desc->apply_in_typemap(NewStringf("(%s*)$1", enumname));
+            ptype_desc->apply_in_typemap(NewStringf("(%s%s)$1", enumname, c_pointers.get()));
           }
           break;
 
@@ -863,7 +896,7 @@ private:
           }
 
           if (ptype_desc) {
-            ptype_desc->apply_in_typemap(NewStringf("(%s*)&($1)", enumname));
+            ptype_desc->apply_in_typemap(NewStringf("(%s%s)&($1)", enumname, c_pointers.get()));
           }
           break;
 
@@ -1961,7 +1994,8 @@ public:
     ScopedPtr btype = adopt(SwigType_base(classnametype));
     if (SwigType_isenum(btype)) {
       ScopedPtr c_enumname = adopt(getEnumCType(btype));
-      Replaceall(tm, classnamespecialvariable, c_enumname);
+      ScopedPtr c_type = adopt(get_special_variable_c_type(classnametype, classnamespecialvariable, c_enumname));
+      Replaceall(tm, classnamespecialvariable, c_type);
     } else {
       String *typestr = NIL;
       if (current_output == output_wrapper_def || Cmp(btype, "SwigObj") == 0) {
@@ -1973,22 +2007,9 @@ public:
           typestr = Copy(btype);
         }
         if (typestr) {
-          // The typemap adds a '*' to the name of the class or builtin type, as in "$resolved_type*", so a pointer to a
-          // pointer keeps its other pointers, as in 'cvoid_S **' for 'S **'. With "$*resolved_type", this '*' is the
-          // reference removed from the type instead, as in 'cvoid_S **' for 'S *&'.
-          ScopedPtr ptr_type = adopt(Copy(classnametype));
-          if (Strcmp(classnamespecialvariable, "$*resolved_type") != 0 && SwigType_ispointer(ptr_type))
-            SwigType_del_pointer(ptr_type);
-          ScopedPtr c_type = adopt(NewStringEmpty());
-          while (SwigType_ispointer(ptr_type)) {
-            SwigType_del_pointer(ptr_type);
-            SwigType_add_pointer(c_type);
-          }
-          if (Len(c_type) && Equal(ptr_type, btype)) {
-            Append(c_type, typestr);
-            Delete(typestr);
-            typestr = SwigType_str(c_type, 0);
-          }
+          String *const c_type = get_special_variable_c_type(classnametype, classnamespecialvariable, typestr);
+          Delete(typestr);
+          typestr = c_type;
         } else {
           // Swig doesn't know anything about this type, use descriptor for it.
           typestr = getOpaqueTypeName(classnametype);

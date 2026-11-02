@@ -8,6 +8,47 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [C] Fix the C declarations in the .h file when wrapping C++ code for a const reference
+            to a pointer to a builtin type and for a pointer to a pointer to an enum, such as in:
+
+              enum Colour { RED, GREEN };
+              int int_value(int *const &p);
+              int colour_value(Colour **c);
+              int colour_reference_value(Colour *&c);
+
+            The wrapper of int_value took a pointer to the pointer, but it was declared as taking a
+            'const int **', which C code passing an 'int **' did not compile with. A const reference
+            to a pointer to a builtin type, such as 'int *const &' or 'const int *const &', is now
+            passed and returned as the pointer, as in the other target languages and as any other
+            pointer passed by const reference already is. This changes the declarations of int_value
+            and of the functions of a container of such pointers, such as:
+
+              %template(IntConstPtrVector) std::vector<const int *>;
+
+            in a module named example, from:
+
+              int example_int_value(const int **carg1);
+              void example_IntConstPtrVector_push_back(example_IntConstPtrVector *carg1, const int **carg2);
+              const int **example_IntConstPtrVector_get(example_IntConstPtrVector *carg1, int carg2);
+
+            to:
+
+              int example_int_value(int *carg1);
+              void example_IntConstPtrVector_push_back(example_IntConstPtrVector *carg1, const int *carg2);
+              const int *example_IntConstPtrVector_get(example_IntConstPtrVector *carg1, int carg2);
+
+            so C code passes the pointer, p, instead of its address, &p. The C++ wrappers take and
+            return the pointer too.
+
+            The other two functions were declared as taking an 'enum Colour *', losing a pointer, as
+            did the C++ wrappers. They are now declared as taking an 'enum Colour **' and the C++
+            wrappers take 'Colour **' and 'Colour *&'. They also take an array of enums as a pointer
+            to the enum instead of as the enum. A typedef of a pointer or a reference to an enum is
+            now taken and returned as the type it stands for, as in the C declarations.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
             [C] Fix the wrappers of std::map not compiling for a mapped type without a default
             constructor, such as NoDefault in:
 

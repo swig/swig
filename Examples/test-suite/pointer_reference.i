@@ -61,6 +61,23 @@ int pointer_reference_typedef_volatile(const StructVolatilePtr & s) {
 }
 %}
 
+// A const reference to a pointer to a builtin type or to a pointer to one, a pointer to a pointer to an enum and a reference to a pointer to an enum
+%inline %{
+int int_pointer_reference_value(int *const &p) {
+  return *p;
+}
+int int_pointer_pointer_reference_value(int **const &p) {
+  return **p;
+}
+enum Colour { RED, GREEN };
+int colour_pointer_pointer_value(Colour **c) {
+  return **c;
+}
+int colour_pointer_reference_value(Colour *&c) {
+  return *c;
+}
+%}
+
 // A pointer to a class that is not wrapped
 %inline %{
 struct Opaque;
