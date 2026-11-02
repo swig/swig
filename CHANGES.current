@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            Fix the local variables of a typemap for a function pointer, named or not, such as:
+
+              %typemap(in) int (*)(int) (int temp) { ... }
+              %typemap(in) int (*f)(int) (int temp) { ... }
+
+            The locals were parsed as part of the pattern, so the typemaps were registered for the
+            types 'int (*)(int)(int)' and 'int (*f)(int)(int)' with no locals and were silently
+            never used. The same went for a reference to a function, a pointer to a member function
+            and an array of function pointers.
+
+2026-11-01: wsfulton
             Fix the qualifiers after a declarator that is not the first in a declaration, such as
             those of b, PB and g in:
 

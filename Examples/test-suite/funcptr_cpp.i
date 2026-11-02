@@ -126,3 +126,20 @@ bool notBool(bool b) { return !b; }
 // Function pointer using bool, which no other declaration here uses
 int callBoolFn(bool (*fn)(bool), int i) { return fn(i != 0) ? 1 : 0; }
 %}
+
+// Typemaps for a function pointer, named or not, followed by locals, which are not part of the pattern
+%typemap(in, numinputs=0) int (*localsFn)(int) (int (*temp)(int)) %{
+  temp = localsAddOne;
+  $1 = temp;
+%}
+%typemap(in, numinputs=0) int (*)(int, int) (int (*temp)(int, int)) %{
+  temp = localsAdd;
+  $1 = temp;
+%}
+
+%inline %{
+int localsAddOne(int a) { return a + 1; }
+int localsAdd(int a, int b) { return a + b; }
+int callLocalsNamed(int (*localsFn)(int), int a) { return localsFn(a); }
+int callLocalsUnnamed(int (*fn)(int, int), int a, int b) { return fn(a, b); }
+%}

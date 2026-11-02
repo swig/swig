@@ -2110,6 +2110,10 @@ static SwigType *add_noexcept_qualifier(SwigType *qualifier, String *nexcept) {
     String    *numdefarg;
     ParmList  *parms;
     short      have_parms;
+    /* The parameters of the function declarator written last, which is not the one parms has when there is another
+     * before it, as for the list of locals after the typemap pattern 'int (*)(int)' in:
+     *   %typemap(in) int (*)(int) (int temp) "..."  */
+    ParmList  *last_parms;
     /* The type of the C++23 explicit object parameter, that is a leading 'this' parameter on the function declarator,
      * or 0 when there is none.  The type is what carries the value category of the object. */
     SwigType  *explicit_object_type;
@@ -3578,6 +3582,7 @@ static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *q
     d->parms = parms;
     d->have_parms = 1;
   }
+  d->last_parms = parms;
   if (!d->type) {
     d->type = t;
   } else {
@@ -3600,31 +3605,44 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
   return parms;
 }
 
-/* The declarator grammar made a function of the list of locals after a typemap pattern: take it back off the type, from
-   under any array or pointer or reference to an array, and keep its parameters as the locals. */
+/* The declarator grammar made a function of the list of locals after a typemap pattern, the function declarator written
+   last: take it back off the type and keep its parameters as the locals.  It is the last function type in the type,
+   unless that is the pattern's own, which follows a pointer, reference or pointer to member, as in:
+     %typemap(in) int (*)(int) "..."
+   A function cannot return a function or an array, nor can an array hold functions, so the locals follow nothing, an
+   array or another function type, as in:
+     %typemap(in) int (int temp) "..."
+     %typemap(in) int [3] (int temp) "..."
+     %typemap(in) int (*)(int) (int temp) "..." */
 static void declarator_remove_locals_function(struct Decl *d) {
-  SwigType *ptr_or_ref = SwigType_pop_to_array(d->type);
-  SwigType *arrays = 0;
-  if (!ptr_or_ref && (SwigType_ispointer(d->type) || SwigType_isanyreference(d->type))) {
-    /* A pointer or reference to anything else has no locals under it.  SwigType_isfunction() would take the reference
-     * to a function of 'int (&)(int)' for a function with a ref-qualifier. */
+  List *elements;
+  int locals = -1;
+  int i;
+  if (!d->type) {
     d->parms = 0;
     return;
   }
-  if (SwigType_isarray(d->type))
-    arrays = SwigType_pop_arrays(d->type);
-  if (SwigType_isfunction(d->type))
-    Delete(SwigType_pop_function(d->type));
-  else
+  elements = SwigType_split(d->type);
+  for (i = 0; i < Len(elements); i++) {
+    if (SwigType_isfunction(Getitem(elements, i)))
+      locals = i;
+  }
+  if (locals > 0) {
+    SwigType *before = Getitem(elements, locals - 1);
+    if (!SwigType_isarray(before) && !SwigType_isfunction(before))
+      locals = -1;
+  }
+  if (locals >= 0) {
+    Clear(d->type);
+    for (i = 0; i < Len(elements); i++) {
+      if (i != locals)
+        Append(d->type, Getitem(elements, i));
+    }
+    d->parms = d->last_parms;
+  } else {
     d->parms = 0;
-  if (arrays) {
-    SwigType_push(d->type, arrays);
-    Delete(arrays);
   }
-  if (ptr_or_ref) {
-    SwigType_push(d->type, ptr_or_ref);
-    Delete(ptr_or_ref);
-  }
+  Delete(elements);
 }
 
 /* Report a 'this' specifier where C++23 does not allow an explicit object parameter, which it allows only as the

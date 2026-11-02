@@ -45,3 +45,7 @@ swig_check(callColourFn(getColourFn(), 1), Green)
 swig_check(callHolderFn(getHolderFn(), 2), 2)
 swig_check(callNotWrappedFn(NOT_WRAPPED_VALUE, getNotWrapped()), 42)
 swig_check(callBoolFn(NOT_BOOL, 0), 1)
+
+# The in typemaps with locals supply the function pointer
+swig_check(callLocalsNamed(1), 2)
+swig_check(callLocalsUnnamed(2, 3), 5)
