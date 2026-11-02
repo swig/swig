@@ -1977,14 +1977,16 @@ public:
    * getOpaqueTypeName()
    *
    * Return the name of the opaque struct used in the header file for the type, which SWIG does not wrap, as in
-   * 'SWIGTYPE_p_Foo' for 'Foo *', and declare it in the header file, unless it is already declared.
+   * 'SWIGTYPE_p_Foo' for 'Foo *', and declare it in the header file, unless it is already declared. The header file of a
+   * module importing another one includes the header file of the other one, which may declare the same type, so the
+   * declaration is guarded.
    * ----------------------------------------------------------------------------- */
 
   String *getOpaqueTypeName(SwigType *type) {
     ScopedPtr mangled_type = adopt(SwigType_manglestr(type));
     String *const typestr = NewStringf("SWIGTYPE%s", mangled_type.get());
     if (!Getattr(opaque_types_, typestr)) {
-      Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+      Printf(sect_wrappers_types, "#ifndef %s_DEFINED\n#define %s_DEFINED\ntypedef struct %s %s;\n#endif\n\n", typestr, typestr, typestr, typestr);
       // The key is a copy of typestr, which the caller may change, as replaceBaseTypes() does
       Setattr(opaque_types_, Char(typestr), "1");
     }

@@ -338,8 +338,12 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result
 typedef struct SwigObj SwigObj;
 %}
 
+// Guarded as the header file of a module importing another one includes the header file of the other one
 %insert("cheader") %{
+#ifndef SwigObj_DEFINED
+#define SwigObj_DEFINED
 typedef struct SwigObj SwigObj;
+#endif
 %}
 
 #endif // SWIG_CPPMODE

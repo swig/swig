@@ -19,4 +19,5 @@ class D : public C
 {
 public:
     D() {}
+    void SetE(E* e) {}
 };

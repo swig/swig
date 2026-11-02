@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix the .h file of a module importing another one not compiling as C99. It
+            repeated typedefs of the .h file of the other module, which it includes, while C99
+            does not allow a typedef to be repeated, unlike C11. With -c++, these were:
+
+              typedef struct SwigObj SwigObj;
+
+            and the typedef of a class that neither module wraps but both use, such as Opaque in:
+
+              class Opaque;
+              void use_opaque(Opaque *o);
+
+            which is:
+
+              typedef struct SWIGTYPE_p_Opaque SWIGTYPE_p_Opaque;
+
+            Each of these typedefs is now declared once.
+
+2026-11-02: wsfulton
             [PHP] A member pointer constant was not wrapped, so ADD_BY_VALUE was not defined for:
 
               struct Funktions {
