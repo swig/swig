@@ -56,6 +56,19 @@ public class member_pointer_runme {
     check( "Overload by value", 3, member_pointer.call_overloaded(member_pointer.ADD_BY_VALUE, 1, 2) );
     check( "Overload by pointer", -7, member_pointer.call_overloaded(member_pointer.ADD_BY_POINTER, 3, 4) );
     check( "Overload by int", 110, member_pointer.call_overloaded(10, 5, 6) );
+
+    // NULL member pointers
+    if (member_pointer.get_null_memberpt() != null)
+      throw new RuntimeException("get_null_memberpt() is not null");
+    if (!member_pointer.is_null_memberpt(null))
+      throw new RuntimeException("is_null_memberpt(null) failed");
+    if (!member_pointer.is_null_memberpt(member_pointer.NULLPT))
+      throw new RuntimeException("is_null_memberpt(NULLPT) failed");
+    if (member_pointer.is_null_memberpt(area_pt))
+      throw new RuntimeException("is_null_memberpt(area_pt) failed");
+    member_pointer.setAreavar(null);
+    if (member_pointer.getAreavar() != null)
+      throw new RuntimeException("areavar is not null");
   }
 
   private static void check(String what, double expected, double actual) {

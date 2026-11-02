@@ -39,6 +39,14 @@ void main() {
   check("Overload by value", 3, call_overloaded(ADD_BY_VALUE, 1, 2));
   check("Overload by pointer", -7, call_overloaded(ADD_BY_POINTER, 3, 4));
   check("Overload by int", 110, call_overloaded(10, 5, 6));
+
+  // NULL member pointers
+  enforce(get_null_memberpt() is null, "get_null_memberpt() is not null");
+  enforce(is_null_memberpt(null), "is_null_memberpt(null) failed");
+  enforce(is_null_memberpt(NULLPT), "is_null_memberpt(NULLPT) failed");
+  enforce(!is_null_memberpt(area_pt), "is_null_memberpt(area_pt) failed");
+  areavar = null;
+  enforce(areavar is null, "areavar is not null");
 }
 
 void check(string what, double expected, double actual) {

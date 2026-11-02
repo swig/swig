@@ -683,13 +683,16 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE * %{ $1 = *($&1_ltype)&$input; %}
-%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) { 
-  const char *temp = 0;
+%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) {
+  $1 = 0;
   if ($input) {
-    temp = JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!temp) return $null;
+    const char *temp = JCALL2(GetStringUTFChars, jenv, $input, 0);
+    if (!temp) {
+      return $null;
+    }
+    SWIG_UnpackData(temp, (void *)&$1, sizeof($1));
+    JCALL2(ReleaseStringUTFChars, jenv, $input, temp);
   }
-  SWIG_UnpackData(temp, (void *)&$1, sizeof($1));
 }
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
@@ -705,10 +708,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(out) SWIGTYPE *
 %{ *($&1_ltype)&$result = $1; %} 
 %typemap(out, fragment="SWIG_PackData", noblock=1) SWIGTYPE (CLASS::*) {
-  char buf[128];
-  char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
-  *data = '\0';
-  $result = JCALL1(NewStringUTF, jenv, buf);
+  if ($1) {
+    char buf[128];
+    char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+    *data = '\0';
+    $result = JCALL1(NewStringUTF, jenv, buf);
+  }
 }
 %typemap(out) SWIGTYPE &
 %{ *($&1_ltype)&$result = $1; %} 
@@ -739,12 +744,15 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE *
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;", noblock=1, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) {
-  {
+  $input = 0;
+  if ($1) {
     char buf[128];
     char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
     *data = '\0';
     $input = JCALL1(NewStringUTF, jenv, buf);
-    if (!$input) return $null;
+    if (!$input) {
+      return $null;
+    }
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
@@ -1377,7 +1385,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 
   CPTR_VISIBILITY static String getCMemberPtr($javaclassname obj) {
-    return obj.swigCMemberPtr;
+    return (obj == null) ? null : obj.swigCMemberPtr;
   }
 %}
 %enddef

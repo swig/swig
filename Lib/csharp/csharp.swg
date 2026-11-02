@@ -416,8 +416,11 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 /* Generic pointers and references */
 %typemap(in) SWIGTYPE * %{ $1 = ($1_ltype)$input; %}
-%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{ 
-  SWIG_UnpackData($input, (void *)&$1, sizeof($1));
+%typemap(in, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{
+  $1 = 0;
+  if ($input) {
+    SWIG_UnpackData($input, (void *)&$1, sizeof($1));
+  }
 %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if (!$1) {
@@ -432,31 +435,36 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   rvrdeleter.reset($1); %}
 %typemap(out) SWIGTYPE * %{ $result = (void *)$1; %} 
 %typemap(out, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
-  char buf[128];
-  char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
-  *data = '\0';
-  $result = SWIG_csharp_string_callback(buf);
+  if ($1) {
+    char buf[128];
+    char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+    *data = '\0';
+    $result = SWIG_csharp_string_callback(buf);
+  }
 %}
 %typemap(out) SWIGTYPE & %{ $result = (void *)$1; %} 
 %typemap(out) SWIGTYPE && %{ $result = (void *)$1; %} 
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
 %{ $result = ($1_ltype)$input; %}
-%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*)
-%{ SWIG_UnpackData($input, (void *)&$result, sizeof($result)); %}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*) %{
+  if ($input) {
+    SWIG_UnpackData($input, (void *)&$result, sizeof($result));
+  }
+%}
 /* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
 %typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
 %{ $result = ($1_ltype)$input; %}
 
 %typemap(directorin) SWIGTYPE *
 %{ $input = (void *) $1; %}
-%typemap(directorin, fragment="SWIG_PackData") SWIGTYPE (CLASS::*)
-%{
-  {
-    char buf[128];
-    char *data = SWIG_PackData(buf, (void *)&$1, sizeof($1));
+%typemap(directorin, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
+  char $1_buf[128];
+  $input = 0;
+  if ($1) {
+    char *data = SWIG_PackData($1_buf, (void *)&$1, sizeof($1));
     *data = '\0';
-    $input = SWIG_csharp_string_callback(buf);
+    $input = $1_buf;
   }
 %}
 
@@ -1034,7 +1042,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
   }
 
   CPTR_VISIBILITY static string getCMemberPtr($csclassname obj) {
-    return obj.swigCMemberPtr;
+    return (obj == null) ? null : obj.swigCMemberPtr;
   }
 %}
 %enddef

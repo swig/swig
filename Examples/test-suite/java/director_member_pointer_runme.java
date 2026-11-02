@@ -1,4 +1,3 @@
-
 import director_member_pointer.*;
 
 public class director_member_pointer_runme {
@@ -21,19 +20,26 @@ public class director_member_pointer_runme {
     MemberPtrDirector d = new MemberPtrDirector();
     check(d.callUseMemberPtr(5), 7, "Base useMemberPtr");
     check(d.callGetMemberPtr(5), 6, "Base getMemberPtr");
-    d = new MyMemberPtrDirector();
-    check(d.callUseMemberPtr(5), 17, "Director useMemberPtr");
-    check(d.callGetMemberPtr(5), 7, "Director getMemberPtr");
+    MyMemberPtrDirector md = new MyMemberPtrDirector();
+    check(md.callUseMemberPtr(5), 17, "Director useMemberPtr");
+    check(md.callGetMemberPtr(5), 7, "Director getMemberPtr");
+
+    // NULL member pointers
+    check(md.callUseNullMemberPtr(5), -1, "Director useMemberPtr with a null member pointer");
+    md.returnNull = true;
+    if (!md.callGetMemberPtrIsNull())
+      throw new RuntimeException("Director getMemberPtr returning null failed");
   }
 }
 
 class MyMemberPtrDirector extends MemberPtrDirector {
+  boolean returnNull = false;
   @Override
   public int useMemberPtr(SWIGTYPE_m_MemberPtrFuncs__f_int__int m, int x) {
-    return MemberPtrDirector.callMemberPtr(m, x + 10);
+    return (m == null) ? -1 : MemberPtrDirector.callMemberPtr(m, x + 10);
   }
   @Override
   public SWIGTYPE_m_MemberPtrFuncs__f_int__int getMemberPtr() {
-    return MemberPtrDirector.addPtr();
+    return returnNull ? null : MemberPtrDirector.addPtr();
   }
 }

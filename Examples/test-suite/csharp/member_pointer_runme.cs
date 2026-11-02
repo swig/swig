@@ -43,6 +43,19 @@ public class runme {
     check( "Overload by value", 3, member_pointer.call_overloaded(member_pointer.ADD_BY_VALUE, 1, 2) );
     check( "Overload by pointer", -7, member_pointer.call_overloaded(member_pointer.ADD_BY_POINTER, 3, 4) );
     check( "Overload by int", 110, member_pointer.call_overloaded(10, 5, 6) );
+
+    // NULL member pointers
+    if (member_pointer.get_null_memberpt() != null)
+      throw new ApplicationException("get_null_memberpt() is not null");
+    if (!member_pointer.is_null_memberpt(null))
+      throw new ApplicationException("is_null_memberpt(null) failed");
+    if (!member_pointer.is_null_memberpt(member_pointer.NULLPT))
+      throw new ApplicationException("is_null_memberpt(NULLPT) failed");
+    if (member_pointer.is_null_memberpt(area_pt))
+      throw new ApplicationException("is_null_memberpt(area_pt) failed");
+    member_pointer.areavar = null;
+    if (member_pointer.areavar != null)
+      throw new ApplicationException("areavar is not null");
   }
   private static void check(string what, double expected, double actual) {
     if (expected != actual)

@@ -30,6 +30,8 @@ public:
   virtual int (MemberPtrFuncs::*getMemberPtr())(int) { return &MemberPtrFuncs::increment; }
   int callUseMemberPtr(int x) { return useMemberPtr(&MemberPtrAdder::add, x); }
   int callGetMemberPtr(int x) { return callMemberPtr(getMemberPtr(), x); }
+  int callUseNullMemberPtr(int x) { return useMemberPtr(0, x); }
+  bool callGetMemberPtrIsNull() { return getMemberPtr() == 0; }
   static int callMemberPtr(int (MemberPtrFuncs::*m)(int), int x) { MemberPtrFuncs f; return (f.*m)(x); }
   static int (MemberPtrFuncs::*addPtr())(int) { return &MemberPtrAdder::add; }
 };

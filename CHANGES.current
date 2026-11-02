@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [C#, Java] Fix a memory leak each time a member pointer was passed between C++ and the
+            target language, such as to a function, to set a variable or to a director method. The
+            copy of the string holding the member pointer was never freed.
+
+2026-11-01: wsfulton
+            [C#, D, Java] Fix passing null for a member pointer, which crashed in D and threw a
+            NullReferenceException in C# or a NullPointerException in Java, as did a director
+            method overridden to return null for a member pointer. A NULL member pointer is now
+            passed, as a NULL pointer is for a pointer. A NULL member pointer returned from C++,
+            or passed to a director method, was an object and is now null.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
             [C#, D, Java] Fix pointers to member functions that differ only in their cv-qualifier
             getting the same proxy class. Given:
 

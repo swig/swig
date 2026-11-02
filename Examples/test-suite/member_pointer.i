@@ -168,4 +168,8 @@ int * (Funktions::*addbypointerpt())(const int &, int) { return &Funktions::addB
 int call_overloaded(int (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return (f.*d)(a, b); }
 int call_overloaded(int * (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return -*(f.*d)(a, b); }
 int call_overloaded(int c, int a, int b) { return c * (a + b); }
+
+/* NULL member pointers */
+double (Shape::*get_null_memberpt())(void) { return 0; }
+bool is_null_memberpt(double (Shape::*m)(void)) { return m == 0; }
 %}
