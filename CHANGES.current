@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix the generated code not compiling as C++ for a declaration of C++ code that is
+            given a name that is a C++ keyword, such as by:
+
+              %rename(new) create;
+
+            The C++ wrapper used the name as it is, as in 'inline int new()'. So did the C
+            declaration of a constant, as in '#define new 12', or, without -namespace, of a class,
+            enum or enumerator. Such a declaration is now renamed by adding a 'c_' prefix to its
+            C++ name, with a warning, as the other target languages rename their own keywords:
+
+              Warning 314: 'new' is a C++ keyword, renaming to 'c_create'
+
+            The C function is then named after c_create, as is the C++ wrapper. C code is not
+            renamed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             Fix a g++ -Wextra warning, "type qualifiers ignored on cast result type", in the
             generated code for a const pointer to member, such as the parameter of:
 

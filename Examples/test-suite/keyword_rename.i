@@ -13,6 +13,12 @@
 %rename(native) keyword_native;
 %rename(lock) keyword_lock;
 
+/* A %rename to a C++ keyword, which the C target language's %namewarn then renames again */
+%rename("new") keyword_new;
+%rename("explicit") KeywordClass;
+%rename("typename") KeywordEnum;
+%rename("noexcept") KeywordEnumValue;
+
 %inline %{
 
 #define KW(x, y) int x (int y) { return y; }
@@ -51,6 +57,17 @@ KW(yield, with)
 KW(keyword_def, x)
 KW(keyword_native, x)
 KW(keyword_lock, x)
+
+/* Renamed to C++ keywords */
+KW(keyword_new, x)
+
+struct KeywordClass {
+  int i;
+};
+
+enum KeywordEnum { KeywordEnumValue };
+
+enum KeywordEnum keyword_enum(enum KeywordEnum e) { return e; }
 
 /* Keywords used as member variables shouldn't be renamed in Javascript. */
 struct S {

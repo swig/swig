@@ -16,6 +16,7 @@
   
 */
 
+%include <c/ckw.swg>
 %include <csharp/csharpkw.swg>
 %include <d/dkw.swg>
 %include <go/gokw.swg>

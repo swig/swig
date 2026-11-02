@@ -1228,6 +1228,33 @@ to this type, or if the type is a function pointer, a member function with the n
 instead.
 </p>
 
+<p>
+Neither a C++ wrapper nor a C declaration, as the header is also compiled as C++, can have a name that is a C++ keyword,
+which a directive such as <tt>%rename</tt> or <tt>%constant</tt> can give to a declaration of C++ code. So such a
+declaration is renamed with warning 314, as the other target languages rename the declarations named after their own
+keywords. The new name is the name of the declaration in the C++ code with a <tt>c_</tt> prefix. For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%rename(new) create;
+int create();
+</pre>
+</div>
+
+<div class="shell">
+<pre>
+example.i:4: Warning 314: 'new' is a C++ keyword, renaming to 'c_create'
+</pre>
+</div>
+
+<p>
+The C function is then named <tt>example_c_create</tt> and its C++ wrapper <tt>c_create</tt>. C code is not renamed, as it
+can use C++ keywords as names and has no C++ wrappers.
+</p>
+
 <H3><a name="C_additional_possibilities">40.8.1 Additional customization possibilities</a></H3>
 
 
