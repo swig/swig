@@ -16,3 +16,7 @@ swig_check(VolatilerConstInt().take_volatile(), 42)
 swig_check(VolatilerVolatileInt().take_const(), 42)
 swig_check(VolatilerConstVolatileInt().take_const(), 42)
 swig_check(VolatilerConstVolatileInt().take_volatile(), 42)
+
+swig_check(ArrayerInt3().take_const(), 42)
+swig_check(ArrayerConstInt3().take_const(), 42)
+swig_check(ArrayerVolatileInt3().take_const(), 43)

@@ -8,6 +8,24 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            Fix a template parameter qualified by const or volatile in a template instantiated
+            with an array type, as in the parameter type of take in:
+
+              template <typename T> struct Holder {
+                int take(const T &);
+              };
+              %template(HolderInt3) Holder<int [3]>;
+              %template(HolderConstInt3) Holder<const int [3]>;
+
+            The wrapper of take for Holder<const int [3]> did not compile. The parameter of take
+            for Holder<int [3]> was wrongly wrapped as a const reference to a pointer, using the
+            typemaps for 'SWIGTYPE *const &'. The const now qualifies the elements of the array, as
+            for a typedef of an array, so both parameters use any typemaps for 'const int (&)[ANY]'
+            or else the default typemaps for a reference to an array.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
             Fix the local variables of a typemap for a function pointer, named or not, such as:
 
               %typemap(in) int (*)(int) (int temp) { ... }

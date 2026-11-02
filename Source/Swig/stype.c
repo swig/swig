@@ -1494,12 +1494,15 @@ String *SwigType_manglestr(const SwigType *s) {
  *
  * Replaces a typename in a type with something else.  Needed for templates.
  * Merges the qualifiers that meet into one qualifier, which collapses a duplicate const.
+ * A qualifier goes after the arrays of an array, as C++ qualifies the elements of an array.
  * Reference collapsing probably should be implemented here.
  * Example:
  *   t=r.q(const).T pat=T rep=int                    =>  r.q(const).int
  *   t=r.q(const).T pat=T rep=q(const).int           =>  r.q(const).int  (duplicate const removed)
  *   t=r.q(const).T pat=T rep=q(volatile).int        =>  r.q(const volatile).int
  *   t=r.q(const).T pat=T rep=q(const volatile).int  =>  r.q(const volatile).int
+ *   t=r.q(const).T pat=T rep=a(3).int               =>  r.a(3).q(const).int
+ *   t=r.q(const).T pat=T rep=a(3).q(const).int      =>  r.a(3).q(const).int
  * ----------------------------------------------------------------------------- */
 
 void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
@@ -1535,8 +1538,9 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     } else if (SwigType_issimple(e)) {
       if (Equal(e, pat)) {
         /* Replaces a type of the form 'pat' with 'rep<args>' */
-        if (SwigType_isqualifier(rep) && i > 0 && SwigType_isqualifier(Getitem(elem, i - 1))) {
-          /* Merge the qualifiers that meet, so 'r.q(const).T' with rep 'q(volatile).int' becomes 'r.q(const volatile).int' */
+        if ((SwigType_isqualifier(rep) || SwigType_isarray(rep)) && i > 0 && SwigType_isqualifier(Getitem(elem, i - 1))) {
+          /* Merge the qualifiers that meet, so 'r.q(const).T' with rep 'q(volatile).int' becomes 'r.q(const volatile).int'.
+           * The qualifier goes after the arrays of rep, so with rep 'a(3).int' it becomes 'r.a(3).q(const).int' */
           SwigType *merged = Copy(rep);
           SwigType_push_merge_qualifiers(merged, nt);
           Clear(nt);
