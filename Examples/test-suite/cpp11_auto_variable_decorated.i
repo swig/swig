@@ -46,8 +46,9 @@
 %ignore cref_string;
 %ignore cref_post_string;
 %ignore ref_string_wide;
-%ignore array_first;
+%ignore first_element;
 %ignore int_array_address;
+%ignore other_array_address;
 #endif
 
 %inline %{
@@ -59,7 +60,7 @@ int global_fn(int x) { return x + 1; }
 int deref(int *p) { return *p; }
 int deref2(int **p) { return **p; }
 int call_fn(int (*fn)(int), int x) { return fn(x); }
-int array_first(int (*p)[4]) { return (*p)[0]; }
+int first_element(int (*p)[4]) { return (*p)[0]; }
 int first_byte(const unsigned char *p) { return p[0]; }
 int first_char(const void *p) { return *static_cast<const char *>(p); }
 
@@ -133,6 +134,7 @@ int other_array[4] = {10, 20, 30, 40};
 const int cint_array[3] = {5, 6, 7};
 
 int (*int_array_address())[4] { return &int_array; }
+int (*other_array_address())[4] { return &other_array; }
 
 // An array initialiser decays to a pointer to its first element, unless the variable is a reference.
 auto array_decay = int_array;        // int *
