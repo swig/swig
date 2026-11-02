@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [PHP] The type of a member pointer passed by value was not checked. A member pointer of
+            another type or any other object was accepted and its bytes were copied as the member
+            pointer. Passing null crashed. These now raise a TypeError.
+
+2026-11-02: wsfulton
             [Go] Fix passing nil for a member pointer, such as for m in:
 
               struct Shape {

@@ -523,10 +523,16 @@
 }
 
 %typemap(in, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
-{
-  void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
-  memcpy(&$1, p, sizeof($1));
-}
+%{
+  {
+    void *argp = 0;
+    if (SWIG_ConvertPtr(&$input, &argp, $&1_descriptor, 0) < 0 || argp == NULL) {
+      zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
+      return;
+    }
+    memcpy(&$1, argp, sizeof($1));
+  }
+%}
 
 %typemap(directorin) SWIGTYPE (CLASS::*)
 %{

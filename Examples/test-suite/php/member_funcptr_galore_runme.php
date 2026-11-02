@@ -20,8 +20,9 @@ check::equal($m->bbb7(pp7_get()), 0, "bbb7");
 # Not tested: call1(ADD_BY_VALUE, 1, 2) as a member pointer constant is not wrapped
 
 # A pointer to a non-const member function is not a pointer to a const member function, nor the reverse
-# Not tested: aaa1(pp1) and bbb1(cc1) as a member pointer passed by value is not type checked
+check_type_error("aaa1 with pp1", fn() => $m->aaa1(pp1_get()));
 check_type_error("aaa7 with pp7", fn() => $m->aaa7(pp7_get()));
+check_type_error("bbb1 with cc1", fn() => $m->bbb1(cc1_get()));
 check_type_error("bbb7 with cc7", fn() => $m->bbb7(cc7_get()));
 
 check::done();
