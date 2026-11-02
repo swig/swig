@@ -28,6 +28,7 @@
 <li><a href="#Go_class_memory">Go Class Memory Management</a>
 <li><a href="#Go_class_inheritance">Go Class Inheritance</a>
 </ul>
+<li><a href="#Go_member_pointers">Go Pointers to Members</a>
 <li><a href="#Go_templates">Go Templates</a>
 <li><a href="#Go_threads">Go and C/C++ Threads</a>
 <li><a href="#Go_exceptions">Go and C++ Exceptions</a>
@@ -544,7 +545,61 @@ Doing the reverse will require an explicit type assertion, which will
 be checked dynamically.
 </p>
 
-<H3><a name="Go_templates">27.4.6 Go Templates</a></H3>
+<H3><a name="Go_member_pointers">27.4.6 Go Pointers to Members</a></H3>
+
+
+<p>
+A C++ pointer to member, whatever its type, is wrapped as the
+Go type <tt>SwigMemberPtr</tt> defined in the generated Go package.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%inline %{
+struct Shape {
+  double area() const { return 2.0; }
+};
+double call(const Shape *s, double (Shape::*m)() const) { return (s-&gt;*m)(); }
+double (Shape::*area_pointer())() const { return &amp;Shape::area; }
+%}
+</pre>
+</div>
+
+<p>
+gives these Go functions:
+</p>
+
+<div class="targetlang">
+<pre>
+func Call(arg1 Shape, arg2 SwigMemberPtr) (_swig_ret float64)
+func Area_pointer() (_swig_ret SwigMemberPtr)
+</pre>
+</div>
+
+<p>
+which are used as:
+</p>
+
+<div class="targetlang">
+<pre>
+area := example.Call(s, example.Area_pointer())
+</pre>
+</div>
+
+<p>
+A <tt>SwigMemberPtr</tt> is opaque.  It points to a copy of the
+pointer to member in Go memory, which Go code can keep and pass back
+to C++, such as to a wrapped function or as the result of a director
+method, but cannot call or look into.  As every pointer to member has
+the same Go type, passing a pointer to member of the wrong type is not
+detected.  A NULL pointer to member is <tt>nil</tt> in Go.
+Passing <tt>nil</tt> to C++ gives a NULL pointer to member.
+</p>
+
+<H3><a name="Go_templates">27.4.7 Go Templates</a></H3>
 
 
 <p>
@@ -552,7 +607,7 @@ In order to use C++ templates in Go, you must tell SWIG to create
 wrappers for a particular template instantiation.  To do this, use
 the <tt>%template</tt> directive.
 
-<H3><a name="Go_threads">27.4.7 Go and C/C++ Threads</a></H3>
+<H3><a name="Go_threads">27.4.8 Go and C/C++ Threads</a></H3>
 
 
 <p>
@@ -571,7 +626,7 @@ the <a href="https://pkg.go.dev/runtime#LockOSThread"><code>runtime.LockOSThread
 function to lock the goroutine onto a single thread.
 </p>
 
-<H3><a name="Go_exceptions">27.4.8 Go and C++ Exceptions</a></H3>
+<H3><a name="Go_exceptions">27.4.9 Go and C++ Exceptions</a></H3>
 
 
 <p>
@@ -582,7 +637,7 @@ program will crash.  The only safe way to handle C++ exceptions is to
 catch them in C++ before returning to Go.
 </p>
 
-<H3><a name="Go_director_classes">27.4.9 Go Director Classes</a></H3>
+<H3><a name="Go_director_classes">27.4.10 Go Director Classes</a></H3>
 
 
 <p>
@@ -600,7 +655,7 @@ completely to avoid common pitfalls with directors in Go.
 </p>
 
 
-<H4><a name="Go_director_example_cpp_code">27.4.9.1 Example C++ code</a></H4>
+<H4><a name="Go_director_example_cpp_code">27.4.10.1 Example C++ code</a></H4>
 
 
 <p>
@@ -672,7 +727,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_enable">27.4.9.2 Enable director feature</a></H4>
+<H4><a name="Go_director_enable">27.4.10.2 Enable director feature</a></H4>
 
 
 <p>
@@ -707,7 +762,7 @@ documentation on directors.
 </p>
 
 
-<H4><a name="Go_director_ctor_dtor">27.4.9.3 Constructor and destructor</a></H4>
+<H4><a name="Go_director_ctor_dtor">27.4.10.3 Constructor and destructor</a></H4>
 
 
 <p>
@@ -760,7 +815,7 @@ embedding</a>.
 </p>
 
 
-<H4><a name="Go_director_overriding">27.4.9.4 Override virtual methods</a></H4>
+<H4><a name="Go_director_overriding">27.4.10.4 Override virtual methods</a></H4>
 
 
 <p>
@@ -828,7 +883,7 @@ the Go methods.
 </p>
 
 
-<H4><a name="Go_director_base_methods">27.4.9.5 Call base methods</a></H4>
+<H4><a name="Go_director_base_methods">27.4.10.5 Call base methods</a></H4>
 
 
 <p>
@@ -865,7 +920,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_subclass">27.4.9.6 Subclass via embedding</a></H4>
+<H4><a name="Go_director_subclass">27.4.10.6 Subclass via embedding</a></H4>
 
 
 <p>
@@ -933,7 +988,7 @@ class.
 </p>
 
 
-<H4><a name="Go_director_finalizer">27.4.9.7 Memory management with runtime.SetFinalizer</a></H4>
+<H4><a name="Go_director_finalizer">27.4.10.7 Memory management with runtime.SetFinalizer</a></H4>
 
 
 <p>
@@ -998,7 +1053,7 @@ before using <tt>runtime.SetFinalizer</tt> to know all of its gotchas.
 </p>
 
 
-<H4><a name="Go_director_foobargo_class">27.4.9.8 Complete FooBarGo example class</a></H4>
+<H4><a name="Go_director_foobargo_class">27.4.10.8 Complete FooBarGo example class</a></H4>
 
 
 <p>
@@ -1127,7 +1182,7 @@ SWIG/Examples/go/director/</a>.
 </p>
 
 
-<H3><a name="Go_primitive_type_mappings">27.4.10 Default Go primitive type mappings</a></H3>
+<H3><a name="Go_primitive_type_mappings">27.4.11 Default Go primitive type mappings</a></H3>
 
 
 <p>
@@ -1234,7 +1289,7 @@ that typemap, or add new values, to control how C/C++ types are mapped
 into Go types.
 </p>
 
-<H3><a name="Go_output_arguments">27.4.11 Output arguments</a></H3>
+<H3><a name="Go_output_arguments">27.4.12 Output arguments</a></H3>
 
 
 <p>Because of limitations in the way output arguments are processed in swig,
@@ -1287,7 +1342,7 @@ void f(char *output);
 </pre>
 </div>
 
-<H3><a name="Go_adding_additional_code">27.4.12 Adding additional go code</a></H3>
+<H3><a name="Go_adding_additional_code">27.4.13 Adding additional go code</a></H3>
 
 
 <p>Often the APIs generated by swig are not very natural in go, especially if
@@ -1382,7 +1437,7 @@ func bar() {
 </pre>
 </div>
 
-<H3><a name="Go_typemaps">27.4.13 Go typemaps</a></H3>
+<H3><a name="Go_typemaps">27.4.14 Go typemaps</a></H3>
 
 
 <p>
