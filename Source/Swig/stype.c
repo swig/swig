@@ -1089,7 +1089,10 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
         } else {
           DOH *q = 0;
           q = SwigType_parm(element);
-          Insert(result, 0, " ");
+          /* No space after a qualifier with nothing after it, as in 'int (A::*const)(int)' */
+          if (Len(result) > 0) {
+            Insert(result, 0, " ");
+          }
           Insert(result, 0, q);
           Delete(q);
           clear = 0;
