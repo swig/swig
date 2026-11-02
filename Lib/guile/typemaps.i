@@ -17,6 +17,10 @@
 %typemap(in) SWIGTYPE *, SWIGTYPE [] {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
 }
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp) %{
+  temp = ($*1_ltype)SWIG_MustGetPtr($input, $*descriptor, $argnum, 0);
+  $1 = ($1_ltype)&temp;
+%}
 %typemap(in) SWIGTYPE & ($1_ltype argp) {
   argp = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
   if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
@@ -40,6 +44,10 @@
 %typemap(in) void * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
+%typemap(in) void *const& ($*1_ltype temp) %{
+  temp = ($*1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
+  $1 = ($1_ltype)&temp;
+%}
 %typemap(freearg) void * ""
 
 %typemap(varin) SWIGTYPE * {
@@ -77,6 +85,10 @@
   $result = SWIG_NewPointerObj ($1, $descriptor, $owner);
 }
 
+%typemap(out) SWIGTYPE *const& %{
+  $result = SWIG_NewPointerObj(*$1, $*descriptor, $owner);
+%}
+
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
   $result = SWIG_NewPointerObj ($1, ty, $owner);
@@ -85,6 +97,10 @@
 %typemap(varout) SWIGTYPE *, SWIGTYPE [] {
   $result = SWIG_NewPointerObj ($1, $descriptor, 0);
 }
+
+%typemap(varout) SWIGTYPE *const& %{
+  $result = SWIG_NewPointerObj($1, $*descriptor, 0);
+%}
 
 %typemap(varout) SWIGTYPE & {
   $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
@@ -382,6 +398,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    must_free = 1;
  }
  %typemap (out, doc="<string>")                  char *&, const char *& {$result = SWIG_str02scm((const char *)*$1);}
+ %typemap (varout, doc="<string>")               char *const& %{$result = SWIG_str02scm($1);%}
  %typemap (in, doc="$NAME is a string")          char **INPUT(char * temp, int must_free = 0) {
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
@@ -544,6 +561,12 @@ typedef unsigned long SCM;
   int res = SWIG_ConvertPtr($input, &ptr, $1_descriptor, 0);
   $1 = SWIG_CheckState(res);
 }
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const& %{
+  void *ptr;
+  int res = SWIG_ConvertPtr($input, &ptr, $*descriptor, 0);
+  $1 = SWIG_CheckState(res);
+%}
 
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &, SWIGTYPE && {
   void *ptr;

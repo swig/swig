@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Guile] Fix a pointer passed or returned by const reference, such as:
+
+              Foo *const &get();
+              void set(Foo *const &foo);
+
+            It was wrapped as a pointer to the pointer, so the Foo returned by get could not be
+            used and set could not be passed a Foo. It is now wrapped as the pointer, as in the
+            other target languages. The same goes for a global or static member variable of such a
+            type, except that a const reference to a char pointer is wrapped as a string, as is the
+            result of a function returning one.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [Octave, Perl, Python, Ruby, Scilab, Tcl]
             Fix a global or static member variable that is a const reference to a pointer, such as:
 

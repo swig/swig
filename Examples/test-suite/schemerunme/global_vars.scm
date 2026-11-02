@@ -27,6 +27,7 @@
 (ar sa2)
 (check (= (A-x-get (ar)) -7))
 (check (= (A-x-get (acvp)) -7))
+(check (= (A-x-get (acpr)) -7))
 
 (x 4)
 (check (= (x) 4))
