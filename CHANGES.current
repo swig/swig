@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [C] Fix the .h file not compiling as C99 when a type that SWIG does not wrap is used
+            more than once, as in:
+
+              struct Opaque;
+              Opaque *opaque_pointer();
+              int opaque_value(Opaque *o);
+
+            The opaque struct of the type was declared each time it was used, so the .h file
+            repeated this typedef, which C99 does not allow, unlike C11:
+
+              typedef struct SWIGTYPE_p_Opaque SWIGTYPE_p_Opaque;
+
+            It is now declared once.
+
+2026-11-01: wsfulton
             [C] Fix the builtin types other than void, bool, char, short, int, long, float and
             double, such as unsigned int, signed char and long long, not being handled as the
             builtin types they are when wrapping C++ code. For example, given:

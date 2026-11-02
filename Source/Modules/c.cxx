@@ -1686,6 +1686,9 @@ class C : public Language {
   // The structs and unions declared in sect_wrappers_types when wrapping C code because SWIG has not seen them.
   ScopedPtr forward_declared_types_;
 
+  // The opaque types declared in sect_wrappers_types, see getOpaqueTypeName(), as C before C11 does not allow a typedef to be repeated.
+  ScopedPtr opaque_types_;
+
   // This one contains wrapper functions definitions and end up in the output C++ file.
   String *sect_wrappers;
 
@@ -1883,13 +1886,17 @@ public:
    * getOpaqueTypeName()
    *
    * Return the name of the opaque struct used in the header file for the type, which SWIG does not wrap, as in
-   * 'SWIGTYPE_p_Foo' for 'Foo *', and declare it in the header file.
+   * 'SWIGTYPE_p_Foo' for 'Foo *', and declare it in the header file, unless it is already declared.
    * ----------------------------------------------------------------------------- */
 
   String *getOpaqueTypeName(SwigType *type) {
     ScopedPtr mangled_type = adopt(SwigType_manglestr(type));
     String *const typestr = NewStringf("SWIGTYPE%s", mangled_type.get());
-    Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+    if (!Getattr(opaque_types_, typestr)) {
+      Printf(sect_wrappers_types, "typedef struct %s %s;\n\n", typestr, typestr);
+      // The key is a copy of typestr, which the caller may change, as replaceBaseTypes() does
+      Setattr(opaque_types_, Char(typestr), "1");
+    }
     return typestr;
   }
 
@@ -2279,6 +2286,7 @@ public:
       sect_wrappers_types = NewString("");
       sect_wrappers_decl = NewString("");
       forward_declared_types_ = NewHash();
+      opaque_types_ = NewHash();
 
       {
         CPlusPlusOutputGuard cplusplus_guard_wrappers(sect_wrappers), cplusplus_guard_wrappers_h(sect_wrappers_decl);
