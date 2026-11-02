@@ -184,14 +184,16 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
 /* -----------------------------------------------------------------------------
  * Swig_director_exception_specification()
  *
- * Return the exception specification for the director method of the member function n, which is 'noexcept' or a
- * 'throw' exception specification, or NULL if n has none.  The 'throw' one lists the exceptions of n that have a
- * "throws" typemap, which is attached to the "throws" parameters of n.
+ * Return the exception specification for the director method of the member function n, which is 'noexcept', 'noexcept(false)'
+ * or a 'throw' exception specification, or NULL if n has none.  A 'noexcept' with an expression other than 'false' gives 'noexcept',
+ * which is never looser than the specification of n, as the expression need not be valid in the director class.  The 'throw' one
+ * lists the exceptions of n that have a "throws" typemap, which is attached to the "throws" parameters of n.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_director_exception_specification(Node *n) {
-  if (Getattr(n, "noexcept"))
-    return NewString("noexcept");
+  String *nexcept = Getattr(n, "noexcept");
+  if (nexcept)
+    return NewString(Equal(nexcept, "false") ? "noexcept(false)" : "noexcept");
   ParmList *throw_parm_list = Getattr(n, "throws");
   if (!throw_parm_list && !Getattr(n, "throw"))
     return NULL;

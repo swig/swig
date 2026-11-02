@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C#, D, Go, Java, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
+            Fix the director method of a virtual method declared noexcept(false), such as:
+
+              struct Base {
+                virtual int ping() noexcept(false);
+              };
+
+            It was declared noexcept in the director class, so an exception thrown by the director
+            method, such as the one for an exception raised by the override in the target language,
+            called std::terminate() instead of reaching the caller. It is now declared
+            noexcept(false), like the method.
+
+2026-11-02: wsfulton
             [C] Fix the C++ wrappers crashing when NULL is passed for a pointer to a class, such as
             for the parameter of:
 

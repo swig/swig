@@ -27,6 +27,35 @@ int callFuncPtrs(FuncPtrReturner &r, int i) { return r.ptr1()(i) + r.ptr2()(i) +
 
 %}
 
+%{
+// A dummy director exception class for the target languages without directors
+#ifndef SWIG_DIRECTORS
+namespace Swig {
+  class DirectorException {};
+}
+#endif
+%}
+
+%catches(Swig::DirectorException) NoExceptFalse::callPing;
+
+#ifdef SWIGPYTHON
+// The Python exception raised by the override is still set
+%typemap(throws) Swig::DirectorException %{
+  (void)$1;
+  SWIG_fail;
+%}
+#endif
+
+%inline %{
+// The director method of a noexcept(false) method is not noexcept, so an exception from an override reaches the caller
+class NoExceptFalse {
+  public:
+    virtual ~NoExceptFalse() {}
+    virtual int ping() noexcept(false) { return 1; }
+    static int callPing(NoExceptFalse &n) { return n.ping(); }
+};
+%}
+
 
 %inline %{
 namespace BT {
