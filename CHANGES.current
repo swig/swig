@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [OCaml] Fix a const reference to a pointer, such as in:
+
+              void set(Struct *const &s);
+              Struct *const &get();
+
+            It took and returned a pointer to the pointer, so passing a Struct object to set() gave
+            a Failure exception, as did using the Struct object returned by get(). It is now passed
+            and returned as the pointer, as in the other target languages, including in a director
+            method.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
             [OCaml] Fix a variable of an unnamed enum type, such as x here, which did not compile:
 
               enum { A, B } x;

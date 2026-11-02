@@ -357,6 +357,26 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     args = caml_list_append(args, caml_val_member((void *)&$1, sizeof($1), $*1_descriptor));
 %}
 
+/* A const reference to a pointer is passed as the pointer, as in the other target languages */
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp) %{
+    temp = ($*1_ltype)caml_ptr_val($input,$*1_descriptor);
+    $1 = &temp;
+%}
+%typemap(out) SWIGTYPE *const& %{
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)*$1, $*1_descriptor);
+%}
+%typemap(varout) SWIGTYPE *const& %{
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $*1_descriptor);
+%}
+%typemap(directorin) SWIGTYPE *const& %{
+    args = caml_list_append(args, caml_val_ptr((void *)$1, $*1_descriptor));
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE *const& %{
+    static $*1_ltype swig_temp;
+    swig_temp = ($*1_ltype)caml_ptr_val($input,$*1_descriptor);
+    $result = &swig_temp;
+%}
+
 /* Arrays, as a pointer to the first element */
 %typemap(in) SWIGTYPE [] = SWIGTYPE *;
 %typemap(out) SWIGTYPE [] = SWIGTYPE *;
