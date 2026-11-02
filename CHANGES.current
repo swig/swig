@@ -8,6 +8,25 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            [C#, D, Java] Fix pointers to member functions that differ only in their cv-qualifier
+            getting the same proxy class. Given:
+
+              struct Funcs {
+                short FF(bool);
+                short CC(bool) const;
+              };
+              int aaa1(short (Funcs::*)(bool) const);
+              int bbb1(short (Funcs::*)(bool));
+
+            the parameters of aaa1 and bbb1 were both of the class SWIGTYPE_m_Funcs__f_bool__short,
+            so a pointer to Funcs::FF could be passed to aaa1 and a pointer to Funcs::CC to bbb1.
+            The parameter of aaa1 is now of the class SWIGTYPE_m_Funcs__q_const__f_bool__short and
+            likewise for a pointer or reference to such a member pointer, which was of the class
+            SWIGTYPE_p_m_Funcs__f_bool__short and is now SWIGTYPE_p_m_Funcs__q_const__f_bool__short.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
             #2087 Fix the syntax error for a noexcept function type in an abstract declarator, such
             as that of an unnamed parameter, an alias declaration, a template argument or a
             trailing return type:

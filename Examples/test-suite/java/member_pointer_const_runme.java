@@ -11,13 +11,13 @@ public class member_pointer_const_runme {
     }
   }
 
-  public static SWIGTYPE_m_Shape__f_void__double memberPtr = null;
+  public static SWIGTYPE_m_Shape__q_const__f_void__double memberPtr = null;
 
   public static void main(String argv[]) {
     // Get the pointers
 
-    SWIGTYPE_m_Shape__f_void__double area_pt = member_pointer_const.areapt();
-    SWIGTYPE_m_Shape__f_void__double perim_pt = member_pointer_const.perimeterpt();
+    SWIGTYPE_m_Shape__q_const__f_void__double area_pt = member_pointer_const.areapt();
+    SWIGTYPE_m_Shape__q_const__f_void__double perim_pt = member_pointer_const.perimeterpt();
 
     // Create some objects
 

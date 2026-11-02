@@ -3655,7 +3655,7 @@ public:
   bool substituteClassname(SwigType *pt, String *tm) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
-    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *strippedtype = SwigType_strip_qualifiers_except_member_function(type);
 
     if (Strstr(tm, "$csclassname")) {
       SwigType *classnametype = Copy(strippedtype);
