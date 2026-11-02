@@ -2160,6 +2160,41 @@ each type must have its own local variable declaration.
 </pre>
 </div>
 
+<p>
+The local variables cannot directly follow a type that ends in a <tt>noexcept</tt> specifier, such as a pointer to a
+<tt>noexcept</tt> function, as a <tt>(</tt> after <tt>noexcept</tt> always starts the expression of the specifier, as in C++.
+So the following is an error:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%typemap(in) int (*)(int) noexcept (int (*temp)(int) noexcept) {
+  ...
+}
+</pre>
+</div>
+
+<div class="shell">
+<pre>
+example.i:3: Error: Syntax error in input(1).
+</pre>
+</div>
+
+<p>
+Put the type in parentheses instead, which is the <tt>( typelist ) [ (parms) ]</tt> form of a type pattern in
+<a href="#Typemaps_defining">Defining a typemap</a>:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) (int (*)(int) noexcept) (int (*temp)(int) noexcept) {
+  ...
+}
+</pre>
+</div>
+
 
 <H3><a name="Typemaps_special_variables">16.4.3 Special variables</a></H3>
 

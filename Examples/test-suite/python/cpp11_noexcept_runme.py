@@ -39,3 +39,6 @@ m = cpp11_noexcept.NoExceptFuncPtrMembers()
 m.ptr2 = cpp11_noexcept.noexceptGetAddTwo2()
 swig_check(cpp11_noexcept.noexceptCallNoExceptFunc(m.ptr2, 4), 6)
 swig_check(cpp11_noexcept.noexceptCallFuncType2(cpp11_noexcept.noexceptGetAddTwo2(), 5), 7)
+
+# The in typemap with locals supplies the function pointer
+swig_check(cpp11_noexcept.noexceptCallLocals(8), 10)

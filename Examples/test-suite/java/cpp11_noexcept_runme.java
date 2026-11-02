@@ -54,5 +54,9 @@ public class cpp11_noexcept_runme {
       throw new RuntimeException("NoExceptFuncPtrMembers failed");
     if (cpp11_noexcept.noexceptCallFuncType2(cpp11_noexcept.noexceptGetAddTwo2(), 5) != 7)
       throw new RuntimeException("noexceptCallFuncType2 failed");
+
+    // The in typemap with locals supplies the function pointer
+    if (cpp11_noexcept.noexceptCallLocals(8) != 10)
+      throw new RuntimeException("noexceptCallLocals failed");
   }
 }

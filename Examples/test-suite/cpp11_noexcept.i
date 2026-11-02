@@ -176,3 +176,13 @@ int noexceptCallFuncType2(NoExceptFuncType2 *f, int i) { return f(i); }
 int (*noexceptGetAddTwo1())(int) noexcept { return noexceptAddTwo; }
 int (*noexceptGetAddTwo2())(int) noexcept { return noexceptAddTwo; }
 %}
+
+// The locals of a typemap for a type ending in noexcept follow the type in parentheses, extern "C" as C++17 changes the mangled name
+%typemap(in, numinputs=0) (int (*)(int) noexcept) (int (*temp)(int) noexcept) %{
+  temp = noexceptAddTwo;
+  $1 = temp;
+%}
+%inline %{
+extern "C" int noexceptCallLocals(int (*f)(int) noexcept, int i) { return f(i); }
+%}
+%clear int (*)(int) noexcept;
