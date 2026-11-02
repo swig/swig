@@ -8,6 +8,27 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix the C++ wrappers not compiling for a conversion operator, such as in:
+
+              %rename(toFoo) Bar::operator Foo();
+              %rename(toFooRef) Bar::operator Foo&();
+              struct Bar {
+                operator Foo();
+                operator Foo&();
+              };
+
+            The C++ wrapper class declared them with a return type, as in 'Foo operator Foo&();'.
+            A conversion operator is now wrapped by a conversion operator to the type that its C++
+            wrapper returns, keeping 'explicit', while its C function has the name given by
+            %rename, such as Bar_toFoo. If another one already converts to this type, as both
+            return a Foo object here, or if the type is a function pointer, it is wrapped by a
+            member function with the name given by %rename instead. So the C++ wrapper class of Bar
+            declares:
+
+              operator Foo();
+              Foo toFooRef();
+
+2026-11-02: wsfulton
             [C] Fix the C++ wrappers not compiling for an instance of a member function template,
             such as:
 

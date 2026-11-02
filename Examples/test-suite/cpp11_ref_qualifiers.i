@@ -22,9 +22,6 @@
 %ignore cc6;
 %ignore cc7;
 %ignore call1;
-// TODO: the C++ wrappers do not support conversion operators yet
-%feature("cxxignore") ConversionOperators;
-%feature("cxxignore") ConversionOperators2;
 #endif
 
 %ignore Host::h() const &;

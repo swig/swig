@@ -1168,6 +1168,14 @@ A variable of a class type is handled as a pointer, as described in
 the member functions of the variable can be called, and its setter takes a pointer.
 </p>
 
+<p>
+A conversion operator, which is wrapped only when it is renamed, is wrapped by a conversion operator to the type that
+its C++ wrapper returns. For example, <tt>operator Foo&amp;()</tt> gives <tt>operator Foo()</tt>, as a reference to a
+class is returned as an object of the C++ wrapper class. If another conversion operator of the class already converts
+to this type, or if the type is a function pointer, a member function with the name given by <tt>%rename</tt> is used
+instead.
+</p>
+
 <H3><a name="C_additional_possibilities">40.8.1 Additional customization possibilities</a></H3>
 
 

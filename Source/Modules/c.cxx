@@ -1181,9 +1181,9 @@ public:
   }
 
   // Return the declaration of the wrapper with the given name, which may be qualified by the class name, and parameters, which are parms_cxx or none, as a
-  // const member function if is_const is true. A constructor has no return type.
-  ScopedPtr get_decl(String *name, ParmList *parms, bool is_const = false) const {
-    SwigType *const return_type = Checkattr(func_node, "nodeType", "constructor") ? NULL : rtype_desc.type();
+  // const member function if is_const is true. A constructor has no return type, nor does a conversion operator, which is_conversion is true for.
+  ScopedPtr get_decl(String *name, ParmList *parms, bool is_const = false, bool is_conversion = false) const {
+    SwigType *const return_type = is_conversion || Checkattr(func_node, "nodeType", "constructor") ? NULL : rtype_desc.type();
     return get_func_decl(return_type, name, parms, is_const);
   }
 
@@ -1295,6 +1295,7 @@ public:
     class_node_ = n;
     dtor_wname_ = NULL;
     has_copy_ctor_ = false;
+    conversion_decls_ = NewHash();
   }
 
   // Get indentation used inside this class declaration.
@@ -1352,9 +1353,14 @@ public:
     // For some reason overloaded functions use fully-qualified name, so we can't just use the name directly.
     ScopedPtr name_ptr = adopt(Swig_scopename_last(Getattr(n, "name")));
     String *name = name_ptr;
-    // A member function template instance has the name given by %template, as for the C function, as a C++ name such as 'f<(int)>' cannot be declared.
-    if (Getattr(n, "template") && !is_ctor)
+    ScopedPtr conversion_name;
+    if (Getattr(n, "template") && !is_ctor) {
+      // A member function template instance has the name given by %template, as for the C function, as a C++ name such as 'f<(int)>' cannot be declared.
       name = get_member_symname(n);
+    } else if (GetFlag(n, "conversion_operator")) {
+      conversion_name = get_conversion_name(n, rtype_desc.type());
+      name = conversion_name ? conversion_name.get() : get_member_symname(n);
+    }
     String *const wname = Getattr(n, "wrap:name");
 
     String *const classname = Getattr(class_node_, "sym:name");
@@ -1500,14 +1506,16 @@ public:
         Append(wparms, parms_call);
       }
 
+      bool const is_conversion = conversion_name.get() != NULL;
       Printv(cxx_wrappers_.sect_decls,
              cindent,
              is_static ? "static " : get_virtual_prefix(n),
-             func_wrapper.get_decl(name, parms_cxx, is_const(n)).get(),
+             is_conversion && Checkattr(n, "storage", "explicit") ? "explicit " : "",
+             func_wrapper.get_decl(name, parms_cxx, is_const(n), is_conversion).get(),
              ";\n",
              NIL);
 
-      Printv(cxx_wrappers_.sect_impls, "inline ", func_wrapper.get_decl(impl_name, parms_cxx, is_const(n)).get(), " ", NIL);
+      Printv(cxx_wrappers_.sect_impls, "inline ", func_wrapper.get_decl(impl_name, parms_cxx, is_const(n), is_conversion).get(), " ", NIL);
 
       func_wrapper.emit_body(wparms);
     } else {
@@ -1651,6 +1659,23 @@ private:
     return symname ? symname : Getattr(n, "staticmemberfunctionHandler:sym:name");
   }
 
+  // Return the name of the C++ wrapper of the conversion operator n, which converts to the type cxx_type that the C++ wrapper returns, as in 'operator Foo'
+  // for 'operator Foo &()', or NULL if a conversion operator cannot name this type, as for a function pointer, or if another one already converts to it.
+  ScopedPtr get_conversion_name(Node *n, SwigType *cxx_type) {
+    if (is_ptr_to_func_or_array(cxx_type))
+      return ScopedPtr();
+
+    ScopedPtr cxx_type_str = adopt(SwigType_str(cxx_type, 0));
+    ScopedPtr conversion_name = adopt(NewStringf("operator %s", cxx_type_str.get()));
+    // Two conversion operators to the same type can differ in their const qualifier.
+    ScopedPtr conversion_decl = adopt(NewStringf("%s%s", conversion_name.get(), is_const(n) ? " const" : ""));
+    if (Getattr(conversion_decls_, conversion_decl))
+      return ScopedPtr();
+
+    Setattr(conversion_decls_, conversion_decl, "1");
+    return conversion_name;
+  }
+
   // Return "virtual " if this is a virtual function, empty string otherwise.
   static const char *get_virtual_prefix(Node *n) {
     return Checkattr(n, "storage", "virtual") ? "virtual " : "";
@@ -1677,6 +1702,9 @@ private:
 
   // True if the class defines an explicit copy ctor.
   bool has_copy_ctor_;
+
+  // The declarations of the conversion operators of the C++ wrapper, such as 'operator Foo const', see get_conversion_name().
+  ScopedPtr conversion_decls_;
 
   // Non copyable.
   CxxClassWrapper(const CxxClassWrapper &);

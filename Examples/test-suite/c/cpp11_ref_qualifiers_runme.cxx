@@ -37,5 +37,10 @@ int main(int argc, const char *argv[]) {
   assert(ccvo.cr() == 4);
   assert(cvo.cvl() == 5);
   assert(ccvo.cvl() == 6);
+
+  ConversionOperators co;
+  std::string s = co;
+  assert(s.empty());
+  assert(co.StringConvertMove().empty());
   return 0;
 }
