@@ -72,3 +72,14 @@ check_error("do_op_cref with ADD_BY_VALUE", TypeError) { Member_pointer::do_op_c
 check "Overload by value", 3, Member_pointer::call_overloaded(Member_pointer::ADD_BY_VALUE, 1, 2)
 check "Overload by pointer", -7, Member_pointer::call_overloaded(Member_pointer::ADD_BY_POINTER, 3, 4)
 check "Overload by int", 110, Member_pointer::call_overloaded(10, 5, 6)
+
+# Overloaded on a member pointer and a pointer, only the pointer taking nil
+
+check "Overload by member pointer", 3, Member_pointer::memberpt_or_pointer(Member_pointer::ADD_BY_VALUE)
+check "Overload by pointer", 10, Member_pointer::memberpt_or_pointer(Member_pointer::Funktions.new)
+check "Overload by nil", 20, Member_pointer::memberpt_or_pointer(nil)
+
+# A string is not a member pointer
+
+check_error("do_op with a string", TypeError) { Member_pointer::do_op(s, "_not_a_member_pointer") }
+check_error("memberpt_or_pointer with a string", ArgumentError) { Member_pointer::memberpt_or_pointer("_not_a_member_pointer") }

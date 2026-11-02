@@ -59,3 +59,13 @@ check_type_error "do_op_cref with ADD_BY_VALUE" { do_op_cref $s $ADD_BY_VALUE }
 check "Overload by value" 3 [call_overloaded $ADD_BY_VALUE 1 2]
 check "Overload by pointer" -7 [call_overloaded $ADD_BY_POINTER 3 4]
 check "Overload by int" 110 [call_overloaded 10 5 6]
+
+# Overloaded on a member pointer and a pointer, only the pointer taking NULL
+set f [new_Funktions]
+check "Overload by member pointer" 3 [memberpt_or_pointer $ADD_BY_VALUE]
+check "Overload by pointer" 10 [memberpt_or_pointer $f]
+check "Overload by NULL" 20 [memberpt_or_pointer NULL]
+
+# An object pointer is not a member pointer
+check_type_error "do_op with a Funktions pointer" { do_op $s $f }
+delete_Funktions $f

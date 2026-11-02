@@ -72,3 +72,11 @@ check("Add by reference", 11, member_pointer.call3(member_pointer.ADD_BY_REFEREN
 check("Overload by value", 3, member_pointer.call_overloaded(member_pointer.ADD_BY_VALUE, 1, 2));
 check("Overload by pointer", -7, member_pointer.call_overloaded(member_pointer.ADD_BY_POINTER, 3, 4));
 check("Overload by int", 110, member_pointer.call_overloaded(10, 5, 6));
+
+// Overloaded on a member pointer and a pointer, only the pointer taking null
+check("Overload by member pointer", 3, member_pointer.memberpt_or_pointer(member_pointer.ADD_BY_VALUE));
+check("Overload by pointer", 10, member_pointer.memberpt_or_pointer(new member_pointer.Funktions()));
+check("Overload by null", 20, member_pointer.memberpt_or_pointer(null));
+
+// null is not a member pointer
+check_type_error("do_op with null", function() { member_pointer.do_op(s, null); });

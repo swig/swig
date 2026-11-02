@@ -238,6 +238,8 @@ SWIG_Tcl_ConvertPacked(Tcl_Interp *SWIGUNUSEDPARM(interp) , Tcl_Obj *obj, void *
   if (*c != '_') goto type_error;
   c++;
   c = SWIG_UnpackData(c,ptr,sz);
+  if (!c)
+    goto type_error;
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) goto type_error;

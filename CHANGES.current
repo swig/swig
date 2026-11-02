@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Javascript, Perl, Ruby, Tcl] Fix a crash when passing the wrong kind of value for a
+            member pointer, such as for m in:
+
+              double do_op(Shape *s, double (Shape::*m)());
+
+            Passing a pointer to an object in Tcl, a pointer to a type with no proxy class in Perl,
+            a string that starts with an underscore but is not a member pointer in Ruby or null in
+            Javascript with the node or napi engine crashed. So did calling an overloaded function
+            with one of these when an overload takes a member pointer. A type error is now raised,
+            or the overload that takes the value is called.
+
+2026-11-02: wsfulton
             [Guile, Javascript, Lua, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
             Fix a const reference to a member pointer, such as m in:
 
