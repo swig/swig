@@ -34,4 +34,4 @@
 		      #f
 		      (test-error "The form ~A threw to ~A (expected a throw to ~A)"
 				  ',form key tag))))
-	 (test-error "The form ~A returned normally (expected a throw to ~A)"))))
+	 (test-error "The form ~A returned normally (expected a throw to ~A)" ',form tag))))
