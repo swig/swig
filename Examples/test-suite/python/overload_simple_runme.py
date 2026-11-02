@@ -91,6 +91,14 @@ s = Spam(v)
 if s.type != "void *":
     raise RuntimeError("Spam(void *)")
 
+# A const reference to a void pointer takes any pointer, as a void pointer does
+if fvoidcref(f) != "fvoidcref:void *const &":
+    raise RuntimeError("fvoidcref(Foo *)")
+if fvoidcref(v) != "fvoidcref:void *const &":
+    raise RuntimeError("fvoidcref(void *)")
+if fvoidcref(3) != "fvoidcref:int":
+    raise RuntimeError("fvoidcref(int)")
+
 
 free_void(v)
 

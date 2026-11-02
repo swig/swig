@@ -43,7 +43,7 @@
 
 /* typecheck */
 
-%typecheck(SWIG_TYPECHECK_VOIDPTR, noblock=1) void *
+%typecheck(SWIG_TYPECHECK_VOIDPTR, noblock=1) void *, void *const&
 {
   void *ptr = 0;
   int res = SWIG_ConvertPtr($input, &ptr, 0, 0);

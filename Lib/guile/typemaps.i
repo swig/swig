@@ -607,7 +607,7 @@ typedef unsigned long SCM;
   $1 = SWIG_CheckState(res);
 %}
 
-%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void *, void *const& {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, 0, 0);
   $1 = SWIG_CheckState(res);

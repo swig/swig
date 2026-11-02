@@ -50,4 +50,9 @@ assert(s.type == "Bar *")
 s = Spam(v)
 assert(s.type == "void *")
 
+-- A const reference to a void pointer takes any pointer, as a void pointer does
+assert(fvoidcref(f) == "fvoidcref:void *const &")
+assert(fvoidcref(v) == "fvoidcref:void *const &")
+assert(fvoidcref(3) == "fvoidcref:int")
+
 free_void(v)

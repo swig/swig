@@ -118,6 +118,17 @@ func main() {
 		panic("Spam(void *)")
 	}
 
+	// A const reference to a void pointer takes any pointer, as a void pointer does
+	if Fvoidcref(f.Swigcptr()) != "fvoidcref:void *const &" {
+		panic("fvoidcref(Foo *)")
+	}
+	if Fvoidcref(v) != "fvoidcref:void *const &" {
+		panic("fvoidcref(void *)")
+	}
+	if Fvoidcref(3) != "fvoidcref:int" {
+		panic("fvoidcref(int)")
+	}
+
 	Free_void(v)
 
 	a := NewClassA()

@@ -119,6 +119,17 @@ if (!strcmp(s.type,"void *"))
     error("Spam(void *)")
 endif
 
+# A const reference to a void pointer takes any pointer, as a void pointer does
+if (!strcmp(fvoidcref(f),"fvoidcref:void *const &"))
+    error("fvoidcref(Foo *)")
+endif
+if (!strcmp(fvoidcref(v),"fvoidcref:void *const &"))
+    error("fvoidcref(void *)")
+endif
+if (!strcmp(fvoidcref(3),"fvoidcref:int"))
+    error("fvoidcref(int)")
+endif
+
 free_void(v);
 
 a = ClassA();

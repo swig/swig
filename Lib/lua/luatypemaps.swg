@@ -310,6 +310,9 @@ but if it's an output, then it should be wrapped like any other SWIG object (usi
 */
 %typemap(in,checkfn="SWIG_isptrtype") void*
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
+%typemap(in,checkfn="SWIG_isptrtype") void *const& ($*1_ltype temp)
+%{temp=($*1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");
+$1=&temp;%}
 
 /* long long is another special case:
 as lua only supports one numeric type (lua_Number), we will just
@@ -418,7 +421,7 @@ parameters match which function
   $1 = SWIG_IsOK(SWIG_ConvertMember(L, $input, swig_memberptr, sizeof(swig_memberptr), $*descriptor));
 %}
 
-%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void *, void *const& {
   void *ptr;
   if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)) {
     $1 = 0;

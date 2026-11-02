@@ -8,6 +8,25 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Guile, Octave, Perl, Python, Ruby, Scilab, Tcl]
+            Fix overload dispatch on a parameter that is a const reference to a void pointer, as in:
+
+              char *fvoidcref(int);
+              char *fvoidcref(void *const &);
+
+            Such a parameter takes any pointer, as a 'void *' parameter does, but calling fvoidcref
+            with a pointer of a type other than 'void *' failed with an error saying that no
+            overload matches. The overload taking the 'void *const &' is now called.
+
+2026-11-02: wsfulton
+            [Lua] Fix a parameter that is a const reference to a void pointer, such as in:
+
+              char *fvoidcref(void *const &);
+
+            Only a 'void *' was accepted for it. Any pointer is now accepted, as for a 'void *'
+            parameter, including in overload dispatch.
+
+2026-11-02: wsfulton
             [Javascript, Perl, Ruby, Tcl] Fix a crash when passing the wrong kind of value for a
             member pointer, such as for m in:
 
