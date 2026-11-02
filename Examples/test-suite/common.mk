@@ -642,6 +642,7 @@ CPP_TEST_CASES += \
 
 # C++11 test cases.
 CPP11_TEST_CASES += \
+	cpp11_addextern \
 	cpp11_alias_nested_template_scoping \
 	cpp11_alias_template_inheritance \
 	cpp11_alias_templates \
@@ -726,6 +727,8 @@ CPP11_TEST_CASES += \
 	cpp11_using_typedef_template_member \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
+
+cpp11_addextern.cpptest: SWIGOPT += -addextern
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \

@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-01: wsfulton
+            Fix the declarations that the -addextern option adds for a function with an exception
+            specification, such as:
+
+              extern int (*f() noexcept)(int);
+              extern int (*g() throw(int))(int);
+              extern int h() throw(Foo *);
+
+            The exception specification was left out or put after the parameter list of the
+            function pointed to. The type in a 'throw' was not a C++ type, as in 'throw(p.Foo)'.
+            The declarations gave compiler warnings or errors as a result. Now the exception
+            specification is kept and goes after the parameter list of the declared function.
+
+2026-11-01: wsfulton
             Fix a template parameter qualified by const or volatile in a template instantiated
             with an array type, as in the parameter type of take in:
 

@@ -1988,3 +1988,40 @@ String *Swig_name_fulldecl(Node *n) {
   }
   return fulldecl;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_extern_decl()
+ *
+ * Return the declaration of the function n that the -addextern option adds, where type is the type of n including the
+ * return type, such as 'f(int).p.f(double).int'.  The exception specification of n goes after the parameter list of the
+ * declared function, which is inside the parentheses of the declarator of a function returning a pointer to a function.
+ * Some example return values:
+ *   "int f(int) noexcept(false)"
+ *   "int (*f(int) noexcept)(double)"
+ *   "int (&f() throw(int))[3]"
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_extern_decl(Node *n, SwigType *type) {
+  SwigType *return_type = Copy(type);
+  SwigType *function = SwigType_pop_function(return_type);
+  String *declarator = SwigType_str(function, Getattr(n, "name"));
+  String *nexcept = Getattr(n, "noexcept");
+  ParmList *throws = Getattr(n, "throws");
+  String *declaration;
+  if (nexcept) {
+    if (Equal(nexcept, "true")) {
+      Append(declarator, " noexcept");
+    } else {
+      Printf(declarator, " noexcept(%s)", nexcept);
+    }
+  } else if (throws || Getattr(n, "throw")) {
+    String *throws_str = ParmList_str(throws);
+    Printf(declarator, " throw(%s)", throws_str);
+    Delete(throws_str);
+  }
+  declaration = SwigType_str(return_type, declarator);
+  Delete(declarator);
+  Delete(function);
+  Delete(return_type);
+  return declaration;
+}

@@ -323,6 +323,7 @@ extern String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType
 extern String *Swig_name_str(Node *n);
 extern String *Swig_name_decl(Node *n);
 extern String *Swig_name_fulldecl(Node *n);
+extern String *Swig_name_extern_decl(Node *n, SwigType *type);
 
 /* --- parameterized rename functions --- */
 

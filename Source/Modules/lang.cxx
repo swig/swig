@@ -1040,26 +1040,12 @@ int Language::cDeclaration(Node *n) {
                calling conventions - SWIG doesn't understand Windows (non standard) calling
                conventions in the first place, so can't regenerate them.
              */
-            String *str = SwigType_str(ty, name);
-            Printf(f_header, "%s", str);
+            String *str = Swig_name_extern_decl(n, ty);
+            Printf(f_header, "%s;\n", str);
             Delete(str);
-            {
-              DOH *t = Getattr(n, "throws");
-              if (t) {
-                Printf(f_header, " throw(");
-                while (t) {
-                  Printf(f_header, "%s", Getattr(t, "type"));
-                  t = nextSibling(t);
-                  if (t)
-                    Printf(f_header, ",");
-                }
-                Printf(f_header, ")");
-              }
-            }
-            Printf(f_header, ";\n");
           } else if (Swig_storage_isexternc(n)) {
             /* here 'extern "C"' is needed */
-            String *str = SwigType_str(ty, name);
+            String *str = Swig_name_extern_decl(n, ty);
             Printf(f_header, "extern \"C\" %s;\n", str);
             Delete(str);
           }
