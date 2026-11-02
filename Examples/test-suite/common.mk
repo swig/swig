@@ -729,7 +729,7 @@ CPP11_TEST_CASES += \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
 
-cpp11_addextern.cpptest: SWIGOPT += -addextern
+cpp11_addextern.cpptest: SWIGOPT += -addextern -w129
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
