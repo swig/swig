@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [C] Fix the C++ wrappers crashing when NULL is passed for a pointer to a class, such as
+            for the parameter of:
+
+              int count(Foo *f);
+
+            or to the setter of a member variable that is a pointer to a class. The C++ wrapper
+            called a member function through the pointer to get the pointer to pass to the C
+            function. NULL is now passed on to the C function, as NULL returned by the C function is
+            returned by the C++ wrapper.
+
+2026-11-02: wsfulton
             [C] Fix the C++ wrappers not compiling for a parameter or variable that is an array of a
             class, such as the parameter of f() in:
 

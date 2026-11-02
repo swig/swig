@@ -9,5 +9,10 @@ int main(int argc, const char *argv[]) {
   assert(!arrays_null_items_isnull(&item));
   assert(!arrays_null_items_unsized_isnull(&item));
   assert(!arrays_null_const_items_isnull(&item));
+
+  // NULL is passed on as a NULL pointer
+  assert(arrays_null_items_isnull(nullptr));
+  assert(arrays_null_items_unsized_isnull(nullptr));
+  assert(arrays_null_const_items_isnull(nullptr));
   return 0;
 }

@@ -38,6 +38,7 @@ int main(int argc, const char *argv[]) {
   Funktions f;
   assert(memberpt_or_pointer(addbyvaluept()) == 3);
   assert(memberpt_or_pointer(&f) == 10);
+  assert(memberpt_or_pointer(nullptr) == 20);
 
   // NULL member pointers
   assert(is_null_memberpt(get_null_memberpt()));

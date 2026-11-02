@@ -1035,7 +1035,8 @@ private:
       switch (typeKind) {
       case Type_Ptr:
         if (ptype_desc) {
-          ptype_desc->apply_in_typemap(NewString("$1->swig_self()"));
+          // NULL is passed on to the C function, as NULL returned by it is returned below.
+          ptype_desc->apply_in_typemap(NewString("$1 ? $1->swig_self() : nullptr"));
         }
 
         if (rtype_desc) {
