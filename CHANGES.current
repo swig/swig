@@ -8,6 +8,20 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-02: wsfulton
+            [Lua] Fix calling an overloaded function with nil when one of the overloads takes a
+            member pointer, such as memberpt_or_pointer in:
+
+              struct Funktions {
+                int addByValue(const int &a, int b);
+              };
+              int memberpt_or_pointer(int (Funktions::*d)(const int &, int));
+              int memberpt_or_pointer(Funktions *f);
+
+            The overload taking the member pointer was chosen for nil, which it does not accept,
+            so the call failed with an error such as "expected 'int (Funktions::*)(int const &,int)'
+            got 'nil'". The overload taking the pointer is now called.
+
+2026-11-02: wsfulton
             [Guile] Fix a pointer passed or returned by const reference, such as:
 
               Foo *const &get();

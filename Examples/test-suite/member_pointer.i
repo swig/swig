@@ -169,6 +169,10 @@ int call_overloaded(int (Funktions::*d)(const int &, int), int a, int b) { Funkt
 int call_overloaded(int * (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return -*(f.*d)(a, b); }
 int call_overloaded(int c, int a, int b) { return c * (a + b); }
 
+/* Overloaded on a member pointer and a pointer, only the pointer taking NULL */
+int memberpt_or_pointer(int (Funktions::*d)(const int &, int)) { Funktions f; return (f.*d)(1, 2); }
+int memberpt_or_pointer(Funktions *f) { return f ? 10 : 20; }
+
 /* NULL member pointers */
 double (Shape::*get_null_memberpt())(void) { return 0; }
 bool is_null_memberpt(double (Shape::*m)(void)) { return m == 0; }

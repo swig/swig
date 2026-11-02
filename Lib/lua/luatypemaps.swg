@@ -396,6 +396,11 @@ parameters match which function
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*) %{
+  char swig_memberptr[sizeof($1_ltype)];
+  $1 = SWIG_IsOK(SWIG_ConvertMember(L, $input, swig_memberptr, sizeof(swig_memberptr), $descriptor));
+%}
+
 %typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
   void *ptr;
   if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)) {

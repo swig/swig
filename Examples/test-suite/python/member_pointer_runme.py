@@ -54,3 +54,8 @@ check("Add by reference", 11, call3(ADD_BY_REFERENCE, 5, 6))
 check("Overload by value", 3, call_overloaded(ADD_BY_VALUE, 1, 2))
 check("Overload by pointer", -7, call_overloaded(ADD_BY_POINTER, 3, 4))
 check("Overload by int", 110, call_overloaded(10, 5, 6))
+
+# Overloaded on a member pointer and a pointer, only the pointer taking None
+check("Overload by member pointer", 3, memberpt_or_pointer(ADD_BY_VALUE))
+check("Overload by pointer", 10, memberpt_or_pointer(Funktions()))
+check("Overload by None", 20, memberpt_or_pointer(None))
