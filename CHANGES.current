@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-03: wsfulton
+            [Go] Fix a const reference to a member pointer, such as m and the return type in:
+
+              struct Shape {
+                virtual double area();
+              };
+              typedef double (Shape::*AreaFunc)();
+              double do_op_cref(Shape *s, double (Shape::*const &m)());
+              const AreaFunc &area_cref();
+
+            Its Go type was a pointer to the Go type of a member pointer. Passing the address of a
+            member pointer for m panicked with "argument of cgo function has Go pointer to unpinned
+            Go pointer" and what area_cref() returned could not be used as a member pointer. A const
+            reference to a member pointer is now passed and returned as the member pointer, with the
+            same Go type, SwigMemberPtr, as a const reference to a pointer is passed and returned as
+            the pointer. A director method gets and returns such a type as the member pointer too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-11-02: wsfulton
             [Guile, Octave, Perl, Python, Ruby, Scilab, Tcl]
             Fix overload dispatch on a parameter that is a const reference to a void pointer, as in:

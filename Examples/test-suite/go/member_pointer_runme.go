@@ -48,7 +48,9 @@ func main() {
 	check("Square perim", 40.0, Do_op(s, PERIMPT))
 
 	// Const references to member pointers
+	check("Square area", 100.0, Do_op_cref(s, area_pt))
 	check("Square perim", 40.0, Do_op_cref(s, Perimetervar_td_cref()))
+	check("Square perim", 40.0, Do_op(s, Perimetervar_td_cref()))
 
 	// Overloaded on the member pointer type, except for ADD_BY_POINTER as Go uses one type for every member pointer
 	check("Overload by value", 3, float64(Call_overloaded(ADD_BY_VALUE, 1, 2)))

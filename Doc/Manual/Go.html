@@ -597,6 +597,7 @@ method, but cannot call or look into.  As every pointer to member has
 the same Go type, passing a pointer to member of the wrong type is not
 detected.  A NULL pointer to member is <tt>nil</tt> in Go.
 Passing <tt>nil</tt> to C++ gives a NULL pointer to member.
+A const reference to a pointer to member is also a <tt>SwigMemberPtr</tt>.
 </p>
 
 <H3><a name="Go_templates">27.4.7 Go Templates</a></H3>

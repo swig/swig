@@ -5039,15 +5039,14 @@ private:
       SwigType *r = Copy(t);
       SwigType_del_reference(r);
 
-      // If this is a const reference, and we are looking at a pointer
-      // to it, then we just use the pointer we already have.
+      // A const reference to a pointer or member pointer has the Go type of the pointer or member pointer.
       bool add_pointer = true;
       if (SwigType_isqualifier(r)) {
         String *q = SwigType_parm(r);
         if (Strcmp(q, "const") == 0) {
           SwigType *c = Copy(r);
           SwigType_del_qualifier(c);
-          if (SwigType_ispointer(c)) {
+          if (SwigType_ispointer(c) || SwigType_ismemberpointer(c)) {
             add_pointer = false;
           }
           Delete(c);

@@ -10,7 +10,7 @@ func check(got int, expected int, what string) {
 	}
 }
 
-// GetMemberPtr returns the member pointer last passed to UseMemberPtr
+// GetMemberPtr returns the member pointer last passed to UseMemberPtr or UseMemberPtrCref
 type MyMemberPtrDirector struct {
 	stored wrap.SwigMemberPtr
 }
@@ -21,6 +21,11 @@ func (p *MyMemberPtrDirector) UseMemberPtr(m wrap.SwigMemberPtr, x int) int {
 		return -1
 	}
 	return wrap.MemberPtrDirectorCallMemberPtr(m, x+10)
+}
+
+func (p *MyMemberPtrDirector) UseMemberPtrCref(m wrap.SwigMemberPtr, x int) int {
+	p.stored = m
+	return wrap.MemberPtrDirectorCallMemberPtr(m, x+20)
 }
 
 func (p *MyMemberPtrDirector) GetMemberPtr() wrap.SwigMemberPtr {
@@ -39,6 +44,8 @@ func main() {
 	if !md.CallGetMemberPtrIsNull() {
 		panic("Director getMemberPtr returning nil failed")
 	}
+	check(md.CallUseMemberPtrCref(5), 27, "Director useMemberPtrCref")
+	check(md.CallGetMemberPtr(5), 7, "Director getMemberPtr after useMemberPtrCref")
 	check(md.CallUseMemberPtr(5), 17, "Director useMemberPtr")
 	check(md.CallGetMemberPtr(5), 7, "Director getMemberPtr")
 

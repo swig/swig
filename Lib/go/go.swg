@@ -316,7 +316,7 @@ func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
 }
 %}
 
-%typemap(gotype) SWIGTYPE (CLASS::*)
+%typemap(gotype) SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::*const&)
 %{$gotypename%}
 
 %typemap(in) SWIGTYPE (CLASS::*)
@@ -327,19 +327,34 @@ func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
   }
 %}
 
+%typemap(in) (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp)
+%{
+  temp = 0;
+  if ($input) {
+    memcpy(&temp, $input, sizeof(temp));
+  }
+  $1 = &temp;
+%}
+
 %typemap(out, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*)
 %{ $result = $1 ? Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)) : 0; %}
 
-%typemap(goout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
+%typemap(out, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*const&)
+%{ $result = *$1 ? Swig_AllocateMemberPtr($1, sizeof($*1_ltype)) : 0; %}
+
+%typemap(goout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::*const&)
 %{ $result = swigCopyMemberPtr(uintptr(unsafe.Pointer($1))) %}
 
 %typemap(directorin, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*)
 %{ $input = $1 ? Swig_AllocateMemberPtr(&$1, sizeof($1_ltype)) : 0; %}
 
-%typemap(godirectorin, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
+%typemap(directorin, fragment="AllocateMemberPtr") SWIGTYPE (CLASS::*const&)
+%{ $input = $1 ? Swig_AllocateMemberPtr(&$1, sizeof($*1_ltype)) : 0; %}
+
+%typemap(godirectorin, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::*const&)
 %{ $result = swigCopyMemberPtr(uintptr(unsafe.Pointer($input))) %}
 
-%typemap(godirectorout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*)
+%typemap(godirectorout, fragment="CopyMemberPtr") SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::*const&)
 %{ $result = swigAllocateMemberPtr($input) %}
 
 %typemap(directorout) SWIGTYPE (CLASS::*)
@@ -348,6 +363,16 @@ func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
     memcpy(&$result, $input, sizeof($result));
     free($input);
   }
+%}
+
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE (CLASS::*const&)
+%{
+  $result = new ($*1_ltype)(0);
+  if ($input) {
+    memcpy($result, $input, sizeof(*$result));
+  }
+  free($input);
+  swig_acquire_pointer(&swig_mem, $result);
 %}
 
 /* Pointers.  */
@@ -884,12 +909,12 @@ func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
     SWIGTYPE &&,
     SWIGTYPE *const&,
     SWIGTYPE [],
-    SWIGTYPE (CLASS::*)
+    SWIGTYPE (CLASS::*),
+    SWIGTYPE (CLASS::*const&)
     ""
 
 %apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 %apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
 /* Go keywords.  */
