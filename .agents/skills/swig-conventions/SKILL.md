@@ -1,12 +1,13 @@
 ---
 name: swig-conventions
-description: 'SWIG source code conventions: clang-format / code formatting, C/C++ comment style (quotes, widths, function header blocks), parser.y new code rules, alphabetical ordering of makefile lists, adding or retiring a warning number and checking it is documented, hyphenation and CHANGES.current file entries for user visible release notes. Read before writing or editing Source/ or Lib/ code or comments, or a CHANGES.current entry.'
+description: 'SWIG source code conventions: clang-format / code formatting, CamelCase names of classes and structs, C/C++ comment style (quotes, widths, function header blocks), parser.y new code rules, alphabetical ordering of makefile lists, adding or retiring a warning number and checking it is documented, hyphenation and CHANGES.current file entries for user visible release notes. Read before writing or editing Source/ or Lib/ code or comments, or a CHANGES.current entry.'
 ---
 
 # SWIG Coding and Contribution Conventions
 
 ## When to use
 - Before writing or editing C/C++ code under `Source/` or `Lib/`
+- Before naming a class, struct or struct typedef under `Source/`
 - Before adding a test case to a makefile list
 - Before writing or rewording a source code comment
 - Before adding new code to `Source/CParse/parser.y`
@@ -23,6 +24,19 @@ make format-inplace   # apply formatting
 ```
 
 Format config: `Source/.clang-format` (Google style, 160 column limit).
+
+## Naming
+
+Section 8, "Naming Conventions", of `Doc/Devel/engineering.html` gives the naming conventions for the code in `Source/`:
+a function has its module name and lowercase words separated by underscores, as in `Swig_add_directory()`, a structure
+member is in lowercase too and a structure name is capitalised, as in `typedef struct DohObjInfo { ... } DohObjInfo;`.
+
+The name of a class, struct or struct typedef in `Source/`, in a C or a C++ file, is CamelCase with every word
+capitalised, as in `ScopedPtr`, `CxxFunctionWrapper`, `CPlusPlusOutputGuard` and `ExprVal`, not `scoped_dohptr`,
+`CPlusplusOutputGuard` or `Exprval`. An acronym stays in capitals, as in `JSCEmitter` and `PHPTypes`. The classes of the
+language modules are named after their language, as in `PYTHON` and `CSHARP`. A struct tag has the name of its typedef,
+as in `typedef struct Pool { ... } Pool;`. Variables, functions and struct members keep their own styles, even when
+they use the same words as a type, such as the variable `literal_tokens` of the struct type `LiteralToken`.
 
 ## Comment style
 
