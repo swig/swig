@@ -37,4 +37,10 @@ check_type_error("do_op with addbyvaluept", fn() => member_pointer::do_op($s, me
 check_type_error("do_op with a Square", fn() => member_pointer::do_op($s, $s));
 check_type_error("do_op with null", fn() => member_pointer::do_op($s, null));
 
+# The type declared for a member pointer parameter or return value is the class of the member pointer
+$c = get_class(member_pointer::areapt());
+$p = (new ReflectionFunction('do_op'))->getParameters();
+check::equal((string)$p[1]->getType(), $c, "do_op member pointer parameter type");
+check::equal((string)(new ReflectionFunction('areapt'))->getReturnType(), $c, "areapt return type");
+
 check::done();

@@ -8,6 +8,18 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [PHP] Fix the type declarations of a member pointer parameter or return value, such as
+            for m and areapt in:
+
+              double do_op(Shape *s, double (Shape::*m)(void));
+              double (Shape::*areapt())(void);
+
+            They named the PHP class SWIG\_m_Shape__f_void__double, but a member pointer is passed
+            and returned as an object of class SWIG\_p_m_Shape__f_void__double, so reflection showed
+            a type that the member pointer objects are not instances of. They now name the class of
+            the member pointer objects.
+
+2026-11-03: wsfulton
             [R] Fix a crash passing an object for a member pointer, such as an S object passed for
             the parameter of:
 

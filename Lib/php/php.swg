@@ -515,14 +515,14 @@
   SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
+%typemap(out, phptype="SWIG\\$&1_mangle") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
   SWIG_SetPointerZval($result, (void *)p, $&1_descriptor, 1);
 }
 
-%typemap(in, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
+%typemap(in, phptype="SWIG\\$&1_mangle") SWIGTYPE (CLASS::*)
 %{
   {
     void *argp = 0;
