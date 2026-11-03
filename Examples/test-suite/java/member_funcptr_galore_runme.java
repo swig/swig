@@ -26,6 +26,10 @@ public class member_funcptr_galore_runme {
     check(m.bbb7(member_funcptr_galore.getPp7()), 0, "bbb7");
     check(member_funcptr_galore.call1(member_funcptr_galore.ADD_BY_VALUE, 1, 2), 3, "call1");
 
+    // A const reference to a member pointer is passed and returned as the member pointer
+    check(m.aaa7(member_funcptr_galore.getCc1()), 0, "aaa7 with cc1");
+    check(m.aaa1(member_funcptr_galore.getCc7()), 0, "aaa1 with cc7");
+
     // A pointer to a const member function and a pointer to a non-const member function have different classes
     if (member_funcptr_galore.getCc1().getClass().equals(member_funcptr_galore.getPp1().getClass()))
       throw new RuntimeException("cc1 and pp1 have the same class");

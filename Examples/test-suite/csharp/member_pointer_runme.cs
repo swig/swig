@@ -40,7 +40,9 @@ public class runme {
     check( "Square perim", 40.0, member_pointer.do_op(s,member_pointer.PERIMPT) );
 
     // Const references to member pointers
+    check( "Square area", 100.0, member_pointer.do_op_cref(s,area_pt) );
     check( "Square perim", 40.0, member_pointer.do_op_cref(s,member_pointer.perimetervar_td_cref()) );
+    check( "Square perim", 40.0, member_pointer.do_op(s,member_pointer.perimetervar_td_cref()) );
 
     // Overloaded on the member pointer type
     check( "Overload by value", 3, member_pointer.call_overloaded(member_pointer.ADD_BY_VALUE, 1, 2) );
@@ -59,6 +61,12 @@ public class runme {
     member_pointer.areavar = null;
     if (member_pointer.areavar != null)
       throw new ApplicationException("areavar is not null");
+    if (member_pointer.get_null_memberpt_cref() != null)
+      throw new ApplicationException("get_null_memberpt_cref() is not null");
+    if (!member_pointer.is_null_memberpt_cref(null))
+      throw new ApplicationException("is_null_memberpt_cref(null) failed");
+    if (member_pointer.is_null_memberpt_cref(area_pt))
+      throw new ApplicationException("is_null_memberpt_cref(area_pt) failed");
   }
   private static void check(string what, double expected, double actual) {
     if (expected != actual)

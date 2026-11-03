@@ -618,7 +618,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     SWIGTYPE &&, 
     SWIGTYPE *const&, 
     SWIGTYPE [],
-    SWIGTYPE (CLASS::*)
+    SWIGTYPE (CLASS::*),
+    SWIGTYPE (CLASS::*const&)
     ""
 
 /* Exception handling */
@@ -917,6 +918,57 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(csdirectorin) SWIGTYPE *const& "($iminput == global::System.IntPtr.Zero) ? null : new $*csclassname($iminput, false)"
 %typemap(csdirectorout) SWIGTYPE *const& "$*csclassname.getCPtr($cscall).Handle"
 
+/* Member pointer reference typemaps */
+%typemap(ctype) SWIGTYPE (CLASS::*const&) "char *"
+%typemap(imtype) SWIGTYPE (CLASS::*const&) "string"
+%typemap(cstype) SWIGTYPE (CLASS::*const&) "$*csclassname"
+%typemap(csin) SWIGTYPE (CLASS::*const&) "$*csclassname.getCMemberPtr($csinput)"
+%typemap(csout, excode=SWIGEXCODE) SWIGTYPE (CLASS::*const&) {
+    string cMemberPtr = $imcall;
+    $*csclassname ret = (cMemberPtr == null) ? null : new $*csclassname(cMemberPtr, $owner);$excode
+    return ret;
+  }
+%typemap(csvarout, excode=SWIGEXCODE2) SWIGTYPE (CLASS::*const&) %{
+    get {
+      string cMemberPtr = $imcall;
+      $*csclassname ret = (cMemberPtr == null) ? null : new $*csclassname(cMemberPtr, $owner);$excode
+      return ret;
+    } %}
+
+%typemap(in, fragment="SWIG_UnPackData") (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp = 0) %{
+  if ($input) {
+    SWIG_UnpackData($input, (void *)&temp, sizeof(temp));
+  }
+  $1 = &temp;
+%}
+%typemap(out, fragment="SWIG_PackData") SWIGTYPE (CLASS::*const&) %{
+  if (*$1) {
+    char buf[128];
+    char *data = SWIG_PackData(buf, (void *)$1, sizeof(*$1));
+    *data = '\0';
+    $result = SWIG_csharp_string_callback(buf);
+  }
+%}
+%typemap(directorin, fragment="SWIG_PackData") SWIGTYPE (CLASS::*const&) %{
+  char $1_buf[128];
+  $input = 0;
+  if ($1) {
+    char *data = SWIG_PackData($1_buf, (void *)&$1, sizeof($1));
+    *data = '\0';
+    $input = $1_buf;
+  }
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG, fragment="SWIG_UnPackData") SWIGTYPE (CLASS::*const&) %{
+  static SwigTypeIdentity< $*1_ltype >::type swig_temp;
+  swig_temp = 0;
+  if ($input) {
+    SWIG_UnpackData($input, (void *)&swig_temp, sizeof(swig_temp));
+  }
+  $result = &swig_temp;
+%}
+%typemap(csdirectorin) SWIGTYPE (CLASS::*const&) "($iminput == null) ? null : new $*csclassname($iminput, false)"
+%typemap(csdirectorout) SWIGTYPE (CLASS::*const&) "$*csclassname.getCMemberPtr($cscall)"
+
 /* Marshal C/C++ pointer to global::System.IntPtr */
 %typemap(ctype) void *VOID_INT_PTR "void *"
 %typemap(imtype) void *VOID_INT_PTR "global::System.IntPtr"
@@ -1144,7 +1196,6 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 /* const and volatile pointers */
 %apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* String & length */
 %fragment("SWIG_csharp_string", "header") %{

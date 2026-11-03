@@ -36,7 +36,9 @@ void main() {
   check("Square perim", 40.0, do_op(s, PERIMPT));
 
   // Const references to member pointers
+  check("Square area", 100.0, do_op_cref(s, area_pt));
   check("Square perim", 40.0, do_op_cref(s, perimetervar_td_cref()));
+  check("Square perim", 40.0, do_op(s, perimetervar_td_cref()));
 
   // Overloaded on the member pointer type
   check("Overload by value", 3, call_overloaded(ADD_BY_VALUE, 1, 2));
@@ -50,6 +52,9 @@ void main() {
   enforce(!is_null_memberpt(area_pt), "is_null_memberpt(area_pt) failed");
   areavar = null;
   enforce(areavar is null, "areavar is not null");
+  enforce(get_null_memberpt_cref() is null, "get_null_memberpt_cref() is not null");
+  enforce(is_null_memberpt_cref(null), "is_null_memberpt_cref(null) failed");
+  enforce(!is_null_memberpt_cref(area_pt), "is_null_memberpt_cref(area_pt) failed");
 }
 
 void check(string what, double expected, double actual) {

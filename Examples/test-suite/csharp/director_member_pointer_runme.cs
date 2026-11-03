@@ -16,6 +16,7 @@ public class director_member_pointer_runme
     check(d.callGetMemberPtr(5), 6, "Base getMemberPtr");
     MyMemberPtrDirector md = new MyMemberPtrDirector();
     check(md.callUseMemberPtr(5), 17, "Director useMemberPtr");
+    check(md.callUseMemberPtrCref(5), 27, "Director useMemberPtrCref");
     check(md.callGetMemberPtr(5), 7, "Director getMemberPtr");
 
     // NULL member pointers
@@ -30,6 +31,9 @@ public class MyMemberPtrDirector : MemberPtrDirector {
   public bool returnNull = false;
   public override int useMemberPtr(SWIGTYPE_m_MemberPtrFuncs__f_int__int m, int x) {
     return (m == null) ? -1 : MemberPtrDirector.callMemberPtr(m, x + 10);
+  }
+  public override int useMemberPtrCref(SWIGTYPE_m_MemberPtrFuncs__f_int__int m, int x) {
+    return MemberPtrDirector.callMemberPtr(m, x + 20);
   }
   public override SWIGTYPE_m_MemberPtrFuncs__f_int__int getMemberPtr() {
     return returnNull ? null : MemberPtrDirector.addPtr();

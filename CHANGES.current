@@ -8,6 +8,26 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [C#, D, Java] Fix a const reference to a member pointer, such as m in:
+
+              struct Shape {
+                virtual double area();
+              };
+              double do_op_cref(Shape *s, double (Shape::*const &m)());
+
+            The parameter took the type wrapper class of a pointer to the member pointer,
+            SWIGTYPE_p_m_Shape__f_void__double, so a member pointer, which has the class
+            SWIGTYPE_m_Shape__f_void__double, could not be passed for m. Passing null for m threw an
+            exception. A function or variable of such a type gave a pointer to the member pointer,
+            which could not be passed for a member pointer. A const reference to a member pointer is
+            now passed and returned as the member pointer with the class of the member pointer, as
+            a const reference to a pointer is passed and returned as the pointer. null is passed as
+            a NULL member pointer and a NULL member pointer is returned as null. A director method
+            gets and returns such a reference as the member pointer too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-03: wsfulton
             [PHP] Add the names that PHP 8.0 to PHP 8.5 added to the keywords, reserved class names,
             built-in constants and built-in functions that SWIG warns about and renames, such as the
             class Override and the function array_first(). A wrapped class with the name of a PHP

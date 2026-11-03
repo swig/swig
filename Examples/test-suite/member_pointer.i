@@ -176,4 +176,6 @@ int memberpt_or_pointer(Funktions *f) { return f ? 10 : 20; }
 /* NULL member pointers */
 double (Shape::*get_null_memberpt())(void) { return 0; }
 bool is_null_memberpt(double (Shape::*m)(void)) { return m == 0; }
+const PerimeterFunc_td &get_null_memberpt_cref() { static PerimeterFunc_td m = 0; return m; }
+bool is_null_memberpt_cref(double (Shape::*const &m)(void)) { return m == 0; }
 %}

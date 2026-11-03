@@ -19,6 +19,10 @@ void main() {
   check(m.bbb7(pp7), 0, "bbb7");
   check(call1(ADD_BY_VALUE, 1, 2), 3, "call1");
 
+  // A const reference to a member pointer is passed and returned as the member pointer
+  check(m.aaa7(cc1), 0, "aaa7 with cc1");
+  check(m.aaa1(cc7), 0, "aaa1 with cc7");
+
   // A pointer to a const member function and a pointer to a non-const member function have different classes
   auto c1 = cc1;
   auto p1 = pp1;
