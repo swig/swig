@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [Python] Fix the $pytypename special variable in a 'pytyping' typemap for a pointer to
+            a member function with a cv-qualifier or a ref-qualifier, such as the parameter f in:
+
+              %typemap(pytyping) SWIGTYPE (CLASS::*) "$pytypename";
+              struct Funcs {
+                short CC(bool) const;
+              };
+              int take_c(short (Funcs::*f)(bool) const);
+
+            It gave SWIGTYPE_m_Funcs__f_bool__short, the name for a pointer to a non-const member
+            function, so the annotation of f named the wrong class. It now gives
+            SWIGTYPE_m_Funcs__q_const__f_bool__short, the runtime type of f. The same goes for
+            $&pytypename and $*pytypename.
+
+2026-11-03: wsfulton
             [Javascript, Lua, OCaml, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] Fix the wrappers
             of a static constexpr pointer to a const data member or to a member function with a
             cv-qualifier, a ref-qualifier or a const return type, such as cdp, cpp and csp in:

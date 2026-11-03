@@ -3058,7 +3058,7 @@ public:
       return false;
     bool substitution_performed = false;
     SwigType *type = SwigType_typedef_resolve_all(pt);
-    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *strippedtype = SwigType_strip_qualifiers_except_member_function(type);
 
     if (Strstr(tm, "$pytypename")) {
       SwigType *classnametype = Copy(strippedtype);

@@ -205,6 +205,14 @@ if annotations_supported:
     }:
         raise RuntimeError("annotations mismatch: {}".format(anno))
 
+    # The name of a pointer to a const member function is that of its runtime type
+    anno = get_annotations(use_const_memberfn_ptr)
+    if anno != {
+        "return": "None",
+        "ptr": "typing.Optional[SWIGTYPE_m_MyStruct__q_const__f_r_MyStruct_p_MyStruct_r_q_const__MyStruct__void]",
+    }:
+        raise RuntimeError("annotations mismatch: {}".format(anno))
+
     anno = get_annotations(use_member_ptr)
     if anno != {
         "return": "None",
