@@ -9,6 +9,8 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) True;
 %warnfilter(SWIGWARN_PARSE_KEYWORD) FALSE;
 %warnfilter(SWIGWARN_PARSE_KEYWORD) ns::readonly;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Override;
+%warnfilter(SWIGWARN_PARSE_KEYWORD) array_first;
 #endif
 
 %ignore prev::operator++;
@@ -64,4 +66,11 @@
   };
 
   bool readonly() { return false; }
+
+  // A class added in PHP 8.3 and a function added in PHP 8.5
+  class Override
+  {
+  };
+
+  int array_first() { return 1; }
 %}

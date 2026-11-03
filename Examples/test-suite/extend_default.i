@@ -5,6 +5,7 @@
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Override::over; 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Override::overload; 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Override::ride; 
+%warnfilter(SWIGWARN_PARSE_KEYWORD) Override; // 'Override' is a PHP reserved class name
 
 // %extend before the class definition
 %extend Before {

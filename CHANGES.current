@@ -8,6 +8,16 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [PHP] Add the names that PHP 8.0 to PHP 8.5 added to the keywords, reserved class names,
+            built-in constants and built-in functions that SWIG warns about and renames, such as the
+            class Override and the function array_first(). A wrapped class with the name of a PHP
+            class replaced the PHP class and a wrapped function with the name of a PHP function
+            stopped the module from loading. Such a class or function is now renamed with a c_
+            prefix and warning 314 is given, as for the names that were already listed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-03: wsfulton
             [PHP] Fix the type declarations of a member pointer parameter or return value, such as
             for m and areapt in:
 
