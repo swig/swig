@@ -61,3 +61,8 @@ assert(v.declaration == "int (*SpaceNamespace::ExceptionSpec::noexceptfuncptrmet
                         "SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept")
 es:throwmethod(0)
 assert(v.declaration == "void SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int) SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int)")
+v.typedeffunction(0)
+assert(v.declaration == "short *SpaceNamespace::typedeffunction(int) SpaceNamespace::typedeffunction(int)")
+local tm = v.TypedefMethods()
+tm:typedefmethod(0)
+assert(v.declaration == "short *SpaceNamespace::TypedefMethods::typedefmethod(int) const SpaceNamespace::TypedefMethods::typedefmethod(int) const")

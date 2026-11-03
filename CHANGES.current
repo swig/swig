@@ -8,6 +8,32 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [D] Fix a const member function declared through a function typedef, such as m in:
+
+              typedef int G(double) const;
+              struct S {
+                G m;
+              };
+
+            It was wrapped as a D method that is not const, unlike a const member function declared
+            directly. It is now a D const method.
+
+2026-11-03: wsfulton
+            Fix the $decl and $fulldecl special variables for a function declared through a function
+            typedef, such as f in:
+
+              typedef int F(int);
+              F f;
+
+            $decl gave just the name and $fulldecl gave the declaration of a variable, 'int f'. They
+            now give 'f(int)' and:
+
+              int f(int)
+
+            A member function declared through a function typedef also gets the cv-qualifier and
+            ref-qualifier of the typedef, as in 'S::m(double) const'.
+
+2026-11-03: wsfulton
             The $decl and $fulldecl special variables and the declarations in warning messages left
             out the exception specification of a function, constructor or destructor, such as the
             'noexcept' of fp in:

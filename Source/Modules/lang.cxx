@@ -902,6 +902,7 @@ int Language::cDeclaration(Node *n) {
   Node *over;
   File *f_header = 0;
   SwigType *ty, *fullty;
+  bool typedef_function = false;
 
   if (Getattr(n, "feature:onlychildren")) {
     if (GetFlag(n, "feature:ignore")) {
@@ -1020,6 +1021,8 @@ int Language::cDeclaration(Node *n) {
       ParmList *parms = SwigType_function_parms(fty, n);
       Setattr(n, "parms", parms);
       Delete(fty);
+      /* An empty "decl" is that of a function declared through a function typedef, as in 'F f;', rather than a reference to a function */
+      typedef_function = Len(decl) == 0;
     }
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {
@@ -1062,6 +1065,15 @@ int Language::cDeclaration(Node *n) {
       Setattr(n, "noexcept", "true");
     if (SwigType_isqualifier(qualifier))
       Setattr(n, "qualifier", qualifier);
+    if (typedef_function) {
+      /* Give the function the declarator from the typedef, which has the cv-qualifier and ref-qualifier of a member function */
+      SwigType *function_decl = Copy(function);
+      SwigType_push(function_decl, qualifier);
+      SwigType_push(function_decl, Getattr(n, "refqualifier"));
+      DohIncref(decl);
+      Setattr(n, "decl", function_decl);
+      Delete(function_decl);
+    }
     Delete(qualifier);
     Delete(function);
     DohIncref(type);
@@ -1070,6 +1082,10 @@ int Language::cDeclaration(Node *n) {
     functionHandler(n);
 
     Setattr(n, "type", type);
+    if (typedef_function) {
+      Setattr(n, "decl", decl);
+      Delete(decl);
+    }
     Delete(ty);
     Delete(type);
     return SWIG_OK;

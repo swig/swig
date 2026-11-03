@@ -165,6 +165,22 @@ namespace SpaceNamespace {
 }
 %}
 
+%inline %{
+namespace SpaceNamespace {
+  typedef short * TypedefFunction(int);
+  typedef short * ConstTypedefFunction(int) const;
+  TypedefFunction typedeffunction;
+  struct TypedefMethods {
+    ConstTypedefFunction typedefmethod;
+  };
+}
+%}
+
+%{
+short *SpaceNamespace::typedeffunction(int) { return 0; }
+short *SpaceNamespace::TypedefMethods::typedefmethod(int) const { return 0; }
+%}
+
 /////////////////////////////////// directors /////////////////////////////////
 %{
 void DirectorTest_director_testmethod(int i) {}

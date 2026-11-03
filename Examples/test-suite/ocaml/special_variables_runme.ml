@@ -71,4 +71,10 @@ let _ =
   ignore (es -> "~" ());
   assert (_declaration '() as string =
     "SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept");
+  ignore (_typedeffunction '(0));
+  assert (_declaration '() as string = "short *SpaceNamespace::typedeffunction(int) SpaceNamespace::typedeffunction(int)");
+  let tm = new_TypedefMethods '() in
+  ignore (tm -> typedefmethod (0));
+  assert (_declaration '() as string =
+    "short *SpaceNamespace::TypedefMethods::typedefmethod(int) const SpaceNamespace::TypedefMethods::typedefmethod(int) const");
 ;;

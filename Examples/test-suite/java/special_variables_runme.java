@@ -86,6 +86,12 @@ public class special_variables_runme {
     es.delete();
     verify(special_variables.getDeclaration(),
            "SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept");
+    special_variables.typedeffunction(0);
+    verify(special_variables.getDeclaration(), "short *SpaceNamespace::typedeffunction(int) SpaceNamespace::typedeffunction(int)");
+    TypedefMethods tm = new TypedefMethods();
+    tm.typedefmethod(0);
+    verify(special_variables.getDeclaration(),
+           "short *SpaceNamespace::TypedefMethods::typedefmethod(int) const SpaceNamespace::TypedefMethods::typedefmethod(int) const");
   }
   static void verify(String received, String expected) {
     if (!received.equals(expected))
