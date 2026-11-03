@@ -8,6 +8,21 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [C#, D, Java] Fix a director method returning a reference to a member pointer, or a
+            non-const reference to a function pointer, such as getMemberPtrCref() in:
+
+              struct Funcs {
+                int increment(int x);
+              };
+              struct MemberPtrDirector {
+                virtual int (Funcs::*const &getMemberPtrCref())(int);
+              };
+
+            The C++ code of the director class did not compile, as the variables for the value
+            returned were declared with the name after the type, as in
+            'static int (Funcs::*)(int) result_default ;'.
+
+2026-11-03: wsfulton
             [Python] Fix the $pytypename special variable in a 'pytyping' typemap for a pointer to
             a member function with a cv-qualifier or a ref-qualifier, such as the parameter f in:
 

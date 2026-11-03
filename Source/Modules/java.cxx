@@ -4206,13 +4206,15 @@ public:
                something other than a NULL-initialized reference. */
             SwigType *noref_type = SwigType_del_reference(Copy(returntype));
             String *noref_ltype = SwigType_lstr(noref_type, 0);
-            String *return_ltype = SwigType_lstr(returntype, 0);
+            String *result_default_decl = SwigType_lstr(noref_type, "result_default");
+            String *c_result_decl = SwigType_lstr(returntype, "c_result");
 
-            Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
-            Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+            Wrapper_add_localv(w, "result_default", "static", result_default_decl, NIL);
+            Wrapper_add_localv(w, "c_result", c_result_decl, NIL);
             Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
             Printf(w->code, "c_result = &result_default;\n");
-            Delete(return_ltype);
+            Delete(c_result_decl);
+            Delete(result_default_decl);
             Delete(noref_ltype);
             Delete(noref_type);
           }
