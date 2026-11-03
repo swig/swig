@@ -8,6 +8,19 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [R] Fix a crash passing an object for a member pointer, such as an S object passed for
+            the parameter of:
+
+              struct S {
+                int f(int);
+              };
+              int call(int (S::*m)(int));
+
+            The object was read as the member pointer and R crashed. A member pointer read back
+            with readRDS() crashed too. A SWIG type error is now given for these as for any other
+            value that is not a member pointer, such as a number or NULL.
+
+2026-11-03: wsfulton
             [Go] Fix a const reference to a member pointer, such as m and the return type in:
 
               struct Shape {

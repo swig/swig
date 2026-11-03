@@ -23,3 +23,8 @@ unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa1(pp1()))), TRUE
 unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa7(pp7()))), TRUE)
 unittest(grepl("^SWIG:TypeError", error_message(function() m$bbb1(cc1()))), TRUE)
 unittest(grepl("^SWIG:TypeError", error_message(function() m$bbb7(cc7()))), TRUE)
+
+# A value that is not a member pointer, such as a pointer to an object, is rejected
+unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa1(m))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa1(1))), TRUE)
+unittest(grepl("^SWIG:TypeError", error_message(function() m$aaa1(NULL))), TRUE)

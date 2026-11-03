@@ -425,6 +425,11 @@ typedef struct {
   size_t size;
 } RSwigPacked;
 
+/* The tag of the external pointer to a packed object, which tells it apart from the other external pointers */
+SWIGRUNTIMEINLINE SEXP RSwigPacked_Tag(void) {
+  return Rf_install("RSwigPacked");
+}
+
 /* Create a new packed object */
 
 SWIGRUNTIMEINLINE SEXP RSwigPacked_New(void *ptr, size_t sz,
@@ -443,16 +448,19 @@ SWIGRUNTIMEINLINE SEXP RSwigPacked_New(void *ptr, size_t sz,
       sobj = 0;
     }
   }
-  rptr = R_MakeExternalPtr(sobj, R_NilValue, R_NilValue); 
+  rptr = R_MakeExternalPtr(sobj, RSwigPacked_Tag(), R_NilValue);
   return rptr;
 }
 
 SWIGRUNTIME swig_type_info *
 RSwigPacked_UnpackData(SEXP obj, void *ptr, size_t size)
 {
-    RSwigPacked *sobj = 
-        (RSwigPacked *)R_ExternalPtrAddr(obj);
-    if (sobj->size != size) return 0;
+    RSwigPacked *sobj;
+    if (TYPEOF(obj) != EXTPTRSXP || R_ExternalPtrTag(obj) != RSwigPacked_Tag())
+      return 0;
+    sobj = (RSwigPacked *)R_ExternalPtrAddr(obj);
+    if (!sobj || sobj->size != size)
+      return 0;
     memcpy(ptr, sobj->pack, size);
     return sobj->ty;
 }
