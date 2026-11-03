@@ -1889,6 +1889,25 @@ String *Swig_name_str(Node *n) {
   return qname;
 }
 
+/* Append the exception specification of the function n, if it has one, to declarator, as in ' noexcept', ' noexcept(false)' or ' throw(int)'. */
+static void append_exception_specification(String *declarator, Node *n) {
+  String *nexcept = Getattr(n, "noexcept");
+  ParmList *throws = Getattr(n, "throws");
+  if (nexcept) {
+    if (Equal(nexcept, "true")) {
+      Append(declarator, " noexcept");
+    } else {
+      String *expression = SwigType_namestr(nexcept);
+      Printf(declarator, " noexcept(%s)", expression);
+      Delete(expression);
+    }
+  } else if (throws || Getattr(n, "throw")) {
+    String *throws_str = ParmList_str(throws);
+    Printf(declarator, " throw(%s)", throws_str);
+    Delete(throws_str);
+  }
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_name_decl()
  *
@@ -1900,6 +1919,7 @@ String *Swig_name_str(Node *n) {
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
  *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
+ *   "MyNameSpace::ABC::noexceptmethod(int) const noexcept"
  *   "MyNameSpace::ABC::funcptrmethod(int)"
  *   "MyNameSpace::ABC::variablename"
  *   "MyNameSpace::ABC::MyClass"
@@ -1924,6 +1944,7 @@ String *Swig_name_decl(Node *n) {
         Printv(decl, " ", qualifiers_string, NIL);
         Delete(qualifiers_string);
       }
+      append_exception_specification(decl, n);
       Delete(decl_temp);
     }
   }
@@ -1966,6 +1987,7 @@ static SwigType *fulldecl_type(Node *n, SwigType *type) {
  *   "MyNameSpace::ABC::operator int() const"
  *   "int *MyNameSpace::ABC::constmethod(int) const"
  *   "int (*MyNameSpace::ABC::funcptrmethod(int))(int,int)"
+ *   "int (*MyNameSpace::ABC::noexceptfuncptrmethod(int) noexcept)(int,int)"
  *   "int (*MyNameSpace::ABC::funcptrvariable)(int)"
  *   "enum MyNameSpace::ABC::unnamedenumvariable"
  *
@@ -2005,20 +2027,8 @@ String *Swig_name_extern_decl(Node *n, SwigType *type) {
   SwigType *return_type = Copy(type);
   SwigType *function = SwigType_pop_function(return_type);
   String *declarator = SwigType_str(function, Getattr(n, "name"));
-  String *nexcept = Getattr(n, "noexcept");
-  ParmList *throws = Getattr(n, "throws");
   String *declaration;
-  if (nexcept) {
-    if (Equal(nexcept, "true")) {
-      Append(declarator, " noexcept");
-    } else {
-      Printf(declarator, " noexcept(%s)", nexcept);
-    }
-  } else if (throws || Getattr(n, "throw")) {
-    String *throws_str = ParmList_str(throws);
-    Printf(declarator, " throw(%s)", throws_str);
-    Delete(throws_str);
-  }
+  append_exception_specification(declarator, n);
   declaration = SwigType_str(return_type, declarator);
   Delete(declarator);
   Delete(function);

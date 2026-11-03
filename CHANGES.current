@@ -8,6 +8,25 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            The $decl and $fulldecl special variables and the declarations in warning messages left
+            out the exception specification of a function, constructor or destructor, such as the
+            'noexcept' of fp in:
+
+              struct S {
+                static int (*fp(int) noexcept)(double);
+              };
+
+            $fulldecl gave 'int (*S::fp(int))(double)' and now gives:
+
+              int (*S::fp(int) noexcept)(double)
+
+            A 'noexcept(expr)' or 'throw' exception specification is given too. The list of C/C++
+            prototypes in the error for wrong arguments to an overloaded function in target
+            languages such as Python has the exception specifications as well.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-03: wsfulton
             [C#, D, Java] Fix a director method returning a reference to a member pointer, or a
             non-const reference to a function pointer, such as getMemberPtrCref() in:
 

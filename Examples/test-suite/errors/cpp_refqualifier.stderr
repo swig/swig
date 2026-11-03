@@ -3,5 +3,8 @@ cpp_refqualifier.i:12: Warning 405: Method with rvalue ref-qualifier h4() const 
 cpp_refqualifier.i:16: Warning 405: Method with rvalue ref-qualifier h() && ignored.
 cpp_refqualifier.i:17: Warning 405: Method with rvalue ref-qualifier h() const && ignored.
 cpp_refqualifier.i:32: Warning 405: Method with rvalue ref-qualifier t1 ignored.
+cpp_refqualifier.i:36: Warning 405: Method with rvalue ref-qualifier n1() && noexcept ignored.
+cpp_refqualifier.i:37: Warning 405: Method with rvalue ref-qualifier n2() const && throw(int) ignored.
+cpp_refqualifier.i:38: Warning 405: Method with rvalue ref-qualifier n3() && noexcept(std::is_nothrow_copy_constructible< int >::value) ignored.
 cpp_refqualifier.i:15: Warning 512: Overloaded method Host::h() const & ignored,
 cpp_refqualifier.i:14: Warning 512: using non-const method Host::h() & instead.

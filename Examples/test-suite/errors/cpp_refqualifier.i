@@ -31,3 +31,9 @@ typedef void RvalueFunction() &&;
 struct TypedefHost {
   RvalueFunction t1;
 };
+
+struct NoexceptHost {
+  void n1() && noexcept;
+  void n2() const && throw(int);
+  void n3() && noexcept(std::is_nothrow_copy_constructible<int>::value);
+};

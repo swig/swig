@@ -54,4 +54,21 @@ let _ =
   let arg = new_TemplateABC '() in
   ignore (_globtemplate (arg));
   assert (_declaration '() as string = "void SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >) SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >)");
+  let es = new_ExceptionSpec '() in
+  assert (_declaration '() as string =
+    "SpaceNamespace::ExceptionSpec::ExceptionSpec() noexcept(false) SpaceNamespace::ExceptionSpec::ExceptionSpec() noexcept(false)");
+  ignore (es -> constnoexceptmethod (1));
+  assert (_declaration '() as string =
+    "short *SpaceNamespace::ExceptionSpec::constnoexceptmethod(int) const noexcept " ^
+    "SpaceNamespace::ExceptionSpec::constnoexceptmethod(int) const noexcept");
+  ignore (_ExceptionSpec_noexceptfuncptrmethod '(0));
+  assert (_declaration '() as string =
+    "int (*SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept)(int,int) " ^
+    "SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept");
+  ignore (es -> throwmethod (0));
+  assert (_declaration '() as string =
+    "void SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int) SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int)");
+  ignore (es -> "~" ());
+  assert (_declaration '() as string =
+    "SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept");
 ;;

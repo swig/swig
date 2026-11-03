@@ -51,3 +51,13 @@ collectgarbage()
 -- assert(v.declaration == "SpaceNamespace::Template< SpaceNamespace::ABC >::~Template() SpaceNamespace::Template< SpaceNamespace::ABC >::~Template()")
 v.globtemplate(v.TemplateABC())
 assert(v.declaration == "void SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >) SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >)")
+local es = v.ExceptionSpec()
+assert(v.declaration == "SpaceNamespace::ExceptionSpec::ExceptionSpec() noexcept(false) SpaceNamespace::ExceptionSpec::ExceptionSpec() noexcept(false)")
+es:constnoexceptmethod(1)
+assert(v.declaration == "short *SpaceNamespace::ExceptionSpec::constnoexceptmethod(int) const noexcept " ..
+                        "SpaceNamespace::ExceptionSpec::constnoexceptmethod(int) const noexcept")
+v.ExceptionSpec.noexceptfuncptrmethod(0)
+assert(v.declaration == "int (*SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept)(int,int) " ..
+                        "SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept")
+es:throwmethod(0)
+assert(v.declaration == "void SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int) SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int)")

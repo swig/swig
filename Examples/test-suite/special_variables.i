@@ -143,6 +143,28 @@ namespace SpaceNamespace {
 
 %template(TemplateABC) SpaceNamespace::Template<SpaceNamespace::ABC>;
 
+// noexcept is C++11 and throw is invalid in C++17 and later, only SWIG to use them
+#define TESTCASE_NOEXCEPT noexcept
+#define TESTCASE_NOEXCEPT_FALSE noexcept(false)
+#define TESTCASE_THROW1(T1) throw(T1)
+%{
+#define TESTCASE_NOEXCEPT
+#define TESTCASE_NOEXCEPT_FALSE
+#define TESTCASE_THROW1(T1)
+%}
+
+%inline %{
+namespace SpaceNamespace {
+  struct ExceptionSpec {
+    ExceptionSpec() TESTCASE_NOEXCEPT_FALSE {}
+    ~ExceptionSpec() TESTCASE_NOEXCEPT {}
+    short * constnoexceptmethod(int x) const TESTCASE_NOEXCEPT { return 0; }
+    static int (*noexceptfuncptrmethod(int x) TESTCASE_NOEXCEPT)(int, int) { return 0; }
+    void throwmethod(int x) TESTCASE_THROW1(int) {}
+  };
+}
+%}
+
 /////////////////////////////////// directors /////////////////////////////////
 %{
 void DirectorTest_director_testmethod(int i) {}
