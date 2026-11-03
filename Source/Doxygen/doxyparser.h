@@ -167,12 +167,6 @@ private:
   std::string getNextWord();
 
   /*
-   * Returns the next word, which is not necessarily on the same line.
-   * Updates the iterator if successful.
-   */
-  std::string getNextWordInComment();
-
-  /*
    * Returns the location of the end of the line as
    * an iterator.
    */

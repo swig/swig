@@ -30,7 +30,6 @@ extern Parm *ParmList_variadic_parm(ParmList *p);
 extern Parm *ParmList_find_variadic_parm(ParmList *p, int *position);
 extern Parm *ParmList_expanded_pack(ParmList *packs, const SwigType *t);
 extern Parm *ParmList_find_pack_expansion(ParmList *p, const String *pack, int *position);
-extern Parm *ParmList_add_parm(ParmList *p, Parm *newparm);
 extern int ParmList_numrequired(ParmList *);
 extern int ParmList_len(ParmList *);
 extern int ParmList_len_nonvariadic(ParmList *p);

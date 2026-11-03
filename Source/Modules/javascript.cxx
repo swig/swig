@@ -297,7 +297,6 @@ protected:
 
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
-JSEmitter *swig_javascript_create_NodeJSEmitter();
 JSEmitter *swig_javascript_create_NAPIEmitter();
 
 /**********************************************************************

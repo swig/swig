@@ -270,9 +270,6 @@ protected:
   /* Return the node for the current class */
   Node *getCurrentClass() const;
 
-  /* Return C++ mode */
-  int getCPlusMode() const;
-
   /* Return the namespace for the class/enum - the nspace feature */
   String *getNSpace() const;
 

@@ -265,7 +265,6 @@ protected:
   int DumpCode(Node *n);
 
   int OutputMemberReferenceMethod(String *className, int isSet, List *memberList, List *nameList, List *typeList, File *out);
-  int defineArrayAccessors(SwigType *type);
 
   void addNamespaceFunction(String *name) {
     if (!namespaceFunctions)

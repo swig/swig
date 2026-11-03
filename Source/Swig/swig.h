@@ -309,7 +309,6 @@ extern String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_
 extern String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
 extern String *Swig_name_disown(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
 
-extern void Swig_naming_init(void);
 extern void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn);
 extern void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *namewrn, ParmList *declaratorparms);
 extern void Swig_name_inherit(String *base, String *derived);
@@ -463,7 +462,6 @@ extern void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, Parm
 
 extern void Swig_fragment_register(Node *fragment);
 extern void Swig_fragment_emit(String *name);
-extern void Swig_fragment_clear(String *section);
 
 /* --- Extension support --- */
 
