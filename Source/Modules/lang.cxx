@@ -1706,7 +1706,7 @@ int Language::staticmembervariableHandler(Node *n) {
     }
 
     SwigType *t1 = SwigType_typedef_resolve_all(Getattr(n, "type"));
-    SwigType *t2 = SwigType_strip_qualifiers(t1);
+    SwigType *t2 = SwigType_remove_qualifier(Copy(t1));
     Setattr(n, "type", t2);
     Delete(t1);
     Delete(t2);

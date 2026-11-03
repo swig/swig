@@ -8,6 +8,45 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-03: wsfulton
+            [Javascript, Lua, OCaml, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] Fix the wrappers
+            of a static constexpr pointer to a const data member or to a member function with a
+            cv-qualifier, a ref-qualifier or a const return type, such as cdp, cpp and csp in:
+
+              struct Funcs {
+                short CC(bool) const;
+                const char *SS(bool) const;
+                int data;
+              };
+              struct Holder {
+                static constexpr const int Funcs::*cdp = &Funcs::data;
+                static constexpr short (Funcs::*cpp)(bool) const = &Funcs::CC;
+                static constexpr const char *(Funcs::*csp)(bool) const = &Funcs::SS;
+              };
+
+            The wrappers did not compile, as the constants were given their types without these
+            qualifiers, such as 'short (Funcs::*)(bool)' for cpp. The constants now keep their
+            types.
+
+2026-11-03: wsfulton
+            [C, C#, Guile, Java] Fix the type of a static constexpr pointer to a member function
+            with a cv-qualifier or a ref-qualifier, such as cpp in:
+
+              struct Funcs {
+                short FF(bool);
+                short CC(bool) const;
+              };
+              struct Holder {
+                static constexpr short (Funcs::*cpp)(bool) const = &Funcs::CC;
+              };
+              int take_c(short (Funcs::*f)(bool) const);
+              int take_f(short (Funcs::*f)(bool));
+
+            The constant had the type of a pointer to a non-const member function,
+            SWIGTYPE_m_Funcs__f_bool__short, so it could not be passed to take_c and could be
+            passed to take_f. It now has the type SWIGTYPE_m_Funcs__q_const__f_bool__short of the
+            parameter of take_c.
+
+2026-11-03: wsfulton
             [C#, D, Java] Fix a const reference to a member pointer, such as m in:
 
               struct Shape {
