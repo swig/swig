@@ -8,6 +8,7 @@ int main() {
   unsigned int value = 12;
   unsigned int *p = &value;
   unsigned int **pp = &p;
+  const int grid[2][3] = {{1, 2, 3}, {4, 5, 6}};
   BuiltinArrays *arrays = BuiltinArrays_new();
 
   assert(unsigned_count == 1);
@@ -29,6 +30,8 @@ int main() {
   assert(BuiltinArrays_ushorts_get()[1] == 10);
 
   assert(c_builtin_types_unsigned_pointer_value(&pp) == 12);
+  /* The .h file declares the parameter as 'const int **' */
+  assert(c_builtin_types_const_grid_value((const int **)grid) == 6);
 
   BuiltinArrays_delete(arrays);
   return 0;

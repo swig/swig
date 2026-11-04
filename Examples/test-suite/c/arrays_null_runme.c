@@ -22,9 +22,11 @@ int main() {
   arrays_null_ArraysNull *s = arrays_null_ArraysNull_new();
   arrays_null_ArraysNull *other = arrays_null_ArraysNull_new();
   arrays_null_arrays_null_fill(other, 10);
-  /* TODO: grid is not set from another array as its setter frees the array passed */
   arrays_null_ArraysNull_ints_set(s, arrays_null_ArraysNull_ints_get(other));
   check(arrays_null_ArraysNull_ints_get(s)[3] == 13, "member set");
+  arrays_null_ArraysNull_grid_set(s, arrays_null_ArraysNull_grid_get(other));
+  /* The .h file declares grid as 'int **' */
+  check(((int (*)[3])arrays_null_ArraysNull_grid_get(s))[1][2] == 15, "grid member set");
 
   arrays_null_ArraysNull_ints_set(s, NULL);
   check_null_rejected("ints member");
@@ -34,6 +36,8 @@ int main() {
 
   arrays_null_arrays_null_ints_set(arrays_null_ArraysNull_ints_get(s));
   check(arrays_null_arrays_null_ints_get()[3] == 13, "global set");
+  arrays_null_arrays_null_grid_set(arrays_null_ArraysNull_grid_get(s));
+  check(((int (*)[3])arrays_null_arrays_null_grid_get())[1][2] == 15, "grid global set");
 
   arrays_null_arrays_null_ints_set(NULL);
   check_null_rejected("ints global");

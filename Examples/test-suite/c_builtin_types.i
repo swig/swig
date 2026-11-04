@@ -15,4 +15,8 @@ unsigned short BuiltinArrays::ushorts[2] = {3, 4};
 unsigned int unsigned_pointer_value(unsigned int ***p) {
   return ***p;
 }
+
+int const_grid_value(const int grid[2][3]) {
+  return grid[1][2];
+}
 %}

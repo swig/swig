@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-04: wsfulton
+            [C] Fix a two dimensional array of a builtin type passed to a wrapper function or to the
+            setter of a global or member variable when wrapping C++ code, such as the parameter of:
+
+              int sum_grid(const int grid[2][3]);
+
+            The wrapper freed the array passed to it, so passing an array that C code declared
+            crashed or corrupted the heap. The array is no longer freed.
+
 2026-11-03: wsfulton
             [D] Fix a const member function declared through a function typedef, such as m in:
 
