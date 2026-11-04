@@ -822,11 +822,11 @@ SwigPyObject_dealloc(PyObject *v)
       printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
 #endif
-    SWIG_Py_XDECREF(Swig_Capsule_global);
   }
   SWIG_Py_XDECREF(next);
   SWIG_Py_XDECREF(sobj->swigdict);
   PyObject_Free(v);
+  SWIG_Py_XDECREF(Swig_Capsule_global);
 }
 
 SWIGRUNTIME PyObject* 
@@ -1068,12 +1068,12 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
     sobj->next = 0;
     sobj->swigdict = 0;
     sobj->weakreflist = 0;
-    if (own == SWIG_POINTER_OWN) {
-      /* Obtain a reference to the Python capsule wrapping the module information, so that the
-       * module information is correctly destroyed after all SWIG python objects have been freed
-       * by the GC (and corresponding destructors invoked) */
-      SWIG_Py_XINCREF(Swig_Capsule_global);
-    }
+    /* Obtain a reference to the Python capsule wrapping the module information, so that the
+     * module information is correctly destroyed after all SWIG python objects have been freed
+     * by the GC (and corresponding destructors invoked). The reference is held for the lifetime
+     * of the object, not just while it owns its pointer, as ownership can change after creation
+     * (thisown, disown(), acquire(), SWIG_POINTER_DISOWN) and is released in SwigPyObject_dealloc. */
+    SWIG_Py_XINCREF(Swig_Capsule_global);
   }
   return (PyObject *)sobj;
 }
