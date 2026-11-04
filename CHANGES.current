@@ -1904,6 +1904,27 @@ Version 4.6.0 (in progress)
               %typemap(freearg) double numbers[*] "free($1);"
               void squares(int n, double numbers[n]);
 
+2026-10-24: wsfulton
+            [C, Lua, Octave, Perl, PHP, Python, R, Ruby, Tcl] #3598 A 'freearg' typemap can now crash
+            the wrapper if it assumes that the 'in' typemap with numinputs=0 for the same parameter has
+            run. The 'freearg' typemaps also run when a call fails, such as for the wrong number of
+            arguments or an earlier argument that cannot be converted. The 'in' typemap now comes after
+            the code converting the earlier arguments, so it may not have run by then. A pointer
+            parameter is then still NULL and most other types are not initialised. For example, with
+            these typemaps, calling get_name with an invalid 'id' raised an error and now crashes:
+
+              %typemap(in, numinputs=0) char **out (char *temp = 0) "$1 = &temp;"
+              %typemap(freearg) char **out "free(*$1);"
+              void get_name(int id, char **out);
+
+            Such a typemap must check the pointer first, which also works with older versions of SWIG:
+
+              %typemap(freearg) char **out "if ($1) free(*$1);"
+
+            In Ruby, this only happens if an 'in' typemap of your own uses SWIG_fail.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-10-23: wsfulton
             [C] Fix the .cxx file not compiling for a const function pointer parameter when wrapping C++
             code, such as:
