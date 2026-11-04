@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-10-31: wsfulton
+            [C] Fix the C declarations in the .h file when wrapping C++ code for a pointer to a
+            pointer of a builtin type, which had a pointer too many, and for a variable that is an
+            array of arrays of unknown size, which was a syntax error, such as:
+
+              int tri(int ***p);
+              const int arr[][3] = { {1, 2, 3}, {4, 5, 6} };
+
+            The parameter of tri was declared with 'int ****' and is now declared with 'int ***'.
+            The getter of arr was declared as returning 'int [][3]*' and now returns 'int *'.
+
+2026-10-31: wsfulton
             [C] Fix the C declarations in the .h file when wrapping C++ code losing a pointer of a
             pointer to a pointer to a class or of a reference to a pointer to a class, such as:
 
