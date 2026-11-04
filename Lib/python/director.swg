@@ -345,7 +345,7 @@ namespace Swig {
     template <typename Type>
     static PyObject *swig_pyobj_disown(PyObject *pyobj, PyObject *SWIGUNUSEDPARM(args)) {
       SwigPyObject *sobj = (SwigPyObject *)pyobj;
-      sobj->own = 0;
+      SwigPyObject_SetOwn(sobj, 0);
       Director *d = SWIG_DIRECTOR_CAST(reinterpret_cast<Type *>(sobj->ptr));
       if (d)
         d->swig_disown();

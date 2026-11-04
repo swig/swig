@@ -773,10 +773,34 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own);
 static PyObject* Swig_Capsule_global = NULL;
 
 SWIGRUNTIME void
+SwigPyObject_dealloc(PyObject *v);
+
+/* Change whether a wrapper owns its pointer. A wrapper that owns its pointer and is freed by SwigPyObject_dealloc()
+   holds a reference on the capsule wrapping the module information, so that the reference moves with the ownership.
+   Every change of SwigPyObject::own after creation must go through here. */
+SWIGRUNTIME void
+SwigPyObject_SetOwn(SwigPyObject *sobj, int own) {
+#ifndef Py_LIMITED_API
+  int this_dealloc = Py_TYPE((PyObject *)sobj)->tp_dealloc == SwigPyObject_dealloc;
+#else
+  int this_dealloc = PyType_GetSlot(Py_TYPE((PyObject *)sobj), Py_tp_dealloc) == (void *)SwigPyObject_dealloc;
+#endif
+  if (this_dealloc) {
+    if (own == SWIG_POINTER_OWN && sobj->own != SWIG_POINTER_OWN) {
+      SWIG_Py_XINCREF(Swig_Capsule_global);
+    } else if (own != SWIG_POINTER_OWN && sobj->own == SWIG_POINTER_OWN) {
+      SWIG_Py_XDECREF(Swig_Capsule_global);
+    }
+  }
+  sobj->own = own;
+}
+
+SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v)
 {
   SwigPyObject *sobj = (SwigPyObject *) v;
   PyObject *next = sobj->next;
+  PyObject *capsule = 0;
   if (sobj->own == SWIG_POINTER_OWN) {
     swig_type_info *ty = sobj->ty;
     SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
@@ -794,6 +818,11 @@ SwigPyObject_dealloc(PyObject *v)
       
       PyObject *type = NULL, *value = NULL, *traceback = NULL;
       PyErr_Fetch(&type, &value, &traceback);
+
+      /* The destructor wrapper disowns v, which releases the reference on the capsule held by an owning
+         wrapper. Hold another one until the end, as the capsule must outlive the use of 'data' below. */
+      capsule = Swig_Capsule_global;
+      SWIG_Py_XINCREF(capsule);
 
       if (data->delargs) {
         /* we need to create a temporary object to carry the destroy operation */
@@ -822,11 +851,15 @@ SwigPyObject_dealloc(PyObject *v)
       printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
 #endif
-    SWIG_Py_XDECREF(Swig_Capsule_global);
+    if (sobj->own == SWIG_POINTER_OWN) {
+      /* Still owning, so the destructor did not disown v and the reference held by an owning wrapper is released here */
+      SWIG_Py_XDECREF(Swig_Capsule_global);
+    }
   }
   SWIG_Py_XDECREF(next);
   SWIG_Py_XDECREF(sobj->swigdict);
   PyObject_Free(v);
+  SWIG_Py_XDECREF(capsule);
 }
 
 SWIGRUNTIME PyObject* 
@@ -859,7 +892,7 @@ SWIGINTERN PyObject*
 SwigPyObject_disown(PyObject* v, PyObject *SWIGUNUSEDPARM(args))
 {
   SwigPyObject *sobj = (SwigPyObject *)v;
-  sobj->own = 0;
+  SwigPyObject_SetOwn(sobj, 0);
   return SWIG_Py_Void();
 }
 
@@ -867,7 +900,7 @@ SWIGINTERN PyObject*
 SwigPyObject_acquire(PyObject* v, PyObject *SWIGUNUSEDPARM(args))
 {
   SwigPyObject *sobj = (SwigPyObject *)v;
-  sobj->own = SWIG_POINTER_OWN;
+  SwigPyObject_SetOwn(sobj, SWIG_POINTER_OWN);
   return SWIG_Py_Void();
 }
 
@@ -1368,7 +1401,7 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
     SwigPyObject *sobj = SWIG_Python_GetSwigThis(obj);
     if (sobj) {
       int oldown = sobj->own;
-      sobj->own = own;
+      SwigPyObject_SetOwn(sobj, own);
       return oldown;
     }
   }
@@ -1433,7 +1466,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
       if (own)
         *own = *own | sobj->own;
       if (flags & SWIG_POINTER_DISOWN) {
-        sobj->own = 0;
+        SwigPyObject_SetOwn(sobj, 0);
       }
       if (flags & SWIG_POINTER_CLEAR) {
         sobj->ptr = 0;
@@ -1463,7 +1496,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
                 if (ptr) {
                   *ptr = vptr;
                   /* transfer the ownership to 'ptr' */
-                  iobj->own = 0;
+                  SwigPyObject_SetOwn(iobj, 0);
                   res = SWIG_AddCast(res);
                   res = SWIG_AddNewMask(res);
                 } else {
