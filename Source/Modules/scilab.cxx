@@ -324,14 +324,13 @@ public:
 
   /* ------------------------------------------------------------------------
    * writeFailCleanup()
-   * Emits the "fail:" label when the wrapper code may jump to it
-   * (SWIG_fail / SWIG_exception_fail), to avoid unused label warnings.
+   * Emits the "fail:" label that 'SWIG_fail' (and 'SWIG_exception' / 'SWIG_exception_fail',
+   * which expand to it) jump to. The label is always emitted: a jump can be hidden
+   * in a macro from the typemap code, so scanning the code is not reliable.
    * ------------------------------------------------------------------------ */
   void writeFailCleanup(Wrapper *wrapper) {
-    if (Strstr(wrapper->code, "SWIG_fail") || Strstr(wrapper->code, "SWIG_exception_fail")) {
-      Append(wrapper->code, "fail:\n");
-      Append(wrapper->code, "return SWIG_ERROR;\n");
-    }
+    Append(wrapper->code, "fail:\n");
+    Append(wrapper->code, "return SWIG_ERROR;\n");
   }
 
   /* ------------------------------------------------------------------------
@@ -517,21 +516,19 @@ public:
     Printv(wrapper->code, "return SWIG_OK;\n", NIL);
 
     /* Add the failure cleanup code */
-    if (Strstr(wrapper->code, "SWIG_fail") || Strstr(wrapper->code, "SWIG_exception_fail")) {
-      Printv(wrapper->code, "fail:\n", NIL);
-      for (param = functionParamsList; param;) {
-        String *tm;
-        if ((tm = Getattr(param, "tmap:freearg"))) {
-          if (tm && (Len(tm) != 0)) {
-            Printf(wrapper->code, "%s\n", tm);
-          }
-          param = Getattr(param, "tmap:freearg:next");
-        } else {
-          param = nextSibling(param);
+    Printv(wrapper->code, "fail:\n", NIL);
+    for (param = functionParamsList; param;) {
+      String *tm;
+      if ((tm = Getattr(param, "tmap:freearg"))) {
+        if (tm && (Len(tm) != 0)) {
+          Printf(wrapper->code, "%s\n", tm);
         }
+        param = Getattr(param, "tmap:freearg:next");
+      } else {
+        param = nextSibling(param);
       }
-      Printv(wrapper->code, "return SWIG_ERROR;\n", NIL);
     }
+    Printv(wrapper->code, "return SWIG_ERROR;\n", NIL);
     Printv(wrapper->code, "}\n", NIL);
 
     /* Final substitutions if applicable */

@@ -18,8 +18,8 @@
   if (FRAGMENTNAME(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
     SWIG_fail;
   }
-  $1 = iRows * iCols ? ($1_ltype)MALLOC(sizeof($*1_ltype) * iRows * iCols);
-  if ($1 == NULL) {
+  $1 = iRows * iCols ? ($1_ltype)MALLOC(sizeof($*1_ltype) * iRows * iCols) : NULL;
+  if ($1 == NULL && iRows * iCols > 0) {
     if (iAllocated) free(pTempData);
     SWIG_exception_fail(SWIG_MemoryError, "Fail to allocate array");
   }
@@ -130,7 +130,10 @@
 // Char *
 // The Scilab string fragment always allocates the char* array and every
 // string, so the freearg typemaps have to release each element as well
-%typemap(varin, fragment="SWIG_SciString_AsCharPtrArrayAndSize") char *[ANY] (int iRows, int iCols, int iAllocated) {
+%typemap(varin, fragment="SWIG_SciString_AsCharPtrArrayAndSize") char *[ANY] {
+  int iRows = 0;
+  int iCols = 0;
+  int iAllocated = 0;
   char **pTempData = NULL;
   size_t i;
   if (SWIG_SciString_AsCharPtrArrayAndSize(pvApiCtx, $input, &iRows, &iCols, &pTempData, &iAllocated, fname)) {
@@ -175,8 +178,8 @@
     SWIG_exception_fail(SWIG_OverflowError, errmsg);
   }
   iLen = (size_t) iRows * (size_t) iCols;
-  $1 = ($1_ltype)MALLOC(sizeof($*1_ltype) * iLen);
-  if ($1 == NULL) {
+  $1 = iLen ? ($1_ltype)MALLOC(sizeof($*1_ltype) * iLen) : NULL;
+  if ($1 == NULL && iLen > 0) {
     if (iAllocated) {
       for (i = 0; i < iLen; i++) free(pTempData[i]);
       free(pTempData);
@@ -200,8 +203,8 @@
     SWIG_fail;
   }
   iLen = (size_t) iRows * (size_t) iCols;
-  $1 = ($1_ltype)MALLOC(sizeof($*1_ltype) * iLen);
-  if ($1 == NULL) {
+  $1 = iLen ? ($1_ltype)MALLOC(sizeof($*1_ltype) * iLen) : NULL;
+  if ($1 == NULL && iLen > 0) {
     if (iAllocated) {
       for (i = 0; i < iLen; i++) free(pTempData[i]);
       free(pTempData);
