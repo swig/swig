@@ -7,7 +7,6 @@
 #endif
 
 %insert(runtime) "swigrun.swg";
-%insert(runtime) "swigerrors.swg";
 %insert(runtime) "octrun.swg";
 
 %insert(initbeforefunc) "swiginit.swg"

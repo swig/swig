@@ -924,7 +924,7 @@ int JSEmitter::emitCtor(Node *n) {
 
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
+  emit_attach_parm_typemaps(params, wrapper);
 
   Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
 
@@ -1108,7 +1108,7 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   // prepare local variables
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
+  emit_attach_parm_typemaps(params, wrapper);
 
   // prepare code part
   String *action = emit_action(n);
@@ -1147,7 +1147,7 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   // prepare local variables
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
+  emit_attach_parm_typemaps(params, wrapper);
 
   // prepare code part
   String *action = emit_action(n);
@@ -1253,7 +1253,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   // prepare local variables
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
+  emit_attach_parm_typemaps(params, wrapper);
 
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *action = emit_action(n);
@@ -1381,13 +1381,7 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
       Replaceall(tm, "$disown", "0");
     }
     Replaceall(tm, "$symname", Getattr(n, "sym:name"));
-    if (!checkAttribute(p, "tmap:in:noblock", "1")) {
-      Printf(code, "{\n");
-    }
-    Printf(code, "%s", tm);
-    if (!checkAttribute(p, "tmap:in:noblock", "1")) {
-      Printf(code, "\n}\n");
-    }
+    Printf(code, "%s\n", tm);
   } else {
     Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
     return NULL;
@@ -1397,12 +1391,7 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
     Printf(code, "}\n");
   }
 
-  // numinputs=0 typemaps are emitted by the legacy code in
-  // emit_attach_parmmaps() in emit.cxx, check the comment there
-  // All generators work around this
-  if (!checkAttribute(p, "tmap:in:numinputs", "0")) {
-    Append(wrapper->code, code);
-  }
+  Append(wrapper->code, code);
   return code;
 }
 
@@ -1655,6 +1644,10 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   // process arguments
   int i = 0;
   for (p = parms; p;) {
+    p = emit_ignored_in_typemaps(p, wrapper->code);
+    if (!p)
+      break;
+
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
@@ -2292,6 +2285,10 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
 
   int i = 0;
   for (p = parms; p;) {
+    p = emit_ignored_in_typemaps(p, wrapper->code);
+    if (!p)
+      break;
+
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
@@ -2848,6 +2845,10 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
 
   int i = 0;
   for (p = parms; p;) {
+    p = emit_ignored_in_typemaps(p, wrapper->code);
+    if (!p)
+      break;
+
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
@@ -2908,7 +2909,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
-      p = Getattr(p, "tmap:in:next");
+      p = Getattr(p, "tmap:check:next");
     } else {
       p = nextSibling(p);
     }

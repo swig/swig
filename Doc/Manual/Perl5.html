@@ -2295,7 +2295,7 @@ To make the member writable, a "memberin" typemap can be used.
 </p>
 
 <div class="code"><pre>
-%typemap(memberin) int [SIZE] {
+%typemap(memberin) int[SIZE] {
   int i;
   for (i = 0; i &lt; SIZE; i++) {
     $1[i] = $input[i];
@@ -2305,7 +2305,7 @@ To make the member writable, a "memberin" typemap can be used.
 </pre></div>
 
 <p>
-Whenever a <tt>int [SIZE]</tt> member is encountered in a structure
+Whenever a <tt>int[SIZE]</tt> member is encountered in a structure
 or class, this typemap provides a safe mechanism for setting its
 value.  
 </p>
@@ -2316,7 +2316,7 @@ For example:
 </p>
 
 <div class="code"><pre>
-%typemap(memberin) int [ANY] {
+%typemap(memberin) int[ANY] {
   int i;
   for (i = 0; i &lt; $1_dim0; i++) {
     $1[i] = $input[i];

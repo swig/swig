@@ -12,7 +12,6 @@
 %feature("php:type", "compat");
 
 %runtime "swigrun.swg"  // Common C API type-checking code
-%runtime "swigerrors.swg"    // SWIG errors
 %runtime "phprun.swg"	// PHP runtime functions
 
 %include <phpinit.swg> // PHP initialization routine.
@@ -91,6 +90,22 @@
      $1 = ($1_ltype)temp;
    }
 %}
+
+/* A C99 variable length array parameter, as in 'int n, char s[n]' */
+%typemap(in, phptype="string", fragment="SWIG_NewCharArray") char[*]
+%{
+   if (Z_ISNULL($input)) {
+     $1 = 0;
+   } else {
+     convert_to_string(&$input);
+     $1 = ($1_ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), Z_STRVAL($input), Z_STRLEN($input)) : 0);
+     if (!$1) {
+       zend_value_error("String too long for char array argument $argnum of $symname");
+       SWIG_fail;
+     }
+   }
+%}
+%typemap(freearg) char[*] %{ free((char *)$1); %}
 
 %typemap(in, phptype="string") char[]
 %{

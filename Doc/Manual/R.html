@@ -413,16 +413,16 @@ The errors are described in <a href="#R_null_errors">Handling NULL errors</a>.
 <tr><td>String, <tt>char *</tt>, <tt>const char *</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
 <tr><td>String and length, <tt>(const char *STRING, size_t LENGTH)</tt></td><td>NULL pointer and length 0</td>
     <td>SWIG:TypeError</td></tr>
-<tr><td>Char array, <tt>char [8]</tt>, <tt>char []</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
+<tr><td>Char array, <tt>char[8]</tt>, <tt>char[]</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
 <tr><td>Array of strings, <tt>char *[3]</tt></td><td>NULL pointer</td><td>Array of NULL pointers</td></tr>
 <tr><td>Number, bool or enum, by value or const reference, <tt>int</tt>, <tt>const double &amp;</tt></td>
     <td>SWIG:TypeError</td><td>SWIG:TypeError</td></tr>
 <tr><td>Non-const reference to a number or library type, <tt>int &amp;</tt>, <tt>int &amp;INPUT</tt>,
     <tt>std::vector&lt;int&gt; &amp;</tt></td><td>SWIG:NullReferenceError</td><td>SWIG:TypeError</td></tr>
-<tr><td>Pointer to numbers, <tt>int *</tt>, <tt>double []</tt></td><td>NULL pointer</td>
+<tr><td>Pointer to numbers, <tt>int *</tt>, <tt>double[]</tt></td><td>NULL pointer</td>
     <td>Pointer to an array holding a single 0</td></tr>
-<tr><td>Fixed size array of numbers or enums, <tt>int [3]</tt></td><td>NULL pointer</td><td>Array of zeros</td></tr>
-<tr><td>Array of a class, <tt>Shape [3]</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
+<tr><td>Fixed size array of numbers or enums, <tt>int[3]</tt></td><td>NULL pointer</td><td>Array of zeros</td></tr>
+<tr><td>Array of a class, <tt>Shape[3]</tt></td><td>NULL pointer</td><td>SWIG:TypeError</td></tr>
 <tr><td><tt>const std::vector&lt;int&gt; &amp;</tt></td><td>SWIG:NullReferenceError</td>
     <td>Empty <tt>std::vector</tt></td></tr>
 <tr><td><tt>std::vector&lt;int&gt;</tt> by value</td><td>SWIG:TypeError</td><td>Empty <tt>std::vector</tt></td></tr>
@@ -431,7 +431,7 @@ The errors are described in <a href="#R_null_errors">Handling NULL errors</a>.
 </table>
 
 <p>
-A pointer to numbers, such as <tt>int *</tt>, or an array of numbers of unknown size, such as <tt>double []</tt>,
+A pointer to numbers, such as <tt>int *</tt>, or an array of numbers of unknown size, such as <tt>double[]</tt>,
 takes an R vector, whose values are copied into a temporary C/C++ array for the call.
 C/C++ receives a pointer to the copy, so any changes it makes to the values are not copied back to the R vector.
 An empty vector is copied to an array holding a single 0, so that the pointer is not NULL, although there are no
@@ -439,9 +439,9 @@ values to read.
 </p>
 
 <p>
-A vector shorter than a fixed size array, such as <tt>int [3]</tt>, fills the start of the array and the remaining
+A vector shorter than a fixed size array, such as <tt>int[3]</tt>, fills the start of the array and the remaining
 elements are zero, while a longer vector gives SWIG:OverflowError.
-An array of a class, such as <tt>Shape [3]</tt>, takes an object of the class, which is passed as a pointer to it, as
+An array of a class, such as <tt>Shape[3]</tt>, takes an object of the class, which is passed as a pointer to it, as
 in the other target languages.
 Setting a fixed size array member or global variable to <tt>NULL</tt> gives SWIG:NullReferenceError.
 </p>
@@ -456,7 +456,7 @@ all.
 A parameter that takes a single value, such as a number, a bool, an enum, a <tt>char</tt>, a <tt>char *</tt>, a char
 array or a <tt>std::string</tt>, takes exactly one value, so a vector of more than one value, such as <tt>c(6, 7)</tt>
 for an <tt>int</tt> or <tt>c("ab", "cd")</tt> for a <tt>char *</tt>, gives SWIG:TypeError, whereas an array, such as
-<tt>int [3]</tt> or <tt>char *[3]</tt>, takes a vector of up to that many values.
+<tt>int[3]</tt> or <tt>char *[3]</tt>, takes a vector of up to that many values.
 </p>
 
 <H3><a name="R_null_examples">36.8.2 NULL examples</a></H3>

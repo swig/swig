@@ -25,15 +25,91 @@ int sum_uchars(unsigned char a[4]) {
   return a[0] + a[1] + a[2] + a[3];
 }
 
-struct CarrayItem {
+typedef struct CarrayItem {
   int value;
-};
+} CarrayItem;
 
 int sum_items(CarrayItem a[2]) {
   return a ? a[0].value + a[1].value : -1;
 }
 
-struct CarrayMember {
+typedef struct CarrayMember {
   int ints[8];
-};
+} CarrayMember;
+%}
+
+// A fixed size char array is passed as a string, which carray.i must not free
+%inline %{
+int count_chars(char a[4]) {
+  int n = 0;
+  while (n < 4 && a[n])
+    n++;
+  return n;
+}
+%}
+
+// An array of unknown size has as many elements as the OCaml array
+%inline %{
+typedef enum CarrayColor { CARRAY_RED = 1, CARRAY_GREEN = 2, CARRAY_BLUE = 4 } CarrayColor;
+
+int sum_ints_unknown_size(int a[], int n) {
+  int i;
+  int sum = 0;
+  if (!a)
+    return -1;
+  for (i = 0; i < n; i++)
+    sum += a[i];
+  return sum;
+}
+
+double sum_doubles_unknown_size(const double a[], int n) {
+  int i;
+  double sum = 0;
+  for (i = 0; i < n; i++)
+    sum += a[i];
+  return sum;
+}
+
+int sum_items_unknown_size(const CarrayItem a[], int n) {
+  int i;
+  int sum = 0;
+  if (!a)
+    return -1;
+  for (i = 0; i < n; i++)
+    sum += a[i].value;
+  return sum;
+}
+
+int sum_colors_unknown_size(CarrayColor a[], int n) {
+  int i;
+  int sum = 0;
+  if (!a)
+    return -1;
+  for (i = 0; i < n; i++)
+    sum += a[i];
+  return sum;
+}
+
+int sum_colors(CarrayColor a[3]) {
+  return a ? a[0] + a[1] + a[2] : -1;
+}
+%}
+
+// The freearg typemaps do not free the array set by a user's 'in' typemap for another type
+%{
+static int user_ints[] = { 10, 20 };
+static CarrayColor user_colors[] = { CARRAY_GREEN };
+%}
+
+%typemap(in) const int [] %{ $1 = user_ints; %}
+%typemap(in) CarrayColor [] %{ $1 = user_colors; %}
+
+%inline %{
+int first_user_int(const int a[]) {
+  return a[0];
+}
+
+int first_user_color(CarrayColor a[]) {
+  return a[0];
+}
 %}

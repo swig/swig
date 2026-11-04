@@ -619,6 +619,7 @@ int Language::constantDirective(Node *n) {
   }
   if (Getattr(n, "feature:exceptvar")) {
     Setattr(n, "feature:except", Getattr(n, "feature:exceptvar"));
+    Setattr(n, "feature:except:canthrow", Getattr(n, "feature:exceptvar:canthrow"));
   }
 
   if (!ImportMode) {
@@ -1450,6 +1451,7 @@ int Language::variableHandler(Node *n) {
     }
     if (Getattr(n, "feature:exceptvar")) {
       Setattr(n, "feature:except", Getattr(n, "feature:exceptvar"));
+      Setattr(n, "feature:except:canthrow", Getattr(n, "feature:exceptvar:canthrow"));
     }
   }
 
@@ -1830,6 +1832,7 @@ int Language::memberconstantHandler(Node *n) {
   }
   if (Getattr(n, "feature:exceptvar")) {
     Setattr(n, "feature:except", Getattr(n, "feature:exceptvar"));
+    Setattr(n, "feature:except:canthrow", Getattr(n, "feature:exceptvar:canthrow"));
   }
 
   String *enumvalue_symname = Getattr(n, "enumvalueDeclaration:sym:name");  // Only set if a strongly typed enum

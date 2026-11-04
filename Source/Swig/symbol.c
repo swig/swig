@@ -763,6 +763,34 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * template_parameter_lists_equivalent()
+ *
+ * Whether function templates 'a' and 'b' have template parameter lists of the same length and kinds, in which each
+ * pack is a pack and each non-type parameter has the same type.  The names of the parameters and their defaults play
+ * no part, so 'template<class T>' is equivalent to 'template<typename U = int>' but not to 'template<int N>'.  The
+ * rest of a template head, the type-constraints and the requires-clause, is compared by Constraint_signatures_equal().
+ * ----------------------------------------------------------------------------- */
+
+static int template_parameter_lists_equivalent(Node *a, Node *b) {
+  Parm *pa = Getattr(a, "templateparms");
+  Parm *pb = Getattr(b, "templateparms");
+  for (; pa && pb; pa = nextSibling(pa), pb = nextSibling(pb)) {
+    SwigType *ta = Getattr(pa, "type");
+    SwigType *tb = Getattr(pb, "type");
+    int istype = Parm_is_template_type_parm(pa);
+    if (GetFlag(pa, "templatetemplate") != GetFlag(pb, "templatetemplate"))
+      return 0;
+    if (GetFlag(pa, "templatetemplate"))
+      continue;
+    if (istype != Parm_is_template_type_parm(pb) || SwigType_isvariadic(ta) != SwigType_isvariadic(tb))
+      return 0;
+    if (!istype && !Equal(ta, tb))
+      return 0;
+  }
+  return !pa && !pb;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_symbol_add()
  *
  * Adds a node to the symbol table.  Returns the node itself if successfully
@@ -972,7 +1000,10 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
              * template's signature ([temp.over.link]), so two function templates whose constraints
              * differ are distinct overloads rather than a redeclaration. */
             int constraints_differ = n_template && cn_template && !Constraint_signatures_equal(n, cn);
-            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl)) && !constraints_differ) {
+            /* Function templates with different template parameter lists, such as 'template<class T> int f()' and
+             * 'template<int N> int f()', are distinct overloads too. */
+            int template_parameter_lists_differ = n_template && cn_template && !template_parameter_lists_equivalent(n, cn);
+            if (!((n_template && cn_plain_cdecl) || (cn_template && n_plain_cdecl)) && !constraints_differ && !template_parameter_lists_differ) {
               /* found a conflict */
               return cn;
             }
@@ -2122,22 +2153,33 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
       if (value) {
         Parm *cp;
         Parm *ta = targs;
-        Parm *p = parms;
+        Parm *p = expandedparms;
+        int position = 0;
         SwigType *nt = Swig_symbol_string_qualify(value, tsdecl);
         SwigType *ntq = 0;
 #ifdef SWIG_DEBUG
         Printf(stderr, "value %s %s %s\n", value, nt, tsdecl ? Getattr(tsdecl, "name") : tsdecl);
 #endif
+        /* The names are replaced by position first, so that a name in an argument is not replaced too.  For example:
+             template<class T, class U, class V = T> struct X;
+             X<U, int>
+           The default 'T' becomes 'U', which is not then replaced by 'int'. */
+        ParmList_replace_names_positional(nt, targs, tp);
         while (p && ta) {
           String *name = Getattr(ta, "name");
-          String *pvalue = Getattr(p, "value");
-          String *value = pvalue ? pvalue : Getattr(p, "type");
-          String *ttq = Swig_symbol_type_qualify(value, tscope);
-          /* value = SwigType_typedef_resolve_all(value); */
-          Replaceid(nt, name, ttq);
+          ++position;
+          if (name) {
+            String *pvalue = Getattr(p, "value");
+            String *value = pvalue ? pvalue : Getattr(p, "type");
+            String *ttq = Swig_symbol_type_qualify(value, tscope);
+            String *dollar = NewStringf("$%d", position);
+            /* value = SwigType_typedef_resolve_all(value); */
+            Replace(nt, dollar, ttq, DOH_REPLACE_NUMBER_END);
+            Delete(dollar);
+            Delete(ttq);
+          }
           p = nextSibling(p);
           ta = nextSibling(ta);
-          Delete(ttq);
         }
         ntq = Swig_symbol_type_qualify(nt, tsdecl);
         if (SwigType_istemplate(ntq)) {

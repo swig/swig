@@ -1,0 +1,8 @@
+cpp_template_function_kind.i:9: Error: No matching function template 'type_parm' found.
+cpp_template_function_kind.i:10: Error: No matching function template 'type_parm' found.
+cpp_template_function_kind.i:11: Error: No matching function template 'type_parm' found.
+cpp_template_function_kind.i:12: Error: No matching function template 'nontype_parm' found.
+cpp_template_function_kind.i:13: Error: No matching function template 'nontype_parm' found.
+cpp_template_function_kind.i:14: Error: No matching function template 'template_parm' found.
+cpp_template_function_kind.i:15: Error: No matching function template 'template_parm' found.
+cpp_template_function_kind.i:16: Error: No matching function template 'template_parm' found.

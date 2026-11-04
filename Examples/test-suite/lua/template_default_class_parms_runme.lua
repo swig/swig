@@ -26,3 +26,12 @@ foo = v.FooAnotherType(v.AnotherType())
 a = foo.TType
 foo.TType = a
 a = foo:method(a)
+
+local second = v.Second()
+second.value = 5
+local defaulted = v.DefaultedSecondInt()
+defaulted.third = second
+assert(defaulted:copy_third().value == 5, "copy_third")
+assert(v.third_value(defaulted) == 5, "third_value")
+defaulted.second = 10
+assert(defaulted.second == 10, "second")

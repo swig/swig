@@ -1,4 +1,5 @@
 import python_nondynamic
+from swig_test_utils import swig_assert
 
 def debug_print(s):
     show_debug = False
@@ -20,6 +21,9 @@ try:
 except AttributeError as e:
     debug_print(e)
     pass
+
+# dir() used to raise TypeError for nondynamic classes (#2215)
+swig_assert("a" in dir(aa) and "b" in dir(aa), "dir() does not list the wrapped attributes of A")
 
 class PurePythonClass(object):
     def __init__(self):

@@ -157,6 +157,22 @@ SWIGINTERN int SWIG_Copy##CharName##Array(Char *buf, size_t size, const Char *st
 %_copy_char_array_fragment(char, Char, "<stddef.h>")
 %_copy_char_array_fragment(wchar_t, WChar, "<wchar.h>")
 
+/* Copy the 'len' chars at 'str' into a new zero padded char array of 'size' elements, as SWIG_CopyCharArray copies into
+ * a fixed size array, for a C99 variable length array parameter, as in 'int n, char s[n]'. Returns 0, allocating
+ * nothing, if 'str' is too long. Free the array with free(). */
+%fragment("SWIG_NewCharArray", "header", fragment="SWIG_CopyCharArray", fragment="<stdlib.h>") {
+SWIGINTERN char *SWIG_NewCharArray(size_t size, const char *str, size_t len) {
+  char *buf = 0;
+  if (SWIG_CopyCharArray(0, size, str, len)) {
+    buf = (char *)malloc(size);
+    if (buf) {
+      SWIG_CopyCharArray(buf, size, str, len);
+    }
+  }
+  return buf;
+}
+}
+
 /* The length of the string in the char array 'buf' of 'size' elements, which has no NUL terminator when it is full.
  * It is 0 for a NULL 'buf'. */
 %fragment("SWIG_CharArrayLength", "header", fragment="<string.h>") {

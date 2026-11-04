@@ -37,6 +37,7 @@ CPP_TEST_CASES += \
 
 C_TEST_CASES += \
 	multivalue \
+	ocaml_carray_c \
 
 ml_runme = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)
 

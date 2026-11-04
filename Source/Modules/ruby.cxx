@@ -1470,13 +1470,6 @@ public:
     return p;
   }
 
-  Parm *skipIgnoredArgs(Parm *p) {
-    while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-      p = Getattr(p, "tmap:in:next");
-    }
-    return p;
-  }
-
   /* ---------------------------------------------------------------------
    * marshalInputArgs()
    *
@@ -1509,7 +1502,7 @@ public:
     Printf(kwargs, "{ ");
     for (i = 0, p = l; i < numarg; i++) {
 
-      p = skipIgnoredArgs(p);
+      p = emit_ignored_in_typemaps(p, f->code);
 
       String *pn = Getattr(p, "name");
 
@@ -1540,6 +1533,7 @@ public:
         Printf(f->code, "}\n");
       }
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     /* Finish argument marshalling */
     Printf(kwargs, " NULL }");
@@ -1730,7 +1724,7 @@ public:
 
     /* Attach standard typemaps */
     if (current != CONSTRUCTOR_ALLOCATE) {
-      emit_attach_parmmaps(l, f);
+      emit_attach_parm_typemaps(l, f);
     }
     Setattr(n, "wrap:parms", l);
 
@@ -2117,23 +2111,25 @@ public:
     // Generate prototype list
     String *protoTypes = NewString("");
     do {
-      Append(protoTypes, "\n\"    ");
+      String *proto = NewStringEmpty();
       if (!isCtor && !Equal(siblNodeType, "using")) {
         SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
-        Printv(protoTypes, type, " ", NIL);
+        Printv(proto, type, " ", NIL);
         Delete(type);
       }
-      Printv(protoTypes, methodName, NIL);
+      Printv(proto, methodName, NIL);
       Parm *p = Getattr(sibl, "wrap:parms");
       if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || ctor_director))
         p = nextSibling(p);  // skip self
-      Append(protoTypes, "(");
+      Append(proto, "(");
       while (p) {
-        Append(protoTypes, SwigType_str(Getattr(p, "type"), Getattr(p, "name")));
+        Append(proto, SwigType_str(Getattr(p, "type"), Getattr(p, "name")));
         if ((p = nextSibling(p)))
-          Append(protoTypes, ", ");
+          Append(proto, ", ");
       }
-      Append(protoTypes, ")\\n\"");
+      Append(proto, ")");
+      Printf(protoTypes, "\n\"    %(escape)s\\n\"", proto);
+      Delete(proto);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
     Append(f->code, "fail:\n");

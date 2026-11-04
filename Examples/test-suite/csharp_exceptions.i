@@ -148,6 +148,29 @@ unsigned short ushorttest() { return 100; }
   int InOutStruct::staticnumberout;
 %}
 
+// test exception pending in %exceptionvar code, which has the canthrow attribute
+%exceptionvar exceptionvar_number {
+  $action
+  if (exceptionvar_number < 0) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException, "exceptionvar_number negative");
+    return $null;
+  }
+}
+%exceptionvar ExceptionVarStruct::staticnumber {
+  $action
+  if (ExceptionVarStruct::staticnumber < 0) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpIndexOutOfRangeException, "staticnumber negative");
+    return $null;
+  }
+}
+%inline %{
+  int exceptionvar_number = 0;
+  struct ExceptionVarStruct {
+    static int staticnumber;
+  };
+  int ExceptionVarStruct::staticnumber = 0;
+%}
+
 // test SWIG_exception macro - it must return from unmanaged code without executing any further unmanaged code
 %typemap(check, canthrow=1) int macrotest {
   if ($1 < 0) {

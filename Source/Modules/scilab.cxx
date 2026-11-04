@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
@@ -9,7 +9,7 @@
  * scilab.cxx
  *
  * Scilab language module for SWIG.
- * --------------------------------------------------------------------------*/
+ * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
 #include <cstddef>
@@ -380,7 +380,7 @@ public:
 
     /* Attach typemaps to the parameter list */
     // Add local variables used in typemaps (iRows, iCols, ...)
-    emit_attach_parmmaps(functionParamsList, wrapper);
+    emit_attach_parm_typemaps(functionParamsList, wrapper);
     Setattr(node, "wrap:parms", functionParamsList);
 
     /* Check input/output arguments count */
@@ -403,10 +403,7 @@ public:
     /* Write typemaps(in) */
 
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
-      // Ignore parameter if the typemap specifies numinputs=0
-      while (checkAttribute(param, "tmap:in:numinputs", "0")) {
-        param = Getattr(param, "tmap:in:next");
-      }
+      param = emit_ignored_in_typemaps(param, wrapper->code);
 
       SwigType *paramType = Getattr(param, "type");
       String *paramTypemap = Getattr(param, "tmap:in");
@@ -435,8 +432,18 @@ public:
         break;
       }
     }
+    param = emit_ignored_in_typemaps(param, wrapper->code);
 
-    /* TODO write constraints */
+    /* Insert constraint checking code */
+    for (param = functionParamsList; param;) {
+      String *tm;
+      if ((tm = Getattr(param, "tmap:check"))) {
+        Printf(wrapper->code, "%s\n", tm);
+        param = Getattr(param, "tmap:check:next");
+      } else {
+        param = nextSibling(param);
+      }
+    }
 
     Setattr(node, "wrap:name", overloadedName);
 

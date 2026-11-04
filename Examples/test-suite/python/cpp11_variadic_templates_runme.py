@@ -156,3 +156,7 @@ ps.PlainStructParms0()
 ps.PlainStructParms1(a)
 ps.PlainStructParms2(a, b)
 ps.PlainStructParms3(a, b, c)
+
+# NamedLikePack
+if NamedLikePackIntB().pack_size(1, b) != 1:
+    raise RuntimeError("fail NamedLikePackIntB")

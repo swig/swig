@@ -128,6 +128,8 @@
  * This utility function finds the size of a single type element in a type string.
  * Type elements are always delimited by periods, but may be nested with
  * parentheses.  A nested element is always handled as a single item.
+ * Only a type constructor such as 'p.' or 'q(const).' ends at a period, so the text of a
+ * template value argument such as '1.5', 's.x' or 'S{.x = 1}' is also a single item.
  *
  * Returns the integer size of the element (which can be used to extract a
  * substring, to chop the element off, or for other purposes).
@@ -136,11 +138,17 @@
 static int element_size(char *c) {
   int nparen;
   char *s = c;
+  char *group_end = 0; /* The ')' closing a '(' that follows the first character */
   while (*c) {
     if (*c == '.') {
-      c++;
-      return (int)(c - s);
+      int len = (int)(c - s);
+      if ((len == 1 && (*s == 'p' || *s == 'r' || *s == 'v' || *s == 'z')) || (len == 4 && strncmp(s, "auto", 4) == 0) ||
+          (group_end == c - 1 && (*s == 'a' || *s == 'f' || *s == 'm' || *s == 'q'))) {
+        c++;
+        return (int)(c - s);
+      }
     } else if (*c == '(') {
+      char *open = c;
       nparen = 1;
       c++;
       while (*c) {
@@ -153,11 +161,21 @@ static int element_size(char *c) {
         }
         c++;
       }
+      if (open == s + 1 && *c)
+        group_end = c;
     }
     if (*c)
       c++;
   }
   return (int)(c - s);
+}
+
+/* The element after the one that 'c' points to, or 0 if that is the last element.  The '.' that ends an element is
+ * found with element_size(), as a '.' can also be inside the parentheses of an element, as in the array size of
+ * 'a(s.n).int'. */
+static char *next_element(char *c) {
+  int len = element_size(c);
+  return len > 0 && c[len - 1] == '.' ? c + len : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -210,7 +228,7 @@ SwigType *SwigType_pop(SwigType *t) {
  *   result: p.
  * ----------------------------------------------------------------------------- */
 
-SwigType *SwigType_last(SwigType *t) {
+SwigType *SwigType_last(const SwigType *t) {
   SwigType *result;
   char *c;
   char *last;
@@ -762,6 +780,7 @@ int SwigType_ismemberpointer(const SwigType *t) {
  * SwigType_add_array()
  * SwigType_del_array()
  * SwigType_isarray()
+ * SwigType_isarray_vla()
  *
  * Utility functions:
  *
@@ -802,6 +821,21 @@ int SwigType_isarray(const SwigType *t) {
   }
   return 0;
 }
+
+/* Return whether the type is an array with '*' as the size of one of its dimensions, the type of a typemap written for a
+ * C99 variable length array parameter, such as 'a(*).int' or 'a(3).a(*).double' */
+int SwigType_isarray_vla(const SwigType *t) {
+  int vla = 0;
+  int ndim = SwigType_array_ndim(t);
+  int i;
+  for (i = 0; i < ndim && !vla; i++) {
+    String *dim = SwigType_array_getdim(t, i);
+    vla = Equal(dim, "*");
+    Delete(dim);
+  }
+  return vla;
+}
+
 /*
  * SwigType_prefix_is_simple_1D_array
  *
@@ -812,9 +846,9 @@ int SwigType_prefix_is_simple_1D_array(const SwigType *t) {
   char *c = Char(t);
 
   if (c && (strncmp(c, "a(", 2) == 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c)
-      return (*(++c) == 0);
+      return (*c == 0);
   }
   return 0;
 }
@@ -854,9 +888,8 @@ int SwigType_array_ndim(const SwigType *t) {
   char *c = Char(t);
 
   while (c && (strncmp(c, "a(", 2) == 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c) {
-      c++;
       ndim++;
     }
   }
@@ -867,9 +900,8 @@ int SwigType_array_ndim(const SwigType *t) {
 String *SwigType_array_getdim(const SwigType *t, int n) {
   char *c = Char(t);
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c) {
-      c++;
       n--;
     }
   }
@@ -901,9 +933,8 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
   }
 
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
-    c = strchr(c, '.');
+    c = next_element(c);
     if (c) {
-      c++;
       n--;
     }
   }
@@ -913,8 +944,8 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
     result = NewString(start);
     Printf(result, "a(%s)", rep);
     *c = temp;
-    c = strchr(c, '.');
-    Append(result, c);
+    /* The rest of the type, from the '.' that ends the replaced dimension */
+    Append(result, c + element_size(c) - 1);
   }
   Clear(t);
   Append(t, result);
@@ -1578,43 +1609,8 @@ String *SwigType_decltype_expr(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_base(const SwigType *t) {
-  char *c;
-  char *lastop = 0;
-  c = Char(t);
-
-  lastop = c;
-
-  /* Search for the last type constructor separator '.' */
-  while (*c) {
-    if (*c == '.') {
-      if (*(c + 1)) {
-        lastop = c + 1;
-      }
-      c++;
-      continue;
-    }
-    if (*c == '<' && *(c + 1) == '(') {
-      /* start of template parameters --- the remainder is part of the base */
-      break;
-    }
-    if (*c == '(') {
-      /* Skip over params */
-      int nparen = 1;
-      c++;
-      while ((*c) && (nparen > 0)) {
-        if (*c == '(')
-          nparen++;
-        else if (*c == ')')
-          nparen--;
-        c++;
-      }
-      if (nparen)
-        break;
-      continue;
-    }
-    c++;
-  }
-  return NewString(lastop);
+  SwigType *base = SwigType_last(t);
+  return base ? base : NewStringEmpty();
 }
 
 /* -----------------------------------------------------------------------------
@@ -1625,54 +1621,10 @@ SwigType *SwigType_base(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_prefix(const SwigType *t) {
-  char *c, *d;
-  String *r = 0;
-
-  c = Char(t);
-  d = c + strlen(c);
-
-  /* Check for a type constructor */
-  if ((d > c) && (*(d - 1) == '.'))
-    d--;
-
-  while (d > c) {
-    d--;
-    if (*d == '>' && (d > c) && *(d - 1) == ')') {
-      /* skip over template parameters */
-      int nest = 1;
-      d--;
-      d--;
-      while ((d > c) && (nest)) {
-        if (*d == '>' && *(d - 1) == ')')
-          nest++;
-        if (*d == '<' && *(d + 1) == '(')
-          nest--;
-        d--;
-      }
-    }
-
-    if (*d == ')') {
-      /* Skip over params */
-      int nparen = 1;
-      d--;
-      while ((d > c) && (nparen)) {
-        if (*d == ')')
-          nparen++;
-        if (*d == '(')
-          nparen--;
-        d--;
-      }
-    }
-
-    if (*d == '.') {
-      char x = *(d + 1);
-      *(d + 1) = 0;
-      r = NewString(c);
-      *(d + 1) = x;
-      return r;
-    }
-  }
-  return NewStringEmpty();
+  SwigType *base = SwigType_base(t);
+  String *prefix = NewStringWithSize(Char(t), Len(t) - Len(base));
+  Delete(base);
+  return prefix;
 }
 
 /* -----------------------------------------------------------------------------

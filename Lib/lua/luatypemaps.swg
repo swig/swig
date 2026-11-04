@@ -119,6 +119,20 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
     $1 = ($ltype)temp;
   }%}
 
+/* A C99 variable length array parameter, as in 'int n, char s[n]' */
+%typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring",fragment="SWIG_NewCharArray") const char[*], char[*]
+%{$1 = 0;
+  if (!lua_isnil(L, $input)) {
+    size_t len = 0;
+    const char *str = lua_tolstring(L, $input, &len);
+    $1 = ($ltype)(($1_dim0) > 0 ? SWIG_NewCharArray((size_t)($1_dim0), str, len) : 0);
+    if (!$1) {
+      SWIG_Lua_pusherrstring(L, "Error in $symname (arg $argnum), string too long for char array");
+      SWIG_fail;
+    }
+  }%}
+%typemap(freearg) const char[*], char[*] %{free((char *)$1);%}
+
 %typemap(in,checkfn="SWIG_lua_isnilstring",fragment="SWIG_lua_isnilstring") const char[], char[]
 %{$1 = ($ltype)lua_tostring(L, $input);%}
 

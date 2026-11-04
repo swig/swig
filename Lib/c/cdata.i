@@ -26,4 +26,9 @@ typedef struct SWIGCDATA {
     $2 = $input->len;
 }
 
+/* There are no (void *BYTES, size_t LENGTH) typemaps, so apply only the const ones instead of all those in cdata_end.swg */
+%apply (const void *BYTES, size_t LENGTH) { (const void *BYTES, int LENGTH) }
+%apply (const void *BYTES, size_t LENGTH) { (const void *indata, size_t inlen) }
+#define SWIG_CDATA_APPLIED
+
 %include <typemaps/cdata_end.swg>

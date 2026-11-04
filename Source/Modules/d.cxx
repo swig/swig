@@ -1593,7 +1593,7 @@ public:
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
 
     // Parameter overloading
     Setattr(n, "wrap:parms", l);
@@ -1620,9 +1620,7 @@ public:
     // Now walk the function parameter list and generate code to get arguments
     for (i = 0, p = l; i < num_arguments; i++) {
 
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, f->code);
 
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
@@ -1672,6 +1670,7 @@ public:
       Delete(c_param_type);
       Delete(arg);
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     /* Insert constraint checking code */
     for (p = l; p;) {
@@ -1713,7 +1712,7 @@ public:
     // Look for usage of throws typemap and the canthrow flag
     ParmList *throw_parm_list = NULL;
     if ((throw_parm_list = Getattr(n, "catchlist"))) {
-      Swig_typemap_attach_parms("throws", throw_parm_list, f);
+      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
         if (Getattr(p, "tmap:throws")) {
           canThrow(n, "throws", p);
@@ -1834,8 +1833,9 @@ public:
       // from C++ code. It checks for the common methods which set
       // a pending D exception and issues a warning if one of them has been found
       // in the typemap, but the »canthrow« attribute/feature is not set.
+      // SWIG_exception is a SWIG preprocessor macro, so it is usually found as the SWIG_DThrowException call it expands to.
       if (!Getattr(n, "d:canthrow")) {
-        if (Strstr(f->code, "SWIG_exception")) {
+        if (Strstr(f->code, "SWIG_exception") || Strstr(f->code, "SWIG_DThrowException(")) {
           Swig_warning(WARN_D_CANTHROW_MISSING,
                        input_file,
                        line_number,
@@ -4452,7 +4452,7 @@ private:
    * Determines whether the code in the typemap can throw a D exception.
    * If so, note it for later when excodeSubstitute() is called.
    * --------------------------------------------------------------------------- */
-  void canThrow(Node *n, const String *typemap, Node *parameter) const {
+  void canThrow(Node *n, const_String_or_char_ptr typemap, Node *parameter) const {
     String *canthrow_attribute = NewStringf("tmap:%s:canthrow", typemap);
     String *canthrow = Getattr(parameter, canthrow_attribute);
     if (canthrow)

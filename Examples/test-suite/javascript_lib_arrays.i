@@ -3,10 +3,7 @@
 %include <arrays_javascript.i>
 
 %apply int[] { int *data1 }
-%apply int[3] { int data2[3] }
-%apply int[4] { int data3[4] }
 %apply int[] { int *nullable }
-%apply int[3] { int nullable_sized[3] }
 
 %inline %{
 

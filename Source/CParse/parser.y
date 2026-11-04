@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -258,6 +258,12 @@ static int cplus_mode  = 0;
 #define SWIG_STORAGE_CLASS_CONSTEXPR	0x0100
 #define SWIG_STORAGE_CLASS_THREAD_LOCAL	0x0200
 
+/* C99 syntax in the brackets of an array declarator that is only allowed for a function parameter: 'static' or a type
+   qualifier as in 'int a[static 3]' and the unspecified size of a variable length array as in 'int a[*]' */
+#define SWIG_ARRAY_PLAIN 0x0000            /* 'int a[3]' */
+#define SWIG_ARRAY_QUALIFIED 0x0001        /* 'int a[static 3]' or 'int a[const 3]' etc */
+#define SWIG_ARRAY_UNSPECIFIED_SIZE 0x0002 /* 'int a[*]' */
+
 /* Test if multiple bits are set in x. */
 static int multiple_bits_set(unsigned x) { return (x & (x - 1)) != 0; }
 
@@ -420,9 +426,7 @@ static int is_operator(String *name) {
  *
  *   TPC_REMAP    candidate and the symbol resolves to a concept (for a
  *                template-id like 'Pair<int>' the bare prefix 'Pair' is the
- *                symbol that must resolve to a concept), or is not declared
- *                in the current scope, being almost certainly a concept that
- *                has not been made visible to SWIG
+ *                symbol that must resolve to a concept)
  *                -> rewrite the parm to 'typename T' (or 'v.typename Ts...')
  *                   and attach a concept-id constraint atom carrying the full
  *                   (possibly template-id) concept-id string
@@ -432,8 +436,17 @@ static int is_operator(String *name) {
  *                  template<Numeric... Ts>              int count(Ts...);
  *                  template<std::convertible_to<int> T> T as_int(T x);    // template-id is a concept, whether or not SWIG has parsed its definition
  *                  template<Pair<int> T>                T first_int(T x); // template-id is a concept (not a class)
+ *   TPC_REMAP_UNDECLARED
+ *                candidate and the symbol is not declared in the current scope,
+ *                most likely a concept that has not been made visible to SWIG
+ *                -> as for TPC_REMAP, but the name could instead be the type of a
+ *                   non-type parameter, such as a typedef SWIG has not seen or an
+ *                   earlier template parameter
+ *                Examples:
  *                  template<MisspeltConcept T>          T f(T);           // not declared, such as a typo
  *                  template<UndeclaredConcept<int> T>   T g(T);           // template-id, prefix not declared
+ *                  template<std::size_t N>              int h();          // typedef not declared
+ *                  template<typename T, T V>            T k();            // type of an earlier template parameter
  *   TPC_KEEP     not a candidate, or the symbol resolves to a type (non-concept)
  *                (typedef, class, enum) -> leave as a non-type parameter
  *                Examples:
@@ -446,7 +459,8 @@ static int is_operator(String *name) {
  */
 enum {
   TPC_KEEP = 0,
-  TPC_REMAP = 1
+  TPC_REMAP = 1,
+  TPC_REMAP_UNDECLARED = 2
 };
 static int classify_template_param_type(const SwigType *type) {
   SwigType *probe;
@@ -486,7 +500,9 @@ static int classify_template_param_type(const SwigType *type) {
     n = Swig_symbol_clookup(probe, 0);
   }
   templatetype = n ? Getattr(n, "templatetype") : 0;
-  if (!n || (templatetype && Equal(templatetype, "concept"))) {
+  if (!n) {
+    verdict = TPC_REMAP_UNDECLARED;
+  } else if (templatetype && Equal(templatetype, "concept")) {
     verdict = TPC_REMAP;
   } else {
     verdict = TPC_KEEP;
@@ -990,6 +1006,7 @@ static void add_symbols(Node *n) {
 	  Setattr(n,"sym:name",symname);
 	} else {
 	  Swig_symbol_conflict_warn(n, c, symname, inclass);
+          Swig_vla_merge_sizes(c, n);
         }
       }
     }
@@ -1247,7 +1264,7 @@ static String *remove_block(Node *kw, const String *inputcode) {
   String *modified_code = 0;
   while (kw) {
    String *name = Getattr(kw,"name");
-   if (name && (Cmp(name,"noblock") == 0)) {
+   if (name && (Cmp(name,"noblock") == 0) && GetFlag(kw, "value")) {
      char *cstr = Char(inputcode);
      int len = Len(inputcode);
      if (len && cstr[0] == '{') {
@@ -2092,6 +2109,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String    *final;
     /* C++20 trailing requires-clause on a constructor. */
     Node      *constraint_node;
+    /* SWIG_ARRAY_* bits for C99 syntax in the declarator's array brackets that only a function parameter can have. */
+    int        parmonly_array;
   } decl;
   Parm         *tparms;
   struct {
@@ -2134,6 +2153,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Parm       *parms;
     Parm       *last;
   } pbuilder;
+  /* The contents of an array declarator's brackets: the size ("" if there is none) and the SWIG_ARRAY_* bits. */
+  struct {
+    String     *dim;
+    int         parmonly;
+  } arraydim;
   struct {
     Node       *node;
     Node       *last;
@@ -2163,10 +2187,12 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token OVERRIDE FINAL /* C++11 identifiers with special meaning */
 %token CONCEPT REQUIRES /* C++20 keywords */
 %token THIS /* C++ keyword, for the C++23 explicit object parameter and for 'this' in an expression */
+%token ARRAY_QUALIFIER /* C99 'static' or type qualifier at the start of an array declarator's brackets */
 %token USING
 %token NAMESPACE
 %token NATIVE INLINE
-%token TYPEMAP ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
+%token <loc> TYPEMAP
+%token ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
 %token LESSTHAN GREATERTHAN DELETE_KW NEW_KW DEFAULT
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO LESSEQUALGREATER
@@ -2273,6 +2299,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
+%type <arraydim> array_dimension;
+%type <intvalue> array_qualifiers_opt;
 %type <autotype> auto_type_holder;
 %type <str>      ref_qualifier;
 %type <node>     requires_clause_opt;
@@ -3489,12 +3517,40 @@ static Node *new_enum_node(SwigType *enum_base_type) {
   return n;
 }
 
+/* Add an array whose brackets have the size 'dim' and the SWIG_ARRAY_* bits 'parmonly' to the end of the type of the
+   declarator 'd', as the innermost array. */
+static void declarator_add_array(struct Decl *d, String *dim, int parmonly) {
+  SwigType *t = NewStringEmpty();
+  SwigType_add_array(t, dim);
+  d->parmonly_array |= parmonly;
+  if (d->type) {
+    SwigType_push(t, d->type);
+    Delete(d->type);
+  }
+  d->type = t;
+}
+
+/* Report the C99 syntax in the array brackets of a declarator 'd' of a variable, structure member or typedef that only
+   a function parameter can have, as given by its SWIG_ARRAY_* bits.  The size of an array written '[*]' is then
+   removed, as for an array of unknown size. */
+static void check_parameter_only_array(struct Decl *d) {
+  if (d->parmonly_array & SWIG_ARRAY_QUALIFIED) {
+    Swig_error(cparse_file, cparse_line, "'static' and type qualifiers in an array declarator are only allowed in a function parameter.\n");
+  }
+  if (d->parmonly_array & SWIG_ARRAY_UNSPECIFIED_SIZE) {
+    Swig_error(cparse_file, cparse_line, "A variable length array of unspecified size, '[*]', is only allowed in a function prototype.\n");
+    Replaceall(d->type, "a(*).", "a().");
+  }
+}
+
 /* Add the function declarator '(parms)' to the declarator 'd', extending the declarator's type and recording 'parms'
    as the declarator's parameter list unless an inner declarator already provided one.  'qualifier' is the trailing
    cv-qualifier and ref-qualifier of the function, or 0 when it has none; it belongs under whatever the enclosing
-   declarator adds, so it has to go on before the declarator's existing type does. */
+   declarator adds, so it has to go on before the declarator's existing type does.  The sizes of any variable length
+   array parameters are removed first, which needs the complete parameter list. */
 static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *qualifier) {
   SwigType *t = NewStringEmpty();
+  Swig_vla_unsize_parms(parms);
   SwigType_add_function(t, parms);
   if (qualifier)
     SwigType_push(t, qualifier);
@@ -3652,6 +3708,7 @@ program        :  interface {
                  top = 0;
                }
                | PARSEPARMS LPAREN parms RPAREN END {
+                 Swig_vla_unsize_parms($parms);
                  top = $parms;
                }
                | PARSEPARMS error {
@@ -3877,6 +3934,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 }
 	       }
                | CONSTANT type declarator def_args SEMI {
+                 check_parameter_only_array(&$declarator);
 		 SwigType_push($type, $declarator.type);
 		 /* Sneaky callback function trick */
 		 if (SwigType_isfunction($type)) {
@@ -3896,6 +3954,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
                | CONSTANT type direct_declarator LPAREN fn_parms RPAREN cv_ref_qualifier def_args SEMI {
                  reject_explicit_object_parameter($fn_parms);
+                 Swig_vla_unsize_parms($fn_parms);
                  SwigType_add_function($type, $fn_parms);
 		 SwigType_push($type, $cv_ref_qualifier.qualifier);
 		 SwigType_push($type, $direct_declarator.type);
@@ -4528,6 +4587,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   if ($typemap_type.method) {
 		     String *code = 0;
 		     $$ = new_node("typemap");
+                     Setfile($$, $TYPEMAP.filename);
+                     Setline($$, $TYPEMAP.line);
 		     Setattr($$,"method",$typemap_type.method);
 		     if ($typemap_type.kwargs) {
 		       ParmList *kw = $typemap_type.kwargs;
@@ -4546,6 +4607,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		 $$ = 0;
 		 if ($typemap_type.method) {
 		   $$ = new_node("typemap");
+                   Setfile($$, $TYPEMAP.filename);
+                   Setline($$, $TYPEMAP.line);
 		   Setattr($$,"method",$typemap_type.method);
 		   appendChild($$,$tm_list);
 		   Delete($typemap_type.method);
@@ -4556,6 +4619,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   $$ = 0;
 		   if ($typemap_type.method) {
 		     $$ = new_node("typemapcopy");
+                     Setfile($$, $TYPEMAP.filename);
+                     Setline($$, $TYPEMAP.line);
 		     Setattr($$,"method",$typemap_type.method);
 		     Setattr($$,"pattern", Getattr($typemap_parm,"pattern"));
 		     appendChild($$,$tm_list);
@@ -4614,6 +4679,8 @@ typemap_parm   : type plain_declarator {
 		  SwigType_push($type,$plain_declarator.type);
 		  $$ = new_node("typemapitem");
 		  parm = NewParmWithoutFileLineInfo($type,$plain_declarator.id);
+                  /* Only a leading array keeps '*' as its size, as in 'char [*]' but not 'char (*)[*]' */
+                  Swig_vla_star_parms(parm);
 		  Setattr($$,"pattern",parm);
 		  Setattr($$,"parms", $plain_declarator.parms);
 		  Delete(parm);
@@ -4622,11 +4689,13 @@ typemap_parm   : type plain_declarator {
                 }
                | LPAREN parms RPAREN {
                   $$ = new_node("typemapitem");
+                  Swig_vla_star_parms($parms);
 		  Setattr($$,"pattern",$parms);
 		  /*		  Setattr($$,"multitype",$parms); */
                }
                | LPAREN parms[pattern] RPAREN LPAREN parms[in] RPAREN {
 		 $$ = new_node("typemapitem");
+                 Swig_vla_star_parms($pattern);
 		 Setattr($$,"pattern", $pattern);
 		 /*                 Setattr($$,"multitype",$in); */
 		 Setattr($$,"parms",$in);
@@ -5028,6 +5097,7 @@ c_declaration   : c_decl {
 
 c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      String *decl = $declarator.type;
+              check_parameter_only_array(&$declarator);
               $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier)
 	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
@@ -5493,6 +5563,7 @@ structured_binding_names : ID {
    without also reaching c_decl_tail's error alternative, which turns an initialiser SWIG cannot parse into a
    fatal error rather than into the ignored declaration an 'auto' variable gets. */
 c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
+                 check_parameter_only_array(&$declarator);
 		 $$ = new_node("cdecl");
 		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
 		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
@@ -5855,6 +5926,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		 int       unnamedinstance = 0;
 		 int scopedenum = $ename && !Equal($c_enum_key, "enum");
 
+                 check_parameter_only_array(&$declarator);
 		 $$ = new_enum_node($c_enum_inherit);
 		 Setattr($$,"enumkey",$c_enum_key);
 		 if (scopedenum)
@@ -5969,6 +6041,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 
 			if ($ctor_end.have_parms) {
 			  SwigType *decl = NewStringEmpty();
+                          Swig_vla_unsize_parms($ctor_end.parms);
 			  SwigType_add_function(decl,$ctor_end.parms);
 			  Setattr($$,"decl",decl);
 			  Setattr($$,"parms",$ctor_end.parms);
@@ -6460,6 +6533,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 
 cpp_opt_declarators :  SEMI { $$ = 0; }
                     |  declarator cpp_const initializer c_decl_tail {
+                        check_parameter_only_array(&$declarator);
                         $$ = new_node("cdecl");
                         Setattr($$,"name",$declarator.id);
                         Setattr($$,"decl",$declarator.type);
@@ -6907,7 +6981,7 @@ templateparameter : templcpptype type_id_default {
                        * parameter. */
                       SwigType *t = Getattr(p, "type");
                       int verdict = t ? classify_template_param_type(t) : TPC_KEEP;
-                      if (verdict == TPC_REMAP) {
+                      if (verdict != TPC_KEEP) {
                         /* In keeping with SWIG's "best effort wrap on partial type information" policy,
                          * an identifier that is not declared is handled the same way as a confirmed concept:
                          * rewrite the parm to 'typename T' and attach the captured concept-id as a constraint
@@ -6932,6 +7006,9 @@ templateparameter : templcpptype type_id_default {
                         Setattr(atom, "type", concept_name);
                         Setattr(p, "constraint", atom);
                         Setattr(p, "type", new_type);
+                        /* Not known to be a type parameter, as the name may be the type of a non-type parameter */
+                        if (verdict == TPC_REMAP_UNDECLARED)
+                          SetFlag(p, "undeclaredconstraint");
                         Delete(new_type);
                         Delete(concept_name);
                       }
@@ -7284,6 +7361,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		$$ = new_node("constructor");
 		Setattr($$,"storage",$storage_class);
 		Setattr($$, "name", name);
+                Swig_vla_unsize_parms($parms);
 		Setattr($$,"parms",$parms);
 		SwigType_add_function(decl,$parms);
 		Setattr($$,"decl",decl);
@@ -7839,6 +7917,8 @@ valparm        : parm {
 			  if (value) {
 			    String *v = Copy(value);
 			    Setattr($parm,"type",v);
+                            /* The "type" is now the variable's value, an argument for a non-type template parameter */
+                            SetFlag($parm, "variablevalue");
 			    Delete(v);
 			    n = 0;
 			  }
@@ -8398,27 +8478,9 @@ notso_direct_declarator : idcolon {
 		    }
 		    $$.type = t;
 		    }
-                  | notso_direct_declarator[in] LBRACKET RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,"");
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
-                  }
-                  | notso_direct_declarator[in] LBRACKET expr RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,$expr.val);
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+                  | notso_direct_declarator[in] LBRACKET array_dimension RBRACKET {
+                    $$ = $in;
+                    declarator_add_array(&$$, $array_dimension.dim, $array_dimension.parmonly);
                   }
                   | notso_direct_declarator[in] LPAREN fn_parms RPAREN {
                     $$ = $in;
@@ -8520,27 +8582,9 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = t;
 		  }
-                  | direct_declarator[in] LBRACKET RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,"");
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
-                  }
-                  | direct_declarator[in] LBRACKET expr RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,$expr.val);
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+                  | direct_declarator[in] LBRACKET array_dimension RBRACKET {
+                    $$ = $in;
+                    declarator_add_array(&$$, $array_dimension.dim, $array_dimension.parmonly);
                   }
                   /* C++23 explicit object parameter: 'this' declares the first parameter of a member function to be
                    * the object the function is called on, in place of the implicit object parameter.  It is not one
@@ -8671,38 +8715,14 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
                   }
                   ;
 
-direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,"");
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimension RBRACKET {
+                    $$ = $in;
+                    declarator_add_array(&$$, $array_dimension.dim, $array_dimension.parmonly);
                   }
-                  | direct_abstract_declarator[in] LBRACKET expr RBRACKET { 
-		    SwigType *t;
-		    $$ = $in;
-		    t = NewStringEmpty();
-		    SwigType_add_array(t,$expr.val);
-		    if ($$.type) {
-		      SwigType_push(t,$$.type);
-		      Delete($$.type);
-		    }
-		    $$.type = t;
+                  | LBRACKET array_dimension RBRACKET {
+                    $$ = default_decl;
+                    declarator_add_array(&$$, $array_dimension.dim, $array_dimension.parmonly);
                   }
-                  | LBRACKET RBRACKET { 
-		    $$ = default_decl;
-		    $$.type = NewStringEmpty();
-		    SwigType_add_array($$.type,"");
-                  }
-                  | LBRACKET expr RBRACKET { 
-		    $$ = default_decl;
-		    $$.type = NewStringEmpty();
-		    SwigType_add_array($$.type,$expr.val);
-		  }
                   | LPAREN abstract_declarator RPAREN {
                     $$ = $abstract_declarator;
 		  }
@@ -8720,6 +8740,32 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
                   }
                   ;
 
+/* The contents of an array declarator's brackets: the array's dimension, or "" if it is not specified.  C99 also allows
+   'static', type qualifiers and '*' (a variable length array of unspecified size) in the brackets of a function
+   parameter's array, such as 'int a[static const 3]'.  'static' and the type qualifiers do not change the function's
+   type, so they are dropped.  '*' is kept as the dimension for a typemap, see Swig_vla_star_parms().  It is removed
+   from a declaration's parameters, see Swig_vla_unsize_parms(). */
+array_dimension : array_qualifiers_opt {
+                    $$.dim = NewStringEmpty();
+                    $$.parmonly = $array_qualifiers_opt;
+                  }
+                | array_qualifiers_opt expr {
+                    $$.dim = $expr.val;
+                    $$.parmonly = $array_qualifiers_opt;
+                  }
+                | array_qualifiers_opt STAR {
+                    $$.dim = NewString("*");
+                    $$.parmonly = $array_qualifiers_opt | SWIG_ARRAY_UNSPECIFIED_SIZE;
+                  }
+                ;
+
+array_qualifiers_opt : array_qualifiers_opt ARRAY_QUALIFIER {
+                    $$ = SWIG_ARRAY_QUALIFIED;
+                  }
+                | %empty {
+                    $$ = SWIG_ARRAY_PLAIN;
+                  }
+                ;
 
 pointer    : pointer[in] STAR type_qualifier {
 	     $$ = $in;

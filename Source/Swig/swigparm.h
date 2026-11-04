@@ -17,6 +17,7 @@ extern Parm *NewParm(SwigType *type, const_String_or_char_ptr name, Node *from_n
 extern Parm *NewParmWithoutFileLineInfo(SwigType *type, const_String_or_char_ptr name);
 extern Parm *NewParmNode(SwigType *type, Node *from_node);
 extern Parm *CopyParm(Parm *p);
+extern int Parm_is_template_type_parm(Parm *p);
 
 /* Parameter lists */
 extern ParmList *CopyParmList(ParmList *p);
@@ -36,6 +37,9 @@ extern int ParmList_len_nonvariadic(ParmList *p);
 extern int ParmList_has_defaultargs(ParmList *p);
 extern int ParmList_has_varargs(ParmList *p);
 extern void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end);
+extern void ParmList_replace_expression_names_positional(String *s, ParmList *p, Parm *end);
+extern void ParmList_replace_positional(String *s, ParmList *p, const_String_or_char_ptr attribute);
+extern Parm *ParmList_find_name_in(ParmList *p, Parm *end, const String *s);
 
 /* Output functions */
 extern String *ParmList_str(ParmList *);

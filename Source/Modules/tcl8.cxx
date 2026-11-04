@@ -302,7 +302,7 @@ public:
     emit_parameter_variables(parms, f);
 
     /* Attach standard typemaps */
-    emit_attach_parmmaps(parms, f);
+    emit_attach_parm_typemaps(parms, f);
     Setattr(n, "wrap:parms", parms);
 
     /* Get number of require and total arguments */
@@ -313,11 +313,7 @@ public:
     /* Unmarshal parameters */
 
     for (i = 0, p = parms; i < num_arguments; i++) {
-      /* Skip ignored arguments */
-
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, incode);
 
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
@@ -369,6 +365,7 @@ public:
       }
       p = nextSibling(p);
     }
+    p = emit_ignored_in_typemaps(p, incode);
 
     if (!varargs) {
       Putc(':', argstr);
@@ -402,7 +399,7 @@ public:
 
     /* Insert cleanup code */
     for (i = 0, p = parms; p; i++) {
-      if (!checkAttribute(p, "tmap:in:numinputs", "0") && !Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
+      if (!Getattr(p, "tmap:in:parse") && (tm = Getattr(p, "tmap:freearg"))) {
         if (Len(tm) != 0) {
           Printv(cleanup, tm, "\n", NIL);
         }
@@ -512,7 +509,7 @@ public:
         String *protoTypes = NewString("");
         do {
           String *fulldecl = Swig_name_decl(sibl);
-          Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+          Printf(protoTypes, "\n\"    %(escape)s\\n\"", fulldecl);
           Delete(fulldecl);
         } while ((sibl = Getattr(sibl, "sym:nextSibling")));
         Printf(df->code,

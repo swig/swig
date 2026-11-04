@@ -629,7 +629,7 @@ public:
     Printf(f->code, "try {\n");
 
     emit_parameter_variables(l, f);
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
     Setattr(n, "wrap:parms", l);
 
     int num_arguments = emit_num_arguments(l);
@@ -657,9 +657,7 @@ public:
     }
 
     for (j = 0, p = l; j < num_arguments; ++j) {
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, f->code);
 
       SwigType *pt = Getattr(p, "type");
 
@@ -706,6 +704,7 @@ public:
         break;
       }
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     // Check for trailing varargs
     if (varargs) {

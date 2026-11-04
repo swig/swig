@@ -79,6 +79,25 @@ Parm *CopyParm(Parm *p) {
   return np;
 }
 
+/* -----------------------------------------------------------------------------
+ * Parm_is_template_type_parm()
+ *
+ * Whether template parameter 'p' is a type template parameter or a pack of them, such as 'class T' or 'typename... Ts'.
+ * An unnamed non-type parameter of a dependent type, such as 'typename std::enable_if<B, int>::type = 0', is not one,
+ * although it is parsed as a 'typename' parameter with a qualified name.
+ * ----------------------------------------------------------------------------- */
+
+int Parm_is_template_type_parm(Parm *p) {
+  SwigType *type = Copy(Getattr(p, "type"));
+  String *name = Getattr(p, "name");
+  int istype;
+  if (SwigType_isvariadic(type))
+    SwigType_del_variadic(type);
+  istype = (Equal(type, "typename") || Equal(type, "class")) && !(name && Swig_scopename_check(name));
+  Delete(type);
+  return istype;
+}
+
 /* ------------------------------------------------------------------
  * CopyParmListMax()
  * CopyParmList()
@@ -465,4 +484,70 @@ void ParmList_replace_names_positional(String *s, ParmList *p, Parm *end) {
       Delete(dollar);
     }
   }
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_replace_expression_names_positional()
+ *
+ * As ParmList_replace_names_positional() but for 's', a C or C++ expression, in which the name of a member, a qualified
+ * name and the text of a literal do not name a parameter, see Swig_replace_expression_identifier().  For example,
+ * 'd->n > n' becomes '$1->n > $2' for the parameters 'd' and 'n'.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_expression_names_positional(String *s, ParmList *p, Parm *end) {
+  int position = 0;
+  if (!s)
+    return;
+  for (; p && p != end; p = nextSibling(p)) {
+    String *name = Getattr(p, "name");
+    ++position;
+    if (name) {
+      String *dollar = NewStringf("$%d", position);
+      Swig_replace_expression_identifier(s, name, dollar);
+      Delete(dollar);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_replace_positional()
+ *
+ * The reverse of ParmList_replace_names_positional(): replace each $ variable in 's' with the 'attribute' of the
+ * parameter in 'p' at that position, $1 for the first parameter, $2 for the second and so on, such as '$1 * 2' into
+ * 'arg1 * 2' for the "lname" attribute.  A $ variable for a parameter without the attribute is left alone.
+ * ----------------------------------------------------------------------------- */
+
+void ParmList_replace_positional(String *s, ParmList *p, const_String_or_char_ptr attribute) {
+  int position = 0;
+  for (; p; p = nextSibling(p)) {
+    String *value = Getattr(p, attribute);
+    String *dollar = NewStringf("$%d", ++position);
+    if (value) {
+      Replace(s, dollar, value, DOH_REPLACE_NUMBER_END);
+    }
+    Delete(dollar);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_find_name_in()
+ *
+ * Return the first parameter in 'p' that 's', a C or C++ expression, refers to by its name, such as the 'int n' of the
+ * C99 variable length array size 'n * 2', but not of 'S::n', see Swig_replace_expression_identifier().  Only the
+ * parameters before 'end' are searched, or all of them when 'end' is 0.  NULL if there is none.
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_find_name_in(ParmList *p, Parm *end, const String *s) {
+  for (; p && p != end; p = nextSibling(p)) {
+    String *name = Getattr(p, "name");
+    if (name && s) {
+      String *copy = Copy(s);
+      int found = Swig_replace_expression_identifier(copy, name, "") > 0;
+      Delete(copy);
+      if (found) {
+        return p;
+      }
+    }
+  }
+  return 0;
 }

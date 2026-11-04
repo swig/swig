@@ -49,10 +49,12 @@ Destroys a wrapper object.
 <h2>Wrapper Objects</h2>
 
 The <tt>Wrapper</tt> object returned by <tt>NewWrapper()</tt> has
-three public attributes.
+three public attributes, <tt>def</tt>, <tt>locals</tt> and <tt>code</tt>.
+The <tt>localh</tt> attribute is used internally to record the names of the local variables.
 
 <blockquote><pre>
 typedef struct Wrapper {
+    Hash *localh;
     String *def;
     String *locals;
     String *code;
@@ -90,8 +92,8 @@ name of the local variable.  <tt>decl</tt> is a string containing the
 actual variable declaration code.  For example, if you wanted to
 declare a variable "<tt>int x = 42;</tt>", you would set <tt>name</tt>
 to <tt>"x"</tt> and
-<tt>decl</tt> to <tt>"int x = 42;"</tt>.  On success, the text in
-<tt>decl</tt> is added to the <tt>locals</tt> attribute of <tt>w</tt>
+<tt>decl</tt> to <tt>"int x = 42"</tt>.  On success, the text in
+<tt>decl</tt> followed by a semicolon is added to the <tt>locals</tt> attribute of <tt>w</tt>
 and 0 is returned.  -1 is returned if a variable with the given name
 has already been declared.
 </blockquote>
@@ -120,7 +122,7 @@ might have to be renamed if the same typemap is used more than once in the same 
 <p>
 <b><tt>char * Wrapper_new_localv(Wrapper *w, const String_or_char *name,...)</tt></b>
 <blockquote>
-The same as <tt>Wrapper_new_localv()</tt>, but accepts a NULL-terminated list
+The same as <tt>Wrapper_new_local()</tt>, but accepts a NULL terminated list
 of strings as code output. 
 </blockquote>
 
@@ -197,10 +199,9 @@ Here is code that generates the above function:
 <pre>
 Wrapper *w = NewWrapper();
 Printf(w-&gt;def,"void foo(int n) {");
-Wrapper_add_local(w,"n","");         /* parameter n */
-Wrapper_add_local(w,"i", "int i;");  /* local i */
+Wrapper_add_local(w,"i", "int i");   /* local i */
 Printv(w-&gt;code,"for (i = 0; i &lt; n; i++) {",
-               "printf(\"%d\n",i);",
+               "printf(\"%d\\n\", i);",
                "}\n", NIL);
 Printf(w-&gt;code,"}\n");
 

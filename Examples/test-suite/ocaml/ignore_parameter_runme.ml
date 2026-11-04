@@ -6,6 +6,9 @@ let _ =
   assert (get_int (_lotus (C_list [ C_string "fast" ; C_float 0. ])) = 101);
   assert (get_float (_tvr (C_list [ C_string "fast" ; C_int 200 ])) = 8.8);
   assert (get_int (_ferrari (C_void)) = 101);
+  assert (get_int (_called_argout (C_void)) = 1);
+  assert (get_int (_called_freearg (C_void)) = 1);
+  assert (get_int (_fiat (C_int 17)) = 17);
 ;;
 let sc = new_SportsCars (C_void)
 let _ =
@@ -13,6 +16,8 @@ let _ =
   assert (get_int ((invoke sc) "astonmartin" (C_list [ C_string "fast" ; C_float 0. ])) = 101);
   assert (get_float ((invoke sc) "bugatti" (C_list [ C_string "fast" ; C_int 200 ])) = 8.8);
   assert (get_int ((invoke sc) "lamborghini" (C_void)) = 101);
+  assert (get_int ((invoke sc) "maseratti" (C_int 289)) = 289);
+  assert (get_float ((invoke sc) "audi" (C_void)) = 8.8);
 ;;
 let mc = new_MiniCooper (C_list [ C_int 200 ; C_float 0. ])
 let mm = new_MorrisMinor (C_list [ C_string "slow" ; C_float 0. ])

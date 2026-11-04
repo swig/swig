@@ -38,7 +38,19 @@
 
     int length = ANYLENGTH;
 
+    if (length < 0)
+    {
+      SWIG_exception_fail(SWIG_ValueError, "Invalid size for $input");
+    }
+    if (length > (int)SWIGJSC_ArrayLength(context, array))
+    {
+      SWIG_exception_fail(SWIG_ValueError, "$input has too few elements");
+    }
     $1  = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
+    if (!$1 && length > 0)
+    {
+      SWIG_exception_fail(SWIG_MemoryError, "Failed to allocate memory for $input");
+    }
 
     // Get each element from array
     for (i = 0; i < length; i++)
@@ -90,8 +102,10 @@
 
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetIntProperty", int, , SWIGJSC_ArrayLength(context, array))
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetIntProperty", int, ANY, $1_dim0)
+%apply int[ANY] { int[*] };
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetNumberProperty", double, , SWIGJSC_ArrayLength(context, array))
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_JSCGetNumberProperty", double, ANY, $1_dim0)
+%apply double[ANY] { double[*] };
 
 JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_JSCOutInt", int)
 JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_JSCOutNumber", double)

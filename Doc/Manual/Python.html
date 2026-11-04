@@ -3507,7 +3507,7 @@ TypeError: Type error. Expected _p_a_4__double
 
 <p>
 The problem here is that there is no easy way to construct and manipulate a suitable
-<tt>double [4][4]</tt> value to use.   To fix this, you can write some extra C helper
+<tt>double[4][4]</tt> value to use.   To fix this, you can write some extra C helper
 functions.  Just use the <tt>%inline</tt> directive. For example:
 </p>
 
@@ -5643,7 +5643,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 }
 %}
 
-%typemap(in) double [ANY](double temp[$1_dim0]) {
+%typemap(in) double[ANY] (double temp[$1_dim0]) {
   if (!convert_darray($input, temp, $1_dim0)) {
     SWIG_fail;
   }

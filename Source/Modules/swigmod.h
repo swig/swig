@@ -383,7 +383,8 @@ void emit_output_summary(Node *n, ParmList *parms, bool warn_container_mismatch)
 void emit_isvoid_special_variables(Node *n, String *code, bool isvoid);
 int emit_isvarargs(ParmList *p);
 bool emit_isvarargs_function(Node *n);
-void emit_attach_parmmaps(ParmList *, Wrapper *f);
+void emit_attach_parm_typemaps(ParmList *, Wrapper *f);
+Parm *emit_ignored_in_typemaps(Parm *p, String *code);
 void emit_mark_varargs(ParmList *l);
 String *emit_action(Node *n);
 int emit_action_code(Node *n, String *wrappercode, String *action);

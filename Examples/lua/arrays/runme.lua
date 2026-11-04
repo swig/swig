@@ -49,19 +49,4 @@ print_table(t)
 example.sort_int2(t) -- calls lua helper which then calls C
 print "sorted"
 print_table(t)
-print ""
-
---[[ version 3: use a typemap
-this is the best way
-it uses the SWIG-Lua typemaps to do the work
-one item of note: the typemap creates a copy, rather than edit-in-place]]
-t={}
-for i=1,ARRAY_SIZE do
-    t[i]=math.random(1000)/10
-end
-print "unsorted"
-print_table(t)
-t=example.sort_double(t) -- replace t with the result
-print "sorted"
-print_table(t)
 

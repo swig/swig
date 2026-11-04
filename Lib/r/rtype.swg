@@ -59,7 +59,7 @@
 
 %typemap("rtypecheck") enum SWIGTYPE, enum SWIGTYPE *const&, enum SWIGTYPE &, const enum SWIGTYPE &, enum SWIGTYPE &&
   %{ is.character($arg) && length($arg) == 1 %}
-%typemap("rtypecheck") enum SWIGTYPE *, enum SWIGTYPE [ANY]
+%typemap("rtypecheck") enum SWIGTYPE *, enum SWIGTYPE [ANY], enum SWIGTYPE[*]
   %{ is.character($arg) || is.null($arg) %}
 
 %typemap("rtypecheck") SWIGTYPE *
@@ -126,9 +126,9 @@
   %{  $input = enumToInteger($input, "$R_class"); %}
 %typemap(scoercein) enum SWIGTYPE *const
   %{  $input = enumToInteger($input, "$R_class"); %}
-%typemap(scoercein) enum SWIGTYPE [ANY]
+%typemap(scoercein) enum SWIGTYPE [ANY], enum SWIGTYPE[*]
   %{  if (is.character($input)) $input = enumToInteger($input, "$*R_class"); %}
-%typemap("rtype") enum SWIGTYPE [ANY] "character"
+%typemap("rtype") enum SWIGTYPE [ANY], enum SWIGTYPE[*] "character"
 %typemap("rtype") int [ANY], signed int [ANY], unsigned int [ANY], short [ANY], signed short [ANY],
                  unsigned short [ANY], long [ANY], signed long [ANY], unsigned long [ANY], long long [ANY],
                  signed long long [ANY], unsigned long long [ANY],
@@ -274,10 +274,10 @@ string &, std::string &
 
 /* A char array is a string, as for char *. An array of strings is a character vector */
 %typemap("rtype") char [ANY], char [], char (&)[ANY], char (&&)[ANY] "character"
-%typemap("rtype") char *[ANY] "character"
-%typemap("rtypecheck") char *[ANY]
+%typemap("rtype") char *[ANY], char *[*] "character"
+%typemap("rtypecheck") char *[ANY], char *[*]
   %{ is.character($arg) || is.null($arg) %}
-%typemap(scoercein) char *[ANY]
+%typemap(scoercein) char *[ANY], char *[*]
   %{  if (!is.null($input)) $input = as($input, "character"); %}
 %typemap("rtypecheck") char [ANY], char []
   %{ (is.character($arg) && length($arg) == 1) || is.null($arg) %}

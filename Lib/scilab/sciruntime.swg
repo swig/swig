@@ -1,5 +1,4 @@
 %insert(runtime) "swigrun.swg";
-%insert(runtime) "swigerrors.swg";
 
 %insert(runtime) "scirun.swg";
 

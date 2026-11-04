@@ -18,6 +18,9 @@ raise RuntimeError unless jaguar(0, 1.0) == "hello"
 raise RuntimeError unless lotus("foo", 1.0) == 101
 raise RuntimeError unless tvr("foo", 0) == 8.8
 raise RuntimeError unless ferrari() == 101
+raise RuntimeError unless Ignore_parameter.called_argout == 1
+raise RuntimeError unless Ignore_parameter.called_freearg == 1
+raise RuntimeError unless fiat(17) == 17
 
 # Member function tests
 sc = SportsCars.new
@@ -25,6 +28,7 @@ raise RuntimeError unless sc.daimler(0, 1.0) == "hello"
 raise RuntimeError unless sc.astonmartin("foo", 1.0) == 101
 raise RuntimeError unless sc.bugatti("foo", 0) == 8.8
 raise RuntimeError unless sc.lamborghini() == 101
+raise RuntimeError unless sc.maseratti(289) == 289
 raise RuntimeError unless sc.audi() == 8.8
 
 # Constructor tests

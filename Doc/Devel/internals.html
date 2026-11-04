@@ -54,7 +54,6 @@
 This document details SWIG internals: architecture and sometimes
 implementation.  The first few sections concentrate on data structures,
 interfaces, conventions and code shared by all language targets.
-Subsequent sections focus on a particular language.
 
 <p>
 The audience is assumed to be SWIG developers (who should also read the
@@ -67,15 +66,14 @@ to code).
 
 <table border=1>
 <tr><td><a href="index.html">Doc</a></td>
-<td>HTML documentation.  If you find a documentation bug, please
-<a href="mailto:bug-swig-doc@glug.org">let us know</a>.</td>
+<td>HTML documentation.</td>
 </tr>
 
 <tr><td>Examples</td>
 <td>This subdir tree contains examples of using SWIG with different
-scripting languages, including makefiles.  Typically, there are the
+target languages, including makefiles.  Typically, there are the
 "simple" and "class" examples, with some languages offering additional
-examples.  See the README more index.html file in each directory
+examples.  See the README and index.html files in this directory
 for more info.  [FIXME: Ref SWIG user manual.]</td>
 </tr>
 
@@ -86,13 +84,7 @@ example, guile/typemaps.i).  Each language also has a <tt>.swg</tt> file
 implementing runtime type support for that language.  Each language also has an
 <tt>exception.swg</tt> file defining <tt>SWIG_exception</tt>, which raises an error in that
 language.  The SWIG library
-is not versioned.</td>
-</tr>
-
-<tr><td>Misc</td>
-<td>Currently this subdir only contains file <tt>fileheader</tt>.  See
-the <a href="engineering.html">Engineering Manual</a> for more
-info.</td>
+is installed in a directory named after the SWIG version.</td>
 </tr>
 
 <tr><td>Source</td>
@@ -116,7 +108,7 @@ subdir tree.</td>
 
   <tr><td>Modules</td>
   <td>Language-specific callbacks that does actual code generation (each
-  language has a .cxx and a .h file).</td>
+  language has a .cxx file).</td>
   </tr>
 
   <tr><td>Preprocessor</td>
@@ -143,7 +135,7 @@ subdir tree.</td>
 </table>
 
 
-<a name="1.2" href="#1.2">
+<a name="1.2" href="#i1.2">
 <h3>1.2 Overall Program Flow</h3>
 </a>
 
@@ -154,38 +146,39 @@ to look for code:
 
 <li> <tt>Modules/swigmain.cxx:main()</tt> is the program entry
 point.  It parses the language-specifying command-line option (for
-example, <tt>-java</tt>), creating a new language-specific wrapping
-object (each language is a C++ class derived from base class
-<tt>Language</tt>).  This object and the command-line is passed to
+example, <tt>-java</tt>) to select the target language module.
+The module and the command line are passed to
 <tt>SWIG_main()</tt>, whose return value is the program exit value.
 
 <li> <tt>Modules/main.cxx:SWIG_main()</tt> is the "real" main.  It
-initializes the preprocessor and typemap machinery, defines some
+initializes the preprocessor and typemap machinery, creates the language
+object (each language is a C++ class derived from base class
+<tt>Language</tt>), defines some
 preprocessor symbols, locates the SWIG library, processes common
 command-line options, and then calls the language-specific command-line
 parser.  From here there are three paths: "help", "checkout" and
 everything else.
   <ul>
   <li> In "help" mode, clean up open files and exit.
-  <li> In "checkout" mode, copy specified files from the SWIG library
-       to the current directory.  Errors cause error messages but no
+  <li> In "checkout" mode, copy the specified file from the SWIG library
+       to the current directory.  Most errors cause error messages but no
        non-local exits. 
-  <li> Otherwise, do wrapping: determine output file name(s), define
-       some preprocessor symbols and run the preprocessor, initialize
-       the interface-definition parser, set up the typemap for handling
-       new return strings, and finally do the language-specific parse
-       (by calling the language object's <tt>parse()</tt> method), which
-       creates output files by side-effect.
+  <li> Otherwise, do wrapping: run the preprocessor, parse the
+       preprocessed output into a parse tree (<tt>Swig_cparse()</tt>),
+       run the type and C++ analysis passes over the tree (such as
+       <tt>Swig_process_types()</tt>), determine output file name(s) and
+       finally call the language object's <tt>top()</tt> method with the
+       parse tree, which creates output files by side effect.
   </ul>
-Afterwards, remove temporary files, and clean up.  If the command-line
-included <tt>-freeze</tt>, go into an infinite loop; otherwise return the
-error count.
+Afterwards, clean up.  If the command line
+included <tt>-freeze</tt>, go into an infinite loop.  Otherwise return 0 or,
+if there were any errors, exit with a failure status, which removes the generated files.
 
-<li> The language-specific <tt>parse()</tt> (and all other
-language-specific code) lives in <tt>Modules/foo.{h,cxx}</tt> for
-language Foo.  Typically, <tt>FOO::parse()</tt> calls
-<tt>FOO::headers()</tt> and then the global function <tt>yyparse()</tt>,
-which uses the callbacks registered by <tt>SWIG_main()</tt> above. 
+<li> The language specific <tt>top()</tt> (and all other
+language specific code) lives in <tt>Modules/foo.cxx</tt> for
+language Foo.  Typically, <tt>FOO::top()</tt> opens the output files
+and then calls <tt>Language::top()</tt>, which walks the parse tree
+calling the language object's handler methods, such as <tt>functionWrapper()</tt>.
 
 </ul>
 
@@ -199,7 +192,7 @@ unofficially stands for "Dave's Object Hack", but it's also a good
 expletive to use when things don't work (as in "SWIG core
 dumped---DOH!").
 
-<a name="2.1" href="#2.1">
+<a name="2.1" href="#i2.1">
 <h3>2.1  Motivation and Background</h3>
 </a>
 
@@ -307,9 +300,10 @@ Create a new list object that is initially empty.
 Create a new hash object that is initially empty.
 
 <p>
-<li><tt>NewFile(DOHString_or_char *filename, char *mode)</tt><br>
+<li><tt>NewFile(DOHString_or_char *filename, char *mode, DOHList *newfiles)</tt><br>
 Open a file and return a file object.  This is a
 wrapper around the C <tt>fopen()</tt> library call.
+If <tt>newfiles</tt> is not NULL, the filename is appended to this list.
 
 <p>
 <li><tt>NewFileFromFile(FILE *f)</tt><br>
@@ -435,8 +429,8 @@ for (int i=0; i&lt;len; i++) {
   String *item = Getitem(list,i);
   Printf(stdout, "list item: %s\n", item);
 }
-</blockquote>
 </pre>
+</blockquote>
 
 <p>
 Resulting output:
@@ -499,10 +493,10 @@ Resulting output:
 <pre>
 hash len: 5
 get: hashval2
-hash item: hashval5 [h5]
 hash item: hashval1 [h1]
 hash item: hashval2 [h2]
 hash item: hashval3 [h3]
+hash item: hashval5 [h5]
 </pre>
 </blockquote>
 
@@ -525,7 +519,8 @@ hash item: hashval3 [h3]
 <p>
 DOH wraps some standard C library functions - these wrapped versions should
 always be used in code in the SWIG tool itself (but not in generated code).
-When compiling with GCC or clang, the original library function names are
+When compiling with GCC or clang with <tt>DOH_POISON</tt> defined (for example by configuring with
+<tt>CPPFLAGS=-DDOH_POISON</tt>), the original library function names are
 marked as "poisoned" symbols so you should get an error if you accidentally
 use one of the unwrapped functions.  These functions are:
 
@@ -555,7 +550,7 @@ following list describes the current set of functions that are used to
 manipulate datatypes.
 
 <ul>
-<li><tt>SwigType_str(SwigType *t, char *name)</tt>.<br>
+<li><tt>SwigType_str(SwigType *t, const_String_or_char_ptr name)</tt>.<br>
  This function produces the exact string 
 representation of the datatype <tt>t</tt>.  <tt>name</tt> is an optional parameter that 
 specifies a declaration name and can be <tt>NULL</tt>.  This is used when dealing with more complicated datatypes
@@ -563,7 +558,7 @@ such as arrays and pointers to functions where the output might look something l
 "<tt>int (*name)(int, double)</tt>".
 
 <p>
-<li><tt>SwigType_lstr(SwigType *t, char *name)</tt>.<br>
+<li><tt>SwigType_lstr(SwigType *t, const_String_or_char_ptr name)</tt>.<br>
 This function produces a string
 representation of a datatype that can be safely be assigned a value (i.e., can be used as the
 "lvalue" of an expression).   To do this, qualifiers such as "const", arrays, and references
@@ -575,7 +570,7 @@ Original Datatype              lstr()
 ------------------             --------
 const char *a                  char *a
 double a[20]                   double *a
-double a[20][30]               double *a
+double a[20][30]               double (*a)[30]
 double &amp;a                      double *a
 </pre>
 </blockquote>
@@ -585,7 +580,7 @@ of which must be reassignable types since they are the targets of conversions fr
 representation. 
 
 <p>
-<li><tt>SwigType_rcaststr(SwigType *t, char *name)</tt>.
+<li><tt>SwigType_rcaststr(SwigType *t, const_String_or_char_ptr name)</tt>.
 <br>  This function produces a string
 that casts a type produced by the <tt>lstr()</tt> function to the type produced by the
 <tt>str()</tt> function.  You might view it as the inverse of lstr().   This function only produces
@@ -598,15 +593,15 @@ Original Datatype             rcaststr()
 ------------------            ---------
 char *a                       
 const char *a                 (const char *) name
-double a[20]                  (double *) name
+double a[20]
 double a[20][30]              (double (*)[30]) name
-double &amp;a                     (double &amp;) *name
+double &amp;a                     *name
 </pre>
 </blockquote>
 
 
 <p>
-<li><tt>SwigType_lcaststr(SwigType *t, char *name)</tt>.
+<li><tt>SwigType_lcaststr(SwigType *t, const_String_or_char_ptr name)</tt>.
 <br>  This function produces a string
 that casts a type produced by the <tt>str()</tt> function to the type produced by the
 <tt>lstr()</tt> function.  This function only produces
@@ -620,8 +615,8 @@ Original Datatype             lcaststr()
 char *a                       
 const char *a                 (char *) name
 double a[20]                  (double *) name
-double a[20][30]              (double *) name
-double &amp;a                     (double *) &amp;name
+double a[20][30]              (double (*)[30]) name
+double &amp;a                     (double &amp;) name
 </pre>
 </blockquote>
 
@@ -670,7 +665,7 @@ Here's how it would look with the corresponding output filled in:
 wrapper_foo() {
    int      result;
    int      arg0;
-   double  *arg1;
+   double (*arg1)[30];
    char    *arg2;
    double  *arg3;
    ...
@@ -679,7 +674,7 @@ wrapper_foo() {
    result = (int) foo(arg0,
                       (double (*)[30]) arg1,
                       (const char *) arg2,
-                      (double &amp;) *arg3);
+                      *arg3);
    ...
 }
 </pre>
@@ -689,14 +684,9 @@ wrapper_foo() {
 <b>Notes:</b>
 
 <ul>
-<li>For convenience, the string generation functions return a
-"<tt>char *</tt>" that points to statically allocated memory living
-inside the type library.  Therefore, it is never necessary (and it's
-an error) to free the pointer returned by the functions.  Also, if you
-need to save the result, you should make a copy of it.  However, with
-that said, it is probably worth nothing that these functions do cache
-the last 8 results.  Therefore, it's fairly safe to make a handful of
-repeated calls without making any copies.
+<li>The string generation functions return a new <tt>String *</tt>
+object on each call.  The caller owns the returned object and should
+free it with <tt>Delete()</tt> when it is no longer needed.
 </ul>
 
 [TODO]
@@ -814,8 +804,8 @@ gets wrapped as follows:
 int Foo_x_get(Foo *self) {
     return self-&gt;x;
 }
-int Foo_x_set(Foo *self, int value) {
-    return (self-&gt;x = value);
+void Foo_x_set(Foo *self, int value) {
+    self-&gt;x = value;
 }
 </pre>
 </blockquote>
@@ -852,65 +842,31 @@ found in the file <tt>Source/Swig/cwrap.c</tt>.
 
 <ul>
 <li>
-<tt>char *Swig_clocal(DataType *t, char *name, char *value)</tt><br>
+<tt>static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_String_or_char_ptr value)</tt><br>
 This function creates a string containing the declaration of a local variable with
 type <tt>t</tt>, name <tt>name</tt>, and default value <tt>value</tt>.  This local
-variable is stripped of all qualifiers and will be a pointer if the type is a reference
-or user defined type.
-
-<p>
-<li>
-<tt>DataType *Swig_clocal_type(DataType *t)</tt><br>
-Returns a type object corresponding to the type string produced by the Swig_clocal() function.
-
-<p>
-<li><tt>char *Swig_clocal_deref(DataType *t, char *name)</tt><br>
-This function is the inverse of the <tt>clocal()</tt> function.  Given a type and a name,
-it produces a string containing the code needed to cast/convert the type produced by
-<tt>Swig_clocal()</tt> back into its original type.
-
-<p>
-<li><tt>char *Swig_clocal_assign(DataType *t, char *name)</tt><br>
-Given a type and name, this produces a string containing the code (and an optional cast)
-needed to make an assignment from the real datatype to the local datatype produced
-by <tt>Swig_clocal()</tt>.  Kind of the opposite of deref().
+variable is stripped of all qualifiers and will be a pointer if the type is a reference.
 
 <p>
 <li><tt>int Swig_cargs(Wrapper *w, ParmList *l)</tt><br>
 Given a wrapper function object and a list of parameters, this function declares a set
 of local variables for holding all of the parameter values (using Swig_clocal()).  Returns 
 the number of parameters.  In addition, this function sets the local name of each parameter
-which can be retrieved using the <tt>Parm_Getlname()</tt> function.
+which can be retrieved from the parameter's <tt>lname</tt> attribute.
 
 <p>
-<li><tt>void Swig_cresult(Wrapper *w, DataType *t, char *resultname, char *decl)</tt><br>
-Generates the code needed to set the result of a wrapper function and performs all of
-the needed memory allocations for ANSI C (if necessary).  <tt>t</tt> is the type of the
-result, <tt>resultname</tt> is the name of the result variable, and <tt>decl</tt> is
+<li><tt>String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or_char_ptr decl)</tt><br>
+Returns a string containing the code needed to set the result of a wrapper function, such as
+"<tt>result = (int)foo(arg1);</tt>".  <tt>t</tt> is the type of the
+result, <tt>name</tt> is the name of the result variable and <tt>decl</tt> is
 a string that contains the C code which produces the result.
 
 <p>
-<li><tt>void Swig_cppresult(Wrapper *w, DataType *t, char *resultname, char *decl)</tt><br>
-Generates the code needed to set the result of a wrapper function and performs all of
-the needed memory allocations for C++ (if necessary).  <tt>t</tt> is the type of the
-result, <tt>resultname</tt> is the name of the result variable, and <tt>decl</tt> is
-a string that contains the C code which produces the result.
-
-<p>
-<li><tt>Wrapper *Swig_cfunction_wrapper(char *fname, DataType *rtype, ParmList *parms, char *code)</tt><br>
-Create a wrapper around a normal function declaration.  <tt>fname</tt> is the name of the wrapper,
-<tt>rtype</tt> is the return type, <tt>parms</tt> are the function parameters, and <tt>code</tt> is a
-string containing the code in the function body.
-
-<p>
-<li><tt>Wrapper *Swig_cmethod_wrapper(char *classname, char *methodname, DataType *rtype, DataType *parms, char *code)</tt><br>
-
-<p>
-<li><tt>char *Swig_cfunction_call(char *name, ParmList *parms)</tt>
+<li><tt>String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms)</tt>
 This function produces a string containing the code needed to call a C function.
-The string that is produced contains all of the transformations needed to convert
-pass-by-value into pass-by-reference as well as handle C++ references.  Produces
-a string like "name(arg0, arg1, ..., argn)".
+The string that is produced contains the casts needed to convert the local variables
+declared by <tt>Swig_cargs()</tt> back into the parameter types, such as dereferencing the
+pointer used for a C++ reference.  Produces a string like "name(arg1, arg2, ..., argn)".
 
 </ul>
 
@@ -928,7 +884,7 @@ Here's how you might write a really simple wrapper function
 <blockquote>
 <pre>
 ParmList *l = ... parameter list of the function ...
-DataType *t = ... return type of the function ...
+SwigType *t = ... return type of the function ...
 char     *name = ... name of the function ...
 Wrapper *w = NewWrapper();
 Printf(w-&gt;def,"void wrap_%s() {\n", name);
@@ -939,8 +895,11 @@ Swig_cargs(w, l);
 /* Convert all of the arguments */
 ...
 
-/* Make the function call and declare the result variable */
-Swig_cresult(w,t,"result",Swig_cfunction(name,l));
+/* Declare the result variable */
+Wrapper_add_local(w, "result", SwigType_lstr(t, "result"));
+
+/* Make the function call */
+Printf(w-&gt;code, "%s\n", Swig_cresult(t, "result", Swig_cfunction_call(name, l)));
 
 /* Convert the result into whatever */
 ...
@@ -955,19 +914,19 @@ The output of this would appear as follows:
 <blockquote>
 <pre>
 void wrap_dot_product() {
-    Vector *arg0;
-    Vector *arg1;
-    double  result;
+    Vector arg1;
+    Vector arg2;
+    double result;
 
     ...
-    result = dot_product(*arg0, *arg1);
+    result = (double)dot_product(arg1,arg2);
     ...
 }
 </pre>
 </blockquote>
 
-Notice that the <tt>Swig_cargs()</tt>, <tt>Swig_cresult()</tt>, and <tt>Swig_cfunction()</tt> functions
-have taken care of the type conversions for the <tt>Vector</tt> type automatically.
+Notice that the <tt>Swig_cargs()</tt>, <tt>Swig_cresult()</tt> and <tt>Swig_cfunction_call()</tt> functions
+have taken care of the local variable declarations and the type casts automatically.
 
 <p>
 <b>Notes:</b>
@@ -1014,7 +973,9 @@ When generating code it is important not to generate symbols that might clash wi
 For C++ code that doesn't attempt to mangle a symbol being wrapped (for example SWIG convenience functions):
 <ul>
     <li> Put symbols in the <tt>Swig</tt> namespace, for example class <tt>Swig::Director</tt>. Qualify using the <tt>Swig</tt> namespace whenever the symbol is referenced, even within the <tt>Swig</tt> namespace, for example <tt>new Swig::Director()</tt> not <tt>new Director()</tt>.</li>
-    <li> Use <tt>swig_</tt> as a prefix for all member variables and member functions that are involved in an inheritance chain with wrapped classes, for example <tt>Swig::Director::swig_get_up()</tt> and <tt>bool Swig::Director::swig_up</tt>.</li>
+    <li> Use <tt>swig_</tt> as a prefix for all member variables and member functions that are involved in an
+    inheritance chain with wrapped classes, for example <tt>Swig::Director::swig_get_self()</tt> and <tt>bool
+    Swig::Director::swig_disown_flag</tt>.</li>
     <li> Alternatively class names can be prefixed with <tt>Swig</tt> in the global namespace for example <tt>template&lt;class T&gt; class SwigValueWrapper</tt>.</li>
 </ul>
 <p>
@@ -1022,8 +983,8 @@ For C++ code that doesn't attempt to mangle a symbol being wrapped (for example 
 For code compiled as C or C++ that doesn't attempt to mangle a symbol being wrapped (for example SWIG convenience functions):
 <ul>
     <li> Use <tt>SWIG_</tt> as a prefix for structures for example <tt>SWIG_JavaExceptions_t</tt>.</li>
-    <li> Use <tt>SWIG_</tt> as a prefix for global functions for example <tt>SWIG_TypeRegister</tt>. </li>
-    <li> Use <tt>SWIG_</tt> as a prefix for macros for example <tt>#define SWIG_PY_INT 1</tt></li>
+    <li> Use <tt>SWIG_</tt> as a prefix for global functions for example <tt>SWIG_TypeCheck</tt>. </li>
+    <li> Use <tt>SWIG_</tt> as a prefix for macros for example <tt>#define SWIG_PY_POINTER 4</tt></li>
 </ul>
 
 For code compiled as C or C++ that attempts to mangle a wrapped symbol:
@@ -1141,7 +1102,6 @@ The same Hash can also be displayed with file and line location information via 
 <pre>
 (gdb) locswigprint 0xb7cb9408
 example.h:11: [Hash(0xb7cb9408) {
-Hash(0xb7cb9408) {
   'name' : self, 
   'type' : p.Shape, 
   'self' : 1, 
@@ -1217,12 +1177,12 @@ that are used after they have been deleted. This is because the DOH memory alloc
 grabs a chunk of memory from the C memory allocator and manages the usage internally.
 Stale DOH object usage can be checked for by defining <tt>DOH_DEBUG_MEMORY_POOLS</tt> in 
 <tt>memory.c</tt>. If an attempt to use an object is made after the reference count is
-zero, a fatal error is triggered instead of quietly re-using the stale object:
+zero, an assertion in <tt>DohCheck()</tt> fails instead of the stale object being quietly reused:
 </p>
 
 <blockquote>
 <pre>
-Fatal internal error: Attempt to delete a non-DOH object.
+DohCheck: Assertion `!DOH_object_already_deleted' failed.
 </pre>
 </blockquote>
 

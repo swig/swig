@@ -4871,7 +4871,7 @@ void set_transform(Image *im, double m[4][4]);
 it would be accessible from Java, but there may be no easy way to call it.
 The problem here is that a type wrapper class is generated for the two dimensional array parameter so
 there is no easy way to construct and manipulate a suitable
-<tt>double [4][4]</tt> value.   To fix this, you can write some extra C helper
+<tt>double[4][4]</tt> value.   To fix this, you can write some extra C helper
 functions.  Just use the <tt>%inline</tt> directive. For example:
 </p>
 
@@ -5635,6 +5635,27 @@ When arrays are used in functions like <tt>populate</tt>, the size of the C arra
 </p>
 
 <p>
+A C99 variable length array parameter, such as <tt>values</tt> in the following, is passed like a fixed size array
+of the size given at runtime, so a Java array of any other size throws an <tt>IndexOutOfBoundsException</tt>:
+</p>
+
+<div class="code">
+<pre>
+int sum(int n, const int values[n]);
+</pre>
+</div>
+
+<p>
+For an array of enums, apply the enum typemaps to the variable length array as well:
+</p>
+
+<div class="code">
+<pre>
+%apply ARRAYSOFENUMS[ANY] { name[ANY], name[*] };
+</pre>
+</div>
+
+<p>
 A <tt>null</tt> Java array is passed to the function as a NULL pointer, as for any other array parameter.
 Setting an array variable to <tt>null</tt> throws a <tt>NullPointerException</tt>, as there is no array to copy from.
 To throw a <tt>NullPointerException</tt> for a <tt>null</tt> array parameter too, add a <tt>check</tt> typemap for the array type:
@@ -6096,7 +6117,7 @@ The following table lists the default type mapping from Java to C/C++.</p>
 </tr>
 
 <tr>
-<td>char *<br>char []</td>
+<td>char *<br>char[]</td>
 <td>String</td>
 <td>jstring</td>
 </tr>
@@ -7172,7 +7193,7 @@ For the typemap to be used in all type wrapper classes, all the different types 
 
 <div class="code">
 <pre>
-%typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], SWIGTYPE (CLASS::*) %{
+%typemap(javabody) SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[], SWIGTYPE (CLASS::*) %{
   private transient long swigCPtr;
 
   protected $javaclassname(long cPtr, boolean bFutureUse) {
@@ -7624,7 +7645,7 @@ The default generic "throws" typemap looks like this:
 
 <div class="code">
 <pre>
-%typemap(throws) SWIGTYPE, SWIGTYPE &amp;, SWIGTYPE *, SWIGTYPE [ANY] %{
+%typemap(throws) SWIGTYPE, SWIGTYPE &amp;, SWIGTYPE *, SWIGTYPE[ANY] %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                           "C++ $1_type exception thrown");
   return $null;
@@ -8472,10 +8493,10 @@ Here is an example which uses a common base class for all proxy classes and type
 
 <div class="code">
 <pre>
-%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], 
+%typemap(javabase) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[],
                                                          SWIGTYPE (CLASS::*) "SWIG"
 
-%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE [], 
+%typemap(javacode) SWIGTYPE, SWIGTYPE *, SWIGTYPE &amp;, SWIGTYPE[],
                                                          SWIGTYPE (CLASS::*) %{
   protected long getPointer() {
     return swigCPtr;

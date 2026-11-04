@@ -143,11 +143,12 @@ extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node
 extern List *SwigType_split(const SwigType *t);
 extern String *SwigType_pop(SwigType *t);
 extern void SwigType_push(SwigType *t, String *s);
-extern SwigType *SwigType_last(SwigType *t);
+extern SwigType *SwigType_last(const SwigType *t);
 extern List *SwigType_parmlist(const SwigType *p);
 extern String *SwigType_parm(const SwigType *p);
 extern String *SwigType_str(const SwigType *s, const_String_or_char_ptr id);
 extern String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id);
+extern SwigType *SwigType_decay_array(const SwigType *s);
 extern String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr id);
 extern String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr id);
 extern String *SwigType_manglestr(const SwigType *t);
@@ -162,6 +163,7 @@ extern int SwigType_isrvalue_reference(const SwigType *t);
 extern int SwigType_isanyreference(const SwigType *t);
 extern int SwigType_isvariadic(const SwigType *t);
 extern int SwigType_isarray(const SwigType *t);
+extern int SwigType_isarray_vla(const SwigType *t);
 extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
 extern int SwigType_isfunction(const SwigType *t);
 extern int SwigType_isqualifier(const SwigType *t);
@@ -348,6 +350,8 @@ extern int Swig_storage_isexternc(Node *n);
 extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
 extern int Swig_storage_isstatic(Node *n);
 extern String *Swig_string_escape(String *s);
+extern int Swig_contains_identifier(const String *s, const_String_or_char_ptr id);
+extern int Swig_replace_expression_identifier(String *s, const_String_or_char_ptr id, const_String_or_char_ptr rep);
 extern void Swig_utf8_encode(String *s, unsigned long code_point);
 extern int Swig_utf8_decode(String *s, int pos, unsigned long *code_point);
 extern int Swig_utf8_length(String *s);
@@ -477,6 +481,20 @@ extern int Constraint_has_any(Node *n);
 extern int Constraint_differently_constrained(Node *a, Node *b);
 extern String *Constraint_display_str(Node *n);
 extern String *Constraint_match_str(Node *constraint, ParmList *templateparms);
+
+/* --- C99 variable length array support --- */
+
+extern void Swig_vla_unsize_parms(ParmList *parms);
+extern SwigType *Swig_vla_declared_decl(Node *n, const SwigType *decl);
+extern void Swig_vla_star_parms(ParmList *parms);
+extern void Swig_vla_merge_sizes(Node *c, Node *n);
+extern SwigType *Swig_vla_parameter_type(const SwigType *type, Node *node);
+extern SwigType *Swig_vla_declared_type(const SwigType *type, Node *node);
+extern SwigType *Swig_vla_wrapped_type(const SwigType *matchtype);
+extern String *Swig_vla_dimension_operand(Parm *p, ParmList *parms, int i);
+extern void Swig_vla_check_size_use(const_String_or_char_ptr tmap_method, Hash *tm, SwigType *matchtype, Parm *p, int index, int substituted);
+extern void Swig_vla_check_locals(Hash *tm, ParmList *locals, SwigType *matchtype, Parm *p, int index);
+extern int Swig_vla_is_size_parm(ParmList *parms, Parm *p);
 
 /* hacks defined in C++ ! */
 extern int Swig_director_mode(void);

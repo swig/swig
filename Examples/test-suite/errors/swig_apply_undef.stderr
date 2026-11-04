@@ -1,0 +1,6 @@
+swig_apply_undef.i:9: Warning 453: Can't apply (float *NOSUCH,int). No typemaps are defined.
+swig_apply_undef.i:10: Warning 453: Can't apply (int len). No typemaps are defined.
+swig_apply_undef.i:11: Warning 453: Can't apply (char *str). No typemaps are defined.
+swig_apply_undef.i:12: Warning 453: Can't apply (int *CLEARED). No typemaps are defined.
+swig_apply_undef.i:13: Warning 453: Can't apply (float *NOSUCH). No typemaps are defined.
+swig_apply_undef.i:14: Warning 453: Can't apply (float *NOSUCH,float *NOSUCH2). No typemaps are defined.

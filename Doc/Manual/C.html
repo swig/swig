@@ -41,10 +41,13 @@
 </ul>
 </ul>
 <li><a href="#C_exceptions">Exception handling</a>
+<ul>
+<li><a href="#C_exceptions_typemaps">Raising an error in a typemap</a>
+</ul>
 <li><a href="#C_cxx_wrappers">C++ Wrappers</a>
 <ul>
 <li><a href="#C_additional_possibilities">Additional customization possibilities</a>
-<li><a href="#C_exception_handling">Exception handling</a>
+<li><a href="#C_exception_handling">C++ exception handling</a>
 </ul>
 </ul>
 </div>
@@ -154,7 +157,7 @@ $ swig -c -help
 
 <tr>
 <td>-namespace &lt;nspace&gt;</td>
-<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this provides a way to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>.</td>
+<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this provides a way to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>. Global variables are wrapped with accessor functions, see <a href="#C_variables">Variables</a>.</td>
 </tr>
 
 <tr>
@@ -250,7 +253,7 @@ The output is simply:
 <div class="targetlang"><pre>
 int mymath_gcd(int arg1, int arg2) {
   int result;
-  result = gcd(arg1,arg2);
+  result = (int)gcd(arg1,arg2);
   return result;
 }
 </pre></div>
@@ -273,7 +276,7 @@ And now the generated result looks like:
 </p>
 
 <div class="targetlang"><pre>
-int _wrap_gcd(int arg1, int arg2) {
+int mymath_gcd(int arg1, int arg2) {
   int result;
   {
     if (arg1 &lt;= 0)
@@ -283,7 +286,7 @@ int _wrap_gcd(int arg1, int arg2) {
     if (arg2 &lt;= 0)
       fprintf(stderr, "Expected positive value for parameter arg2 in gcd.\n");
   }
-  result = gcd(arg1,arg2);
+  result = (int)gcd(arg1,arg2);
   return result;
 }
 </pre></div>
@@ -296,7 +299,47 @@ This time calling <tt>gcd</tt> with negative value argument will trigger an erro
 
 
 <p>
-Wrapping variables comes also without any special issues. All global variables are directly accessible from application code. There is a difference in the semantics of <tt>struct</tt> definition in C and C++. When handling C <tt>struct</tt>, SWIG simply rewrites its declaration. In C++ <tt>struct</tt> is handled as class declaration. 
+Global variables are declared in the generated header, so they are directly accessible from application code. For example:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%inline %{
+int counter;
+const int limit = 5;
+%}
+</pre></div>
+
+<p>
+gives these declarations in the header:
+</p>
+
+<div class="targetlang"><pre>
+SWIGIMPORT int counter;
+SWIGIMPORT int const limit;
+</pre></div>
+
+<p>
+A global variable cannot be declared in the header with the prefix used by the <tt>-namespace</tt> option, so with this
+option it is wrapped with accessor functions instead. They are named after the variable with the <tt>_get</tt> and
+<tt>_set</tt> suffixes and there is no <tt>_set</tt> function for a read only variable. With <tt>-namespace ns</tt>,
+the header for the example above declares:
+</p>
+
+<div class="targetlang"><pre>
+SWIGIMPORT void ns_counter_set(int carg1);
+SWIGIMPORT int ns_counter_get();
+SWIGIMPORT int ns_limit_get();
+</pre></div>
+
+<p>
+When wrapping C++ code, accessor functions are also used for a variable in a namespace and for a variable whose type is
+not a builtin type or a pointer to one, such as a class, an enum, a typedef or a reference.
+</p>
+
+<p>
+There is a difference in the semantics of <tt>struct</tt> definition in C and C++. When handling C <tt>struct</tt>, SWIG simply rewrites its declaration. In C++ <tt>struct</tt> is handled as class declaration.
 </p>
 
 <p>
@@ -498,6 +541,12 @@ SwigObj* MyClass_do(SwigObj *carg1) {
     <td>Assigns wrapped function's return value to a dedicated return variable, packaging it into SwigObj if necessary</td>
   </tr>
   <tr>
+    <td><tt>argout</tt></td>
+    <td>Code inserted after the <tt>out</tt> typemap, such as to set an output parameter.
+    <tt>$input</tt> is the parameter of the wrapper function and <tt>$result</tt> is the variable holding its return value,
+    which a function returning <tt>void</tt> does not have</td>
+  </tr>
+  <tr>
     <td><tt>cppouttype</tt></td>
     <td>Type of the result variable used for the return value if the wrapped function is a C++ function
     </td>
@@ -625,6 +674,8 @@ A typical wrapper will be composited with these [optional] blocks:
 <li>[Exception handling]</li>
 <li>[Assignment to C++ return value]</li>
 <li>Assignment to C return value</li>
+<li>[Cleanup]</li>
+<li>[Cleanup and return after an error]</li>
 </ol>
 
 <p>
@@ -717,10 +768,23 @@ return result;
 </pre></div>
 
 <p>
-Note that typemaps may use <tt>$null</tt> special variable which will be
-replaced with either <tt>0</tt> or nothing, depending on whether the function
-has a non-void return value or not.
+Code in typemaps or <tt>%exception</tt> leaves the wrapper after an error with <tt>SWIG_fail</tt>, which jumps to a <tt>fail</tt> label at the end of the wrapper.
+<tt>SWIG_exception(code, msg)</tt> raises the error and then uses <tt>SWIG_fail</tt>.
+The label is only generated if a typemap or feature used by the wrapper has the <tt>canthrow</tt> attribute,
+see <a href="#C_exceptions_typemaps">Raising an error in a typemap</a>.
+The code after the label runs the 'freearg' typemaps, so that memory allocated in the 'in' typemaps is released, then returns a zero value, or nothing for a function returning void.
+For example, with 'in' and 'freearg' typemaps that call <tt>strdup</tt> and <tt>free</tt> for a string parameter, the wrapper ends with:
 </p>
+
+<div class="targetlang"><pre>
+  ...
+  free(arg1);
+  return result;
+  fail: SWIGUNUSED;
+  free(arg1);
+  return 0;
+}
+</pre></div>
 
 <H4><a name="C_walkthrough_proxy">40.6.1.3 The Proxy</a></H4>
 
@@ -753,7 +817,252 @@ void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 
 
 <p>
-Any call to a C++ function may throw an exception, which cannot be caught by C code. Instead, the special <tt>SWIG_CException_get_pending()</tt> function must be called to check for this. If it returns a non-null pointer, <tt>SWIG_CException_msg_get()</tt> can be called to retrieve the error message associated with the exception. Finally, <tt>SWIG_CException_reset_pending()</tt> must be called to free the exception object and reset the current pending exception. Note that exception handling is much simpler when using C++, rather than C, wrappers, see sections 36.6.2.
+C code cannot catch C++ exceptions. Instead, when wrapping C++ code, the wrapper function reports an error as a pending
+exception, which is an object of the special <tt>SWIG_CException</tt> type. The wrapper sets the pending exception and
+returns a zero value, such as 0 or NULL, or nothing for a function returning void. The error is one of:
+</p>
+
+<ul>
+<li>A C++ exception thrown by the wrapped function and caught by the wrapper.</li>
+<li>An error raised by the wrapper itself, such as when NULL is passed for a reference parameter.</li>
+</ul>
+
+<p>
+The wrapper catches a C++ exception only if it is in the function's
+<a href="SWIGPlus.html#SWIGPlus_exception_specifications">exception specification</a>, is listed with
+<a href="SWIGPlus.html#SWIGPlus_catches">%catches</a> or is caught by <tt>%exception</tt> code.
+An exception thrown as a string, such as a <tt>const char *</tt>, gives a <tt>SWIG_RuntimeError</tt> with the string
+as the message. An exception of any other type gives a <tt>SWIG_UnknownError</tt> with a message naming the type,
+unless there is a 'throws' typemap for the type. A C++ exception that the wrapper does not catch cannot be handled by
+the C code and terminates the program.
+</p>
+
+<p>
+After calling a wrapper function, call <tt>SWIG_CException_get_pending()</tt> to check for an error. It returns NULL
+if there is no pending exception. Otherwise <tt>SWIG_CException_msg_get()</tt> and <tt>SWIG_CException_code_get()</tt>
+return the error message and the <a href="Customization.html#Customization_nn7">SWIG error code</a>, such as
+<tt>SWIG_ValueError</tt>, which is defined in the generated header.
+Then call <tt>SWIG_CException_reset_pending()</tt> to free the exception. A successful call
+does not reset the pending exception, so reset it before checking the next call. Each thread has its own pending
+exception.
+</p>
+
+<p>
+For example, this <tt>%exception</tt> code uses <tt>SWIG_CATCH_STDEXCEPT</tt> to catch the standard C++ exceptions:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%exception parse {
+  try {
+    $action
+  } SWIG_CATCH_STDEXCEPT
+}
+
+%inline %{
+#include &lt;stdexcept&gt;
+int parse(const char *s) {
+  if (!*s)
+    throw std::invalid_argument("empty string");
+  return 1;
+}
+%}
+</pre></div>
+
+<p>
+The error is handled in C with:
+</p>
+
+<div class="targetlang"><pre>
+int result = example_parse("");
+SWIG_CException *ex = SWIG_CException_get_pending();
+if (ex) {
+  if (SWIG_CException_code_get(ex) == SWIG_ValueError)
+    printf("Invalid value: %s\n", SWIG_CException_msg_get(ex));
+  SWIG_CException_reset_pending();
+}
+</pre></div>
+
+<p>
+which prints:
+</p>
+
+<div class="shell"><pre>
+Invalid value: empty string
+</pre></div>
+
+<p>
+The <tt>SWIG_CException</tt> type and its functions have no prefix by default, unlike the wrapper functions, such as
+<tt>example_parse()</tt>. The <tt>-namespace</tt> option gives them the same prefix as the wrapper functions, but the
+SWIG error codes, such as <tt>SWIG_ValueError</tt>, do not have a prefix. With <tt>-namespace ns</tt>, the error is
+handled in C with:
+</p>
+
+<div class="targetlang"><pre>
+int result = ns_parse("");
+ns_SWIG_CException *ex = ns_SWIG_CException_get_pending();
+if (ex) {
+  if (ns_SWIG_CException_code_get(ex) == SWIG_ValueError)
+    printf("Invalid value: %s\n", ns_SWIG_CException_msg_get(ex));
+  ns_SWIG_CException_reset_pending();
+}
+</pre></div>
+
+<p>
+With the <tt>-noexcept</tt> option, or when wrapping C code, there is no <tt>SWIG_CException</tt>. C++ exceptions are
+not caught and an error raised by the wrapper, in a typemap or in <tt>%exception</tt> code, just makes the wrapper return a zero
+value. An error raised with <tt>SWIG_exception(code, msg)</tt> also passes its error code and message to a C macro of
+the same name, which does nothing by default. Defining this macro in <tt>%begin</tt> code, which comes before the SWIG
+runtime code, gives completely custom error handling. For example, a C version of the <tt>parse()</tt> function can
+report the error in global variables:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%begin %{
+#define SWIG_exception(code, msg) (error_code = (code), error_msg = (msg))
+%}
+
+%exception parse {
+  $action
+  if (result &lt; 0)
+    SWIG_exception(SWIG_ValueError, "empty string");
+}
+
+%inline %{
+int error_code = 0;
+const char *error_msg = NULL;
+
+int parse(const char *s) {
+  if (!*s)
+    return -1;
+  return 1;
+}
+%}
+</pre></div>
+
+<p>
+The global variables are declared in the generated header, see <a href="#C_variables">Variables</a>, so the C code
+checks them after calling the wrapper function:
+</p>
+
+<div class="targetlang"><pre>
+int result = example_parse("");
+if (error_code) {
+  if (error_code == SWIG_ValueError)
+    printf("Invalid value: %s\n", error_msg);
+  error_code = 0;
+}
+</pre></div>
+
+<p>
+which prints the same error as the <tt>SWIG_CException</tt> example above. The macro should not leave the wrapper
+itself, as the wrapper then leaves through <tt>SWIG_fail</tt>, which runs the cleanup code, see
+<a href="#C_exceptions_typemaps">Raising an error in a typemap</a>.
+</p>
+
+<p>
+Exception handling is simpler in C++ code using the C++ wrappers, see
+<a href="#C_exception_handling">C++ exception handling</a>. The <tt>Examples/c/exception</tt> example shows exception
+handling in both C and C++ code.
+</p>
+
+<H3><a name="C_exceptions_typemaps">40.7.1 Raising an error in a typemap</a></H3>
+
+
+<p>
+Code in a typemap or <tt>%exception</tt> raises an error with <tt>SWIG_exception(code, msg)</tt>. It sets the pending
+exception with the <a href="Customization.html#Customization_nn7">SWIG error code</a> and message, then leaves the
+wrapper with <tt>SWIG_fail</tt>, which is <tt>goto fail</tt>. The wrapper only has the <tt>fail</tt> label to jump to
+if a typemap or feature used by the wrapper has the <tt>canthrow</tt> attribute. It is the same attribute that
+<a href="CSharp.html#CSharp_exceptions">C#</a> and D use to check for a pending exception. A typemap that uses
+<tt>SWIG_exception</tt> or <tt>SWIG_fail</tt> must therefore set it. For example, this 'check' typemap rejects a number
+that is not positive:
+</p>
+
+<div class="code"><pre>
+%module example
+
+%typemap(check, canthrow=1) int positive {
+  if ($1 &lt;= 0)
+    SWIG_exception(SWIG_ValueError, "positive value expected");
+}
+
+%inline %{
+int square_root(int positive) {
+  int i = 0;
+  while ((i + 1) * (i + 1) &lt;= positive)
+    i++;
+  return i;
+}
+%}
+</pre></div>
+
+<p>
+The wrapper raises the error and returns 0 without calling the wrapped function:
+</p>
+
+<div class="targetlang"><pre>
+SWIGEXPORTC int example_square_root(int carg1) {
+  int cppresult;
+  int arg1 ;
+  int result;
+
+  arg1 = (int) carg1;
+  {
+    if (arg1 &lt;= 0)
+    {
+      SWIG_CException_Raise(SWIG_ValueError, "positive value expected"); SWIG_fail;
+    };
+  }
+  cppresult = (int)square_root(arg1);
+  result = (int)cppresult;
+  return result;
+  fail: SWIGUNUSED;
+  return 0;
+}
+</pre></div>
+
+<p>
+<tt>SWIG_CException_Raise(code, msg)</tt> only sets the pending exception, so it is followed by <tt>SWIG_fail</tt> when
+it is called directly. It is only available when wrapping C++ code without the <tt>-noexcept</tt> option.
+</p>
+
+<p>
+The <tt>canthrow</tt> attribute can be set on the 'in', 'check', 'out', 'argout', 'throws', 'memberin' and 'globalin'
+typemaps. It is not used on a 'freearg' typemap, which cannot use <tt>SWIG_fail</tt>, as the 'freearg' code is also run
+after the <tt>fail</tt> label. <tt>%exception</tt> and <tt>%exceptionvar</tt> have the <tt>canthrow</tt> attribute set.
+The label is marked with <tt>SWIGUNUSED</tt>, so there is no compiler warning when the code does not use
+<tt>SWIG_fail</tt>, such as <tt>%exception</tt> code that only catches some exceptions. The typemaps in the SWIG library
+that raise an error, such as the 'in' typemap rejecting NULL for a reference, have the <tt>canthrow</tt> attribute set.
+</p>
+
+<p>
+Without the attribute, the wrapper does not compile. SWIG gives warning 762 when it finds <tt>SWIG_exception</tt> or
+<tt>SWIG_fail</tt> in a wrapper without it. This is the warning for the example above without <tt>canthrow=1</tt>:
+</p>
+
+<div class="code"><pre>
+%typemap(check) int positive {
+  if ($1 &lt;= 0)
+    SWIG_exception(SWIG_ValueError, "positive value expected");
+}
+</pre></div>
+
+<div class="shell"><pre>
+example.i:14: Warning 762: Wrapper code uses SWIG_fail, but no 'fail' label is generated for it to jump to,
+as the canthrow attribute is not set.
+</pre></div>
+
+<p>
+The warning names <tt>SWIG_fail</tt> when wrapping C++ code, as the SWIG preprocessor expands <tt>SWIG_exception</tt>
+in a typemap body in braces to a call to <tt>SWIG_CException_Raise()</tt> followed by <tt>SWIG_fail</tt>. With the
+<tt>-noexcept</tt> option, or when wrapping C code, the expansion calls the <tt>SWIG_exception</tt> C macro instead, so
+the warning names <tt>SWIG_exception</tt>. There is no guarantee that the warning will find all cases that the 'fail'
+label is required, as other ways of jumping to the label, such as a macro that uses <tt>SWIG_fail</tt>, will not be
+detected.
 </p>
 
 <H2><a name="C_cxx_wrappers">40.8 C++ Wrappers</a></H2>
@@ -800,15 +1109,56 @@ The following features are taken into account when generating C++ wrappers:
   <li><tt>cxxignore</tt> May be set to skip generation of C++ wrappers for the given function or class, while still generating C wrappers for them.</li>
 </ul>
 
-<H3><a name="C_exception_handling">40.8.2 Exception handling</a></H3>
+<H3><a name="C_exception_handling">40.8.2 C++ exception handling</a></H3>
 
 
 <p>
-Exception handling in C++ is more natural, as the exceptions are re-thrown when using C++ wrappers and so can be caught, as objects of the special <tt>SWIG_CException</tt> type, using the usual <tt>try/catch</tt> statement. The objects of <tt>SWIG_CException</tt> class have <tt>code()</tt> and <tt>msg()</tt> methods, with the latter returning the error message associated with the exception.
+Handling the errors described in <a href="#C_exceptions">Exception handling</a> is more natural in C++ code using the
+C++ wrappers. After each call to a wrapper function, the C++ wrappers check for a pending exception. If there is one,
+they reset it and throw it as a C++ exception, which can be caught with the usual <tt>try/catch</tt> statement.
+Whatever the type of the original C++ exception, the exception thrown is an object of the <tt>SWIG_CException</tt>
+class in the wrappers namespace. Its <tt>msg()</tt> and <tt>code()</tt> methods return the error message and the SWIG
+error code. For example, the error from the <tt>parse</tt> function in the example in the
+<a href="#C_exceptions">Exception handling</a> section is handled with:
 </p>
 
+<div class="targetlang"><pre>
+try {
+  example::parse("");
+} catch (example::SWIG_CException const &amp;e) {
+  if (e.code() == SWIG_ValueError)
+    printf("Invalid value: %s\n", e.msg());
+}
+</pre></div>
+
 <p>
-If necessary, a custom exception type may be used instead of <tt>SWIG_CException</tt>. To do this, a custom implementation of <tt>swig_check()</tt> function, called to check for the pending exception and throw the corresponding C++ exception if necessary, must be provided and <tt>SWIG_swig_check_DEFINED</tt> preprocessor symbol must be defined to prevent the default implementation of this function from being compiled:
+which prints the same message as the C code:
+</p>
+
+<div class="shell"><pre>
+Invalid value: empty string
+</pre></div>
+
+<p>
+The check is made by <tt>swig_check()</tt>, an overloaded function that the C++ wrappers call after calling the C
+wrapper function. The first overload, <tt>void swig_check()</tt>, checks for a pending exception and throws it. It is
+called after a function returning void. The second overload is an identity function template,
+<tt>template &lt;typename T&gt; T swig_check(T x)</tt>, which calls the first overload and then returns its argument
+unchanged. The value returned by a function is passed through it, so the check is made before the value is returned
+to the caller. For example, these are the C++ wrappers for the <tt>parse</tt> function and for a function
+<tt>void reset()</tt>:
+</p>
+
+<div class="targetlang"><pre>
+inline int parse(const char * s) { return swig_check(example_parse(s)); }
+inline void reset() { example_reset(); swig_check(); }
+</pre></div>
+
+<p>
+A custom exception type can be thrown instead of <tt>SWIG_CException</tt> by providing both overloads of
+<tt>swig_check()</tt> in the <tt>cxxheader</tt> section. Also define the <tt>SWIG_swig_check_DEFINED</tt>
+preprocessor symbol to prevent the default implementation from being compiled. For example, to throw a class derived
+from <tt>std::runtime_error</tt>:
 </p>
 <div class="code"><pre>
 %insert(cxxheader) %{
@@ -838,6 +1188,13 @@ template &lt;typename T&gt; T swig_check(T x) {
 #endif // SWIG_swig_check_DEFINED
 %}
 </pre></div>
+
+<p>
+The identity function template at the end is the same as the default one. It is still needed because defining
+<tt>SWIG_swig_check_DEFINED</tt> removes both default overloads. It calls the custom <tt>void swig_check()</tt>
+overload, so the error from the <tt>parse</tt> function is thrown as an <tt>Exception</tt>, which can also be caught
+as a <tt>std::runtime_error</tt>.
+</p>
 
 </body>
 </html>

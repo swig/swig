@@ -8,6 +8,8 @@ check(ignore_parameter.jaguar(200, 0), "hello");
 check(ignore_parameter.lotus("foo", 1), 101);
 check(ignore_parameter.tvr("bar", 2), 8.8);
 check(ignore_parameter.ferrari(), 101);
+check(ignore_parameter.called_argout, 1);
+check(ignore_parameter.called_freearg, 1);
 check(ignore_parameter.fiat(17), 17);
 
 car = new ignore_parameter.SportsCars();

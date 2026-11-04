@@ -466,6 +466,7 @@ CPP_TEST_CASES += \
 	symbol_clash \
 	sym \
 	template_advanced_rename \
+	template_arg_names \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
@@ -501,6 +502,7 @@ CPP_TEST_CASES += \
 	template_extend2 \
 	template_extend_overload \
 	template_extend_overload_2 \
+	template_function_overload_kind \
 	template_function_parm \
 	template_forward \
 	template_inherit \
@@ -703,6 +705,7 @@ CPP11_TEST_CASES += \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_function_overload_kind \
 	cpp11_template_pack \
 	cpp11_template_pack_specialization \
 	cpp11_template_parameters_decltype \
@@ -906,6 +909,9 @@ C_TEST_CASES += \
 	c_delete \
 	c_delete_function \
 	c_this_identifier \
+	c99_parameter_array_declarators \
+	c99_vla_array_libraries \
+	c99_vla_typemaps \
 	char_constant \
 	charptr_fragment \
 	command_line_define \

@@ -241,25 +241,6 @@ INT_TYPEMAP(unsigned long long);
 %typemap(argout) unsigned long long &INOUT = unsigned long long *OUTPUT;
 %typemap(argout) signed char &INOUT = signed char *OUTPUT;
 
-%typemap(in, phptype="string") char INPUT[ANY] ( char temp[$1_dim0] )
-%{
-  if (Z_ISNULL($input)) {
-    $1 = 0;
-  } else {
-    convert_to_string(&$input);
-    strncpy(temp, Z_STRVAL($input), $1_dim0);
-    $1 = temp;
-  }
-%}
-%typemap(in,numinputs=0) char OUTPUT[ANY] ( char temp[$1_dim0] )
-  "$1 = temp;";
-%typemap(argout) char OUTPUT[ANY]
-{
-  zval o;
-  ZVAL_STRINGL(&o, temp$argnum, $1_dim0);
-  SWIG_AppendOutput($result, &o);
-}
-
 %typemap(in,numinputs=0,phptype="?SWIGTYPE") void **OUTPUT (int force),
                          void *&OUTPUT (int force)
 %{

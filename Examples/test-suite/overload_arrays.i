@@ -141,3 +141,23 @@ static char *bar(void *[SIZE]) {
   };
 }
 
+// An array size that is an expression
+%inline %{
+int expression_overload(int values[SIZE + 1]) {
+  return values[SIZE];
+}
+int expression_overload(int value) {
+  return value;
+}
+%}
+
+// A string literal in an array dimension, which is also in the prototypes listed in the error for no matching overload
+%inline %{
+int literal_overload(char text[sizeof("abc")]) {
+  return text[0];
+}
+int literal_overload(int value) {
+  return value;
+}
+%}
+

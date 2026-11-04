@@ -95,3 +95,13 @@ struct ABCD {
   double _3() { return 0.0; }
 };
 %}
+
+// noblock=0 keeps the braces, so the variable declared in the typemap does not clash between the two parameters
+%typemap(check, noblock=0) NoBlockZero {
+  int noblock_zero_value = $1;
+  (void)noblock_zero_value;
+}
+%inline %{
+typedef int NoBlockZero;
+void noblock_zero(NoBlockZero a, NoBlockZero b) {}
+%}

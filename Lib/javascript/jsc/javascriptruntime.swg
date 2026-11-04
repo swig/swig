@@ -14,6 +14,5 @@
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
-%insert(runtime) "swigerrors.swg";      /* SWIG errors */
 
 %insert(runtime) "javascriptrun.swg";      /* SWIG errors */

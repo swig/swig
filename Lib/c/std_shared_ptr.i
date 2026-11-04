@@ -33,11 +33,10 @@
 %typemap(out) const SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE>& %{  $result = (*$1 ? $1 : 0); %}
 
 // And for the plain type.
-%typemap(in) CONST TYPE (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
+%typemap(in, canthrow=1) CONST TYPE (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
   smartarg = (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > *)$input;
   if (!smartarg || !smartarg->get()) {
     SWIG_exception(SWIG_RuntimeError, "$1_type value is null");
-    return $null;
   }
   $1 = **smartarg;%}
 %typemap(out) CONST TYPE %{
@@ -51,11 +50,10 @@
   $result = $1 ? (SwigObj*) new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >($1 SWIG_NO_NULL_DELETER_$owner) : 0;%}
 
 // Plain type references.
-%typemap(in) CONST TYPE & (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
+%typemap(in, canthrow=1) CONST TYPE & (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
   smartarg = (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > *)$input;
   if (!smartarg || !smartarg->get()) {
     SWIG_exception(SWIG_RuntimeError, "$1_type reference is null");
-    return $null;
   }
   $1 = (TYPE *)smartarg->get();%}
 %typemap(out, fragment="SWIG_null_deleter") CONST TYPE & %{

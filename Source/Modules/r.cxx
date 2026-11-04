@@ -1,4 +1,3 @@
-
 /* -----------------------------------------------------------------------------
  * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
@@ -24,31 +23,6 @@ static String *replaceInitialDash(const String *name) {
     retval = Copy(name);
   }
   return retval;
-}
-
-static String *getRTypeName(SwigType *t, int *outCount = NULL) {
-  String *b = SwigType_base(t);
-  List *els = SwigType_split(t);
-  int count = 0;
-  int i;
-
-  if (Strncmp(b, "struct ", 7) == 0)
-    Replace(b, "struct ", "", DOH_REPLACE_FIRST);
-
-  for (i = 0; i < Len(els); i++) {
-    String *el = Getitem(els, i);
-    if (Strcmp(el, "p.") == 0 || Strncmp(el, "a(", 2) == 0) {
-      count++;
-      Append(b, "Ref");
-    }
-  }
-  if (outCount)
-    *outCount = count;
-
-  String *tmp = NewString("");
-  char *retName = Char(SwigType_manglestr(t));
-  Insert(tmp, 0, retName);
-  return tmp;
 }
 
 /* --------------------------------------------------------------
@@ -225,6 +199,26 @@ static void replaceRClass(String *tm, SwigType *type) {
   Delete(tmp_ref);
 }
 
+/* -------------------------------------------------------------
+ * Add the names of the classes that the R code creates objects
+ * of, as in new("_p_void", ref=ans), to the classes hash.
+ * --------------------------------------------------------------*/
+
+static void addCreatedClasses(Hash *classes, String *code) {
+  const char *const new_call = "new(\"";
+  const char *s = strstr(Char(code), new_call);
+  while (s) {
+    s += strlen(new_call);
+    const char *const end = strchr(s, '"');
+    if (!end)
+      break;
+    String *name = NewStringWithSize(s, (int)(end - s));
+    Setattr(classes, name, name);
+    Delete(name);
+    s = strstr(end, new_call);
+  }
+}
+
 class R : public Language {
 public:
   R();
@@ -384,6 +378,7 @@ protected:
   Hash *ClassMemberTable;
   Hash *ClassMethodsTable;
   Hash *SClassDefs;
+  Hash *SClassesCreated;
   Hash *SMethodInfo;
 
   // Information about routines that are generated and to be registered with
@@ -447,6 +442,7 @@ R::R() :
   ClassMemberTable(0),
   ClassMethodsTable(0),
   SClassDefs(0),
+  SClassesCreated(0),
   SMethodInfo(0),
   registrationTable(0),
   functionPointerProxyTable(0),
@@ -564,7 +560,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
 
   emit_parameter_variables(parms, f);
   emit_return_variable(n, rettype, f);
-  //  emit_attach_parmmaps(parms,f);
+  //  emit_attach_parm_typemaps(parms,f);
 
   /*  Using weird name and struct to avoid potential conflicts. */
   Wrapper_add_local(f, "r_swig_cb_data", "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
@@ -591,7 +587,7 @@ String *R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
     if (isVoidParm)
       Printf(f->def, "%s", SwigType_str(tt, 0));
     else
-      Printf(f->def, "%s %s", SwigType_str(tt, 0), swig_parm_name);
+      Printf(f->def, "%s", SwigType_str(tt, swig_parm_name));
     if (tm) {
       String *lstr = SwigType_lstr(tt, 0);
       if (SwigType_isreference(rpt) || SwigType_isrvalue_reference(rpt)) {
@@ -716,6 +712,7 @@ void R::init() {
   UnProtectWrapupCode = NewStringf("%s", "vmaxset(r_vmax);\nif(r_nprotect)  Rf_unprotect(r_nprotect);\n\n");
 
   SClassDefs = NewHash();
+  SClassesCreated = NewHash();
 
   sfile = NewString("");
   f_init = NewString("");
@@ -780,6 +777,17 @@ int R::top(Node *n) {
   Printf(f_wrapper, "#endif\n\n");
 
   Language::top(n);
+
+  // Define the classes of the objects created for a pointer to a type that is not a wrapped class, such as '_p_void'
+  // for a 'void *' return value
+  List *created_classes = SortedKeys(SClassesCreated, Strcmp);
+  for (Iterator it = First(created_classes); it.item; it = Next(it)) {
+    if (!Getattr(SClassDefs, it.item)) {
+      Printf(s_classes, "setClass('%s', contains = 'ExternalReference')\n", it.item);
+      Setattr(SClassDefs, it.item, it.item);
+    }
+  }
+  Delete(created_classes);
 
   Printf(f_wrapper, "#ifdef __cplusplus\n");
   Printf(f_wrapper, "}\n");
@@ -1776,7 +1784,7 @@ int R::functionWrapper(Node *n) {
   Swig_typemap_attach_parms("rtypecheck", l, f);
 
   emit_parameter_variables(l, f);
-  emit_attach_parmmaps(l, f);
+  emit_attach_parm_typemaps(l, f);
   Setattr(n, "wrap:parms", l);
 
   nargs = emit_num_arguments(l);
@@ -1794,9 +1802,7 @@ int R::functionWrapper(Node *n) {
   Parm *curP;
   for (p = l, i = 0; i < nargs; i++) {
 
-    while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-      p = Getattr(p, "tmap:in:next");
-    }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     SwigType *tt = Getattr(p, "type");
     int nargs = -1;
@@ -1945,6 +1951,17 @@ int R::functionWrapper(Node *n) {
     if (funcptr_name)
       Delete(funcptr_name);
   } /* end of looping over parameters. */
+  p = emit_ignored_in_typemaps(p, f->code);
+
+  /* Insert constraint checking code */
+  for (p = l; p;) {
+    if ((tm = Getattr(p, "tmap:check"))) {
+      Printv(f->code, tm, "\n", NIL);
+      p = Getattr(p, "tmap:check:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
 
   if (addCopyParam) {
     Printf(sfun->def, "%s.copy = FALSE", nargs > 0 ? ", " : "");
@@ -2070,6 +2087,7 @@ int R::functionWrapper(Node *n) {
       Printf(stdout, "Calling replace B: %s, %s, %s\n", Getattr(n, "type"), Getattr(n, "sym:name"), getNSpace());
     }
     replaceRClass(tm, Getattr(n, "type"));
+    addCreatedClasses(SClassesCreated, tm);
     Chop(tm);
   }
 
@@ -2710,28 +2728,12 @@ String *R::processType(SwigType *t, Node *n, int *nargs) {
   if (debugMode)
     Printf(stdout, "processType %s (tdname = %s)(SwigType = %s)\n", Getattr(n, "name"), tmp, Copy(t));
 
-  SwigType *td = t;
   if (expandTypedef(t) && SwigType_istypedef(t)) {
     SwigType *resolved = SwigType_typedef_resolve_all(t);
     if (expandTypedef(resolved)) {
-      td = Copy(resolved);
+      t = Copy(resolved);
     }
   }
-
-  if (!td) {
-    int count = 0;
-    String *b = getRTypeName(t, &count);
-    if (count && b && !Getattr(SClassDefs, b)) {
-      if (debugMode)
-        Printf(stdout, "<processType> Defining class %s\n", b);
-
-      Printf(s_classes, "setClass('%s', contains = 'ExternalReference')\n", b);
-      Setattr(SClassDefs, b, b);
-    }
-  }
-
-  if (td)
-    t = td;
 
   if (SwigType_isfunctionpointer(t)) {
     if (debugMode)

@@ -196,6 +196,11 @@
 <li><a href="SWIG.html#SWIG_nested_structs">Nested structures</a>
 <li><a href="SWIG.html#SWIG_nn39">Other things to note about structure wrapping</a>
 </ul>
+<li><a href="SWIG.html#SWIG_c99">C99 support</a>
+<ul>
+<li><a href="SWIG.html#SWIG_c99_parameter_array_declarators">Static and type qualifiers in parameter array declarators</a>
+<li><a href="SWIG.html#SWIG_c99_variable_length_arrays">Variable length arrays</a>
+</ul>
 <li><a href="SWIG.html#SWIG_nn40">Code Insertion</a>
 <ul>
 <li><a href="SWIG.html#SWIG_nn41">The output of SWIG</a>
@@ -340,6 +345,7 @@
 <li><a href="CPlusPlus11.html#CPlusPlus11_alias_templates">Alias templates</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_unrestricted_unions">Unrestricted unions</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_variadic_templates">Variadic templates</a>
+<li><a href="CPlusPlus11.html#CPlusPlus11_function_template_default_arguments">Default template arguments for function templates</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_new_char_literals">New character literals</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_new_string_literals">New string literals</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_user_defined_literals">User-defined literals</a>
@@ -668,6 +674,7 @@
 <li><a href="Typemaps.html#Typemaps_nn43">Typemaps for multiple target languages</a>
 <li><a href="Typemaps.html#Typemaps_optimal">Optimal code generation when returning by value</a>
 <li><a href="Typemaps.html#Typemaps_multi_argument_typemaps">Multi-argument typemaps</a>
+<li><a href="Typemaps.html#Typemaps_variable_length_arrays">Typemaps for variable length arrays</a>
 <li><a href="Typemaps.html#Typemaps_warnings">Typemap warnings</a>
 <li><a href="Typemaps.html#Typemaps_fragments">Typemap fragments</a>
 <ul>
@@ -688,6 +695,9 @@
 <li><a href="Typemaps.html#Typemaps_apply_typedefs">Typedefs and %apply</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_nn47">Passing data between typemaps</a>
+<ul>
+<li><a href="Typemaps.html#Typemaps_match_attribute">The match typemap attribute</a>
+</ul>
 <li><a href="Typemaps.html#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="Typemaps.html#Typemaps_nn51">Where to go for more information?</a>
 </ul>
@@ -2013,10 +2023,13 @@
 </ul>
 </ul>
 <li><a href="C.html#C_exceptions">Exception handling</a>
+<ul>
+<li><a href="C.html#C_exceptions_typemaps">Raising an error in a typemap</a>
+</ul>
 <li><a href="C.html#C_cxx_wrappers">C++ Wrappers</a>
 <ul>
 <li><a href="C.html#C_additional_possibilities">Additional customization possibilities</a>
-<li><a href="C.html#C_exception_handling">Exception handling</a>
+<li><a href="C.html#C_exception_handling">C++ exception handling</a>
 </ul>
 </ul>
 </div>

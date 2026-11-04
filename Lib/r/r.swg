@@ -5,7 +5,6 @@
 
 %insert("init") "swiginit.swg"
 %insert("runtime") "swigrun.swg"
-%insert("runtime") "swigerrors.swg"
 %insert("runtime") "rrun.swg"
 
 %init %{
@@ -95,7 +94,7 @@ SWIG_InitializeModule(0);
 }
 }
 
-%typemap(freearg,noblock=1) int *, 
+%typemap(freearg,noblock=1,match="in") int *,
 	     signed int *,
 	     unsigned int *,
              short *,
@@ -176,18 +175,41 @@ std::ptrdiff_t *INOUT
 /* A fixed size array is copied from a vector of up to that many elements, any after a shorter vector being 0. It is
    returned as a vector of that many elements */
 %define %r_fixed_size_array(TYPE, SEXPTYPE, ELEMENT, ELEMENT_TYPE)
-%typemap(in,noblock=1) TYPE [ANY] ($1_basetype temp[$1_dim0], int i, int len) {
+%typemap(in,noblock=1) TYPE [ANY] ($*1_ltype temp[$1_dim0], int i, int len) {
   len = Rf_length($input);
   if (len > (int)($1_dim0)) {
     %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
   }
   for (i = 0; i < len; i++)
-    temp[i] = ($1_basetype)ELEMENT($input)[i];
+    temp[i] = ($*1_ltype)ELEMENT($input)[i];
   for (; i < (int)($1_dim0); i++)
-    temp[i] = ($1_basetype)0;
+    temp[i] = ($*1_ltype)0;
   $1 = Rf_isNull($input) ? 0 : temp;
 }
 %typemap(freearg) TYPE [ANY] ""
+/* A C99 variable length array parameter, as in 'int n, int a[n]', is copied into an array of the size it has at runtime */
+%typemap(in,noblock=1) TYPE [*] ($*1_ltype *temp = 0, int i, int len) {
+  if (!Rf_isNull($input)) {
+    len = Rf_length($input);
+    if (!(($1_dim0) > 0)) {
+      %argument_fail(SWIG_ValueError, "$type", $symname, $argnum);
+    }
+    if (len > (int)($1_dim0)) {
+      %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+    }
+    temp = %new_array((size_t)($1_dim0), $*1_ltype);
+    if (!temp) {
+      %argument_fail(SWIG_MemoryError, "$type", $symname, $argnum);
+    }
+    for (i = 0; i < len; i++) {
+      temp[i] = ($*1_ltype)ELEMENT($input)[i];
+    }
+  }
+  $1 = temp;
+}
+%typemap(freearg,noblock=1,match="in") TYPE [*] {
+  %delete_array(temp$argnum);
+}
 %typemap(out,noblock=1) TYPE [ANY] (int i) {
   $result = Rf_allocVector(SEXPTYPE, $1_dim0);
   for (i = 0; i < (int)($1_dim0); i++)
@@ -224,7 +246,7 @@ std::ptrdiff_t *INOUT
   $1 = Rf_isNull($input) ? 0 : %reinterpret_cast(SWIG_strdup(CHAR(STRING_ELT($input, 0))), $1_ltype);
 }
 
-%typemap(freearg,noblock=1) char * {
+%typemap(freearg,noblock=1,match="in") char * {
    free($1);
 }
 
@@ -249,13 +271,51 @@ std::ptrdiff_t *INOUT
 }
 
 /* Frees the strings from the in typemap, which the wrapped function may have replaced in the array */
-%typemap(freearg,noblock=1) char *[ANY] {
+%typemap(freearg,noblock=1,match="in") char *[ANY] {
   if ($1) {
     int i;
     for (i = 0; i < (int)($1_dim0); i++) {
       free(copies$argnum[i]);
     }
   }
+}
+
+/* A C99 variable length array parameter, as in 'int n, char *names[n]', is copied into an array of its runtime size */
+%typemap(in,noblock=1,fragment="SWIG_strdup") char *[*] (char **temp = 0, char **copies = 0, int len = 0) {
+  if (!Rf_isNull($input)) {
+    int i;
+    len = Rf_length($input);
+    if (!Rf_isString($input)) {
+      %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
+    }
+    if (!(($1_dim0) > 0)) {
+      %argument_fail(SWIG_ValueError, "$type", $symname, $argnum);
+    }
+    if (len > (int)($1_dim0)) {
+      %argument_fail(SWIG_OverflowError, "$type", $symname, $argnum);
+    }
+    temp = %new_array((size_t)($1_dim0), char *);
+    copies = %new_array((size_t)($1_dim0), char *);
+    if (!temp || !copies) {
+      len = 0;
+      %argument_fail(SWIG_MemoryError, "$type", $symname, $argnum);
+    }
+    for (i = 0; i < len; i++) {
+      copies[i] = temp[i] = SWIG_strdup(CHAR(STRING_ELT($input, i)));
+    }
+    $1 = temp;
+  }
+}
+
+%typemap(freearg,noblock=1,match="in") char *[*] {
+  if (copies$argnum) {
+    int i;
+    for (i = 0; i < len$argnum; i++) {
+      free(copies$argnum[i]);
+    }
+  }
+  %delete_array(copies$argnum);
+  %delete_array(temp$argnum);
 }
 
 /* A variable keeps copies of the strings, as for char *, as freearg frees those from the in typemap */
@@ -287,7 +347,7 @@ std::ptrdiff_t *INOUT
     }
 }
 
-%typemap(freearg,noblock=1) char[] {
+%typemap(freearg,noblock=1,match="in") char[] {
     free($1);
 }
 

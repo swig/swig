@@ -8,7 +8,9 @@
 %include <cheader.swg>
 
 %insert("runtime") "clabels.swg"
-%insert("runtime") "swigerrors.swg"
+
+// The SWIG error codes, also in the header for the code calling the wrappers
+%insert("cheader") "swigerrors.swg"
 
 %insert("runtime") %{
 #include <stdlib.h>
@@ -154,7 +156,7 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
     $1 = *($&1_ltype) &$input;
 }
 
-%typemap(in) SWIGTYPE "$1 = *($1_ltype *)$input;"
+%typemap(in) SWIGTYPE "$1 = *($&1_ltype)$input;"
 
 %typemap(in) SWIGTYPE * "$1 = ($1_ltype) $input;"
 
@@ -331,7 +333,7 @@ typedef struct SwigObj SwigObj;
 
 %include <swigcommon.swg>
 
-%typemap(in, noblock=1) SWIGTYPE &, SWIGTYPE &&, SWIGTYPE ((&)[ANY]) {
+%typemap(in, canthrow=1, noblock=1) SWIGTYPE &, SWIGTYPE &&, SWIGTYPE ((&)[ANY]) {
   $1 = ($1_ltype) $input;
   if (!$1) {
     SWIG_exception(SWIG_NullReferenceError, "$1_type reference is null");

@@ -108,3 +108,15 @@ int or_grid_member_sum(const DimensionHolder *holder) {
   return sum;
 }
 %}
+
+// A string literal in an array dimension, which is also in the type given in an error message
+%inline %{
+char literal_text[sizeof("abc")];
+
+int literal_text_length(char text[sizeof("abc")]) {
+  int n = 0;
+  while (text[n])
+    n++;
+  return n;
+}
+%}

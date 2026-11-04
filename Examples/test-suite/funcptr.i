@@ -6,6 +6,9 @@
 extern void do(int (*op)(int (*i)(double, double), int j)); 
 */
 
+// TODO: the typemaps that set an array do not compile for an array of function pointers
+%immutable funcvars;
+
 %inline %{
 typedef double (*DistFun)(double* data, int r, int c, int i, int j, void *xdata);
 
@@ -48,6 +51,7 @@ MyStructPtr mystructptr() {
 typedef int * Integer;
 
 int (*funcvar)(int,int) = add;
+int (*funcvars[2])(int,int) = {add, subtract};
 int * (*funcvar2)() = nowt;
 int * (*funcvar3)(void) = nowt2;
 Integer (*funcvar4)() = nowt;

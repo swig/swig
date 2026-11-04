@@ -284,6 +284,7 @@
 
 #define WARN_C_TYPEMAP_CTYPE_UNDEF                   760
 #define WARN_C_UNSUPPORTTED                          761
+#define WARN_C_CANTHROW_MISSING                      762
 
 /* please leave 760-779 free for C */
 

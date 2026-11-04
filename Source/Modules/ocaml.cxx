@@ -553,7 +553,7 @@ public:
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
-    emit_attach_parmmaps(l, f);
+    emit_attach_parm_typemaps(l, f);
     Setattr(n, "wrap:parms", l);
 
     numargs = emit_num_arguments(l);
@@ -575,10 +575,7 @@ public:
     // Now write code to extract the parameters (this is super ugly)
 
     for (i = 0, p = l; i < numargs; i++) {
-      /* Skip ignored arguments */
-      while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        p = Getattr(p, "tmap:in:next");
-      }
+      p = emit_ignored_in_typemaps(p, f->code);
 
       SwigType *pt = Getattr(p, "type");
       String *ln = Getattr(p, "lname");
@@ -611,6 +608,7 @@ public:
       }
       Delete(source);
     }
+    p = emit_ignored_in_typemaps(p, f->code);
 
     /* Insert constraint checking code */
     for (p = l; p;) {
@@ -773,7 +771,7 @@ public:
         String *protoTypes = NewString("");
         do {
           String *fulldecl = Swig_name_decl(sibl);
-          Printf(protoTypes, "\n\"    %s\\n\"", fulldecl);
+          Printf(protoTypes, "\n\"    %(escape)s\\n\"", fulldecl);
           Delete(fulldecl);
         } while ((sibl = Getattr(sibl, "sym:nextSibling")));
         Printf(df->code,
@@ -1387,6 +1385,9 @@ public:
                  oname,
                  fq_noenum,
                  name);
+        } else {
+          // The typemaps of a type written with the 'enum' keyword, such as 'enum Color', use the marker of 'enum Color'
+          Printf(f_mlbody, "let _ = Callback.register \"enum %s_marker\" (`%s)\n", fully_qualified_name, oname);
         }
 
         Printf(f_enumtypes_type, "| `%s\n", oname);

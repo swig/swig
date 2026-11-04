@@ -651,10 +651,18 @@ static SwigType *node_constrained_decl(Node *n, SwigType *decl) {
 }
 
 /* Swig_name_object_get() for node 'n', whose constraints, if it is a constrained function template, are matched
- * before its declarator alone. */
+ * before its declarator alone.  A function with a C99 variable length array parameter is also matched by its
+ * declarator with the array sizes as declared, see Swig_vla_declared_decl(). */
 static DOH *node_object_get(Hash *namehash, Node *n, String *prefix, String *name, SwigType *decl) {
   SwigType *constrained = node_constrained_decl(n, decl);
-  DOH *rn = constrained ? name_object_get_decls(namehash, prefix, name, constrained, decl) : Swig_name_object_get(namehash, prefix, name, decl);
+  DOH *rn;
+  if (constrained) {
+    rn = name_object_get_decls(namehash, prefix, name, constrained, decl);
+  } else {
+    SwigType *declared = Swig_vla_declared_decl(n, decl);
+    rn = name_object_get_decls(namehash, prefix, name, decl, declared);
+    Delete(declared);
+  }
   Delete(constrained);
   return rn;
 }
@@ -766,6 +774,7 @@ static void features_get(Hash *features, const String *tname, SwigType *decl, Sw
 void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *decl, Node *node) {
   SwigType *plain_decl = 0;
   SwigType *constrained = 0;
+  SwigType *declared = 0;
   String *rdecl = 0;
   String *rname = 0;
   if (!features)
@@ -802,6 +811,10 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (constrained) {
     plain_decl = decl;
     decl = constrained;
+  } else {
+    /* Features for a function with a C99 variable length array parameter given with the array sizes as declared */
+    declared = Swig_vla_declared_decl(node, decl);
+    plain_decl = declared;
   }
 
 #ifdef SWIG_DEBUG
@@ -867,6 +880,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
   if (rdecl)
     Delete(rdecl);
   Delete(constrained);
+  Delete(declared);
 }
 
 /* -----------------------------------------------------------------------------

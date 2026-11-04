@@ -60,6 +60,15 @@ int getintfrompointer(int* intptr) {
 
 %}
 
+%inline %{
+/* A function pointer type with an array parameter */
+typedef int (*IntArrayFunction)(const int array_i[ARRAY_LEN]);
+
+int call_int_array_function(IntArrayFunction f, const int array_i[ARRAY_LEN]) {
+  return f(array_i);
+}
+%}
+
 // This tests wrapping of function that involves pointer to array
 
 

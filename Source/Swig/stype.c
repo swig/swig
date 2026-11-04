@@ -806,8 +806,7 @@ SwigType *SwigType_ltype(const SwigType *s) {
  *
  *      -   Qualifiers such as 'const' and 'volatile' are stripped.
  *          Except for member function cv-qualifiers and ref-qualifiers.
- *      -   Arrays are converted into a *single* pointer (i.e.,
- *          double [][] becomes double *).
+ *      -   An array is converted into a pointer to its first element (i.e., double [][] becomes double (*)[]).
  *      -   References are converted into a pointer.
  *      -   Typedef names that refer to read-only types will be replaced
  *          with an equivalent assignable version.
@@ -821,6 +820,30 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
   result = SwigType_str(tc, id);
   Delete(tc);
   return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_decay_array()
+ *
+ * Return a copy of type 's' with an array, or a typedef of an array, changed into a pointer to its first element, as C
+ * does for a function parameter declared as an array.  Unlike SwigType_ltype(), the qualifiers and the typedef names
+ * of the element type are kept, so 'a(3).q(const).int' becomes 'p.q(const).int'.  Any other type is copied unchanged.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_decay_array(const SwigType *s) {
+  SwigType *t;
+  if (SwigType_isarray(s)) {
+    t = Copy(s);
+  } else {
+    t = SwigType_typedef_resolve_all(s);
+    if (!SwigType_isarray(t)) {
+      Delete(t);
+      return Copy(s);
+    }
+  }
+  SwigType_del_array(t);
+  SwigType_add_pointer(t);
+  return t;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1446,14 +1469,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
  * ----------------------------------------------------------------------------- */
 
 int SwigType_variadic_expands(const SwigType *t, const String *pack_name) {
-  String *copy;
-  int found;
-  if (!SwigType_isvariadic(t) || !pack_name)
-    return 0;
-  copy = Copy(t);
-  found = Replace(copy, pack_name, "", DOH_REPLACE_ID) > 0;
-  Delete(copy);
-  return found;
+  return SwigType_isvariadic(t) && Swig_contains_identifier(t, pack_name);
 }
 
 /* -----------------------------------------------------------------------------
