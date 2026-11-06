@@ -19,5 +19,9 @@ int main() {
   xy[1][2] = 5;
   check(xy[1][2] == 5 && xy[0][2] == 0, "xy");
 
+  check(bool_flag, "bool_flag");
+  bool_flag = false;
+  check(!bool_flag, "bool_flag set");
+
   return 0;
 }

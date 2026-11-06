@@ -10,7 +10,7 @@
 # define _Bool unsigned char
 # define bool _Bool
 # define true 1
-# define false 1
+# define false 0
 #endif
 %}
 

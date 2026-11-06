@@ -7,6 +7,21 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-06: wsfulton
+            [C] Fix the .h file not compiling as C before C23 for a bool used only in a global
+            variable or struct member declared in the .h file when wrapping C code, such as:
+
+              extern bool flag;
+              struct Options {
+                bool visible;
+              };
+
+            The same went wrong for a global function pointer when wrapping C or C++ code:
+
+              extern int (*callback)(bool);
+
+            The .h file now includes stdbool.h for all of these, as it does for a bool parameter.
+
 2026-11-04: wsfulton
             [C] Fix a two dimensional array of a builtin type passed to a wrapper function or to the
             setter of a global or member variable when wrapping C++ code, such as the parameter of:

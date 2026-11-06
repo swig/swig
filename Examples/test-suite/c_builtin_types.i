@@ -2,6 +2,7 @@
 
 // The builtin types other than int are declared in the header file as int is, with a global variable not wrapped with accessor functions without -namespace
 %inline %{
+bool bool_flag = false;
 unsigned int unsigned_count = 1;
 long long long_long_count = 2;
 

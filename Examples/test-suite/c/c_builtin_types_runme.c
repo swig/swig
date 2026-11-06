@@ -11,6 +11,10 @@ int main() {
   const int grid[2][3] = {{1, 2, 3}, {4, 5, 6}};
   BuiltinArrays *arrays = BuiltinArrays_new();
 
+  assert(!bool_flag);
+  bool_flag = true;
+  assert(bool_flag);
+
   assert(unsigned_count == 1);
   unsigned_count = 3;
   assert(unsigned_count == 3);

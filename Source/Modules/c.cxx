@@ -2140,13 +2140,7 @@ public:
           ctype = references_to_pointers(ctype);
           ctype = getCNamesType(ctype);
         }
-        // The 'ctype' typemap of each base type in it is looked up for the fragments it uses, such as "stdbool_inc" for a bool
-        ScopedPtr base_types = adopt(NewList());
-        append_base_types(ctype, base_types);
-        for (Iterator i = First(base_types); i.item; i = Next(i)) {
-          ScopedPtr base_parm = adopt(NewParm(i.item, 0, file_line_node));
-          ScopedPtr base_tm = adopt(Swig_typemap_lookup("ctype", base_parm, "", 0));
-        }
+        emitBaseTypeFragments(ctype, file_line_node);
         Clear(tm);
         Append(tm, ctype);
         return true;
@@ -3431,6 +3425,16 @@ public:
     return (SwigType_isenum(base) && !enumLookup(base)) ? NewString("int") : Copy(base);
   }
 
+  // Look up the 'ctype' typemap of each base type in the type for the fragments it uses, such as "stdbool_inc" for a bool.
+  void emitBaseTypeFragments(SwigType *type, Node *file_line_node) {
+    ScopedPtr base_types = adopt(NewList());
+    append_base_types(type, base_types);
+    for (Iterator i = First(base_types); i.item; i = Next(i)) {
+      ScopedPtr base_parm = adopt(NewParm(i.item, 0, file_line_node));
+      ScopedPtr base_tm = adopt(Swig_typemap_lookup("ctype", base_parm, "", 0));
+    }
+  }
+
   /* ---------------------------------------------------------------------
    * make_c_var_decl()
    *
@@ -3486,11 +3490,6 @@ public:
           ScopedPtr resolved_type = adopt(SwigType_typedef_resolve_all(type));
           if (is_member_pointer_type(resolved_type))
             return NIL;
-
-          // Final complication: define bool if it is used here.
-          if (Cmp(btype, "bool") == 0) {
-            Printv(sect_wrappers_types, "#include <stdbool.h>\n\n", NIL);
-          }
         }
         Delete(decl_type);
         decl_type = resolve_undeclared_typedefs(type);
@@ -3502,6 +3501,7 @@ public:
     SwigType *const known_enums_type = replaceBaseTypes(decl_type, &C::intForUnknownEnum);
     Delete(decl_type);
     decl_type = known_enums_type;
+    emitBaseTypeFragments(decl_type, n);
 
     if (!is_struct_member && SwigType_isarray(decl_type)) {
       SwigType_array_setdim(decl_type, 0, "");
