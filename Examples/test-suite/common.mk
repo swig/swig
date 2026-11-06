@@ -916,6 +916,7 @@ C_TEST_CASES += \
 	c99_parameter_array_declarators \
 	c99_vla_array_libraries \
 	c99_vla_typemaps \
+	cbooltest \
 	char_constant \
 	charptr_fragment \
 	command_line_define \
