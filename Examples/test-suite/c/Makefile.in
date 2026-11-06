@@ -22,6 +22,7 @@ CPP_TEST_CASES := \
     c_builtin_types \
     c_exceptions \
     c_no_namespace_globals \
+    li_std_set \
 
 CPP11_TEST_CASES := \
 
