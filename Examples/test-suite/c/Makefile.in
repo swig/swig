@@ -106,7 +106,6 @@ multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
-typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # A pointer to a volatile class.
 
 # Avoid conflict with the C++ keyword for some tests.
 SWIG_NS = $*

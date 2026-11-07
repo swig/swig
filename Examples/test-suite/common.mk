@@ -637,6 +637,7 @@ CPP_TEST_CASES += \
 	virtual_poly \
 	virtual_vs_nonvirtual_base \
 	voidtest \
+	volatile_qualifiers \
 	wallkw \
 	wrapmacro \
 

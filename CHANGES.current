@@ -8,6 +8,15 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-07: wsfulton
+            [C] Fix the C++ wrappers in the .h file not compiling for a parameter that is a volatile
+            class passed by value, or a pointer or a reference to one, such as those of:
+
+              void f(volatile Foo v, volatile Foo *p, const volatile Foo &r);
+
+            The C++ wrappers now take and return them without volatile, as 'Foo const &', 'Foo *'
+            and 'Foo const &', as the other target languages do.
+
+2026-11-07: wsfulton
             [C] Fix the C++ wrappers in the .h file not compiling for a global variable, struct
             member or parameter that is an array of pointers to an enum or an array of arrays of
             enums, such as:
