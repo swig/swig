@@ -1,5 +1,7 @@
 import ast
 
+from swig_test_utils import swig_stub_is_overload
+
 import python_pyi
 
 w = python_pyi.Widget(42)
@@ -35,8 +37,16 @@ if missing:
 for node in ast.walk(tree):
     if isinstance(node, ast.ClassDef) and node.name == "OverloadedWidget":
         for method in node.body:
-            if isinstance(method, ast.FunctionDef) and method.name == "create" and method.args.kwarg is None:
-                raise RuntimeError("python_pyi.pyi should declare OverloadedWidget.create with **kwargs")
+            if isinstance(method, ast.FunctionDef) and method.name == "create":
+                if swig_stub_is_overload(method):
+                    if method.args.kwarg is not None or method.args.vararg is not None:
+                        raise RuntimeError(
+                            "Overloads for OverloadedWidget.create should not use *args or **kwargs"
+                        )
+                elif method.args.kwarg is None:
+                    raise RuntimeError(
+                        "python_pyi.pyi should declare OverloadedWidget.create with **kwargs"
+                    )
 
 # The opaque type wrapper class is only ever generated into the .pyi file.
 classes = {node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef)}

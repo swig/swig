@@ -254,6 +254,9 @@ public:
   /* Set overload variable templates argc and argv */
   void setOverloadResolutionTemplates(String *argc, String *argv);
 
+  /* Check if the given function is static */
+  static bool isStaticFunction(Node *n);
+
   /* Language instance is a singleton - get instance */
   static Language *instance();
 
