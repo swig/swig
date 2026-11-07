@@ -8,6 +8,28 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-07: wsfulton
+            [C] When wrapping C++, fix the wrappers not compiling for an array of arrays other than
+            a two dimensional array of a builtin type, for a global variable or struct member that
+            is an array of pointers to a class and for a struct member that is an array of classes,
+            such as:
+
+              int cube[2][3][4];
+              Foo foos[2][4];
+              Foo *ptrs[3];
+              struct Holder { Foo items[2]; };
+
+            It is now passed and returned as a pointer to its first element, as other arrays are.
+
+2026-11-07: wsfulton
+            [C] When wrapping C++, fix the wrapper of a function with a parameter that is an array
+            of pointers, such as:
+
+              int count(char *strs[3]);
+
+            The wrapper freed the array passed to it, so passing an array that C code declared
+            crashed or corrupted the heap. The array is no longer freed.
+
+2026-11-07: wsfulton
             [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] #142
             Fix the wrapper not compiling for a global variable or struct member that is an array of
             three or more dimensions, such as:

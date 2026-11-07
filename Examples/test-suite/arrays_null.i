@@ -1,11 +1,8 @@
 %module arrays_null
 
 #ifdef SWIGC
-// TODO: arrays of classes, arrays of three or more dimensions and references to arrays do not compile in the C target language
-%ignore ArraysNull::items;
-%ignore ArraysNull::cube;
+// TODO: arrays of classes and references to arrays do not compile in the C target language
 %ignore arrays_null_items;
-%ignore arrays_null_cube;
 %ignore arrays_null_ints_ref;
 %ignore arrays_null_ints_ref_first;
 #endif

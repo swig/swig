@@ -3647,15 +3647,7 @@ public:
       type = tdtype;
       Setattr(n, "type", type);
     }
-    SwigType *btype = SwigType_base(type);
-    if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
-      // this hack applies to member objects array (not ptrs.)
-      SwigType_add_pointer(btype);
-      SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
-      Setattr(n, "type", btype);
-    }
     Delete(type);
-    Delete(btype);
     return Language::staticmembervariableHandler(n);
   }
 
@@ -3670,15 +3662,7 @@ public:
       type = tdtype;
       Setattr(n, "type", type);
     }
-    SwigType *btype = SwigType_base(type);
-    if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
-      // this hack applies to member objects array (not ptrs.)
-      SwigType_add_pointer(btype);
-      SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
-      Setattr(n, "type", btype);
-    }
     Delete(type);
-    Delete(btype);
     return Language::membervariableHandler(n);
   }
 

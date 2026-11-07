@@ -39,13 +39,11 @@ FAILING_C_TESTS := \
 
 FAILING_CPP_TESTS := \
     apply_signed_char \
-    array_member \
     arrays_global \
     arrays_global_twodim \
     assign_const \
     assign_reference \
     cpp_enum \
-    constant_pointers \
     enum_thorough \
     extend \
     extend_default \
@@ -59,12 +57,10 @@ FAILING_CPP_TESTS := \
     li_std_wstring \
     li_windows \
     mixed_types \
-    nested_class \
     private_assign \
     special_variable_macros \
     string_constants \
     template_enum \
-    typedef_array_member \
     typemap_namespace \
     typemap_various \
     using_extend \
@@ -113,7 +109,7 @@ multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
-typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # Arrays not supported.
+typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # A pointer to a volatile class.
 
 # Avoid conflict with the C++ keyword for some tests.
 SWIG_NS = $*
