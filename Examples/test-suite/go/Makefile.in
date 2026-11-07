@@ -184,6 +184,8 @@ clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' go_clean
 	rm -f clientdata_prop_a.go clientdata_prop_a.gox
 	rm -f clientdata_prop_b.go clientdata_prop_b.gox
+	rm -f clientdata_teardown_a.go clientdata_teardown_a.gox
+	rm -f clientdata_teardown_b.go clientdata_teardown_b.gox
 	rm -f import_share_a.go import_share_a.gox
 	rm -f import_share_b.go import_share_b.gox
 	rm -f import_share_c.go import_share_c.gox
