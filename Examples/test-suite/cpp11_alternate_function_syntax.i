@@ -2,11 +2,6 @@
    declarations and definitions introduced in C++11. */
 %module cpp11_alternate_function_syntax
 
-#ifdef SWIGC
-// SWIG/C doesn't currently support wrapping rvalue reference return types.
-%ignore SomeStruct::output(short);
-#endif
-
 %inline %{
 struct Hello {};
 

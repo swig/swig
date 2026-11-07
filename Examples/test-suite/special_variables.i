@@ -103,10 +103,6 @@ std::string declaration;
 }
 
 %rename(toInt) SpaceNamespace::ABC::operator int;
-#ifdef SWIGC
-// TODO: Fix the C target language's C++ wrapper giving a conversion operator a return type
-%feature("cxxignore") SpaceNamespace::ABC::operator int;
-#endif
 
 %allowexception SpaceNamespace::ABC::funcptrvar;
 %allowexception SpaceNamespace::ABC::stringvar;

@@ -51,6 +51,8 @@ int main() {
   check(((int (*)[3])arrays_null_arrays_null_grid_get())[1][2] == 15, "grid global set");
   arrays_null_arrays_null_cube_set(arrays_null_ArraysNull_cube_get(s));
   check(((int (*)[3][4])arrays_null_arrays_null_cube_get())[1][2][3] == 33, "cube global set");
+  arrays_null_arrays_null_items_set(items);
+  check(arrays_null_arrays_null_globals_check(10), "globals set");
 
   arrays_null_arrays_null_ints_set(NULL);
   check_null_rejected("ints global");
@@ -58,9 +60,13 @@ int main() {
   check_null_rejected("grid global");
   arrays_null_arrays_null_cube_set(NULL);
   check_null_rejected("cube global");
+  arrays_null_arrays_null_items_set(NULL);
+  check_null_rejected("items global");
+  arrays_null_arrays_null_ints_ref_set(NULL);
+  check_null_rejected("ints_ref global");
   arrays_null_arrays_null_bools_set(NULL);
   check_null_rejected("bools global");
-  check(arrays_null_arrays_null_ints_get()[3] == 13, "global set to NULL changed it");
+  check(arrays_null_arrays_null_globals_check(10), "global set to NULL changed it");
 
   check(arrays_null_arrays_null_ints_isnull(NULL), "NULL ints parameter");
   check(arrays_null_arrays_null_ints_unsized_isnull(NULL), "NULL ints unsized parameter");
@@ -76,6 +82,8 @@ int main() {
   check(arrays_null_arrays_null_strings_isnull(NULL), "NULL strings parameter");
   check(!arrays_null_arrays_null_strings_isnull(strings), "strings parameter");
   check(arrays_null_arrays_null_strings_unsized_isnull(NULL), "NULL strings unsized parameter");
+  arrays_null_arrays_null_ints_ref_first(NULL);
+  check_null_rejected("ints_ref parameter");
 
   arrays_null_ArraysNull_delete(other);
   arrays_null_ArraysNull_delete(s);
