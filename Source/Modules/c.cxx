@@ -904,6 +904,19 @@ private:
 
     ScopedPtr typestr;
     if (SwigType_isenum(base_resolved_type)) {
+      // As for a class, an array of enums is passed as a pointer to its first element, but an array of pointers to enums or an array of arrays is not supported
+      if (typeKind == Type_Ptr) {
+        ScopedPtr element_type = adopt(SwigType_strip_qualifiers(resolved_type));
+        SwigType_remove_qualifier_reference(element_type);
+        if (SwigType_isarray(element_type)) {
+          Delete(SwigType_pop(element_type));
+          if (SwigType_ispointer(element_type) || SwigType_isarray(element_type)) {
+            warn_unsupported_type(type, ptype_desc);
+            return false;
+          }
+        }
+      }
+
       String *enumname = NULL;
       if (Node *const enum_node = Language::instance()->enumLookup(base_resolved_type)) {
         // This is the name of the enum in C wrappers, it should be already set by getEnumName().

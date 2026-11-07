@@ -8,6 +8,17 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-07: wsfulton
+            [C] Fix the C++ wrappers in the .h file not compiling for a global variable, struct
+            member or parameter that is an array of pointers to an enum or an array of arrays of
+            enums, such as:
+
+              enum Finger { One, Two };
+              Finger *finger_ptrs[3];
+              Finger finger_grid[2][3];
+
+            The C++ wrappers now leave them out with warning 761, as for such arrays of a class.
+
+2026-11-07: wsfulton
             [C] When wrapping C++, fix the wrappers not compiling for an array of arrays other than
             a two dimensional array of a builtin type, for a global variable or struct member that
             is an array of pointers to a class and for a struct member that is an array of classes,
