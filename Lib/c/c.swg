@@ -176,13 +176,6 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;", 
   $1 = ($1_ltype) &temp;
 %}
 
-// The 'in' typemaps of a two dimensional array of a builtin type use the array passed, so there is nothing to free
-%define c_twodim_array_freearg(TM, T, ATTRS)
-%typemap(TM) T[ANY][ANY], const T[ANY][ANY] ""
-%enddef
-
-same_macro_all_primitive_types_but_void(c_twodim_array_freearg,freearg);
-
 // Typemaps for assigning result values to a special return variable
 same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result = *$1;")
 
