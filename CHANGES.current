@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-07: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] #142
+            Fix the wrapper not compiling for a global variable or struct member that is an array of
+            three or more dimensions, such as:
+
+              double x[2][3][4];
+
+            Setting the variable now copies all of its elements.
+
 2026-11-06: wsfulton
             [C] Fix the .h file not compiling as C before C23 for a bool used only in a global
             variable or struct member declared in the .h file when wrapping C code, such as:
