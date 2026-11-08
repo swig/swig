@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-08: wsfulton
+            The typemap search for a type with both const and volatile qualifiers now strips
+            volatile first, so a typemap for the const type is used before one for the type
+            without qualifiers. Previously both were stripped in one step. For example, a
+            parameter of type:
+
+              const volatile int &iii
+
+            used the 'int &' typemaps, which wrap it as a pointer in most target languages,
+            rather than the 'const int &' typemaps, which pass it by value. The search now
+            looks for 'int const &iii' and 'int const &' before 'int &iii' and 'int &'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-08: wsfulton
+            [C] A pointer to a const volatile builtin type, such as 'const volatile int *', is
+            now declared as 'const int *' rather than 'int *' in the C and C++ wrappers, so it
+            keeps its const.
+
 2026-11-07: wsfulton
             [C] Fix the C++ wrappers in the .h file not compiling for a parameter that is a volatile
             class passed by value, or a pointer or a reference to one, such as those of:

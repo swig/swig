@@ -21,7 +21,10 @@ int main() {
 
   // The C++ wrappers have these types without volatile
   int (*volatile_int_ptr_function)(int *) = volatile_int_ptr;
+  int (*const_volatile_int_ptr_function)(const int *) = const_volatile_int_ptr;
+  int (*const_volatile_int_ref_function)(int) = const_volatile_int_ref;
   int (*volatile_char_ptr_function)(char *) = volatile_char_ptr;
+  int (*const_volatile_char_ptr_function)(const char *) = const_volatile_char_ptr;
   int (*volatile_item_ptr_function)(Item *) = volatile_item_ptr;
   int (*const_volatile_item_ptr_function)(Item const *) = const_volatile_item_ptr;
   int (*volatile_item_ref_function)(Item &) = volatile_item_ref;
@@ -32,17 +35,17 @@ int main() {
   assert(int_ptr(&i) == 5);
   assert(const_int_ptr(&ci) == 6);
   assert(volatile_int_ptr_function(&i) == 5);
-  assert(const_volatile_int_ptr(&i) == 5);
+  assert(const_volatile_int_ptr_function(&ci) == 6);
   assert(int_volatile_ptr(&i) == 5);
   assert(volatile_int_value(i) == 5);
   assert(const_volatile_int_value(ci) == 6);
   assert(volatile_int_ref(&i) == 5);
-  assert(const_volatile_int_ref(&i) == 5);
+  assert(const_volatile_int_ref_function(ci) == 6);
 
   assert(char_ptr(s) == 4);
   assert(const_char_ptr("three") == 5);
   assert(volatile_char_ptr_function(s) == 4);
-  assert(const_volatile_char_ptr(s) == 4);
+  assert(const_volatile_char_ptr_function("three") == 5);
   assert(char_volatile_ptr(s) == 4);
 
   assert(item_ptr(&item) == 7);

@@ -10,7 +10,7 @@ swig_check(int_volatile_ptr(p), 50)
 swig_check(volatile_int_value(5), 5)
 swig_check(const_volatile_int_value(6), 6)
 swig_check(volatile_int_ref(p), 50)
-swig_check(const_volatile_int_ref(p), 50)
+swig_check(const_volatile_int_ref(6), 6)
 
 swig_check(char_ptr("four"), 4)
 swig_check(const_char_ptr("three"), 5)

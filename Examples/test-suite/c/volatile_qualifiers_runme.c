@@ -7,23 +7,24 @@ int main(void) {
   int i = 5;
   const int ci = 6;
   char s[] = "four";
+  const char *cs = "three";
   volatile_qualifiers_Item *item = volatile_qualifiers_Item_new(7);
   volatile_qualifiers_Members *m = volatile_qualifiers_Members_new();
 
   assert(volatile_qualifiers_int_ptr(&i) == 5);
   assert(volatile_qualifiers_const_int_ptr(&ci) == 6);
   assert(volatile_qualifiers_volatile_int_ptr(&i) == 5);
-  assert(volatile_qualifiers_const_volatile_int_ptr(&i) == 5);
+  assert(volatile_qualifiers_const_volatile_int_ptr(&ci) == 6);
   assert(volatile_qualifiers_int_volatile_ptr(&i) == 5);
   assert(volatile_qualifiers_volatile_int_value(i) == 5);
   assert(volatile_qualifiers_const_volatile_int_value(ci) == 6);
   assert(volatile_qualifiers_volatile_int_ref(&i) == 5);
-  assert(volatile_qualifiers_const_volatile_int_ref(&i) == 5);
+  assert(volatile_qualifiers_const_volatile_int_ref(ci) == 6);
 
   assert(volatile_qualifiers_char_ptr(s) == 4);
   assert(volatile_qualifiers_const_char_ptr("three") == 5);
   assert(volatile_qualifiers_volatile_char_ptr(s) == 4);
-  assert(volatile_qualifiers_const_volatile_char_ptr(s) == 4);
+  assert(volatile_qualifiers_const_volatile_char_ptr(cs) == 5);
   assert(volatile_qualifiers_char_volatile_ptr(s) == 4);
 
   assert(volatile_qualifiers_item_ptr(item) == 7);

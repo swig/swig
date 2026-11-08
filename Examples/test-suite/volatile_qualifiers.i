@@ -99,3 +99,21 @@ const volatile int Members::static_const_volatile_int = 40;
 char *volatile Members::static_char_volatile_ptr = 0;
 Item *volatile Members::static_item_volatile_ptr = 0;
 %}
+
+// A const volatile type uses a typemap for its const type before one for its type without qualifiers
+%typemap(check) int &iii, int *ppp, char *sss, Item &item_ref, Item *item_ptr, const int &vvv %{
+#error Incorrect typemap for $symname: $type
+%}
+%typemap(check) const int &iii, const int *ppp, const char *sss, const Item &item_ref, const Item *item_ptr, int &vvv, int &uuu %{
+/* Correct typemap for $symname: $type */
+%}
+
+%inline %{
+void volly_ref(const volatile int &iii) {}
+void volly_ptr(const volatile int *ppp) {}
+void volly_string(const volatile char *sss) {}
+void volly_item_ref(const volatile Item &item_ref) {}
+void volly_item_ptr(const volatile Item *item_ptr) {}
+void volly_volatile_ref(volatile int &vvv) {}
+void volly_unqualified_ref(const volatile int &uuu) {}
+%}

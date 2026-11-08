@@ -30,7 +30,7 @@ public class volatile_qualifiers_runme {
     check(volatile_qualifiers.volatile_int_value(5), 5);
     check(volatile_qualifiers.const_volatile_int_value(6), 6);
     check(volatile_qualifiers.volatile_int_ref(p), 50);
-    check(volatile_qualifiers.const_volatile_int_ref(p), 50);
+    check(volatile_qualifiers.const_volatile_int_ref(6), 6);
 
     check(volatile_qualifiers.char_ptr("four"), 4);
     check(volatile_qualifiers.const_char_ptr("three"), 5);
