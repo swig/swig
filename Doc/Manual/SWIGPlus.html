@@ -6168,6 +6168,12 @@ using another tool if maintaining constness is the most important part
 of your project.
 </p>
 
+<p>
+The <tt>volatile</tt> qualifier is ignored in the same way. A pointer or reference to a <tt>volatile</tt> object is
+passed and returned as if it were not <tt>volatile</tt> and the wrappers only cast it to its <tt>volatile</tt> type
+when calling the wrapped function.
+</p>
+
 <H2><a name="SWIGPlus_target_language_callbacks">6.29 Callbacks to the target language</a></H2>
 
 
