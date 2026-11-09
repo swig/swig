@@ -1942,7 +1942,7 @@ public:
     Delete(classname);
 
     // Stash for later.
-    Setattr(n, "director:ctor", NewString("Swig::Director()"));
+    Setattr(n, "director:ctor", "Swig::Director()");
 
     // Keep track of the director methods for this class.
     first_class_dmethod = curr_class_dmethod = n_dmethods;
@@ -2739,14 +2739,14 @@ private:
     for (i = 0, p = l; p; i++) {
       // Ignored varargs.
       if (checkAttribute(p, "varargs:ignore", "1")) {
-        Setattr(p, "d:type", NewString(""));
+        Setattr(p, "d:type", "");
         p = nextSibling(p);
         continue;
       }
 
       // Ignored parameters.
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        Setattr(p, "d:type", NewString(""));
+        Setattr(p, "d:type", "");
         p = Getattr(p, "tmap:in:next");
         continue;
       }
@@ -2805,7 +2805,7 @@ private:
               int ln = Len(package);
               /* If proxy_type uses the package name, it must be larger */
               if (Len(proxy_type) > ln && Strncmp(package, proxy_type, ln) == 0) {
-                Setattr(p, "d:type", NewString(Char(proxy_type) + ln));
+                Setattr(p, "d:type", Char(proxy_type) + ln);
               } else {
                 Setattr(p, "d:type", Copy(proxy_type));
               }
@@ -4797,8 +4797,8 @@ private:
     Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
     if (!hash) {
       hash = NewHash();
-      Setattr(hash, "code", NewString(""));
-      Setattr(hash, "imports", NewString(""));
+      Setattr(hash, "code", "");
+      Setattr(hash, "imports", "");
       Setattr(nspace_proxy_dmodules, nspace, hash);
     }
     return Getattr(hash, "code");
@@ -4818,8 +4818,8 @@ private:
     Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
     if (!hash) {
       hash = NewHash();
-      Setattr(hash, "code", NewString(""));
-      Setattr(hash, "imports", NewString(""));
+      Setattr(hash, "code", "");
+      Setattr(hash, "imports", "");
       Setattr(nspace_proxy_dmodules, nspace, hash);
     }
     return Getattr(hash, "imports");

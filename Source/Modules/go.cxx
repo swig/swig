@@ -1014,7 +1014,7 @@ private:
     }
 
     if (class_methods) {
-      Setattr(class_methods, Getattr(n, "name"), NewString(""));
+      Setattr(class_methods, Getattr(n, "name"), "");
     }
 
     return ret;
@@ -1976,7 +1976,7 @@ private:
     Node *parent = parentNode(n);
 
     if (Getattr(parent, "unnamed")) {
-      Setattr(n, "type", NewString("int"));
+      Setattr(n, "type", "int");
     } else {
       Setattr(n, "type", Getattr(parent, "enumtype"));
     }
@@ -2169,7 +2169,7 @@ private:
           cname = Getattr(ni, "name");
         }
         if (cname) {
-          Setattr(local, cname, NewString(""));
+          Setattr(local, cname, "");
         }
       }
 
@@ -2307,7 +2307,7 @@ private:
     if (Getattr(local, lname)) {
       return SWIG_OK;
     }
-    Setattr(local, lname, NewString(""));
+    Setattr(local, lname, "");
 
     String *ty = NewString(Getattr(entry, "type"));
     SwigType_push(ty, Getattr(entry, "decl"));
@@ -2567,7 +2567,7 @@ private:
 
       Printv(interfaces, "\tSwigGet", go_base_name, "() ", go_base_type, "\n", NULL);
 
-      Setattr(parents, go_base_name, NewString(""));
+      Setattr(parents, go_base_name, "");
 
       Delete(go_name);
       Delete(go_type_name);
@@ -2634,7 +2634,7 @@ private:
 
       Swig_restore(n);
 
-      Setattr(parents, go_base_name, NewString(""));
+      Setattr(parents, go_base_name, "");
 
       Delete(go_name);
       Delete(type);
@@ -2706,7 +2706,7 @@ private:
 
         addParentExtraBaseInterfaces(n, parents, b.item, false, sf);
 
-        Setattr(parents, go_base_name, NewString(""));
+        Setattr(parents, go_base_name, "");
       }
     }
 
@@ -3263,7 +3263,7 @@ private:
         Delete(cn);
       }
     }
-    Setattr(class_methods, name, NewString(""));
+    Setattr(class_methods, name, "");
 
     return SWIG_OK;
   }

@@ -1763,10 +1763,11 @@ SwigType *SwigType_strip_single_qualifier(const SwigType *t) {
       String *subtype = Getitem(l, item);
       if (SwigType_isqualifier(subtype)) {
         Iterator it;
-        int const_volatile = Equal(subtype, "q(const volatile).");
-        Delitem(l, item);
-        if (const_volatile)
-          Insert(l, item, "q(const).");
+        if (Equal(subtype, "q(const volatile).")) {
+          Setitem(l, item, "q(const).");
+        } else {
+          Delitem(l, item);
+        }
         r = NewStringEmpty();
         for (it = First(l); it.item; it = Next(it)) {
           Append(r, it.item);

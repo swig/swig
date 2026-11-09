@@ -167,7 +167,7 @@ DoxygenParser::DoxyCommandEnum DoxygenParser::commandBelongs(const std::string &
     // Also ensure that the matching end command, if any, will be recognized.
     const string endCommand = getIgnoreFeatureEndCommand(theCommand);
     if (!endCommand.empty()) {
-      Setattr(m_node, ("feature:doxygen:ignore:" + endCommand).c_str(), NewString("1"));
+      Setattr(m_node, ("feature:doxygen:ignore:" + endCommand).c_str(), "1");
     }
 
     return COMMAND_IGNORE;

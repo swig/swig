@@ -2603,7 +2603,7 @@ List *PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribut
     }
     // Treat `?foo` just like `foo|null`.
     Append(types, "null");
-    Setitem(types, 0, NewString(Char(first_type) + 1));
+    Setitem(types, 0, Char(first_type) + 1);
   }
 
   SortList(types, NULL);

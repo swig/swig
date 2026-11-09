@@ -396,25 +396,25 @@ SwigType *SwigType_default_create(const SwigType *ty) {
     if (numitems >= 1) {
       String *last_subtype = Getitem(l, numitems - 1);
       if (SwigType_isenum(last_subtype))
-        Setitem(l, numitems - 1, NewString("enum SWIGTYPE"));
+        Setitem(l, numitems - 1, "enum SWIGTYPE");
       else
-        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, "SWIGTYPE");
     }
 
     for (it = First(l); it.item; it = Next(it)) {
       String *subtype = it.item;
       if (SwigType_isarray(subtype)) {
         if (Equal(subtype, "a()."))
-          Append(r, NewString("a()."));
+          Append(r, "a().");
         else
-          Append(r, NewString("a(ANY)."));
+          Append(r, "a(ANY).");
       } else if (SwigType_isqualifier(subtype) && SwigType_isfunction(Next(it).item)) {
         /* Drop the qualifiers of a function type, which f(ANY) matches whatever they are */
       } else if (SwigType_isfunction(subtype)) {
-        Append(r, NewString("f(ANY).SWIGTYPE"));
+        Append(r, "f(ANY).SWIGTYPE");
         break;
       } else if (SwigType_ismemberpointer(subtype)) {
-        Append(r, NewString("m(CLASS).SWIGTYPE"));
+        Append(r, "m(CLASS).SWIGTYPE");
         break;
       } else {
         Append(r, subtype);
@@ -480,14 +480,14 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
       if (SwigType_isarray(subtype)) {
         if (is_enum) {
           /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-          Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+          Setitem(l, numitems - 1, "SWIGTYPE");
         } else {
           /* array deduction, a(ANY). => a(). => p. */
-          String *deduced_subtype = 0;
+          const char *deduced_subtype = 0;
           if (Strcmp(subtype, "a().") == 0) {
-            deduced_subtype = NewString("p.");
+            deduced_subtype = "p.";
           } else if (Strcmp(subtype, "a(ANY).") == 0) {
-            deduced_subtype = NewString("a().");
+            deduced_subtype = "a().";
           } else {
             assert(0);
           }
@@ -495,10 +495,10 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
         }
       } else if (SwigType_ismemberpointer(subtype)) {
         /* member pointer deduction, m(CLASS). => p. */
-        Setitem(l, numitems - 2, NewString("p."));
+        Setitem(l, numitems - 2, "p.");
       } else if (is_enum && !SwigType_isqualifier(subtype)) {
         /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, "SWIGTYPE");
       } else {
         /* simple type deduction, eg, r.p.p. => r.p. */
         /* also function pointers eg, p.f(ANY). => p. */
@@ -507,7 +507,7 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
     } else {
       if (is_enum) {
         /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, "SWIGTYPE");
       } else {
         /* delete the only item, we are done with deduction */
         Delitem(l, 0);
