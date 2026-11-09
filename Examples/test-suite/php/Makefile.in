@@ -114,6 +114,7 @@ clean:
 	rm -f php_import_callback_x.h php_import_callback_y.h
 	rm -f import_share_a.php import_share_b.php import_share_c.php php_import_share_a.h php_import_share_b.h php_import_share_c.h
 	rm -f import_stl_a.php import_stl_b.php import_stl_c.php php_import_stl_a.h php_import_stl_b.h php_import_stl_c.h
+	rm -f import_vector_fwd_a.php import_vector_fwd_b.php php_import_vector_fwd_a.h php_import_vector_fwd_b.h
 	rm -f imports_a.php imports_b.php php_imports_a.h php_imports_b.h
 	rm -f mod_a.php mod_b.php php_mod_a.h php_mod_b.h
 	rm -f multi_import_a.php multi_import_b.php multi_import_d.php php_multi_import_a.h php_multi_import_b.h php_multi_import_d.h
