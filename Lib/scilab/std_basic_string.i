@@ -3,9 +3,12 @@
  * Scilab: string
  */
 
+#if !defined(SWIG_STD_STRING)
+#define SWIG_STD_BASIC_STRING
+
 #define %swig_basic_string(Type...)  %swig_sequence_methods_val(Type)
 
-%fragment(SWIG_AsPtr_frag(std::basic_string<char>), "header", fragment="SWIG_SciString_AsCharPtrAndLength") {
+%fragment(SWIG_AsPtr_frag(std::basic_string<char>), "header", fragment="SWIG_SciString_AsCharPtrAndSize") {
 SWIGINTERN int
 SWIG_AsPtr_dec(std::basic_string<char>)(int _iVar, std::basic_string<char> **_pstValue) {
   char* buf = 0;
@@ -40,6 +43,16 @@ SWIG_From_dec(std::basic_string<char>)(std::basic_string<char> _pstValue) {
 }
 }
 
-%include <std/std_basic_string.i>
+%ignore std::basic_string::operator +=;
+%ignore std::basic_string::operator ==;
+%ignore std::basic_string::operator !=;
+%ignore std::basic_string::operator <;
+%ignore std::basic_string::operator >;
+%ignore std::basic_string::operator <=;
+%ignore std::basic_string::operator >=;
 
+%include <std/std_basic_string.i>
+%typemaps_asptrfromn(%checkcode(STRING), std::basic_string<char>);
+
+#endif
 
