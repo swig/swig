@@ -7,6 +7,14 @@
 
 #if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && !defined __STDC_NO_COMPLEX__
 #define HAS_C99_COMPLEX_FOR_TESTING 1
+#elif defined __cplusplus
+#define HAS_C99_COMPLEX_FOR_TESTING 1
+/*
+ * JavaScript may use C++.
+ * We need to explicitly declare the C complex functions we use!
+ * creal() and cimag() are used and declared in the ccomplex.i interface!
+ */
+extern "C" {double _Complex conj(double _Complex);float _Complex conjf(float _Complex);}
 #else
 /* c99 complex not supported - super hack tests to just test plain floating point numbers */
 /* some pre c99 compilers (gcc-4.x) don't define _Complex but do define complex */

@@ -5,7 +5,8 @@
 %include <javascriptcomplex.swg>
 
 %{
-#include <complex> 
+#include <complex>
+#include <cfloat>
 %}
 
 namespace std {

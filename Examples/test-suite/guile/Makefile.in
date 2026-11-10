@@ -26,6 +26,9 @@ C_TEST_CASES = guile_list_vector \
 	       multivalue \
 	       pointer_in_out \
 
+CPP_TEST_CASES := \
+	complextest \
+	li_std_complex \
 
 include $(srcdir)/../common.mk
 

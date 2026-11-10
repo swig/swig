@@ -37,6 +37,7 @@ CPP_TEST_CASES = \
 	exception_partial_info \
 	intermediary_classname \
 	li_boost_intrusive_ptr \
+	li_std_complex \
 	li_std_list \
 
 
@@ -58,6 +59,7 @@ SWIGOPT += -Werror
 
 # Custom tests - tests with additional commandline options
 complextest.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
+li_std_complex.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_lib_arrays_bool.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP

@@ -38,30 +38,32 @@ SWIG_From_dec(Type)(Type c)
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 {
+  int res;
   SWIGV8_HANDLESCOPE();
-  
+
   if (o->IsArray()) {
     SWIGV8_ARRAY array = SWIGV8_ARRAY::Cast(o);
-    
-    if (array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
+
+    if (array->Length() != 2)
+      SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
-    int res;
 
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 0), &re);
     if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
+
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 1), &im);
     if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
-    if (val) *val = Constructor(re, im);
+
+    if (val != NULL)
+      *val = Constructor(re, im);
     return SWIG_OK;
   } else if (o->IsNumber()) {
     double d;
-    int res = SWIG_AddCast(SWIG_AsVal(double)(o, &d));
+    res = SWIG_AddCast(SWIG_AsVal(double)(o, &d));
     if (SWIG_IsOK(res)) {
       if (val) *val = Constructor(d, 0.0);
       return res;
@@ -80,37 +82,39 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 {
+  int res;
   SWIGV8_HANDLESCOPE();
 
   if (o->IsArray()) {
     SWIGV8_ARRAY array = SWIGV8_ARRAY::Cast(o);
-    
-    if (array->Length() != 2) SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
+
+    if (array->Length() != 2)
+      SWIG_Error(SWIG_TypeError, "Illegal argument for complex: must be array[2].");
     double re, im;
-    int res;
 
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 0), &re);
     if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
+
     res = SWIG_AsVal(double)(SWIGV8_ARRAY_GET(array, 1), &im);
     if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
-    if ((-FLT_MAX <= re && re <= FLT_MAX) && (-FLT_MAX <= im && im <= FLT_MAX)) {
-      if (val) *val = Constructor(%numeric_cast(re, float),
-                                  %numeric_cast(im, float));
-      return SWIG_OK;
-    } else {
+
+    if (-FLT_MAX > re || re > FLT_MAX || -FLT_MAX > im || im > FLT_MAX)
       return SWIG_OverflowError;
-    }    
+
+    if (val != NULL)
+      *val = Constructor(%numeric_cast(re, float),
+                         %numeric_cast(im, float));
+    return SWIG_OK;
   } else if (o->IsNumber()) {
     float re;
-    int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
+    res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
     if (SWIG_IsOK(res)) {
-      if (val) *val = Constructor(re, 0.0);
+      if (val != NULL)
+        *val = Constructor(%numeric_cast(re, float), 0);
       return res;
     }
   }
@@ -122,7 +126,6 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 
 #define %swig_cplxflt_convn(Type, Constructor, Real, Imag) \
 %swig_cplxflt_conv(Type, Constructor, Real, Imag)
-
 
 #define %swig_cplxdbl_convn(Type, Constructor, Real, Imag) \
 %swig_cplxdbl_conv(Type, Constructor, Real, Imag)
