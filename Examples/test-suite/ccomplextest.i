@@ -5,7 +5,15 @@
 %{
 #include <complex.h>
 
-#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && !defined __STDC_NO_COMPLEX__
+#ifdef __cplusplus
+#define HAS_C99_COMPLEX_FOR_TESTING 1
+/*
+ * JavaScript Node.js always use C++,
+ * We need to explicitly declare the C complex function we use!
+ * creal() and cimag() are declared in the ccomplex.i interface!
+ */
+extern "C" {double _Complex conj(double _Complex);float _Complex conjf(float _Complex);}
+#elif defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && !defined __STDC_NO_COMPLEX__
 #define HAS_C99_COMPLEX_FOR_TESTING 1
 #else
 /* c99 complex not supported - super hack tests to just test plain floating point numbers */

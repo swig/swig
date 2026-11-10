@@ -14,11 +14,11 @@ if (a_c.toString() != expected.toString())
 
 a_c = complextest.Conj2(a);
 if (a_c.toString() != expected.toString())
-  throw "Error in Conj(a)";
+  throw "Error in Conj2(a)";
 
 a_c = complextest.Conjf2(a);
 if (a_c.toString() != expected.toString())
-    throw "Error in Conjf(a)";
+    throw "Error in Conjf2(a)";
 
 v = new complextest.VectorStdCplx();
 v.add([1,2]);
