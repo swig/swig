@@ -33,24 +33,6 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr_decltype;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_address_decltype;
 
-#if defined(SWIGC)
-// TODO: Fix the experimental C backend emitting 'int (*)(int)*' for a function pointer.
-%ignore call_fn;
-%ignore fn_ptr;
-%ignore paren_fn_ptr;
-// TODO: Fix the experimental C backend emitting 'int [4]*' for an array variable and 'int (*)[4]*'
-// for a pointer to an array.
-%ignore array_ref;
-%ignore ref_string;
-%ignore fwd_string;
-%ignore cref_string;
-%ignore cref_post_string;
-%ignore ref_string_wide;
-%ignore first_element;
-%ignore int_array_address;
-%ignore other_array_address;
-#endif
-
 %inline %{
 int global_int = 11;
 int *global_ptr = &global_int;

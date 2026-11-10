@@ -194,15 +194,13 @@
 }
 
 
-/* memberin/globalin/varin, for fix double arrays. */
+/* memberin/globalin/varin, for fix arrays of arrays.  These also match an array of three or more dimensions, such as an
+   int [2][3][4], so all $1_size elements are copied, not the elements of the first two dimensions, which are arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$1_dim0; ++ii) {
-      size_t jj = 0;
-      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
-    }
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
   } else {
     %variable_nullref("$type","$name");
   }
@@ -211,26 +209,20 @@
 %typemap(globalin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$1_dim0; ++ii) {
-      size_t jj = 0;
-      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
-    }
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
   } else {
     %variable_nullref("$type","$name");
   }
 }
 
 %typemap(varin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$1_dim1] = 0;
+  $basetype *inp = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < (size_t)$1_dim0; ++ii) {
-      size_t jj = 0;
-      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = inp[ii][jj];
-    }
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)inp + ii);
   } else {
     %variable_nullref("$type", "$name");
   }

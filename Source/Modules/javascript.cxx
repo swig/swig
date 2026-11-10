@@ -1915,8 +1915,8 @@ int JSCEmitter::exitClass(Node *n) {
 
 Hash *JSCEmitter::createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled) {
   Hash *entry = JSEmitter::createNamespaceEntry(name, parent, parent_mangled);
-  Setattr(entry, "functions", NewString(""));
-  Setattr(entry, "values", NewString(""));
+  Setattr(entry, "functions", "");
+  Setattr(entry, "values", "");
   return entry;
 }
 

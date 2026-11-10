@@ -20,16 +20,18 @@ arrays_null_fill(other, 10);
 ArraysNull_ints_set(s, ArraysNull_ints_get(other));
 ArraysNull_items_set(s, ArraysNull_items_get(other));
 ArraysNull_grid_set(s, ArraysNull_grid_get(other));
+ArraysNull_cube_set(s, ArraysNull_cube_get(other));
 checkequal(arrays_null_check(s, 10), 1, "arrays_null_check() after member set");
 
 arrays_null_ints_set(ArraysNull_ints_get(s));
 arrays_null_items_set(ArraysNull_items_get(s));
 arrays_null_grid_set(ArraysNull_grid_get(s));
+arrays_null_cube_set(ArraysNull_cube_get(s));
 checkequal(arrays_null_globals_check(10), 1, "arrays_null_globals_check() after global set");
 
 // NULL, an empty matrix for an array of numbers, is rejected, as is NULL for a reference to an array
-null_calls = ["ArraysNull_ints_set(s, [])", "ArraysNull_items_set(s, NULL)", "ArraysNull_grid_set(s, NULL)", ..
-              "arrays_null_ints_set([])", "arrays_null_items_set(NULL)", "arrays_null_grid_set(NULL)", ..
+null_calls = ["ArraysNull_ints_set(s, [])", "ArraysNull_items_set(s, NULL)", "ArraysNull_grid_set(s, NULL)", "ArraysNull_cube_set(s, NULL)", ..
+              "arrays_null_ints_set([])", "arrays_null_items_set(NULL)", "arrays_null_grid_set(NULL)", "arrays_null_cube_set(NULL)", ..
               "arrays_null_ints_ref_set(NULL)", "arrays_null_ints_ref_first(NULL)"];
 for i = 1:size(null_calls, "*")
   ierr = execstr(null_calls(i), "errcatch");

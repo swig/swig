@@ -176,49 +176,6 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;", 
   $1 = ($1_ltype) &temp;
 %}
 
-%typemap(in) SWIGTYPE *[ANY] {
-  if ($input) {
-    $1 = ($1_ltype) malloc($1_dim0 * sizeof($1_basetype));
-    size_t i = 0;
-    for ( ; i < $1_dim0; ++i)
-      if ($input[i])
-        $1[i] = ($*1_ltype) $input[i];
-      else
-        $1[i] = ($*1_ltype) 0;
-  }
-  else
-    $1 = ($1_ltype) 0;
-}
-
-%typemap(in) SWIGTYPE [ANY][ANY] {
-  if ($input) {
-    $1 = ($1_ltype) malloc($1_dim0 * $1_dim1 * sizeof($1_basetype));
-    size_t i = 0, j = 0;
-    for ( ; i < $1_dim0; ++i) {
-      for ( ; j < $1_dim1; ++j) {
-        if ($input[i][j])
-          $1[i][j] = * ($*1_ltype) $input[i][j];
-        else
-          $1[i][j] = * ($*1_ltype) 0;
-      }
-    }
-  }
-  else
-    $1 = ($1_ltype) 0;
-}
-
-%typemap(freearg) SWIGTYPE * [ANY], SWIGTYPE * [ANY][ANY] {
-  if ($input)
-    free($input);
-}
-
-// The 'in' typemaps of a two dimensional array of a builtin type use the array passed, so there is nothing to free
-%define c_twodim_array_freearg(TM, T, ATTRS)
-%typemap(TM) T[ANY][ANY], const T[ANY][ANY] ""
-%enddef
-
-same_macro_all_primitive_types_but_void(c_twodim_array_freearg,freearg);
-
 // Typemaps for assigning result values to a special return variable
 same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result = *$1;")
 
@@ -231,29 +188,6 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result
 
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && "$result = (SwigObj*) $1;"
 %typemap(out) SWIGTYPE *const & "$result = (SwigObj*) *$1;"
-
-%typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
-  static SwigObj **_temp = 0;
-  if ($1) {
-    size_t i = 0;
-    if (_temp) {
-        for ( ; i < $1_dim0; ++i)
-          delete ($1_ltype *)_temp[i];
-        free(_temp);
-    }
-    _temp = (SwigObj**) malloc($1_dim0 * sizeof(SwigObj*));
-    for (i = 0 ; i < $1_dim0; ++i) {
-      if ($1[i]) {
-        _temp[i] = $1[i];
-      }
-      else
-        _temp[i] = (SwigObj*) 0;
-    }
-    $result = ($1_ltype) _temp;
-  }
-  else
-    $result = ($1_ltype) 0;
-}
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions
  * that cannot be overloaded in the wrappers as more than one C++ type maps to a single C type */

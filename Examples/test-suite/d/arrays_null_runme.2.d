@@ -11,21 +11,25 @@ void main() {
   s.ints = other.ints;
   s.items = other.items;
   s.grid = other.grid;
+  s.cube = other.cube;
   enforce(arrays_null_check(s, 10) == 1, "Test member set failed");
 
   enforce(collectException(s.ints = null) !is null, "Test ints member set to null failed");
   enforce(collectException(s.items = null) !is null, "Test items member set to null failed");
   enforce(collectException(s.grid = null) !is null, "Test grid member set to null failed");
+  enforce(collectException(s.cube = null) !is null, "Test cube member set to null failed");
   enforce(arrays_null_check(s, 10) == 1, "Test member set to null changed it");
 
   arrays_null_ints = s.ints;
   arrays_null_items = s.items;
   arrays_null_grid = s.grid;
+  arrays_null_cube = s.cube;
   enforce(arrays_null_globals_check(10) == 1, "Test global set failed");
 
   enforce(collectException(arrays_null_ints = null) !is null, "Test ints global set to null failed");
   enforce(collectException(arrays_null_items = null) !is null, "Test items global set to null failed");
   enforce(collectException(arrays_null_grid = null) !is null, "Test grid global set to null failed");
+  enforce(collectException(arrays_null_cube = null) !is null, "Test cube global set to null failed");
   enforce(collectException(arrays_null_ints_ref = null) !is null, "Test ints_ref global set to null failed");
   enforce(collectException(arrays_null_bools = null) !is null, "Test bools global set to null failed");
   enforce(arrays_null_globals_check(10) == 1, "Test global set to null changed it");

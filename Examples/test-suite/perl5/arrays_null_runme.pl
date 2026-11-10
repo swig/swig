@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 27;
+use Test::More tests => 29;
 BEGIN { use_ok('arrays_null') }
 require_ok('arrays_null');
 
@@ -10,6 +10,7 @@ arrays_null::arrays_null_fill($other, 10);
 $s->{ints} = $other->{ints};
 $s->{items} = $other->{items};
 $s->{grid} = $other->{grid};
+$s->{cube} = $other->{cube};
 is(arrays_null::arrays_null_check($s, 10), 1, "member set");
 
 # Setting an array member or global variable to undef is an error, as there is nothing to copy from.
@@ -19,12 +20,15 @@ eval { $s->{items} = undef };
 like($@, qr/invalid null reference/, "items member set to undef");
 eval { $s->{grid} = undef };
 like($@, qr/invalid null reference/, "grid member set to undef");
+eval { $s->{cube} = undef };
+like($@, qr/invalid null reference/, "cube member set to undef");
 is(arrays_null::arrays_null_check($s, 10), 1, "member set to undef unchanged");
 
 $arrays_null::arrays_null_ints = $s->{ints};
 # A global array of a class is an unlinked tied hash in the proxy module, so it is set through the low level module.
 $arrays_nullc::arrays_null_items = $s->{items};
 $arrays_null::arrays_null_grid = $s->{grid};
+$arrays_null::arrays_null_cube = $s->{cube};
 is(arrays_null::arrays_null_globals_check(10), 1, "global set");
 
 eval { $arrays_null::arrays_null_ints = undef };
@@ -33,6 +37,8 @@ eval { $arrays_nullc::arrays_null_items = undef };
 like($@, qr/invalid null reference/, "items global set to undef");
 eval { $arrays_null::arrays_null_grid = undef };
 like($@, qr/invalid null reference/, "grid global set to undef");
+eval { $arrays_null::arrays_null_cube = undef };
+like($@, qr/invalid null reference/, "cube global set to undef");
 eval { $arrays_null::arrays_null_ints_ref = undef };
 like($@, qr/invalid null reference/, "ints_ref global set to undef");
 eval { $arrays_null::arrays_null_bools = undef };

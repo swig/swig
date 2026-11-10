@@ -1095,6 +1095,29 @@ typedef Hash   Typetab;
 </pre>
 </div>
 
+<p>
+All of these objects are reference counted. A function that creates an object, such as <tt>NewString()</tt>,
+<tt>NewHash()</tt>, <tt>NewList()</tt> or <tt>Copy()</tt>, returns it with a reference count of 1, which the
+caller releases with <tt>Delete()</tt>. <tt>Delete()</tt> decreases the reference count and destroys the object
+when the count reaches zero. A list or a hash increases the reference count of an object stored in it and
+decreases it when the object is removed or replaced or the list or hash is destroyed. So the caller still
+releases its own reference after storing an object:
+</p>
+
+<div class="code">
+<pre>
+String *s = NewString("value");
+Setattr(h, "key", s);      /* The reference count of s is now 2 */
+Delete(s);                 /* The reference count of s is now 1, held by h */
+</pre>
+</div>
+
+<p>
+A <tt>char *</tt> stored in a list or a hash is used to create a <tt>String</tt> that the list or hash owns.
+An object returned by a list or a hash, such as by <tt>Getattr()</tt>, <tt>Getitem()</tt> or an iterator,
+is owned by the list or hash and is not deleted by the caller.
+</p>
+
 <H3><a name="Extending_nn15">42.5.1 Strings</a></H3>
 
 
@@ -1131,7 +1154,7 @@ Make a copy of the string <tt>s</tt>.
 </p>
 
 <div class="indent">
-Deletes <tt>s</tt>.
+Decreases the reference count of <tt>s</tt> and destroys it when the count reaches zero.
 </div>
 
 <p>
@@ -1257,7 +1280,7 @@ Creates a new empty hash table.
 </p>
 
 <div class="indent">
-Make a shallow copy of the hash <tt>h</tt>.
+Make a shallow copy of the hash <tt>h</tt>, which increases the reference count of each key and value of <tt>h</tt>.
 </div>
 
 <p>
@@ -1265,7 +1288,8 @@ Make a shallow copy of the hash <tt>h</tt>.
 </p>
 
 <div class="indent">
-Deletes <tt>h</tt>.
+Decreases the reference count of <tt>h</tt>. When the count reaches zero, <tt>h</tt> is destroyed and the
+reference count of each of its keys and values is decreased.
 </div>
 
 <p>
@@ -1283,6 +1307,7 @@ Returns the number of items in <tt>h</tt>.
 <div class="indent">
 Gets an object from <tt>h</tt>.  <tt>key</tt> may be a string or
 a simple <tt>char *</tt> string.   Returns NULL if not found.
+The object returned is owned by <tt>h</tt>.
 </div>
 
 <p>
@@ -1294,9 +1319,9 @@ Stores <tt>val</tt> in <tt>h</tt>. <tt>key</tt> may be a string or
 a simple <tt>char *</tt>. If <tt>val</tt> is not a standard
 object (String, Hash, or List) it is assumed to be a <tt>char *</tt> in which
 case it is used to construct a <tt>String</tt> that is stored in the hash.
-If <tt>val</tt> is NULL, the object is deleted. Increases the reference count
-of <tt>val</tt>.   Returns 1 if this operation replaced an existing hash entry,
-0 otherwise.
+If <tt>val</tt> is NULL, the entry for <tt>key</tt> is deleted, as by <tt>Delattr()</tt>.
+Increases the reference count of <tt>val</tt> and decreases that of the value it replaces, if any.
+Returns 1 if this operation replaced an existing hash entry, 0 otherwise.
 </div>
 
 <p>
@@ -1314,7 +1339,7 @@ if an object was removed, 0 otherwise.
 </p>
 
 <div class="indent">
-Returns the list of hash table keys.
+Returns a new list of the hash table keys.
 </div>
 
 <p>
@@ -1322,7 +1347,7 @@ Returns the list of hash table keys.
 </p>
 
 <div class="indent">
-Returns the list of sorted hash table keys.
+Returns a new list of the hash table keys, sorted using <tt>cmp</tt>.
 </div>
 
 
@@ -1342,7 +1367,7 @@ Creates a new empty list.
 </p>
 
 <div class="indent">
-Make a shallow copy of the List <tt>x</tt>.
+Make a shallow copy of the List <tt>x</tt>, which increases the reference count of each item of <tt>x</tt>.
 </div>
 
 <p>
@@ -1350,7 +1375,8 @@ Make a shallow copy of the List <tt>x</tt>.
 </p>
 
 <div class="indent">
-Deletes <tt>x</tt>.
+Decreases the reference count of <tt>x</tt>. When the count reaches zero, <tt>x</tt> is destroyed and the
+reference count of each of its items is decreased.
 </div>
 
 <p>
@@ -1366,31 +1392,35 @@ Returns the number of items in <tt>x</tt>.
 </p>
 
 <div class="indent">
-Returns an object from <tt>x</tt> with index <tt>n</tt>.  If <tt>n</tt> is
-beyond the end of the list, the last item is returned. If <tt>n</tt> is
-negative, the first item is returned.
+Returns an object from <tt>x</tt> with index <tt>n</tt>, which is owned by <tt>x</tt>.
+<tt>n</tt> must be in range.  Otherwise, an assertion will be raised.
+The special values <tt>DOH_BEGIN</tt> and <tt>DOH_END</tt> can be used for <tt>n</tt>
+to get the first and last items in the list.
 </div>
 
 <p>
-<b><tt>int *Setitem(List *x, int n, const Object_or_char *val)</tt></b>
+<b><tt>int Setitem(List *x, int n, const Object_or_char *val)</tt></b>
 </p>
 
 <div class="indent">
-Stores <tt>val</tt> in <tt>x</tt>.
+Stores <tt>val</tt> in <tt>x</tt> at index <tt>n</tt>, replacing the item there, whose reference count is decreased.
 If <tt>val</tt> is not a standard
 object (String, Hash, or List) it is assumed to be a <tt>char *</tt> in which
 case it is used to construct a <tt>String</tt> that is stored in the list.
+Increases the reference count of <tt>val</tt>.
 <tt>n</tt> must be in range.  Otherwise, an assertion will be raised.
 </div>
 
 <p>
-<b><tt>int *Delitem(List *x, int n)</tt></b>
+<b><tt>int Delitem(List *x, int n)</tt></b>
 </p>
 
 <div class="indent">
-Deletes item <tt>n</tt> from the list, shifting items down if necessary.
-To delete the last item in the list, use the special value <tt>DOH_END</tt>
-for <tt>n</tt>.
+Deletes item <tt>n</tt> from the list, shifting items down if necessary,
+and decreases its reference count.
+To delete the first or last item in the list, use the special value <tt>DOH_BEGIN</tt>
+or <tt>DOH_END</tt> for <tt>n</tt>.
+Otherwise, <tt>n</tt> must be in range or an assertion will be raised.
 </div>
 
 <p>
@@ -1401,18 +1431,20 @@ for <tt>n</tt>.
 Appends <tt>t</tt> to the end of <tt>x</tt>.  If <tt>t</tt> is not
 a standard object, it is assumed to be a <tt>char *</tt> and is
 used to create a String object.
+Increases the reference count of <tt>t</tt>.
 </div>
 
 <p>
-<b><tt>void Insert(String *s, int pos, const Object_or_char *t)</tt></b>
+<b><tt>void Insert(List *x, int pos, const Object_or_char *t)</tt></b>
 </p>
 
 <div class="indent">
-Inserts <tt>t</tt> into <tt>s</tt> at position <tt>pos</tt>.  The contents
-of <tt>s</tt> are shifted accordingly.    The special value <tt>DOH_END</tt>
+Inserts <tt>t</tt> into <tt>x</tt> at position <tt>pos</tt>.  The items
+of <tt>x</tt> are shifted accordingly.    The special value <tt>DOH_END</tt>
 can be used for <tt>pos</tt> to indicate insertion at the end of the list (appending).
 If <tt>t</tt> is not a standard object, it is assumed to be a <tt>char *</tt>
 and is used to create a String object.
+Increases the reference count of <tt>t</tt>.
 </div>
 
 <H3><a name="Extending_nn18">42.5.4 Common operations</a></H3>
@@ -1433,7 +1465,7 @@ Make a copy of the object <tt>x</tt>.
 </p>
 
 <div class="indent">
-Deletes <tt>x</tt>.
+Decreases the reference count of <tt>x</tt> and destroys it when the count reaches zero.
 </div>
 
 <p>
@@ -1443,6 +1475,8 @@ Deletes <tt>x</tt>.
 <div class="indent">
 Sets the filename associated with <tt>x</tt>.  Used to track
 objects and report errors.
+If <tt>f</tt> is a <tt>char *</tt>, it is used to create a String object.
+Increases the reference count of <tt>f</tt> and decreases that of the filename it replaces, if any.
 </div>
 
 <p>
@@ -1450,7 +1484,7 @@ objects and report errors.
 </p>
 
 <div class="indent">
-Gets the filename associated with <tt>x</tt>.
+Gets the filename associated with <tt>x</tt>, which is owned by <tt>x</tt>.
 </div>
 
 <p>
@@ -1484,6 +1518,7 @@ Returns an iterator object that points to the first item in a list or hash table
 <tt>item</tt> attribute of the Iterator object is a pointer to the item.  For hash tables, the <tt>key</tt> attribute
 of the Iterator object additionally points to the corresponding Hash table key.  The <tt>item</tt> and <tt>key</tt> attributes
 are NULL if the object contains no items or if there are no more items.
+The item and key are owned by the list or hash table.
 </div>
 
 <p>
@@ -1507,7 +1542,7 @@ for (i = First(l); i.item; i = Next(i)) {
 Hash *h = (some hash);
 Iterator j;
 
-for (j = First(j); j.item; j= Next(j)) {
+for (j = First(h); j.item; j= Next(j)) {
   Printf(stdout, "%s : %s\n", j.key, j.item);
 }
 </pre>

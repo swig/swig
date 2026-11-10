@@ -1098,6 +1098,8 @@ If <tt>TYPE</tt> includes qualifiers (const, volatile, etc.), each qualifier is 
 and the matching rules above are repeated on the stripped type.
 The left-most qualifier is stripped first, resulting in the right-most (or top-level) qualifier being stripped last.
 For example <tt>int const*const</tt> is first stripped to <tt>int *const</tt> then <tt>int *</tt>.
+A <tt>const volatile</tt> qualifier is stripped in two steps, <tt>volatile</tt> first, so
+<tt>int const volatile &amp;</tt> is first stripped to <tt>int const &amp;</tt> then <tt>int &amp;</tt>.
 </p>
 
 <p>
@@ -1173,6 +1175,8 @@ void G(int x[]);       // none of the above, as typemap 5 needs a size
 <p>
 <b>Compatibility note: </b> SWIG-2.0.0 introduced stripping the qualifiers one step at a time. Prior versions
 stripped all qualifiers in one step.
+SWIG-4.6.0 introduced stripping <tt>volatile</tt> from <tt>const volatile</tt> before <tt>const</tt>. Prior versions
+stripped both in one step.
 </p>
 
 <H3><a name="Typemaps_typedef_reductions">16.3.2 Typedef reductions matching</a></H3>

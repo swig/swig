@@ -245,6 +245,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
               Setitem(bases, i, name);
               Append(typelist, name);
             }
+            Delete(name);
           }
         }
       }

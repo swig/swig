@@ -17,6 +17,7 @@ public class arrays_null_runme {
     s.setInts(other.getInts());
     s.setItems(other.getItems());
     s.setGrid(other.getGrid());
+    s.setCube(other.getCube());
     if (arrays_null.arrays_null_check(s, 10) != 1)
       throw new RuntimeException("Test member set failed");
 
@@ -35,12 +36,18 @@ public class arrays_null_runme {
       throw new RuntimeException("Test grid member set to null failed");
     } catch (NullPointerException e) {
     }
+    try {
+      s.setCube(null);
+      throw new RuntimeException("Test cube member set to null failed");
+    } catch (NullPointerException e) {
+    }
     if (arrays_null.arrays_null_check(s, 10) != 1)
       throw new RuntimeException("Test member set to null changed it");
 
     arrays_null.setArrays_null_ints(s.getInts());
     arrays_null.setArrays_null_items(s.getItems());
     arrays_null.setArrays_null_grid(s.getGrid());
+    arrays_null.setArrays_null_cube(s.getCube());
     if (arrays_null.arrays_null_globals_check(10) != 1)
       throw new RuntimeException("Test global set failed");
 
@@ -57,6 +64,11 @@ public class arrays_null_runme {
     try {
       arrays_null.setArrays_null_grid(null);
       throw new RuntimeException("Test grid global set to null failed");
+    } catch (NullPointerException e) {
+    }
+    try {
+      arrays_null.setArrays_null_cube(null);
+      throw new RuntimeException("Test cube global set to null failed");
     } catch (NullPointerException e) {
     }
     try {

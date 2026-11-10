@@ -346,6 +346,23 @@ bool uses_base_type(SwigType *type, bool (*is_used)(SwigType *base_type)) {
   return false;
 }
 
+// Remove volatile from the type that the pointer or reference type points or refers to, keeping any const, as in 'Foo *' for
+// 'Foo volatile *' or 'Foo const &' for 'Foo const volatile &'.
+void remove_referred_volatile(SwigType *type) {
+  ScopedPtr referred_type = adopt(Copy(type));
+  ScopedPtr pointer_or_reference = adopt(SwigType_pop(referred_type));
+  if (!SwigType_isqualifier(referred_type))
+    return;
+  ScopedPtr qualifier = adopt(SwigType_pop(referred_type));
+  if (!Strstr(qualifier, "volatile"))
+    return;
+  if (Strstr(qualifier, "const"))
+    SwigType_add_qualifier(referred_type, "const");
+  SwigType_push(referred_type, pointer_or_reference);
+  Clear(type);
+  Append(type, referred_type);
+}
+
 // Return the type with a pointer in place of each reference in it and in the parameters of any function in it, as
 // C has no references, as in 'int *(*)(int const *,int)' for 'int &(*)(int const &,int)'.
 // The qualifiers of each function type, such as the 'noexcept' of 'int (*)(int) noexcept', are dropped too, as C does not have them.
@@ -904,6 +921,19 @@ private:
 
     ScopedPtr typestr;
     if (SwigType_isenum(base_resolved_type)) {
+      // As for a class, an array of enums is passed as a pointer to its first element, but an array of pointers to enums or an array of arrays is not supported
+      if (typeKind == Type_Ptr) {
+        ScopedPtr element_type = adopt(SwigType_strip_qualifiers(resolved_type));
+        SwigType_remove_qualifier_reference(element_type);
+        if (SwigType_isarray(element_type)) {
+          Delete(SwigType_pop(element_type));
+          if (SwigType_ispointer(element_type) || SwigType_isarray(element_type)) {
+            warn_unsupported_type(type, ptype_desc);
+            return false;
+          }
+        }
+      }
+
       String *enumname = NULL;
       if (Node *const enum_node = Language::instance()->enumLookup(base_resolved_type)) {
         // This is the name of the enum in C wrappers, it should be already set by getEnumName().
@@ -1003,8 +1033,9 @@ private:
           break;
 
         case Type_Obj:
-          // Const objects are just objects for our purposes here, remove the const from them to avoid having "const const" in the output.
-          if (SwigType_isconst(resolved_type))
+          // Const and volatile objects are just objects for our purposes here, remove the qualifiers to avoid having "const const" in the output and as
+          // swig_self() is not volatile.
+          if (SwigType_isqualifier(resolved_type))
             SwigType_del_qualifier(resolved_type);
           break;
 
@@ -1016,6 +1047,11 @@ private:
         }
 
         classname = Getattr(class_node, "sym:name");
+
+        // A pointer or a reference to a volatile class is taken and returned without volatile, as in the other target languages, as swig_self() is
+        // not volatile, see is_const().
+        if (typeKind == Type_Ptr || typeKind == Type_Ref)
+          remove_referred_volatile(resolved_type);
 
         // We don't use namespaces, but the type may contain them, so get rid of them by replacing the base type name, which is fully qualified, with just the
         // class name, which is not.
@@ -3647,15 +3683,7 @@ public:
       type = tdtype;
       Setattr(n, "type", type);
     }
-    SwigType *btype = SwigType_base(type);
-    if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
-      // this hack applies to member objects array (not ptrs.)
-      SwigType_add_pointer(btype);
-      SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
-      Setattr(n, "type", btype);
-    }
     Delete(type);
-    Delete(btype);
     return Language::staticmembervariableHandler(n);
   }
 
@@ -3670,15 +3698,7 @@ public:
       type = tdtype;
       Setattr(n, "type", type);
     }
-    SwigType *btype = SwigType_base(type);
-    if (SwigType_isarray(type) && !SwigType_isbuiltin(btype)) {
-      // this hack applies to member objects array (not ptrs.)
-      SwigType_add_pointer(btype);
-      SwigType_add_array(btype, NewStringf("%s", SwigType_array_getdim(type, 0)));
-      Setattr(n, "type", btype);
-    }
     Delete(type);
-    Delete(btype);
     return Language::membervariableHandler(n);
   }
 

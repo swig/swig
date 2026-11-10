@@ -340,10 +340,10 @@ public:
     Node *d = Getattr(docs, wname);
     if (!d) {
       d = NewHash();
-      Setattr(d, "synopsis", NewString(""));
-      Setattr(d, "decl_info", NewString(""));
-      Setattr(d, "cdecl_info", NewString(""));
-      Setattr(d, "args_info", NewString(""));
+      Setattr(d, "synopsis", "");
+      Setattr(d, "decl_info", "");
+      Setattr(d, "cdecl_info", "");
+      Setattr(d, "args_info", "");
       Setattr(docs, wname, d);
     }
 

@@ -1733,9 +1733,11 @@ SwigType *SwigType_strip_qualifiers_except_member_function(const SwigType *t) {
  * If the type contains a qualifier, strip one qualifier and return a new type.
  * The left most qualifier is stripped first (when viewed as C source code) but
  * this is the equivalent to the right most qualifier using SwigType notation.
+ * Of 'const volatile', volatile is stripped first, leaving const.
  * Example:
  *    r.q(const).p.q(const).int => r.q(const).p.int
  *    r.q(const).p.int          => r.p.int
+ *    r.q(const volatile).int   => r.q(const).int
  *    r.p.int                   => r.p.int
  * ----------------------------------------------------------------------------- */
 
@@ -1761,7 +1763,11 @@ SwigType *SwigType_strip_single_qualifier(const SwigType *t) {
       String *subtype = Getitem(l, item);
       if (SwigType_isqualifier(subtype)) {
         Iterator it;
-        Delitem(l, item);
+        if (Equal(subtype, "q(const volatile).")) {
+          Setitem(l, item, "q(const).");
+        } else {
+          Delitem(l, item);
+        }
         r = NewStringEmpty();
         for (it = First(l); it.item; it = Next(it)) {
           Append(r, it.item);

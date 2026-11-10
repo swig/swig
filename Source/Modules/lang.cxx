@@ -2008,6 +2008,7 @@ void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, 
         Append(vm, item);
       else
         Setitem(vm, replace, item);
+      Delete(item);
       Setattr(n, "directorNode", m);
 
       Delete(mname);

@@ -17,22 +17,26 @@ Arrays_null.arrays_null_fill(other, 10)
 s.ints = other.ints
 s.items = other.items
 s.grid = other.grid
+s.cube = other.cube
 swig_assert_equal('Arrays_null.arrays_null_check(s, 10)', '1', binding)
 
 # Setting an array member or global variable to nil is an error, as there is nothing to copy from.
 check_nil_rejected("ints member") { s.ints = nil }
 check_nil_rejected("items member") { s.items = nil }
 check_nil_rejected("grid member") { s.grid = nil }
+check_nil_rejected("cube member") { s.cube = nil }
 swig_assert_equal('Arrays_null.arrays_null_check(s, 10)', '1', binding)
 
 Arrays_null.arrays_null_ints = s.ints
 Arrays_null.arrays_null_items = s.items
 Arrays_null.arrays_null_grid = s.grid
+Arrays_null.arrays_null_cube = s.cube
 swig_assert_equal('Arrays_null.arrays_null_globals_check(10)', '1', binding)
 
 check_nil_rejected("ints global") { Arrays_null.arrays_null_ints = nil }
 check_nil_rejected("items global") { Arrays_null.arrays_null_items = nil }
 check_nil_rejected("grid global") { Arrays_null.arrays_null_grid = nil }
+check_nil_rejected("cube global") { Arrays_null.arrays_null_cube = nil }
 check_nil_rejected("ints_ref global") { Arrays_null.arrays_null_ints_ref = nil }
 check_nil_rejected("bools global") { Arrays_null.arrays_null_bools = nil }
 swig_assert_equal('Arrays_null.arrays_null_globals_check(10)', '1', binding)

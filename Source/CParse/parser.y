@@ -4834,7 +4834,7 @@ typemap_type   : kwargs {
 				"%%typemap attribute '%s' is missing its value.  If this is specifying the target language, that's no longer supported: use #ifdef SWIG<LANG> instead.\n",
 				Getattr(p, "name"));
 		     /* Set to empty value to avoid segfaults later. */
-		     Setattr(p, "value", NewStringEmpty());
+		     Setattr(p, "value", "");
 		   }
 		   p = nextSibling(p);
 		 }
@@ -7013,7 +7013,7 @@ cpp_concept_decl : CONCEPT idcolon EQUAL <str>{
                 }[body] concept_constraint SEMI {
                   $$ = new_node("concept");
                   Setattr($$, "name", $idcolon);
-                  Setattr($$, "type", NewString("bool"));
+                  Setattr($$, "type", "bool");
                   if ($concept_constraint) {
                     Setattr($$, "constraint", $concept_constraint);
                   } else if ($body) {
