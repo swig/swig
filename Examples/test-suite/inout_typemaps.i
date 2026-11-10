@@ -62,3 +62,36 @@ void AddOne1r(double& INOUT);
   }
   void *getNull() { return NULL; }
 %}
+
+%typemap(out, numoutputs=0) MyErr ""
+%typemap(ret) MyErr %{
+  // Do something with the error (we don't care really).
+%}
+
+%{
+  typedef int MyErr;
+
+  inline MyErr SuppressedTwo(int code, int *out1, int *out2) { *out1 = 11; *out2 = 12; return code; }
+  inline MyErr SuppressedOne(int code, int *out1) { *out1 = 11; return code; }
+  inline MyErr SuppressedNone(int code) { return code; }
+%}
+
+MyErr SuppressedTwo(int code, int *OUTPUT, int *OUTPUT);
+MyErr SuppressedOne(int code, int *OUTPUT);
+MyErr SuppressedNone(int code);
+
+#ifdef VOID_Object
+%typemap(out) VoidMaker { $result = VOID_Object; }
+
+%{
+  typedef int VoidMaker;
+  inline VoidMaker VoidNone() { return 1; }
+  inline VoidMaker VoidOne(int *out1) { *out1 = 11; return 1; }
+  inline VoidMaker VoidTwo(int *out1, int *out2) { *out1 = 11; *out2 = 12; return 1; }
+%}
+
+VoidMaker VoidNone();
+VoidMaker VoidOne(int *OUTPUT);
+VoidMaker VoidTwo(int *OUTPUT, int *OUTPUT);
+
+#endif

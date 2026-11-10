@@ -18,28 +18,28 @@ check(li_typemaps.in_double(22.22), 22.22)
 check(li_typemaps.inr_double(22.22), 22.22)
 
 // Check double OUTPUT typemaps
-check_array(li_typemaps.out_double(22.22), [22.22])
-check_array(li_typemaps.outr_double(22.22), [22.22])
+check(li_typemaps.out_double(22.22), 22.22);
+check(li_typemaps.outr_double(22.22), 22.22);
 
 // Check double INOUT typemaps
-check_array(li_typemaps.inout_double(22.22), [22.22])
-check_array(li_typemaps.inoutr_double(22.22), [22.22])
+check(li_typemaps.inout_double(22.22), 22.22);
+check(li_typemaps.inoutr_double(22.22), 22.22);
 
 // check long long
 check(li_typemaps.in_ulonglong(20), 20)
 check(li_typemaps.inr_ulonglong(20), 20)
-check_array(li_typemaps.out_ulonglong(20), [20])
-check_array(li_typemaps.outr_ulonglong(20), [20])
-check_array(li_typemaps.inout_ulonglong(20), [20])
-check_array(li_typemaps.inoutr_ulonglong(20), [20])
+check(li_typemaps.out_ulonglong(20), 20);
+check(li_typemaps.outr_ulonglong(20), 20);
+check(li_typemaps.inout_ulonglong(20), 20);
+check(li_typemaps.inoutr_ulonglong(20), 20);
 
 // check bools
 check(li_typemaps.in_bool(true), true)
 check(li_typemaps.inr_bool(false), false)
-check_array(li_typemaps.out_bool(true), [true])
-check_array(li_typemaps.outr_bool(false), [false])
-check_array(li_typemaps.inout_bool(true), [true])
-check_array(li_typemaps.inoutr_bool(false), [false])
+check(li_typemaps.out_bool(true), true);
+check(li_typemaps.outr_bool(false), false);
+check(li_typemaps.inout_bool(true), true);
+check(li_typemaps.inoutr_bool(false), false);
 
 // the others
 check_array(li_typemaps.inoutr_int2(1,2), [1, 2])

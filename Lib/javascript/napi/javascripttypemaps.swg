@@ -38,7 +38,7 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)  SWIG_NAPI_AppendOutput(env, result, obj)
+#define SWIG_AppendOutput(result, obj)  SWIG_NAPI_AppendOutput(env, result, obj, $isvoidresult)
 
 /* set constant */
 #define SWIG_SetConstant(name, obj)
