@@ -22,7 +22,7 @@ update_path()
 probe_cached_tool()
 {
 	if [[ -z "$SKIP_CACHED_TOOLS" ]]; then
-		tool_path=$(ls -d $RUNNER_TOOL_CACHE/$1/$VER.*/x64/bin 2> /dev/null | head -1 || true)
+		tool_path=$(ls -d $RUNNER_TOOL_CACHE/$1/$VER.*/*/bin 2> /dev/null | head -1 || true)
 	fi
 }
 
