@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-11: alonfaraj
+            [Python] #3541 Fix crashes in the std::filesystem::path typemaps. Passing a str
+            that cannot be encoded as UTF-8, such as a filename that is not valid UTF-8, now
+            raises UnicodeEncodeError, as does a pathlib.Path holding one except on Windows.
+            Returning a path that is not valid UTF-8 now raises UnicodeDecodeError and an
+            exception raised by the __str__ of a pathlib.Path subclass is now propagated.
+            A reference leak when a pathlib.Path fails to convert on Windows is also fixed.
+
 2026-11-09: vincentcouvert
             [Scilab] #3150 Fix std::string being an incomplete type when std_basic_string.i is
             included before std_string.i, which gave warning 402 for classes derived from
