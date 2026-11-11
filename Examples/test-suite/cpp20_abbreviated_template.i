@@ -16,6 +16,11 @@
 %warnfilter(SWIGWARN_CPP14_AUTO) times3;
 
 %inline %{
+
+#ifdef _MSC_VER
+#pragma warning(disable : 4244) // conversion from 'type1' to 'type2', possible loss of data
+#endif
+
 #include <concepts>
 
 template<typename T>
