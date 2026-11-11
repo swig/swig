@@ -108,3 +108,17 @@ try:
             fn()
 finally:
     pathlib.Path = realPathClass
+
+# Overloaded functions accept the same arguments as the "in" typemaps
+for fn in (pathOrInt, pathConstRefOrInt):
+    swig_check(fn(1), "int")
+    swig_check(fn("foo"), "path")
+    swig_check(fn(pathlib.Path("foo")), "path")
+    swig_check(fn(makePathPtr("foo")), "path")
+    with swig_assert_raises(TypeError):
+        fn(None)
+
+# A str is passed to an overload taking a string ahead of one taking a path
+swig_check(pathOrString("foo"), "string")
+swig_check(pathOrString(pathlib.Path("foo")), "path")
+swig_check(pathOrString(makePathPtr("foo")), "path")

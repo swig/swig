@@ -343,6 +343,7 @@ static int NAME(TYPE x) {
 %define SWIG_TYPECHECK_STRINGVIEW   134    %enddef
 %define SWIG_TYPECHECK_STDSTRING    135    %enddef
 %define SWIG_TYPECHECK_STRING       140    %enddef
+%define SWIG_TYPECHECK_STDFILESYSTEMPATH 145    %enddef
 %define SWIG_TYPECHECK_PAIR         150    %enddef
 %define SWIG_TYPECHECK_STDARRAY     155    %enddef
 %define SWIG_TYPECHECK_VECTOR       160    %enddef

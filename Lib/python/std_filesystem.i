@@ -125,6 +125,16 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
 }
 
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STDFILESYSTEMPATH, fragment="SWIG_std_filesystem") std::filesystem::path, const std::filesystem::path & %{
+  if (PyUnicode_Check($input) || SWIG_std_filesystem_isPathInstance($input)) {
+    $1 = 1;
+  } else {
+    void *vptr = 0;
+    int res = SWIG_ConvertPtr($input, &vptr, $descriptor(std::filesystem::path *), SWIG_POINTER_NO_NULL);
+    $1 = SWIG_CheckState(res);
+  }
+%}
+
 %typemap(out, fragment="SWIG_std_filesystem", fragment="<type_traits>") std::filesystem::path {
   PyObject *args;
   if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {

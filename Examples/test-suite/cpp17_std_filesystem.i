@@ -87,4 +87,29 @@ const std::filesystem::path & makePathConstRefAndValue(int *value) {
     *value = 1;
     return p;
 }
+
+/* Test the "typecheck" typemaps */
+const char * pathOrInt(std::filesystem::path) {
+    return "path";
+}
+
+const char * pathOrInt(int) {
+    return "int";
+}
+
+const char * pathConstRefOrInt(const std::filesystem::path &) {
+    return "path";
+}
+
+const char * pathConstRefOrInt(int) {
+    return "int";
+}
+
+const char * pathOrString(const std::filesystem::path &) {
+    return "path";
+}
+
+const char * pathOrString(const std::string &) {
+    return "string";
+}
 %}

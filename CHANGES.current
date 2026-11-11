@@ -8,6 +8,12 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-11: wsfulton
+            [Python] #3542 Add typecheck typemaps for std::filesystem::path. Overloaded
+            functions taking a path only accepted a wrapped std::filesystem::path and now
+            accept a str or pathlib.Path too. A str is passed to an overload taking a string
+            ahead of one taking a path.
+
+2026-11-11: wsfulton
             [Python] #3541 Passing None for a std::filesystem::path parameter crashed the
             interpreter. TypeError is now raised.
 
