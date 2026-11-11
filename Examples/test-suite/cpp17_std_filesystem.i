@@ -62,4 +62,14 @@ namespace stdfs = std::filesystem;
 std::filesystem::path roundTrip(const stdfs::path& p) {
     return p;
 }
+
+/* Test the "out" typemaps with a path that is not valid UTF-8 where paths are narrow strings */
+std::filesystem::path makeNonUtf8Path() {
+    return std::filesystem::path("caf\xe9.txt");
+}
+
+const std::filesystem::path & makeNonUtf8PathConstRef() {
+    static std::filesystem::path p("caf\xe9.txt");
+    return p;
+}
 %}
