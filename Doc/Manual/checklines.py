@@ -1,12 +1,6 @@
 #!/usr/bin/python3
 
 # Check that no line in a <pre> element is too long for the pdf documentation.
-#
-# Text in <pre> elements is not wrapped, so an over long line runs out of the coloured box it
-# sits in and is then clipped at the page edge by wkhtmltopdf, silently losing the text beyond
-# it. Worse, wkhtmltopdf shrinks the whole document to help fit the widest content, so a few
-# over long lines make the text smaller on every one of the 500+ pages. Keeping every line
-# within the limit below avoids both. Prose is unaffected as it is wrapped to the page width.
 
 import glob
 import html
@@ -41,4 +35,4 @@ if toolong:
     sys.stderr.write("Please split them over more lines.\n")
     sys.exit(1)
 
-print("Line length check: no <pre> line is longer than %d characters" % MAX_LENGTH)
+print("Check pass: all <pre> elements are shorter than %d." % MAX_LENGTH)
