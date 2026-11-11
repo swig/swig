@@ -11,6 +11,7 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
     char* cstr = (char*) %new_array(len, char);
     /* JSStringGetUTF8CString returns the length including 0-terminator */
     len = JSStringGetUTF8CString(js_str, cstr, len);
+    JSStringRelease(js_str);
 
     if(alloc) *alloc = SWIG_NEWOBJ;
     if(psize) *psize = len;
