@@ -74,6 +74,7 @@ num      = int(sys.argv[2])
 section = 0
 subsection = 0
 subsubsection = 0
+subsubsubsection = 0
 nameindex = 0
 
 name = ""
