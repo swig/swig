@@ -73,6 +73,7 @@ There are no char *INPUT typemaps, however you can apply the signed char * typem
 %typemap(typecheck) TYPE &INPUT = TYPE;
 %enddef
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 INPUT_TYPEMAP(bool, jboolean, boolean, "Z");
 INPUT_TYPEMAP(signed char, jbyte, byte, "B");
 INPUT_TYPEMAP(unsigned char, jshort, short, "S");
@@ -83,9 +84,23 @@ INPUT_TYPEMAP(unsigned int, jlong, long, "J");
 INPUT_TYPEMAP(long, jint, int, "I");
 INPUT_TYPEMAP(unsigned long, jlong, long, "J");
 INPUT_TYPEMAP(long long, jlong, long, "J");
-INPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, "Ljava/math/BigInteger;");
 INPUT_TYPEMAP(float, jfloat, float, "F");
 INPUT_TYPEMAP(double, jdouble, double, "D");
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+INPUT_TYPEMAP(bool, jboolean, Boolean, "Z");
+INPUT_TYPEMAP(signed char, jbyte, Byte, "B");
+INPUT_TYPEMAP(unsigned char, jshort, Short, "S");
+INPUT_TYPEMAP(short, jshort, Short, "S");
+INPUT_TYPEMAP(unsigned short, jint, Int, "I");
+INPUT_TYPEMAP(int, jint, Int, "I");
+INPUT_TYPEMAP(unsigned int, jlong, Long, "J");
+INPUT_TYPEMAP(long, jint, Int, "I");
+INPUT_TYPEMAP(unsigned long, jlong, Long, "J");
+INPUT_TYPEMAP(long long, jlong, Long, "J");
+INPUT_TYPEMAP(float, jfloat, Float, "F");
+INPUT_TYPEMAP(double, jdouble, Double, "D");
+#endif /* SWIGJAVA_TARGET */
+INPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, "Ljava/math/BigInteger;");
 
 #undef INPUT_TYPEMAP
 
@@ -184,8 +199,13 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 
 %define OUTPUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
 %typemap(jni) TYPE *OUTPUT, TYPE &OUTPUT %{JNITYPE##Array%}
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
 %typemap(jstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE?"
+%typemap(jstype) TYPE *OUTPUT, TYPE &OUTPUT "JTYPE?"
+#endif
 %typemap(javain) TYPE *OUTPUT, TYPE &OUTPUT "$javainput"
 %typemap(javadirectorin) TYPE *OUTPUT, TYPE &OUTPUT "$jniinput"
 %typemap(javadirectorout) TYPE *OUTPUT, TYPE &OUTPUT "$javacall"
@@ -244,6 +264,7 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 %typemap(typecheck) TYPE &OUTPUT = TYPECHECKTYPE;
 %enddef
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 OUTPUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Z", jbooleanArray);
 OUTPUT_TYPEMAP(signed char, jbyte, byte, Byte, "[B", jbyteArray);
 OUTPUT_TYPEMAP(unsigned char, jshort, short, Short, "[S", jshortArray);
@@ -257,6 +278,21 @@ OUTPUT_TYPEMAP(long long, jlong, long, Long, "[J", jlongArray);
 OUTPUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, Object, "[Ljava/math/BigInteger;", jobjectArray);
 OUTPUT_TYPEMAP(float, jfloat, float, Float, "[F", jfloatArray);
 OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+OUTPUT_TYPEMAP(bool, jboolean, BooleanArray, Boolean, "[Z", jbooleanArray);
+OUTPUT_TYPEMAP(signed char, jbyte, ByteArray, Byte, "[B", jbyteArray);
+OUTPUT_TYPEMAP(unsigned char, jshort, ShortArray, Short, "[S", jshortArray);
+OUTPUT_TYPEMAP(short, jshort, ShortArray, Short, "[S", jshortArray);
+OUTPUT_TYPEMAP(unsigned short, jint, IntArray, Int, "[I", jintArray);
+OUTPUT_TYPEMAP(int, jint, IntArray, Int, "[I", jintArray);
+OUTPUT_TYPEMAP(unsigned int, jlong, LongArray, Long, "[J", jlongArray);
+OUTPUT_TYPEMAP(long, jint, IntArray, Int, "[I", jintArray);
+OUTPUT_TYPEMAP(unsigned long, jlong, LongArray, Long, "[J", jlongArray);
+OUTPUT_TYPEMAP(long long, jlong, LongArray, Long, "[J", jlongArray);
+OUTPUT_TYPEMAP(unsigned long long, jobject, Array<java.math.BigInteger>, Object, "[Ljava/math/BigInteger;", jobjectArray);
+OUTPUT_TYPEMAP(float, jfloat, FloatArray, Float, "[F", jfloatArray);
+OUTPUT_TYPEMAP(double, jdouble, DoubleArray, Double, "[D", jdoubleArray);
+#endif /* SWIGJAVA_TARGET */
 
 #undef OUTPUT_TYPEMAP
 
@@ -375,8 +411,13 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %define INOUT_TYPEMAP(TYPE, JNITYPE, JTYPE, JAVATYPE, JNIDESC, TYPECHECKTYPE)
 %typemap(jni) TYPE *INOUT, TYPE &INOUT %{JNITYPE##Array%}
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
 %typemap(jstype) TYPE *INOUT, TYPE &INOUT "JTYPE[]"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) TYPE *INOUT, TYPE &INOUT "JTYPE?"
+%typemap(jstype) TYPE *INOUT, TYPE &INOUT "JTYPE?"
+#endif
 %typemap(javain) TYPE *INOUT, TYPE &INOUT "$javainput"
 %typemap(javadirectorin) TYPE *INOUT, TYPE &INOUT "$jniinput"
 %typemap(javadirectorout) TYPE *INOUT, TYPE &INOUT "$javacall"
@@ -433,6 +474,7 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(typecheck) TYPE &INOUT = TYPECHECKTYPE;
 %enddef
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 INOUT_TYPEMAP(bool, jboolean, boolean, Boolean, "[Z", jbooleanArray);
 INOUT_TYPEMAP(signed char, jbyte, byte, Byte, "[B", jbyteArray);
 INOUT_TYPEMAP(unsigned char, jshort, short, Short, "[S", jshortArray);
@@ -446,6 +488,21 @@ INOUT_TYPEMAP(long long, jlong, long, Long, "[J", jlongArray);
 INOUT_TYPEMAP(unsigned long long, jobject, java.math.BigInteger, Object, "[java/math/BigInteger;", jobjectArray);
 INOUT_TYPEMAP(float, jfloat, float, Float, "[F", jfloatArray);
 INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+INOUT_TYPEMAP(bool, jboolean, BooleanArray, Boolean, "[Z", jbooleanArray);
+INOUT_TYPEMAP(signed char, jbyte, ByteArray, Byte, "[B", jbyteArray);
+INOUT_TYPEMAP(unsigned char, jshort, ShortArray, Short, "[S", jshortArray);
+INOUT_TYPEMAP(short, jshort, ShortArray, Short, "[S", jshortArray);
+INOUT_TYPEMAP(unsigned short, jint, IntArray, Int, "[I", jintArray);
+INOUT_TYPEMAP(int, jint, IntArray, Int, "[I", jintArray);
+INOUT_TYPEMAP(unsigned int, jlong, LongArray, Long, "[J", jlongArray);
+INOUT_TYPEMAP(long, jint, IntArray, Int, "[I", jintArray);
+INOUT_TYPEMAP(unsigned long, jlong, LongArray, Long, "[J", jlongArray);
+INOUT_TYPEMAP(long long, jlong, LongArray, Long, "[J", jlongArray);
+INOUT_TYPEMAP(unsigned long long, jobject, Array<java.math.BigInteger>, Object, "[java/math/BigInteger;", jobjectArray);
+INOUT_TYPEMAP(float, jfloat, FloatArray, Float, "[F", jfloatArray);
+INOUT_TYPEMAP(double, jdouble, DoubleArray, Double, "[D", jdoubleArray);
+#endif /* SWIGJAVA_TARGET */
 
 #undef INOUT_TYPEMAP
 

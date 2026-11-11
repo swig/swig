@@ -16,6 +16,10 @@
 }
 
 %javamethodmodifiers std::array::sizeImpl "private";
+#if SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%javamethodmodifiers std::array::get "operator";
+%javamethodmodifiers std::array::set "operator";
+#endif
 
 namespace std {
 

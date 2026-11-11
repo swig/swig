@@ -11,8 +11,13 @@
 %define %auto_ptr(TYPE)
 
 %typemap (jni) std::auto_ptr< TYPE > "jlong"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap (jtype) std::auto_ptr< TYPE > "long"
 %typemap (jstype) std::auto_ptr< TYPE > "$typemap(jstype, TYPE)"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap (jtype) std::auto_ptr< TYPE > "Long"
+%typemap (jstype) std::auto_ptr< TYPE > "$typemap(jstype, TYPE)?"
+#endif
 
 %typemap(in) std::auto_ptr< TYPE > (TYPE *auto_temp)
 %{ auto_temp = *(TYPE **)&$input;
@@ -26,10 +31,17 @@
   $result = lpp;
 %}
 
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(javaout) std::auto_ptr< TYPE > {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaout) std::auto_ptr< TYPE > {
+    val cPtr = $jnicall
+    return if (cPtr == 0L) null else $typemap(jstype, TYPE)(cPtr, true)
+  }
+#endif /* SWIGJAVA_TARGET */
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::auto_ptr< TYPE > ""
 

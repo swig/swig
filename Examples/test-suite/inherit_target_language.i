@@ -4,12 +4,6 @@
 
 %module inherit_target_language
 
-#if defined(SWIGJAVA)
-# define csbase javabase
-#elif defined(SWIGD)
-# define csbase dbase
-#endif
-
 %pragma(csharp) moduleimports=%{
 using System;
 using System.Runtime.InteropServices;
@@ -17,10 +11,22 @@ public class TargetLanguageBase { public virtual void targetLanguageBaseMethod()
 public class TargetLanguageBase2 { public virtual void targetLanguageBase2Method() {} };
 %}
 
+#ifdef SWIGJAVA
+#define csbase javabase
+#ifdef SWIGJAVA_SOURCE
 %pragma(java) moduleimports=%{
 class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
 class TargetLanguageBase2 { public void targetLanguageBase2Method() {} };
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%pragma(java) moduleimports=%{
+open class TargetLanguageBase { open fun targetLanguageBaseMethod() {} }
+open class TargetLanguageBase2 { open fun targetLanguageBase2Method() {} }
+%}
+#endif
+#elif defined(SWIGD)
+#define csbase dbase
+#endif
 
 %pragma(d) globalproxyimports=%{
 private class TargetLanguageBase { public void targetLanguageBaseMethod() {} };
