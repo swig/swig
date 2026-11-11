@@ -37,7 +37,7 @@ permissions:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     name: docs
 
     steps:
@@ -61,15 +61,17 @@ jobs:
     - name: Install
       run: |
           sudo apt-get -qq update
-          sudo apt-get -qq install tidy xfonts-scalable htmldoc weasyprint
-
-    - name: Configure
-      run: ./autogen.sh && ./configure
+          sudo apt-get -qq install tidy htmldoc weasyprint poppler-utils fonts-liberation
 
     - name: Docs
       run: |
-          make docs
-          # Make Sure documents are properly structured
-          if [[ -n "$(git status -s)"  ]]; then
-             exit 1 # We need to update documents!
+          make -C Doc/Manual all clean-baks
+          # Fail if 'make maketoc' changed a file, such as the numbering or table of contents of a chapter
+          if [[ -n "$(git status -s)" ]]; then
+            git status -s
+            git diff
+            exit 1
           fi
+
+    - name: Link Check
+      run: make -C Doc/Manual linkchecker3
