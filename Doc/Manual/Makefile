@@ -51,6 +51,7 @@ check:
 # Debian/Ubuntu package: weasyprint
 $(SWIG_PDF): $(SWIG_HTML)
 	weasyprint -s page.css $^ $@
+	python3 checkpdf.py $@
 
 generate: $(SWIG_PDF)
 
