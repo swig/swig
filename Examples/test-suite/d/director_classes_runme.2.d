@@ -97,25 +97,26 @@ void makeCalls(Caller myCaller, Base myBase) {
   DoubleHolder dh = new DoubleHolder(444.555);
 
   // Class pointer, reference and pass by value tests
-  enforce(myCaller.ValCall(dh).val == dh.val, "[1] failed");
-  enforce(myCaller.RefCall(dh).val == dh.val, "[2] failed");
-  enforce(myCaller.PtrCall(dh).val == dh.val, "[3] failed");
-  enforce(myCaller.ConstPtrRefCall(dh).val == dh.val, "[3] failed");
+  enforce(myCaller.ValCall(dh).val == dh.val, "ValCall failed");
+  enforce(myCaller.RefCall(dh).val == dh.val, "RefCall failed");
+  enforce(myCaller.PtrCall(dh).val == dh.val, "PtrCall failed");
+  enforce(myCaller.ConstPtrCall(dh).val == dh.val, "ConstPtrCall failed");
+  enforce(myCaller.ConstPtrRefCall(dh).val == dh.val, "ConstPtrRefCall failed");
 
   // Fully overloaded method test (all methods in base class are overloaded)
-  enforce(myCaller.FullyOverloadedCall(10) == myBaseType ~ "::FullyOverloaded(int)", "[4] failed");
-  enforce(myCaller.FullyOverloadedCall(true) == myBaseType ~ "::FullyOverloaded(bool)", "[5] failed");
+  enforce(myCaller.FullyOverloadedCall(10) == myBaseType ~ "::FullyOverloaded(int)", "FullyOverloaded(int) failed");
+  enforce(myCaller.FullyOverloadedCall(true) == myBaseType ~ "::FullyOverloaded(bool)", "FullyOverloaded(bool) failed");
 
   // Semi overloaded method test (some methods in base class are overloaded)
-  enforce(myCaller.SemiOverloadedCall(-678) == myBaseType ~ "::SemiOverloaded(int)", "[6] failed");
-  enforce(myCaller.SemiOverloadedCall(true) == "Base" ~ "::SemiOverloaded(bool)", "[7] failed");
+  enforce(myCaller.SemiOverloadedCall(-678) == myBaseType ~ "::SemiOverloaded(int)", "SemiOverloaded(int) failed");
+  enforce(myCaller.SemiOverloadedCall(true) == "Base" ~ "::SemiOverloaded(bool)", "SemiOverloaded(bool) failed");
 
   // Default parameters methods test
-  enforce(myCaller.DefaultParmsCall(10, 2.25) == myBaseType ~ "::DefaultParms(int, double)", "[8] failed");
+  enforce(myCaller.DefaultParmsCall(10, 2.25) == myBaseType ~ "::DefaultParms(int, double)", "DefaultParms(int, double) failed");
   if (myBase.classinfo == DDerived.classinfo) { // special handling for D derived classes, there is no other way to do this
-    enforce(myCaller.DefaultParmsCall(10) == myBaseType ~ "::DefaultParms(int, double)", "[9] failed");
+    enforce(myCaller.DefaultParmsCall(10) == myBaseType ~ "::DefaultParms(int, double)", "DefaultParms(int, double) failed");
   } else {
-    enforce(myCaller.DefaultParmsCall(10) == myBaseType ~ "::DefaultParms(int)", "[10] failed");
+    enforce(myCaller.DefaultParmsCall(10) == myBaseType ~ "::DefaultParms(int)", "DefaultParms(int) failed");
   }
 
   myCaller.reset();
@@ -138,6 +139,11 @@ public class DDerived : Base {
 
   public override DoubleHolder Ptr(DoubleHolder x) {
     if (PrintDebug) writefln("DDerived - Ptr(%s)", x.val);
+    return x;
+  }
+
+  public override DoubleHolder ConstPtr(DoubleHolder x) {
+    if (PrintDebug) writefln("DDerived - ConstPtr(%s)", x.val);
     return x;
   }
 
