@@ -21,8 +21,10 @@ FAILING_CPP_TESTS = \
 	cpp17_map_no_default_ctor \
 
 CPP_TEST_CASES = \
+	complextest \
 	li_cstring \
 	li_factory \
+	li_std_complex \
 	li_std_containers_int \
 	li_std_functors \
 	li_std_list \

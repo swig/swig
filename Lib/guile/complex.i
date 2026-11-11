@@ -1,7 +1,5 @@
 #ifdef __cplusplus
 %include <std_complex.i>
 #else
-// Not yet written for Guile:
-//%include <ccomplex.i>
+#error Guile module only supports complex in C++ mode.
 #endif
-

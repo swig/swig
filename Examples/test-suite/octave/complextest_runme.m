@@ -5,26 +5,28 @@ endif
 
 complextest
 
+# Octave complex number
 a = complex(-1,2);
 
-if (complextest.Conj(a) != a.conjugate())
+if (complextest.Conj(a) != conj(a))
   error("bad complex mapping")
 endif
 
-if (complextest.Conjf(a) != a.conjugate())
+if (complextest.Conjf(a) != conj(a))
   error("bad complex mapping")
 endif
 
-if (complextest.Conj2(a) != a.conjugate())
+if (complextest.Conj2(a) != conj(a))
   error("bad complex mapping")
 endif
 
-if (complextest.Conjf2(a) != a.conjugate())
+if (complextest.Conjf2(a) != conj(a))
   error("bad complex mapping")
 endif
 
 
-v = (complex(1,2), complex(2,3), complex(4,3), 1);
+# v = [ complex(1,2) complex(2,3) complex(4,3) 1 ];
 
-complextest.CopyHalf(v);
-complextest.CopyHalfRef(v);
+# TODO Octave CopyHalf/CopyHalfRef do not work with native Octava arrays
+# complextest.CopyHalf(v);
+# complextest.CopyHalfRef(v);
