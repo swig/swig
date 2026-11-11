@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 
 # Replace the inline htmldoc stylesheet with the SWIG stylesheet
+# and correct the links to the heading ids
 
 import sys
 import string
+import re
 
 filename = sys.argv[1]
 
@@ -27,4 +29,49 @@ for s in lines:
 
 data = "\n".join(result)
 
+# htmldoc only recognises <a name="..."> as a link target, not an id.
+# It adds an anchor of its own inside a heading with an id, such as <h2 id="X"><a NAME="7_1">7.1 Text</a></h2>,
+# sometimes without the closing </a>. It points its table of contents at these anchors.
+# Remove these anchors and use the heading ids instead.
+htmldocnames = {}
+
+def unwrap(m):
+    level, headingid, htmldocname, text = m.groups()
+    htmldocnames[htmldocname] = headingid
+    text = re.sub(r"</a>(\s*)$", r"\1", text, flags=re.IGNORECASE)
+    return '<h%s id="%s">%s</h%s>' % (level, headingid, text, level)
+
+data = re.sub(r'<h([1-5]) id="([^"]*)">\s*<a NAME="([^"]*)">(.*?)</h\1>', unwrap, data, flags=re.IGNORECASE | re.DOTALL)
+
+# htmldoc also leaves a link to an id in another chapter, such as SWIG.html#X, pointing at the chapter file.
+# Point these links at the target in this single page document instead and check that every link has a target.
+chapters = set(c.strip() for c in open("chapters") if c.strip() and not c.startswith("#"))
+chapters.add("Sections.html")
+targets = set(re.findall(r'\s(?:id|name)="([^"]*)"', data, flags=re.IGNORECASE))
+broken = []
+
+def relink(m):
+    page, target = m.group(2), m.group(3)
+    if page and page not in chapters:
+        broken.append(m.group(0))
+        return m.group(0)
+    target = htmldocnames.get(target, target)
+    if target not in targets:
+        broken.append(m.group(0))
+        return m.group(0)
+    return m.group(1) + "#" + target + '"'
+
+# Relative links only, a link with a scheme such as https: or a path is left alone
+data = re.sub(r'(href=")([^":/#]*)#([^"]*)"', relink, data, flags=re.IGNORECASE)
+
+# A relative link without an anchor, such as to a chapter like SWIG.html, has no target in this single page document either
+broken += re.findall(r'href="(?!//)[^":#]*"', data, flags=re.IGNORECASE)
+
 open(filename,"w").write(data)
+
+if broken:
+    sys.stderr.write("Error: these links in %s have no target:\n" % filename)
+    for b in broken:
+        sys.stderr.write("    " + b + "\n")
+    sys.stderr.write("Link to an anchor in a chapter, such as href=\"SWIG.html#SWIG\" or href=\"#SWIG_nn2\" within the same chapter.\n")
+    sys.exit(1)
