@@ -79,6 +79,11 @@ for fn in (pathToStr, pathConstRefToStr):
     with swig_assert_raises(ValueError):
         fn(RaisingPath("foo"))
 
+# None is not converted to a path
+for fn in (pathToStr, pathConstRefToStr):
+    with swig_assert_raises(TypeError):
+        fn(None)
+
 # Paths are wchar_t on Windows, so they do not need to be encoded or decoded as UTF-8
 if os.name != "nt":
     for fn in (pathToStr, pathConstRefToStr):

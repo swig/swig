@@ -71,6 +71,9 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     if (!SWIG_IsOK(res)) {
       %argument_fail(res, "$type", $symname, $argnum);
     }
+    if (!argp) {
+      %argument_nullref("$type", $symname, $argnum);
+    }
     std::filesystem::path *temp = %reinterpret_cast(argp, $1_ltype*);
     $1 = *temp;
   }
@@ -114,6 +117,9 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     int res = SWIG_ConvertPtr($input, &argp, $descriptor, $disown | 0);
     if (!SWIG_IsOK(res)) {
       %argument_fail(res, "$type", $symname, $argnum);
+    }
+    if (!argp) {
+      %argument_nullref("$type", $symname, $argnum);
     }
     $1 = %reinterpret_cast(argp, $1_ltype);
   }

@@ -8,6 +8,10 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-11: wsfulton
+            [Python] #3541 Passing None for a std::filesystem::path parameter crashed the
+            interpreter. TypeError is now raised.
+
+2026-11-11: wsfulton
             [Python] #3541 An exception raised when creating the pathlib.Path for a returned
             std::filesystem::path was replaced by a SystemError when the function also has an
             output parameter, such as int *OUTPUT. The exception is now propagated.
