@@ -103,7 +103,7 @@ SWIG_SciDouble_FromShort(void *pvApiCtx, int iVarOut, short sValue, char *fname)
  */
 %fragment("SWIG_SciDoubleOrInt16_AsShortArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt16_AsShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, short **psValue, char *fname) {
+SWIG_SciDoubleOrInt16_AsShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, short **psValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int iPrec = 0;
@@ -133,9 +133,10 @@ SWIG_SciDoubleOrInt16_AsShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, 
     }
 
     size = (*iRows) * (*iCols);
-    *psValue = (short*) malloc(size * sizeof(int*));
+    *psValue = (short*) malloc(size * sizeof(short));
     for (i = 0; i < size; i++)
       (*psValue)[i] = (short) pdData[i];
+    *piAllocated = 1;
   }
   else if (iType == sci_ints) {
     int iPrec = 0;
@@ -154,6 +155,7 @@ SWIG_SciDoubleOrInt16_AsShortArrayAndSize(void *pvApiCtx, int iVar, int *iRows, 
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+    *piAllocated = 0;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 16-bit signed integer or a double matrix expected.\n"), fname, iVar);

@@ -385,7 +385,7 @@ namespace swig {
         }
         catch (std::exception& e)
         {
-          SWIG_exception(SWIG_RuntimeError, e.what());
+          SWIG_Error(SWIG_RuntimeError, e.what());
           return SWIG_ERROR;
         }
       }
@@ -431,7 +431,7 @@ namespace swig {
       }
       catch (std::exception& e)
       {
-        SWIG_exception(SWIG_RuntimeError, e.what());
+        SWIG_Error(SWIG_RuntimeError, e.what());
         return SWIG_ERROR;
       }
     }

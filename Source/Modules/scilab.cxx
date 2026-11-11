@@ -323,6 +323,17 @@ public:
   }
 
   /* ------------------------------------------------------------------------
+   * writeFailCleanup()
+   * Emits the "fail:" label that 'SWIG_fail' (and 'SWIG_exception' / 'SWIG_exception_fail',
+   * which expand to it) jump to. The label is always emitted: a jump can be hidden
+   * in a macro from the typemap code, so scanning the code is not reliable.
+   * ------------------------------------------------------------------------ */
+  void writeFailCleanup(Wrapper *wrapper) {
+    Append(wrapper->code, "fail:\n");
+    Append(wrapper->code, "return SWIG_ERROR;\n");
+  }
+
+  /* ------------------------------------------------------------------------
    * functionWrapper()
    * ----------------------------------------------------------------------*/
 
@@ -510,10 +521,22 @@ public:
 
     /* Close the function(ok) */
     Printv(wrapper->code, "return SWIG_OK;\n", NIL);
-    Printv(wrapper->code, "}\n", NIL);
 
     /* Add the failure cleanup code */
-    /* TODO */
+    Printv(wrapper->code, "fail:\n", NIL);
+    for (param = functionParamsList; param;) {
+      String *tm;
+      if ((tm = Getattr(param, "tmap:freearg"))) {
+        if (tm && (Len(tm) != 0)) {
+          Printf(wrapper->code, "%s\n", tm);
+        }
+        param = Getattr(param, "tmap:freearg:next");
+      } else {
+        param = nextSibling(param);
+      }
+    }
+    Printv(wrapper->code, "return SWIG_ERROR;\n", NIL);
+    Printv(wrapper->code, "}\n", NIL);
 
     /* Final substitutions if applicable */
     bool isvoid = !Cmp(functionReturnType, "void");
@@ -641,6 +664,7 @@ public:
       Delete(varoutTypemap);
     }
     Append(getFunctionWrapper->code, "return SWIG_OK;\n");
+    writeFailCleanup(getFunctionWrapper);
     Append(getFunctionWrapper->code, "}\n");
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
@@ -669,6 +693,7 @@ public:
         Delete(varinTypemap);
       }
       Append(setFunctionWrapper->code, "return SWIG_OK;\n");
+      writeFailCleanup(setFunctionWrapper);
       Append(setFunctionWrapper->code, "}\n");
       Wrapper_print(setFunctionWrapper, wrappersSection);
 
@@ -756,6 +781,7 @@ public:
 
     /* Dump the wrapper function */
     Append(getFunctionWrapper->code, "return SWIG_OK;\n");
+    writeFailCleanup(getFunctionWrapper);
     Append(getFunctionWrapper->code, "}\n");
     Wrapper_print(getFunctionWrapper, wrappersSection);
 
