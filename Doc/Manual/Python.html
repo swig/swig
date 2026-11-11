@@ -3405,7 +3405,7 @@ need to be supported.
 <p>
 The director implementation uses a <tt>std::map</tt> to manage C++ pointer ownership.
 This code is not thread-safe by default.
-See <a href="Python.hthml#Python_multithreaded">Thread safety</a> for turning on thread-safety.
+See <a href="#Python_multithreaded">Thread safety</a> for turning on thread safety.
 This defines a macro called <tt>SWIG_THREADS</tt> which forces the C++ code to then use a mutex
 for managing the pointer ownership, which in turn makes the directors implementation thread-safe.
 </p>
@@ -8438,7 +8438,7 @@ site for further resources and information around free threading in Python.
 </p>
 
 <p>
-SWIG does not add any thread-unsafe code generation, barring some corner cases where a warning is issued (warning 470 in the <a href="Warnings.html">Warnings chapter</a>).
+SWIG does not add any thread unsafe code generation, barring some corner cases where a warning is issued (warning 470 in the <a href="Warnings.html#Warnings">Warnings chapter</a>).
 However, this does not automatically make the code thread-safe for using in a free threading Python interpreter as it requires
 the code being wrapped by SWIG to also be thread-safe.
 Users must also write thread-safe code and prevent unsafe shared mutation using either Python-level locking in
