@@ -2,6 +2,9 @@
 
 %include <std_string.i>
 %include <std_filesystem.i>
+%include <typemaps.i>
+
+%apply int *OUTPUT { int *value };
 
 %{
 #include <filesystem>
@@ -70,6 +73,18 @@ std::filesystem::path makeNonUtf8Path() {
 
 const std::filesystem::path & makeNonUtf8PathConstRef() {
     static std::filesystem::path p("caf\xe9.txt");
+    return p;
+}
+
+/* Test the "out" typemaps when an output parameter is appended to the result */
+std::filesystem::path makePathAndValue(int *value) {
+    *value = 1;
+    return std::filesystem::path("foo");
+}
+
+const std::filesystem::path & makePathConstRefAndValue(int *value) {
+    static std::filesystem::path p("foo");
+    *value = 1;
     return p;
 }
 %}

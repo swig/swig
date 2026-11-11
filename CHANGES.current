@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-11: wsfulton
+            [Python] #3541 An exception raised when creating the pathlib.Path for a returned
+            std::filesystem::path was replaced by a SystemError when the function also has an
+            output parameter, such as int *OUTPUT. The exception is now propagated.
+
 2026-11-11: alonfaraj
             [Python] #3541 Fix crashes in the std::filesystem::path typemaps. Passing a str
             that cannot be encoded as UTF-8, such as a filename that is not valid UTF-8, now

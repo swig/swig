@@ -87,3 +87,19 @@ if os.name != "nt":
     for fn in (makeNonUtf8Path, makeNonUtf8PathConstRef):
         with swig_assert_raises(UnicodeDecodeError):
             fn()
+
+# An exception raised creating the returned pathlib.Path is propagated, also when an output parameter is appended
+for fn in (makePathAndValue, makePathConstRefAndValue):
+    swig_check(fn(), [pathlib.Path("foo"), 1])
+
+def raisingPathClass(*args):
+    raise ValueError("pathlib.Path raised")
+
+realPathClass = pathlib.Path
+pathlib.Path = raisingPathClass
+try:
+    for fn in (makePathAndValue, makePathConstRefAndValue):
+        with swig_assert_raises(ValueError):
+            fn()
+finally:
+    pathlib.Path = realPathClass

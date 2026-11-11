@@ -133,6 +133,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   $result = cls ? PyObject_CallObject(cls, args) : NULL;
   SWIG_Py_XDECREF(cls);
   SWIG_Py_DECREF(args);
+  if (!$result) SWIG_fail;
 }
 
 %typemap(out, fragment="SWIG_std_filesystem", fragment="<type_traits>") const std::filesystem::path & {
@@ -149,4 +150,5 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   $result = cls ? PyObject_CallObject(cls, args) : NULL;
   SWIG_Py_XDECREF(cls);
   SWIG_Py_DECREF(args);
+  if (!$result) SWIG_fail;
 }
