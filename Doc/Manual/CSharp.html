@@ -390,7 +390,8 @@ For example:
 <pre>
 %typemap(imtype,
          inattributes="[global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPStr)]",
-         outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPStr)]") const char * "String"
+         outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPStr)]")
+         const char * "String"
 
 const char * GetMsg() {}
 void SetMsg(const char *msg) {}

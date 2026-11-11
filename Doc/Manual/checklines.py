@@ -1,6 +1,10 @@
 #!/usr/bin/python3
 
 # Check that no line in a <pre> element is too long for the pdf documentation.
+#
+# Text in <pre> elements is not wrapped, so an over long line runs out of the coloured box it sits in and is then
+# clipped at the page edge, silently losing the text beyond it. page.css sizes the code in the pdf for a line of up to
+# the length below to fit across the page. Prose is unaffected as it is wrapped to the page width.
 
 import glob
 import html
