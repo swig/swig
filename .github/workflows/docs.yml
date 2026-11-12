@@ -57,6 +57,8 @@ jobs:
       with:
         show-progress: false
         persist-credentials: false
+        # The history is needed to compare the anchors with an earlier commit
+        fetch-depth: 0
 
     - name: Install
       run: |
@@ -75,3 +77,23 @@ jobs:
 
     - name: Link Check
       run: make -C Doc/Manual linkchecker3
+
+    - name: Anchors Check
+      env:
+        # The branch a pull request is for, empty for a push
+        BASE_REF: ${{ github.base_ref }}
+        # The commit the branch was at before a push, all zeros for a new branch
+        BEFORE: ${{ github.event.before }}
+      run: |
+          # Compare a pull request with the branch it is for and a push with the commit before the push. Compare a new
+          # branch, or a force push whose earlier commit is not in the checkout, with where the branch left the master of
+          # swig/swig. The master of a fork is often far behind it, which would show the changes made on master since.
+          if [[ -n "$BASE_REF" ]]; then
+            base=origin/$BASE_REF
+          elif git cat-file -e "$BEFORE^{commit}" 2> /dev/null; then
+            base=$BEFORE
+          else
+            git fetch --quiet --no-tags https://github.com/swig/swig.git master:refs/remotes/swig/master
+            base=swig/master
+          fi
+          make -C Doc/Manual check-anchors BASE=$base

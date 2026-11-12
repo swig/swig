@@ -29,8 +29,7 @@ VNU = vnu
 # Note the # and " are escaped
 HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Contents\" --title --titleimage $(SWIG_TITLE) --linkcolor \#0000ff --linkstyle underline --size Universal --left 0.50in --right 0.50in --top 0.50in --bottom 0.50in --header .t. --footer h.1 --nup 1 --tocheader .t. --tocfooter ..i --portrait --color --no-pscommands --no-xrxcomments --compression=1 --jpeg=0 --fontsize 10.0 --fontspacing 1.2 --headingfont Helvetica --bodyfont Times --headfootsize 10.0 --headfootfont Helvetica --charset iso-8859-1 --links --no-embedfonts --pagemode outline --pagelayout single --firstpage c1 --pageeffect none --pageduration 10 --effectduration 1.0 --no-encryption --permissions all  --owner-password \"\"  --user-password \"\" --browserwidth 680"
 
-.PHONY: all maketoc check generate maintainer-clean clean-baks test validate\
-	vnu-validate linkchecker1 linkchecker2 linkchecker3
+.PHONY: all maketoc check check-anchors generate maintainer-clean clean-baks test validate vnu-validate linkchecker1 linkchecker2 linkchecker3
 
 # Delete a generated document whose recipe fails so that it is generated again
 .DELETE_ON_ERROR:
@@ -54,6 +53,12 @@ check:
 	all="index.html Sections.html `sed '/^#/d' chapters | grep -v CCache.html`" && for a in $$all; do echo "Check for tabs $$a" && if grep -P '\t' $$a; then echo "Please delete the tabs from the lines above" && exit 1; fi; done && for a in $$all; do echo "HTML tidy check $$a" && tidy -errors --gnu-emacs yes -quiet $$a || [ $$? -eq 1 ] || exit 1; done;
 	python3 checklines.py
 	python3 checklinks.py
+
+# Check that no existing anchor has been renamed or removed since the current branch left the git revision BASE,
+# see checkanchors.py. A renamed anchor fails the check, a removed anchor is a warning.
+BASE = master
+check-anchors:
+	python3 checkanchors.py '$(BASE)'
 
 # The WeasyPrint tool
 # https://weasyprint.org/

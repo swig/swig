@@ -27,6 +27,8 @@ From `Doc/Manual/`:
 make            # = maketoc check generate (full build, needs htmldoc, weasyprint and poppler-utils)
 make maketoc    # renumber headings, regenerate <!-- INDEX --> blocks, write Contents.html
 make check      # tab detection (tabs fail the build) + HTML tidy + code line length + links on every chapter
+make check-anchors # anchors renamed or removed since the branch left master (BASE=<revision> for another)
+make generate   # SWIGDocumentation.html and SWIGDocumentation.pdf, checking their links and the pdf
 make clean-baks # delete all *.bak files left by maketoc
 ```
 
@@ -73,7 +75,11 @@ the id form. Merging master into an older branch can give conflicts in heading l
 in the heading numbers or form, keep either side and run `make maketoc`. Merge any other difference by hand, as keeping
 one side can drop a heading added on the other. `make generate` reports any link whose target was lost.
 
-**Never modify an existing anchor**, including an auto generated `_nnN` one. An anchor is the target of every `href` to its heading, and those may be publicly used links, such as links to the online manual from outside the SWIG documentation, which renaming the anchor silently breaks. The rules above are for new headings only. Link to an existing heading by its existing anchor, whatever its form. As adding or removing a heading makes `make maketoc` renumber the `_nnN` anchors after it in the chapter, check its diff for changed anchors and point any out for review.
+**Never modify an existing anchor**, including an auto generated `_nnN` one. An anchor is the target of every `href` to
+its heading. Those may be publicly used links, such as links to the online manual from outside the SWIG
+documentation, which renaming the anchor silently breaks. The rules above are for new headings only. Link to an existing
+heading by its existing anchor, whatever its form. `make check-anchors` compares the anchors with where the branch left
+master: it fails on a renamed anchor and warns about a removed one, which needs pointing out for review.
 
 ## Cross references and links
 
