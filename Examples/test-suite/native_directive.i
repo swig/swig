@@ -126,6 +126,32 @@ fail:
 }
 
 %}
+#elif defined(SWIG_JAVASCRIPT_QUICKJS) /* engine = QuickJS */
+%{
+
+static JSValue JavaScript_alpha_count(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst argv[])
+{
+  char *arg1 = (char *)0;
+  int res1;
+  char *buf1 = 0;
+  int alloc1 = 0;
+  int result;
+  JSValue jsresult;
+  
+  if (argc != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments.");
+  res1 = SWIG_QuickJS_AsCharPtrAndSize(ctx, argv[0], &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1))
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "alpha_count" "', argument " "1"" of type '" "char const *""'");
+  arg1 = reinterpret_cast< char * >(buf1);
+  result = (int)alpha_count((char const *)arg1);
+  jsresult = SWIG_From_int  SWIG_QUICKJS_FROM_CALL_ARGS(static_cast< int >(result));
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  return jsresult;
+fail:
+  return JS_EXCEPTION;
+}
+
+%}
 #else
 %{
 #error No valid JS engine configured

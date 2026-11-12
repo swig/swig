@@ -33,9 +33,12 @@
 #ifdef SWIGPYTHON
     Py_IncRef(x);
 #endif
-    return x;    
+#ifdef SWIG_JAVASCRIPT_QUICKJS
+    JS_DupValue(NULL, x); // DupValue has a context parameter, but it is unused
+#endif
+    return x;
   }
 
 }
 
-  
+
