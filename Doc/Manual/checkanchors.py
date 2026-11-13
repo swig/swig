@@ -8,14 +8,57 @@
 #  - the anchor of a heading that is still there with the same text, but a new anchor, has been renamed: an error
 #  - any other anchor that has gone, such as the anchor of a heading that was removed: a warning
 #
-# Usage: checkanchors.py [revision]
+# Run checkanchors.py --help for usage.
 
+import argparse
 import os
 import re
 import subprocess
 import sys
 
-revision = sys.argv[1] if len(sys.argv) > 1 else "master"
+parser = argparse.ArgumentParser(
+    formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=80),
+    description="""\
+Check that no existing anchor in the SWIG manual has been renamed or removed.
+
+An anchor is the id of a heading, such as <H2 id="Python_nn25">, the name of the
+anchor in a heading in the older form, <H2><a name="Python_nn25">, or any other
+<a name="...">. A link to an anchor can come from outside the SWIG
+documentation, such as from a web page or an issue. Renaming or removing the
+anchor silently breaks it.""",
+    epilog="""\
+The anchors in index.html, Sections.html and the chapters listed in the
+chapters file are compared with those in the same files where the current
+branch left REVISION, that is at 'git merge-base REVISION HEAD'. The files are
+read from the current directory, which must be Doc/Manual, so changes that are
+not committed yet are checked too. The heading numbers and the form of the
+headings make no difference. A chapter that is new is not checked.
+
+An anchor that has gone is reported in one of two ways:
+  renamed  A heading with the same text is still in the chapter, but with an
+           anchor that is new. This is an error. Keep the old anchor as the
+           id of the heading instead.
+  removed  Any other anchor that has gone, such as the anchor of a heading or
+           a chapter that was removed. This is a warning, as a section is
+           sometimes removed deliberately, but it needs pointing out for
+           review.
+
+The commits compared are written to stdout first: HEAD, the commit REVISION
+refers to and their merge base. The renamed and removed anchors follow on
+stderr, then a summary line on stdout. When the environment variable
+GITHUB_ACTIONS is true, as in a GitHub Actions workflow, each renamed and
+removed anchor is also written as an annotation on the file for GitHub to show.
+
+Exits 0 when no anchor was renamed, even if some were removed. Exits 1 when an
+anchor was renamed or git fails, such as for a REVISION that does not exist.
+
+Examples, run in Doc/Manual:
+  python3 checkanchors.py                compare with master
+  python3 checkanchors.py origin/master  compare with origin/master
+  python3 checkanchors.py v4.5.1         compare with the v4.5.1 release""")
+parser.add_argument("revision", metavar="REVISION", nargs="?", default="master",
+                    help="the git revision to compare with, such as a branch, a tag or a commit (default: master)")
+revision = parser.parse_args().revision
 github = os.environ.get("GITHUB_ACTIONS") == "true"
 
 def git(*args):

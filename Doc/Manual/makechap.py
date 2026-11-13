@@ -15,6 +15,7 @@
 # becomes:
 #   <H2 id="Preface_nn2">1.1 Introduction</H2>
 ###############################################################################
+import argparse
 import sys
 import re
 
@@ -63,13 +64,34 @@ def getheadingtext(m, s):
 # Main program
 ###############################################################################
 
-if len(sys.argv) != 3:
-    print("usage: makechap.py filename num")
-    sys.exit(1)
+parser = argparse.ArgumentParser(
+    formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=80),
+    description="""\
+Number the headings of a chapter of the SWIG manual and regenerate the table of
+contents at the top of the chapter.""",
+    epilog="""\
+The H1 to H5 headings are numbered from the number of the chapter, such as 24,
+24.1 and 24.1.1. Each heading is written with an id, for example:
+  <H2 id="Android_overview">24.1 Overview</H2>
+A heading in the older form with an anchor, for example:
+  <H2><a name="Android_overview">24.1 Overview</a></H2>
+is changed to the id form, keeping the anchor name as the id.
 
-filename = sys.argv[1]
+The table of contents between the two <!-- INDEX --> lines is regenerated and
+the entries for Contents.html are printed on stdout. A copy of the chapter is
+saved first with .bak added to its name.
+
+Run by maketoc.py for each chapter.
+
+Exits 0 when every heading is processed and 1 for a heading it cannot process,
+such as a heading without an id or an anchor.""")
+parser.add_argument("filename", help="the chapter, such as Android.html")
+parser.add_argument("num", metavar="number", type=int, help="the number of the chapter, its position in the chapters file")
+args = parser.parse_args()
+
+filename = args.filename
 filenamebase = filename.split(".")[0]
-num      = int(sys.argv[2])
+num = args.num
 
 section = 0
 subsection = 0

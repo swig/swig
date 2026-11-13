@@ -11,6 +11,7 @@
 #
 # pdftotext and pdffonts from poppler-utils read the pdf.
 
+import argparse
 import html
 import re
 import subprocess
@@ -19,7 +20,22 @@ import sys
 # The right margin of the page in mm, as in page.css
 RIGHT_MARGIN = 10
 
-filename = sys.argv[1]
+parser = argparse.ArgumentParser(
+    formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=80),
+    description="""\
+Check the pdf documentation for problems that only show up in the pdf. A line
+must not run past the right margin of a page, such as a line of code too long
+for the page when it is indented in a list. The code must be in a fixed-width
+font.""",
+    epilog="""\
+Each line past the %d mm right margin set in page.css is listed with its page.
+pdftotext and pdffonts from poppler-utils (Debian, Ubuntu) or poppler
+(Homebrew) are needed to read the pdf.
+
+Exits 0 when the pdf has no problems. Exits 1 when it has a problem or when
+pdftotext or pdffonts is not installed or fails.""" % RIGHT_MARGIN)
+parser.add_argument("pdf", help="the pdf to check, such as SWIGDocumentation.pdf")
+filename = parser.parse_args().pdf
 
 def run(command):
     try:
