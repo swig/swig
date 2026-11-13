@@ -120,6 +120,15 @@ Version 4.6.0 (in progress)
 
             The .h file now includes stdbool.h for all of these, as it does for a bool parameter.
 
+2026-11-04: patricksnape
+            [Python] #3600 Fix the reference on the runtime data capsule being released too often when
+            ownership of a wrapper that was created non-owning is acquired later, such as by setting
+            'thisown = True' on the result of a function returning a raw pointer. Freeing such a wrapper
+            released a reference that was never taken, which could destroy the runtime data while it was
+            still in use, after which new wrappers lacked their proxy classes and the type data was
+            used after being freed. Each wrapper now holds its reference on the capsule for its whole
+            lifetime, whatever its ownership. Affects SWIG 4.1.1 and later.
+
 2026-11-04: wsfulton
             [C] Fix a two dimensional array of a builtin type passed to a wrapper function or to the
             setter of a global or member variable when wrapping C++ code, such as the parameter of:
