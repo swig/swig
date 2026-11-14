@@ -70,13 +70,17 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
 # define SWIG_Py_XDECREF Py_XDECREF
 #endif
 
-#if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a6)
+#if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
 # define SWIG_PyType_GetFullyQualifiedName PyType_GetFullyQualifiedName
 #else
 SWIGINTERN PyObject *
 SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   PyObject *result = NULL;
+#if (PY_VERSION_HEX >= 0x030b0000) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030b0000)
+  PyObject *qualname = PyType_GetQualName(type);
+#else
   PyObject *qualname = PyObject_GetAttrString((PyObject *)type, "__qualname__");
+#endif
   if (qualname) {
     PyObject *mod = PyObject_GetAttrString((PyObject *)type, "__module__");
     if (mod) {
@@ -95,6 +99,63 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   return result;
 }
 #endif
+
+/* Return 1 if the type's fully qualified name is modname.qualname, or 0
+   otherwise (modname and qualname must be string literals). Where possible,
+   the type's existing __qualname__ and __module__ strings are compared
+   individually, without constructing a new string; the cheap __qualname__
+   check also quickly rejects most types, such as proxy classes. */
+#define SWIG_PyType_HasName(type, modname, qualname) \
+  SWIG_PyType_HasNameImpl(type, modname, qualname, modname "." qualname)
+
+SWIGINTERN int
+SWIG_PyType_HasNameImpl(PyTypeObject *type, const char *modname,
+                        const char *qualname, const char *fullname) {
+  int cmp;
+  /* If we have PyType_GetQualName() (Python 3.11), we can return early
+     if qualname does not match */
+#if (PY_VERSION_HEX >= 0x030b0000) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030b0000)
+  PyObject *tpqualname = PyType_GetQualName(type);
+  if (!tpqualname) {
+    PyErr_Clear();
+    return 0;
+  }
+  cmp = PyUnicode_CompareWithASCIIString(tpqualname, qualname);
+  SWIG_Py_DECREF(tpqualname);
+  if (cmp != 0)
+    return 0;
+#else
+  (void)qualname;
+#endif
+
+  /* If we have PyType_GetModuleName() (Python 3.13), we can return
+     if modname does not match */
+#if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
+  {
+    PyObject *tpmodname = PyType_GetModuleName(type);
+    (void)fullname;
+    if (!tpmodname) {
+      PyErr_Clear();
+      return 0;
+    }
+    cmp = PyUnicode_Check(tpmodname) ? PyUnicode_CompareWithASCIIString(tpmodname, modname) : 1;
+    SWIG_Py_DECREF(tpmodname);
+  }
+#else
+  {
+    /* Otherwise, check the fully qualified name */
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(type);
+    (void)modname;
+    if (!tpname) {
+      PyErr_Clear();
+      return 0;
+    }
+    cmp = PyUnicode_CompareWithASCIIString(tpname, fullname);
+    SWIG_Py_DECREF(tpname);
+  }
+#endif
+  return cmp == 0;
+}
 
 /* gh-114329 added PyList_GetItemRef() to Python 3.13.0a4 */
 #if (PY_VERSION_HEX >= 0x030d00a4) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a4)
