@@ -1345,17 +1345,17 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   obj = 0;
 
   obj = PyObject_GetAttr(pyobj, SWIG_This());
-  if (obj) {
-    SWIG_Py_DECREF(obj);
-  } else {
+  if (!obj) {
     if (PyErr_Occurred()) PyErr_Clear();
     return 0;
   }
-  if (obj && !SwigPyObject_Check(obj)) {
-    /* a PyObject is called 'this', try to get the 'real this'
-       SwigPyObject from it */ 
-    return SWIG_Python_GetSwigThis(obj);
+  if (!SwigPyObject_Check(obj)) {
+    /* a PyObject is called 'this', try to get the 'real this' SwigPyObject from it */
+    SwigPyObject *res = SWIG_Python_GetSwigThis(obj);
+    SWIG_Py_DECREF(obj);
+    return res;
   }
+  SWIG_Py_DECREF(obj);
   return (SwigPyObject *)obj;
 #endif
 }

@@ -32,3 +32,17 @@ if cvar.global_variable[0] != 30:
 cvar.global_variable.clear()
 if len(cvar.global_variable) != 0:
     raise RuntimeError("global_variable clear")
+
+# Computed 'this' must not be used after free (#3562)
+
+
+class ComputedThisSequence:
+    def __getattr__(self, name):
+        return []
+
+    def __iter__(self):
+        return iter((1, 2, 3))
+
+
+if sum(ComputedThisSequence()) != 6:
+    raise RuntimeError("computed this sequence check")
