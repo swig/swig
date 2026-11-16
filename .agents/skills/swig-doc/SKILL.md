@@ -53,7 +53,7 @@ Side effects to be aware of:
 
 ## Heading anchors — always name them by hand
 
-Every heading needs an id: `make maketoc` fails on a heading without one. Many older headings have ids of the form `<filebase>_nn<index>` (e.g. `CPlusPlus20_nn7`), which an older `makechap.py` generated for a heading without an anchor. **Do not use this form for a new heading** — the id says nothing about the section.
+Every heading needs an id: `make maketoc` fails on a heading without one. It also fails on a second H1 and on a heading that skips a level, such as an H4 straight after an H2. Many older headings have ids of the form `<filebase>_nn<index>` (e.g. `CPlusPlus20_nn7`), which an older `makechap.py` generated for a heading without an anchor. **Do not use this form for a new heading** — the id says nothing about the section.
 
 Always author a new heading with a meaningful, stable, lower snake case anchor derived from the heading title and prefixed with the chapter base name:
 

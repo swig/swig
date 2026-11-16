@@ -7,7 +7,9 @@
 # Every heading HTML tag (H1, H2 etc) must have an id to link to. The id is
 # kept as it is, as links to the heading use it, also from outside the
 # documentation. A heading that cannot be read is an error, such as one
-# without an id, with other attributes or over more than one line.
+# without an id, with other attributes or over more than one line. So is a
+# heading that skips a level, such as an H4 after an H2. The chapter must
+# start with its only H1.
 #
 # A heading with an anchor instead of an id, the form used before SWIG-4.6,
 # is changed to use an id, keeping the anchor name as the id. For example:
@@ -84,7 +86,8 @@ saved first with .bak added to its name.
 Run by maketoc.py for each chapter.
 
 Exits 0 when every heading is processed and 1 for a heading it cannot process,
-such as a heading without an id or an anchor.""")
+such as a heading without an id or an anchor. The chapter must start with its
+only H1 heading. A heading must not skip a level, such as an H4 after an H2.""")
 parser.add_argument("filename", help="the chapter, such as Android.html")
 parser.add_argument("num", metavar="number", type=int, help="the number of the chapter, its position in the chapters file")
 args = parser.parse_args()
@@ -93,12 +96,10 @@ filename = args.filename
 filenamebase = filename.split(".")[0]
 num = args.num
 
-#nameindex = 0
-
 name = ""
 
-# Regexs for <h1>,... <h5> sections
-headrs = re.compile(r".*?<H([1-5])(?: +id=\"([^\"]*)\")?>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H\1>", re.IGNORECASE)
+# Regex for the H1 to H5 headings
+heading = re.compile(r".*?<H([1-5])(?: +id=\"([^\"]*)\")?>(<a.*?>\s*[\d\.\s]*(.*?)</a>)*[\d\.\s]*(.*?)</H\1>", re.IGNORECASE)
 
 
 data = open(filename).read()            # Read data
@@ -110,7 +111,8 @@ index = "<!-- INDEX -->\n<div class=\"sectiontoc\">\n" # index contains the inde
 
 skip = False
 skipspace = False
-prevlevel = 1
+# The level of the previous heading, 0 before the H1
+prevlevel = 0
 # Store sections for headers H2 to H5
 sections = [0] * 4
 
@@ -129,12 +131,16 @@ for s in lines:
         result.append("")
         skipspace = False
 
-    m = headrs.match(s)
+    m = heading.match(s)
     if m:
         level = int(m.group(1))
         prevheadingtext = getheadingtext(m, s)
         headingname = getheadingname(m, s)
-        #nameindex += 1
+        if level == 1 and prevlevel > 0:
+            raise RuntimeError("Second H1 heading, a chapter has only one, in line:\n%s" % s)
+        if level > prevlevel + 1:
+            after = "an H%d heading" % prevlevel if prevlevel > 0 else "the start of the chapter, which must be an H1 heading"
+            raise RuntimeError("H%d heading skips a level after %s, in line:\n%s" % (level, after, s))
         if level == 1:
             result.append("""<H1 id="%s">%d %s</H1>""" % (headingname,num,prevheadingtext))
             result.append("@INDEX@")
