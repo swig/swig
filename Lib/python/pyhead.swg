@@ -143,3 +143,20 @@ SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result) {
   return res;
 }
 #endif
+
+/* gh-106521 added PyObject_GetOptionalAttr() to Python 3.13.0a1 */
+#if (PY_VERSION_HEX >= 0x030d00a1) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a1)
+# define SWIG_PyObject_GetOptionalAttr PyObject_GetOptionalAttr
+#else
+SWIGINTERN int
+SWIG_PyObject_GetOptionalAttr(PyObject *obj, PyObject *attr_name, PyObject **result) {
+  *result = PyObject_GetAttr(obj, attr_name);
+  if (*result != NULL)
+    return 1;
+  if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
+    PyErr_Clear();
+    return 0;
+  }
+  return -1;
+}
+#endif
