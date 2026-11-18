@@ -743,6 +743,31 @@ SwigPyObject_Type(void) {
 }
 #endif
 
+#ifdef Py_LIMITED_API
+/* Return 1 if type is the type called name in the SWIG runtime module, or 0 otherwise.
+   The module is only looked up when the name matches, which it does not for most types. */
+SWIGRUNTIME int
+SWIG_Python_IsRuntimeType(PyTypeObject *type, const char *name) {
+  int match = 0;
+  PyObject *qualname = SWIG_PyType_GetQualName(type);
+  if (qualname) {
+    if (PyUnicode_Check(qualname) && PyUnicode_CompareWithASCIIString(qualname, name) == 0) {
+      PyObject *modname = SWIG_PyType_GetModuleName(type);
+      if (modname) {
+        match = PyUnicode_Check(modname) && PyUnicode_CompareWithASCIIString(modname, SWIG_RUNTIME_MODULE) == 0;
+        SWIG_Py_DECREF(modname);
+      } else {
+        PyErr_Clear();
+      }
+    }
+    SWIG_Py_DECREF(qualname);
+  } else {
+    PyErr_Clear();
+  }
+  return match;
+}
+#endif
+
 SWIGRUNTIMEINLINE int
 SwigPyObject_Check(PyObject *op) {
   PyTypeObject *target_tp = SwigPyObject_Type();
@@ -756,7 +781,11 @@ SwigPyObject_Check(PyObject *op) {
     return 1;
   } else {
     /* Fallback for multiple modules */
-    return SWIG_PyType_HasName(op_type, SWIG_RUNTIME_MODULE, "SwigPyObject");
+#ifdef Py_LIMITED_API
+    return SWIG_Python_IsRuntimeType(op_type, "SwigPyObject");
+#else
+    return strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyObject") == 0;
+#endif
   }
 #endif
 }
@@ -1160,7 +1189,11 @@ SwigPyPacked_Check(PyObject *op) {
     return 1;
   } else {
     /* Fallback for multiple modules */
-    return SWIG_PyType_HasName(op_type, SWIG_RUNTIME_MODULE, "SwigPyPacked");
+#ifdef Py_LIMITED_API
+    return SWIG_Python_IsRuntimeType(op_type, "SwigPyPacked");
+#else
+    return strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyPacked") == 0;
+#endif
   }
 }
 

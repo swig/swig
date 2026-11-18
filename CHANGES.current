@@ -31,6 +31,11 @@ Version 4.6.0 (in progress)
             such as a float or str, does not match a pointer parameter. Modules compiled for
             Python 3.13 or later, or for version 3.13 or later of the limited API, benefit.
 
+2026-11-18: benmwebb
+            [Python] #3608 Faster calls to wrapped functions and methods taking proxy class
+            arguments, including self, when not using -builtin. Each argument's type was
+            checked by making a new string. Calls are now two to three times as fast.
+
 2026-11-16: wsfulton
             The -addextern command line option is deprecated and now gives Warning 129. It will
             be removed in a future release. The option adds a declaration of each extern function
