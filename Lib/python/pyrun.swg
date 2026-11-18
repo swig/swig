@@ -1580,8 +1580,6 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
           if (PyObject_SetAttr(inst, SWIG_This(), swig_this) == -1) {
             SWIG_Py_DECREF(inst);
             inst = 0;
-          } else {
-            PyType_Modified(Py_TYPE(inst));
           }
         }
       }
