@@ -772,6 +772,8 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own);
 
 static PyObject* Swig_Capsule_global = NULL;
 
+SWIGRUNTIME void SWIG_Python_RefreshCapsuleGlobal(void);
+
 SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v)
 {
@@ -1072,6 +1074,11 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
       /* Obtain a reference to the Python capsule wrapping the module information, so that the
        * module information is correctly destroyed after all SWIG python objects have been freed
        * by the GC (and corresponding destructors invoked) */
+      if (!Swig_Capsule_global) {
+        /* The per-module teardown may have dropped our cached reference while proxy classes
+           from this module are still creating objects. Re-acquire it when possible. */
+        SWIG_Python_RefreshCapsuleGlobal();
+      }
       SWIG_Py_XINCREF(Swig_Capsule_global);
     }
   }
@@ -1725,42 +1732,60 @@ SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
 #define SWIG_PYOBJ_REFCNT(OBJ)
 #endif
 
+/* Detach a cached runtime object before releasing it. Releasing may run another
+ * destructor nested inside the caller (for example dropping the last reference
+ * to a module can destroy capsules whose destructors release the same caches),
+ * which must not see and drop the same reference again. */
+SWIGRUNTIME void
+SWIG_Python_ClearGlobal(PyObject **cached) {
+  PyObject *tmp = *cached;
+  *cached = NULL;
+  SWIG_Py_XDECREF(tmp);
+}
+
 static int interpreter_counter = 0; /* how many (sub-)interpreters are using swig_module's types */
 
 SWIGRUNTIME void
 SWIG_Python_DestroyModule(PyObject *obj)
 {
   swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
-  swig_type_info **types = swig_module->types;
+  swig_module_info *iter;
   size_t i;
   if (--interpreter_counter != 0) /* another sub-interpreter may still be using the swig_module's types */
     return;
-  for (i = 0; i < swig_module->size; ++i) {
-    swig_type_info *ty = types[i];
-    if (ty->owndata) {
-      SwigPyClientData *data = (SwigPyClientData *) ty->clientdata;
-      ty->clientdata = 0;
-      if (data) SwigPyClientData_Del(data);
+  /* Release the clientdata of every type owned by any loaded module. This destructor runs
+   * only after the last reference to the shared capsule is gone, which every module holds
+   * (see SWIG_Python_RefreshCapsuleGlobal) along with every owned object, so no surviving
+   * object can need the clientdata anymore. Clearing ty->clientdata makes a second visit
+   * of a type shared between modules a no-op. */
+  iter = swig_module;
+  do {
+    if (iter->types) {
+      for (i = 0; i < iter->size; ++i) {
+        swig_type_info *ty = iter->types[i];
+        if (ty && ty->owndata) {
+          SwigPyClientData *data = (SwigPyClientData *) ty->clientdata;
+          ty->clientdata = 0;
+          if (data) SwigPyClientData_Del(data);
+        }
+      }
     }
-  }
+    iter = iter->next;
+  } while (iter && iter != swig_module);
   SWIG_PYOBJ_REFCNT(Swig_This_global);
-  SWIG_Py_XDECREF(Swig_This_global);
-  Swig_This_global = NULL;
+  SWIG_Python_ClearGlobal(&Swig_This_global);
 
   SWIG_PYOBJ_REFCNT(Swig_Globals_global);
-  SWIG_Py_XDECREF(Swig_Globals_global);
-  Swig_Globals_global = NULL;
+  SWIG_Python_ClearGlobal(&Swig_Globals_global);
 
   SWIG_PYOBJ_REFCNT(Swig_TypeCache_global);
-  SWIG_Py_XDECREF(Swig_TypeCache_global);
-  Swig_TypeCache_global = NULL;
+  SWIG_Python_ClearGlobal(&Swig_TypeCache_global);
 
   SWIG_PYOBJ_REFCNT(Swig_Capsule_global);
-  Swig_Capsule_global = NULL;
+  SWIG_Python_ClearGlobal(&Swig_Capsule_global);
 
   SWIG_PYOBJ_REFCNT(Swig_runtime_data_module_global);
-  SWIG_Py_XDECREF(Swig_runtime_data_module_global);
-  Swig_runtime_data_module_global = NULL;
+  SWIG_Python_ClearGlobal(&Swig_runtime_data_module_global);
 }
 
 SWIGRUNTIME void
@@ -1771,11 +1796,86 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
     if (PyModule_AddObject(runtime_data_module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
       ++interpreter_counter;
       Swig_Capsule_global = pointer;
+      /* Keep an owned reference: the runtime_data dict owns one reference and this
+       * module owns another. Other modules obtain their own owned reference through
+       * SWIG_Python_RefreshCapsuleGlobal, so that owned objects created by any module
+       * keep the shared capsule (and the clientdata it guards) alive until they are freed. */
+      SWIG_Py_INCREF(Swig_Capsule_global);
     } else {
       SWIG_Py_DECREF(pointer);
     }
   } else {
     SWIG_Py_XDECREF(pointer);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * SWIG_Python_RefreshCapsuleGlobal()
+ *
+ * Give this module an owned reference to the shared capsule. Only the first module
+ * loaded goes through SWIG_Python_SetModule, so without this call the other modules
+ * keep a null Swig_Capsule_global and objects they create do not pin the shared
+ * capsule, letting SWIG_Python_DestroyModule clear clientdata while objects needing
+ * it are still alive.
+ * ----------------------------------------------------------------------------- */
+
+SWIGRUNTIME void
+SWIG_Python_RefreshCapsuleGlobal(void) {
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
+  PyObject *pointer = runtime_data_module ? PyObject_GetAttrString(runtime_data_module, SWIGPY_CAPSULE_ATTR_NAME) : NULL;
+  if (pointer) {
+    SWIG_Py_XDECREF(Swig_Capsule_global);
+    Swig_Capsule_global = pointer;
+  } else {
+    PyErr_Clear();
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * SWIG_Python_DestroyModulePerModule()
+ *
+ * Per-module teardown, run when the module holding the per-module capsule is
+ * garbage collected. Each generated module has its own copies of the runtime
+ * statics, so each module must release its own; the shared capsule destructor only
+ * covers the first module loaded, which leaked every other module's varlink chain.
+ * Clientdata is deliberately left alone here as it may be shared with other live
+ * modules; SWIG_Python_DestroyModule releases it once nothing pins it anymore.
+ * ----------------------------------------------------------------------------- */
+
+SWIGRUNTIME void
+SWIG_Python_DestroyModulePerModule(PyObject *SWIGUNUSEDPARM(obj))
+{
+  SWIG_PYOBJ_REFCNT(Swig_This_global);
+  SWIG_Python_ClearGlobal(&Swig_This_global);
+
+  SWIG_PYOBJ_REFCNT(Swig_Globals_global);
+  SWIG_Python_ClearGlobal(&Swig_Globals_global);
+
+  SWIG_PYOBJ_REFCNT(Swig_TypeCache_global);
+  SWIG_Python_ClearGlobal(&Swig_TypeCache_global);
+
+  SWIG_PYOBJ_REFCNT(Swig_Capsule_global);
+  SWIG_Python_ClearGlobal(&Swig_Capsule_global);
+
+  SWIG_PYOBJ_REFCNT(Swig_runtime_data_module_global);
+  SWIG_Python_ClearGlobal(&Swig_runtime_data_module_global);
+}
+
+/* -----------------------------------------------------------------------------
+ * SWIG_Python_AttachPerModuleCapsule()
+ *
+ * Attach a capsule carrying this module's teardown to the module itself, so the
+ * teardown runs when the module is garbage collected, once per module.
+ * ----------------------------------------------------------------------------- */
+
+SWIGRUNTIME void
+SWIG_Python_AttachPerModuleCapsule(PyObject *m, swig_module_info *swig_module) {
+  /* The underscore prefixed attribute is skipped by 'from ... import *'. */
+  PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModulePerModule);
+  if (pointer) {
+    if (PyModule_AddObject(m, "__swig_capsule__", pointer) != 0) {
+      SWIG_Py_DECREF(pointer);
+    }
   }
 }
 
