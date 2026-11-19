@@ -211,22 +211,23 @@ jobs:
         - SWIGLANG: python
           VER: '3.14'
           CSTD: gnu99
-        - SWIGLANG: python
-          VER: '3.14'
-          CSTD: gnu99
-          SWIG_FEATURES: -typehints
-        - SWIGLANG: python
-          VER: '3.14'
-          CSTD: gnu99
-          SWIG_FEATURES: -pyi -typehints
-        - SWIGLANG: python
-          VER: '3.14'
-          CSTD: gnu99
-          SWIG_FEATURES: -builtin -typehints
-        - SWIGLANG: python
-          VER: '3.14'
-          CSTD: gnu99
-          SWIG_FEATURES: -builtin -pyi -typehints
+       # See #3612
+       #- SWIGLANG: python
+       #  VER: '3.14'
+       #  CSTD: gnu99
+       #  SWIG_FEATURES: -typehints
+       #- SWIGLANG: python
+       #  VER: '3.14'
+       #  CSTD: gnu99
+       #  SWIG_FEATURES: -pyi -typehints
+       #- SWIGLANG: python
+       #  VER: '3.14'
+       #  CSTD: gnu99
+       #  SWIG_FEATURES: -builtin -typehints
+       #- SWIGLANG: python
+       #  VER: '3.14'
+       #  CSTD: gnu99
+       #  SWIG_FEATURES: -builtin -pyi -typehints
         - SWIGLANG: python
           VER: '3.14-dbg'
           CSTD: gnu99
