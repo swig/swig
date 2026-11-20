@@ -201,7 +201,7 @@ SwigPyStaticVar_TypeOnce(void) {
   static PyTypeObject staticvar_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
       SWIG_RUNTIME_MODULE ".SwigPyStaticVar",   /* tp_name */
       sizeof(PyGetSetDescrObject),              /* tp_basicsize */
@@ -274,14 +274,9 @@ SwigPyStaticVar_TypeOnce(void) {
       0                                         /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    staticvar_type = tmp;
+    if (SWIG_Python_ReadyStaticType(&staticvar_type, &type_template, NULL, "SwigPyStaticVar") != 0)
+      return NULL;
     type_init = 1;
-    if (PyType_Ready(&staticvar_type) < 0)
-      return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", (PyObject *)&staticvar_type) != 0)
-      return NULL;
-    SWIG_Py_INCREF((PyObject *)&staticvar_type);
   }
   return &staticvar_type;
 #else
@@ -331,7 +326,7 @@ SwigPyObjectType_TypeOnce(void) {
   static PyTypeObject swigpyobjecttype_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
       SWIG_RUNTIME_MODULE ".SwigPyObjectType",  /* tp_name */
       PyType_Type.tp_basicsize,                 /* tp_basicsize */
@@ -404,15 +399,9 @@ SwigPyObjectType_TypeOnce(void) {
       0                                         /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    swigpyobjecttype_type = tmp;
+    if (SWIG_Python_ReadyStaticType(&swigpyobjecttype_type, &type_template, &PyType_Type, "SwigPyObjectType") != 0)
+      return NULL;
     type_init = 1;
-    swigpyobjecttype_type.tp_base = &PyType_Type;
-    if (PyType_Ready(&swigpyobjecttype_type) < 0)
-      return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyObjectType", (PyObject *)&swigpyobjecttype_type) != 0)
-      return NULL;
-    SWIG_Py_INCREF((PyObject *)&swigpyobjecttype_type);
   }
   return &swigpyobjecttype_type;
 #else

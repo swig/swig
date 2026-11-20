@@ -128,6 +128,25 @@ SWIG_runtime_data_module(void) {
   return Swig_runtime_data_module_global;
 }
 
+#ifndef SWIG_HEAPTYPES
+/* Ready a static SWIG runtime type copied from type_template, with base as its tp_base if not NULL, and add it to the swig_runtime_data module.
+   The type is copied only while it is not ready, so a retry after PyModule_AddObject() failed does not overwrite the readied type. */
+SWIGINTERN int
+SWIG_Python_ReadyStaticType(PyTypeObject *type, const PyTypeObject *type_template, PyTypeObject *base, const char *name) {
+  if (!PyType_HasFeature(type, Py_TPFLAGS_READY)) {
+    *type = *type_template;
+    if (base)
+      type->tp_base = base;
+    if (PyType_Ready(type) < 0)
+      return -1;
+  }
+  if (PyModule_AddObject(SWIG_runtime_data_module(), name, (PyObject *)type) != 0)
+    return -1;
+  SWIG_Py_INCREF((PyObject *)type);
+  return 0;
+}
+#endif
+
 /* Append a value to the result obj */
 SWIGINTERN PyObject*
 SWIG_Python_AppendOutput(PyObject* result, PyObject* obj, int is_void) {
@@ -344,7 +363,7 @@ SwigVarLink_TypeOnce(void) {
   static PyTypeObject varlink_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(NULL, 0)
       SWIG_RUNTIME_MODULE ".SwigVarLink", /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
@@ -398,14 +417,9 @@ SwigVarLink_TypeOnce(void) {
       0                                   /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    varlink_type = tmp;
+    if (SWIG_Python_ReadyStaticType(&varlink_type, &type_template, NULL, "SwigVarLink") != 0)
+      return NULL;
     type_init = 1;
-    if (PyType_Ready(&varlink_type) < 0)
-      return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigVarLink", (PyObject *)&varlink_type) != 0)
-      return NULL;
-    SWIG_Py_INCREF((PyObject *)&varlink_type);
   }
   return &varlink_type;
 #else
@@ -1016,7 +1030,7 @@ SwigPyObject_TypeOnce(void) {
   static PyTypeObject swigpyobject_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(NULL, 0)
       SWIG_RUNTIME_MODULE ".SwigPyObject",  /* tp_name */
       sizeof(SwigPyObject),                 /* tp_basicsize */
@@ -1089,14 +1103,9 @@ SwigPyObject_TypeOnce(void) {
       0                                     /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    swigpyobject_type = tmp;
+    if (SWIG_Python_ReadyStaticType(&swigpyobject_type, &type_template, NULL, "SwigPyObject") != 0)
+      return NULL;
     type_init = 1;
-    if (PyType_Ready(&swigpyobject_type) != 0)
-      return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyObject", (PyObject *)&swigpyobject_type) != 0)
-      return NULL;
-    SWIG_Py_INCREF((PyObject *)&swigpyobject_type);
   }
   return &swigpyobject_type;
 #else
@@ -1252,7 +1261,7 @@ SwigPyPacked_TypeOnce(void) {
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(NULL, 0)
       SWIG_RUNTIME_MODULE ".SwigPyPacked",  /* tp_name */
       sizeof(SwigPyPacked),                 /* tp_basicsize */
@@ -1325,14 +1334,9 @@ SwigPyPacked_TypeOnce(void) {
       0                                     /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    swigpypacked_type = tmp;
+    if (SWIG_Python_ReadyStaticType(&swigpypacked_type, &type_template, NULL, "SwigPyPacked") != 0)
+      return NULL;
     type_init = 1;
-    if (PyType_Ready(&swigpypacked_type) != 0)
-      return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyPacked", (PyObject *)&swigpypacked_type) != 0)
-      return NULL;
-    SWIG_Py_INCREF((PyObject *)&swigpypacked_type);
   }
   return &swigpypacked_type;
 #else
