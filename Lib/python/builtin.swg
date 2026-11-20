@@ -279,8 +279,9 @@ SwigPyStaticVar_TypeOnce(void) {
     type_init = 1;
     if (PyType_Ready(&staticvar_type) < 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", (PyObject *)&staticvar_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&staticvar_type);
+    if (PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", (PyObject *)&staticvar_type) != 0)
+      return NULL;
+    SWIG_Py_INCREF((PyObject *)&staticvar_type);
   }
   return &staticvar_type;
 #else
@@ -308,8 +309,11 @@ SwigPyStaticVar_TypeOnce(void) {
   }
   PyErr_Clear();
   pytype = PyType_FromSpec(&spec);
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }
@@ -406,8 +410,9 @@ SwigPyObjectType_TypeOnce(void) {
     swigpyobjecttype_type.tp_base = &PyType_Type;
     if (PyType_Ready(&swigpyobjecttype_type) < 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyObjectType", (PyObject *)&swigpyobjecttype_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&swigpyobjecttype_type);
+    if (PyModule_AddObject(runtime_data_module, "SwigPyObjectType", (PyObject *)&swigpyobjecttype_type) != 0)
+      return NULL;
+    SWIG_Py_INCREF((PyObject *)&swigpyobjecttype_type);
   }
   return &swigpyobjecttype_type;
 #else
@@ -431,8 +436,11 @@ SwigPyObjectType_TypeOnce(void) {
   }
   PyErr_Clear();
   pytype = PyType_FromSpec(&spec);
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }

@@ -403,8 +403,9 @@ SwigVarLink_TypeOnce(void) {
     type_init = 1;
     if (PyType_Ready(&varlink_type) < 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigVarLink", (PyObject *)&varlink_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&varlink_type);
+    if (PyModule_AddObject(runtime_data_module, "SwigVarLink", (PyObject *)&varlink_type) != 0)
+      return NULL;
+    SWIG_Py_INCREF((PyObject *)&varlink_type);
   }
   return &varlink_type;
 #else
@@ -426,8 +427,11 @@ SwigVarLink_TypeOnce(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigVarLink", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigVarLink", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }
@@ -1090,8 +1094,9 @@ SwigPyObject_TypeOnce(void) {
     type_init = 1;
     if (PyType_Ready(&swigpyobject_type) != 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyObject", (PyObject *)&swigpyobject_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&swigpyobject_type);
+    if (PyModule_AddObject(runtime_data_module, "SwigPyObject", (PyObject *)&swigpyobject_type) != 0)
+      return NULL;
+    SWIG_Py_INCREF((PyObject *)&swigpyobject_type);
   }
   return &swigpyobject_type;
 #else
@@ -1131,8 +1136,11 @@ SwigPyObject_TypeOnce(void) {
   }
 #endif
 #endif
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }
@@ -1322,8 +1330,9 @@ SwigPyPacked_TypeOnce(void) {
     type_init = 1;
     if (PyType_Ready(&swigpypacked_type) != 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyPacked", (PyObject *)&swigpypacked_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&swigpypacked_type);
+    if (PyModule_AddObject(runtime_data_module, "SwigPyPacked", (PyObject *)&swigpypacked_type) != 0)
+      return NULL;
+    SWIG_Py_INCREF((PyObject *)&swigpypacked_type);
   }
   return &swigpypacked_type;
 #else
@@ -1344,8 +1353,11 @@ SwigPyPacked_TypeOnce(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyPacked", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyPacked", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }
