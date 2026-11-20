@@ -315,17 +315,24 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
 
   /* All objects have a 'this' attribute */
   this_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &this_getset_def);
-  (void)this_descr;
+  if (!this_descr)
+    return -1;
 
   /* All objects have a 'thisown' attribute */
   thisown_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &thisown_getset_def);
-  (void)thisown_descr;
+  if (!thisown_descr)
+    return -1;
 
   public_interface = PyList_New(0);
+  if (!public_interface)
+    return -1;
   public_symbol = 0;
   (void)public_symbol;
 
-  PyDict_SetItemString(md, "__all__", public_interface);
+  if (PyDict_SetItemString(md, "__all__", public_interface) != 0) {
+    SWIG_Py_DECREF(public_interface);
+    return -1;
+  }
   SWIG_Py_DECREF(public_interface);
   for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
     SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);
