@@ -24,9 +24,13 @@ public:
 }
 #endif
 
-#if defined(SWIGJAVA)
+#ifdef SWIGJAVA_SOURCE
 %typemap(javaout) Foo * {
     return new Bar($jnicall, $owner);
+  }
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(javaout) Foo * {
+    return Bar($jnicall, $owner)
   }
 #endif
 

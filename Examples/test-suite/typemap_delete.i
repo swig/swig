@@ -1,6 +1,6 @@
 %module typemap_delete
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 

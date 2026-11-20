@@ -9,8 +9,13 @@
 
 // const enum SWIGTYPE & typemaps
 %typemap(jni) const enum SWIGTYPE & "jint"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) const enum SWIGTYPE & "int"
 %typemap(jstype) const enum SWIGTYPE & "int"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) const enum SWIGTYPE & "Int"
+%typemap(jstype) const enum SWIGTYPE & "Int"
+#endif
 
 %typemap(in) const enum SWIGTYPE & ($*1_ltype temp)
 %{ temp = ($*1_ltype)$input; 
@@ -38,8 +43,13 @@
 
 // enum SWIGTYPE typemaps
 %typemap(jni) enum SWIGTYPE "jint"
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
 %typemap(jtype) enum SWIGTYPE "int"
 %typemap(jstype) enum SWIGTYPE "int"
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(jtype) enum SWIGTYPE "Int"
+%typemap(jstype) enum SWIGTYPE "Int"
+#endif
 
 %typemap(in) enum SWIGTYPE  %{ $1 = ($1_ltype)$input; %}
 %typemap(out) enum SWIGTYPE  %{ $result = (jint)$1; %}
@@ -61,12 +71,18 @@
   }
 
 // '$static' will be replaced with either 'static' or nothing depending on whether the enum is an inner Java class or not
-%typemap(javaclassmodifiers) enum SWIGTYPE "public final $static class"
 %typemap(javabase)           enum SWIGTYPE ""
 %typemap(javacode)           enum SWIGTYPE ""
 %typemap(javaimports)        enum SWIGTYPE ""
 %typemap(javainterfaces)     enum SWIGTYPE ""
+#if SWIGJAVA_TARGET == SWIGJAVA_JAVA
+%typemap(javaclassmodifiers) enum SWIGTYPE "public final $static class"
 %typemap(javabody)           enum SWIGTYPE ""
+#elif SWIGJAVA_TARGET == SWIGJAVA_KOTLIN
+%typemap(javaclassmodifiers) enum SWIGTYPE "class"
+%typemap(javacompanion)      enum SWIGTYPE ""
+%typemap(javabody, companion="1") enum SWIGTYPE "$kcompanionmembers  }\n"
+#endif
 
 %javaenum(typeunsafe);
 

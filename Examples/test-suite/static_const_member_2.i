@@ -4,7 +4,7 @@
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) oss::modules::CavityPackFlags::backward_field;
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) oss::modules::Test::current_profile;
 
-#ifdef SWIGOCAML
+#if defined SWIGOCAML || defined SWIGKOTLIN_SOURCE
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 
