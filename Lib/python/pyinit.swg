@@ -297,6 +297,8 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
 
 #ifdef SWIGPYTHON_BUILTIN
   swigpyobject = SwigPyObject_TypeOnce();
+  if (!swigpyobject)
+    return -1;
 
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
