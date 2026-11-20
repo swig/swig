@@ -7321,6 +7321,26 @@ def do_something(t: "int|float") -&gt; "int":
 </pre></div>
 
 <p>
+A string annotation in a class is looked up in the class before the builtins, so a member named after a builtin type,
+such as a <tt>str</tt> member variable or method, hides the builtin type from all the annotations in its class.
+The <tt>pytyping</tt> typemaps for the annotations in that class must then name the builtin type through the
+<tt>builtins</tt> module, which the generated .py file and .pyi stub file import as <tt>__builtin__</tt>:
+</p>
+
+<div class="code"><pre>
+%typemap(pytyping) std::string str "__builtin__.str"
+
+struct S {
+  std::string str;
+};
+</pre></div>
+
+<div class="targetlang"><pre>
+class S(object):
+    str: "__builtin__.str" = _swig_property(_example.S_str_get, _example.S_str_set)
+</pre></div>
+
+<p>
 A function using <tt>argout</tt> typemaps returns more than one value, which needs the
 <tt>pytyping</tt> typemaps of the <tt>argout</tt> parameters as well as that of the return type.
 This is covered in <a href="#Python_annotations_argout">Annotations for argout typemaps</a> below.

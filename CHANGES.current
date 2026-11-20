@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-21: wsfulton
+            [Python] #3528 The str() method of the std::ostringstream and std::wostringstream
+            classes in std_sstream.i was annotated with -typehints as returning "str". The method
+            hides the str builtin in its class, so this named the method and type checkers rejected
+            it. It is now annotated as returning "__builtin__.str". The .pyi stub file now imports
+            the builtins module as __builtin__, as the .py file does, so that a pytyping typemap can
+            name a builtin type hidden by a class member in the same way.
+
 2026-11-16: wsfulton
             The -addextern command line option is deprecated and now gives Warning 129. It will
             be removed in a future release. The option adds a declaration of each extern function

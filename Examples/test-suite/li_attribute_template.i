@@ -6,6 +6,11 @@
 %include <attribute.i>
 %include <std_string.i>
 
+// The 'str' attribute shadows the str builtin in the class scope of the generated Python proxy class, so its annotation qualifies it with the builtins module.
+#ifdef SWIGPYTHON
+%typemap(pytyping) std::string str "__builtin__.str"
+#endif
+
 %inline
 {
   class Foo {

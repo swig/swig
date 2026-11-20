@@ -1026,6 +1026,8 @@ public:
         Printv(f_stub_pyi, "\n", stub_begin, "\n", NIL);
 
       Printv(f_stub_pyi, "import typing\n", NULL);
+      /* Need builtins to qualify names like str that a class member might hide, as in the .py file */
+      Printv(f_stub_pyi, "import builtins as __builtin__\n", NULL);
       if (Len(stub_imports) > 0)
         Printv(f_stub_pyi, stub_imports, NULL);
 
