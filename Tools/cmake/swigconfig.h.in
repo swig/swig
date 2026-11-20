@@ -77,10 +77,6 @@
 /* Directory for SWIG system-independent libraries */
 #define SWIG_LIB "@CMAKE_INSTALL_PREFIX@/@SWIG_LIB@"
 
-/* Directory for SWIG system-independent libraries (Unix install on native
-   Windows) */
-#define SWIG_LIB_WIN_UNIX "@SWIG_LIB_WIN_UNIX@"
-
 /* Platform that SWIG is built for */
 #define SWIG_PLATFORM "@CMAKE_SYSTEM_NAME@"
 
