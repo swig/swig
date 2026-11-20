@@ -220,6 +220,14 @@ SWIG_init(void) {
   return PyModuleDef_Init(&SWIG_module);
 }
 
+/* Return -1 from SWIG_mod_exec() for a NULL SWIG runtime type. In C++ the NULL from a failed creation in an earlier import is kept, with no exception set. */
+SWIGINTERN int
+SWIG_Python_RuntimeTypeFailed(void) {
+  if (!PyErr_Occurred())
+    PyErr_SetString(PyExc_ImportError, "SWIG runtime type creation failed in an earlier import");
+  return -1;
+}
+
 SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   PyObject *d, *md, *globals;
 
@@ -259,7 +267,7 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   /* Metaclass is used to implement static member variables */
   metatype = SwigPyObjectType_Type();
   if (!metatype || !SwigPyStaticVar_Type())
-    return -1;
+    return SWIG_Python_RuntimeTypeFailed();
 #endif
 
   (void)globals;
@@ -267,10 +275,10 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
   SWIG_runtime_data_module();
   if (!SWIG_This() || !SWIG_Python_TypeCache() || !SwigPyPacked_Type() || !SwigVarLink_Type())
-    return -1;
+    return SWIG_Python_RuntimeTypeFailed();
 #ifndef SWIGPYTHON_BUILTIN
   if (!SwigPyObject_Type())
-    return -1;
+    return SWIG_Python_RuntimeTypeFailed();
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
