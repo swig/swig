@@ -293,7 +293,7 @@
   if (!argp) {
     Swig::DirectorTypeMismatchException::raise(L, "Unexpected null reference for $1_type");
   }
-  $result = *($1_ltype *)argp;
+  $result = ($1_ltype)argp;
 }
 
 %typemap(directorout) SWIGTYPE && {
