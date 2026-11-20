@@ -263,17 +263,19 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   (void)tuple;
   (void)static_getset;
   (void)self;
-
-  /* Metaclass is used to implement static member variables */
-  metatype = SwigPyObjectType_Type();
-  if (!metatype || !SwigPyStaticVar_Type())
-    return SWIG_Python_RuntimeTypeFailed();
 #endif
 
   (void)globals;
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
-  SWIG_runtime_data_module();
+  if (!SWIG_runtime_data_module())
+    return -1;
+#if defined(SWIGPYTHON_BUILTIN)
+  /* Metaclass is used to implement static member variables */
+  metatype = SwigPyObjectType_Type();
+  if (!metatype || !SwigPyStaticVar_Type())
+    return SWIG_Python_RuntimeTypeFailed();
+#endif
   if (!SWIG_This() || !SWIG_Python_TypeCache() || !SwigPyPacked_Type() || !SwigVarLink_Type())
     return SWIG_Python_RuntimeTypeFailed();
 #ifndef SWIGPYTHON_BUILTIN

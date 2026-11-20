@@ -112,7 +112,7 @@ SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {
 /* SWIG runtime data Python module */
 static PyObject *Swig_runtime_data_module_global = NULL;
 
-/* Create/obtain the single swig_runtime_data module which is used across different SWIG generated modules */
+/* Create/obtain the single swig_runtime_data module which is used across different SWIG generated modules, NULL with an exception set on failure */
 SWIGINTERN PyObject *
 SWIG_runtime_data_module(void) {
   if (!Swig_runtime_data_module_global) {
@@ -125,7 +125,6 @@ SWIG_runtime_data_module(void) {
     SWIG_Py_XINCREF(Swig_runtime_data_module_global);
 #endif
   }
-  assert(Swig_runtime_data_module_global);
   return Swig_runtime_data_module_global;
 }
 
