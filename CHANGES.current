@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-26: wsfulton
+            [Python] Fix further reference counting errors in the SWIG runtime code, mostly in the
+            handling of failures such as running out of memory. Some of these failures raised a
+            SystemError and now raise an appropriate exception, such as MemoryError, instead.
+            Importing a C++ module again after creating a SWIG runtime type failed now raises
+            ImportError instead of SystemError.
+
 2026-11-25: wsfulton
             [Python] Fix crashes using a Python class deriving from the SwigPyObject type, which is
             the type of a plain pointer wrapper such as an 'int *'. Freeing an instance of the class
@@ -2647,9 +2654,9 @@ Version 4.6.0 (in progress)
             instantiated the first make as '5 make()', which did not compile.
 
 2026-10-14: ysheikh2
-            [Python] #3061 Fix seg fault importing a module if creating one of the SWIG
-            runtime Python types fails during module initialization. The import now raises
-            the Python exception instead, for example a MemoryError.
+            [Python] #3061 Fix a seg fault or abort importing a module when module initialization
+            fails, for example if creating one of the SWIG runtime types fails with a MemoryError.
+            The import now raises the exception instead.
 
 2026-10-14: wsfulton
             Add support for 'static', type qualifiers and '*' in the brackets of a function
