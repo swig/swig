@@ -25,16 +25,19 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
+	complextest \
 	iadd \
 	inplaceadd \
 	input \
 	javascript_lib_arrays \
 	li_cdata_carrays_cpp \
 	li_factory \
+	li_std_complex \
 	li_std_containers_int \
 	li_std_map_member \
 
 C_TEST_CASES += \
+	ccomplextest \
 	javascript_uint8array_fragment \
 	li_cdata_carrays \
 
