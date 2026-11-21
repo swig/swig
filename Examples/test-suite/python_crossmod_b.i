@@ -17,3 +17,7 @@ public:
     C();
     int methC();
 };
+
+%inline %{
+int *get_int_ptr() { static int i = 4; return &i; }
+%}
