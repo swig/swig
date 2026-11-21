@@ -79,6 +79,7 @@ CPP_TEST_CASES += \
 	python_richcompare \
 	python_std_pair_castmode \
 	python_strict_unicode \
+	python_swig_newpointerobj_builtin \
 	python_threads \
 	python_typehints \
 	python_typemap_macro \
@@ -154,6 +155,7 @@ SWIGOPT += -Werror
 # Custom tests - tests with additional commandline options
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 python_nokwargs_keyword.cpptest: SWIGOPT += -keyword
+python_swig_newpointerobj_builtin.cpptest: SWIGOPT += -builtin
 python_typehints.cpptest: SWIGOPT += -typehints
 python_pyi.cpptest: SWIGOPT += -pyi
 python_pyi_untyped.cpptest: SWIGOPT += -pyi
