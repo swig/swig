@@ -756,13 +756,7 @@ SwigPyObject_Check(PyObject *op) {
     return 1;
   } else {
     /* Fallback for multiple modules */
-    int cmp;
-    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(op_type);
-    if (!tpname)
-      return 0;
-    cmp = PyUnicode_CompareWithASCIIString(tpname, SWIG_RUNTIME_MODULE ".SwigPyObject");
-    SWIG_Py_DECREF(tpname);
-    return cmp == 0;
+    return SWIG_PyType_HasName(op_type, SWIG_RUNTIME_MODULE, "SwigPyObject");
   }
 #endif
 }
@@ -1137,13 +1131,7 @@ SwigPyPacked_Check(PyObject *op) {
     return 1;
   } else {
     /* Fallback for multiple modules */
-    int cmp;
-    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(op_type);
-    if (!tpname)
-      return 0;
-    cmp = PyUnicode_CompareWithASCIIString(tpname, SWIG_RUNTIME_MODULE ".SwigPyPacked");
-    SWIG_Py_DECREF(tpname);
-    return cmp == 0;
+    return SWIG_PyType_HasName(op_type, SWIG_RUNTIME_MODULE, "SwigPyPacked");
   }
 }
 
