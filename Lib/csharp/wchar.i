@@ -171,8 +171,26 @@ static wchar_t * Swig_csharp_UTF16ToWCharPtr(const unsigned short *str) {
 #else
       result = ptr = (wchar_t *)malloc(sizeof(wchar_t) * (pEnd - pBegin + 1));
 #endif
-      while(pBegin != pEnd)
-        *ptr++ = *pBegin++;
+      while (pBegin != pEnd) {
+        unsigned short uc = *pBegin++;
+        if (uc <= 0xD7FFu || uc >= 0xE000u) {
+          *ptr++ = uc;
+        } else if (pBegin != pEnd && (uc & 0xFC00u) == 0xD800u) {
+          unsigned short uc1 = *pBegin++;
+          if ((uc1 & 0xFC00u) == 0xDC00u) {
+            unsigned int u32c = uc & 0x03FFu;
+            u32c <<= 10;
+            u32c += uc1 & 0x03FFu;
+            u32c += 0x10000u;
+            *ptr++ = u32c;
+          } else {
+            *ptr++ = 0xFFFDu;
+            pBegin--;
+          }
+        } else {
+          *ptr++ = 0xFFFDu;
+        }
+      }
       *ptr++ = 0;
     }
 
