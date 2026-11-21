@@ -71,7 +71,7 @@ static const char *usage1 = "\
                        (default is cxx)\n\
      -copyright      - Display copyright notices\n\
      -debug-classes  - Display information about the classes found in the interface\n\
-     -debug-module <n>- Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
+     -debug-module <n> - Display module parse tree at stages 1-4, <n> is a csv list of stages\n\
      -debug-symtabs  - Display symbol tables information\n\
      -debug-symbols  - Display target language symbols in the symbol tables\n\
      -debug-csymbols - Display C symbols in the symbol tables\n\
@@ -92,11 +92,11 @@ static const char *usage1 = "\
 static const char *usage2 = "\
      -E              - Preprocess only, does not generate wrapper code\n\
      -external-runtime [file] - Export the SWIG runtime stack\n\
-     -fakeversion <v>- Make SWIG fake the program version number to <v>\n\
+     -fakeversion <v> - Make SWIG fake the program version number to <v>\n\
      -fcompact       - Compile in compact mode\n\
-     -features <list>- Set global features, where <list> is a comma separated list of\n\
-                       features, eg -features directors,autodoc=1\n\
-                       If no explicit value is given to the feature, a default of 1 is used\n\
+     -features <list> - Set global features, where <list> is a comma separated list of\n\
+                        features, eg -features directors,autodoc=1\n\
+                        If no explicit value is given to the feature, a default of 1 is used\n\
      -fastdispatch   - Enable fast dispatch mode to produce faster overload dispatcher code\n\
      -Fmicrosoft     - Display error/warning messages in Microsoft format\n\
      -Fstandard      - Display error/warning messages in commonly used format\n\
