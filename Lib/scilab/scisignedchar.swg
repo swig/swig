@@ -102,7 +102,7 @@ SWIG_SciDouble_FromSignedChar(void *pvApiCtx, int iVarOut, signed char scValue) 
  */
 %fragment("SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, signed char **pscValue, char *fname) {
+SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, signed char **pscValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int iType = 0;
   int *piAddrVar = NULL;
@@ -131,9 +131,10 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
     }
 
     size = (*iRows) * (*iCols);
-    *pscValue = (signed char*) malloc(size * sizeof(int*));
+    *pscValue = (signed char*) malloc(size * sizeof(signed char));
     for (i = 0; i < size; i++)
       (*pscValue)[i] = (signed char) pdData[i];
+    *piAllocated = 1;
   }
   else if (iType == sci_ints) {
     int iPrec = 0;
@@ -152,6 +153,7 @@ SWIG_SciDoubleOrInt8_AsSignedCharArrayAndSize(void *pvApiCtx, int iVar, int *iRo
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+    *piAllocated = 0;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 8-bit signed integer or a double matrix expected.\n"), fname, iVar);

@@ -7,27 +7,27 @@
 
 // in (double *IN, int IN_ROWCOUNT, int IN_COLCOUNT)
 
-%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (double *IN, int IN_ROWCOUNT, int IN_COLCOUNT)
+%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (double *IN, int IN_ROWCOUNT, int IN_COLCOUNT) (int iAllocated=0)
 {
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &$2, &$3, &$1, fname) != SWIG_OK) {
-    return SWIG_ERROR;
+  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &$2, &$3, &$1, &iAllocated, fname) != SWIG_OK) {
+    SWIG_fail;
   }
 }
 
 // in (int IN_ROWCOUNT, int IN_COLCOUNT, double *IN)
 
-%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (int IN_ROWCOUNT, int IN_COLCOUNT, double *IN)
+%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (int IN_ROWCOUNT, int IN_COLCOUNT, double *IN) (int iAllocated=0)
 {
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, fname) != SWIG_OK) {
-    return SWIG_ERROR;
+  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &$1, &$2, &$3, &iAllocated, fname) != SWIG_OK) {
+    SWIG_fail;
   }
 }
 
 // in (double *IN, int IN_SIZE)
 
-%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (double *IN, int IN_SIZE) (int rowCount, int colCount)
+%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (double *IN, int IN_SIZE) (int rowCount=0, int colCount=0, int iAllocated=0)
 {
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, fname) == SWIG_OK) {
+  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$1, &iAllocated, fname) == SWIG_OK) {
     if (rowCount < 0) {
       $2 = rowCount;
     } else {
@@ -35,15 +35,15 @@
     }
   }
   else {
-	return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
 // in (int IN_SIZE, double *IN)
 
-%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (int IN_SIZE, double *IN) (int rowCount, int colCount)
+%typemap(in, noblock=1, fragment="SWIG_SciDouble_AsDoubleArrayAndSize") (int IN_SIZE, double *IN) (int rowCount=0, int colCount=0, int iAllocated=0)
 {
-  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, fname) == SWIG_OK) {
+  if (SWIG_SciDouble_AsDoubleArrayAndSize(pvApiCtx, $input, &rowCount, &colCount, &$2, &iAllocated, fname) == SWIG_OK) {
     if (rowCount < 0) {
       $1 = rowCount;
     } else {
@@ -51,7 +51,7 @@
     }
   }
   else {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
@@ -64,6 +64,7 @@
 %typemap(arginit, noblock=1) (double **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT)
 {
   $1 = (double**) malloc(sizeof(double*));
+  *$1 = NULL;
   $2 = (int*) malloc(sizeof(int));
   $3 = (int*) malloc(sizeof(int));
 }
@@ -82,7 +83,7 @@
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
   else {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
@@ -97,6 +98,7 @@
   $1 = (int*) malloc(sizeof(int));
   $2 = (int*) malloc(sizeof(int));
   $3 = (double**) malloc(sizeof(double*));
+  *$3 = NULL;
 }
 
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") (int *IN_ROWCOUNT, int *IN_COLCOUNT, double **OUT)
@@ -105,7 +107,7 @@
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
   else {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
@@ -127,6 +129,7 @@
 %typemap(arginit, noblock=1) (double **OUT, int *OUT_SIZE)
 {
   $1 = (double**) malloc(sizeof(double*));
+  *$1 = NULL;
   $2 = (int*) malloc(sizeof(int));
 }
 
@@ -136,7 +139,7 @@
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
   else {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
@@ -158,6 +161,7 @@
 {
   $1 = (int*) malloc(sizeof(int));
   $2 = (double**) malloc(sizeof(double*));
+  *$2 = NULL;
 }
 
 %typemap(argout, noblock=1, fragment="SWIG_SciDouble_FromDoubleArrayAndSize") (int *OUT_SIZE, double **OUT)
@@ -166,7 +170,7 @@
     SWIG_Scilab_SetOutput(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + SWIG_Scilab_GetOutputPosition());
   }
   else {
-    return SWIG_ERROR;
+    SWIG_fail;
   }
 }
 
