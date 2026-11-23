@@ -5602,3 +5602,18 @@ Version 4.6.0 (in progress)
             is now annotated -> "bool" rather than
             -> "typing.List[typing.Union[bool, None]]".
 
+2026-11-23: jschueller
+            [Python] #3309 Fix use after free with compound assignment operators
+            such as operator+=. In place operators no longer use %delobject and
+            %newobject. The original wrapper keeps ownership and 'a += b'
+            rebinds 'a' to itself when the operator returns the same C++
+            object, for example:
+
+              Counter &operator+=(const Counter &o) { val += o.val; return *this; }
+
+            The previous behaviour can be restored per class with:
+
+              %feature("del","1") A::operator+=;
+              %feature("new","1") A::operator+=;
+
+            *** POTENTIAL INCOMPATIBILITY ***
