@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-23: jschueller
+            #1226 Fix qualified typemaps not matching non-static member variable
+            setters. For example, the in typemap below now applies to the setter:
+
+              %typemap(in) int StructA::member { ... }
+              struct StructA { int member; };
+
+            Previously only the getter (out typemap) honoured the qualification
+            and the setter fell back to the unqualified typemap.
+
 2026-11-21: wsfulton
             [Python] #3528 The str() method of the std::ostringstream and std::wostringstream
             classes in std_sstream.i was annotated with -typehints as returning "str". The method

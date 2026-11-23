@@ -863,6 +863,7 @@ CPP_STD_TEST_CASES += \
 	li_std_except \
 	li_std_except_as_class \
 	li_std_map \
+	li_std_map_enum \
 	li_std_pair \
 	li_std_pair_using \
 	li_std_string \
