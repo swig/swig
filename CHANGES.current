@@ -26,6 +26,12 @@ Version 4.6.0 (in progress)
 
             *** POTENTIAL INCOMPATIBILITY ***
 
+2026-11-23: jschueller
+            [Python] #3212 Fix a segfault when an exception is thrown in a
+            function wrapped with the -threads option. The error was set on a
+            temporary thread state and discarded, so the wrapper returned
+            without an exception set.
+
 2026-11-21: wsfulton
             [Python] #3528 The str() method of the std::ostringstream and std::wostringstream
             classes in std_sstream.i was annotated with -typehints as returning "str". The method

@@ -1,5 +1,7 @@
 import threads_exception
 
+from swig_test_utils import swig_run_threaded
+
 t = threads_exception.Test()
 try:
     t.unknown()
@@ -38,3 +40,17 @@ for i in range(1, 4):
         pass
     except threads_exception.Exc as e:
         pass
+
+# Concurrent exceptions with -threads must each reach the raising thread.
+# Issue #3212: the error was set on a temporary thread state and lost when
+# it was released, so the wrapper returned without an error and crashed.
+def check_threaded():
+    try:
+        t.simple()
+    except RuntimeError as e:
+        if e.args[0] != 37:
+            raise RuntimeError("wrong threaded exception: %r" % (e.args,))
+    else:
+        raise RuntimeError("no exception raised in thread")
+
+swig_run_threaded(check_threaded)
