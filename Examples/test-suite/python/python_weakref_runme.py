@@ -38,3 +38,12 @@ check("callback was called", callbacks, [])
 del ts
 check("callback wasn't called", callbacks, [ts_ref_cb])
 check("deref'd weakref is not None", ts_ref() is None, True)
+
+# weak reference to a plain pointer wrapper, which is a SwigPyObject with or without -builtin
+p = python_weakref.get_int_ptr()
+# SwigPyObject has no weak reference support with Py_LIMITED_API before Python 3.9
+if type(p).__weakrefoffset__:
+    p_ref = weakref.ref(p, callback)
+    del p
+    check("callback wasn't called for a plain pointer wrapper", callbacks[-1] is p_ref, True)
+    check("deref'd weakref to a plain pointer wrapper is not None", p_ref() is None, True)

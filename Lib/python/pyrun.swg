@@ -827,6 +827,8 @@ SwigPyObject_dealloc(PyObject *v)
   SwigPyObject *sobj = (SwigPyObject *) v;
   PyObject *next = sobj->next;
   PyObject *capsule = 0;
+  if (sobj->weakreflist)
+    PyObject_ClearWeakRefs(v);
   if (sobj->own == SWIG_POINTER_OWN) {
     swig_type_info *ty = sobj->ty;
     SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;

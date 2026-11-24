@@ -26,6 +26,14 @@ Version 4.6.0 (in progress)
 
             *** POTENTIAL INCOMPATIBILITY ***
 
+2026-11-24: wsfulton
+            [Python] Fix a weak reference to a SwigPyObject still referring to it after it was
+            freed. A SwigPyObject wraps a plain pointer such as an 'int *' and is the 'this'
+            attribute of a proxy class when not using -builtin. Calling the weak reference used
+            freed memory and its callback was never called. The weak reference is now cleared
+            when the SwigPyObject is freed, so it returns None and its callback is called.
+            Affects SWIG 4.4.0 and later.
+
 2026-11-21: wsfulton
             [Python] #3528 The str() method of the std::ostringstream and std::wostringstream
             classes in std_sstream.i was annotated with -typehints as returning "str". The method
