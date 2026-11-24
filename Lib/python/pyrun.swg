@@ -785,7 +785,8 @@ SwigPyObject_SetOwn(SwigPyObject *sobj, int own) {
 #else
   int this_dealloc = PyType_GetSlot(Py_TYPE((PyObject *)sobj), Py_tp_dealloc) == (void *)SwigPyObject_dealloc;
 #endif
-  if (this_dealloc) {
+  /* SwigPyObject_dealloc() releases the reference itself for a wrapper it is freeing, which has a refcount of 0, whichever module disowns it */
+  if (this_dealloc && Py_REFCNT((PyObject *)sobj) > 0) {
     if (own == SWIG_POINTER_OWN && sobj->own != SWIG_POINTER_OWN) {
       SWIG_Py_XINCREF(Swig_Capsule_global);
     } else if (own != SWIG_POINTER_OWN && sobj->own == SWIG_POINTER_OWN) {
@@ -805,6 +806,8 @@ SwigPyObject_dealloc(PyObject *v)
     swig_type_info *ty = sobj->ty;
     SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
     PyObject *destroy = data ? data->destroy : 0;
+    /* The reference this wrapper holds on the capsule, released last as the capsule must outlive the use of data below */
+    capsule = Swig_Capsule_global;
     if (destroy) {
       /* destroy is always a VARARGS method */
       PyObject *res;
@@ -818,11 +821,6 @@ SwigPyObject_dealloc(PyObject *v)
       
       PyObject *type = NULL, *value = NULL, *traceback = NULL;
       PyErr_Fetch(&type, &value, &traceback);
-
-      /* The destructor wrapper disowns v, which releases the reference on the capsule held by an owning
-         wrapper. Hold another one until the end, as the capsule must outlive the use of 'data' below. */
-      capsule = Swig_Capsule_global;
-      SWIG_Py_XINCREF(capsule);
 
       if (data->delargs) {
         /* we need to create a temporary object to carry the destroy operation */
@@ -851,10 +849,6 @@ SwigPyObject_dealloc(PyObject *v)
       printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
 #endif
-    if (sobj->own == SWIG_POINTER_OWN) {
-      /* Still owning, so the destructor did not disown v and the reference held by an owning wrapper is released here */
-      SWIG_Py_XDECREF(Swig_Capsule_global);
-    }
   }
   SWIG_Py_XDECREF(next);
   SWIG_Py_XDECREF(sobj->swigdict);

@@ -18,3 +18,10 @@ before = sys.getrefcount(capsule)
 p = python_crossmod_b.get_int_ptr()
 del p
 swig_check(sys.getrefcount(capsule), before)
+
+# The same for an owning wrapper made by the first module whose destructor is in the second module
+before = sys.getrefcount(capsule)
+b = python_crossmod_a.make_b()
+swig_check(type(b).__name__, "B")
+del b
+swig_check(sys.getrefcount(capsule), before)

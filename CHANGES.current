@@ -156,9 +156,9 @@ Version 4.6.0 (in progress)
 
 2026-11-04: patricksnape
             [Python] #3600 Fix the runtime data being destroyed while still in use, after which new wrappers
-            lacked their proxy classes and freed type data was used. This happened after ownership of a
-            wrapper that was created non-owning was acquired later, such as by setting 'thisown = True' on
-            the result of a function returning a raw pointer, and the wrapper was then freed.
+            lacked their proxy classes and freed type data was used. This happened when a wrapper that did
+            not own its pointer acquired ownership later and was then freed, such as after setting
+            'thisown = True' on the result of a function returning a raw pointer.
             Affects SWIG 4.1.1 and later.
 
 2026-11-04: wsfulton
