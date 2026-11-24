@@ -82,6 +82,7 @@ CPP_TEST_CASES += \
 	python_this_attribute \
 	python_thisown_capsule \
 	python_threads \
+	python_type_refcount \
 	python_typehints \
 	python_typemap_macro \
 	python_typemap_numoutputs \

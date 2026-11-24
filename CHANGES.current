@@ -27,6 +27,14 @@ Version 4.6.0 (in progress)
             *** POTENTIAL INCOMPATIBILITY ***
 
 2026-11-24: wsfulton
+            [Python] Fix freeing a wrapper not releasing the reference it holds on its Python type
+            with Python 3.8 and later. The refcount of the SwigPyObject and SwigPyPacked types and
+            of each -builtin class type grew by one for every wrapper freed. A Python class
+            deriving from a -builtin class was never freed as a result. Each wrapper now releases
+            this reference when it is freed. Affects SWIG 4.3.0 and later, 4.2.0 and later with
+            Py_LIMITED_API. The -builtin class wrappers are affected from SWIG 4.4.0.
+
+2026-11-24: wsfulton
             [Python] Fix a weak reference to a SwigPyObject still referring to it after it was
             freed. A SwigPyObject wraps a plain pointer such as an 'int *' and is the 'this'
             attribute of a proxy class when not using -builtin. Calling the weak reference used

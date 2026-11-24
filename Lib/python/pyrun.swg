@@ -825,6 +825,7 @@ SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v)
 {
   SwigPyObject *sobj = (SwigPyObject *) v;
+  PyTypeObject *tp = Py_TYPE(v);
   PyObject *next = sobj->next;
   PyObject *capsule = 0;
   if (sobj->weakreflist)
@@ -880,6 +881,7 @@ SwigPyObject_dealloc(PyObject *v)
   SWIG_Py_XDECREF(next);
   SWIG_Py_XDECREF(sobj->swigdict);
   PyObject_Free(v);
+  SWIG_PyType_DeallocRelease(tp);
   SWIG_Py_XDECREF(capsule);
 }
 
@@ -1202,11 +1204,13 @@ SwigPyPacked_Check(PyObject *op) {
 SWIGRUNTIME void
 SwigPyPacked_dealloc(PyObject *v)
 {
+  PyTypeObject *tp = Py_TYPE(v);
   if (SwigPyPacked_Check(v)) {
     SwigPyPacked *sobj = (SwigPyPacked *) v;
     free(sobj->pack);
   }
   PyObject_Free(v);
+  SWIG_PyType_DeallocRelease(tp);
 }
 
 SWIGRUNTIME PyTypeObject*
@@ -1334,8 +1338,10 @@ SwigPyPacked_New(void *ptr, size_t size, swig_type_info *ty)
       sobj->ty   = ty;
       sobj->size = size;
     } else {
-      PyObject_Free((PyObject *)sobj);
+      sobj->pack = 0;
+      SWIG_Py_DECREF((PyObject *)sobj);
       sobj = 0;
+      PyErr_NoMemory();
     }
   }
   return (PyObject *) sobj;

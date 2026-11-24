@@ -70,6 +70,34 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
 # define SWIG_Py_XDECREF Py_XDECREF
 #endif
 
+/* An instance of a heap type holds a reference on its type, which the tp_dealloc of the heap type must release after
+   freeing the instance. PyType_GenericAlloc() has always taken this reference, but PyObject_New() only takes it from
+   Python 3.8. This came from bpo-35810 and is described in "Changes in the C API" in What's New In Python 3.8 and in
+   the tp_dealloc documentation:
+     https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
+     https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_dealloc
+   It is only released from Python 3.8, as before then subtype_dealloc() releases it for an instance of a Python
+   subclass. A stable ABI module built for an earlier Python can run on 3.8 or later, so it checks the version it runs on. */
+SWIGINTERN void
+SWIG_PyType_DeallocRelease(PyTypeObject *type) {
+#if defined(SWIG_HEAPTYPES) && defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x03080000
+  static int holds_reference = -1;
+  if (holds_reference < 0) {
+    const char *version = Py_GetVersion();
+    const char *dot = strchr(version, '.');
+    int major = atoi(version);
+    int minor = dot ? atoi(dot + 1) : 0;
+    holds_reference = major > 3 || (major == 3 && minor >= 8);
+  }
+  if (holds_reference)
+    SWIG_Py_DECREF((PyObject *)type);
+#elif defined(SWIG_HEAPTYPES) && PY_VERSION_HEX >= 0x03080000
+  SWIG_Py_DECREF((PyObject *)type);
+#else
+  (void)type;
+#endif
+}
+
 /* PyType_GetQualName() was added to Python 3.11 */
 #if (PY_VERSION_HEX >= 0x030b0000) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030b0000)
 # define SWIG_PyType_GetQualName PyType_GetQualName

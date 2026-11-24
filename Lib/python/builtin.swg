@@ -130,10 +130,12 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
 
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
+  PyTypeObject *tp = Py_TYPE((PyObject *)descr);
   PyObject_GC_UnTrack(descr);
   SWIG_Py_XDECREF((PyObject *)PyDescr_TYPE(descr));
   SWIG_Py_XDECREF((PyObject *)PyDescr_NAME(descr));
   PyObject_GC_Del(descr);
+  SWIG_PyType_DeallocRelease(tp);
 }
 
 SWIGINTERN PyObject *
@@ -519,6 +521,7 @@ wrapper##_destructor_closure(PyObject *a) {			\
 SWIGINTERN void
 SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrappername, PyObject *a) {
   SwigPyObject *sobj;
+  PyTypeObject *tp = Py_TYPE(a);
   sobj = (SwigPyObject *)a;
   if (sobj->weakreflist != NULL)
     PyObject_ClearWeakRefs(a);
@@ -536,11 +539,12 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
     PyErr_Restore(type, value, traceback);
     SWIG_Py_XDECREF(o);
   }
-  if (PyType_IS_GC(Py_TYPE(a))) {
+  if (PyType_IS_GC(tp)) {
     PyObject_GC_Del(a);
   } else {
     PyObject_Free(a);
   }
+  SWIG_PyType_DeallocRelease(tp);
 }
 
 #define SWIGPY_INQUIRY_CLOSURE(wrapper)			\
