@@ -35,7 +35,7 @@ def create_swigpyobject():
     try:
         o = T()
     except TypeError:
-        return  # -builtin: cannot be instantiated
+        return  # SWIG_NO_HEAPTYPES: a static type cannot be instantiated
     del o
 
 class PyFactory(m.Factory):

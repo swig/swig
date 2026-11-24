@@ -783,7 +783,9 @@ SwigPyObject_SetOwn(SwigPyObject *sobj, int own) {
 #ifndef Py_LIMITED_API
   int this_dealloc = Py_TYPE((PyObject *)sobj)->tp_dealloc == SwigPyObject_dealloc;
 #else
-  int this_dealloc = PyType_GetSlot(Py_TYPE((PyObject *)sobj), Py_tp_dealloc) == (void *)SwigPyObject_dealloc;
+  PyTypeObject *tp = Py_TYPE((PyObject *)sobj);
+  /* Before Python 3.10 PyType_GetSlot() accepts only a heap type. This module's SwigPyObject type is always one. */
+  int this_dealloc = (PyType_GetFlags(tp) & Py_TPFLAGS_HEAPTYPE) && PyType_GetSlot(tp, Py_tp_dealloc) == (void *)SwigPyObject_dealloc;
 #endif
   /* SwigPyObject_dealloc() releases the reference itself for a wrapper it is freeing, which has a refcount of 0, whichever module disowns it */
   if (this_dealloc && Py_REFCNT((PyObject *)sobj) > 0) {
