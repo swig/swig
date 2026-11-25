@@ -243,6 +243,12 @@ case "$SWIGLANG" in
 			tar -xf "$scilab_tarball" --strip-components=1 -C "$HOME/.local"
 		fi
 		;;
+	"swift")
+		# Swift toolchain so the test-suite compiles and runs the generated Swift
+		# proxy (without one the suite is compile-only).  The swift job runs on
+		# ubuntu-26.04 (see linux.yml), which packages Swift as swiftlang.
+		$RETRY sudo apt-get -qq install swiftlang
+		;;
 	"tcl")
 		$RETRY sudo apt-get -qq install tcl${VER}-dev
 		;;
