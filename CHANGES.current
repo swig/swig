@@ -62,6 +62,12 @@ Version 4.6.0 (in progress)
             the builtins module as __builtin__, as the .py file does, so that a pytyping typemap can
             name a builtin type hidden by a class member in the same way.
 
+2026-11-20: wsfulton
+            [Python] #3602 Fix a seg fault in SWIG_NewPointerObj() and SWIG_NewPackedObj() called
+            from code using the external runtime header from swig -external-runtime if the SWIG
+            runtime Python type for the object could not be created, for example when out of
+            memory. They now return NULL instead.
+
 2026-11-18: jackvreeken
             [Python] #3611 Faster overload resolution when not using -builtin and an argument,
             such as a float or str, does not match a pointer parameter. Modules compiled for

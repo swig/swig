@@ -459,7 +459,8 @@ SwigVarLink_Type(void) {
 /* Create a variable linking object for use later */
 SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
-  swig_varlinkobject *result = PyObject_New(swig_varlinkobject, SwigVarLink_Type());
+  PyTypeObject *type = SwigVarLink_Type();
+  swig_varlinkobject *result = type ? PyObject_New(swig_varlinkobject, type) : 0;
   if (result) {
     result->vars = 0;
   }
@@ -1157,7 +1158,8 @@ SwigPyObject_TypeOnce(void) {
 SWIGRUNTIME PyObject *
 SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
 {
-  SwigPyObject *sobj = PyObject_New(SwigPyObject, SwigPyObject_Type());
+  PyTypeObject *type = SwigPyObject_Type();
+  SwigPyObject *sobj = type ? PyObject_New(SwigPyObject, type) : 0;
   if (sobj) {
     sobj->ptr  = ptr;
     sobj->ty   = ty;
@@ -1369,7 +1371,8 @@ SwigPyPacked_TypeOnce(void) {
 SWIGRUNTIME PyObject *
 SwigPyPacked_New(void *ptr, size_t size, swig_type_info *ty)
 {
-  SwigPyPacked *sobj = PyObject_New(SwigPyPacked, SwigPyPacked_Type());
+  PyTypeObject *type = SwigPyPacked_Type();
+  SwigPyPacked *sobj = type ? PyObject_New(SwigPyPacked, type) : 0;
   if (sobj) {
     void *pack = malloc(size);
     if (pack) {
