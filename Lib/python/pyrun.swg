@@ -1345,28 +1345,30 @@ SWIG_This(void)
   return Swig_This_global;
 }
 
-/* Returns a borrowed reference to the 'this' object */
+/* Returns a new reference to the 'this' object */
 SWIGRUNTIME SwigPyObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
   PyObject *obj;
 
-  if (SwigPyObject_Check(pyobj))
+  if (SwigPyObject_Check(pyobj)) {
+    SWIG_Py_INCREF(pyobj);
     return (SwigPyObject *) pyobj;
+  }
 
 #ifdef SWIGPYTHON_BUILTIN
-  (void)obj;
+  obj = NULL;
   if (PyWeakref_CheckProxy(pyobj)) {
 #if PY_VERSION_HEX >= 0x030d0000
-    if (PyWeakref_GetRef(pyobj, &pyobj) > 0)
-      Py_DECREF(pyobj);
-    else
-      pyobj = NULL;
+    if (PyWeakref_GetRef(pyobj, &obj) <= 0)
+      obj = NULL;
 #else
-    pyobj = PyWeakref_GetObject(pyobj);
+    obj = PyWeakref_GetObject(pyobj);
+    SWIG_Py_XINCREF(obj);
 #endif
-    if (pyobj && SwigPyObject_Check(pyobj))
-      return (SwigPyObject*) pyobj;
+    if (obj && SwigPyObject_Check(obj))
+      return (SwigPyObject*) obj;
+    SWIG_Py_XDECREF(obj);
   }
   return NULL;
 #else
@@ -1374,16 +1376,16 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   obj = 0;
 
   SWIG_PyObject_GetOptionalAttr(pyobj, SWIG_This(), &obj);
-  if (obj) {
-    SWIG_Py_DECREF(obj);
-  } else {
+  if (!obj) {
     if (PyErr_Occurred()) PyErr_Clear();
     return 0;
   }
-  if (obj && !SwigPyObject_Check(obj)) {
+  if (!SwigPyObject_Check(obj)) {
     /* a PyObject is called 'this', try to get the 'real this'
        SwigPyObject from it */ 
-    return SWIG_Python_GetSwigThis(obj);
+    SwigPyObject *sobj = SWIG_Python_GetSwigThis(obj);
+    SWIG_Py_DECREF(obj);
+    return sobj;
   }
   return (SwigPyObject *)obj;
 #endif
@@ -1398,6 +1400,7 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
     if (sobj) {
       int oldown = sobj->own;
       SwigPyObject_SetOwn(sobj, own);
+      SWIG_Py_DECREF((PyObject *)sobj);
       return oldown;
     }
   }
@@ -1409,6 +1412,7 @@ SWIG_Python_AcquirePtr(PyObject *obj, int own) {
 SWIGRUNTIME int
 SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int flags, int *own) {
   int res;
+  SwigPyObject *sthis = 0;
   SwigPyObject *sobj;
   int implicit_conv = (flags & SWIG_POINTER_IMPLICIT_CONV) != 0;
 
@@ -1422,7 +1426,13 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
 
   res = SWIG_ERROR;
 
-  sobj = SWIG_Python_GetSwigThis(obj);
+  if (SwigPyObject_Check(obj)) {
+    /* No reference is taken as destructor wrappers are passed a SwigPyObject that is being deallocated */
+    sobj = (SwigPyObject *)obj;
+  } else {
+    sthis = SWIG_Python_GetSwigThis(obj);
+    sobj = sthis;
+  }
   if (own)
     *own = 0;
   while (sobj) {
@@ -1499,6 +1509,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
                   res = SWIG_AddCast(res);		    
                 }
               }
+              SWIG_Py_DECREF((PyObject *)iobj);
             }
             SWIG_Py_DECREF(impconv);
           }
@@ -1513,6 +1524,7 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
       }
     }
   }
+  SWIG_Py_XDECREF((PyObject *)sthis);
   return res;
 }
 
@@ -1636,6 +1648,7 @@ SWIG_Python_InitShadowInstance(PyObject *args) {
     SwigPyObject *sthis = SWIG_Python_GetSwigThis(obj[0]);
     if (sthis) {
       SWIG_Py_DECREF(SwigPyObject_append((PyObject*) sthis, obj[1]));
+      SWIG_Py_DECREF((PyObject *)sthis);
     } else {
       if (SWIG_Python_SetSwigThis(obj[0], obj[1]) != 0)
         return NULL;

@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-25: wsfulton
+            [Python] Passing a wrapped function an object whose 'this' attribute is created on each
+            access, such as by a property returning a new proxy object, used the 'this' object after
+            it had been freed. This raised a TypeError for an argument of the correct type or crashed.
+            The 'this' object is now kept alive while it is used.
+
+            SWIG_Python_GetSwigThis() now returns a new reference instead of a borrowed reference.
+            User code calling it must now release the returned object with Py_XDECREF().
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2026-11-21: wsfulton
             [Python] #3528 The str() method of the std::ostringstream and std::wostringstream
             classes in std_sstream.i was annotated with -typehints as returning "str". The method

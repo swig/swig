@@ -483,7 +483,6 @@ SWIGINTERN PyObject *
 SwigPyBuiltin_ThisClosure (PyObject *self, void *SWIGUNUSEDPARM(closure)) {
   PyObject *result;
   result = (PyObject *)SWIG_Python_GetSwigThis(self);
-  SWIG_Py_XINCREF(result);
   return result;
 }
 
