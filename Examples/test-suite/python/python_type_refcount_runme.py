@@ -37,6 +37,8 @@ if not (python_type_refcount.is_python_builtin() and sys.version_info < (3, 8)):
 check_type_refcount(python_type_refcount.make_item)
 # Python subclass of a proxy class or of a -builtin class
 check_type_refcount(SubItem)
+# SwigVarLink, the type of cvar
+check_type_call_refcount(type(python_type_refcount.cvar))
 # SwigPyStaticVar, the descriptor of a static member variable with -builtin
 if python_type_refcount.is_python_builtin():
     check_type_call_refcount(type(python_type_refcount.Item.__dict__["static_member"]))

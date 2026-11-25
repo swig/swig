@@ -290,6 +290,7 @@ SwigVarLink_str(PyObject *o) {
 SWIGINTERN void
 SwigVarLink_dealloc(PyObject *o) {
   swig_varlinkobject *v = (swig_varlinkobject *) o;
+  PyTypeObject *tp = Py_TYPE(o);
   swig_globalvar *var = v->vars;
   while (var) {
     swig_globalvar *n = var->next;
@@ -297,6 +298,8 @@ SwigVarLink_dealloc(PyObject *o) {
     free(var);
     var = n;
   }
+  PyObject_Free(o);
+  SWIG_PyType_DeallocRelease(tp);
 }
 
 SWIGINTERN PyObject *

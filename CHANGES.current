@@ -8,6 +8,11 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-25: wsfulton
+            [Python] Fix a memory leak when the cvar object holding a module's global variables is
+            destroyed, such as when the Python interpreter is finalized. The memory of the object
+            itself was never freed.
+
+2026-11-25: wsfulton
             [Python] Fix a crash when a function returns a smart pointer holding NULL and the
             smart pointer class is wrapped using %extend_smart_pointer, such as get_rca() in:
 
