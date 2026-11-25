@@ -829,6 +829,19 @@ SwigPyObject_SetOwn(SwigPyObject *sobj, int own) {
   sobj->own = own;
 }
 
+/* Clear the weak references to a wrapper being freed. A free-threaded build calls PyObject_ClearWeakRefs() without first
+   reading the list, as another thread freeing a weak reference to the wrapper can be changing it. CPython's own
+   FT_CLEAR_WEAKREFS() does the same. */
+SWIGRUNTIME void
+SwigPyObject_ClearWeakRefs(SwigPyObject *sobj) {
+#ifdef Py_GIL_DISABLED
+  PyObject_ClearWeakRefs((PyObject *)sobj);
+#else
+  if (sobj->weakreflist)
+    PyObject_ClearWeakRefs((PyObject *)sobj);
+#endif
+}
+
 SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v)
 {
@@ -836,8 +849,7 @@ SwigPyObject_dealloc(PyObject *v)
   PyTypeObject *tp = Py_TYPE(v);
   PyObject *next = sobj->next;
   PyObject *capsule = 0;
-  if (sobj->weakreflist)
-    PyObject_ClearWeakRefs(v);
+  SwigPyObject_ClearWeakRefs(sobj);
   if (sobj->own == SWIG_POINTER_OWN) {
     swig_type_info *ty = sobj->ty;
     SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
