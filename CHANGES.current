@@ -8,6 +8,14 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-25: wsfulton
+            [Python] Fix a crash when a function returns a smart pointer holding NULL and the
+            smart pointer class is wrapped using %extend_smart_pointer, such as get_rca() in:
+
+              %extend_smart_pointer(RCPtr<A>);
+              %template(RCPtr_A) RCPtr<A>;
+              RCPtr<A> get_rca();
+
+2026-11-25: wsfulton
             [Python] Passing a wrapped function an object whose 'this' attribute is created on each
             access, such as by a property returning a new proxy object, used the 'this' object after
             it had been freed. This raised a TypeError for an argument of the correct type or crashed.

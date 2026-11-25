@@ -130,7 +130,10 @@
     if (robj && !PyErr_Occurred()) {
       PyObject *resultthis = (PyObject *) SWIG_Python_GetSwigThis($result);
       PyObject *robjthis = (PyObject *) SWIG_Python_GetSwigThis(robj);
-      SwigPyObject_append(resultthis, robjthis);
+      if (resultthis && robjthis) {
+        PyObject *appended = SwigPyObject_append(resultthis, robjthis);
+        SWIG_Py_XDECREF(appended);
+      }
       SWIG_Py_XDECREF(robjthis);
       SWIG_Py_XDECREF(resultthis);
       SWIG_Py_DECREF(robj);
