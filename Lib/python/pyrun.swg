@@ -801,20 +801,25 @@ static PyObject* Swig_Capsule_global = NULL;
 SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v);
 
+/* Whether SwigPyObject_dealloc() is the tp_dealloc of a type, so that an owning wrapper of the type holds a reference on the
+   capsule wrapping the module information. It is not for a -builtin class or for a Python subclass of SwigPyObject. */
+SWIGRUNTIME int
+SwigPyObject_OwnHoldsCapsule(PyTypeObject *tp) {
+#ifndef Py_LIMITED_API
+  return tp->tp_dealloc == SwigPyObject_dealloc;
+#else
+  /* Before Python 3.10 PyType_GetSlot() accepts only a heap type. This module's SwigPyObject type is always one. */
+  return (PyType_GetFlags(tp) & Py_TPFLAGS_HEAPTYPE) && PyType_GetSlot(tp, Py_tp_dealloc) == (void *)SwigPyObject_dealloc;
+#endif
+}
+
 /* Change whether a wrapper owns its pointer. A wrapper that owns its pointer and is freed by SwigPyObject_dealloc()
    holds a reference on the capsule wrapping the module information, so that the reference moves with the ownership.
    Every change of SwigPyObject::own after creation must go through here. */
 SWIGRUNTIME void
 SwigPyObject_SetOwn(SwigPyObject *sobj, int own) {
-#ifndef Py_LIMITED_API
-  int this_dealloc = Py_TYPE((PyObject *)sobj)->tp_dealloc == SwigPyObject_dealloc;
-#else
-  PyTypeObject *tp = Py_TYPE((PyObject *)sobj);
-  /* Before Python 3.10 PyType_GetSlot() accepts only a heap type. This module's SwigPyObject type is always one. */
-  int this_dealloc = (PyType_GetFlags(tp) & Py_TPFLAGS_HEAPTYPE) && PyType_GetSlot(tp, Py_tp_dealloc) == (void *)SwigPyObject_dealloc;
-#endif
   /* SwigPyObject_dealloc() releases the reference itself for a wrapper it is freeing, which has a refcount of 0, whichever module disowns it */
-  if (this_dealloc && Py_REFCNT((PyObject *)sobj) > 0) {
+  if (SwigPyObject_OwnHoldsCapsule(Py_TYPE((PyObject *)sobj)) && Py_REFCNT((PyObject *)sobj) > 0) {
     if (own == SWIG_POINTER_OWN && sobj->own != SWIG_POINTER_OWN) {
       SWIG_Py_XINCREF(Swig_Capsule_global);
     } else if (own != SWIG_POINTER_OWN && sobj->own == SWIG_POINTER_OWN) {
@@ -838,7 +843,8 @@ SwigPyObject_dealloc(PyObject *v)
     SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
     PyObject *destroy = data ? data->destroy : 0;
     /* The reference this wrapper holds on the capsule, released last as the capsule must outlive the use of data below */
-    capsule = Swig_Capsule_global;
+    if (SwigPyObject_OwnHoldsCapsule(tp))
+      capsule = Swig_Capsule_global;
     if (destroy) {
       /* destroy is always a VARARGS method */
       PyObject *res;
@@ -883,7 +889,11 @@ SwigPyObject_dealloc(PyObject *v)
   }
   SWIG_Py_XDECREF(next);
   SWIG_Py_XDECREF(sobj->swigdict);
-  PyObject_Free(v);
+  if (PyType_IS_GC(tp)) {
+    PyObject_GC_Del(v);
+  } else {
+    PyObject_Free(v);
+  }
   SWIG_PyType_DeallocRelease(tp);
   SWIG_Py_XDECREF(capsule);
 }

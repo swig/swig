@@ -38,6 +38,19 @@ def create_swigpyobject():
         return  # SWIG_NO_HEAPTYPES: a static type cannot be instantiated
     del o
 
+try:
+    class SubT(type(m.get_int())):
+        pass
+except TypeError:
+    SubT = None  # SWIG_NO_HEAPTYPES: a static type cannot be subclassed
+
+def acquire_subclass_instance():
+    # Acquiring a Python subclass instance of SwigPyObject takes no reference, so freeing it must release none
+    if SubT is not None:
+        o = SubT()
+        o.acquire()
+        del o
+
 class PyFactory(m.Factory):
     def create(self):
         return m.Item()
@@ -76,3 +89,4 @@ check_balanced("toggle ownership", toggle_ownership)
 check_balanced("DISOWN then acquire", disown_then_acquire)
 check_balanced("director return", director_return)
 check_balanced("SwigPyObject created from Python", create_swigpyobject)
+check_balanced("acquired Python subclass instance", acquire_subclass_instance)

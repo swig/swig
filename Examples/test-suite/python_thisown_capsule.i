@@ -4,6 +4,11 @@
 // happens to its ownership after creation: thisown, disown(), acquire(), DISOWN typemaps and
 // director return values.
 
+// An acquired SwigPyObject made from Python in the runme has no destructor to call
+%begin %{
+#define SWIG_PYTHON_SILENT_MEMLEAK
+%}
+
 %feature("director") Factory;
 %warnfilter(SWIGWARN_TYPEMAP_DIRECTOROUT_PTR) Factory::create;
 

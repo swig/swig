@@ -8,6 +8,13 @@ Version 4.6.0 (in progress)
 ===========================
 
 2026-11-25: wsfulton
+            [Python] Fix crashes using a Python class deriving from the SwigPyObject type, which is
+            the type of a plain pointer wrapper such as an 'int *'. Freeing an instance of the class
+            corrupted the heap. Freeing an instance that had been given ownership with acquire() also
+            released a reference it did not hold on SWIG's runtime data, which was then freed while
+            still in use. Affects SWIG 4.3.0 and later.
+
+2026-11-25: wsfulton
             [Python] Fix a memory leak when the cvar object holding a module's global variables is
             destroyed, such as when the Python interpreter is finalized. The memory of the object
             itself was never freed.

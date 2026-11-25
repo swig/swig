@@ -26,6 +26,12 @@ def check_type_call_refcount(t):
 class SubItem(python_type_refcount.Item):
     pass
 
+try:
+    class SubPtr(type(python_type_refcount.get_int_ptr())):
+        pass
+except TypeError:
+    SubPtr = None  # SWIG_NO_HEAPTYPES: a static type cannot be subclassed
+
 # SwigPyObject
 check_type_refcount(python_type_refcount.get_int_ptr)
 # SwigPyPacked
@@ -37,6 +43,9 @@ if not (python_type_refcount.is_python_builtin() and sys.version_info < (3, 8)):
 check_type_refcount(python_type_refcount.make_item)
 # Python subclass of a proxy class or of a -builtin class
 check_type_refcount(SubItem)
+# Python subclass of SwigPyObject
+if SubPtr is not None:
+    check_type_refcount(SubPtr)
 # SwigVarLink, the type of cvar
 check_type_call_refcount(type(python_type_refcount.cvar))
 # SwigPyStaticVar, the descriptor of a static member variable with -builtin
