@@ -3,15 +3,15 @@
 
 // placeholder() used to help SWIG generate "SWIG_From_int" call
 %{
-    int placeholder();
-%}
 int placeholder() { return 0; }
+%}
+int placeholder();
 
 // actual demo code
 %wrapper
 %{
 #if defined(SWIG_V8_VERSION) /* Engine: Node || V8 */
-    
+
     static SwigV8ReturnValue JavaScript_do_work(const SwigV8Arguments &args) {
         SWIGV8_HANDLESCOPE();
         const int MY_MAGIC_NUMBER = 5;
@@ -37,6 +37,20 @@ int placeholder() { return 0; }
         return scope.Escape(jsresult);
     fail:
         return Napi::Value();
+    }
+
+#elif defined(SWIG_JAVASCRIPT_QUICKJS) /* Engine: QuickJS */
+
+    static JSValue JavaScript_do_work(JSContext *ctx,
+        JSValueConst this_val, int argc, JSValueConst argv[]) {
+        const int MY_MAGIC_NUMBER = 5;
+        JSValue jsresult =
+            SWIG_From_int SWIG_QUICKJS_FROM_CALL_ARGS(static_cast< int >(MY_MAGIC_NUMBER));
+        if (argc != 0)
+            SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments.");
+        return jsresult;
+    fail:
+        return JS_EXCEPTION;
     }
 
 #else /* Engine: JavaScriptCore */
