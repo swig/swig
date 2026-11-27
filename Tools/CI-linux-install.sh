@@ -141,7 +141,9 @@ case "$SWIGLANG" in
 			if ! dpkg -l 'php*' | grep "^ii  php$VER" > /dev/null; then
 				# Remove installed PHP, as we need another version
 				$RETRY sudo apt-get -qq remove "php*-cli" "php*-dev"
-				$RETRY sudo add-apt-repository -y ppa:ondrej/php
+				curl -sSLo debsuryorg-archive-keyring.deb https://packages.sury.org/debsuryorg-archive-keyring.deb
+				sudo dpkg -i debsuryorg-archive-keyring.deb
+				sudo sh -c 'echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list'
 				$RETRY sudo apt-get -qq update
 				$RETRY sudo apt-get -qq install php$VER-cli php$VER-dev
 			fi
