@@ -848,7 +848,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void createBuilderFile(String *outputFilename) {
-    String *builderFilename = NewStringf("builder.sce");
+    String *builderFilename = NewStringf("%sbuilder.sce", SWIG_output_directory());
     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
     if (!builderFile) {
       FileErrorDisplay(builderFilename);
@@ -977,7 +977,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void createGatewayXMLFileV6(String *gatewayName) {
-    String *gatewayXMLFilename = NewStringf("%s_gateway.xml", gatewayName);
+    String *gatewayXMLFilename = NewStringf("%s%s_gateway.xml", SWIG_output_directory(), gatewayName);
     gatewayXMLFileV6 = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
     if (!gatewayXMLFileV6) {
       FileErrorDisplay(gatewayXMLFilename);
@@ -1009,7 +1009,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void createGatewayXMLFile(String *gatewayName) {
-    String *gatewayXMLFilename = NewStringf("%s_gateway.xml", gatewayName);
+    String *gatewayXMLFilename = NewStringf("%s%s_gateway.xml", SWIG_output_directory(), gatewayName);
     gatewayXMLFile = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
     if (!gatewayXMLFile) {
       FileErrorDisplay(gatewayXMLFilename);
@@ -1126,7 +1126,7 @@ public:
    * ----------------------------------------------------------------------- */
 
   void createLoaderFile(String *gatewayLibraryName) {
-    String *loaderFilename = NewString("loader.sce");
+    String *loaderFilename = NewStringf("%sloader.sce", SWIG_output_directory());
     loaderFile = NewFile(loaderFilename, "w", SWIG_output_files());
     if (!loaderFile) {
       FileErrorDisplay(loaderFilename);

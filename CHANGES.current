@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-27: davidcl
+            [Scilab] Generate loader.sce, builder.sce and the gateway XML files in the
+            directory set by -outdir, instead of the current directory, like the other
+            language specific files.
+
 2026-11-26: wsfulton
             [Python] Fix further reference counting errors in the SWIG runtime code, mostly in the
             handling of failures such as running out of memory. Some of these failures raised a
