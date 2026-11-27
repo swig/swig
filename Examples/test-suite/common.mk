@@ -157,6 +157,7 @@ CPP_TEST_CASES += \
 	class_ignore \
 	class_scope_weird \
 	compactdefaultargs \
+	complextest \
 	const_const_2 \
 	constant_directive \
 	constant_expr \
@@ -858,6 +859,7 @@ CPP_STD_TEST_CASES += \
 	director_string \
 	ignore_template_constructor \
 	li_std_combinations \
+	li_std_complex \
 	li_std_containers_overload \
 	li_std_deque \
 	li_std_except \
@@ -918,6 +920,7 @@ C_TEST_CASES += \
 	c99_vla_array_libraries \
 	c99_vla_typemaps \
 	cbooltest \
+	ccomplextest \
 	char_constant \
 	charptr_fragment \
 	command_line_define \

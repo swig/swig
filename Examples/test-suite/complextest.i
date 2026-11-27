@@ -1,6 +1,12 @@
 %module complextest
 
+#if !defined(SWIGC) && !defined(SWIGJAVA) && !defined(SWIGOCAML) && !defined(SWIGPERL) && !defined(SWIGR) && !defined(SWIGSCILAB) && !defined(SWIGTCL) && !defined(SWIGD) && !defined(SWIGGO) && !defined(SWIGLUA) && !defined(SWIGPHP)
 %include <complex.i>
+#else
+%{
+#include <complex>
+%}
+#endif
 
 %{
 #include <algorithm>
