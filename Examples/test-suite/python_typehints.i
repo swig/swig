@@ -9,6 +9,7 @@
 // %feature("python:annotations", "c") is not used here because it generates C/C++ types rather than the PEP 484 types required by a type checker.
 
 %include <std_string.i>
+%include <std_vector.i>
 %include <typemaps.i>
 
 // Multiple output values are returned in a list and so are annotated as one
@@ -59,6 +60,10 @@ bool divide_checked(int numerator, int denominator, int *quotient, int *remainde
 enum Colour { RED, GREEN, BLUE };
 Colour next_colour(Colour c) { return c; }
 %}
+
+// Overloaded methods have no parameter annotations, so give the slice overload of __getitem__ its own name
+%rename(get_slice) std::vector<int>::__getitem__(SWIGPY_SLICEOBJECT *);
+%template(IntVector) std::vector<int>;
 
 %constant int A_CONSTANT = 10;
 %constant int A_CONSTANT_NOVAR = 20;
