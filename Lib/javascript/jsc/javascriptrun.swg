@@ -351,13 +351,14 @@ bool SWIGJSC_ValueIsArray(JSContextRef context, JSValueRef value) {
 }
 
 SWIGRUNTIME
-JSValueRef SWIGJSC_AppendOutput(JSContextRef context, JSValueRef value, JSValueRef obj) {
+JSValueRef SWIGJSC_AppendOutput(JSContextRef context, JSValueRef value, JSValueRef obj, int isvoid) {
   JSObjectRef arr;
   unsigned int length;
 
-  if (JSValueIsUndefined(context, value)) {
-    arr = JSObjectMakeArray(context, 0, 0, 0);
-  } else if (!SWIGJSC_ValueIsArray(context, value)) {
+  if (!value || (isvoid && JSValueIsUndefined(context, value)))
+    return obj;
+
+  if (!SWIGJSC_ValueIsArray(context, value)) {
     arr = JSObjectMakeArray(context, 1, &value, 0);
   } else {
     arr = JSValueToObject(context, value, 0);

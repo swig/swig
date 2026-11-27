@@ -432,10 +432,11 @@ int SWIG_NAPI_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_typ
 
 SWIGRUNTIME
 
-Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Value obj) {
-  if (result.IsUndefined()) {
-    result = Napi::Array::New(env);
-  } else if (!result.IsArray()) {
+Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Value obj, int isvoid) {
+  if (result.IsEmpty() || (isvoid && result.IsUndefined()))
+    return obj;
+
+  if (!result.IsArray()) {
     Napi::Array tmparr = Napi::Array::New(env);
     tmparr.Set(static_cast<uint32_t>(0), result);
     result = tmparr;

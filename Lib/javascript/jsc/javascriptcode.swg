@@ -156,7 +156,7 @@ static void $jswrapper(JSObjectRef thisObject)
 static JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef propertyName, JSValueRef* exception)
 {
     $jslocals
-    JSValueRef jsresult;
+    JSValueRef jsresult = NULL;
 
     $jscode
     return jsresult;
@@ -201,7 +201,7 @@ static bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef
 static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   $jslocals
-  JSValueRef jsresult;
+  JSValueRef jsresult = NULL;
 
   if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
@@ -226,7 +226,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
 static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
   $jslocals
-  JSValueRef jsresult;
+  JSValueRef jsresult = NULL;
   int res;
   $jscode
 
@@ -252,7 +252,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
 static int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception, JSValueRef* p_result)
 {
   $jslocals
-  JSValueRef jsresult;
+  JSValueRef jsresult = NULL;
 
   if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 

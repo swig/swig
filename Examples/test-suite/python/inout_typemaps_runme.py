@@ -1,4 +1,5 @@
 import inout_typemaps
+from swig_test_utils import swig_check
 
 a = inout_typemaps.AddOne1(1)
 if a != 2:
@@ -25,3 +26,10 @@ if ret is not None:
     raise RuntimeError
 if out != 0:
     raise RuntimeError
+
+swig_check(inout_typemaps.SuppressedTwo(1), [11, 12])
+swig_check(inout_typemaps.SuppressedOne(1), 11)
+swig_check(inout_typemaps.SuppressedNone(1), None)
+swig_check(inout_typemaps.VoidNone(), None)
+swig_check(inout_typemaps.VoidOne(), [None, 11])
+swig_check(inout_typemaps.VoidTwo(), [None, 11, 12])
