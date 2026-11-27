@@ -164,6 +164,11 @@ namespace Swig {
   class DirectorException : public std::exception {
   protected:
     std::string swig_msg;
+    PyObject *swig_error_type;
+    PyObject *saved_error_type;
+    PyObject *saved_error_value;
+    PyObject *saved_error_tb;
+    bool suppress;
   public:
     DirectorException(PyObject *error, const char *hdr ="", const char *msg ="") : swig_msg(hdr) {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
@@ -171,13 +176,50 @@ namespace Swig {
         swig_msg += " ";
         swig_msg += msg;
       }
-      if (!PyErr_Occurred()) {
-        PyErr_SetString(error, swig_msg.c_str());
+      swig_error_type = error;
+      Py_XINCREF(swig_error_type);
+      saved_error_type = saved_error_value = saved_error_tb = NULL;
+      suppress = false;
+      if (PyErr_Occurred()) {
+        PyErr_Fetch(&saved_error_type, &saved_error_value, &saved_error_tb);
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
 
     virtual ~DirectorException() SWIG_NOEXCEPT {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+      if (suppress) {
+        Py_XDECREF(saved_error_type);
+        Py_XDECREF(saved_error_value);
+        Py_XDECREF(saved_error_tb);
+      } else if (saved_error_type) {
+        PyErr_Restore(saved_error_type, saved_error_value, saved_error_tb);
+      } else if (!PyErr_Occurred()) {
+        PyErr_SetString(swig_error_type, swig_msg.c_str());
+      }
+      saved_error_type = saved_error_value = saved_error_tb = NULL;
+      Py_XDECREF(swig_error_type);
+      swig_error_type = NULL;
+      SWIG_PYTHON_THREAD_END_BLOCK;
+    }
+
+    void restorePythonError() {
+      if (saved_error_type) {
+        SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+        PyErr_Restore(saved_error_type, saved_error_value, saved_error_tb);
+        saved_error_type = saved_error_value = saved_error_tb = NULL;
+        SWIG_PYTHON_THREAD_END_BLOCK;
+      }
+    }
+
+    void clearPythonError() {
+      SWIG_PYTHON_THREAD_BEGIN_BLOCK;
+      Py_XDECREF(saved_error_type);
+      Py_XDECREF(saved_error_value);
+      Py_XDECREF(saved_error_tb);
+      saved_error_type = saved_error_value = saved_error_tb = NULL;
+      suppress = true;
+      SWIG_PYTHON_THREAD_END_BLOCK;
     }
 
     /* Deprecated, use what() instead */
