@@ -449,9 +449,7 @@ func swigAllocateMemberPtr(m SwigMemberPtr) SwigMemberPtr {
 %{ *($&1_ltype)&$result = $input; %}
 
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *const&
-%{ static $*1_ltype swig_temp;
-   swig_temp = *($1_ltype)&$input;
-   $result = &swig_temp; %}
+%{ $result = ($1_ltype)$input; %}
 
 %typemap(gotype) SWIGTYPE &&
 %{$gotypename%}
