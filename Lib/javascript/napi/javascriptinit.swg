@@ -50,7 +50,7 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 %}
 
 %insert(init) %{
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
+Napi::Object SWIG_InitializeNapi(Napi::Env env, Napi::Object exports) {
   SWIG_InitializeModule(env);
 %}
 
@@ -107,5 +107,5 @@ fail:
   return Napi::Object();
 }
 
-NODE_API_MODULE($jsname, Init)
+NODE_API_MODULE($jsname, SWIG_InitializeNapi)
 %}
