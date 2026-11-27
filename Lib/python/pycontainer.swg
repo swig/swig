@@ -63,12 +63,16 @@ namespace swig {
      * returns whether the reference was set or not
      */
     static bool back_reference(PyObject* child, PyObject* owner) {
+      bool set = false;
       SwigPyObject* swigThis = SWIG_Python_GetSwigThis(child);
-      if (swigThis && (swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
-        // Bypass __setattr__, which doesn't allow adding attributes to the classes using the nondynamic feature.
-        return PyObject_GenericSetAttr(child, container_owner_attribute(), owner) != -1;
+      if (swigThis) {
+        if ((swigThis->own & SWIG_POINTER_OWN) != SWIG_POINTER_OWN) {
+          // Bypass __setattr__, which doesn't allow adding attributes to the classes using the nondynamic feature.
+          set = PyObject_GenericSetAttr(child, container_owner_attribute(), owner) != -1;
+        }
+        SWIG_Py_DECREF((PyObject *)swigThis);
       }
-      return false;
+      return set;
     }
   };
 }
@@ -788,9 +792,14 @@ namespace swig {
       return iter != 0;
     }
 
+    static bool is_wrapped(PyObject *obj) {
+      SwigVar_PyObject swigThis = (PyObject *)SWIG_Python_GetSwigThis(obj);
+      return swigThis != 0;
+    }
+
     static int asptr(PyObject *obj, sequence **seq) {
       int ret = SWIG_ERROR;
-      if (obj == Py_None || SWIG_Python_GetSwigThis(obj)) {
+      if (obj == Py_None || is_wrapped(obj)) {
 	sequence *p;
 	swig_type_info *descriptor = swig::type_info<sequence>();
 	if (descriptor && SWIG_IsOK(::SWIG_ConvertPtr(obj, (void **)&p, descriptor, 0))) {

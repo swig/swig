@@ -62,7 +62,7 @@ extern int kwargs_supported;
  * except when using a common prefix, then use '-' to separate, eg the debug-xxx options */
 static const char *usage1 = "\
 \nGeneral Options\n\
-     -addextern      - Add extra extern declarations\n\
+     -addextern      - Add extra extern declarations (deprecated)\n\
      -c++            - Enable C++ processing\n\
      -co <file>      - Check <file> out of the SWIG library\n\
      -copyctor       - Automatically generate copy constructors wherever possible\n\
@@ -1330,6 +1330,11 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
                        "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
                        tlm->help ? tlm->help : "",
                        tlm->name);
+        }
+
+        if (AddExtern) {
+          Swig_warning(
+            WARN_DEPRECATED_ADDEXTERN, "SWIG", 1, "-addextern command line option is deprecated, add the declarations to the wrapper code instead.\n");
         }
 
         lang->top(top);

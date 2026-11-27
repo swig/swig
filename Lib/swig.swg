@@ -343,6 +343,7 @@ static int NAME(TYPE x) {
 %define SWIG_TYPECHECK_STRINGVIEW   134    %enddef
 %define SWIG_TYPECHECK_STDSTRING    135    %enddef
 %define SWIG_TYPECHECK_STRING       140    %enddef
+%define SWIG_TYPECHECK_STDFILESYSTEMPATH 145    %enddef
 %define SWIG_TYPECHECK_PAIR         150    %enddef
 %define SWIG_TYPECHECK_STDARRAY     155    %enddef
 %define SWIG_TYPECHECK_VECTOR       160    %enddef
@@ -533,6 +534,26 @@ public:
 template <typename T> T SwigValueInit() {
   return T();
 }
+
+/*
+ * SwigTypeIdentity is like C++20 std::type_identity and is used when a variable of the type of a typemap special
+ * variable cannot be declared as:
+ *
+ *       T var;
+ *
+ * such as when T is a member function pointer type, as the following do not compile in a typemap:
+ *
+ *       $*1_ltype var;
+ *       void (Klass::*)(int) var;
+ *
+ * but the following do compile:
+ *
+ *       SwigTypeIdentity<$*1_ltype>::type member_ptr;
+ *       SwigTypeIdentity<void (Klass::*)(int)>::type var;
+ */
+template <typename T> struct SwigTypeIdentity {
+  typedef T type;
+};
 
 #if __cplusplus >= 201103L
 # define SWIG_STD_MOVE(OBJ) std::move(OBJ)

@@ -48,6 +48,29 @@ string TypedefHost::t2() && { return string(); }
 string TypedefHost::t3() && { return string(); }
 %}
 
+// Member functions returning a pointer to a function, p2 is ignored by default like h3
+%rename(p3Renamed) FuncPtrHost::p3() const &;
+
+%inline %{
+int addOne(int i) { return i + 1; }
+int callIntFunc(int (*f)(int), int i) { return f(i); }
+struct FuncPtrHost {
+  int (*p1() &)(int) { return addOne; }
+  int (*p2() &&)(int) { return addOne; }
+  int (*p3() const &)(int) { return addOne; }
+};
+%}
+
+// The declarators after the first in a list, rv is ignored by default like h3
+%inline %{
+struct ListHost {
+  int lv() &, rv() &&, clv() const &;
+};
+int ListHost::lv() & { return 1; }
+int ListHost::rv() && { return 2; }
+int ListHost::clv() const & { return 3; }
+%}
+
 // %feature testing
 %feature("except") F1() & %{ result = "F1"; %}
 %feature("except") F2 %{ result = "F2"; %}
@@ -110,6 +133,40 @@ struct ConversionOperators {
 struct ConversionOperators2 {
   virtual operator string() && { return string(); }
   virtual ~ConversionOperators2() {}
+};
+%}
+
+// Overloads differing only in their qualifiers, which the C target language gave the same name
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) QualifierOverloads::r;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW, SWIGWARN_LANG_OVERLOAD_IGNORED) QualifierOverloads::rc;
+%feature("ignore", "0") QualifierOverloads::r(int i) &&;
+%feature("ignore", "0") QualifierOverloads::rc(int i) const &&;
+
+%inline %{
+struct QualifierOverloads {
+  int r(int i) & { return i + 1; }
+  int r(int i) && { return i + 2; }
+  int rc(int i) & { return i + 3; }
+  int rc(int i) const && { return i + 4; }
+};
+%}
+
+// The overloads with a cv-qualifier are called on a cv-qualified object
+%rename(cl_const) ConstOverloads::cl() const &;
+%rename(cr_const) ConstOverloads::cr() const &&;
+%rename(cvl_const_volatile) ConstOverloads::cvl() const volatile &;
+// Unignore the overloads with an rvalue ref-qualifier, as they are ignored by default
+%feature("ignore", "0") ConstOverloads::cr() &&;
+%feature("ignore", "0") ConstOverloads::cr() const &&;
+
+%inline %{
+struct ConstOverloads {
+  int cl() & { return 1; }
+  int cl() const & { return 2; }
+  int cr() && { return 3; }
+  int cr() const && { return 4; }
+  int cvl() & { return 5; }
+  int cvl() const volatile & { return 6; }
 };
 %}
 

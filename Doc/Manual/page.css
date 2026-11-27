@@ -1,0 +1,25 @@
+/* The pages of SWIGDocumentation.pdf, generated from SWIGDocumentation.html by WeasyPrint.
+   WeasyPrint uses this as a user stylesheet, so a rule overriding one in style.css needs !important. */
+
+@page {
+  size: A4;
+  margin: 20mm 10mm;
+  @top-center { content: string(doctitle); font-size: 7pt; }
+  @bottom-left { content: string(subsection); font-size: 7pt; }
+  @bottom-right { content: counter(page); font-size: 7pt; }
+}
+
+/* The title of the document in the page header and the current section in the page footer */
+center h1 { string-set: doctitle content(); }
+h2 { string-set: subsection content(); }
+
+body { font-size: 8.5pt; }
+h1, h2, h3, h4, h5 { break-after: avoid; }
+
+/* Lines of code are not wrapped, so the code is sized for the 130 characters checklines.py allows to fit across the page */
+pre { font-size: 6.5pt; }
+pre, code, tt, kbd, samp { font-family: "Liberation Mono", "DejaVu Sans Mono", monospace !important; }
+div.code, div.targetlang, div.shell, div.diagram { margin-left: 2em !important; margin-right: 0 !important; }
+
+/* Page numbers in the table of contents */
+div.toc a[href]::after { content: leader(".") target-counter(attr(href url), page); }

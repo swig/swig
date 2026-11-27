@@ -7,21 +7,25 @@ an.arrays_null_fill(other, 10)
 s.ints = other.ints
 s.items = other.items
 s.grid = other.grid
+s.cube = other.cube
 assert(an.arrays_null_check(s, 10) == 1)
 
 assert(not pcall(function() s.ints = nil end))
 assert(not pcall(function() s.items = nil end))
 assert(not pcall(function() s.grid = nil end))
+assert(not pcall(function() s.cube = nil end))
 assert(an.arrays_null_check(s, 10) == 1)
 
 an.arrays_null_ints = s.ints
 an.arrays_null_items = s.items
 an.arrays_null_grid = s.grid
+an.arrays_null_cube = s.cube
 assert(an.arrays_null_globals_check(10) == 1)
 
 assert(not pcall(function() an.arrays_null_ints = nil end))
 assert(not pcall(function() an.arrays_null_items = nil end))
 assert(not pcall(function() an.arrays_null_grid = nil end))
+assert(not pcall(function() an.arrays_null_cube = nil end))
 assert(not pcall(function() an.arrays_null_ints_ref = nil end))
 assert(not pcall(function() an.arrays_null_bools = nil end))
 assert(an.arrays_null_globals_check(10) == 1)

@@ -9,6 +9,7 @@ public class arrays_null_runme {
     s.ints = other.ints;
     s.items = other.items;
     s.grid = other.grid;
+    s.cube = other.cube;
     if (arrays_null.arrays_null_check(s, 10) != 1)
       throw new Exception("Test member set failed");
 
@@ -27,12 +28,18 @@ public class arrays_null_runme {
       throw new Exception("Test grid member set to null failed");
     } catch (ArgumentNullException) {
     }
+    try {
+      s.cube = null;
+      throw new Exception("Test cube member set to null failed");
+    } catch (ArgumentNullException) {
+    }
     if (arrays_null.arrays_null_check(s, 10) != 1)
       throw new Exception("Test member set to null changed it");
 
     arrays_null.arrays_null_ints = s.ints;
     arrays_null.arrays_null_items = s.items;
     arrays_null.arrays_null_grid = s.grid;
+    arrays_null.arrays_null_cube = s.cube;
     if (arrays_null.arrays_null_globals_check(10) != 1)
       throw new Exception("Test global set failed");
 
@@ -49,6 +56,11 @@ public class arrays_null_runme {
     try {
       arrays_null.arrays_null_grid = null;
       throw new Exception("Test grid global set to null failed");
+    } catch (ArgumentNullException) {
+    }
+    try {
+      arrays_null.arrays_null_cube = null;
+      throw new Exception("Test cube global set to null failed");
     } catch (ArgumentNullException) {
     }
     try {

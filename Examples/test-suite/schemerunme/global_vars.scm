@@ -13,6 +13,8 @@
 (check (= (A-x-get (ap)) 5))
 (A-x-set sa 10)
 (check (= (A-x-get (ap)) 10))
+(avp sa)
+(check (= (A-x-get (avp)) 10))
 
 (define sa2 (new-A))
 (A-x-set sa2 -4)
@@ -24,8 +26,13 @@
 (check (= (A-x-get (ar)) 5))
 (ar sa2)
 (check (= (A-x-get (ar)) -7))
+(check (= (A-x-get (acvp)) -7))
+(check (= (A-x-get (acpr)) -7))
 
 (x 4)
 (check (= (x) 4))
+
+(assign-hp (hcpr))
+(check (equal? (hp) (hcp)))
 
 (exit 0)

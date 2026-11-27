@@ -54,25 +54,31 @@ if(PCRE2_INCLUDE_DIR)
     TRANSFORM PCRE2_VERSION
     REPLACE "^#define[ ]+PCRE2_(MAJOR|MINOR)[ ]+([0-9]+)" "\\2")
   list(JOIN PCRE2_VERSION "." PCRE2_VERSION)
+  # look for the library in the same install as the header first, so that the two match. on macOS the SDK has a
+  # PCRE2 library but no header, so otherwise the header can come from Homebrew and the library from the SDK
+  get_filename_component(_pcre2_prefix "${PCRE2_INCLUDE_DIR}/.." ABSOLUTE)
+  set(_pcre2_lib_dir "${_pcre2_prefix}/lib")
 endif()
 # find library. on Windows static name has the -static suffix
 # note: NO_CACHE used since PCRE2_LIBRARY has a different meaning on Windows
 if(PCRE2_USE_STATIC_LIBS)
   if(WIN32)
-    find_library(PCRE2_LIBRARY NAMES pcre2-8-static NO_CACHE)
+    find_library(PCRE2_LIBRARY NAMES pcre2-8-static HINTS ${_pcre2_lib_dir} NO_CACHE)
   # for non-Windows, explicitly specify we want the static library. supported
   # platforms all use .a as the static library suffix fortunately
   else()
-    find_library(PCRE2_LIBRARY NAMES libpcre2.a libpcre2-8.a NO_CACHE)
+    find_library(PCRE2_LIBRARY NAMES libpcre2.a libpcre2-8.a HINTS ${_pcre2_lib_dir} NO_CACHE)
   endif()
 # note: CMAKE_FIND_LIBRARY_PREFIXES orders the shared library suffices first
 else()
-  find_library(PCRE2_LIBRARY NAMES pcre2 pcre2-8 NO_CACHE)
+  find_library(PCRE2_LIBRARY NAMES pcre2 pcre2-8 HINTS ${_pcre2_lib_dir} NO_CACHE)
 endif()
 # if on Windows and PCRE2_USE_STATIC_LIBS is not ON, look for DLL as well
 if(WIN32 AND NOT PCRE2_USE_STATIC_LIBS)
-  find_file(PCRE2_LIBRARY_DLL NAMES pcre2-8.dll PATH_SUFFIXES bin)
+  find_file(PCRE2_LIBRARY_DLL NAMES pcre2-8.dll HINTS ${_pcre2_prefix} PATH_SUFFIXES bin)
 endif()
+unset(_pcre2_prefix)
+unset(_pcre2_lib_dir)
 # add PCRE2::8BIT target if library found
 if(PCRE2_LIBRARY)
   # for static we have some additional INTERFACE properties to add

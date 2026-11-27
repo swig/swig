@@ -40,4 +40,5 @@ struct M {
   static auto m4() const -> int;
   static auto m5() & -> int;
   static auto m6() && -> int;
+  static int (M::*m7() const)(int) const;
 };

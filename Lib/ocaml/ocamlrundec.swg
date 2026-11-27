@@ -115,6 +115,10 @@ SWIGINTERN void SWIG_OCamlThrowException(SWIG_OCamlExceptionCodes code, const ch
 				      swig_type_info *descriptor );
     SWIGINTERN void *caml_ptr_val( value v, swig_type_info *descriptor );
 
+    SWIGINTERN value caml_val_member( void *ptr, size_t sz, swig_type_info *descriptor );
+    SWIGINTERN const char *caml_member_packed( value v, size_t sz, swig_type_info *descriptor );
+    SWIGINTERN void caml_member_val( value v, void *ptr, size_t sz, swig_type_info *descriptor );
+
     SWIGINTERN char *caml_string_val( value v );
     SWIGINTERN int caml_string_len( value v );
 

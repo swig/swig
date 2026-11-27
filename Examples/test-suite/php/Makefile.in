@@ -90,9 +90,9 @@ missingtests: missingcpptests missingctests
 # at least test that the module loads without errors.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_MODULE=$* PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
 	else \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run; \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_MODULE=$* PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run; \
 	fi
 
 # Runs a multicpptest testcase. Tries to run testcase_runme.php, and if that's

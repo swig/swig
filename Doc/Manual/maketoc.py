@@ -1,7 +1,24 @@
 #!/usr/bin/env python3
 
+import argparse
 import sys
 import os
+
+parser = argparse.ArgumentParser(
+    formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=80),
+    description="""\
+Regenerate the heading numbers and the table of contents of every chapter of
+the SWIG manual and the contents of the whole manual, Contents.html.""",
+    epilog="""\
+Runs makechap.py on each chapter listed in the chapters file in turn, numbering
+the chapters in the order they are listed. What it prints is collected into
+Contents.html. Reads the chapters from the current directory, which must be
+Doc/Manual.
+
+Exits 0 when every chapter is processed and 1 when makechap.py fails on a
+chapter, naming the chapter.""")
+parser.parse_args()
+
 chs = open("chapters").readlines()
 
 f = open("Contents.html","w")
@@ -14,7 +31,7 @@ f.write("""
 </HEAD>
 <BODY BGCOLOR="#ffffff">
 
-<H1><a name="Contents"></a>SWIG Users Manual</H1>
+<H1 id="Contents">SWIG Users Manual</H1>
 
 <p>
 
@@ -28,7 +45,8 @@ for c in chs:
     c = c.strip()
     print("Processing " + c)
     if c:
-        os.system("python3 makechap.py %s %d >> Contents.html" % (c,num))
+        if os.system("python3 makechap.py %s %d >> Contents.html" % (c,num)) != 0:
+            sys.exit("Error: makechap.py failed on " + c)
     num += 1
 
 f = open("Contents.html","a")

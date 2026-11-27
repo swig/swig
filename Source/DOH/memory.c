@@ -30,14 +30,14 @@ static int PoolSize = DOH_POOL_SIZE;
 
 DOH *DohNone = 0; /* The DOH None object */
 
-typedef struct pool {
+typedef struct Pool {
   DohBase *ptr;      /* Start of pool */
   int len;           /* Length of pool */
   int blen;          /* Byte length of pool */
   int current;       /* Current position for next allocation */
   char *pbeg;        /* Beg of pool */
   char *pend;        /* End of pool */
-  struct pool *next; /* Next pool */
+  struct Pool *next; /* Next pool */
 } Pool;
 
 static DohBase *FreeList = 0; /* List of free objects */

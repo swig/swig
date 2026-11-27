@@ -45,6 +45,62 @@ int overloading(Struct *const& s) {
 int pointer_reference_value(Struct *& s) {
   return s ? s->value : -1;
 }
+// So does a const volatile reference to a pointer
+int pointer_reference_const_volatile(Struct *const volatile & s) {
+  return s ? s->value : -1;
+}
+typedef Struct *const StructConstPtr;
+typedef Struct *volatile StructVolatilePtr;
+// A const reference to a typedef of a const pointer is a 'Struct *const&'
+int pointer_reference_typedef_const(const StructConstPtr & s) {
+  return s ? s->value : -1;
+}
+// A const reference to a typedef of a volatile pointer is a 'Struct *const volatile&'
+int pointer_reference_typedef_volatile(const StructVolatilePtr & s) {
+  return s ? s->value : -1;
+}
+%}
+
+// A const reference to a pointer to a builtin type or to a pointer to one, a pointer to a pointer to an enum and a reference to a pointer to an enum
+%inline %{
+int int_pointer_reference_value(int *const &p) {
+  return *p;
+}
+int int_pointer_pointer_reference_value(int **const &p) {
+  return **p;
+}
+enum Colour { RED, GREEN };
+int colour_pointer_pointer_value(Colour **c) {
+  return **c;
+}
+int colour_pointer_reference_value(Colour *&c) {
+  return *c;
+}
+%}
+
+// A pointer to a class that is not wrapped
+%inline %{
+struct Opaque;
+Opaque *opaque_pointer();
+Opaque *const& opaque_pointer_reference();
+int opaque_value(Opaque *const& o);
+%}
+
+%{
+struct Opaque {
+  int value;
+};
+Opaque opaque_instance = { 30 };
+Opaque *opaque_instance_pointer = &opaque_instance;
+Opaque *opaque_pointer() {
+  return opaque_instance_pointer;
+}
+Opaque *const& opaque_pointer_reference() {
+  return opaque_instance_pointer;
+}
+int opaque_value(Opaque *const& o) {
+  return o->value;
+}
 %}
 
 %{

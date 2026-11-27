@@ -1,6 +1,7 @@
 # Example using pointers to member functions
 
 from member_pointer import *
+from swig_test_utils import swig_assert_raises
 
 
 def check(what, expected, actual):
@@ -46,6 +47,23 @@ check("Square perim", 40.0, do_op(s, PERIMPT))
 # Typedefs
 check("Square perim", 40.0, do_op_td(s, perim_pt));
 
+# Const references to member pointers
+check("Square area", 100.0, do_op_cref(s, area_pt))
+check("Square perim", 40.0, do_op_cref(s, perimetervar_td_cref()))
+check("Square perim", 40.0, do_op(s, perimetervar_td_cref()))
+with swig_assert_raises(TypeError):
+    do_op_cref(s, ADD_BY_VALUE)
+
 check("Add by value", 3, call1(ADD_BY_VALUE, 1, 2))
 check("Add by pointer", 7, call2(ADD_BY_POINTER, 3, 4))
 check("Add by reference", 11, call3(ADD_BY_REFERENCE, 5, 6))
+
+# Overloaded on the member pointer type
+check("Overload by value", 3, call_overloaded(ADD_BY_VALUE, 1, 2))
+check("Overload by pointer", -7, call_overloaded(ADD_BY_POINTER, 3, 4))
+check("Overload by int", 110, call_overloaded(10, 5, 6))
+
+# Overloaded on a member pointer and a pointer, only the pointer taking None
+check("Overload by member pointer", 3, memberpt_or_pointer(ADD_BY_VALUE))
+check("Overload by pointer", 10, memberpt_or_pointer(Funktions()))
+check("Overload by None", 20, memberpt_or_pointer(None))

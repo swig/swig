@@ -10,17 +10,20 @@ let _ =
   ignore ((invoke s) "[ints]" ((invoke other) "[ints]" C_void));
   ignore ((invoke s) "[items]" ((invoke other) "[items]" C_void));
   ignore ((invoke s) "[grid]" ((invoke other) "[grid]" C_void));
+  ignore ((invoke s) "[cube]" ((invoke other) "[cube]" C_void));
   assert (_arrays_null_check (C_list [ s; C_int 10 ]) as int = 1);
 
   (* Setting an array member or global variable to NULL is an error, as there is nothing to copy from *)
   assert (null_rejected (fun () -> (invoke s) "[ints]" (C_list [ C_void ])));
   assert (null_rejected (fun () -> (invoke s) "[items]" (C_list [ C_void ])));
   assert (null_rejected (fun () -> (invoke s) "[grid]" (C_list [ C_void ])));
+  assert (null_rejected (fun () -> (invoke s) "[cube]" (C_list [ C_void ])));
   assert (_arrays_null_check (C_list [ s; C_int 10 ]) as int = 1);
 
   ignore (_arrays_null_ints ((invoke s) "[ints]" C_void));
   ignore (_arrays_null_items ((invoke s) "[items]" C_void));
   ignore (_arrays_null_grid ((invoke s) "[grid]" C_void));
+  ignore (_arrays_null_cube ((invoke s) "[cube]" C_void));
   assert (_arrays_null_globals_check (C_int 10) as int = 1);
 
   (* C_void alone reads a global variable, so a NULL pointer is used to set one to NULL *)
@@ -28,6 +31,7 @@ let _ =
   assert (null_rejected (fun () -> _arrays_null_ints null));
   assert (null_rejected (fun () -> _arrays_null_items null));
   assert (null_rejected (fun () -> _arrays_null_grid null));
+  assert (null_rejected (fun () -> _arrays_null_cube null));
   assert (null_rejected (fun () -> _arrays_null_ints_ref null));
   assert (null_rejected (fun () -> _arrays_null_bools null));
   assert (_arrays_null_globals_check (C_int 10) as int = 1);

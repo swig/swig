@@ -1,13 +1,5 @@
 %module arrays_null
 
-#ifdef SWIGC
-// TODO: arrays of classes and references to arrays do not compile in the C target language
-%ignore ArraysNull::items;
-%ignore arrays_null_items;
-%ignore arrays_null_ints_ref;
-%ignore arrays_null_ints_ref_first;
-#endif
-
 // Setting an array member or global variable to NULL is an error, as there is nothing to copy from
 %inline %{
 struct ArraysNullItem {
@@ -18,6 +10,7 @@ struct ArraysNull {
   int ints[4];
   ArraysNullItem items[2];
   int grid[2][3];
+  int cube[2][3][4];
 };
 
 void arrays_null_fill(ArraysNull *s, int start) {
@@ -28,6 +21,8 @@ void arrays_null_fill(ArraysNull *s, int start) {
     s->items[i].value = start + i;
   for (i = 0; i < 6; i++)
     s->grid[i / 3][i % 3] = start + i;
+  for (i = 0; i < 24; i++)
+    s->cube[i / 12][i / 4 % 3][i % 4] = start + i;
 }
 
 int arrays_null_check(const ArraysNull *s, int start) {
@@ -41,12 +36,16 @@ int arrays_null_check(const ArraysNull *s, int start) {
   for (i = 0; i < 6; i++)
     if (s->grid[i / 3][i % 3] != start + i)
       return 0;
+  for (i = 0; i < 24; i++)
+    if (s->cube[i / 12][i / 4 % 3][i % 4] != start + i)
+      return 0;
   return 1;
 }
 
 int arrays_null_ints[4];
 ArraysNullItem arrays_null_items[2];
 int arrays_null_grid[2][3];
+int arrays_null_cube[2][3][4];
 int (&arrays_null_ints_ref)[4] = arrays_null_ints;
 bool arrays_null_bools[2];
 
@@ -59,6 +58,8 @@ int arrays_null_globals_check(int start) {
     s.items[i] = arrays_null_items[i];
   for (i = 0; i < 6; i++)
     s.grid[i / 3][i % 3] = arrays_null_grid[i / 3][i % 3];
+  for (i = 0; i < 24; i++)
+    s.cube[i / 12][i / 4 % 3][i % 4] = arrays_null_cube[i / 12][i / 4 % 3][i % 4];
   return arrays_null_check(&s, start);
 }
 
@@ -81,6 +82,9 @@ int arrays_null_items_isnull(ArraysNullItem a[2]) {
   return a == 0;
 }
 int arrays_null_items_unsized_isnull(ArraysNullItem a[]) {
+  return a == 0;
+}
+int arrays_null_const_items_isnull(const ArraysNullItem a[2]) {
   return a == 0;
 }
 int arrays_null_bools_isnull(bool a[4]) {

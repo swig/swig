@@ -92,11 +92,16 @@ typedef struct RCallbackFunctionData {
 
   SEXP el;  /* Temporary pointer used in the construction of the expression to call the R function. */
 
+  const char *stub; /* The name of the stub that calls fun */
+  SEXP kept; /* fun and the values it returned that the C code can point into, kept from the garbage collector until the entry is popped */
+  struct RCallbackFunctionData *base; /* The top of the stack before the wrapper that pushed this entry pushed any */
+
   struct RCallbackFunctionData *previous;   /* Stack */
 
 } RCallbackFunctionData;
 
 static RCallbackFunctionData  *callbackFunctionDataStack;
+static int callbackFunctionCallDepth; /* The number of calls of R functions passed for function pointers not yet returned */
 
 
 SWIGRUNTIME SEXP
@@ -123,13 +128,31 @@ R_SWIG_debug_getCallbackFunctionData()
 
 
 
+/* Pop the entries above base, those of a wrapper that returns and those left by wrappers that did not return normally */
+SWIGRUNTIME void
+R_SWIG_popCallbackFunctionData(RCallbackFunctionData *base)
+{
+  while (callbackFunctionDataStack && callbackFunctionDataStack != base) {
+    RCallbackFunctionData *el = callbackFunctionDataStack;
+    callbackFunctionDataStack = el->previous;
+    R_ReleaseObject(el->kept);
+    free(el);
+  }
+}
+
+/* A wrapper pushes an entry for each R function passed for a function pointer parameter and pops them all when it returns. The stub that calls the R
+   function looks up the entry by the stub's name. The entry also has the top of the stack from before the wrapper pushed any entries. */
 SWIGRUNTIME RCallbackFunctionData *
-R_SWIG_pushCallbackFunctionData(SEXP fun, SEXP userData)
+R_SWIG_pushCallbackFunctionData(SEXP fun, SEXP userData, const char *stub, RCallbackFunctionData *base)
 {
    RCallbackFunctionData *el;
    el = (RCallbackFunctionData *) calloc(1, sizeof(RCallbackFunctionData));
    el->fun = fun;
    el->userData = userData;
+   el->stub = stub;
+   el->kept = Rf_cons(fun, R_NilValue);
+   R_PreserveObject(el->kept);
+   el->base = base;
    el->previous = callbackFunctionDataStack;
 
    callbackFunctionDataStack = el;
@@ -141,33 +164,52 @@ R_SWIG_pushCallbackFunctionData(SEXP fun, SEXP userData)
 SWIGRUNTIME SEXP
 R_SWIG_R_pushCallbackFunctionData(SEXP fun, SEXP userData)
 {
-    R_SWIG_pushCallbackFunctionData(fun, userData);
+    R_SWIG_pushCallbackFunctionData(fun, userData, "", callbackFunctionDataStack);
     return R_NilValue;
 }
 
+/* The top of the stack for a wrapper about to push entries. When no R function passed for a function pointer is being called, any entries were left by
+   a wrapper that did not return normally, such as for an R error converting the value returned by an R function, so they are popped. */
 SWIGRUNTIME RCallbackFunctionData *
-R_SWIG_getCallbackFunctionData()
+R_SWIG_topCallbackFunctionData(void)
 {
-  if(!callbackFunctionDataStack) {
-    Rf_error("Supposedly impossible error occurred in the SWIG callback mechanism."
-            "  No callback function data set.");
+  if (callbackFunctionCallDepth == 0) {
+    R_SWIG_popCallbackFunctionData(NULL);
   }
-  
   return callbackFunctionDataStack;
 }
 
-SWIGRUNTIME void
-R_SWIG_popCallbackFunctionData(int doFree)
+/* The entry for a stub nearest the top of the stack is from the innermost call of a wrapper passed an R function for the stub */
+SWIGRUNTIME RCallbackFunctionData *
+R_SWIG_getCallbackFunctionData(const char *stub)
 {
-  RCallbackFunctionData  *el = NULL;
-  if(!callbackFunctionDataStack)
-    return ; /* Error !!! */
+  RCallbackFunctionData *el = callbackFunctionDataStack;
+  while (el && strcmp(el->stub, stub) != 0) {
+    el = el->previous;
+  }
+  if (!el) {
+    Rf_error("no R function to call for the function pointer (%s): "
+             "an R function passed for a function pointer can only be called until the wrapped function returns", stub);
+  }
+  return el;
+}
 
-  el = callbackFunctionDataStack ;
-  callbackFunctionDataStack = callbackFunctionDataStack->previous;
+/* Call the R function, then pop any entries left by the wrappers it called that did not return normally, such as for an error caught by tryCatch() */
+SWIGRUNTIME void
+R_SWIG_callCallbackFunction(RCallbackFunctionData *el)
+{
+  RCallbackFunctionData *top = callbackFunctionDataStack;
+  callbackFunctionCallDepth++;
+  el->retValue = R_tryEval(el->expr, R_GlobalEnv, &el->errorOccurred);
+  callbackFunctionCallDepth--;
+  R_SWIG_popCallbackFunctionData(top);
+}
 
-  if(doFree)
-     free(el);
+/* Keep a value returned by the R function from the garbage collector until the entry is popped, as the C code can point into it */
+SWIGRUNTIME void
+R_SWIG_keepCallbackValue(RCallbackFunctionData *el, SEXP value)
+{
+  SETCDR(el->kept, Rf_cons(value, CDR(el->kept)));
 }
 
 
@@ -383,6 +425,11 @@ typedef struct {
   size_t size;
 } RSwigPacked;
 
+/* The tag of the external pointer to a packed object, which tells it apart from the other external pointers */
+SWIGRUNTIMEINLINE SEXP RSwigPacked_Tag(void) {
+  return Rf_install("RSwigPacked");
+}
+
 /* Create a new packed object */
 
 SWIGRUNTIMEINLINE SEXP RSwigPacked_New(void *ptr, size_t sz,
@@ -401,16 +448,19 @@ SWIGRUNTIMEINLINE SEXP RSwigPacked_New(void *ptr, size_t sz,
       sobj = 0;
     }
   }
-  rptr = R_MakeExternalPtr(sobj, R_NilValue, R_NilValue); 
+  rptr = R_MakeExternalPtr(sobj, RSwigPacked_Tag(), R_NilValue);
   return rptr;
 }
 
 SWIGRUNTIME swig_type_info *
 RSwigPacked_UnpackData(SEXP obj, void *ptr, size_t size)
 {
-    RSwigPacked *sobj = 
-        (RSwigPacked *)R_ExternalPtrAddr(obj);
-    if (sobj->size != size) return 0;
+    RSwigPacked *sobj;
+    if (TYPEOF(obj) != EXTPTRSXP || R_ExternalPtrTag(obj) != RSwigPacked_Tag())
+      return 0;
+    sobj = (RSwigPacked *)R_ExternalPtrAddr(obj);
+    if (!sobj || sobj->size != size)
+      return 0;
     memcpy(ptr, sobj->pack, size);
     return sobj->ty;
 }
@@ -435,12 +485,6 @@ SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {
   }
   return SWIG_OK;
 }  
-
-#ifdef __cplusplus
-#define SWIG_exception_noreturn(code, msg) do { throw std::runtime_error(msg); } while(0)
-#else
-#define SWIG_exception_noreturn(code, msg) do { return result; } while(0)
-#endif
 
 #ifdef __cplusplus
 }

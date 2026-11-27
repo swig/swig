@@ -14,21 +14,25 @@ arrays_null_fill(other, 10)
 s$ints <- other$ints
 s$items <- other$items
 s$grid <- other$grid
+s$cube <- other$cube
 unittest(arrays_null_check(s, 10), 1)
 
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() s$ints <- NULL)), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() s$items <- NULL)), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() s$grid <- NULL)), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() s$cube <- NULL)), TRUE)
 unittest(arrays_null_check(s, 10), 1)
 
 arrays_null_ints_set(s$ints)
 arrays_null_items_set(s$items)
 arrays_null_grid_set(s$grid)
+arrays_null_cube_set(s$cube)
 unittest(arrays_null_globals_check(10), 1)
 
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_ints_set(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_items_set(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_grid_set(NULL))), TRUE)
+unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_cube_set(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_ints_ref_set(NULL))), TRUE)
 unittest(grepl("^SWIG:NullReferenceError", error_message(function() arrays_null_bools_set(NULL))), TRUE)
 unittest(arrays_null_globals_check(10), 1)

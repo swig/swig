@@ -35,14 +35,14 @@
 
 %{
 #ifndef INTRUSIVE_PTR_WRAPPER
-# define SwigBoost boost
+# define TestBoost boost
 #endif
 %}
 
 %include "std_string.i"
 #ifndef INTRUSIVE_PTR_WRAPPER
-# define SWIG_INTRUSIVE_PTR_NAMESPACE SwigBoost
-# define SWIG_SHARED_PTR_NAMESPACE SwigBoost
+# define SWIG_INTRUSIVE_PTR_NAMESPACE TestBoost
+# define SWIG_SHARED_PTR_NAMESPACE TestBoost
 #endif
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
@@ -241,59 +241,59 @@ KlassDerived& derivedreftest(KlassDerived& kd) {
   kd.append(" derivedreftest");
   return kd;
 }
-SwigBoost::intrusive_ptr<KlassDerived> derivedsmartptrtest(SwigBoost::intrusive_ptr<KlassDerived> kd) {
+TestBoost::intrusive_ptr<KlassDerived> derivedsmartptrtest(TestBoost::intrusive_ptr<KlassDerived> kd) {
   if (kd)
     kd->append(" derivedsmartptrtest");
   return kd;
 }
-SwigBoost::intrusive_ptr<KlassDerived>* derivedsmartptrpointertest(SwigBoost::intrusive_ptr<KlassDerived>* kd) {
+TestBoost::intrusive_ptr<KlassDerived>* derivedsmartptrpointertest(TestBoost::intrusive_ptr<KlassDerived>* kd) {
   if (kd && *kd)
     (*kd)->append(" derivedsmartptrpointertest");
   return kd;
 }
-SwigBoost::intrusive_ptr<KlassDerived>* derivedsmartptrreftest(SwigBoost::intrusive_ptr<KlassDerived>* kd) {
+TestBoost::intrusive_ptr<KlassDerived>* derivedsmartptrreftest(TestBoost::intrusive_ptr<KlassDerived>* kd) {
   if (kd && *kd)
     (*kd)->append(" derivedsmartptrreftest");
   return kd;
 }
-SwigBoost::intrusive_ptr<KlassDerived>*& derivedsmartptrpointerreftest(SwigBoost::intrusive_ptr<KlassDerived>*& kd) {
+TestBoost::intrusive_ptr<KlassDerived>*& derivedsmartptrpointerreftest(TestBoost::intrusive_ptr<KlassDerived>*& kd) {
   if (kd && *kd)
     (*kd)->append(" derivedsmartptrpointerreftest");
   return kd;
 }
 
-SwigBoost::intrusive_ptr<Klass> factorycreate() {
-  return SwigBoost::intrusive_ptr<Klass>(new Klass("factorycreate"));
+TestBoost::intrusive_ptr<Klass> factorycreate() {
+  return TestBoost::intrusive_ptr<Klass>(new Klass("factorycreate"));
 }
 // smart pointer
-SwigBoost::intrusive_ptr<Klass> smartpointertest(SwigBoost::intrusive_ptr<Klass> k) {
+TestBoost::intrusive_ptr<Klass> smartpointertest(TestBoost::intrusive_ptr<Klass> k) {
   if (k)
     k->append(" smartpointertest");
-  return SwigBoost::intrusive_ptr<Klass>(k);
+  return TestBoost::intrusive_ptr<Klass>(k);
 }
-SwigBoost::intrusive_ptr<Klass>* smartpointerpointertest(SwigBoost::intrusive_ptr<Klass>* k) {
+TestBoost::intrusive_ptr<Klass>* smartpointerpointertest(TestBoost::intrusive_ptr<Klass>* k) {
   if (k && *k)
     (*k)->append(" smartpointerpointertest");
   return k;
 }
-SwigBoost::intrusive_ptr<Klass>& smartpointerreftest(SwigBoost::intrusive_ptr<Klass>& k) {
+TestBoost::intrusive_ptr<Klass>& smartpointerreftest(TestBoost::intrusive_ptr<Klass>& k) {
   if (k)
     k->append(" smartpointerreftest");
   return k;
 }
-SwigBoost::intrusive_ptr<Klass>*& smartpointerpointerreftest(SwigBoost::intrusive_ptr<Klass>*& k) {
+TestBoost::intrusive_ptr<Klass>*& smartpointerpointerreftest(TestBoost::intrusive_ptr<Klass>*& k) {
   if (k && *k)
     (*k)->append(" smartpointerpointerreftest");
   return k;
 }
 // const
-SwigBoost::intrusive_ptr<const Klass> constsmartpointertest(SwigBoost::intrusive_ptr<const Klass> k) {
-  return SwigBoost::intrusive_ptr<const Klass>(k);
+TestBoost::intrusive_ptr<const Klass> constsmartpointertest(TestBoost::intrusive_ptr<const Klass> k) {
+  return TestBoost::intrusive_ptr<const Klass>(k);
 }
-SwigBoost::intrusive_ptr<const Klass>* constsmartpointerpointertest(SwigBoost::intrusive_ptr<const Klass>* k) {
+TestBoost::intrusive_ptr<const Klass>* constsmartpointerpointertest(TestBoost::intrusive_ptr<const Klass>* k) {
   return k;
 }
-SwigBoost::intrusive_ptr<const Klass>& constsmartpointerreftest(SwigBoost::intrusive_ptr<const Klass>& k) {
+TestBoost::intrusive_ptr<const Klass>& constsmartpointerreftest(TestBoost::intrusive_ptr<const Klass>& k) {
   return k;
 }
 // plain pointer
@@ -315,7 +315,7 @@ Klass *const& pointerreftest(Klass *const& k) {
   return k;
 }
 // null
-std::string nullsmartpointerpointertest(SwigBoost::intrusive_ptr<Klass>* k) {
+std::string nullsmartpointerpointertest(TestBoost::intrusive_ptr<Klass>* k) {
   if (k && *k)
     return "not null";
   else if (!k)
@@ -329,12 +329,12 @@ std::string nullsmartpointerpointertest(SwigBoost::intrusive_ptr<Klass>* k) {
 Klass *pointerownertest() {
   return new Klass("pointerownertest");
 }
-SwigBoost::intrusive_ptr<Klass>* smartpointerpointerownertest() {
-  return new SwigBoost::intrusive_ptr<Klass>(new Klass("smartpointerpointerownertest"));
+TestBoost::intrusive_ptr<Klass>* smartpointerpointerownertest() {
+  return new TestBoost::intrusive_ptr<Klass>(new Klass("smartpointerpointerownertest"));
 }
 
-const SwigBoost::intrusive_ptr<Klass>& ref_1() { 
-  static SwigBoost::intrusive_ptr<Klass> sptr;
+const TestBoost::intrusive_ptr<Klass>& ref_1() { 
+  static TestBoost::intrusive_ptr<Klass> sptr;
   return sptr;
 }
 
@@ -354,16 +354,16 @@ std::string overload_rawbyptrref(Klass *const&k) { return "rawbyptrref"; }
 
 
 std::string overload_smartbyval(int i) { return "int"; }
-std::string overload_smartbyval(SwigBoost::intrusive_ptr<Klass> k) { return "smartbyval"; }
+std::string overload_smartbyval(TestBoost::intrusive_ptr<Klass> k) { return "smartbyval"; }
 
 std::string overload_smartbyref(int i) { return "int"; }
-std::string overload_smartbyref(SwigBoost::intrusive_ptr<Klass> &k) { return "smartbyref"; }
+std::string overload_smartbyref(TestBoost::intrusive_ptr<Klass> &k) { return "smartbyref"; }
 
 std::string overload_smartbyptr(int i) { return "int"; }
-std::string overload_smartbyptr(SwigBoost::intrusive_ptr<Klass> *k) { return "smartbyptr"; }
+std::string overload_smartbyptr(TestBoost::intrusive_ptr<Klass> *k) { return "smartbyptr"; }
 
 std::string overload_smartbyptrref(int i) { return "int"; }
-std::string overload_smartbyptrref(SwigBoost::intrusive_ptr<Klass> *&k) { return "smartbyptrref"; }
+std::string overload_smartbyptrref(TestBoost::intrusive_ptr<Klass> *&k) { return "smartbyptrref"; }
 
 } // namespace Space
 
@@ -380,21 +380,21 @@ std::string overload_smartbyptrref(SwigBoost::intrusive_ptr<Klass> *&k) { return
 
 %inline %{
 struct MemberVariables {
-  MemberVariables() : SmartMemberPointer(new SwigBoost::intrusive_ptr<Space::Klass>()), SmartMemberReference(*(new SwigBoost::intrusive_ptr<Space::Klass>())), MemberPointer(0), MemberReference(MemberValue) {}
+  MemberVariables() : SmartMemberPointer(new TestBoost::intrusive_ptr<Space::Klass>()), SmartMemberReference(*(new TestBoost::intrusive_ptr<Space::Klass>())), MemberPointer(0), MemberReference(MemberValue) {}
   virtual ~MemberVariables() {
     delete SmartMemberPointer;
     delete &SmartMemberReference;
   }
-  SwigBoost::intrusive_ptr<Space::Klass> SmartMemberValue;
-  SwigBoost::intrusive_ptr<Space::Klass> * SmartMemberPointer;
-  SwigBoost::intrusive_ptr<Space::Klass> & SmartMemberReference;
+  TestBoost::intrusive_ptr<Space::Klass> SmartMemberValue;
+  TestBoost::intrusive_ptr<Space::Klass> * SmartMemberPointer;
+  TestBoost::intrusive_ptr<Space::Klass> & SmartMemberReference;
   Space::Klass MemberValue;
   Space::Klass * MemberPointer;
   Space::Klass & MemberReference;
 };
 
 // Global variables
-SwigBoost::intrusive_ptr<Space::Klass> GlobalSmartValue;
+TestBoost::intrusive_ptr<Space::Klass> GlobalSmartValue;
 Space::Klass GlobalValue;
 Space::Klass * GlobalPointer = 0;
 Space::Klass & GlobalReference = GlobalValue;
@@ -439,15 +439,15 @@ template <class T1, class T2> struct Pair : Base<T1, T2> {
 };
 
 Pair<int, double> pair_id2(Pair<int, double> p) { return p; }
-SwigBoost::intrusive_ptr< Pair<int, double> > pair_id1(SwigBoost::intrusive_ptr< Pair<int, double> > p) { return p; }
+TestBoost::intrusive_ptr< Pair<int, double> > pair_id1(TestBoost::intrusive_ptr< Pair<int, double> > p) { return p; }
 
-long use_count(const SwigBoost::shared_ptr<Space::Klass>& sptr) {
+long use_count(const TestBoost::shared_ptr<Space::Klass>& sptr) {
   return sptr.use_count();
 }
-long use_count(const SwigBoost::shared_ptr<Space::KlassDerived>& sptr) {
+long use_count(const TestBoost::shared_ptr<Space::KlassDerived>& sptr) {
   return sptr.use_count();
 }
-long use_count(const SwigBoost::shared_ptr<Space::KlassDerivedDerived>& sptr) {
+long use_count(const TestBoost::shared_ptr<Space::KlassDerivedDerived>& sptr) {
   return sptr.use_count();
 }
 %}
@@ -457,11 +457,11 @@ long use_count(const SwigBoost::shared_ptr<Space::KlassDerivedDerived>& sptr) {
 // For counting the instances of intrusive_ptr (all of which are created on the heap)
 // intrusive_ptr_wrapper_count() gives overall count
 %inline %{
-namespace SwigBoost {
+namespace TestBoost {
   const int NOT_COUNTING = -123456;
   int intrusive_ptr_wrapper_count() { 
   #ifdef INTRUSIVE_PTR_WRAPPER
-    return SwigBoost::IntrusivePtrWrapper::getTotalCount(); 
+    return TestBoost::IntrusivePtrWrapper::getTotalCount(); 
   #else
     return NOT_COUNTING;
   #endif

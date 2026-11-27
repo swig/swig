@@ -1942,7 +1942,7 @@ public:
     Delete(classname);
 
     // Stash for later.
-    Setattr(n, "director:ctor", NewString("Swig::Director()"));
+    Setattr(n, "director:ctor", "Swig::Director()");
 
     // Keep track of the director methods for this class.
     first_class_dmethod = curr_class_dmethod = n_dmethods;
@@ -2026,13 +2026,15 @@ public:
                something other than a NULL-initialized reference. */
             SwigType *noref_type = SwigType_del_reference(Copy(returntype));
             String *noref_ltype = SwigType_lstr(noref_type, 0);
-            String *return_ltype = SwigType_lstr(returntype, 0);
+            String *result_default_decl = SwigType_lstr(noref_type, "result_default");
+            String *c_result_decl = SwigType_lstr(returntype, "c_result");
 
-            Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
-            Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+            Wrapper_add_localv(w, "result_default", "static", result_default_decl, NIL);
+            Wrapper_add_localv(w, "c_result", c_result_decl, NIL);
             Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
             Printf(w->code, "c_result = &result_default;\n");
-            Delete(return_ltype);
+            Delete(c_result_decl);
+            Delete(result_default_decl);
             Delete(noref_ltype);
             Delete(noref_type);
           }
@@ -2272,42 +2274,15 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    String *exception_specification = Swig_director_exception_specification(n);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, exception_specification);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1, exception_specification);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
-
-    // Add any exception specifications to the methods in the director class
-    if (Getattr(n, "noexcept")) {
-      Append(w->def, " noexcept");
-      Append(declaration, " noexcept");
-    }
-    ParmList *throw_parm_list = NULL;
-    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-      int gencomma = 0;
-
-      Append(w->def, " throw(");
-      Append(declaration, " throw(");
-
-      if (throw_parm_list)
-        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-      for (p = throw_parm_list; p; p = nextSibling(p)) {
-        if (Getattr(p, "tmap:throws")) {
-          if (gencomma++) {
-            Append(w->def, ", ");
-            Append(declaration, ", ");
-          }
-          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
-          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
-        }
-      }
-
-      Append(w->def, ")");
-      Append(declaration, ")");
-    }
+    Delete(exception_specification);
 
     Append(w->def, " {");
     Append(declaration, ";\n");
@@ -2764,14 +2739,14 @@ private:
     for (i = 0, p = l; p; i++) {
       // Ignored varargs.
       if (checkAttribute(p, "varargs:ignore", "1")) {
-        Setattr(p, "d:type", NewString(""));
+        Setattr(p, "d:type", "");
         p = nextSibling(p);
         continue;
       }
 
       // Ignored parameters.
       if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-        Setattr(p, "d:type", NewString(""));
+        Setattr(p, "d:type", "");
         p = Getattr(p, "tmap:in:next");
         continue;
       }
@@ -2830,7 +2805,7 @@ private:
               int ln = Len(package);
               /* If proxy_type uses the package name, it must be larger */
               if (Len(proxy_type) > ln && Strncmp(package, proxy_type, ln) == 0) {
-                Setattr(p, "d:type", NewString(Char(proxy_type) + ln));
+                Setattr(p, "d:type", Char(proxy_type) + ln);
               } else {
                 Setattr(p, "d:type", Copy(proxy_type));
               }
@@ -4151,7 +4126,7 @@ private:
   bool replaceClassname(String *tm, SwigType *pt) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
-    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *strippedtype = SwigType_strip_qualifiers_except_member_function(type);
 
     if (Strstr(tm, "$dclassname")) {
       SwigType *classnametype = Copy(strippedtype);
@@ -4822,8 +4797,8 @@ private:
     Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
     if (!hash) {
       hash = NewHash();
-      Setattr(hash, "code", NewString(""));
-      Setattr(hash, "imports", NewString(""));
+      Setattr(hash, "code", "");
+      Setattr(hash, "imports", "");
       Setattr(nspace_proxy_dmodules, nspace, hash);
     }
     return Getattr(hash, "code");
@@ -4843,8 +4818,8 @@ private:
     Hash *hash = Getattr(nspace_proxy_dmodules, nspace);
     if (!hash) {
       hash = NewHash();
-      Setattr(hash, "code", NewString(""));
-      Setattr(hash, "imports", NewString(""));
+      Setattr(hash, "code", "");
+      Setattr(hash, "imports", "");
       Setattr(nspace_proxy_dmodules, nspace, hash);
     }
     return Getattr(hash, "imports");

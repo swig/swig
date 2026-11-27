@@ -1,7 +1,7 @@
 %module register_par
 
 %{
-struct swig_tree;
+struct Tree;
 %}
 
 %{
@@ -18,5 +18,5 @@ Fix for languages that compile C tests as C++:
 
 // bug # 924413
 %inline {
-  void clear_tree_flags(register struct swig_tree *tp, register int i) {}
+  void clear_tree_flags(register struct Tree *tp, register int i) {}
 }

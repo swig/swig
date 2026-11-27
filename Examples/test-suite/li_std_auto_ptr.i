@@ -68,7 +68,7 @@ public:
   explicit Klass(const char* label) :
     m_label(label)
   {
-    SwigExamples::Lock lock(critical_section);
+    Examples::Lock lock(critical_section);
     total_count++;
   }
 
@@ -76,20 +76,20 @@ public:
 
   virtual ~Klass()
   {
-    SwigExamples::Lock lock(critical_section);
+    Examples::Lock lock(critical_section);
     total_count--;
   }
 
   static int getTotal_count() { return total_count; }
 
 private:
-  static SwigExamples::CriticalSection critical_section;
+  static Examples::CriticalSection critical_section;
   static int total_count;
 
   std::string m_label;
 };
 
-SwigExamples::CriticalSection Klass::critical_section;
+Examples::CriticalSection Klass::critical_section;
 int Klass::total_count = 0;
 
 %}

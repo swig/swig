@@ -13,6 +13,7 @@ namespace TypeDef {
 
   typedef int Int;
   typedef int * const & IntPtrConstRef;
+  typedef int * const IntConstPtr;
   typedef int ** IntPtrPtr;
   typedef float Float;
   typedef float * FloatPtr;
@@ -38,6 +39,7 @@ namespace One {
   template <>           struct OneParm<int>             { void f() {} };
   template <>           struct OneParm<int * const &>   { void g() {} };
   template <>           struct OneParm<int **>          { void h() {} };
+  template <>           struct OneParm<int * const>     { void p() {} };
 
   template <>           struct OneParm<float>           { void j() {} };
   template <>           struct OneParm<float *>         { void k() {} };
@@ -57,6 +59,7 @@ namespace One {
 %template(F) One::OneParm<TypeDef::Int>;
 %template(G) One::OneParm<TypeDef::IntPtrConstRef>;
 %template(H) One::OneParm<TypeDef::IntPtrPtr>;
+%template(P) One::OneParm<const TypeDef::IntConstPtr>;
 
 // %template scope explicit specializations
 namespace One {

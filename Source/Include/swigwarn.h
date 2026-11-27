@@ -57,6 +57,7 @@
 /* Unused since 4.3.0: #define WARN_DEPRECATED_NESTED_WORKAROUND 126 */
 #define WARN_DEPRECATED_TYPEDEF                      127
 #define WARN_DEPRECATED_TYPEMAP_PASS                 128
+#define WARN_DEPRECATED_ADDEXTERN                    129
 
 /* -- Preprocessor -- */
 

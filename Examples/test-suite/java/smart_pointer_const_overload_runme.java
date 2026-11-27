@@ -24,6 +24,14 @@ public class smart_pointer_const_overload_runme {
     Assert(b.getx1() == 1);
     Assert(f.getAccess1() == CONST_ACCESS);
     
+    // Test volatile method
+    Assert(b.getx1v() == 1);
+    Assert(f.getAccess1() == MUTABLE_ACCESS);
+
+    // Test const volatile method
+    Assert(b.getx1cv() == 1);
+    Assert(f.getAccess1() == CONST_ACCESS);
+
     // Test mutable method
     b.setx1(2);
 
@@ -40,6 +48,10 @@ public class smart_pointer_const_overload_runme {
     Assert(f.getX1() == 3);
     Assert(f.getAccess1() == MUTABLE_ACCESS);
       
+    // Test extended const volatile method
+    Assert(b.getx2cv() == 3);
+    Assert(f.getAccess1() == CONST_ACCESS);
+
     // Test static method
     b.statMethod();
 

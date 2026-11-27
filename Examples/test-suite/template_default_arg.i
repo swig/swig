@@ -182,10 +182,7 @@ template<class T, class U = const T[2][3]> struct ConstArrayDefault {
 %template(PtrPtrDefault_def) PtrPtrDefault<>;
 %template(PtrConstPtrDefault_def) PtrConstPtrDefault<>;
 %template(RefDefault_def) RefDefault<>;
-#if !defined(SWIGC)
-// TODO: Fix the experimental C backend emitting invalid C for a pointer to an array, such as 'int *(*)[3]'
 %template(PtrArray2dDefault_def) PtrArray2dDefault<>;
-#endif
 
 // Pointer to member and function pointer type-ids as the default of a type template parameter
 %inline %{
@@ -220,11 +217,8 @@ template<class T, class U = const T[2][3]> struct ConstArrayDefault {
   };
 %}
 
-#if !defined(SWIGC)
-// TODO: Fix the experimental C backend emitting invalid C for a pointer to member, such as 'int MemberHolder::*'
 %template(MemberPtrDefault_def) MemberPtrDefault<>;
 %template(MemberFuncPtrDefault_def) MemberFuncPtrDefault<>;
-#endif
 %template(FuncPtrDefault_def) FuncPtrDefault<>;
 %template(FuncPtrParmDefault_int) FuncPtrParmDefault<int>;
 

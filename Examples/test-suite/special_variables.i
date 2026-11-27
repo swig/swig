@@ -102,23 +102,80 @@ std::string declaration;
   declaration = "$fulldecl $decl";
 }
 
+%rename(toInt) SpaceNamespace::ABC::operator int;
+
+%allowexception SpaceNamespace::ABC::funcptrvar;
+%allowexception SpaceNamespace::ABC::stringvar;
+%allowexception SpaceNamespace::globalfuncptrvar;
+%allowexception SpaceNamespace::UnnamedEnumHolder::unnamedenumvar;
+%allowexception SpaceNamespace::UnnamedEnumItem;
+
 %inline %{
 namespace SpaceNamespace {
   struct ABC {
-    ABC(int a, double b) {}
-    ABC() {}
+    ABC(int a, double b) : funcptrvar(0) {}
+    ABC() : funcptrvar(0) {}
+    // Before staticmethod, as the Python decorator of a static method after it would name the method instead of the builtin
+    static int (*funcptrmethod(int x))(int, int) { return 0; }
     static short * staticmethod(int x, bool b) { return 0; }
     short * instancemethod(int x, bool b = false) { return 0; }
     short * constmethod(int x) const { return 0; }
+    operator int() const { return 0; }
+    int (*funcptrvar)(int);
+    std::string stringvar;
   };
   template<typename T> struct Template {
     std::string tmethod(T t) { return ""; }
   };
   void globtemplate(Template<ABC> t) {}
+  int (*globalfuncptrvar)(int) = 0;
+  struct UnnamedEnumHolder {
+    UnnamedEnumHolder() : unnamedenumvar(UnnamedMemberEnumItem) {}
+    enum { UnnamedMemberEnumItem } unnamedenumvar;
+  };
+  enum { UnnamedEnumItem };
 }
 %}
 
 %template(TemplateABC) SpaceNamespace::Template<SpaceNamespace::ABC>;
+
+// noexcept is C++11 and throw is invalid in C++17 and later, only SWIG to use them
+#define TESTCASE_NOEXCEPT noexcept
+#define TESTCASE_NOEXCEPT_FALSE noexcept(false)
+#define TESTCASE_THROW1(T1) throw(T1)
+%{
+#define TESTCASE_NOEXCEPT
+#define TESTCASE_NOEXCEPT_FALSE
+#define TESTCASE_THROW1(T1)
+%}
+
+%inline %{
+namespace SpaceNamespace {
+  struct ExceptionSpec {
+    ExceptionSpec() TESTCASE_NOEXCEPT_FALSE {}
+    ~ExceptionSpec() TESTCASE_NOEXCEPT {}
+    short * constnoexceptmethod(int x) const TESTCASE_NOEXCEPT { return 0; }
+    static int (*noexceptfuncptrmethod(int x) TESTCASE_NOEXCEPT)(int, int) { return 0; }
+    void throwmethod(int x) TESTCASE_THROW1(int) {}
+  };
+}
+%}
+
+%inline %{
+namespace SpaceNamespace {
+  typedef short * TypedefFunction(int);
+  typedef short * ConstTypedefFunction(int) const;
+  TypedefFunction typedeffunction;
+  struct TypedefMethods {
+    ConstTypedefFunction typedefmethod;
+  };
+}
+%}
+
+%{
+short *SpaceNamespace::typedeffunction(int) { return 0; }
+short *SpaceNamespace::TypedefMethods::typedefmethod(int) const { return 0; }
+%}
 
 /////////////////////////////////// directors /////////////////////////////////
 %{

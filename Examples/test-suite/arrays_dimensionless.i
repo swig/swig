@@ -8,13 +8,6 @@
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) BarRef::ints_ref;    /* Unable to set variable of type int (&)[] */
 %warnfilter(SWIGWARN_TYPEMAP_VARIN_UNDEF) BarRef::chars_ref;   /* Unable to set variable of type char (&)[] */
 
-#ifdef SWIGC
-// TODO: references to arrays do not compile in the C target language
-%ignore globalints_ref;
-%ignore globalchars_ref;
-%ignore BarRef;
-#endif
-
 // An [ANY] typemap can use the array size, so is not used for an array of unknown size, such as arr_int's 'int array[]'
 %typemap(check) int [ANY] "(void)$1_dim0;"
 

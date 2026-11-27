@@ -62,3 +62,31 @@ int (*pfuncA)();
 void (*pfunc1)(int);
 void (*pfunc2)(int, double);
 %}
+
+%{
+#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+# include <stdbool.h>
+#elif !defined __cplusplus
+/* C89 has no stdbool.h, but the header files of a target language may have included it or defined just bool */
+# ifndef bool
+#  define bool unsigned char
+# endif
+# ifndef true
+#  define true 1
+#  define false 0
+# endif
+#endif
+
+static int bool_value(bool b) {
+  return b ? 1 : 0;
+}
+%}
+
+%inline %{
+/* The only bool that SWIG sees here, for which the .h file of the C target language has to include stdbool.h */
+int (*funcvarbool)(bool) = bool_value;
+
+int call_funcvarbool(int i) {
+  return funcvarbool(i != 0);
+}
+%}

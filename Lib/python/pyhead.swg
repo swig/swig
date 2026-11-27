@@ -70,13 +70,58 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
 # define SWIG_Py_XDECREF Py_XDECREF
 #endif
 
-#if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a6)
+/* An instance of a heap type holds a reference on its type, which the tp_dealloc of the heap type must release after
+   freeing the instance. PyType_GenericAlloc() has always taken this reference, but PyObject_New() only takes it from
+   Python 3.8. This came from bpo-35810 and is described in "Changes in the C API" in What's New In Python 3.8 and in
+   the tp_dealloc documentation:
+     https://docs.python.org/3/whatsnew/3.8.html#changes-in-the-c-api
+     https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_dealloc
+   It is only released from Python 3.8, as before then subtype_dealloc() releases it for an instance of a Python
+   subclass. A stable ABI module built for an earlier Python can run on 3.8 or later, so it checks the version it runs on. */
+SWIGINTERN void
+SWIG_PyType_DeallocRelease(PyTypeObject *type) {
+#if defined(SWIG_HEAPTYPES) && defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x03080000
+  static int holds_reference = -1;
+  if (holds_reference < 0) {
+    const char *version = Py_GetVersion();
+    const char *dot = strchr(version, '.');
+    int major = atoi(version);
+    int minor = dot ? atoi(dot + 1) : 0;
+    holds_reference = major > 3 || (major == 3 && minor >= 8);
+  }
+  if (holds_reference)
+    SWIG_Py_DECREF((PyObject *)type);
+#elif defined(SWIG_HEAPTYPES) && PY_VERSION_HEX >= 0x03080000
+  SWIG_Py_DECREF((PyObject *)type);
+#else
+  (void)type;
+#endif
+}
+
+/* PyType_GetQualName() was added to Python 3.11 */
+#if (PY_VERSION_HEX >= 0x030b0000) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030b0000)
+# define SWIG_PyType_GetQualName PyType_GetQualName
+#else
+SWIGINTERN PyObject *
+SWIG_PyType_GetQualName(PyTypeObject *type) {
+  return PyObject_GetAttrString((PyObject *)type, "__qualname__");
+}
+#endif
+
+/* PyType_GetModuleName() and PyType_GetFullyQualifiedName() were added to Python 3.13 */
+#if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
+# define SWIG_PyType_GetModuleName PyType_GetModuleName
 # define SWIG_PyType_GetFullyQualifiedName PyType_GetFullyQualifiedName
 #else
 SWIGINTERN PyObject *
+SWIG_PyType_GetModuleName(PyTypeObject *type) {
+  return PyObject_GetAttrString((PyObject *)type, "__module__");
+}
+
+SWIGINTERN PyObject *
 SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   PyObject *result = NULL;
-  PyObject *qualname = PyObject_GetAttrString((PyObject *)type, "__qualname__");
+  PyObject *qualname = SWIG_PyType_GetQualName(type);
   if (qualname) {
     PyObject *mod = PyObject_GetAttrString((PyObject *)type, "__module__");
     if (mod) {
@@ -97,7 +142,7 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
 #endif
 
 /* gh-114329 added PyList_GetItemRef() to Python 3.13.0a4 */
-#if (PY_VERSION_HEX >= 0x030d00a4) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a4)
+#if (PY_VERSION_HEX >= 0x030d00a4) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
 # define SWIG_PyList_GetItemRef PyList_GetItemRef
 #else
 SWIGINTERN PyObject *
@@ -110,7 +155,7 @@ SWIG_PyList_GetItemRef(PyObject *op, Py_ssize_t index) {
 
 /* gh-106004 added PyDict_GetItemRef() and PyDict_GetItemStringRef() to Python 3.13.0a1
    functions are renamed here for compatibility with abi3audit */
-#if (PY_VERSION_HEX >= 0x030d00a1) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a1)
+#if (PY_VERSION_HEX >= 0x030d00a1) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
 # define SWIG_PyDict_GetItemRef PyDict_GetItemRef
 # define SWIG_PyDict_GetItemStringRef PyDict_GetItemStringRef
 #else
@@ -141,5 +186,22 @@ SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result) {
   res = SWIG_PyDict_GetItemRef(mp, key_obj, result);
   Py_DECREF(key_obj);
   return res;
+}
+#endif
+
+/* gh-106521 added PyObject_GetOptionalAttr() to Python 3.13.0a1 */
+#if (PY_VERSION_HEX >= 0x030d00a1) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d0000)
+# define SWIG_PyObject_GetOptionalAttr PyObject_GetOptionalAttr
+#else
+SWIGINTERN int
+SWIG_PyObject_GetOptionalAttr(PyObject *obj, PyObject *attr_name, PyObject **result) {
+  *result = PyObject_GetAttr(obj, attr_name);
+  if (*result != NULL)
+    return 1;
+  if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
+    PyErr_Clear();
+    return 0;
+  }
+  return -1;
 }
 #endif

@@ -132,10 +132,8 @@ jobs:
           VER: '4.0'
         - SWIGLANG: ruby
         - SWIGLANG: go
-          VER: '1.24'
-          CSTD: gnu99
-        - SWIGLANG: go
           VER: '1.25'
+          CSTD: gnu99
         - SWIGLANG: go
           VER: '1.26'
         - SWIGLANG: lua

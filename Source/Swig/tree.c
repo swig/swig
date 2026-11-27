@@ -36,27 +36,27 @@ int Swig_print_quiet(int quiet) {
  * Dump the tag structure of a parse tree to standard output
  * ----------------------------------------------------------------------------- */
 
-void Swig_print_tags(DOH *obj, DOH *root) {
-  DOH *croot, *newroot;
-  DOH *cobj;
+void Swig_print_tags(Node *n, String *prefix) {
+  String *cprefix, *newprefix;
+  Node *child;
 
-  if (!root)
-    croot = NewStringEmpty();
+  if (!prefix)
+    cprefix = NewStringEmpty();
   else
-    croot = root;
+    cprefix = prefix;
 
-  while (obj) {
-    Swig_diagnostic(Getfile(obj), Getline(obj), "%s . %s\n", croot, nodeType(obj));
-    cobj = firstChild(obj);
-    if (cobj) {
-      newroot = NewStringf("%s . %s", croot, nodeType(obj));
-      Swig_print_tags(cobj, newroot);
-      Delete(newroot);
+  while (n) {
+    Swig_diagnostic(Getfile(n), Getline(n), "%s . %s\n", cprefix, nodeType(n));
+    child = firstChild(n);
+    if (child) {
+      newprefix = NewStringf("%s . %s", cprefix, nodeType(n));
+      Swig_print_tags(child, newprefix);
+      Delete(newprefix);
     }
-    obj = nextSibling(obj);
+    n = nextSibling(n);
   }
-  if (!root)
-    Delete(croot);
+  if (!prefix)
+    Delete(cprefix);
 }
 
 static int indent_level = 0;
@@ -76,22 +76,22 @@ static void print_indent(int l) {
  * Swig_print_node(Node *n)
  * ----------------------------------------------------------------------------- */
 
-void Swig_print_node(Node *obj) {
+void Swig_print_node(Node *n) {
   Iterator ki;
-  Node *cobj;
-  List *keys = Keys(obj);
+  Node *child;
+  List *keys = Keys(n);
 
   print_indent(0);
   if (debug_quiet)
-    Printf(stdout, "+++ %s ----------------------------------------\n", nodeType(obj));
+    Printf(stdout, "+++ %s ----------------------------------------\n", nodeType(n));
   else
-    Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(obj), obj);
+    Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(n), n);
 
   SortList(keys, 0);
   ki = First(keys);
   while (ki.item) {
     String *k = ki.item;
-    DOH *value = Getattr(obj, k);
+    DOH *value = Getattr(n, k);
     if (Equal(k, "nodeType") || (*(Char(k)) == '$')) {
       /* Do nothing */
     } else if (debug_quiet &&
@@ -131,11 +131,11 @@ void Swig_print_node(Node *obj) {
     }
     ki = Next(ki);
   }
-  cobj = firstChild(obj);
-  if (cobj) {
+  child = firstChild(n);
+  if (child) {
     indent_level += 6;
     Printf(stdout, "\n");
-    Swig_print_tree(cobj);
+    Swig_print_tree(child);
     indent_level -= 6;
   } else {
     print_indent(1);
@@ -150,10 +150,10 @@ void Swig_print_node(Node *obj) {
  * Dump the tree structure of a parse tree to standard output
  * ----------------------------------------------------------------------------- */
 
-void Swig_print_tree(DOH *obj) {
-  while (obj) {
-    Swig_print_node(obj);
-    obj = nextSibling(obj);
+void Swig_print_tree(Node *n) {
+  while (n) {
+    Swig_print_node(n);
+    n = nextSibling(n);
   }
 }
 
@@ -163,25 +163,25 @@ void Swig_print_tree(DOH *obj) {
  * Appends a new child to a node
  * ----------------------------------------------------------------------------- */
 
-void appendChild(Node *node, Node *chd) {
+void appendChild(Node *n, Node *child) {
   Node *lc;
 
-  if (!chd)
+  if (!child)
     return;
 
-  lc = lastChild(node);
+  lc = lastChild(n);
   if (!lc) {
-    set_firstChild(node, chd);
+    set_firstChild(n, child);
   } else {
-    set_nextSibling(lc, chd);
-    set_previousSibling(chd, lc);
+    set_nextSibling(lc, child);
+    set_previousSibling(child, lc);
   }
-  while (chd) {
-    lc = chd;
-    set_parentNode(chd, node);
-    chd = nextSibling(chd);
+  while (child) {
+    lc = child;
+    set_parentNode(child, n);
+    child = nextSibling(child);
   }
-  set_lastChild(node, lc);
+  set_lastChild(n, lc);
 }
 
 /* -----------------------------------------------------------------------------
@@ -190,37 +190,37 @@ void appendChild(Node *node, Node *chd) {
  * Prepends a new child to a node
  * ----------------------------------------------------------------------------- */
 
-void prependChild(Node *node, Node *chd) {
+void prependChild(Node *n, Node *child) {
   Node *fc;
 
-  if (!chd)
+  if (!child)
     return;
 
-  fc = firstChild(node);
+  fc = firstChild(n);
   if (fc) {
-    set_nextSibling(chd, fc);
-    set_previousSibling(fc, chd);
+    set_nextSibling(child, fc);
+    set_previousSibling(fc, child);
   }
-  set_firstChild(node, chd);
-  while (chd) {
-    set_parentNode(chd, node);
-    chd = nextSibling(chd);
+  set_firstChild(n, child);
+  while (child) {
+    set_parentNode(child, n);
+    child = nextSibling(child);
   }
 }
 
-void appendSibling(Node *node, Node *chd) {
+void appendSibling(Node *n, Node *child) {
   Node *parent;
-  Node *lc = node;
+  Node *lc = n;
   while (nextSibling(lc))
     lc = nextSibling(lc);
-  set_nextSibling(lc, chd);
-  set_previousSibling(chd, lc);
-  parent = parentNode(node);
+  set_nextSibling(lc, child);
+  set_previousSibling(child, lc);
+  parent = parentNode(n);
   if (parent) {
-    while (chd) {
-      lc = chd;
-      set_parentNode(chd, parent);
-      chd = nextSibling(chd);
+    while (child) {
+      lc = child;
+      set_parentNode(child, parent);
+      child = nextSibling(child);
     }
     set_lastChild(parent, lc);
   }
@@ -349,10 +349,10 @@ void Swig_require(const char *ns, Node *n, ...) {
     if (view) {
       if (Strcmp(view, ns) != 0) {
         Setattr(n, NewStringf("%s:view", ns), view);
-        Setattr(n, "view", NewString(ns));
+        Setattr(n, "view", ns);
       }
     } else {
-      Setattr(n, "view", NewString(ns));
+      Setattr(n, "view", ns);
     }
   }
 }
@@ -394,10 +394,10 @@ void Swig_save(const char *ns, Node *n, ...) {
     if (view) {
       if (Strcmp(view, ns) != 0) {
         Setattr(n, NewStringf("%s:view", ns), view);
-        Setattr(n, "view", NewString(ns));
+        Setattr(n, "view", ns);
       }
     } else {
-      Setattr(n, "view", NewString(ns));
+      Setattr(n, "view", ns);
     }
   }
 }

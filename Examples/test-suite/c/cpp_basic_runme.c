@@ -83,15 +83,13 @@ int main(int argc, const char *argv[]) {
 	cpp_basic_Bar_global_fval_set(f);
 	assert(cpp_basic_Foo_num_get(cpp_basic_Bar_global_fval_get()) == 7);
 
-	// getting, setting and calling function pointers isn't supported yet
-#if 0
-	SomeTypeForMemFnPtr func1 = get_func1_ptr();
+	// member function pointers
+	SWIGTYPE_m_Foo__f_int__int func1 = cpp_basic_get_func1_ptr();
 	cpp_basic_Foo_func_ptr_set(f, func1);
-	assert(test_func_ptr(f, 2) == 28);
-	SomeTypeForMemFnPtr func2 = get_func2_ptr();
+	assert(cpp_basic_test_func_ptr(f, 2) == 28);
+	SWIGTYPE_m_Foo__f_int__int func2 = cpp_basic_get_func2_ptr();
 	cpp_basic_Foo_func_ptr_set(f, func2);
-	assert(test_func_ptr(f, 2) == -14);
-#endif
+	assert(cpp_basic_test_func_ptr(f, 2) == -14);
 
 	cpp_basic_Bar_delete(b);
 	cpp_basic_Foo_delete(f);

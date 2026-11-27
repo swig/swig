@@ -17,6 +17,10 @@
 %typemap(in) SWIGTYPE *, SWIGTYPE [] {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
 }
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp) %{
+  temp = ($*1_ltype)SWIG_MustGetPtr($input, $*descriptor, $argnum, 0);
+  $1 = ($1_ltype)&temp;
+%}
 %typemap(in) SWIGTYPE & ($1_ltype argp) {
   argp = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
   if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
@@ -40,6 +44,10 @@
 %typemap(in) void * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
+%typemap(in) void *const& ($*1_ltype temp) %{
+  temp = ($*1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
+  $1 = ($1_ltype)&temp;
+%}
 %typemap(freearg) void * ""
 
 %typemap(varin) SWIGTYPE * {
@@ -77,6 +85,10 @@
   $result = SWIG_NewPointerObj ($1, $descriptor, $owner);
 }
 
+%typemap(out) SWIGTYPE *const& %{
+  $result = SWIG_NewPointerObj(*$1, $*descriptor, $owner);
+%}
+
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
   swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor,(void **) &$1);
   $result = SWIG_NewPointerObj ($1, ty, $owner);
@@ -85,6 +97,10 @@
 %typemap(varout) SWIGTYPE *, SWIGTYPE [] {
   $result = SWIG_NewPointerObj ($1, $descriptor, 0);
 }
+
+%typemap(varout) SWIGTYPE *const& %{
+  $result = SWIG_NewPointerObj($1, $*descriptor, 0);
+%}
 
 %typemap(varout) SWIGTYPE & {
   $result = SWIG_NewPointerObj((void *) &$1, $1_descriptor, 0);
@@ -382,6 +398,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    must_free = 1;
  }
  %typemap (out, doc="<string>")                  char *&, const char *& {$result = SWIG_str02scm((const char *)*$1);}
+ %typemap (varout, doc="<string>")               char *const& %{$result = SWIG_str02scm($1);%}
  %typemap (in, doc="$NAME is a string")          char **INPUT(char * temp, int must_free = 0) {
    temp = (char *) SWIG_scm2str($input); $1 = &temp;
    must_free = 1;
@@ -495,6 +512,22 @@ typedef unsigned long SCM;
   %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
 
+%typemap(in) (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) {
+  int res = SWIG_ConvertMember($input, %as_voidptr(&temp), sizeof(temp), $*descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum);
+  }
+  $1 = &temp;
+}
+
+%typemap(out,noblock=1) SWIGTYPE (CLASS::*const&) {
+  %set_output(SWIG_NewMemberObj(%as_voidptr($1), sizeof(*$1), $*descriptor));
+}
+
+%typemap(varout,noblock=1) SWIGTYPE (CLASS::*const&) {
+  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $*descriptor));
+}
+
 /* ------------------------------------------------------------
  * Typechecking rules
  * ------------------------------------------------------------ */
@@ -545,6 +578,12 @@ typedef unsigned long SCM;
   $1 = SWIG_CheckState(res);
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const& %{
+  void *ptr;
+  int res = SWIG_ConvertPtr($input, &ptr, $*descriptor, 0);
+  $1 = SWIG_CheckState(res);
+%}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE &, SWIGTYPE && {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, $1_descriptor, SWIG_POINTER_NO_NULL);
@@ -557,7 +596,18 @@ typedef unsigned long SCM;
   $1 = SWIG_CheckState(res);
 }
 
-%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*)
+%{ char swig_memberptr[sizeof($1_ltype)];
+   int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $descriptor);
+   $1 = SWIG_CheckState(res); %}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*const&) %{
+  char swig_memberptr[sizeof($*1_ltype)];
+  int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $*descriptor);
+  $1 = SWIG_CheckState(res);
+%}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void *, void *const& {
   void *ptr;
   int res = SWIG_ConvertPtr($input, &ptr, 0, 0);
   $1 = SWIG_CheckState(res);
@@ -567,13 +617,12 @@ typedef unsigned long SCM;
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
 %typemap(varin) SWIGTYPE ((&)[ANY]) = SWIGTYPE [ANY];
 %apply char[ANY] { char (&)[ANY], char (&&)[ANY] }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 %typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* typemaps.i ends here */

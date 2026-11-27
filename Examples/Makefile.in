@@ -1240,7 +1240,8 @@ PHP         = @PHP@
 PHP_INCLUDE = @PHPINC@
 PHP_SO      = @PHP_SO@
 PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
-PHP_EXTENSION = example$(PHP_SO)
+PHP_MODULE  = example
+PHP_EXTENSION = $(PHP_MODULE)$(PHP_SO)
 
 # -------------------------------------------------------------------
 # Build a PHP dynamically loadable module (C)
@@ -1264,11 +1265,17 @@ php_cpp: $(SRCDIR_SRCS)
 # Running a PHP example
 # -----------------------------------------------------------------
 
+# The PHP code run with -r, given the script to run and then the names of the modules that must be loaded
+PHP_RUN_CODE = set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);}); \
+	foreach(array_slice($$argv,2)as$$m)if(!extension_loaded($$m)){print"Extension $$m is not loaded\n";exit(1);} \
+	if(strlen($$argv[1]))include($$argv[1]);
+
 php_run:
-	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r '$(PHP_RUN_CODE)' '$(PHP_SCRIPT)' '$(PHP_MODULE)' $(RUNPIPE)
 
 php_run_multi:
-	$(RUNTOOL) $(PHP) -n -d extension_dir=. `while read e ; do echo ' -d extension=$(TARGETPREFIX)'"$$e"'@PHP_SO@' ; done < $(PHP_EXTENSION_LIST)` -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. `while read e ; do echo ' -d extension=$(TARGETPREFIX)'"$$e"'@PHP_SO@' ; done < $(PHP_EXTENSION_LIST)` \
+	  -d display_errors=stderr -r '$(PHP_RUN_CODE)' '$(PHP_SCRIPT)' `cat $(PHP_EXTENSION_LIST)` $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

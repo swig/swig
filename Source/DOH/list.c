@@ -170,7 +170,9 @@ static DOH *List_get(DOH *lo, int n) {
 /* -----------------------------------------------------------------------------
  * List_set()
  *
- * Set the nth item in the list replacing any previous item.
+ * Set the nth item in the list replacing any previous item. If the item is not a
+ * DOH object, it is assumed to be a 'char *' and is used to construct an
+ * equivalent string object.
  * ----------------------------------------------------------------------------- */
 
 static int List_set(DOH *lo, int n, DOH *val) {
@@ -182,10 +184,10 @@ static int List_set(DOH *lo, int n, DOH *val) {
     val = NewString(val);
     Decref(val);
   }
+  /* Take the reference before releasing the old item, as the new item may be the old one or reachable only through it */
+  Incref(val);
   Delete(l->items[n]);
   l->items[n] = val;
-  Incref(val);
-  Delete(val);
   return 0;
 }
 

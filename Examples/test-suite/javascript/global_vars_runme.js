@@ -23,3 +23,5 @@ x = global_vars.x;
 if (x != 9876) {
     throw new Error("Unexpected string: " + x.toString());
 }
+
+global_vars.assign_hp(global_vars.hcpr);

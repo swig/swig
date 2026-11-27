@@ -46,6 +46,24 @@ check("Square perim", 40.0, do_op(s, PERIMPT))
 # Typedefs
 check("Square perim", 40.0, do_op_td(s, perim_pt));
 
+# The declarators after the first in a list
+check("Square perim", 40.0, do_op_list_td(s, perim_pt))
+check("Square perim", 40.0, do_op(s, perimeterptlist()))
+check("Square perim", 40.0, do_op(s, cvar.perimetervarlist))
+check("Square perim", 40.0, do_op(s, MemberPointerGetter().getPerimeterPtList()))
+
+# Member functions returning member pointers
+getter = MemberPointerGetter()
+check("Square area ", 100.0, do_op(s, getter.getAreaPt()))
+check("Square area ", 100.0, do_op(s, getter.getConstAreaPt()))
+check("Square area ", 100.0, do_op(s, MemberPointerGetter.getStaticAreaPt()))
+
+# Member pointers to a namespaced class
+adder = Adder()
+check("Add by member pointer", 11, adder.callAddPt(adder.getAddPt(), 10))
+if getAddPtDeclaration() != "int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const":
+    raise RuntimeError("Incorrect declaration: " + getAddPtDeclaration())
+
 check("Add by value", 3, call1(ADD_BY_VALUE, 1, 2))
 #check("Add by pointer", 7, call2(ADD_BY_POINTER, 3, 4))
 #check("Add by reference", 11, call3(ADD_BY_REFERENCE, 5, 6))

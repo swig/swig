@@ -18,6 +18,7 @@ func main() {
 	s.SetInts(other.GetInts())
 	s.SetItems(other.GetItems())
 	s.SetGrid(other.GetGrid())
+	s.SetCube(other.GetCube())
 	if Arrays_null_check(s, 10) != 1 {
 		panic("Test member set failed")
 	}
@@ -25,6 +26,7 @@ func main() {
 	checkNullRejected("ints member", func() { s.SetInts(nil) })
 	checkNullRejected("items member", func() { s.SetItems(SwigcptrArraysNullItem(0)) })
 	checkNullRejected("grid member", func() { s.SetGrid(nil) })
+	checkNullRejected("cube member", func() { s.SetCube(nil) })
 	if Arrays_null_check(s, 10) != 1 {
 		panic("Test member set to nil changed it")
 	}
@@ -32,6 +34,7 @@ func main() {
 	SetArrays_null_ints(s.GetInts())
 	SetArrays_null_items(s.GetItems())
 	SetArrays_null_grid(s.GetGrid())
+	SetArrays_null_cube(s.GetCube())
 	if Arrays_null_globals_check(10) != 1 {
 		panic("Test global set failed")
 	}
@@ -39,6 +42,7 @@ func main() {
 	checkNullRejected("ints global", func() { SetArrays_null_ints(nil) })
 	checkNullRejected("items global", func() { SetArrays_null_items(SwigcptrArraysNullItem(0)) })
 	checkNullRejected("grid global", func() { SetArrays_null_grid(nil) })
+	checkNullRejected("cube global", func() { SetArrays_null_cube(nil) })
 	checkNullRejected("ints_ref global", func() { SetArrays_null_ints_ref(nil) })
 	checkNullRejected("bools global", func() { SetArrays_null_bools(nil) })
 	if Arrays_null_globals_check(10) != 1 {

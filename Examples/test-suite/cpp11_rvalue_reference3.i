@@ -77,3 +77,27 @@ struct IContain {
     {}
 };
 %}
+
+%inline %{
+int (*&& funcptr_global_rvalue_ref)(int) = 0;
+
+int (*&& funcptr_returnit())(int) { return std::move(funcptr_global_rvalue_ref); }
+
+void funcptr_takeit1(int (*&& t)(int)) {}
+void funcptr_takeit2(int (*const&& t)(int)) {}
+void funcptr_takeit3(int * (*&& t)(int)) {}
+%}
+
+%inline %{
+int funcref_double(int i) { return i * 2; }
+typedef int FuncRefType(int);
+
+int (&& funcref_returnit1())(int) { return funcref_double; }
+FuncRefType && funcref_returnit2() { return funcref_double; }
+
+int funcref_takeit1(int (&& t)(int), int i) { return t(i); }
+int funcref_takeit2(FuncRefType && t, int i) { return t(i); }
+void funcref_takeit3(int * (&& t)(int)) {}
+%}
+
+%constant int (*FUNCREF_DOUBLE)(int) = funcref_double;

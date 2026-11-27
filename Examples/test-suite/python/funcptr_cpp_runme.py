@@ -23,11 +23,29 @@ swig_check(callref1(ADD_BY_VALUE, 1, 2), 3)
 swig_check(callref2(ADD_BY_VALUE, 2, 3), 5)
 swig_check(callref1(getAddByValueRef1(), 3, 4), 7)
 swig_check(callref2(getAddByValueRef2(), 4, 5), 9)
+swig_check(callref3(ADD_BY_POINTER, 5, 6), 11)
+swig_check(callref3(getAddByPointerRef(), 6, 7), 13)
 refholder = AddByValueRefHolder(ADD_BY_VALUE)
 swig_check(refholder.call(5, 6), 11)
 swig_check(refholder.fnRef(6, 7), 13)
 with swig_assert_raises(TypeError):
     callref1(None, 1, 2)
 
+getter = AddByValueGetter()
+swig_check(call1(getter.getPtr(), 7, 8), 15)
+swig_check(callref1(getter.getRef(), 8, 9), 17)
+
+swig_check(callptrref1(getAddByValuePtrRef(), 9, 10), 19)
+swig_check(callptrref2(ADD_BY_VALUE, 10, 11), 21)
+
 swig_check(arrayRefSum(getArrayRef1()), 100)
 swig_check(arrayRefSum(getArrayRef2()), 100)
+
+swig_check(callColourFn(getColourFn(), 1), Green)
+swig_check(callHolderFn(getHolderFn(), 2), 2)
+swig_check(callNotWrappedFn(NOT_WRAPPED_VALUE, getNotWrapped()), 42)
+swig_check(callBoolFn(NOT_BOOL, 0), 1)
+
+# The in typemaps with locals supply the function pointer
+swig_check(callLocalsNamed(1), 2)
+swig_check(callLocalsUnnamed(2, 3), 5)

@@ -33,31 +33,6 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_ptr_decltype;
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) paren_address_decltype;
 
-#if defined(SWIGC)
-// TODO: Fix the experimental C backend emitting 'int (*)(int)*' for a function pointer.
-%ignore call_fn;
-%ignore fn_ptr;
-%ignore paren_fn_ptr;
-// TODO: Fix the experimental C backend emitting 'int [4]*' for an array variable and 'int (*)[4]*'
-// for a pointer to an array.
-%ignore array_ref;
-%ignore ref_string;
-%ignore fwd_string;
-%ignore cref_string;
-%ignore cref_post_string;
-%ignore ref_string_wide;
-%ignore array_first;
-%ignore int_array_address;
-// TODO: Fix the experimental C backend's member pointer support (see member_pointer in FAILING_CPP_TESTS).
-%ignore member_ptr;
-%ignore static_fn_ptr;
-%ignore call_fn0;
-%ignore member_fn_ptr;
-%ignore member_ptr_decltype;
-%ignore use_member_ptr;
-%ignore use_member_fn_ptr;
-#endif
-
 %inline %{
 int global_int = 11;
 int *global_ptr = &global_int;
@@ -67,8 +42,7 @@ int global_fn(int x) { return x + 1; }
 int deref(int *p) { return *p; }
 int deref2(int **p) { return **p; }
 int call_fn(int (*fn)(int), int x) { return fn(x); }
-int array_first(int (*p)[4]) { return (*p)[0]; }
-const char *string_deref(const char *const *p) { return *p; }
+int first_element(int (*p)[4]) { return (*p)[0]; }
 int first_byte(const unsigned char *p) { return p[0]; }
 int first_char(const void *p) { return *static_cast<const char *>(p); }
 
@@ -142,6 +116,7 @@ int other_array[4] = {10, 20, 30, 40};
 const int cint_array[3] = {5, 6, 7};
 
 int (*int_array_address())[4] { return &int_array; }
+int (*other_array_address())[4] { return &other_array; }
 
 // An array initialiser decays to a pointer to its first element, unless the variable is a reference.
 auto array_decay = int_array;        // int *

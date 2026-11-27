@@ -11,5 +11,15 @@ int main(int argc, const char *argv[])
     assert(member_immutable_vars_DerivedImmutableVars_const_var_get(d) == 42);
     member_immutable_vars_DerivedImmutableVars_delete(d);
 
+    /* A volatile pointer member variable has a set function, a const volatile one does not */
+    member_immutable_vars_ImmutableVars *v = member_immutable_vars_ImmutableVars_new();
+    member_immutable_vars_PointerVars *p = member_immutable_vars_PointerVars_new(v);
+    assert(member_immutable_vars_PointerVars_volatile_ptr_var_get(p) == v);
+    assert(member_immutable_vars_ImmutableVars_const_var_get(member_immutable_vars_PointerVars_const_volatile_ptr_var_get(p)) == 42);
+    member_immutable_vars_PointerVars_volatile_ptr_var_set(p, NULL);
+    assert(member_immutable_vars_PointerVars_volatile_ptr_var_get(p) == NULL);
+    member_immutable_vars_PointerVars_delete(p);
+    member_immutable_vars_ImmutableVars_delete(v);
+
     return 0;
 }

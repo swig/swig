@@ -49,3 +49,15 @@ s = co.StringConvertMove();
 
 co2 = new cpp11_ref_qualifiers.ConversionOperators2();
 s = co2.StringConvertMove();
+
+// The overloads with a cv-qualifier
+cvo = new cpp11_ref_qualifiers.ConstOverloads();
+if (cvo.cl() != 1 || cvo.cl_const() != 2) {
+    throw new Error("cl");
+}
+if (cvo.cr() != 3 || cvo.cr_const() != 4) {
+    throw new Error("cr");
+}
+if (cvo.cvl() != 5 || cvo.cvl_const_volatile() != 6) {
+    throw new Error("cvl");
+}

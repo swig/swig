@@ -393,6 +393,7 @@ typedef MyStruct MyStructTypedef;
 void use_typedefs(int i, MyTypedef mt, const MyStructTypedef &cref_mst) {}
 
 void use_memberfn_ptr(void (MyStruct::* ptr)(MyStruct&, MyStruct*, const MyStruct&)) {}
+void use_const_memberfn_ptr(void (MyStruct::* ptr)(MyStruct&, MyStruct*, const MyStruct&) const) {}
 
 void use_member_ptr(int OptionalInt::*ptr) {}
 

@@ -1,11 +1,11 @@
-// defines SwigBoost::shared_ptr, a wrapper around boost::shared_ptr
+// defines TestBoost::shared_ptr, a wrapper around boost::shared_ptr
 // Use this shared_ptr wrapper for testing memory leaks of shared_ptr.
 // getTotalCount() should return zero at end of test
 
 #include <iostream>
 
 struct SWIG_null_deleter; // forward reference, definition is in shared_ptr.i
-namespace SwigBoost {
+namespace TestBoost {
 // This template can be specialized for better debugging information
 template <typename T> std::string show_message(boost::shared_ptr<T>*t) {
   if (!t)
@@ -19,16 +19,16 @@ template <typename T> std::string show_message(boost::shared_ptr<T>*t) {
 }
 
 namespace SharedPtrWrapper {
-  static SwigExamples::CriticalSection critical_section;
+  static Examples::CriticalSection critical_section;
   static int total_count = 0;
 
   template<typename T> void increment(boost::shared_ptr<T>* ptr) { 
-    SwigExamples::Lock lock(critical_section); 
+    Examples::Lock lock(critical_section); 
     std::cout << "====SharedPtrWrapper==== + " << ptr << " " << show_message(ptr) << " " <<  std::endl << std::flush;
     total_count++;
   }
   template<typename T> void decrement(boost::shared_ptr<T>* ptr) {
-    SwigExamples::Lock lock(critical_section); 
+    Examples::Lock lock(critical_section); 
     std::cout << "====SharedPtrWrapper==== - " << ptr << " " << show_message(ptr) << " " <<  std::endl << std::flush;
     total_count--;
   }

@@ -28,13 +28,37 @@ public class special_variables_runme {
     a = new ABC();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::ABC() SpaceNamespace::ABC::ABC()");
     a.instancemethod(1);
-    verify(special_variables.getDeclaration(), "short * SpaceNamespace::ABC::instancemethod(int) SpaceNamespace::ABC::instancemethod(int)");
+    verify(special_variables.getDeclaration(), "short *SpaceNamespace::ABC::instancemethod(int) SpaceNamespace::ABC::instancemethod(int)");
     a.instancemethod(1, false);
-    verify(special_variables.getDeclaration(), "short * SpaceNamespace::ABC::instancemethod(int,bool) SpaceNamespace::ABC::instancemethod(int,bool)");
+    verify(special_variables.getDeclaration(), "short *SpaceNamespace::ABC::instancemethod(int,bool) SpaceNamespace::ABC::instancemethod(int,bool)");
     a.constmethod(1);
-    verify(special_variables.getDeclaration(), "short * SpaceNamespace::ABC::constmethod(int) const SpaceNamespace::ABC::constmethod(int) const");
+    verify(special_variables.getDeclaration(), "short *SpaceNamespace::ABC::constmethod(int) const SpaceNamespace::ABC::constmethod(int) const");
     ABC.staticmethod(0, false);
-    verify(special_variables.getDeclaration(), "short * SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)");
+    verify(special_variables.getDeclaration(), "short *SpaceNamespace::ABC::staticmethod(int,bool) SpaceNamespace::ABC::staticmethod(int,bool)");
+    ABC.funcptrmethod(0);
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrmethod(int))(int,int) SpaceNamespace::ABC::funcptrmethod(int)");
+    a.toInt();
+    verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::operator int() const SpaceNamespace::ABC::operator int() const");
+    a.setFuncptrvar(null);
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar");
+    a.getFuncptrvar();
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::ABC::funcptrvar)(int) SpaceNamespace::ABC::funcptrvar");
+    a.setStringvar("abc");
+    verify(special_variables.getDeclaration(), "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar");
+    a.getStringvar();
+    verify(special_variables.getDeclaration(), "std::string SpaceNamespace::ABC::stringvar SpaceNamespace::ABC::stringvar");
+    special_variables.setGlobalfuncptrvar(null);
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
+    special_variables.getGlobalfuncptrvar();
+    verify(special_variables.getDeclaration(), "int (*SpaceNamespace::globalfuncptrvar)(int) SpaceNamespace::globalfuncptrvar");
+    // The first use of UnnamedEnumItem calls its wrapper
+    if (special_variables.UnnamedEnumItem != 0) throw new RuntimeException("UnnamedEnumItem");
+    verify(special_variables.getDeclaration(), "enum SpaceNamespace::UnnamedEnumItem SpaceNamespace::UnnamedEnumItem");
+    UnnamedEnumHolder holder = new UnnamedEnumHolder();
+    holder.setUnnamedenumvar(UnnamedEnumHolder.UnnamedMemberEnumItem);
+    verify(special_variables.getDeclaration(), "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar");
+    holder.getUnnamedenumvar();
+    verify(special_variables.getDeclaration(), "enum SpaceNamespace::UnnamedEnumHolder::unnamedenumvar SpaceNamespace::UnnamedEnumHolder::unnamedenumvar");
     a.delete();
     verify(special_variables.getDeclaration(), "SpaceNamespace::ABC::~ABC() SpaceNamespace::ABC::~ABC()");
     TemplateABC abc = new TemplateABC();
@@ -45,6 +69,29 @@ public class special_variables_runme {
     verify(special_variables.getDeclaration(), "SpaceNamespace::Template< SpaceNamespace::ABC >::~Template() SpaceNamespace::Template< SpaceNamespace::ABC >::~Template()");
     special_variables.globtemplate(new TemplateABC());
     verify(special_variables.getDeclaration(), "void SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >) SpaceNamespace::globtemplate(SpaceNamespace::Template< SpaceNamespace::ABC >)");
+    ExceptionSpec es = new ExceptionSpec();
+    verify(special_variables.getDeclaration(),
+           "SpaceNamespace::ExceptionSpec::ExceptionSpec() noexcept(false) SpaceNamespace::ExceptionSpec::ExceptionSpec() noexcept(false)");
+    es.constnoexceptmethod(1);
+    verify(special_variables.getDeclaration(),
+           "short *SpaceNamespace::ExceptionSpec::constnoexceptmethod(int) const noexcept " +
+           "SpaceNamespace::ExceptionSpec::constnoexceptmethod(int) const noexcept");
+    ExceptionSpec.noexceptfuncptrmethod(0);
+    verify(special_variables.getDeclaration(),
+           "int (*SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept)(int,int) " +
+           "SpaceNamespace::ExceptionSpec::noexceptfuncptrmethod(int) noexcept");
+    es.throwmethod(0);
+    verify(special_variables.getDeclaration(),
+           "void SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int) SpaceNamespace::ExceptionSpec::throwmethod(int) throw(int)");
+    es.delete();
+    verify(special_variables.getDeclaration(),
+           "SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept SpaceNamespace::ExceptionSpec::~ExceptionSpec() noexcept");
+    special_variables.typedeffunction(0);
+    verify(special_variables.getDeclaration(), "short *SpaceNamespace::typedeffunction(int) SpaceNamespace::typedeffunction(int)");
+    TypedefMethods tm = new TypedefMethods();
+    tm.typedefmethod(0);
+    verify(special_variables.getDeclaration(),
+           "short *SpaceNamespace::TypedefMethods::typedefmethod(int) const SpaceNamespace::TypedefMethods::typedefmethod(int) const");
   }
   static void verify(String received, String expected) {
     if (!received.equals(expected))

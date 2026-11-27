@@ -76,7 +76,7 @@ swig_check(deref(cvar.array_decay), 10)
 swig_check(deref(cvar.int_array), 1)
 
 # auto& binds to the array instead, so it keeps the array type, wrapped as the array itself.
-swig_check(array_first(int_array_address()), 1)
+swig_check(first_element(int_array_address()), 1)
 swig_check(deref(cvar.array_ref), 1)
 
 # Writing through the reference writes the array it is bound to.
@@ -105,7 +105,7 @@ swig_check(cvar.cref_string, "text")
 swig_check(cvar.cref_post_string, "text")
 swig_check(isinstance(cvar.ref_string_wide, str), False)
 
-# A reference bound to a cast of a string literal is a reference to the pointer, wrapped as a pointer to it.
-swig_check(string_deref(cvar.cref_string_cast), "text")
+# A reference bound to a cast of a string literal is a reference to the pointer, wrapped as the string it points to.
+swig_check(cvar.cref_string_cast, "text")
 swig_check(first_byte(cvar.bytes_cast), ord("t"))
 swig_check(first_char(cvar.void_cast), ord("t"))

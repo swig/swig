@@ -411,6 +411,8 @@ SWIGRUNTIMEINLINE
 int SwigV8Packed_Check(SWIGV8_VALUE valRef) {
   SWIGV8_HANDLESCOPE();
   
+  if (!valRef->IsObject())
+    return false;
   SWIGV8_OBJECT objRef = SWIGV8_TO_OBJECT(valRef);
   if(objRef->InternalFieldCount() < 1) return false;
   v8::Local<v8::Private> privateKey = v8::Private::ForApi(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW("__swig__packed_data__"));

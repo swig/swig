@@ -216,6 +216,7 @@ CPP_TEST_CASES += \
 	director_frob \
 	director_ignore \
 	director_langobj \
+	director_member_pointer \
 	director_minimal \
 	director_multiple_inheritance \
 	director_namespace_clash \
@@ -636,11 +637,13 @@ CPP_TEST_CASES += \
 	virtual_poly \
 	virtual_vs_nonvirtual_base \
 	voidtest \
+	volatile_qualifiers \
 	wallkw \
 	wrapmacro \
 
 # C++11 test cases.
 CPP11_TEST_CASES += \
+	cpp11_addextern \
 	cpp11_alias_nested_template_scoping \
 	cpp11_alias_template_inheritance \
 	cpp11_alias_templates \
@@ -725,6 +728,8 @@ CPP11_TEST_CASES += \
 	cpp11_using_typedef_template_member \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
+
+cpp11_addextern.cpptest: SWIGOPT += -addextern -w129
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
@@ -912,6 +917,7 @@ C_TEST_CASES += \
 	c99_parameter_array_declarators \
 	c99_vla_array_libraries \
 	c99_vla_typemaps \
+	cbooltest \
 	char_constant \
 	charptr_fragment \
 	command_line_define \

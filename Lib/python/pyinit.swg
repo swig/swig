@@ -220,6 +220,14 @@ SWIG_init(void) {
   return PyModuleDef_Init(&SWIG_module);
 }
 
+/* Return -1 from SWIG_mod_exec() for a NULL SWIG runtime type. In C++ the NULL from a failed creation in an earlier import is kept, with no exception set. */
+SWIGINTERN int
+SWIG_Python_RuntimeTypeFailed(void) {
+  if (!PyErr_Occurred())
+    PyErr_SetString(PyExc_ImportError, "SWIG runtime type creation failed in an earlier import");
+  return -1;
+}
+
 SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   PyObject *d, *md, *globals;
 
@@ -255,24 +263,24 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   (void)tuple;
   (void)static_getset;
   (void)self;
-
-  /* Metaclass is used to implement static member variables */
-  metatype = SwigPyObjectType_Type();
-  assert(metatype);
-
-  SwigPyStaticVar_Type();
 #endif
 
   (void)globals;
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
-  SWIG_runtime_data_module();
-  SWIG_This();
-  SWIG_Python_TypeCache();
-  SwigPyPacked_Type();
-  SwigVarLink_Type();
+  if (!SWIG_runtime_data_module())
+    return -1;
+#if defined(SWIGPYTHON_BUILTIN)
+  /* Metaclass is used to implement static member variables */
+  metatype = SwigPyObjectType_Type();
+  if (!metatype || !SwigPyStaticVar_Type())
+    return SWIG_Python_RuntimeTypeFailed();
+#endif
+  if (!SWIG_This() || !SWIG_Python_TypeCache() || !SwigPyPacked_Type() || !SwigVarLink_Type())
+    return SWIG_Python_RuntimeTypeFailed();
 #ifndef SWIGPYTHON_BUILTIN
-  SwigPyObject_Type();
+  if (!SwigPyObject_Type())
+    return SWIG_Python_RuntimeTypeFailed();
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
@@ -291,6 +299,8 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
 
 #ifdef SWIGPYTHON_BUILTIN
   swigpyobject = SwigPyObject_TypeOnce();
+  if (!swigpyobject)
+    return -1;
 
   SwigPyObject_stype = SWIG_MangledTypeQuery("_p_SwigPyObject");
   assert(SwigPyObject_stype);
@@ -305,17 +315,24 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
 
   /* All objects have a 'this' attribute */
   this_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &this_getset_def);
-  (void)this_descr;
+  if (!this_descr)
+    return -1;
 
   /* All objects have a 'thisown' attribute */
   thisown_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &thisown_getset_def);
-  (void)thisown_descr;
+  if (!thisown_descr)
+    return -1;
 
   public_interface = PyList_New(0);
+  if (!public_interface)
+    return -1;
   public_symbol = 0;
   (void)public_symbol;
 
-  PyDict_SetItemString(md, "__all__", public_interface);
+  if (PyDict_SetItemString(md, "__all__", public_interface) != 0) {
+    SWIG_Py_DECREF(public_interface);
+    return -1;
+  }
   SWIG_Py_DECREF(public_interface);
   for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
     SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);

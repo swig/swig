@@ -163,6 +163,13 @@ char *fid(double, double) {
    return (char*) "fid:doubledouble";
 }
 
+char *fvoidcref(int) {
+   return (char*) "fvoidcref:int";
+}
+char *fvoidcref(void *const &) {
+   return (char*) "fvoidcref:void *const &";
+}
+
 %}
 
 %inline %{

@@ -75,8 +75,8 @@
 // - https://github.com/swig/swig/pull/1166 (for //)
 // Also see preproc.i
 %inline %{
-#define swig__attribute__(x)
-#define TCX_PACKED(d) d swig__attribute__ ((__packed__))
+#define TCX_ATTRIBUTE(x)
+#define TCX_PACKED(d) d TCX_ATTRIBUTE ((__packed__))
 
 
 TCX_PACKED (typedef struct tcxMessageTestImpl

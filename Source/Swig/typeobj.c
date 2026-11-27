@@ -709,15 +709,28 @@ SwigType *SwigType_remove_qualifier_reference(SwigType *t) {
  *                                Function Pointers
  * ----------------------------------------------------------------------------- */
 
+/* -----------------------------------------------------------------------------
+ * SwigType_isfunctionpointer()
+ *
+ * Returns 1 if t is a pointer to a function, which can have qualifiers, as in 'p.q(noexcept).f(int).int'.
+ * ----------------------------------------------------------------------------- */
+
 int SwigType_isfunctionpointer(const SwigType *t) {
   char *c;
   if (!t)
     return 0;
   c = Char(t);
-  if (strncmp(c, "p.f(", 4) == 0) {
-    return 1;
+  if (strncmp(c, "p.", 2) != 0)
+    return 0;
+  c += 2;
+  if (strncmp(c, "q(", 2) == 0) {
+    /* Skip over the qualifiers of the function */
+    c = strchr(c, '.');
+    if (!c)
+      return 0;
+    c++;
   }
-  return 0;
+  return strncmp(c, "f(", 2) == 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -726,6 +739,7 @@ int SwigType_isfunctionpointer(const SwigType *t) {
  * Decompose the function pointer into the parameter list and the return type
  * t - input and on completion contains the return type
  * returns the function's parameters
+ * Any qualifiers of the function, such as 'noexcept', are dropped.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_functionpointer_decompose(SwigType *t) {
@@ -733,6 +747,8 @@ SwigType *SwigType_functionpointer_decompose(SwigType *t) {
   assert(SwigType_isfunctionpointer(t));
   p = SwigType_pop(t);
   Delete(p);
+  if (SwigType_isqualifier(t))
+    Delete(SwigType_pop(t));
   p = SwigType_pop(t);
   return p;
 }
@@ -1486,9 +1502,7 @@ int SwigType_isconcept(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_concept_name()
  *
- * If any element of t is a 'c(NAME)' concept-id base, returns a newly allocated
- * String holding just NAME (e.g. 'Numeric' for 'r.auto.c(Numeric)').  Returns
- * NULL if t carries no concept-id.
+ * If any element of t is a 'c(NAME)' concept-id base, returns just NAME (e.g. 'Numeric' for 'r.auto.c(Numeric)').  Returns NULL if t carries no concept-id.
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_concept_name(const SwigType *t) {
@@ -1513,12 +1527,11 @@ String *SwigType_concept_name(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_replace_auto_base()
  *
- * Returns a newly allocated SwigType in which the 'auto' placeholder of t
- * (including the optional 'auto.c(<id>)' constrained form) is replaced
- * with new_base.  Any outer decoration ('r.', 'p.', 'q(const).' etc.) is
- * preserved verbatim, so for t = 'r.q(const).auto.c(Numeric)' and
- * new_base = 'X' this returns 'r.q(const).X'.  Returns NULL if t is not an
- * 'auto' form.
+ * Returns a SwigType in which the 'auto' placeholder of t (including the
+ * optional 'auto.c(<id>)' constrained form) is replaced with new_base.  Any
+ * outer decoration ('r.', 'p.', 'q(const).' etc.) is preserved verbatim, so
+ * for t = 'r.q(const).auto.c(Numeric)' and new_base = 'X' this returns
+ * 'r.q(const).X'.  Returns NULL if t is not an 'auto' form.
  * ----------------------------------------------------------------------------- */
 
 SwigType *SwigType_replace_auto_base(const SwigType *t, const String *new_base) {
@@ -1585,9 +1598,7 @@ int SwigType_isdecltype(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_decltype_expr()
  *
- * Returns a newly allocated String holding the expression of the decltype that
- * is the base of t, so 'x + 1' for 'p.decltype(x + 1)'.  Returns NULL if the
- * base of t is not a decltype.
+ * Returns the expression of the decltype that is the base of t, so 'x + 1' for 'p.decltype(x + 1)'.  Returns NULL if the base of t is not a decltype.
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_decltype_expr(const SwigType *t) {
@@ -1667,14 +1678,66 @@ SwigType *SwigType_strip_qualifiers(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_strip_qualifiers_except_member_function()
+ *
+ * Strip all qualifiers from a type and return a new type, as SwigType_strip_qualifiers() does, except the qualifiers of
+ * a member function type, as member function types with different qualifiers are different types.  For example:
+ *   p.q(const).m(Funcs).q(const).f(bool).short  =>  p.m(Funcs).q(const).f(bool).short
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_strip_qualifiers_except_member_function(const SwigType *t) {
+  static Hash *memoize_stripped = 0;
+  SwigType *r;
+  List *l;
+  Iterator ei;
+  int after_member_pointer = 0;
+  String *member_function_qualifier = 0;
+
+  if (!memoize_stripped)
+    memoize_stripped = NewHash();
+  r = Getattr(memoize_stripped, t);
+  if (r)
+    return Copy(r);
+
+  l = SwigType_split(t);
+  r = NewStringEmpty();
+
+  for (ei = First(l); ei.item; ei = Next(ei)) {
+    if (SwigType_isqualifier(ei.item)) {
+      /* The qualifiers of a member function type follow the member pointer and any ref-qualifier, as in 'm(X).r.q(const).f().int' */
+      if (after_member_pointer)
+        member_function_qualifier = ei.item;
+      continue;
+    }
+    if (member_function_qualifier && SwigType_isfunction(ei.item))
+      Append(r, member_function_qualifier);
+    member_function_qualifier = 0;
+    after_member_pointer = SwigType_ismemberpointer(ei.item) || (after_member_pointer && SwigType_isanyreference(ei.item));
+    Append(r, ei.item);
+  }
+  Delete(l);
+  {
+    String *key, *value;
+    key = Copy(t);
+    value = Copy(r);
+    Setattr(memoize_stripped, key, value);
+    Delete(key);
+    Delete(value);
+  }
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_strip_single_qualifier()
  *
  * If the type contains a qualifier, strip one qualifier and return a new type.
  * The left most qualifier is stripped first (when viewed as C source code) but
  * this is the equivalent to the right most qualifier using SwigType notation.
+ * Of 'const volatile', volatile is stripped first, leaving const.
  * Example:
  *    r.q(const).p.q(const).int => r.q(const).p.int
  *    r.q(const).p.int          => r.p.int
+ *    r.q(const volatile).int   => r.q(const).int
  *    r.p.int                   => r.p.int
  * ----------------------------------------------------------------------------- */
 
@@ -1700,7 +1763,11 @@ SwigType *SwigType_strip_single_qualifier(const SwigType *t) {
       String *subtype = Getitem(l, item);
       if (SwigType_isqualifier(subtype)) {
         Iterator it;
-        Delitem(l, item);
+        if (Equal(subtype, "q(const volatile).")) {
+          Setitem(l, item, "q(const).");
+        } else {
+          Delitem(l, item);
+        }
         r = NewStringEmpty();
         for (it = First(l); it.item; it = Next(it)) {
           Append(r, it.item);

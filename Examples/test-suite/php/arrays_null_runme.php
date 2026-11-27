@@ -16,21 +16,25 @@ arrays_null_fill($other, 10);
 $s->ints = $other->ints;
 $s->items = $other->items;
 $s->grid = $other->grid;
+$s->cube = $other->cube;
 check::equal(arrays_null_check($s, 10), 1, "failed member set");
 
 check_null_rejected("ints member", fn() => $s->ints = null);
 check_null_rejected("items member", fn() => $s->items = null);
 check_null_rejected("grid member", fn() => $s->grid = null);
+check_null_rejected("cube member", fn() => $s->cube = null);
 check::equal(arrays_null_check($s, 10), 1, "failed member set to null");
 
 arrays_null_ints_set($s->ints);
 arrays_null_items_set($s->items);
 arrays_null_grid_set($s->grid);
+arrays_null_cube_set($s->cube);
 check::equal(arrays_null_globals_check(10), 1, "failed global set");
 
 check_null_rejected("ints global", fn() => arrays_null_ints_set(null));
 check_null_rejected("items global", fn() => arrays_null_items_set(null));
 check_null_rejected("grid global", fn() => arrays_null_grid_set(null));
+check_null_rejected("cube global", fn() => arrays_null_cube_set(null));
 check_null_rejected("ints_ref global", fn() => arrays_null_ints_ref_set(null));
 check_null_rejected("bools global", fn() => arrays_null_bools_set(null));
 check::equal(arrays_null_globals_check(10), 1, "failed global set to null");

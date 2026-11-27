@@ -33,22 +33,22 @@
 
 /* Utility functions */
 
-extern int checkAttribute(Node *obj, const_String_or_char_ptr name, const_String_or_char_ptr value);
-extern void appendChild(Node *node, Node *child);
-extern void prependChild(Node *node, Node *child);
-extern void removeNode(Node *node);
-extern Node *copyNode(Node *node);
-extern void appendSibling(Node *node, Node *child);
+extern int checkAttribute(Node *n, const_String_or_char_ptr name, const_String_or_char_ptr value);
+extern void appendChild(Node *n, Node *child);
+extern void prependChild(Node *n, Node *child);
+extern void removeNode(Node *n);
+extern Node *copyNode(Node *n);
+extern void appendSibling(Node *n, Node *child);
 
 /* Node restoration/restore functions */
 
-extern void Swig_require(const char *ns, Node *node, ...);
-extern void Swig_save(const char *ns, Node *node, ...);
-extern void Swig_restore(Node *node);
+extern void Swig_require(const char *ns, Node *n, ...);
+extern void Swig_save(const char *ns, Node *n, ...);
+extern void Swig_restore(Node *n);
 
 /* Debugging of parse trees */
 
-extern void Swig_print_tags(File *obj, Node *root);
-extern void Swig_print_tree(Node *obj);
-extern void Swig_print_node(Node *obj);
+extern void Swig_print_tags(Node *n, String *prefix);
+extern void Swig_print_tree(Node *n);
+extern void Swig_print_node(Node *n);
 extern int Swig_print_quiet(int quiet);

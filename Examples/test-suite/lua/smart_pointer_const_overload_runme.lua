@@ -12,6 +12,12 @@ function test(b, f)
     -- Test const method
     assert(b:getx1() == 1)
     assert(f.access1 == v.CONST_ACCESS)
+    -- Test volatile method
+    assert(b:getx1v() == 1)
+    assert(f.access1 == v.MUTABLE_ACCESS)
+    -- Test const volatile method
+    assert(b:getx1cv() == 1)
+    assert(f.access1 == v.CONST_ACCESS)
     -- Test mutable method
     b:setx1(2)
     assert(f.x1 == 2)
@@ -23,6 +29,9 @@ function test(b, f)
     b:setx2(3)
     assert(f.x1 == 3)
     assert(f.access1 == v.MUTABLE_ACCESS)
+    -- Test extended const volatile method
+    assert(b:getx2cv() == 3)
+    assert(f.access1 == v.CONST_ACCESS)
     -- Test static method
     b:statMethod()
     assert(f.access1 == v.CONST_ACCESS)

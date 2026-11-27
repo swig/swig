@@ -86,11 +86,12 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   # dunno... ignoring generously
   apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  cpp11_ref_qualifiers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  member_pointer_const.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  typedef_funcptr.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  cpp11_noexcept.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	# Run with asan:
 	# ASAN=1 ENGINE=napi make <test_name>.cpptest

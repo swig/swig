@@ -485,7 +485,7 @@ static int classify_template_param_type(const SwigType *type) {
   }
   /* A type named with the 'struct', 'union' or 'class' keyword, such as the 'struct Point' of 'template<struct Point P>',
    * is a class, never a concept, which the lookup below would not find under that name. */
-  if (Strncmp(probe, "struct ", 7) == 0 || Strncmp(probe, "union ", 6) == 0 || Strncmp(probe, "class ", 6) == 0) {
+  if (SwigType_isclasskey(probe)) {
     Delete(probe);
     return TPC_KEEP;
   }
@@ -1921,51 +1921,61 @@ static void mark_nodes_as_extend(Node *n) {
 /* -----------------------------------------------------------------------------
  * add_qualifier_to_declarator()
  *
- * Normally the qualifier is pushed on to the front of the type.
- * Adding a qualifier to a pointer to member function is a special case.
- * For example       : typedef double (Cls::*pmf)(void) const;
+ * The qualifier after a declarator belongs to the function type whose parameter list it follows, which is the last
+ * function type in the declarator's type.  It is the declared function's, as for the 'f(void).' of
+ *   double f(void) const;
+ * or that of the function pointed to by a pointer to member function, for example:
+ *   typedef double (Cls::*pmf)(void) const;
  * The qualifier is  : q(const).
  * The declarator is : m(Cls).f(void).
  * We need           : m(Cls).q(const).f(void).
+ * The qualifier is pushed on to the front of a type without a function type.
  * ----------------------------------------------------------------------------- */
 
 static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) {
-  int is_pointer_to_member_function = 0;
-  String *decl = Copy(type);
-  String *poppedtype = NewString("");
+  List *elements = SwigType_split(type);
+  int last_function = -1;
+  int i;
+  String *decl;
   assert(qualifier);
 
-  while (decl) {
-    if (SwigType_ismemberpointer(decl)) {
-      String *memberptr = SwigType_pop(decl);
-      if (SwigType_isfunction(decl)) {
-	is_pointer_to_member_function = 1;
-	SwigType_push(decl, qualifier);
-	SwigType_push(decl, memberptr);
-	Insert(decl, 0, poppedtype);
-	Delete(memberptr);
-	break;
-      } else {
-	Append(poppedtype, memberptr);
-      }
-      Delete(memberptr);
-    } else {
-      String *popped = SwigType_pop(decl);
-      if (!popped)
-	break;
-      Append(poppedtype, popped);
-      Delete(popped);
-    }
+  for (i = 0; i < Len(elements); i++) {
+    if (SwigType_isfunction(Getitem(elements, i)))
+      last_function = i;
   }
-
-  if (!is_pointer_to_member_function) {
-    Delete(decl);
+  if (last_function < 0) {
     decl = Copy(type);
     SwigType_push(decl, qualifier);
+  } else {
+    decl = NewStringEmpty();
+    for (i = 0; i < Len(elements); i++) {
+      if (i == last_function)
+        Append(decl, qualifier);
+      Append(decl, Getitem(elements, i));
+    }
   }
-
-  Delete(poppedtype);
+  Delete(elements);
   return decl;
+}
+
+/* Return the qualifiers of a function type, a cv-qualifier and ref-qualifier such as 'r.q(const).' or 0 for none, with
+   'noexcept' added for its noexcept-specifier, nexcept, which is 0 for none, 'true' or the expression in parentheses.  It
+   goes with the cv-qualifiers, which follow any ref-qualifier, as in 'r.q(const noexcept).'.  A 'noexcept(false)' adds
+   nothing. */
+static SwigType *add_noexcept_qualifier(SwigType *qualifier, String *nexcept) {
+  SwigType *qualifiers;
+  String *refqualifier = 0;
+  if (!nexcept || Equal(nexcept, "false"))
+    return qualifier;
+  qualifiers = qualifier ? Copy(qualifier) : NewStringEmpty();
+  if (SwigType_isanyreference(qualifiers))
+    refqualifier = SwigType_pop(qualifiers);
+  SwigType_add_qualifier(qualifiers, "noexcept");
+  if (refqualifier) {
+    SwigType_push(qualifiers, refqualifier);
+    Delete(refqualifier);
+  }
+  return qualifiers;
 }
 
 %}
@@ -2100,6 +2110,10 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String    *numdefarg;
     ParmList  *parms;
     short      have_parms;
+    /* The parameters of the function declarator written last, which is not the one parms has when there is another
+     * before it, as for the list of locals after the typemap pattern 'int (*)(int)' in:
+     *   %typemap(in) int (*)(int) (int temp) "..."  */
+    ParmList  *last_parms;
     /* The type of the C++23 explicit object parameter, that is a leading 'this' parameter on the function declarator,
      * or 0 when there is none.  The type is what carries the value category of the object. */
     SwigType  *explicit_object_type;
@@ -2111,6 +2125,14 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Node      *constraint_node;
     /* SWIG_ARRAY_* bits for C99 syntax in the declarator's array brackets that only a function parameter can have. */
     int        parmonly_array;
+    /* The cv-qualifier and ref-qualifier, or 0, of a member function returning a pointer or reference to a function,
+     * which are written inside the declarator's parentheses:
+     *   int (*f() const)(int);
+     * The type member already has them. They are kept for what else c_decl does with the qualifiers of a member
+     * function. An exception specification written there is kept in throws, throwf and nexcept. In ctor_end, they
+     * are the qualifiers of a function whose name is in parentheses, see parenthesised_name_function_end(). */
+    SwigType  *qualifier;
+    String    *refqualifier;
   } decl;
   Parm         *tparms;
   struct {
@@ -2269,6 +2291,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 /* Misc */
 %type <id>       identifier;
 %type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
+%type <dtype>    exception_specification_no_virt_specifier function_qualifiers;
 %type <str>      storage_class;
 %type <intvalue> storage_class_raw storage_class_list;
 %type <pl>       parms fn_parms rawparms varargs_parms ;
@@ -2286,7 +2309,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     array_type_id array_element_type type_id type_id_default;
 %type <group>    decltype_prefix;
 %type <type>     conversion_declarator;
-%type <str>      noexcept_specifier_opt;
 %type <str>      structured_binding_names;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
@@ -2314,7 +2336,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <includetype> includetype;
 %type <type>     pointer primitive_type type_id_pointer;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
-%type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator ctor_end;
+%type <decl>     qualified_direct_declarator qualified_notso_direct_declarator;
+%type <decl>     qualified_function_declarator qualified_declarator;
+%type <decl>     abstract_declarator abstract_declarator_no_memberpointer direct_abstract_declarator qualified_direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      using_conversion using_scope;
@@ -2798,7 +2822,7 @@ static void clear_expression_form(struct Define *dtype) {
 
 /* The expression with value 'text' and T_* code 'type_code' when the grammar skipped it as raw text, as in 'auto v{(x)};'.
    The text inside any enclosing parentheses is taken to be an id-expression, or with a leading '&' the address of one,
-   never a literal, whose decoded value is unknown.  The caller deletes 'unparenthesised' and 'newtype'. */
+   never a literal, whose decoded value is unknown. */
 static struct Define expression_dtype_from_text(String *text, int type_code) {
   struct Define dtype = default_dtype;
   String *expr;
@@ -3545,7 +3569,7 @@ static void check_parameter_only_array(struct Decl *d) {
 
 /* Add the function declarator '(parms)' to the declarator 'd', extending the declarator's type and recording 'parms'
    as the declarator's parameter list unless an inner declarator already provided one.  'qualifier' is the trailing
-   cv-qualifier and ref-qualifier of the function, or 0 when it has none; it belongs under whatever the enclosing
+   cv-qualifier, ref-qualifier and 'noexcept' of the function, or 0 when it has none; it belongs under whatever the enclosing
    declarator adds, so it has to go on before the declarator's existing type does.  The sizes of any variable length
    array parameters are removed first, which needs the complete parameter list. */
 static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *qualifier) {
@@ -3558,6 +3582,7 @@ static void declarator_add_function(struct Decl *d, ParmList *parms, SwigType *q
     d->parms = parms;
     d->have_parms = 1;
   }
+  d->last_parms = parms;
   if (!d->type) {
     d->type = t;
   } else {
@@ -3580,31 +3605,44 @@ static ParmList *mark_explicit_object_parameter(ParmList *parms) {
   return parms;
 }
 
-/* The declarator grammar made a function of the list of locals after a typemap pattern: take it back off the type, from
-   under any array or pointer or reference to an array, and keep its parameters as the locals. */
+/* The declarator grammar made a function of the list of locals after a typemap pattern, the function declarator written
+   last: take it back off the type and keep its parameters as the locals.  It is the last function type in the type,
+   unless that is the pattern's own, which follows a pointer, reference or pointer to member, as in:
+     %typemap(in) int (*)(int) "..."
+   A function cannot return a function or an array, nor can an array hold functions, so the locals follow nothing, an
+   array or another function type, as in:
+     %typemap(in) int (int temp) "..."
+     %typemap(in) int [3] (int temp) "..."
+     %typemap(in) int (*)(int) (int temp) "..." */
 static void declarator_remove_locals_function(struct Decl *d) {
-  SwigType *ptr_or_ref = SwigType_pop_to_array(d->type);
-  SwigType *arrays = 0;
-  if (!ptr_or_ref && (SwigType_ispointer(d->type) || SwigType_isanyreference(d->type))) {
-    /* A pointer or reference to anything else has no locals under it.  SwigType_isfunction() would take the reference
-     * to a function of 'int (&)(int)' for a function with a ref-qualifier. */
+  List *elements;
+  int locals = -1;
+  int i;
+  if (!d->type) {
     d->parms = 0;
     return;
   }
-  if (SwigType_isarray(d->type))
-    arrays = SwigType_pop_arrays(d->type);
-  if (SwigType_isfunction(d->type))
-    Delete(SwigType_pop_function(d->type));
-  else
+  elements = SwigType_split(d->type);
+  for (i = 0; i < Len(elements); i++) {
+    if (SwigType_isfunction(Getitem(elements, i)))
+      locals = i;
+  }
+  if (locals > 0) {
+    SwigType *before = Getitem(elements, locals - 1);
+    if (!SwigType_isarray(before) && !SwigType_isfunction(before))
+      locals = -1;
+  }
+  if (locals >= 0) {
+    Clear(d->type);
+    for (i = 0; i < Len(elements); i++) {
+      if (i != locals)
+        Append(d->type, Getitem(elements, i));
+    }
+    d->parms = d->last_parms;
+  } else {
     d->parms = 0;
-  if (arrays) {
-    SwigType_push(d->type, arrays);
-    Delete(arrays);
   }
-  if (ptr_or_ref) {
-    SwigType_push(d->type, ptr_or_ref);
-    Delete(ptr_or_ref);
-  }
+  Delete(elements);
 }
 
 /* Report a 'this' specifier where C++23 does not allow an explicit object parameter, which it allows only as the
@@ -3623,6 +3661,154 @@ static ParmList *drop_explicit_object_parameter(ParmList *parms, SwigType **type
     return parms;
   *type = Getattr(parms, "type");
   return nextSibling(parms);
+}
+
+/* Add a function with the parameters parms and the cv-qualifier and ref-qualifier in qualifiers to the declarator
+   decl, as for the member function f in the parentheses of this declaration of f returning a pointer to a function:
+     int (*f() const)(int);
+   When the function is the one declared, rather than what decl declares a pointer to, the qualifiers and the
+   exception specification in qualifiers are also kept in decl for use_declarator_qualifiers().  Otherwise a 'noexcept'
+   is part of the type of the function pointed to, which does not keep a 'throw' exception specification. */
+static void declarator_add_qualified_function(struct Decl *decl, ParmList *parms, const struct Define *qualifiers) {
+  SwigType *qualifier = qualifiers->qualifier;
+  if (!decl->type || Len(decl->type) == 0) {
+    decl->qualifier = qualifiers->qualifier;
+    decl->refqualifier = qualifiers->refqualifier;
+    decl->throws = qualifiers->throws;
+    decl->throwf = qualifiers->throwf;
+    decl->nexcept = qualifiers->nexcept;
+  } else {
+    qualifier = add_noexcept_qualifier(qualifier, qualifiers->nexcept);
+  }
+  declarator_add_function(decl, drop_explicit_object_parameter(parms, &decl->explicit_object_type), qualifier);
+}
+
+/* Whether the qualifiers after a declarator of the type 'type' are those of the declared function, as for the 'const' in
+     int f(int) const;
+   They follow the last parameter list, so they are those of the last function type in 'type', which is not that of the
+   declared function when there is another, as for the member function pointed to in:
+     int (C::*f())(int) const;
+   nor when the declarator does not declare a function, as for a variable or typedef of a member function pointer.  A type
+   without a function type has no qualifiers to give to one, so they are left with the declaration. */
+static int declarator_qualifiers_are_own(SwigType *type) {
+  List *elements = SwigType_split(type);
+  int functions = 0;
+  int own;
+  Iterator element;
+  for (element = First(elements); element.item; element = Next(element)) {
+    if (SwigType_isfunction(element.item))
+      functions++;
+  }
+  own = functions == 0 || (functions == 1 && SwigType_isfunction(Getitem(elements, 0)));
+  Delete(elements);
+  return own;
+}
+
+/* The storage class, such as "typedef", for qualified_declarator_type() to use for the declarators after the first in a
+   declaration, as for G in:
+     typedef int F(int) noexcept, G(int) noexcept;
+   c_decl_list_tail, which parses them, has no storage_class of its own, so c_decl sets this before them and resets it
+   to 0 once the declaration is complete. */
+static String *declarator_list_storage = 0;
+
+/* Return the type of the declarator decl with the qualifiers cpp_const after it added, see add_qualifier_to_declarator().
+   When they are not the declared function's, a 'noexcept' is part of the function type that they belong to, as for
+   the function pointed to in:
+     int (*f())(int) noexcept;
+   and the exception specification is taken out of cpp_const, as it is not that of the declared function.  A 'throw' exception specification is dropped.
+   The qualifiers of a typedef, which declares no function, are not the declared function's either, as in:
+     typedef int F(int) noexcept;
+   The storage parameter is the storage class of the declaration, such as "typedef". */
+static SwigType *qualified_declarator_type(const struct Decl *decl, struct Define *cpp_const, String *storage) {
+  SwigType *qualifier = cpp_const->qualifier;
+  if (!declarator_qualifiers_are_own(decl->type) || Equal(storage, "typedef")) {
+    qualifier = add_noexcept_qualifier(qualifier, cpp_const->nexcept);
+    cpp_const->throws = 0;
+    cpp_const->throwf = 0;
+    cpp_const->nexcept = 0;
+  }
+  return qualifier ? add_qualifier_to_declarator(decl->type, qualifier) : decl->type;
+}
+
+/* Use the qualifiers kept in the declarator decl by declarator_add_qualified_function() as the trailing qualifiers
+   cpp_const of the declaration, so that the declarations of f and g here get the same refqualifier attribute:
+     typedef int (*IntFuncPtr)(int);
+     int (*f() const &)(int);
+     IntFuncPtr g() const &;
+   The type of the declarator has the qualifiers already, so they are only used for checks and attributes like this.
+   The qualifiers and exception specification kept in decl are those of the declared function, so they are used in
+   place of any after the declarator, which are those of the function pointed to, as for the second 'const' in:
+     int (C::*f() const)(int) const;
+   The declared function has no qualifiers when decl has none and those after the declarator are not its own. */
+static void use_declarator_qualifiers(struct Define *cpp_const, const struct Decl *decl) {
+  if (decl->qualifier || !declarator_qualifiers_are_own(decl->type)) {
+    cpp_const->qualifier = decl->qualifier;
+    cpp_const->refqualifier = decl->refqualifier;
+  }
+  if (decl->throwf || decl->nexcept) {
+    cpp_const->throws = decl->throws;
+    cpp_const->throwf = decl->throwf;
+    cpp_const->nexcept = decl->nexcept;
+  }
+}
+
+/* The end of the declaration of a function whose name is in parentheses, which ctor_end matches after the name, see
+   new_parenthesised_name_decl().  It has the function's parameters parms and the trailing qualifiers cpp_const. */
+static struct Decl parenthesised_name_function_end(ParmList *parms, const struct Define *cpp_const) {
+  struct Decl decl = default_decl;
+  decl.parms = parms;
+  decl.have_parms = 1;
+  decl.qualifier = cpp_const->qualifier;
+  decl.refqualifier = cpp_const->refqualifier;
+  decl.throws = cpp_const->throws;
+  decl.throwf = cpp_const->throwf;
+  decl.nexcept = cpp_const->nexcept;
+  decl.final = cpp_const->final;
+  decl.constraint_node = cpp_const->constraint_node;
+  return decl;
+}
+
+/* A new declaration of a function or variable whose name is in parentheses, as for f and v in:
+     int (f)(int i) const;
+     int (v);
+   The grammar parses these as a constructor declaration with the name as the type of its only parameter, parms, which
+   has no name of its own.  The parameters and qualifiers of the function, if any, are in ctor_end with what else follows. */
+static Node *new_parenthesised_name_decl(String *storage, SwigType *type, ParmList *parms, const struct Decl *ctor_end) {
+  Node *n = new_node("cdecl");
+  Setattr(n, "type", type);
+  Setattr(n, "storage", storage);
+  Setattr(n, "name", Getattr(parms, "type"));
+  if (ctor_end->have_parms) {
+    SwigType *decl = NewStringEmpty();
+    Swig_vla_unsize_parms(ctor_end->parms);
+    SwigType_add_function(decl, ctor_end->parms);
+    if (ctor_end->qualifier)
+      SwigType_push(decl, ctor_end->qualifier);
+    Setattr(n, "decl", decl);
+    Setattr(n, "parms", ctor_end->parms);
+    Setattr(n, "refqualifier", ctor_end->refqualifier);
+    Delete(decl);
+    if (Len(scanner_ccode)) {
+      String *code = Copy(scanner_ccode);
+      Setattr(n, "code", code);
+      Delete(code);
+    }
+  }
+  if (ctor_end->defarg)
+    Setattr(n, "value", ctor_end->defarg);
+  if (ctor_end->stringdefarg)
+    Setattr(n, "stringval", ctor_end->stringdefarg);
+  if (ctor_end->numdefarg)
+    Setattr(n, "numval", ctor_end->numdefarg);
+  Setattr(n, "throws", ctor_end->throws);
+  Setattr(n, "throw", ctor_end->throwf);
+  Setattr(n, "noexcept", ctor_end->nexcept);
+  Setattr(n, "final", ctor_end->final);
+  if (ctor_end->constraint_node)
+    Setattr(n, "constraint", ctor_end->constraint_node);
+  if (ctor_end->qualifier && storage && Strstr(storage, "static"))
+    Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl(n));
+  return n;
 }
 
 /* Whether explicit object parameter type 'type' is an rvalue reference to the class, the C++23 spelling of an '&&'
@@ -3760,6 +3946,7 @@ declaration    : swig_directive
                | c_constructor_decl { 
                   if ($$) {
    		      add_symbols($$);
+                      default_arguments($$);
                   }
                   $$ = $c_constructor_decl; 
 	       }              
@@ -4647,7 +4834,7 @@ typemap_type   : kwargs {
 				"%%typemap attribute '%s' is missing its value.  If this is specifying the target language, that's no longer supported: use #ifdef SWIG<LANG> instead.\n",
 				Getattr(p, "name"));
 		     /* Set to empty value to avoid segfaults later. */
-		     Setattr(p, "value", NewStringEmpty());
+		     Setattr(p, "value", "");
 		   }
 		   p = nextSibling(p);
 		 }
@@ -5044,14 +5231,13 @@ c_declaration   : c_decl {
 		  add_symbols($$);
 		}
                 /* Alias declaration for a function type written with the C++11 alternate function syntax, such as
-                   'using FP = auto (*)(int) -> int;'.  */
-                | USING idcolon EQUAL auto_type_holder abstract_declarator noexcept_specifier_opt ARROW cpp_alternate_rettype SEMI {
+                   'using FP = auto (*)(int) -> int;'.  A 'noexcept' before the '->' is in the abstract declarator's type. */
+                | USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
                   $$ = new_node("cdecl");
                   Setattr($$, "type", $cpp_alternate_rettype);
                   Setattr($$, "storage", "typedef");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "decl", $abstract_declarator.type);
-                  Setattr($$, "noexcept", $noexcept_specifier_opt);
                   SetFlag($$, "typealias");
                   if ($auto_type_holder.qualifier)
                     Swig_error(cparse_file, cparse_line, "Alias %s with a trailing return type cannot have a qualifier on 'auto'.\n", $idcolon);
@@ -5072,13 +5258,12 @@ c_declaration   : c_decl {
 		  add_symbols($$);
 		}
                 /* Alias template for a function type written with the C++11 alternate function syntax. */
-                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator noexcept_specifier_opt ARROW cpp_alternate_rettype SEMI {
+                | TEMPLATE LESSTHAN template_parms GREATERTHAN requires_clause_opt USING idcolon EQUAL auto_type_holder abstract_declarator ARROW cpp_alternate_rettype SEMI {
                   $$ = new_node("template");
                   Setattr($$, "type", $cpp_alternate_rettype);
                   Setattr($$, "storage", "typedef");
                   Setattr($$, "name", $idcolon);
                   Setattr($$, "decl", $abstract_declarator.type);
-                  Setattr($$, "noexcept", $noexcept_specifier_opt);
                   Setattr($$, "templateparms", $template_parms);
                   Setattr($$, "templatetype", "cdecl");
                   SetFlag($$, "aliastemplate");
@@ -5095,12 +5280,14 @@ c_declaration   : c_decl {
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
-	      String *decl = $declarator.type;
+c_decl  : storage_class type declarator cpp_const initializer {
+              declarator_list_storage = $storage_class;
+            } c_decl_tail {
+	      String *decl;
               check_parameter_only_array(&$declarator);
               $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier)
-	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+              decl = qualified_declarator_type(&$declarator, &$cpp_const, $storage_class);
+              use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
 	      Setattr($$,"type",$type);
 	      Setattr($$,"storage",$storage_class);
@@ -5183,13 +5370,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
               /* C++20 abbreviated function template: any parm typed 'auto' becomes an invented type template parameter. */
               if ($$) promote_abbreviated_template($$, 0);
+              declarator_list_storage = 0;
 	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
-	      String *decl = $declarator.type;
+	      String *decl = qualified_declarator_type(&$declarator, &$cpp_const, $storage_class);
 	      $$ = new_node("cdecl");
-	      if ($cpp_const.qualifier)
-	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+              use_declarator_qualifiers(&$cpp_const, &$declarator);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
 	      Setattr($$, "type", $type);
 	      Setattr($$, "storage", $storage_class);
@@ -5563,12 +5750,14 @@ structured_binding_names : ID {
    without also reaching c_decl_tail's error alternative, which turns an initialiser SWIG cannot parse into a
    fatal error rather than into the ignored declaration an 'auto' variable gets. */
 c_decl_list_tail : COMMA declarator cpp_const initializer c_decl_tail[in] {
+                 String *decl;
                  check_parameter_only_array(&$declarator);
 		 $$ = new_node("cdecl");
-		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
+                 decl = qualified_declarator_type(&$declarator, &$cpp_const, declarator_list_storage);
+                 use_declarator_qualifiers(&$cpp_const, &$declarator);
 		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
 		 Setattr($$,"name",$declarator.id);
-		 Setattr($$,"decl",$declarator.type);
+                 Setattr($$,"decl",decl);
 		 Setattr($$,"parms",$declarator.parms);
 		 Setattr($$,"value",$initializer.val);
 		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
@@ -6029,41 +6218,14 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                     int err = 0;
                     $$ = 0;
 
-		    if ((ParmList_len($parms) == 1) && (!Swig_scopename_check($type))) {
-		      SwigType *ty = Getattr($parms,"type");
-		      String *name = Getattr($parms,"name");
-		      err = 1;
-		      if (!name) {
-			$$ = new_node("cdecl");
-			Setattr($$,"type",$type);
-			Setattr($$,"storage",$storage_class);
-			Setattr($$,"name",ty);
-
-			if ($ctor_end.have_parms) {
-			  SwigType *decl = NewStringEmpty();
-                          Swig_vla_unsize_parms($ctor_end.parms);
-			  SwigType_add_function(decl,$ctor_end.parms);
-			  Setattr($$,"decl",decl);
-			  Setattr($$,"parms",$ctor_end.parms);
-			  if (Len(scanner_ccode)) {
-			    String *code = Copy(scanner_ccode);
-			    Setattr($$,"code",code);
-			    Delete(code);
-			  }
-			}
-			if ($ctor_end.defarg)
-			  Setattr($$, "value", $ctor_end.defarg);
-			if ($ctor_end.stringdefarg)
-			  Setattr($$, "stringval", $ctor_end.stringdefarg);
-			if ($ctor_end.numdefarg)
-			  Setattr($$, "numval", $ctor_end.numdefarg);
-			Setattr($$,"throws",$ctor_end.throws);
-			Setattr($$,"throw",$ctor_end.throwf);
-			Setattr($$,"noexcept",$ctor_end.nexcept);
-			Setattr($$,"final",$ctor_end.final);
-			err = 0;
-		      }
-		    }
+                    /* A constructor of a scoped type is one defined out of its class, unless parameters follow */
+                    if ((ParmList_len($parms) == 1) && (!Swig_scopename_check($type) || $ctor_end.have_parms)) {
+                      err = 1;
+                      if (!Getattr($parms, "name")) {
+                        $$ = new_parenthesised_name_decl($storage_class, $type, $parms, &$ctor_end);
+                        err = 0;
+                      }
+                    }
 		    Delete($storage_class);
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
@@ -6851,7 +7013,7 @@ cpp_concept_decl : CONCEPT idcolon EQUAL <str>{
                 }[body] concept_constraint SEMI {
                   $$ = new_node("concept");
                   Setattr($$, "name", $idcolon);
-                  Setattr($$, "type", NewString("bool"));
+                  Setattr($$, "type", "bool");
                   if ($concept_constraint) {
                     Setattr($$, "constraint", $concept_constraint);
                   } else if ($body) {
@@ -7290,7 +7452,7 @@ cpp_members_builder : cpp_member {
 cpp_member_no_dox : c_declaration
              | cpp_constructor_decl { 
                  $$ = $cpp_constructor_decl; 
-		 if (extendmode && current_class) {
+                 if (extendmode && current_class && $$ && Equal(nodeType($$), "constructor")) {
 		   String *symname;
 		   symname= make_name($$,Getattr($$,"name"), Getattr($$,"decl"));
 		   if (Strcmp(symname,Getattr($$,"name")) == 0) {
@@ -7355,7 +7517,11 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 	      /* Cannot be a constructor declaration/definition if parsed as a friend destructor/constructor
 	         or a badly declared friend function without return type */
 	      int isfriend = Strstr($storage_class, "friend") != NULL;
-	      if (!isfriend && (inclass || extendmode)) {
+              if ($ctor_end.have_parms && ParmList_len($parms) == 1 && !Getattr($parms, "name")) {
+                /* Parameters cannot follow those of a constructor, so this is a function with its name in
+                 * parentheses, such as 'int (foo)(int i);', as in c_constructor_decl. */
+                $$ = new_parenthesised_name_decl($storage_class, $type, $parms, &$ctor_end);
+              } else if (!isfriend && (inclass || extendmode)) {
 	        String *name = SwigType_templateprefix($type); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
@@ -8184,16 +8350,14 @@ parameter_declarator : declarator def_args {
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
-            | direct_declarator LPAREN fn_parms RPAREN qualifiers_exception_specification {
-              SwigType *qualifier = $qualifiers_exception_specification.qualifier;
-              if ($qualifiers_exception_specification.nexcept) {
-                if (!qualifier)
-                  qualifier = NewStringEmpty();
-                SwigType_add_qualifier(qualifier, "noexcept");
-              }
+            | direct_declarator LPAREN fn_parms RPAREN qualifiers_exception_specification def_args {
+              SwigType *qualifier = add_noexcept_qualifier($qualifiers_exception_specification.qualifier, $qualifiers_exception_specification.nexcept);
               reject_explicit_object_parameter($fn_parms);
               $$ = $direct_declarator;
               declarator_add_function(&$$, $fn_parms, qualifier);
+              $$.defarg = $def_args.val;
+              $$.stringdefarg = $def_args.stringval;
+              $$.numdefarg = $def_args.numval;
 	    }
             ;
 
@@ -8459,7 +8623,7 @@ notso_direct_declarator : idcolon {
                   }
 */
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
-                  | LPAREN pointer notso_direct_declarator[in] RPAREN {
+                  | LPAREN pointer qualified_notso_direct_declarator[in] RPAREN {
 		    $$ = $in;
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8467,7 +8631,47 @@ notso_direct_declarator : idcolon {
 		    }
 		    $$.type = $pointer;
                   }
-                  | LPAREN idcolon DSTAR notso_direct_declarator[in] RPAREN {
+                  /* A reference to a pointer, such as the reference to a pointer to a function in 'int *(*&r)(int)' */
+                  | LPAREN pointer AND qualified_notso_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
+                  | LPAREN pointer LAND qualified_notso_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_rvalue_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
+                  /* A reference to what the inner declarator yields, such as the return type in 'int *(&f())(int)' */
+                  | LPAREN AND qualified_notso_direct_declarator[in] RPAREN {
+                    SwigType *t = NewStringEmpty();
+                    $$ = $in;
+                    SwigType_add_reference(t);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
+                  }
+                  | LPAREN LAND qualified_notso_direct_declarator[in] RPAREN {
+                    SwigType *t = NewStringEmpty();
+                    $$ = $in;
+                    SwigType_add_rvalue_reference(t);
+                    if ($$.type) {
+                      SwigType_push(t, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = t;
+                  }
+                  | LPAREN idcolon DSTAR qualified_notso_direct_declarator[in] RPAREN {
 		    SwigType *t;
 		    $$ = $in;
 		    t = NewStringEmpty();
@@ -8486,6 +8690,36 @@ notso_direct_declarator : idcolon {
                     $$ = $in;
                     declarator_add_function(&$$, drop_explicit_object_parameter($fn_parms, &$$.explicit_object_type), 0);
                   }
+                  ;
+
+/* The declarator in the parentheses of a member function returning a pointer or reference to a function, which ends
+   in the function's cv-qualifier, ref-qualifier and exception specification, if any, such as the 'f() const' in:
+     int (*f() const)(int);
+   Outside parentheses, the qualifiers follow the whole declarator and are matched by cpp_const. */
+qualified_notso_direct_declarator : notso_direct_declarator
+                  | notso_direct_declarator[in] LPAREN fn_parms RPAREN function_qualifiers {
+                    $$ = $in;
+                    declarator_add_qualified_function(&$$, $fn_parms, &$function_qualifiers);
+                  }
+                  ;
+
+qualified_direct_declarator : direct_declarator
+                  | qualified_function_declarator
+                  ;
+
+qualified_function_declarator : direct_declarator[in] LPAREN fn_parms RPAREN function_qualifiers {
+                    $$ = $in;
+                    declarator_add_qualified_function(&$$, $fn_parms, &$function_qualifiers);
+                  }
+                  ;
+
+/* The declarator after a pointer to member in the parentheses of a member function returning a pointer to a member
+   function, which can end in the function's qualifiers too, such as the 'f() const' in:
+     int (C::*f() const)(int) const;
+   Any declarator can go there, which already includes a direct_declarator, so it is qualified_function_declarator
+   that is added to it rather than qualified_direct_declarator. */
+qualified_declarator : declarator
+                  | qualified_function_declarator
                   ;
 
 direct_declarator : idcolon {
@@ -8507,7 +8741,7 @@ direct_declarator : idcolon {
                   }
 */
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
-                  | LPAREN pointer direct_declarator[in] RPAREN {
+                  | LPAREN pointer qualified_direct_declarator[in] RPAREN {
 		    $$ = $in;
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8515,8 +8749,27 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = $pointer;
                   }
+                  /* A reference to a pointer, such as the reference to a pointer to a function in 'int (*&r)(int)' */
+                  | LPAREN pointer AND qualified_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
+                  | LPAREN pointer LAND qualified_direct_declarator[in] RPAREN {
+                    $$ = $in;
+                    SwigType_add_rvalue_reference($pointer);
+                    if ($$.type) {
+                      SwigType_push($pointer, $$.type);
+                      Delete($$.type);
+                    }
+                    $$.type = $pointer;
+                  }
                   /* The reference applies to what the inner declarator yields, such as the return type in 'int (&f())(int)' */
-                  | LPAREN AND direct_declarator[in] RPAREN {
+                  | LPAREN AND qualified_direct_declarator[in] RPAREN {
                     SwigType *t = NewStringEmpty();
                     $$ = $in;
                     SwigType_add_reference(t);
@@ -8526,7 +8779,7 @@ direct_declarator : idcolon {
                     }
                     $$.type = t;
                   }
-                  | LPAREN LAND direct_declarator[in] RPAREN {
+                  | LPAREN LAND qualified_direct_declarator[in] RPAREN {
                     SwigType *t = NewStringEmpty();
                     $$ = $in;
                     SwigType_add_rvalue_reference(t);
@@ -8536,9 +8789,9 @@ direct_declarator : idcolon {
                     }
                     $$.type = t;
                   }
-                  | LPAREN idcolon DSTAR declarator RPAREN {
+                  | LPAREN idcolon DSTAR qualified_declarator[in] RPAREN {
 		    SwigType *t;
-		    $$ = $declarator;
+                    $$ = $in;
 		    t = NewStringEmpty();
 		    SwigType_add_memberpointer(t,$idcolon);
 		    if ($$.type) {
@@ -8547,9 +8800,9 @@ direct_declarator : idcolon {
 		    }
 		    $$.type = t;
 		  }
-                  | LPAREN idcolon DSTAR type_qualifier declarator RPAREN {
+                  | LPAREN idcolon DSTAR type_qualifier qualified_declarator[in] RPAREN {
 		    SwigType *t;
-		    $$ = $declarator;
+                    $$ = $in;
 		    t = NewStringEmpty();
 		    SwigType_add_memberpointer(t, $idcolon);
 		    SwigType_push(t, $type_qualifier);
@@ -8630,8 +8883,8 @@ abstract_declarator : abstract_declarator_no_memberpointer
                     SwigType_push($$.type, t);
                     Delete(t);
                   }
-                  | pointer idcolon DSTAR direct_abstract_declarator {
-                    $$ = $direct_abstract_declarator;
+                  | pointer idcolon DSTAR qualified_direct_abstract_declarator {
+                    $$ = $qualified_direct_abstract_declarator;
                     SwigType_add_memberpointer($pointer, $idcolon);
                     if ($$.type) {
                       SwigType_push($pointer, $$.type);
@@ -8646,11 +8899,11 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    $$.type = $pointer;
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
                   }
-                  | pointer direct_abstract_declarator { 
-                     $$ = $direct_abstract_declarator;
-                     SwigType_push($pointer,$direct_abstract_declarator.type);
+                  | pointer qualified_direct_abstract_declarator {
+                     $$ = $qualified_direct_abstract_declarator;
+                     SwigType_push($pointer,$qualified_direct_abstract_declarator.type);
 		     $$.type = $pointer;
-		     Delete($direct_abstract_declarator.type);
+		     Delete($qualified_direct_abstract_declarator.type);
                   }
                   | pointer AND variadic_opt {
 		    $$ = default_decl;
@@ -8664,8 +8917,8 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    SwigType_add_rvalue_reference($$.type);
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
 		  }
-                  | pointer AND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | pointer AND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    SwigType_add_reference($pointer);
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8673,8 +8926,8 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    }
 		    $$.type = $pointer;
                   }
-                  | pointer LAND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | pointer LAND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    SwigType_add_rvalue_reference($pointer);
 		    if ($$.type) {
 		      SwigType_push($pointer,$$.type);
@@ -8682,23 +8935,23 @@ abstract_declarator_no_memberpointer : pointer variadic_opt {
 		    }
 		    $$.type = $pointer;
                   }
-                  | direct_abstract_declarator
-                  | AND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | qualified_direct_abstract_declarator
+                  | AND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
-		    if ($direct_abstract_declarator.type) {
-		      SwigType_push($$.type,$direct_abstract_declarator.type);
-		      Delete($direct_abstract_declarator.type);
+		    if ($qualified_direct_abstract_declarator.type) {
+		      SwigType_push($$.type,$qualified_direct_abstract_declarator.type);
+		      Delete($qualified_direct_abstract_declarator.type);
 		    }
                   }
-                  | LAND direct_abstract_declarator {
-		    $$ = $direct_abstract_declarator;
+                  | LAND qualified_direct_abstract_declarator {
+		    $$ = $qualified_direct_abstract_declarator;
 		    $$.type = NewStringEmpty();
 		    SwigType_add_rvalue_reference($$.type);
-		    if ($direct_abstract_declarator.type) {
-		      SwigType_push($$.type,$direct_abstract_declarator.type);
-		      Delete($direct_abstract_declarator.type);
+		    if ($qualified_direct_abstract_declarator.type) {
+		      SwigType_push($$.type,$qualified_direct_abstract_declarator.type);
+		      Delete($qualified_direct_abstract_declarator.type);
 		    }
                   }
                   | AND variadic_opt {
@@ -8737,6 +8990,28 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET array_dimen
                   | LPAREN parms RPAREN {
 		    $$ = default_decl;
                     declarator_add_function(&$$, $parms, 0);
+                  }
+                  ;
+
+/* A direct_abstract_declarator, which can also end in a function declarator with an exception specification.  No
+   other declarator follows one, so that a '(' after 'noexcept' always starts its expression.  An abstract declarator
+   does not declare a function, so a 'noexcept' is part of the function type, as for a named function pointer
+   parameter, and a 'throw' exception specification is dropped.  For example, the parameter type of:
+     void f(int (*)(int) noexcept);
+   is 'p.q(noexcept).f(int).int'. */
+qualified_direct_abstract_declarator : direct_abstract_declarator
+                  | direct_abstract_declarator[in] LPAREN parms RPAREN exception_specification_no_virt_specifier {
+                    $$ = $in;
+                    declarator_add_function(&$$, $parms, add_noexcept_qualifier(0, $exception_specification_no_virt_specifier.nexcept));
+                  }
+                  | direct_abstract_declarator[in] LPAREN parms RPAREN cv_ref_qualifier exception_specification_no_virt_specifier {
+                    SwigType *qualifier = add_noexcept_qualifier($cv_ref_qualifier.qualifier, $exception_specification_no_virt_specifier.nexcept);
+                    $$ = $in;
+                    declarator_add_function(&$$, $parms, qualifier);
+                  }
+                  | LPAREN parms RPAREN exception_specification_no_virt_specifier {
+                    $$ = default_decl;
+                    declarator_add_function(&$$, $parms, add_noexcept_qualifier(0, $exception_specification_no_virt_specifier.nexcept));
                   }
                   ;
 
@@ -10313,26 +10588,24 @@ class_virt_specifier_opt : FINAL {
                }
                ;
 
-noexcept_specifier_opt : %empty {
-                 $$ = 0;
+/* A 'throw' or 'noexcept' specifier, which is exception_specification without its virt-specifiers, for the end of a
+   function declarator in the parentheses of another declarator or in an abstract declarator. */
+exception_specification_no_virt_specifier : THROW LPAREN parms RPAREN {
+                    $$ = default_dtype;
+                    $$.throws = $parms;
+                    $$.throwf = NewString("1");
                }
                | NOEXCEPT {
-                 $$ = NewString("true");
+                    $$ = default_dtype;
+                    $$.nexcept = NewString("true");
                }
                | NOEXCEPT LPAREN expr RPAREN {
-                 $$ = $expr.val;
+                    $$ = default_dtype;
+                    $$.nexcept = $expr.val;
                }
                ;
 
-exception_specification : THROW LPAREN parms RPAREN {
-		    $$ = default_dtype;
-                    $$.throws = $parms;
-                    $$.throwf = NewString("1");
-	       }
-	       | NOEXCEPT {
-		    $$ = default_dtype;
-                    $$.nexcept = NewString("true");
-	       }
+exception_specification : exception_specification_no_virt_specifier
 	       | virt_specifier_seq {
 		    $$ = default_dtype;
                     $$.final = $virt_specifier_seq;
@@ -10348,11 +10621,24 @@ exception_specification : THROW LPAREN parms RPAREN {
                     $$.nexcept = NewString("true");
 		    $$.final = $virt_specifier_seq;
 	       }
-	       | NOEXCEPT LPAREN expr RPAREN {
-		    $$ = default_dtype;
-                    $$.nexcept = $expr.val;
-	       }
 	       ;	
+
+/* The qualifiers that can end a function declarator in the parentheses of another declarator, as for the member
+   function f in:
+     int (*f() const noexcept)(int);
+   They are those of qualifiers_exception_specification except for a virt-specifier, which follows the whole declarator. */
+function_qualifiers : cv_ref_qualifier {
+                    $$ = default_dtype;
+                    $$.qualifier = $cv_ref_qualifier.qualifier;
+                    $$.refqualifier = $cv_ref_qualifier.refqualifier;
+               }
+               | exception_specification_no_virt_specifier
+               | cv_ref_qualifier exception_specification_no_virt_specifier {
+                    $$ = $exception_specification_no_virt_specifier;
+                    $$.qualifier = $cv_ref_qualifier.qualifier;
+                    $$.refqualifier = $cv_ref_qualifier.refqualifier;
+               }
+               ;
 
 qualifiers_exception_specification : cv_ref_qualifier {
 		    $$ = default_dtype;
@@ -10410,17 +10696,16 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     $$.final = $cpp_const.final;
 		    $$.constraint_node = $cpp_const.constraint_node;
                }
-               | LPAREN parms RPAREN SEMI { 
-                    Clear(scanner_ccode); 
-		    $$ = default_decl;
-                    $$.parms = $parms; 
-                    $$.have_parms = 1; 
+               | LPAREN parms RPAREN cpp_const def_args SEMI {
+                    Clear(scanner_ccode);
+                    $$ = parenthesised_name_function_end($parms, &$cpp_const);
+                    $$.defarg = $def_args.val;
+                    $$.stringdefarg = $def_args.stringval;
+                    $$.numdefarg = $def_args.numval;
                }
-               | LPAREN parms RPAREN LBRACE {
+               | LPAREN parms RPAREN cpp_const LBRACE {
                     if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-		    $$ = default_decl;
-                    $$.parms = $parms; 
-                    $$.have_parms = 1; 
+                    $$ = parenthesised_name_function_end($parms, &$cpp_const);
                }
                | EQUAL definetype SEMI { 
 		    $$ = default_decl;

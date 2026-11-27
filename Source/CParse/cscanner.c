@@ -280,7 +280,7 @@ String *skip_to_initializer_end(int after_token) {
  * of the literal.  yylook() needs the second column, yylex() the third and literal_type_code() the third given
  * the first, so the three are listed here once rather than as a switch statement in each of them. */
 
-static const struct literal_token {
+static const struct LiteralToken {
   int scanner_token; /* SWIG_TOKEN_* the scanner returns */
   int parser_token;  /* token yylook() returns to the grammar for it */
   int type_code;     /* T_* type code of the literal */
@@ -303,7 +303,7 @@ static const struct literal_token {
 
 /* The literal_tokens[] entry for the SWIG_TOKEN_* value 'tok', or 0 when the scanner token is not a literal. */
 
-static const struct literal_token *scanner_literal_token(int tok) {
+static const struct LiteralToken *scanner_literal_token(int tok) {
   size_t i;
   for (i = 0; i < sizeof(literal_tokens) / sizeof(literal_tokens[0]); i++) {
     if (literal_tokens[i].scanner_token == tok)
@@ -315,7 +315,7 @@ static const struct literal_token *scanner_literal_token(int tok) {
 /* The literal_tokens[] entry for the grammar token 'tok', or 0 when the token is not one a literal is passed to
  * the grammar as. */
 
-static const struct literal_token *parser_literal_token(int tok) {
+static const struct LiteralToken *parser_literal_token(int tok) {
   size_t i;
   for (i = 0; i < sizeof(literal_tokens) / sizeof(literal_tokens[0]); i++) {
     if (literal_tokens[i].parser_token == tok)
@@ -354,7 +354,7 @@ int promote_type(int t) {
 int literal_type_code(String *text) {
   Scanner *literal = NewScanner();
   String *copy = Copy(text);
-  const struct literal_token *entry;
+  const struct LiteralToken *entry;
   int code = T_UNKNOWN;
   int unary = 0;
   int tok;

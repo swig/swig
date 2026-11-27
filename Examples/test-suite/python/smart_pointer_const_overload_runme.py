@@ -31,6 +31,20 @@ def test(b, f):
     if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
+    # Test volatile method
+    if b.getx1v() != 1:
+        raise RuntimeError
+
+    if f.access1 != MUTABLE_ACCESS:
+        raise RuntimeError
+
+    # Test const volatile method
+    if b.getx1cv() != 1:
+        raise RuntimeError
+
+    if f.access1 != CONST_ACCESS:
+        raise RuntimeError
+
     # Test mutable method
     b.setx1(2)
 
@@ -54,6 +68,13 @@ def test(b, f):
         raise RuntimeError
 
     if f.access1 != MUTABLE_ACCESS:
+        raise RuntimeError
+
+    # Test extended const volatile method
+    if b.getx2cv() != 3:
+        raise RuntimeError
+
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test static method

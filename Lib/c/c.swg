@@ -7,6 +7,9 @@
 
 %include <cheader.swg>
 
+// Warnings for C++ keywords
+%include <ckw.swg>
+
 %insert("runtime") "clabels.swg"
 
 // The SWIG error codes, also in the header for the code calling the wrappers
@@ -53,10 +56,10 @@ macro_name(TM, size_t, no_attrs);
 // level const doesn't matter anyhow in the function declarations.
 %define same_type(TM, T, ATTRS)
 %typemap(TM ATTRS) T, const T "T"
-%typemap(TM ATTRS) T*, T&, T&&, T[ANY], T[] "T *"
-%typemap(TM ATTRS) const T*, const T[ANY], const T[] "const T *"
+%typemap(TM ATTRS) T*, T&, T&&, T[ANY], T[], T *const & "T *"
+%typemap(TM ATTRS) const T*, const T[ANY], const T[], const T *const & "const T *"
 %typemap(TM ATTRS) T**, T*&, T*[ANY], T*[], T[ANY][ANY] "T **"
-%typemap(TM ATTRS) const T**, const T*&, T *const &, const T*[ANY], const T*[], const T[ANY][ANY] "const T **"
+%typemap(TM ATTRS) const T**, const T*&, const T*[ANY], const T*[], const T[ANY][ANY] "const T **"
 // constant pointers
 %typemap(TM ATTRS) T * const "T *"
 %typemap(TM ATTRS) T* * const "T* *"
@@ -75,9 +78,10 @@ macro_name(TM, size_t, no_attrs);
 %enddef
 
 //Used by 'in' and 'out' typemaps
-%define same_action(TM, T, ACTION, ACTION_CREF, ATTRS)
+%define same_action(TM, T, ACTION, ACTION_CREF, ACTION_PTR_CREF, ATTRS)
 %typemap(TM ATTRS) T, const T ACTION
 %typemap(TM ATTRS) const T& ACTION_CREF
+%typemap(TM ATTRS) T *const &, const T *const & ACTION_PTR_CREF
 %typemap(TM ATTRS) T*, T&, T&&, T[ANY], T[] ACTION
 %typemap(TM ATTRS) const T*, const T[ANY], const T[] ACTION
 %typemap(TM ATTRS) T**, T*&, T*[ANY], T*[], T[ANY][ANY] ACTION
@@ -88,23 +92,23 @@ macro_name(TM, size_t, no_attrs);
 %typemap(TM ATTRS) const T* * const ACTION
 %enddef
 
-%define same_action_all_primitive_types(TM, ACTION, ACTION_CREF)
-same_action(TM, bool, ACTION, ACTION_CREF, bool_attrs);
-same_action(TM, short, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, unsigned short, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, int, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, unsigned int, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, long, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, unsigned long, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, long long, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, unsigned long long, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, char, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, signed char, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, unsigned char, ACTION, ACTION_CREF, no_attrs);
+%define same_action_all_primitive_types(TM, ACTION, ACTION_CREF, ACTION_PTR_CREF)
+same_action(TM, bool, ACTION, ACTION_CREF, ACTION_PTR_CREF, bool_attrs);
+same_action(TM, short, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, unsigned short, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, int, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, unsigned int, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, long, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, unsigned long, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, long long, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, unsigned long long, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, char, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, signed char, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, unsigned char, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
 //unsigned only
-same_action(TM, float, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, double, ACTION, ACTION_CREF, no_attrs);
-same_action(TM, size_t, ACTION, ACTION_CREF, no_attrs);
+same_action(TM, float, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, double, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
+same_action(TM, size_t, ACTION, ACTION_CREF, ACTION_PTR_CREF, no_attrs);
 %typemap(TM) void*, void const* ACTION
 %enddef
 
@@ -115,12 +119,24 @@ same_action(TM, size_t, ACTION, ACTION_CREF, no_attrs);
 %typemap(ctype) const void&, const void* "const void *"
 %typemap(ctype) void**, void*& "void **"
 %typemap(ctype) const void**, const void*& "const void **"
+%typemap(ctype) void *const & "void *"
+%typemap(ctype) const void *const & "const void *"
 // constant pointers
 %typemap(ctype) void* * const "void* * const"
 %typemap(ctype) const void* * const "const void* * const"
 
 same_macro_all_primitive_types_but_void(same_type,ctype);
 same_macro_all_primitive_types_but_void(cref_as_value,ctype);
+
+#ifndef SWIG_CPPMODE
+// When wrapping C, the wrapper has the parameters of the C function, so a two dimensional array decays to a pointer
+// to an array, as in 'int (*carg1)[4]', not to a pointer to a pointer
+%define c_twodim_array_type(TM, T, ATTRS)
+%typemap(TM ATTRS) T[ANY][ANY], const T[ANY][ANY] "$resolved_type"
+%enddef
+
+same_macro_all_primitive_types_but_void(c_twodim_array_type,ctype);
+#endif
 
 // trivial typemap for arrays of void pointers to avoid applying the object typemaps to them
 %typemap(ctype) void*[ANY], void*[] "void **"
@@ -141,7 +157,7 @@ same_macro_all_primitive_types_but_void(cref_as_value,ctype);
 %typemap(ctype) enum SWIGTYPE [ANY] "$resolved_type*"
 
 // Typemaps for assigning wrapper parameters to local variables
-same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
+same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;", "$1 = ($1_ltype) &$input;")
 
 %typemap(in) short [ANY], int [ANY], long [ANY], long long [ANY], char [ANY], float [ANY], double [ANY], unsigned char [ANY] "$1 = ($1_basetype *) $input;"
 %typemap(in) short * [ANY], int * [ANY], long * [ANY], long long * [ANY], char * [ANY], float * [ANY], double * [ANY] "$1 = ($1_basetype *) $input;"
@@ -151,89 +167,27 @@ same_action_all_primitive_types(in, "$1 = ($1_ltype) $input;", "$1 = &$input;")
 
 %typemap(in) SWIGTYPE [] "$1 = ($1_ltype) $input;"
 
-%typemap(in) SWIGTYPE (CLASS::*) {
-  if ($input) 
-    $1 = *($&1_ltype) &$input;
-}
-
 %typemap(in) SWIGTYPE "$1 = *($&1_ltype)$input;"
 
 %typemap(in) SWIGTYPE * "$1 = ($1_ltype) $input;"
 
-%typemap(in) SWIGTYPE *[ANY] {
-  if ($input) {
-    $1 = ($1_ltype) malloc($1_dim0 * sizeof($1_basetype));
-    size_t i = 0;
-    for ( ; i < $1_dim0; ++i)
-      if ($input[i])
-        $1[i] = ($*1_ltype) $input[i];
-      else
-        $1[i] = ($*1_ltype) 0;
-  }
-  else
-    $1 = ($1_ltype) 0;
-}
-
-%typemap(in) SWIGTYPE [ANY][ANY] {
-  if ($input) {
-    $1 = ($1_ltype) malloc($1_dim0 * $1_dim1 * sizeof($1_basetype));
-    size_t i = 0, j = 0;
-    for ( ; i < $1_dim0; ++i) {
-      for ( ; j < $1_dim1; ++j) {
-        if ($input[i][j])
-          $1[i][j] = * ($*1_ltype) $input[i][j];
-        else
-          $1[i][j] = * ($*1_ltype) 0;
-      }
-    }
-  }
-  else
-    $1 = ($1_ltype) 0;
-}
-
-%typemap(freearg) SWIGTYPE * [ANY], SWIGTYPE * [ANY][ANY] {
-  if ($input)
-    free($input);
-}
+%typemap(in) SWIGTYPE *const & ($*1_ltype temp = 0) %{
+  temp = ($*1_ltype) $input;
+  $1 = ($1_ltype) &temp;
+%}
 
 // Typemaps for assigning result values to a special return variable
-same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
+same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;", "$result = *$1;")
 
 %typemap(out) void ""
 
 %typemap(out) enum SWIGTYPE "$result = (int) $1;"
 %typemap(out) enum SWIGTYPE &, enum SWIGTYPE * "$result = $1;"
 
-%typemap(out) SWIGTYPE (CLASS::*) {
-  *($&1_ltype) &$result = $1; 
-}
-
 %typemap(out) SWIGTYPE "$result = (SwigObj*)new $1_ltype($1);"
 
 %typemap(out) SWIGTYPE *, SWIGTYPE &, SWIGTYPE && "$result = (SwigObj*) $1;"
-
-%typemap(out) SWIGTYPE * [ANY], SWIGTYPE [ANY][ANY] {
-  static SwigObj **_temp = 0;
-  if ($1) {
-    size_t i = 0;
-    if (_temp) {
-        for ( ; i < $1_dim0; ++i)
-          delete ($1_ltype *)_temp[i];
-        free(_temp);
-    }
-    _temp = (SwigObj**) malloc($1_dim0 * sizeof(SwigObj*));
-    for (i = 0 ; i < $1_dim0; ++i) {
-      if ($1[i]) {
-        _temp[i] = $1[i];
-      }
-      else
-        _temp[i] = (SwigObj*) 0;
-    }
-    $result = ($1_ltype) _temp;
-  }
-  else
-    $result = ($1_ltype) 0;
-}
+%typemap(out) SWIGTYPE *const & "$result = (SwigObj*) *$1;"
 
 /* Typecheck typemaps - The purpose of these is merely to issue a warning for overloaded C++ functions
  * that cannot be overloaded in the wrappers as more than one C++ type maps to a single C type */
@@ -316,8 +270,11 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
     SWIGTYPE &&,
     SWIGTYPE *const&,
     SWIGTYPE [],
-    SWIGTYPE (CLASS::*)
+    SWIGTYPE (CLASS::*),
+    SWIGTYPE (CLASS::*const&)
     ""
+
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 
 #ifdef SWIG_CPPMODE
 
@@ -325,8 +282,12 @@ same_action_all_primitive_types(out, "$result = $1;", "$result = *$1;")
 typedef struct SwigObj SwigObj;
 %}
 
+// Guarded as the header file of a module importing another one includes the header file of the other one
 %insert("cheader") %{
+#ifndef SwigObj_DEFINED
+#define SwigObj_DEFINED
 typedef struct SwigObj SwigObj;
+#endif
 %}
 
 #endif // SWIG_CPPMODE
@@ -346,6 +307,35 @@ typedef struct SwigObj SwigObj;
 
 same_macro_all_primitive_types_but_void(null_checked_reference_in, in);
 %typemap(in) enum SWIGTYPE & = SWIGTYPE &;
+
+%apply SWIGTYPE * { SWIGTYPE ((*const)(ANY)) };
+
+// A pointer to member, which C does not have, or a const reference to one is passed and returned by value as a struct holding its bytes, which only the
+// wrappers use, such as 'SWIGTYPE_m_Shape__f_void__double' for 'double (Shape::*)()'. Any other pointer or reference to one is opaque.
+%fragment("SWIG_C_MemberPointer", "header") %{
+template <typename M, typename S> void SWIG_C_MemberPointer_unpack(M &member_pointer, const S &data) {
+  typedef char swig_size_check[sizeof(M) <= sizeof(S) ? 1 : -1];
+  (void)sizeof(swig_size_check);
+  memcpy(&member_pointer, &data, sizeof(M));
+}
+
+template <typename S, typename M> void SWIG_C_MemberPointer_pack(S &data, const M &member_pointer) {
+  typedef char swig_size_check[sizeof(M) <= sizeof(S) ? 1 : -1];
+  (void)sizeof(swig_size_check);
+  memset(&data, 0, sizeof(S));
+  memcpy(&data, &member_pointer, sizeof(M));
+}
+%}
+
+%typemap(ctype) SWIGTYPE (CLASS::*), SWIGTYPE (CLASS::*const&) "$resolved_type"
+%typemap(in, fragment="SWIG_C_MemberPointer") SWIGTYPE (CLASS::*) "SWIG_C_MemberPointer_unpack($1, $input);"
+%typemap(in, fragment="SWIG_C_MemberPointer") (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) %{
+  SWIG_C_MemberPointer_unpack(temp, $input);
+  $1 = &temp;
+%}
+%typemap(out, fragment="SWIG_C_MemberPointer") SWIGTYPE (CLASS::*) "SWIG_C_MemberPointer_pack($result, $1);"
+%typemap(out, fragment="SWIG_C_MemberPointer") SWIGTYPE (CLASS::*const&) "SWIG_C_MemberPointer_pack($result, *$1);"
+%apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 
 %insert("runtime") %{
 #ifdef __cplusplus

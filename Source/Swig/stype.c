@@ -15,6 +15,7 @@
 #include "swig.h"
 #include "cparse.h"
 #include <ctype.h>
+#include <limits.h>
 
 /* -----------------------------------------------------------------------------
  * Synopsis
@@ -45,7 +46,7 @@
  *  'v.'                = Variadic (...)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
- *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
+ *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier), or noexcept for a function type
  *  'm(cls).'           = Pointer to member (cls::*)
  *  'auto.'             = C++20 constrained placeholder marker, always paired
  *                        with a 'c(<id>)' base, e.g. 'auto.c(Numeric)'
@@ -76,6 +77,8 @@
  *        m(Funcs).q(const).f(bool).long      long (Funcs::*)(bool) const
  *        r.q(const).m(Funcs).f(int).long     long (Funcs::*const &)(int)
  *        m(Funcs).z.q(const).f(bool).long    long (Funcs::*)(bool) const &&
+ *        p.q(noexcept).f(bool).long          long (*)(bool) noexcept
+ *        m(Funcs).r.q(noexcept).f().long     long (Funcs::*)() & noexcept
  *
  * Function decl examples:
  *
@@ -196,6 +199,37 @@ void SwigType_push(SwigType *t, String *cons) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_push_merge_qualifiers()
+ *
+ * Pushes prefix, the prefix of a type that names a typedef, onto t, the type that the typedef resolves to.  A qualifier at the end of prefix
+ * is merged with one that t starts with and goes after any arrays that t starts with, as C++ qualifies the elements of an array.  For example,
+ * pushing 'r.q(const).' onto 'q(volatile).p.Foo' and 'q(const).' onto 'a(7).q(volatile).double' gives
+ *   r.q(const volatile).p.Foo           Foo *const volatile &
+ *   a(7).q(const volatile).double       double const volatile [7]
+ * rather than, as SwigType_push() gives,
+ *   r.q(const).q(volatile).p.Foo        Foo *volatile const &
+ *   q(const).a(7).q(volatile).double    double volatile const[7]
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_push_merge_qualifiers(SwigType *t, String *prefix) {
+  SwigType *last = SwigType_last(prefix);
+  if (last && SwigType_isqualifier(last) && (SwigType_isarray(t) || SwigType_isqualifier(t))) {
+    SwigType *arrays = SwigType_isarray(t) ? SwigType_pop_arrays(t) : 0;
+    String *qualifiers = SwigType_parm(last);
+    String *rest = SwigType_prefix(prefix);
+    SwigType_add_qualifier(t, qualifiers);
+    SwigType_push(t, arrays);
+    SwigType_push(t, rest);
+    Delete(rest);
+    Delete(qualifiers);
+    Delete(arrays);
+  } else {
+    SwigType_push(t, prefix);
+  }
+  Delete(last);
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_ispointer_return()
  *
  * Testing functions for querying a raw datatype
@@ -274,6 +308,20 @@ int SwigType_isenum(const SwigType *t) {
   return 0;
 }
 
+/* -----------------------------------------------------------------------------
+ * SwigType_isclasskey()
+ *
+ * Returns 1 if the type t starts with a class-key as defined by the C++ standard, that is "class", "struct" or "union",
+ * as in 'struct S', otherwise 0.  SwigType_isenum() is the equivalent for an enum.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_isclasskey(const SwigType *t) {
+  char *c = Char(t);
+  if (!t)
+    return 0;
+  return (strncmp(c, "struct ", 7) == 0) || (strncmp(c, "union ", 6) == 0) || (strncmp(c, "class ", 6) == 0);
+}
+
 int SwigType_issimple(const SwigType *t) {
   char *c = Char(t);
   if (!t)
@@ -311,7 +359,7 @@ int SwigType_issimple(const SwigType *t) {
  *     Arrays no dimension:   a().SWIGTYPE
  *     Arrays with dimension: a(ANY).SWIGTYPE
  *     Member pointer:        m(CLASS).SWIGTYPE
- *     Function pointer:      f(ANY).SWIGTYPE
+ *     Function pointer:      f(ANY).SWIGTYPE, without the function's qualifiers, such as 'noexcept'
  *     Enums:                 enum SWIGTYPE
  *     Types:                 SWIGTYPE
  *
@@ -348,23 +396,25 @@ SwigType *SwigType_default_create(const SwigType *ty) {
     if (numitems >= 1) {
       String *last_subtype = Getitem(l, numitems - 1);
       if (SwigType_isenum(last_subtype))
-        Setitem(l, numitems - 1, NewString("enum SWIGTYPE"));
+        Setitem(l, numitems - 1, "enum SWIGTYPE");
       else
-        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, "SWIGTYPE");
     }
 
     for (it = First(l); it.item; it = Next(it)) {
       String *subtype = it.item;
       if (SwigType_isarray(subtype)) {
         if (Equal(subtype, "a()."))
-          Append(r, NewString("a()."));
+          Append(r, "a().");
         else
-          Append(r, NewString("a(ANY)."));
+          Append(r, "a(ANY).");
+      } else if (SwigType_isqualifier(subtype) && SwigType_isfunction(Next(it).item)) {
+        /* Drop the qualifiers of a function type, which f(ANY) matches whatever they are */
       } else if (SwigType_isfunction(subtype)) {
-        Append(r, NewString("f(ANY).SWIGTYPE"));
+        Append(r, "f(ANY).SWIGTYPE");
         break;
       } else if (SwigType_ismemberpointer(subtype)) {
-        Append(r, NewString("m(CLASS).SWIGTYPE"));
+        Append(r, "m(CLASS).SWIGTYPE");
         break;
       } else {
         Append(r, subtype);
@@ -430,14 +480,14 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
       if (SwigType_isarray(subtype)) {
         if (is_enum) {
           /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-          Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+          Setitem(l, numitems - 1, "SWIGTYPE");
         } else {
           /* array deduction, a(ANY). => a(). => p. */
-          String *deduced_subtype = 0;
+          const char *deduced_subtype = 0;
           if (Strcmp(subtype, "a().") == 0) {
-            deduced_subtype = NewString("p.");
+            deduced_subtype = "p.";
           } else if (Strcmp(subtype, "a(ANY).") == 0) {
-            deduced_subtype = NewString("a().");
+            deduced_subtype = "a().";
           } else {
             assert(0);
           }
@@ -445,10 +495,10 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
         }
       } else if (SwigType_ismemberpointer(subtype)) {
         /* member pointer deduction, m(CLASS). => p. */
-        Setitem(l, numitems - 2, NewString("p."));
+        Setitem(l, numitems - 2, "p.");
       } else if (is_enum && !SwigType_isqualifier(subtype)) {
         /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, "SWIGTYPE");
       } else {
         /* simple type deduction, eg, r.p.p. => r.p. */
         /* also function pointers eg, p.f(ANY). => p. */
@@ -457,7 +507,7 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
     } else {
       if (is_enum) {
         /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, "SWIGTYPE");
       } else {
         /* delete the only item, we are done with deduction */
         Delitem(l, 0);
@@ -529,10 +579,110 @@ String *SwigType_namestr(const SwigType *t) {
   return r;
 }
 
+/* Return a qualifier element with the qualifiers of the qualifier element q, such as 'q(const noexcept).', that are 'noexcept'
+   if is_noexcept is set or those that are not if it is not set, or NULL if there are none. */
+static SwigType *qualifier_noexcept_part(const SwigType *q, int is_noexcept) {
+  SwigType *result = 0;
+  String *qualifier_list = SwigType_parm(q);
+  List *words = Split(qualifier_list, ' ', INT_MAX);
+  Iterator word;
+  for (word = First(words); word.item; word = Next(word)) {
+    if (!!Equal(word.item, "noexcept") == !!is_noexcept) {
+      if (!result)
+        result = NewStringEmpty();
+      SwigType_add_qualifier(result, word.item);
+    }
+  }
+  Delete(words);
+  Delete(qualifier_list);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_remove_noexcept_qualifier()
+ *
+ * Removes the 'noexcept' from the qualifier element at the start of t, such as the qualifiers 'q(const noexcept).' of a
+ * function type, and the element too if it has no other qualifier.  Returns 1 if t had a 'noexcept' and 0 if not.
+ * ----------------------------------------------------------------------------- */
+
+int SwigType_remove_noexcept_qualifier(SwigType *t) {
+  SwigType *noexcept_qualifier;
+  SwigType *other_qualifiers;
+  if (!SwigType_isqualifier(t))
+    return 0;
+  noexcept_qualifier = qualifier_noexcept_part(t, 1);
+  if (!noexcept_qualifier)
+    return 0;
+  other_qualifiers = qualifier_noexcept_part(t, 0);
+  SwigType_del_qualifier(t);
+  if (other_qualifiers)
+    SwigType_push(t, other_qualifiers);
+  Delete(other_qualifiers);
+  Delete(noexcept_qualifier);
+  return 1;
+}
+
+/* Return a copy of the type t without the 'noexcept' of each function type in it, as in 'p.q(noexcept).f(int).int' or
+   'm(C).q(const noexcept).f().int', but not in the parameter types of a function. */
+static SwigType *function_noexcept_removed(const SwigType *t) {
+  SwigType *result = NewStringEmpty();
+  List *elements = SwigType_split(t);
+  int nelements = Len(elements);
+  int i;
+  for (i = 0; i < nelements; i++) {
+    SwigType *element = Getitem(elements, i);
+    if (SwigType_isqualifier(element) && i + 1 < nelements && SwigType_isfunction(Getitem(elements, i + 1))) {
+      SwigType *qualifiers = qualifier_noexcept_part(element, 0);
+      if (qualifiers)
+        Append(result, qualifiers);
+      Delete(qualifiers);
+    } else {
+      Append(result, element);
+    }
+  }
+  Delete(elements);
+  return result;
+}
+
+/* Return the qualifiers of a function type, such as 'r.q(const noexcept).', as the text that follows its parameter list, 'const & noexcept'. */
+static String *function_qualifiers_str(const SwigType *qualifiers) {
+  String *result = NewStringEmpty();
+  const char *refqualifier = 0;
+  int is_noexcept = 0;
+  List *elements = SwigType_split(qualifiers);
+  Iterator element;
+  for (element = First(elements); element.item; element = Next(element)) {
+    if (SwigType_isqualifier(element.item)) {
+      SwigType *cv_qualifier = qualifier_noexcept_part(element.item, 0);
+      SwigType *noexcept_qualifier = qualifier_noexcept_part(element.item, 1);
+      if (cv_qualifier) {
+        String *cv_qualifiers = SwigType_parm(cv_qualifier);
+        Printv(result, Len(result) ? " " : "", cv_qualifiers, NIL);
+        Delete(cv_qualifiers);
+      }
+      if (noexcept_qualifier)
+        is_noexcept = 1;
+      Delete(cv_qualifier);
+      Delete(noexcept_qualifier);
+    } else if (SwigType_isreference(element.item)) {
+      refqualifier = "&";
+    } else if (SwigType_isrvalue_reference(element.item)) {
+      refqualifier = "&&";
+    }
+  }
+  if (refqualifier)
+    Printv(result, Len(result) ? " " : "", refqualifier, NIL);
+  if (is_noexcept)
+    Printv(result, Len(result) ? " " : "", "noexcept", NIL);
+  Delete(elements);
+  return result;
+}
+
 /* -----------------------------------------------------------------------------
  * SwigType_str()
  *
  * Create a C string representation of a datatype.
+ * The qualifiers of a function type, such as those of a member function and 'noexcept', follow its parameter list.
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
@@ -540,14 +690,15 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
   String *element = 0;
   String *nextelement;
   String *forwardelement;
-  SwigType *member_function_qualifiers = 0;
+  SwigType *function_qualifiers = 0;
   List *elements;
   int nelements, i;
 
   if (id) {
-    /* Stringify the id expanding templates, for example when the id is a fully qualified class template name */
+    /* Stringify the id expanding templates, for example when the id is a fully qualified class template name. The id is
+     * not split into type elements as the declarator 'f(int x)' would otherwise lose its name 'f' as a function element. */
     String *id_str = NewString(id); /* unfortunate copy due to current const limitations */
-    result = SwigType_str(id_str, 0);
+    result = SwigType_namestr(id_str);
     Delete(id_str);
   } else {
     result = NewStringEmpty();
@@ -573,12 +724,20 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
       forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
-      if (!member_function_qualifiers) {
-        DOH *q = 0;
-        q = SwigType_parm(element);
-        Insert(result, 0, " ");
-        Insert(result, 0, q);
-        Delete(q);
+      if (!function_qualifiers) {
+        if (SwigType_isfunction(nextelement)) {
+          /* The qualifiers of a function type go after its parameter list, as for the 'noexcept' in 'p.q(noexcept).f().int' */
+          function_qualifiers = Copy(element);
+        } else {
+          DOH *q = 0;
+          q = SwigType_parm(element);
+          /* No space after a qualifier with nothing after it, as in 'int (*const)(int)' */
+          if (Len(result) > 0) {
+            Insert(result, 0, " ");
+          }
+          Insert(result, 0, q);
+          Delete(q);
+        }
       }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
@@ -602,19 +761,19 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
           Append(next3elements, Getitem(elements, j));
         }
         if (SwigType_isfunction(next3elements))
-          member_function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
+          function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
         Delete(next3elements);
       }
       Delete(q);
     } else if (SwigType_isreference(element)) {
-      if (!member_function_qualifiers)
+      if (!function_qualifiers)
         Insert(result, 0, "&");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
         Insert(result, 0, "(");
         Append(result, ")");
       }
     } else if (SwigType_isrvalue_reference(element)) {
-      if (!member_function_qualifiers)
+      if (!function_qualifiers)
         Insert(result, 0, "&&");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
         Insert(result, 0, "(");
@@ -650,13 +809,13 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
           Append(result, ",");
       }
       Append(result, ")");
-      if (member_function_qualifiers) {
-        String *p = SwigType_str(member_function_qualifiers, 0);
+      if (function_qualifiers) {
+        String *p = function_qualifiers_str(function_qualifiers);
         Append(result, " ");
         Append(result, p);
         Delete(p);
-        Delete(member_function_qualifiers);
-        member_function_qualifiers = 0;
+        Delete(function_qualifiers);
+        function_qualifiers = 0;
       }
       Delete(parms);
     } else {
@@ -737,7 +896,13 @@ SwigType *SwigType_ltype(const SwigType *s) {
     if (ignore_member_function_qualifiers) {
       /* cv-qualifiers and ref-qualifiers up until the f() element have already been added */
     } else if (SwigType_isqualifier(element)) {
-      /* swallow cv-qualifiers */
+      /* swallow cv-qualifiers, but not the 'noexcept' of a function type, which an assignment cannot add */
+      if (i + 1 < nelements && SwigType_isfunction(Getitem(elements, i + 1))) {
+        SwigType *noexcept_qualifier = qualifier_noexcept_part(element, 1);
+        if (noexcept_qualifier)
+          Append(result, noexcept_qualifier);
+        Delete(noexcept_qualifier);
+      }
     } else if (SwigType_ispointer(element)) {
       Append(result, element);
       firstarray = 0;
@@ -805,7 +970,7 @@ SwigType *SwigType_ltype(const SwigType *s) {
  * any C assignment rules.
  *
  *      -   Qualifiers such as 'const' and 'volatile' are stripped.
- *          Except for member function cv-qualifiers and ref-qualifiers.
+ *          Except for member function cv-qualifiers and ref-qualifiers and the 'noexcept' of a function type.
  *      -   An array is converted into a pointer to its first element (i.e., double [][] becomes double (*)[]).
  *      -   References are converted into a pointer.
  *      -   Typedef names that refer to read-only types will be replaced
@@ -858,7 +1023,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *element = 0;
   String *nextelement;
   String *forwardelement;
-  String *member_function_qualifiers = 0;
+  String *function_qualifiers = 0;
   SwigType *td, *tc = 0;
   const SwigType *rs;
   List *elements;
@@ -870,13 +1035,11 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
 
   result = NewStringEmpty();
 
-  if (SwigType_isconst(s)) {
+  /* Leave out the top level cv-qualifiers: a cast of a value does not need them and g++ warns that they are ignored */
+  if (SwigType_isqualifier(s) || SwigType_isconst(s)) {
     tc = Copy(s);
     Delete(SwigType_pop(tc));
-    if (SwigType_ismemberpointer(tc))
-      rs = s;
-    else
-      rs = tc;
+    rs = tc;
   } else {
     rs = s;
   }
@@ -917,13 +1080,20 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       forwardelement = 0;
     }
     if (SwigType_isqualifier(element)) {
-      if (!member_function_qualifiers) {
-        DOH *q = 0;
-        q = SwigType_parm(element);
-        Insert(result, 0, " ");
-        Insert(result, 0, q);
-        Delete(q);
-        clear = 0;
+      if (!function_qualifiers) {
+        if (SwigType_isfunction(nextelement)) {
+          function_qualifiers = Copy(element);
+        } else {
+          DOH *q = 0;
+          q = SwigType_parm(element);
+          /* No space after a qualifier with nothing after it, as in 'int (A::*const)(int)' */
+          if (Len(result) > 0) {
+            Insert(result, 0, " ");
+          }
+          Insert(result, 0, q);
+          Delete(q);
+          clear = 0;
+        }
       }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
@@ -948,13 +1118,13 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
           Append(next3elements, Getitem(elements, j));
         }
         if (SwigType_isfunction(next3elements))
-          member_function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
+          function_qualifiers = SwigType_pop_function_qualifiers(next3elements);
         Delete(next3elements);
       }
       firstarray = 0;
       Delete(q);
     } else if (SwigType_isreference(element)) {
-      if (!member_function_qualifiers) {
+      if (!function_qualifiers) {
         Insert(result, 0, "&");
         if (!isfunction)
           isreference = 1;
@@ -964,7 +1134,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
         Append(result, ")");
       }
     } else if (SwigType_isrvalue_reference(element)) {
-      if (!member_function_qualifiers) {
+      if (!function_qualifiers) {
         Insert(result, 0, "&&");
         if (!isfunction)
           isreference = 1;
@@ -1002,13 +1172,13 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       }
       Append(result, ")");
       Delete(parms);
-      if (member_function_qualifiers) {
-        String *p = SwigType_str(member_function_qualifiers, 0);
+      if (function_qualifiers) {
+        String *p = function_qualifiers_str(function_qualifiers);
         Append(result, " ");
         Append(result, p);
         Delete(p);
-        Delete(member_function_qualifiers);
-        member_function_qualifiers = 0;
+        Delete(function_qualifiers);
+        function_qualifiers = 0;
         clear = 0;
       }
       isfunction = 1;
@@ -1235,6 +1405,7 @@ static String *manglestr_default(const SwigType *s) {
   String *result = 0;
   String *base = 0;
   SwigType *lt;
+  SwigType *lt_noexcept;
   SwigType *sr = SwigType_typedef_resolve_all(s);
   SwigType *sq = SwigType_typedef_qualified(sr);
   SwigType *ss = SwigType_remove_global_scope_prefix(sq);
@@ -1249,7 +1420,10 @@ static String *manglestr_default(const SwigType *s) {
     type = ss;
   }
 
-  lt = SwigType_ltype(type);
+  /* A pointer to a noexcept function converts to a pointer to the function without noexcept, so both have the same runtime type */
+  lt_noexcept = SwigType_ltype(type);
+  lt = function_noexcept_removed(lt_noexcept);
+  Delete(lt_noexcept);
   result = SwigType_prefix(lt);
   base = SwigType_base(lt);
 
@@ -1319,11 +1493,16 @@ String *SwigType_manglestr(const SwigType *s) {
  * SwigType_typename_replace()
  *
  * Replaces a typename in a type with something else.  Needed for templates.
- * Collapses duplicate const into a single const.
+ * Merges the qualifiers that meet into one qualifier, which collapses a duplicate const.
+ * A qualifier goes after the arrays of an array, as C++ qualifies the elements of an array.
  * Reference collapsing probably should be implemented here.
  * Example:
- *   t=r.q(const).T pat=T rep=int           =>  r.q(const).int
- *   t=r.q(const).T pat=T rep=q(const).int  =>  r.q(const).int  (duplicate const removed)
+ *   t=r.q(const).T pat=T rep=int                    =>  r.q(const).int
+ *   t=r.q(const).T pat=T rep=q(const).int           =>  r.q(const).int  (duplicate const removed)
+ *   t=r.q(const).T pat=T rep=q(volatile).int        =>  r.q(const volatile).int
+ *   t=r.q(const).T pat=T rep=q(const volatile).int  =>  r.q(const volatile).int
+ *   t=r.q(const).T pat=T rep=a(3).int               =>  r.a(3).q(const).int
+ *   t=r.q(const).T pat=T rep=a(3).q(const).int      =>  r.a(3).q(const).int
  * ----------------------------------------------------------------------------- */
 
 void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
@@ -1359,12 +1538,15 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     } else if (SwigType_issimple(e)) {
       if (Equal(e, pat)) {
         /* Replaces a type of the form 'pat' with 'rep<args>' */
-        if (SwigType_isconst(rep) && i > 0 && SwigType_isconst(Getitem(elem, i - 1))) {
-          /* Collapse duplicate const into a single const */
-          SwigType *rep_without_const = Copy(rep);
-          Delete(SwigType_pop(rep_without_const));
-          Replace(e, pat, rep_without_const, DOH_REPLACE_ANY);
-          Delete(rep_without_const);
+        if ((SwigType_isqualifier(rep) || SwigType_isarray(rep)) && i > 0 && SwigType_isqualifier(Getitem(elem, i - 1))) {
+          /* Merge the qualifiers that meet, so 'r.q(const).T' with rep 'q(volatile).int' becomes 'r.q(const volatile).int'.
+           * The qualifier goes after the arrays of rep, so with rep 'a(3).int' it becomes 'r.a(3).q(const).int' */
+          SwigType *merged = Copy(rep);
+          SwigType_push_merge_qualifiers(merged, nt);
+          Clear(nt);
+          Clear(e);
+          Append(e, merged);
+          Delete(merged);
         } else {
           Replace(e, pat, rep, DOH_REPLACE_ANY);
         }

@@ -38,3 +38,18 @@ memberPtr = mp.NULLPT
 check ("Square area ", 100.0, mp.do_op(s,mp.AREAPT))
 check ("Square perim", 40.0, mp.do_op(s,mp.PERIMPT))
 
+-- Const references to member pointers
+check ("Square area", 100.0, mp.do_op_cref(s,area_pt))
+check ("Square perim", 40.0, mp.do_op_cref(s,mp.perimetervar_td_cref()))
+check ("Square perim", 40.0, mp.do_op(s,mp.perimetervar_td_cref()))
+assert(not pcall(mp.do_op_cref, s, mp.ADD_BY_VALUE))
+
+-- Overloaded on the member pointer type
+check ("Overload by value", 3, mp.call_overloaded(mp.ADD_BY_VALUE, 1, 2))
+check ("Overload by pointer", -7, mp.call_overloaded(mp.ADD_BY_POINTER, 3, 4))
+check ("Overload by int", 110, mp.call_overloaded(10, 5, 6))
+
+-- Overloaded on a member pointer and a pointer, only the pointer taking nil
+check ("Overload by member pointer", 3, mp.memberpt_or_pointer(mp.ADD_BY_VALUE))
+check ("Overload by pointer", 10, mp.memberpt_or_pointer(mp.Funktions()))
+check ("Overload by nil", 20, mp.memberpt_or_pointer(nil))

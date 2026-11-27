@@ -27,4 +27,13 @@ check::equal($d->mutable_var, 84, "derived mutable_var");
 check_read_only($d, "DerivedImmutableVars", "specific_immutable_var");
 check::equal($d->specific_immutable_var, 41, "derived specific_immutable_var");
 
+$p = new PointerVars($v);
+check::classname('ImmutableVars', $p->volatile_ptr_var);
+check::equal($p->volatile_ptr_var->mutable_var, 80, "volatile_ptr_var");
+$p->volatile_ptr_var = $d;
+check::equal($p->volatile_ptr_var->mutable_var, 84, "volatile_ptr_var set");
+check_read_only($p, "PointerVars", "const_volatile_ptr_var");
+check::classname('ImmutableVars', $p->const_volatile_ptr_var);
+check::equal($p->const_volatile_ptr_var->const_var, 42, "const_volatile_ptr_var");
+
 check::done();

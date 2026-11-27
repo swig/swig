@@ -133,6 +133,7 @@ extern SwigType *SwigType_del_qualifier(SwigType *t);
 extern SwigType *SwigType_remove_reference(SwigType *t);
 extern SwigType *SwigType_remove_qualifier(SwigType *t);
 extern SwigType *SwigType_remove_qualifier_reference(SwigType *t);
+extern int SwigType_remove_noexcept_qualifier(SwigType *t);
 extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
 extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
 extern SwigType *SwigType_pop_function(SwigType *t);
@@ -143,6 +144,7 @@ extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node
 extern List *SwigType_split(const SwigType *t);
 extern String *SwigType_pop(SwigType *t);
 extern void SwigType_push(SwigType *t, String *s);
+extern void SwigType_push_merge_qualifiers(SwigType *t, String *prefix);
 extern SwigType *SwigType_last(const SwigType *t);
 extern List *SwigType_parmlist(const SwigType *p);
 extern String *SwigType_parm(const SwigType *p);
@@ -173,6 +175,7 @@ extern int SwigType_ismutable(const SwigType *t);
 extern int SwigType_isvarargs(const SwigType *t);
 extern int SwigType_istemplate(const SwigType *t);
 extern int SwigType_isenum(const SwigType *t);
+extern int SwigType_isclasskey(const SwigType *t);
 extern int SwigType_isauto(const SwigType *t);
 extern int SwigType_isconcept(const SwigType *t);
 extern String *SwigType_concept_name(const SwigType *t);
@@ -182,6 +185,7 @@ extern int SwigType_isdecltype(const SwigType *t);
 extern String *SwigType_decltype_expr(const SwigType *t);
 extern int SwigType_check_decl(const SwigType *t, const_String_or_char_ptr decl);
 extern SwigType *SwigType_strip_qualifiers(const SwigType *t);
+extern SwigType *SwigType_strip_qualifiers_except_member_function(const SwigType *t);
 extern SwigType *SwigType_strip_single_qualifier(const SwigType *t);
 extern SwigType *SwigType_functionpointer_decompose(SwigType *t);
 extern String *SwigType_base(const SwigType *t);
@@ -305,7 +309,6 @@ extern String *Swig_name_copyconstructor(const_String_or_char_ptr nspace, const_
 extern String *Swig_name_destroy(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
 extern String *Swig_name_disown(const_String_or_char_ptr nspace, const_String_or_char_ptr classname);
 
-extern void Swig_naming_init(void);
 extern void Swig_name_namewarn_add(String *prefix, String *name, SwigType *decl, Hash *namewrn);
 extern void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *namewrn, ParmList *declaratorparms);
 extern void Swig_name_inherit(String *base, String *derived);
@@ -319,6 +322,7 @@ extern String *Swig_name_warning(Node *n, String *prefix, String *name, SwigType
 extern String *Swig_name_str(Node *n);
 extern String *Swig_name_decl(Node *n);
 extern String *Swig_name_fulldecl(Node *n);
+extern String *Swig_name_extern_decl(Node *n, SwigType *type);
 
 /* --- parameterized rename functions --- */
 
@@ -458,7 +462,6 @@ extern void Swig_typemap_attach_parms(const_String_or_char_ptr tmap_method, Parm
 
 extern void Swig_fragment_register(Node *fragment);
 extern void Swig_fragment_emit(String *name);
-extern void Swig_fragment_clear(String *section);
 
 /* --- Extension support --- */
 

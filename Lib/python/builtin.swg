@@ -130,10 +130,12 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
 
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
+  PyTypeObject *tp = Py_TYPE((PyObject *)descr);
   PyObject_GC_UnTrack(descr);
   SWIG_Py_XDECREF((PyObject *)PyDescr_TYPE(descr));
   SWIG_Py_XDECREF((PyObject *)PyDescr_NAME(descr));
   PyObject_GC_Del(descr);
+  SWIG_PyType_DeallocRelease(tp);
 }
 
 SWIGINTERN PyObject *
@@ -199,7 +201,7 @@ SwigPyStaticVar_TypeOnce(void) {
   static PyTypeObject staticvar_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
       SWIG_RUNTIME_MODULE ".SwigPyStaticVar",   /* tp_name */
       sizeof(PyGetSetDescrObject),              /* tp_basicsize */
@@ -272,13 +274,9 @@ SwigPyStaticVar_TypeOnce(void) {
       0                                         /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    staticvar_type = tmp;
-    type_init = 1;
-    if (PyType_Ready(&staticvar_type) < 0)
+    if (SWIG_Python_ReadyStaticType(&staticvar_type, &type_template, NULL, "SwigPyStaticVar") != 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", (PyObject *)&staticvar_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&staticvar_type);
+    type_init = 1;
   }
   return &staticvar_type;
 #else
@@ -306,8 +304,11 @@ SwigPyStaticVar_TypeOnce(void) {
   }
   PyErr_Clear();
   pytype = PyType_FromSpec(&spec);
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }
@@ -325,7 +326,7 @@ SwigPyObjectType_TypeOnce(void) {
   static PyTypeObject swigpyobjecttype_type;
   static int type_init = 0;
   if (!type_init) {
-    const PyTypeObject tmp = {
+    const PyTypeObject type_template = {
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
       SWIG_RUNTIME_MODULE ".SwigPyObjectType",  /* tp_name */
       PyType_Type.tp_basicsize,                 /* tp_basicsize */
@@ -398,14 +399,9 @@ SwigPyObjectType_TypeOnce(void) {
       0                                         /* tp_next */
 #endif
     };
-    PyObject *runtime_data_module = SWIG_runtime_data_module();
-    swigpyobjecttype_type = tmp;
-    type_init = 1;
-    swigpyobjecttype_type.tp_base = &PyType_Type;
-    if (PyType_Ready(&swigpyobjecttype_type) < 0)
+    if (SWIG_Python_ReadyStaticType(&swigpyobjecttype_type, &type_template, &PyType_Type, "SwigPyObjectType") != 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "SwigPyObjectType", (PyObject *)&swigpyobjecttype_type) == 0)
-      SWIG_Py_INCREF((PyObject *)&swigpyobjecttype_type);
+    type_init = 1;
   }
   return &swigpyobjecttype_type;
 #else
@@ -429,8 +425,11 @@ SwigPyObjectType_TypeOnce(void) {
   }
   PyErr_Clear();
   pytype = PyType_FromSpec(&spec);
-  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) == 0)
-    SWIG_Py_INCREF(pytype);
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) != 0) {
+    SWIG_Py_DECREF(pytype);
+    return NULL;
+  }
+  SWIG_Py_XINCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
 }
@@ -483,7 +482,6 @@ SWIGINTERN PyObject *
 SwigPyBuiltin_ThisClosure (PyObject *self, void *SWIGUNUSEDPARM(closure)) {
   PyObject *result;
   result = (PyObject *)SWIG_Python_GetSwigThis(self);
-  SWIG_Py_XINCREF(result);
   return result;
 }
 
@@ -520,9 +518,9 @@ wrapper##_destructor_closure(PyObject *a) {			\
 SWIGINTERN void
 SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrappername, PyObject *a) {
   SwigPyObject *sobj;
+  PyTypeObject *tp = Py_TYPE(a);
   sobj = (SwigPyObject *)a;
-  if (sobj->weakreflist != NULL)
-    PyObject_ClearWeakRefs(a);
+  SwigPyObject_ClearWeakRefs(sobj);
   SWIG_Py_XDECREF(sobj->swigdict);
   if (sobj->own) {
     PyObject *o;
@@ -537,11 +535,12 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
     PyErr_Restore(type, value, traceback);
     SWIG_Py_XDECREF(o);
   }
-  if (PyType_IS_GC(Py_TYPE(a))) {
+  if (PyType_IS_GC(tp)) {
     PyObject_GC_Del(a);
   } else {
     PyObject_Free(a);
   }
+  SWIG_PyType_DeallocRelease(tp);
 }
 
 #define SWIGPY_INQUIRY_CLOSURE(wrapper)			\

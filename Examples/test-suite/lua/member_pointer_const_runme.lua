@@ -35,4 +35,22 @@ check("Square perim", 40, v.do_op(s, v.PERIMPT))
 
 -- Typedefs
 check("Square perim", 40, v.do_op_td(s, perim_pt))
+
+-- The declarators after the first in a list
+check("Square perim", 40, v.do_op_list_td(s, perim_pt))
+check("Square perim", 40, v.do_op(s, v.perimeterptlist()))
+check("Square perim", 40, v.do_op(s, v.perimetervarlist))
+check("Square perim", 40, v.do_op(s, v.MemberPointerGetter():getPerimeterPtList()))
+
+-- Member functions returning member pointers
+local getter = v.MemberPointerGetter()
+check("Square area ", 100, v.do_op(s, getter:getAreaPt()))
+check("Square area ", 100, v.do_op(s, getter:getConstAreaPt()))
+check("Square area ", 100, v.do_op(s, v.MemberPointerGetter.getStaticAreaPt()))
+
+-- Member pointers to a namespaced class
+local adder = v.Adder()
+check("Add by member pointer", 11, adder:callAddPt(adder:getAddPt(), 10))
+assert(v.getAddPtDeclaration() == "int (MemberPointerSpace::Adder::*MemberPointerSpace::Adder::getAddPt())(int) const")
+
 check("Add by value", 3, v.call1(v.ADD_BY_VALUE, 1, 2))

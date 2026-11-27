@@ -2045,21 +2045,15 @@ SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
       SwigType *nt = Copy(Getattr(n, "type"));
 
       /* Fix for case 'typedef struct Hello hello;' */
-      {
-        const char *dclass[3] = {"struct ", "union ", "class "};
-        int i;
+      if (SwigType_isclasskey(nt)) {
         char *c = Char(nt);
-        for (i = 0; i < 3; i++) {
-          if (strstr(c, dclass[i]) == c) {
-            Replace(nt, dclass[i], "", DOH_REPLACE_FIRST);
-          }
-        }
+        Delslice(nt, 0, (int)(strchr(c, ' ') - c) + 1);
       }
       decl = Getattr(n, "decl");
       if (decl) {
         SwigType_push(nt, decl);
       }
-      SwigType_push(nt, prefix);
+      SwigType_push_merge_qualifiers(nt, prefix);
       Delete(base);
       Delete(prefix);
       ntab = Getattr(n, "sym:symtab");

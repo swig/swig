@@ -61,10 +61,16 @@ extern PerimeterFunc_td perimeterpt_td();
 extern double (Shape::*areavar)(void) const;
 extern double (Shape::*perimetervar)(void) const;
 extern PerimeterFunc_td perimetervar_td;
+
+/* The declarators after the first in a list */
+typedef double (Shape::*AreaFuncList_td)(void) const, (Shape::*PerimeterFuncList_td)(void) const;
+extern double do_op_list_td(Shape *s, PerimeterFuncList_td m);
+extern double (Shape::*areaptlist())(void) const, (Shape::*perimeterptlist())(void) const;
+extern double (Shape::*areavarlist)(void) const, (Shape::*perimetervarlist)(void) const;
 %}
 
 %{
-#  define SWIG_M_PI 3.14159265358979323846
+#  define SHAPE_PI 3.14159265358979323846
 
 /* Move the shape to a new location */
 void Shape::move(double dx, double dy) {
@@ -75,11 +81,11 @@ void Shape::move(double dx, double dy) {
 int Shape::nshapes = 0;
 
 double Circle::area(void) const {
-  return SWIG_M_PI*radius*radius;
+  return SHAPE_PI*radius*radius;
 }
 
 double Circle::perimeter(void) const {
-  return 2*SWIG_M_PI*radius;
+  return 2*SHAPE_PI*radius;
 }
 
 double Square::area(void) const {
@@ -114,6 +120,21 @@ PerimeterFunc_td perimeterpt_td() {
 double (Shape::*areavar)(void) const = &Shape::area;
 double (Shape::*perimetervar)(void) const = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
+
+double do_op_list_td(Shape *s, PerimeterFuncList_td m) {
+  return (s->*m)();
+}
+
+double (Shape::*areaptlist())(void) const {
+  return &Shape::area;
+}
+
+double (Shape::*perimeterptlist())(void) const {
+  return &Shape::perimeter;
+}
+
+double (Shape::*areavarlist)(void) const = &Shape::area;
+double (Shape::*perimetervarlist)(void) const = &Shape::perimeter;
 %}
 
 
@@ -147,3 +168,46 @@ int call1(int (Funktions::*d)(const int &, int) const, int a, int b) { Funktions
 %constant int (Funktions::*ADD_BY_VALUE)(const int &, int) const = &Funktions::addByValue;
 //%constant int * (Funktions::*ADD_BY_POINTER)(const int &, int) const = &Funktions::addByPointer;
 //%constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) const = &Funktions::addByReference;
+
+%inline %{
+/* Const member functions returning a pointer to a const member function */
+struct MemberPointerGetter {
+  double (Shape::*getAreaPt() const)(void) const { return &Shape::area; }
+  double (Shape::* const getConstAreaPt() const)(void) const { return &Shape::area; }
+  int * (Funktions::*getAddByPointer() const)(const int &, int) const { return &Funktions::addByPointer; }
+  /* Static, as the 'const' is that of the member function pointed to */
+  static double (Shape::*getStaticAreaPt())(void) const { return &Shape::area; }
+  static double (Shape::*staticAreaVar)(void) const;
+  /* The declarators after the first in a list */
+  double (Shape::*getAreaPtList() const)(void) const, (Shape::*getPerimeterPtList() const)(void) const;
+};
+%}
+
+%{
+double (Shape::*MemberPointerGetter::staticAreaVar)(void) const = &Shape::area;
+double (Shape::*MemberPointerGetter::getAreaPtList() const)(void) const { return &Shape::area; }
+double (Shape::*MemberPointerGetter::getPerimeterPtList() const)(void) const { return &Shape::perimeter; }
+%}
+
+%{
+namespace MemberPointerSpace {
+const char *addPtDeclaration = "";
+}
+%}
+
+%exception MemberPointerSpace::Adder::getAddPt %{
+  $action
+  MemberPointerSpace::addPtDeclaration = "$fulldecl";
+%}
+
+%inline %{
+/* Member pointers to a namespaced class written unqualified in the class */
+namespace MemberPointerSpace {
+struct Adder {
+  int add(int i) const { return i + 1; }
+  int (Adder::*getAddPt())(int) const { return &Adder::add; }
+  int callAddPt(int (Adder::*m)(int) const, int i) const { return (this->*m)(i); }
+};
+const char *getAddPtDeclaration() { return addPtDeclaration; }
+}
+%}

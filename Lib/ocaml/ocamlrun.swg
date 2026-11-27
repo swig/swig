@@ -465,6 +465,11 @@ extern "C" {
 	    }
 	    CAMLreturnT(int, caml_ptr_val_internal(caml_callback(*func_val, v), out, descriptor));
 	case C_string:
+	    /* A string has no type to check, so it is only accepted for a 'char *', which has no descriptor, or a 'void *' */
+	    if( descriptor && strcmp(descriptor->name, "_p_void") ) {
+		*out = 0;
+		CAMLreturnT(int, 1);
+	    }
 	    outptr = (void *)String_val(Field(v,0));
 	    break;
 	case C_ptr:
@@ -490,6 +495,44 @@ extern "C" {
 	    CAMLreturnT(void*, out);
 	else
 	    caml_failwith( "No appropriate conversion found." );
+    }
+
+    /* A member pointer can be larger than a pointer, so it is packed into a string with its type name. */
+    SWIGINTERN value caml_val_member( void *ptr, size_t sz, swig_type_info *descriptor ) {
+        CAMLparam0();
+        CAMLlocal1(vv);
+        size_t name_len = strlen(descriptor->name);
+        char *packed;
+        vv = caml_swig_alloc(1,C_string);
+        Store_field(vv,0,caml_alloc_string(1 + 2*sz + name_len));
+        packed = Bp_val(Field(vv,0));
+        packed[0] = '_';
+        memcpy(SWIG_PackData(packed + 1, ptr, sz), descriptor->name, name_len);
+        CAMLreturn(vv);
+    }
+
+    /* Return the data packed by caml_val_member() in v, a member pointer of size sz, if its type name matches descriptor, otherwise NULL. */
+    SWIGINTERN const char *caml_member_packed( value v, size_t sz, swig_type_info *descriptor ) {
+        CAMLparam1(v);
+        const char *packed;
+        if( !Is_block(v) || Tag_val(v) != C_string || caml_string_length(Field(v,0)) <= 2*sz ) {
+            CAMLreturnT(const char *, NULL);
+        }
+        packed = String_val(Field(v,0));
+        if( packed[0] != '_' || !SWIG_TypeCheck(packed + 1 + 2*sz, descriptor) ) {
+            CAMLreturnT(const char *, NULL);
+        }
+        CAMLreturnT(const char *, packed + 1);
+    }
+
+    /* The type name is checked before any data is unpacked into ptr, which can be a global variable. */
+    SWIGINTERN void caml_member_val( value v, void *ptr, size_t sz, swig_type_info *descriptor ) {
+        CAMLparam1(v);
+        const char *packed = caml_member_packed(v, sz, descriptor);
+        if( !packed || !SWIG_UnpackData(packed, ptr, sz) ) {
+            caml_failwith( "No appropriate conversion found." );
+        }
+        CAMLreturn0;
     }
 
     SWIGINTERN char *caml_string_val( value v ) {

@@ -16,6 +16,9 @@
   A *ap;
   const A *cap;
   A &ar = a;
+  A *const acp = &a;
+  A *volatile avp;
+  A *const volatile acvp = &a;
 
   int x;
   int *xp;
@@ -28,6 +31,9 @@
   Hello h;
   Hello *hp;
   Hello &hr = h;
+  Hello *const hcp = &h;
+  A *const &acpr = acp;
+  Hello *const &hcpr = hcp;
 
   void init() {
     b = "string b";
@@ -37,6 +43,10 @@
   int read_x() { return x; }
 
   void clear_xp() { xp = 0; }
+
+  void assign_ap(A *const p) { ap = p; }
+
+  void assign_hp(Hello *const &p) { hp = p; }
 
   std::string read_b() { return b; }
 %}

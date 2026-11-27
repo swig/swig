@@ -414,7 +414,7 @@ fail:
 SWIGRUNTIME
 int SWIG_NAPI_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_type_info *type) {
   void *tmp;
-  if (!SWIG_IsOK(SWIG_NAPI_ConvertPtr(valRef, &tmp, type, 0))) {
+  if (!SWIG_IsOK(SWIG_NAPI_ConvertPtr(valRef, &tmp, type, SWIG_POINTER_NO_NULL))) {
     return SWIG_ERROR;
   }
   memcpy(ptr, tmp, size);

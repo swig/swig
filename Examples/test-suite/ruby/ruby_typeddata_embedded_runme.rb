@@ -15,5 +15,5 @@ swig_assert_equal(42, thing.value, binding)
 # wrapper is embedded in the object slot. Without it the wrapper is malloc'd and
 # leaked, since the free callback no longer releases it.
 if RUBY_VERSION >= "3.3"
-  swig_assert(swig_wrapper_embedded(thing), binding, "wrapper should be embedded on Ruby >= 3.3")
+  swig_assert(wrapper_embedded(thing), binding, "wrapper should be embedded on Ruby >= 3.3")
 end

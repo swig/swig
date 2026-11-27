@@ -60,10 +60,14 @@ extern PerimeterFunc_td perimeterpt_td();
 extern double (Shape::*areavar)(void);
 extern double (Shape::*perimetervar)(void);
 extern PerimeterFunc_td perimetervar_td;
+
+/* Const references to member pointers */
+extern double do_op_cref(Shape *s, double (Shape::*const &m)(void));
+extern const PerimeterFunc_td &perimetervar_td_cref();
 %}
 
 %{
-#  define SWIG_M_PI 3.14159265358979323846
+#  define SHAPE_PI 3.14159265358979323846
 
 /* Move the shape to a new location */
 void Shape::move(double dx, double dy) {
@@ -74,11 +78,11 @@ void Shape::move(double dx, double dy) {
 int Shape::nshapes = 0;
 
 double Circle::area(void) {
-  return SWIG_M_PI*radius*radius;
+  return SHAPE_PI*radius*radius;
 }
 
 double Circle::perimeter(void) {
-  return 2*SWIG_M_PI*radius;
+  return 2*SHAPE_PI*radius;
 }
 
 double Square::area(void) {
@@ -113,6 +117,14 @@ PerimeterFunc_td perimeterpt_td() {
 double (Shape::*areavar)(void) = &Shape::area;
 double (Shape::*perimetervar)(void) = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
+
+double do_op_cref(Shape *s, double (Shape::*const &m)(void)) {
+  return (s->*m)();
+}
+
+const PerimeterFunc_td &perimetervar_td_cref() {
+  return perimetervar_td;
+}
 %}
 
 
@@ -147,3 +159,23 @@ int call3(int & (Funktions::*d)(const int &, int), int a, int b) { Funktions f; 
 %constant int * (Funktions::*ADD_BY_POINTER)(const int &, int) = &Funktions::addByPointer;
 %constant int & (Funktions::*ADD_BY_REFERENCE)(const int &, int) = &Funktions::addByReference;
 
+%inline %{
+/* Functions returning member pointers for the C target language, which does not wrap member pointer constants */
+int (Funktions::*addbyvaluept())(const int &, int) { return &Funktions::addByValue; }
+int * (Funktions::*addbypointerpt())(const int &, int) { return &Funktions::addByPointer; }
+
+/* Overloaded on the member pointer type */
+int call_overloaded(int (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return (f.*d)(a, b); }
+int call_overloaded(int * (Funktions::*d)(const int &, int), int a, int b) { Funktions f; return -*(f.*d)(a, b); }
+int call_overloaded(int c, int a, int b) { return c * (a + b); }
+
+/* Overloaded on a member pointer and a pointer, only the pointer taking NULL */
+int memberpt_or_pointer(int (Funktions::*d)(const int &, int)) { Funktions f; return (f.*d)(1, 2); }
+int memberpt_or_pointer(Funktions *f) { return f ? 10 : 20; }
+
+/* NULL member pointers */
+double (Shape::*get_null_memberpt())(void) { return 0; }
+bool is_null_memberpt(double (Shape::*m)(void)) { return m == 0; }
+const PerimeterFunc_td &get_null_memberpt_cref() { static PerimeterFunc_td m = 0; return m; }
+bool is_null_memberpt_cref(double (Shape::*const &m)(void)) { return m == 0; }
+%}

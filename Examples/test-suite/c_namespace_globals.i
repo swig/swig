@@ -11,6 +11,7 @@ int counter;
 const int limit = 5;
 int numbers[3];
 const int primes[3] = {2, 3, 5};
+int matrix[2][3];
 
 const int const_result(int value) {
   return value;

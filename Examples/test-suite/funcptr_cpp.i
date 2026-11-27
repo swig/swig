@@ -51,11 +51,40 @@ int callref1(int (&d)(const int &, int), int a, int b) { return d(a, b); }
 int callref2(AddByValueTypedef &d, int a, int b) { return d(a, b); }
 int (&getAddByValueRef1())(const int &, int) { return addByValue; }
 AddByValueTypedef &getAddByValueRef2() { return addByValue; }
+int callref3(int * (&d)(const int &, int), int a, int b) { return *d(a, b); }
+int * (&getAddByPointerRef())(const int &, int) { return addByPointer; }
 struct AddByValueRefHolder {
   AddByValueTypedef &fnRef;
   AddByValueRefHolder(AddByValueTypedef &f) : fnRef(f) {}
   int call(int a, int b) { return fnRef(a, b); }
 };
+
+// Const member functions returning a pointer or reference to a function
+struct AddByValueGetter {
+  int (*getPtr() const)(const int &, int) { return addByValue; }
+  int (&getRef() const)(const int &, int) { return addByValue; }
+};
+
+// Reference to a pointer to a function as a parameter or return type
+int callptrref1(int (*&d)(const int &, int), int a, int b) { return d(a, b); }
+int callptrref2(int (* const &d)(const int &, int), int a, int b) { return d(a, b); }
+int callptrref3(int * (*&d)(const int &, int), int a, int b) { return *d(a, b); }
+int (*&getAddByValuePtrRef())(const int &, int) { static int (*ptr)(const int &, int) = addByValue; return ptr; }
+
+// Function pointers with a typedef parameter returning an enum in a namespace or a pointer to a class
+namespace FuncPtrScope {
+  enum Colour { Red, Green };
+}
+typedef int ColourIndex;
+FuncPtrScope::Colour colourOf(int i) { return i ? FuncPtrScope::Green : FuncPtrScope::Red; }
+FuncPtrScope::Colour (*getColourFn())(int) { return colourOf; }
+FuncPtrScope::Colour callColourFn(FuncPtrScope::Colour (*fn)(ColourIndex), ColourIndex i) { return fn(i); }
+struct ColourHolder {
+  int index;
+};
+ColourHolder *holderOf(int i) { static ColourHolder holder; holder.index = i; return &holder; }
+ColourHolder *(*getHolderFn())(int) { return holderOf; }
+int callHolderFn(ColourHolder *(*fn)(ColourIndex), ColourIndex i) { return fn(i)->index; }
 %}
 
 %{
@@ -68,4 +97,49 @@ typedef int Array4[4];
 int (&getArrayRef1())[4] { return array4; }
 Array4 &getArrayRef2() { return array4; }
 int arrayRefSum(int (*a)[4]) { return (*a)[0] + (*a)[1] + (*a)[2] + (*a)[3]; }
+
+// Reference to a pointer to an array as a parameter
+int arrayPtrRefSum(int (*&a)[4]) { return arrayRefSum(a); }
+%}
+
+%ignore NotWrapped;
+
+%inline %{
+// Function pointers using a class that is not wrapped
+struct NotWrapped {
+  int value;
+};
+NotWrapped *getNotWrapped() { static NotWrapped notWrapped = { 42 }; return &notWrapped; }
+int notWrappedValue(NotWrapped *p) { return p->value; }
+int callNotWrappedFn(int (*fn)(NotWrapped *), NotWrapped *p) { return fn(p); }
+%}
+
+%constant int (*NOT_WRAPPED_VALUE)(NotWrapped *) = notWrappedValue;
+
+%{
+bool notBool(bool b) { return !b; }
+%}
+
+%constant bool (*NOT_BOOL)(bool) = notBool;
+
+%inline %{
+// Function pointer using bool, which no other declaration here uses
+int callBoolFn(bool (*fn)(bool), int i) { return fn(i != 0) ? 1 : 0; }
+%}
+
+// Typemaps for a function pointer, named or not, followed by locals, which are not part of the pattern
+%typemap(in, numinputs=0) int (*localsFn)(int) (int (*temp)(int)) %{
+  temp = localsAddOne;
+  $1 = temp;
+%}
+%typemap(in, numinputs=0) int (*)(int, int) (int (*temp)(int, int)) %{
+  temp = localsAdd;
+  $1 = temp;
+%}
+
+%inline %{
+int localsAddOne(int a) { return a + 1; }
+int localsAdd(int a, int b) { return a + b; }
+int callLocalsNamed(int (*localsFn)(int), int a) { return localsFn(a); }
+int callLocalsUnnamed(int (*fn)(int, int), int a, int b) { return fn(a, b); }
 %}

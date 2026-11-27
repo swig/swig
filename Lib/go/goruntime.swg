@@ -143,11 +143,11 @@ var Swig_escape_val interface{}
 %}
 
 /* Function pointers are translated by the code in go.cxx into
-   _swig_fnptr.  Member pointers are translated to _swig_memberptr.  */
+   _swig_fnptr.  Member pointers are translated to SwigMemberPtr.  */
 
 %insert(go_header) %{
 type _swig_fnptr *byte
-type _swig_memberptr *byte
+type SwigMemberPtr *byte
 %}
 
 /* Convert a Go interface value into a C++ pointer.  */

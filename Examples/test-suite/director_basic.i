@@ -192,3 +192,18 @@ public:
 
  %}
 
+ %feature("director") FuncPtrClass;
+
+ %inline %{
+
+int funcPtrAdd(int a, int b) { return a + b; }
+
+class FuncPtrClass {
+public:
+  virtual ~FuncPtrClass() {}
+  virtual int (*getFuncPtr(int which))(int, int) { return funcPtrAdd; }
+  virtual int (*const getConstFuncPtr())(int, int) { return funcPtrAdd; }
+};
+
+ %}
+

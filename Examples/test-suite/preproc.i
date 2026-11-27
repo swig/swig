@@ -393,8 +393,8 @@ int methodX(int x) { return x+100; }
    Also see preproc_cpp.i
 */
 %inline %{
-#define swig__attribute__(x)
-#define TCX_PACKED(d) d swig__attribute__ ((__packed__))
+#define TCX_ATTRIBUTE(x)
+#define TCX_PACKED(d) d TCX_ATTRIBUTE ((__packed__))
 
 
 TCX_PACKED (typedef struct tcxMessageTestImpl

@@ -46,6 +46,11 @@
   (if (not (string=? (Spam-type-get (new-Spam "hello")) "char *"))
       (error "Spam(char *)"))
   (if (not (string=? (Spam-type-get (new-Spam b)) "Bar *"))
-      (error "Spam(Bar *)")))
+      (error "Spam(Bar *)"))
+  ;; A const reference to a void pointer takes any pointer, as a void pointer does
+  (if (not (string=? (fvoidcref f) "fvoidcref:void *const &"))
+      (error "fvoidcref(Foo *)"))
+  (if (not (string=? (fvoidcref 3) "fvoidcref:int"))
+      (error "fvoidcref(int)")))
 
 (exit 0)

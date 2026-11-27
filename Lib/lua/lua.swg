@@ -234,6 +234,12 @@
 %typemap(directorin) SWIGTYPE &&
   "SWIG_NewPointerObj(L, (void *)&$1, $1_descriptor, 0);"
 
+%typemap(directorin) SWIGTYPE (CLASS::*)
+  "SWIG_NewMemberObj(L, (void *)&$1, sizeof($1), $1_descriptor);"
+
+%typemap(directorin) SWIGTYPE (CLASS::*const&)
+  "SWIG_NewMemberObj(L, (void *)&$1, sizeof($1), $*1_descriptor);"
+
 /* pass by value - use a temporary to avoid macro comma issues with templates */
 %typemap(directorin) SWIGTYPE %{
   $1_ltype *SWIG_temp_$1 = new $1_ltype(SWIG_STD_MOVE($1));
@@ -301,6 +307,20 @@
   }
   $result = *($1_ltype *)argp;
 }
+
+%typemap(directorout) SWIGTYPE (CLASS::*) %{
+  if (!SWIG_IsOK(SWIG_ConvertMember(L, $input, (void *)&$result, sizeof($result), $1_descriptor))) {
+    Swig::DirectorTypeMismatchException::raise(L, "Failed to convert return value to $1_type");
+  }
+%}
+
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE (CLASS::*const&) %{
+  static SwigTypeIdentity< $*1_ltype >::type SWIG_temp_result;
+  if (!SWIG_IsOK(SWIG_ConvertMember(L, $input, (void *)&SWIG_temp_result, sizeof(SWIG_temp_result), $*1_descriptor))) {
+    Swig::DirectorTypeMismatchException::raise(L, "Failed to convert return value to $1_type");
+  }
+  $result = &SWIG_temp_result;
+%}
 
 /* pass by value */
 %typemap(directorout) SWIGTYPE {

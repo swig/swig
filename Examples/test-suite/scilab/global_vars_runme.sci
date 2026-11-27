@@ -13,6 +13,8 @@ checkequal(A_x_get(a_get()), 5, "A_x_get(a)");
 ap_set(sa);
 A_x_set(sa, 14);
 checkequal(A_x_get(ap_get()), 14, "A_x_get(ap)");
+avp_set(sa);
+checkequal(A_x_get(avp_get()), 14, "A_x_get(avp)");
 delete_A(sa);
 
 sa2 = new_A();
@@ -23,9 +25,14 @@ checkequal(A_x_get(cap_get()), 16, "A_x_get(cap)");
 checkequal(A_x_get(ar_get()), 5, "A_x_get(ar)");
 ar_set(sa2);
 checkequal(A_x_get(ar_get()), 16, "A_x_get(ar)");
+checkequal(A_x_get(acvp_get()), 16, "A_x_get(acvp)");
+checkequal(A_x_get(acpr_get()), 16, "A_x_get(acpr)");
 delete_A(sa2);
 
 x_set(11);
 checkequal(x_get(), 11, "x_get()");
+
+assign_hp(hcpr_get());
+checkequal(SWIG_this(hp_get()), SWIG_this(hcp_get()), "SWIG_this(hp_get())");
 
 exec("swigtest.quit", -1);

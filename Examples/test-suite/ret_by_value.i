@@ -16,4 +16,8 @@ test get_test() {
     return myTest;
 }
 
+int get_my_int(test t) {
+    return t.myInt;
+}
+
 %}

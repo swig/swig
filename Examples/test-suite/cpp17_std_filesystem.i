@@ -2,6 +2,9 @@
 
 %include <std_string.i>
 %include <std_filesystem.i>
+%include <typemaps.i>
+
+%apply int *OUTPUT { int *value };
 
 %{
 #include <filesystem>
@@ -61,5 +64,52 @@ std::string pathPtrToStr(const std::filesystem::path * p) {
 namespace stdfs = std::filesystem;
 std::filesystem::path roundTrip(const stdfs::path& p) {
     return p;
+}
+
+/* Test the "out" typemaps with a path that is not valid UTF-8 where paths are narrow strings */
+std::filesystem::path makeNonUtf8Path() {
+    return std::filesystem::path("caf\xe9.txt");
+}
+
+const std::filesystem::path & makeNonUtf8PathConstRef() {
+    static std::filesystem::path p("caf\xe9.txt");
+    return p;
+}
+
+/* Test the "out" typemaps when an output parameter is appended to the result */
+std::filesystem::path makePathAndValue(int *value) {
+    *value = 1;
+    return std::filesystem::path("foo");
+}
+
+const std::filesystem::path & makePathConstRefAndValue(int *value) {
+    static std::filesystem::path p("foo");
+    *value = 1;
+    return p;
+}
+
+/* Test the "typecheck" typemaps */
+const char * pathOrInt(std::filesystem::path) {
+    return "path";
+}
+
+const char * pathOrInt(int) {
+    return "int";
+}
+
+const char * pathConstRefOrInt(const std::filesystem::path &) {
+    return "path";
+}
+
+const char * pathConstRefOrInt(int) {
+    return "int";
+}
+
+const char * pathOrString(const std::filesystem::path &) {
+    return "path";
+}
+
+const char * pathOrString(const std::string &) {
+    return "string";
 }
 %}

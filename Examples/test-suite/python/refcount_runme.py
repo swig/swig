@@ -1,4 +1,5 @@
 from refcount import *
+from swig_test_utils import swig_check, swig_assert_raises
 #
 # very innocent example
 #
@@ -57,3 +58,9 @@ del b7
 
 if a.ref_count() != 6:
     raise RuntimeError("Count = %d" % a.ref_count())
+
+# A smart pointer holding NULL returns a proxy that does not convert to 'A *'
+rca_null = B(None).get_rca()
+swig_check(rca_null.get(), None)
+with swig_assert_raises(TypeError):
+    B.create(rca_null)

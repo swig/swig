@@ -99,6 +99,17 @@ if (s.type != "void *") {
     throw new Error("Spam(void *)");
 }
 
+// A const reference to a void pointer takes any pointer, as a void pointer does
+if (overload_simple.fvoidcref(f) != "fvoidcref:void *const &") {
+    throw new Error("fvoidcref(Foo *)");
+}
+if (overload_simple.fvoidcref(v) != "fvoidcref:void *const &") {
+    throw new Error("fvoidcref(void *)");
+}
+if (overload_simple.fvoidcref(3) != "fvoidcref:int") {
+    throw new Error("fvoidcref(int)");
+}
+
 overload_simple.free_void(v);
 
 a = new overload_simple.ClassA();

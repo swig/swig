@@ -664,6 +664,34 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
 }
 
 /* -----------------------------------------------------------------------------
+ * typedef_resolve_prefix()
+ *
+ * For SwigType_typedef_resolve() of a type t whose base is not a typedef, such as a class, or a name in a scope that
+ * cannot be found, as in 'enum ns::Color'. A typedef can still be resolved in the prefix of t, in the parameters of a
+ * function or in the class of a member pointer, as in 'p.f(Integer).' for 'p.f(Integer).Foo'. Returns the prefix with
+ * the typedef resolved followed by base, or NULL if there is no typedef in the prefix.
+ * ----------------------------------------------------------------------------- */
+
+static SwigType *typedef_resolve_prefix(const SwigType *t, const String *base) {
+  SwigType *r = 0;
+  String *prefix = SwigType_prefix(t);
+  List *elements = SwigType_split(prefix);
+  Iterator it;
+  for (it = First(elements); it.item; it = Next(it)) {
+    if (SwigType_isfunction(it.item) || SwigType_ismemberpointer(it.item)) {
+      r = SwigType_typedef_resolve(prefix);
+      if (r) {
+        Append(r, base);
+      }
+      break;
+    }
+  }
+  Delete(elements);
+  Delete(prefix);
+  return r;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_typedef_resolve()
  *
  * Given a type declaration, this function looks to reduce/resolve the type via a
@@ -755,10 +783,10 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 
             /* Couldn't locate a scope for the type.  */
             if (!s) {
+              r = typedef_resolve_prefix(t, base);
               Delete(base);
               Delete(namebase);
               Delete(nameprefix);
-              r = 0;
               goto return_result;
             }
             /* Try to locate the name starting in the scope */
@@ -823,13 +851,14 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
       Delete(tprefix);
     }
 
+    /* A name that maps to itself, as the name of a class does, is not a typedef */
     if (type && (Equal(base, type))) {
       if (newtype)
         Delete(type);
+      r = typedef_resolve_prefix(t, base);
       Delete(base);
       Delete(namebase);
       Delete(nameprefix);
-      r = 0;
       goto return_result;
     }
 
@@ -889,89 +918,23 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
       type = 0;
     }
   }
-  r = SwigType_prefix(t);
   if (!type) {
-    if (r && Len(r)) {
-      char *cr = Char(r);
-      if ((strstr(cr, "f(") || (strstr(cr, "m(")))) {
-        SwigType *rt = SwigType_typedef_resolve(r);
-        if (rt) {
-          Delete(r);
-          Append(rt, base);
-          Delete(base);
-          r = rt;
-          goto return_result;
-        }
-      }
-    }
-    Delete(r);
+    r = typedef_resolve_prefix(t, base);
     Delete(base);
-    r = 0;
     goto return_result;
   }
-  Delete(base);
-
-  /* If 'type' is an array, then the right-most qualifier in 'r' should
-     be added to 'type' after the array qualifier, so that given
-       a(7).q(volatile).double myarray     // typedef volatile double[7] myarray;
-     the type
-       q(const).myarray                    // const myarray
-     becomes
-       a(7).q(const volatile).double       // const volatile double[7]
-     and NOT
-       q(const).a(7).q(volatile).double    // non-sensical type
-  */
-  if (r && Len(r) && SwigType_isarray(type)) {
-    List *r_elem;
-    String *r_qual;
-    int r_sz;
-    r_elem = SwigType_split(r);
-    r_sz = Len(r_elem);
-    r_qual = Getitem(r_elem, r_sz - 1);
-    if (SwigType_isqualifier(r_qual)) {
-      String *new_r;
-      String *new_type;
-      List *type_elem;
-      String *type_qual;
-      String *r_qual_arg;
-      int i, type_sz;
-
-      type_elem = SwigType_split(type);
-      type_sz = Len(type_elem);
-
-      for (i = 0; i < type_sz; ++i) {
-        String *e = Getitem(type_elem, i);
-        if (!SwigType_isarray(e))
-          break;
-      }
-      type_qual = Copy(Getitem(type_elem, i));
-      r_qual_arg = SwigType_parm(r_qual);
-      SwigType_add_qualifier(type_qual, r_qual_arg);
-      Delete(r_qual_arg);
-      Setitem(type_elem, i, type_qual);
-
-      new_r = NewStringEmpty();
-      for (i = 0; i < r_sz - 1; ++i) {
-        Append(new_r, Getitem(r_elem, i));
-      }
-      new_type = NewStringEmpty();
-      for (i = 0; i < type_sz; ++i) {
-        Append(new_type, Getitem(type_elem, i));
-      }
-#ifdef SWIG_DEBUG
-      Printf(stdout, "r+type='%s%s' new_r+new_type='%s%s'\n", r, type, new_r, new_type);
-#endif
-
-      Delete(r);
-      r = new_r;
-      newtype = 1;
-      type = new_type;
-      Delete(type_elem);
-    }
-    Delete(r_elem);
+  /* The base of t, such as the 'CFP' of 'r.q(const).CFP', resolves to type.  Usually base names a typedef and type is
+     the type of the typedef, as in 'q(const).p.Foo' given
+       typedef Foo *const CFP;
+     Otherwise a part of base, such as a template parameter, is resolved in type.  Next the prefix of t, 'r.q(const).',
+     is pushed onto type to give the resolved t, 'r.q(const).p.Foo', merging the qualifiers that meet. */
+  {
+    String *prefix = SwigType_prefix(t);
+    r = Copy(type);
+    SwigType_push_merge_qualifiers(r, prefix);
+    Delete(prefix);
   }
-
-  Append(r, type);
+  Delete(base);
   if (newtype) {
     Delete(type);
   }
@@ -1288,6 +1251,12 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
       Printf(result, "a(%s).", ndim);
       Delete(dim);
       Delete(ndim);
+    } else if (SwigType_ismemberpointer(e)) {
+      String *mclass = SwigType_parm(e);
+      String *qmclass = SwigType_typedef_qualified(mclass);
+      Printf(result, "m(%s).", qmclass);
+      Delete(qmclass);
+      Delete(mclass);
     } else {
       Append(result, e);
     }
@@ -1737,8 +1706,8 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   qr = SwigType_typedef_qualified(fr);
   Delete(fr);
 
-  /* Added to deal with possible table bug */
-  fr = SwigType_strip_qualifiers(qr);
+  /* Types that differ only in qualifiers are the same runtime type, unlike member function types with different cv-qualifiers */
+  fr = SwigType_strip_qualifiers_except_member_function(qr);
   Delete(qr);
 
   /*Printf(stdout,"t = '%s'\n", t);

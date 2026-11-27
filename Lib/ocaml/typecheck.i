@@ -144,6 +144,23 @@
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE *const& {
+  if (!Is_block($input) || !(Tag_val($input) == C_obj || Tag_val($input) == C_ptr)) {
+    $1 = 0;
+  } else {
+    void *ptr;
+    $1 = !caml_ptr_val_internal($input, &ptr, $*1_descriptor);
+  }
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*) {
+  $1 = caml_member_packed($input, sizeof($1_ltype), $1_descriptor) != NULL;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*const&) {
+  $1 = caml_member_packed($input, sizeof($*1_ltype), $*1_descriptor) != NULL;
+}
+
 %typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE {
   swig_type_info *typeinfo;
   if (!Is_block($input)) {

@@ -1,5 +1,5 @@
 import cpp11_directors
-from swig_test_utils import swig_check
+from swig_test_utils import swig_check, swig_assert_raises
 
 class MyFoo(cpp11_directors.Foo):
     def ping(self):
@@ -14,6 +14,13 @@ class MyFoo(cpp11_directors.Foo):
         return 5
     def pyng(self):
         return 6
+
+class MyFuncPtrReturner(cpp11_directors.FuncPtrReturner):
+    pass
+
+class MyNoExceptFalse(cpp11_directors.NoExceptFalse):
+    def ping(self):
+        raise RuntimeError("MyNoExceptFalse.ping")
 
 class MyMoveNode(cpp11_directors.MoveOnlyNode):
     def rvalues_mo(self, o):
@@ -32,6 +39,12 @@ swig_check(f.pang(), 3)
 swig_check(f.peng(), 4)
 swig_check(f.pung(), 5)
 swig_check(f.pyng(), 6)
+
+swig_check(cpp11_directors.callFuncPtrs(MyFuncPtrReturner(), 1), 6)
+
+# The exception reaches the caller of ping(), which is not noexcept in the director class
+with swig_assert_raises(RuntimeError):
+    cpp11_directors.NoExceptFalse.callPing(MyNoExceptFalse())
 
 m = MyMoveNode()
 m2 = MyMoveNode()

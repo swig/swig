@@ -23,21 +23,25 @@ arrays_null.arrays_null_fill(other, 10);
 s.ints = other.ints;
 s.items = other.items;
 s.grid = other.grid;
+s.cube = other.cube;
 if (arrays_null.arrays_null_check(s, 10) != 1); error("member set"); endif
 
 check_set_null_fails(s, "ints");
 check_set_null_fails(s, "items");
 check_set_null_fails(s, "grid");
+check_set_null_fails(s, "cube");
 if (arrays_null.arrays_null_check(s, 10) != 1); error("member set to NULL changed it"); endif
 
 arrays_null.cvar.arrays_null_ints = s.ints;
 arrays_null.cvar.arrays_null_items = s.items;
 arrays_null.cvar.arrays_null_grid = s.grid;
+arrays_null.cvar.arrays_null_cube = s.cube;
 if (arrays_null.arrays_null_globals_check(10) != 1); error("global set"); endif
 
 check_set_null_fails(arrays_null.cvar, "arrays_null_ints");
 check_set_null_fails(arrays_null.cvar, "arrays_null_items");
 check_set_null_fails(arrays_null.cvar, "arrays_null_grid");
+check_set_null_fails(arrays_null.cvar, "arrays_null_cube");
 check_set_null_fails(arrays_null.cvar, "arrays_null_ints_ref");
 check_set_null_fails(arrays_null.cvar, "arrays_null_bools");
 if (arrays_null.arrays_null_globals_check(10) != 1); error("global set to NULL changed it"); endif

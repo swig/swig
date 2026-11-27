@@ -23,6 +23,11 @@ public class cpp11_ref_qualifiers_runme {
 
     h.h();
 
+    // The declarators after the first in a list
+    ListHost lh = new ListHost();
+    if (lh.lv() != 1) throw new RuntimeException("Fail");
+    if (lh.clv() != 3) throw new RuntimeException("Fail");
+
     // %feature testing
     Features f = new Features();
     if (!f.F1().equals("F1")) throw new RuntimeException("Fail");
@@ -51,6 +56,12 @@ public class cpp11_ref_qualifiers_runme {
 
     ConversionOperators2 co2 = new ConversionOperators2();
     s = co2.StringConvertMove();
+
+    // The overloads with a cv-qualifier
+    ConstOverloads cvo = new ConstOverloads();
+    if (cvo.cl() != 1 || cvo.cl_const() != 2) throw new RuntimeException("cl");
+    if (cvo.cr() != 3 || cvo.cr_const() != 4) throw new RuntimeException("cr");
+    if (cvo.cvl() != 5 || cvo.cvl_const_volatile() != 6) throw new RuntimeException("cvl");
 
     // Default arguments
     DefaultArgs d = new DefaultArgs();

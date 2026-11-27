@@ -1,12 +1,13 @@
 ---
 name: swig-conventions
-description: 'SWIG source code conventions: clang-format / code formatting, C/C++ comment style (quotes, widths, function header blocks), parser.y new code rules, alphabetical ordering of makefile lists, adding or retiring a warning number and checking it is documented, hyphenation and CHANGES.current file entries for user visible release notes. Read before writing or editing Source/ or Lib/ code or comments, or a CHANGES.current entry.'
+description: 'SWIG source code conventions: clang-format / code formatting, CamelCase names of classes and structs, C/C++ comment style (quotes, widths, function header blocks), parser.y new code rules, alphabetical ordering of makefile lists, adding or retiring a warning number and checking it is documented, hyphenation and CHANGES.current file entries for user visible release notes. Read before writing or editing Source/ or Lib/ code or comments, or a CHANGES.current entry.'
 ---
 
 # SWIG Coding and Contribution Conventions
 
 ## When to use
 - Before writing or editing C/C++ code under `Source/` or `Lib/`
+- Before naming a class, struct or struct typedef under `Source/`
 - Before adding a test case to a makefile list
 - Before writing or rewording a source code comment
 - Before adding new code to `Source/CParse/parser.y`
@@ -24,26 +25,47 @@ make format-inplace   # apply formatting
 
 Format config: `Source/.clang-format` (Google style, 160 column limit).
 
+## Naming
+
+Section 8, "Naming Conventions", of `Doc/Devel/engineering.html` gives the naming conventions for the code in `Source/`:
+a function has its module name and lowercase words separated by underscores, as in `Swig_add_directory()`, a structure
+member is in lowercase too and a structure name is capitalised, as in `typedef struct DohObjInfo { ... } DohObjInfo;`.
+
+The name of a class, struct or struct typedef in `Source/`, in a C or a C++ file, is CamelCase with every word
+capitalised, as in `ScopedPtr`, `CxxFunctionWrapper`, `CPlusPlusOutputGuard` and `ExprVal`, not `scoped_dohptr`,
+`CPlusplusOutputGuard` or `Exprval`. An acronym stays in capitals, as in `JSCEmitter` and `PHPTypes`. The classes of the
+language modules are named after their language, as in `PYTHON` and `CSHARP`. A struct tag has the name of its typedef,
+as in `typedef struct Pool { ... } Pool;`. Variables, functions and struct members keep their own styles, even when
+they use the same words as a type, such as the variable `literal_tokens` of the struct type `LiteralToken`.
+
 ## Comment style
 
-In source code comments under `Source/` and `Lib/`, prefer single quotes (`'`) or double quotes (`"`) when quoting a token, identifier, keyword or short type such as `'char [*]'`. Do not use backticks (`` ` ``) - they are a Markdown convention and have no meaning in C/C++ comments. For example, write `'requires' keyword`, not the backtick wrapped form.
+In source code comments under `Source/` and `Lib/`, prefer single quotes (`'`) or double quotes (`"`) when quoting a
+token, keyword, short type or other code such as `'char [*]'`. Do not use backticks (`` ` ``) - they are a Markdown
+convention and have no meaning in C/C++ comments. For example, write `'requires' keyword`, not the backtick wrapped
+form.
+
+Do not quote the name of a variable, parameter, struct member or function in the code being described. Write it as it
+is, as in `Returns the function type, t, constructed from the parameters, parms` in typeobj.c, and write a function
+with its parentheses, as in `SwigType_str()`. A name too short to read on its own in a comment, such as a one-letter
+parameter, is better renamed, for example `d` to `decl`, than quoted.
 
 Do not put a code statement, declaration or a series of code examples inline in a comment's prose, quoted or not. Show the code as an indented block instead, one statement or example per line without quotes, indented two spaces further than the comment's text, and continue the prose on the next line. This:
 
 ```c
 /* A function declared again with the same type, which C allows, can give the size of a C99 variable length array
-   parameter that the first declaration 'c', the one that is wrapped, does not.  For example:
+   parameter that the first declaration c, the one that is wrapped, does not.  For example:
      void f(int, int a[*]);
      void f(int n, int a[n]);
-   Keep the size from the later declaration 'n' for a typemap written with '[*]'. */
+   Keep the size n from the later declaration for a typemap written with '[*]'. */
 ```
 
 not this:
 
 ```c
 /* A function declared again with the same type, which C allows, can give the size of a C99 variable length array
-   parameter that the first declaration 'c', the one that is wrapped, does not.  For example, 'void f(int, int a[*]);'
-   followed by 'void f(int n, int a[n]);'.  Keep the size from the later declaration 'n' for a typemap written with
+   parameter that the first declaration c, the one that is wrapped, does not.  For example, 'void f(int, int a[*]);'
+   followed by 'void f(int n, int a[n]);'.  Keep the size n from the later declaration for a typemap written with
    '[*]'. */
 ```
 
@@ -51,7 +73,10 @@ In a comment whose lines start with ` * `, indent the code two spaces after the 
 
 Use plain `/* ... */` block comments. Do not use Doxygen markers (`/**`, `/*!`, `///`, `//!`): SWIG source is not run through Doxygen, so the extra marker is just noise.
 
-For all code everywhere, aim for comment lines around 120 characters wide. If wrapping at 120 leaves a stub second line, stretch the first line up to the 160 characters permitted by `clang-format` and keep the comment on one line, or rebalance so both lines carry meaningful content.
+For all code everywhere, a comment that fits in the 160 columns permitted by `clang-format` stays on one line. Never
+break a line that is only just over 120 columns into a second short line: a short last line never looks good. Wrap
+only a comment longer than 160 columns, at around 120 columns, and widen its lines up to 160 columns or rebalance them
+so that the last line also carries meaningful content.
 
 ## Function comment headers
 
@@ -68,6 +93,10 @@ Node *Swig_symbol_is_typedef(Node *n) { ... }
 ```
 
 The header is `/* ` plus a row of dashes, then ` * FunctionName()`, a blank ` *` line, the description, then a closing ` * ` dashes ` */` line. Small file-static helpers may use a one-line plain comment or none, but anything exported in a header should get the full block. Match the surrounding headers in the file you are editing.
+
+Describe what a function does and what it returns, not how its memory is handled. Do not write in a function comment
+that the caller must free or delete the returned value, or that the value is newly allocated or owned by the caller:
+the memory handling is clear from the code, such as from the return type.
 
 ## `parser.y` formatting (new code)
 
@@ -142,6 +171,11 @@ Show a code, interface or generated-output example as an indented block, not squ
 
             makes the generated Go type Foo again.
 ```
+
+This applies to a single line of code too. Do not quote a whole line of code inline in the prose, such as a declaration, a
+statement or a typedef like 'typedef int (*IntOp)(int);' or a line of the generated code that is now output: put it in
+a block, as above. Only a fragment, such as a type or a parameter, or the previously generated invalid code that the entry
+fixes may be quoted inline with `'`. The same goes for a commit message.
 
 ## Hyphenation
 

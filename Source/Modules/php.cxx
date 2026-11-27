@@ -1716,6 +1716,16 @@ public:
 
     SwigType_remember(type);
 
+    /* A member pointer is wrapped as a pointer to it, so the constant needs a variable to point to */
+    String *mpointer_var = NULL;
+    if (SwigType_type(type) == T_MPOINTER) {
+      mpointer_var = Swig_name_wrapper(iname);
+      String *str = SwigType_str(type, mpointer_var);
+      Printf(s_wrappers, "static %s = %s;\n", str, value);
+      Delete(str);
+      value = mpointer_var;
+    }
+
     String *wrapping_member_constant = Getattr(n, "memberconstantHandler:sym:name");
     if (!wrapping_member_constant) {
       {
@@ -1752,6 +1762,7 @@ public:
       }
     }
 
+    Delete(mpointer_var);
     return SWIG_OK;
   }
 
@@ -2312,47 +2323,16 @@ public:
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    String *exception_specification = Swig_director_exception_specification(n);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, exception_specification);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(rtype, decl, name, l, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1, exception_specification);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
-
-    // Get any exception classes in the throws typemap
-    if (Getattr(n, "noexcept")) {
-      Append(w->def, " noexcept");
-      Append(declaration, " noexcept");
-    }
-    ParmList *throw_parm_list = 0;
-
-    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-      Parm *p;
-      int gencomma = 0;
-
-      Append(w->def, " throw(");
-      Append(declaration, " throw(");
-
-      if (throw_parm_list)
-        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-      for (p = throw_parm_list; p; p = nextSibling(p)) {
-        if (Getattr(p, "tmap:throws")) {
-          if (gencomma++) {
-            Append(w->def, ", ");
-            Append(declaration, ", ");
-          }
-          String *str = SwigType_str(Getattr(p, "type"), 0);
-          Append(w->def, str);
-          Append(declaration, str);
-          Delete(str);
-        }
-      }
-
-      Append(w->def, ")");
-      Append(declaration, ")");
-    }
+    Delete(exception_specification);
 
     Append(w->def, " {");
     Append(declaration, ";\n");
@@ -2623,7 +2603,7 @@ List *PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribut
     }
     // Treat `?foo` just like `foo|null`.
     Append(types, "null");
-    Setitem(types, 0, NewString(Char(first_type) + 1));
+    Setitem(types, 0, Char(first_type) + 1);
   }
 
   SortList(types, NULL);

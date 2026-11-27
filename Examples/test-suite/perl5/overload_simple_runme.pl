@@ -2,7 +2,7 @@
 use overload_simple;
 use vars qw/$DOWARN/;
 use strict;
-use Test::More tests => 97;
+use Test::More tests => 100;
 
 pass("loaded");
 
@@ -158,6 +158,11 @@ is($s->{type}, "Bar *", "Spam(Bar *)");
 $s = new overload_simple::Spam($v);
 isa_ok($s, "overload_simple::Spam");
 is($s->{type}, "void *", "Spam(void *)");
+
+# A const reference to a void pointer takes any pointer, as a void pointer does
+is(overload_simple::fvoidcref($f), "fvoidcref:void *const &", "fvoidcref(Foo *)");
+is(overload_simple::fvoidcref($v), "fvoidcref:void *const &", "fvoidcref(void *)");
+is(overload_simple::fvoidcref(3), "fvoidcref:int", "fvoidcref(int)");
 
 #
 # Combine dispatch

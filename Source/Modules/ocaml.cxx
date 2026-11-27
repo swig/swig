@@ -870,18 +870,38 @@ public:
     Wrapper_add_local(f, "swig_result", "CAMLlocal1(swig_result)");
     Printf(f->code, "swig_result = Val_unit;\n");
 
+    /* An unnamed enum has no OCaml enum type, so a variable of an unnamed enum type, such as x in:
+         enum { A, B } x;
+       is wrapped as an int, as a member variable of an unnamed enum type is.  It is set through an int pointer, as C++ cannot
+       assign an int to an enum. */
+    bool unnamed_enum = SwigType_isenum(t) && Strstr(t, "$unnamed");
+    Node *tm_node = n;
+    String *varin_name = NewString(name);
+    if (unnamed_enum) {
+      SwigType *int_type = NewString("int");
+      tm_node = NewParm(int_type, name, n);
+      Delete(int_type);
+      Insert(varin_name, 0, "*(int *)(void *)&");
+    }
+
     int assignable = !is_immutable(n);
     if (assignable) {
       /* Check for a setting of the variable value */
       Printf(f->code, "if (args != Val_int(0)) {\n");
-      if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
+      if (unnamed_enum) {
+        Printf(f->code, "if (sizeof(int) == sizeof(%s)) {\n", name);
+      }
+      if ((tm = Swig_typemap_lookup("varin", tm_node, varin_name, 0))) {
         Replaceall(tm, "$input", "args");
         emit_action_code(n, f->code, tm);
-      } else if ((tm = Swig_typemap_lookup("in", n, name, 0))) {
+      } else if ((tm = Swig_typemap_lookup("in", tm_node, varin_name, 0))) {
         Replaceall(tm, "$input", "args");
         emit_action_code(n, f->code, tm);
       } else {
         throw_unhandled_ocaml_type_error(t, "varin/in");
+      }
+      if (unnamed_enum) {
+        Printf(f->code, "}\n");
       }
       Printf(f->code, "}\n");
     } else {
@@ -892,15 +912,19 @@ public:
     // Now return the value of the variable (regardless
     // of evaluating or setting)
 
-    if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
+    if ((tm = Swig_typemap_lookup("varout", tm_node, name, 0))) {
       Replaceall(tm, "$result", "swig_result");
       emit_action_code(n, f->code, tm);
-    } else if ((tm = Swig_typemap_lookup("out", n, name, 0))) {
+    } else if ((tm = Swig_typemap_lookup("out", tm_node, name, 0))) {
       Replaceall(tm, "$result", "swig_result");
       emit_action_code(n, f->code, tm);
     } else {
       throw_unhandled_ocaml_type_error(t, "varout/out");
     }
+    if (unnamed_enum) {
+      Delete(tm_node);
+    }
+    Delete(varin_name);
 
     Printf(f->code, "\nCAMLreturn(swig_result);\n");
     Printf(f->code, "}\n");
@@ -1424,6 +1448,35 @@ public:
    */
 
   /* ---------------------------------------------------------------
+   * camlreturn_type()
+   *
+   * Return the type t to use in 'CAMLreturnT(type, result)', which declares a variable as 'type caml__temp_result'.
+   * That is not valid for a type written around the variable name, such as the function pointer 'int (*)(int,int)'.
+   * The preprocessor also splits a template type such as 'Pair< int,int >' into two macro arguments at the comma.
+   * A typedef for either kind of type is added to code and the typedef name is returned instead.
+   * --------------------------------------------------------------- */
+
+  String *camlreturn_type(SwigType *t, String *code) {
+    bool around_name = false;
+    List *elements = SwigType_split(t);
+    for (Iterator it = First(elements); it.item; it = Next(it)) {
+      if (SwigType_isfunction(it.item) || SwigType_isarray(it.item)) {
+        around_name = true;
+      }
+    }
+    Delete(elements);
+
+    if (!around_name && !SwigType_istemplate(t)) {
+      return SwigType_str(t, 0);
+    }
+    String *typedef_name = NewString("swig_return_type");
+    String *typedef_decl = SwigType_str(t, typedef_name);
+    Printf(code, "typedef %s;\n", typedef_decl);
+    Delete(typedef_decl);
+    return typedef_name;
+  }
+
+  /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
    * Emit a virtual director method to pass a method call on to the
@@ -1468,45 +1521,17 @@ public:
     String *pclassname = NewStringf("SwigDirector_%s", classname);
     String *qualified_name = NewStringf("%s::%s", pclassname, name);
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    String *exception_specification = Swig_director_exception_specification(n);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, exception_specification);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
     /* header declaration */
-    target = Swig_method_decl(rtype, decl, name, l, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1, exception_specification);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
+    Delete(exception_specification);
 
-    // Get any exception classes in the throws typemap
-    if (Getattr(n, "noexcept")) {
-      Append(w->def, " noexcept");
-      Append(declaration, " noexcept");
-    }
-    ParmList *throw_parm_list = 0;
-    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-      Parm *p;
-      int gencomma = 0;
-
-      Append(w->def, " throw(");
-      Append(declaration, " throw(");
-
-      if (throw_parm_list)
-        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-      for (p = throw_parm_list; p; p = nextSibling(p)) {
-        if (Getattr(p, "tmap:throws")) {
-          if (gencomma++) {
-            Append(w->def, ", ");
-            Append(declaration, ", ");
-          }
-          String *str = SwigType_str(Getattr(p, "type"), 0);
-          Append(w->def, str);
-          Append(declaration, str);
-          Delete(str);
-        }
-      }
-      Append(w->def, ")");
-      Append(declaration, ")");
-    }
     Append(w->def, " {");
     Append(declaration, ";\n");
     /* declare method return value
@@ -1532,10 +1557,14 @@ public:
     if (ignored_method) {
       if (!pure_virtual) {
         String *super_call = Swig_method_call(super, l);
-        if (is_void)
+        if (is_void) {
           Printf(w->code, "%s;\n", super_call);
-        else
-          Printf(w->code, "CAMLreturnT(%s, %s);\n", SwigType_str(returntype, 0), super_call);
+        } else {
+          String *rettype = camlreturn_type(returntype, w->code);
+          /* The parentheses keep a comma in a template name in super_call, such as 'Base< int,int >::f()', in one macro argument */
+          Printf(w->code, "CAMLreturnT(%s, (%s));\n", rettype, super_call);
+          Delete(rettype);
+        }
         Delete(super_call);
       } else {
         Printf(w->code,
@@ -1728,7 +1757,7 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-        String *rettype = SwigType_str(returntype, 0);
+        String *rettype = camlreturn_type(returntype, w->code);
         if (!SwigType_isreference(returntype)) {
           Printf(w->code, "CAMLreturnT(%s, (%s)c_result);\n", rettype, rettype);
         } else {

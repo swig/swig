@@ -3,7 +3,7 @@
 %inline %{
 
 namespace Foo {
-   enum Swig {
+   enum Beer {
        LAGER,
        STOUT,
        ALE

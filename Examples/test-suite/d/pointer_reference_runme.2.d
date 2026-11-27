@@ -11,4 +11,5 @@ void main() {
   auto ss = new Struct(20);
   set(ss);
   enforce(Struct.instance.value == 20, "set test failed");
+  enforce(pointer_reference_typedef_const(ss) == 20, "typedef const pointer test failed");
 }

@@ -128,9 +128,9 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
 /* -----------------------------------------------------------------------------
  * Swig_full_type()
  *
- * Returns a newly allocated SwigType holding the full type of the declaration
- * node n, that is its "type" with the declarator in its "decl" applied, so
- * 'p.int' for 'int *p' and 'q(const).f(int).p.int' for 'int *f(int) const'.
+ * Returns the full type of the declaration node n, that is its "type" with the
+ * declarator in its "decl" applied, so 'p.int' for 'int *p' and
+ * 'q(const).f(int).p.int' for 'int *f(int) const'.
  * A node without a "type", such as a constructor, gives its "decl" alone.
  * ----------------------------------------------------------------------------- */
 
@@ -143,10 +143,9 @@ SwigType *Swig_full_type(Node *n) {
 /* -----------------------------------------------------------------------------
  * Swig_function_return_type()
  *
- * Returns a newly allocated SwigType holding the full return type of the
- * function node n, that is its Swig_full_type() but for the function itself
- * and any cv or ref-qualifier on a member function, so 'p.int' for
- * 'int *f(int) const'.
+ * Returns the full return type of the function node n, that is its
+ * Swig_full_type() but for the function itself and any cv or ref-qualifier
+ * on a member function, so 'p.int' for 'int *f(int) const'.
  * ----------------------------------------------------------------------------- */
 
 SwigType *Swig_function_return_type(Node *n) {
@@ -378,14 +377,20 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
       String *const_lvalue_str;
       String *lstr = SwigType_lstr(t, 0);
       SwigType *tt = Copy(t);
+      SwigType *resolved;
       SwigType_del_rvalue_reference(tt);
-      SwigType_add_qualifier(tt, "const");
+      resolved = SwigType_typedef_resolve_all(tt);
+      /* A function type cannot be const qualified and a call returning an rvalue reference to a function is an lvalue already */
+      if (!SwigType_isfunction(resolved)) {
+        SwigType_add_qualifier(tt, "const");
+      }
       SwigType_add_reference(tt);
       const_lvalue_str = SwigType_rcaststr(tt, 0);
 
       Printf(fcall, "%s = (%s) &%s", name, lstr, const_lvalue_str);
 
       Delete(const_lvalue_str);
+      Delete(resolved);
       Delete(tt);
       Delete(lstr);
     }
@@ -972,6 +977,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   Parm *p;
   String *self = 0;
   int is_smart_pointer_overload = 0;
+  int is_smart_pointer_const = 0;
   String *qualifier = Getattr(n, "qualifier");
   String *directorScope = NewString(nspace);
 
@@ -980,9 +986,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   /* If smart pointer without const overload or mutable method, change self dereferencing */
   if (flags & CWRAP_SMART_POINTER) {
     if (flags & CWRAP_SMART_POINTER_OVERLOAD) {
-      if (qualifier && strncmp(Char(qualifier), "q(const)", 8) == 0) {
+      if (SwigType_isconst(qualifier)) {
         self = NewString("(*(this))->");
         is_smart_pointer_overload = 1;
+        is_smart_pointer_const = 1;
       } else if (Swig_storage_isstatic(n)) {
         String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
         String *ctname = SwigType_namestr(cname);
@@ -1005,7 +1012,10 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
   parms = CopyParmList(nonvoid_parms(Getattr(n, "parms")));
 
   type = NewString(classname);
-  if (qualifier) {
+  if (is_smart_pointer_const) {
+    /* Make the smart pointer just const to call its const operator->(), as neither can be called on a volatile one */
+    SwigType_add_qualifier(type, "const");
+  } else if (qualifier) {
     SwigType_push(type, qualifier);
   }
   SwigType_add_pointer(type);
@@ -1071,7 +1081,8 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
       Setfile(memory_header, Getfile(n));
       Setline(memory_header, Getline(n));
       Swig_fragment_emit(memory_header);
-      self = NewString("std::move(*this).");
+      /* Swig_cmethod_call() casts '*(this)' to the cv-qualified class, unlike '*this', so a 'const &&' method is called rather than its '&&' overload */
+      self = NewString(qualifier ? "std::move(*(this))." : "std::move(*this).");
       Delete(memory_header);
     }
 
@@ -1415,6 +1426,18 @@ int Swig_DestructorToFunction(Node *n, const_String_or_char_ptr nspace, String *
 }
 
 /* -----------------------------------------------------------------------------
+ * set_variable_wrapper_type()
+ *
+ * Replaces the type of variable n with the return type of its get or set wrapper. The type of the variable is kept in
+ * "wrap:vartype" for the declaration of the variable in $fulldecl, see Swig_name_fulldecl().
+ * ----------------------------------------------------------------------------- */
+
+static void set_variable_wrapper_type(Node *n, const_String_or_char_ptr wrapper_type) {
+  Setattr(n, "wrap:vartype", Getattr(n, "type"));
+  Setattr(n, "type", wrapper_type);
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_MembersetToFunction()
  *
  * This function creates a C wrapper for setting a structure member.
@@ -1489,7 +1512,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     Delete(call);
     Delete(cres);
   }
-  Setattr(n, "type", void_type);
+  set_variable_wrapper_type(n, void_type);
   Setattr(n, "parms", parms);
   Delete(parms);
   Delete(ty);
@@ -1571,7 +1594,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     Delete(call);
     Delete(cres);
   }
-  Setattr(n, "type", ty);
+  set_variable_wrapper_type(n, ty);
   Setattr(n, "parms", parms);
   Delete(parms);
   Delete(ty);
@@ -1626,7 +1649,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
       Delete(call);
     }
   }
-  Setattr(n, "type", "void");
+  set_variable_wrapper_type(n, "void");
   Setattr(n, "parms", parms);
   Delete(parms);
   Delete(ty);
@@ -1674,7 +1697,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
     Delete(nname);
   }
 
-  Setattr(n, "type", ty);
+  set_variable_wrapper_type(n, ty);
   Delattr(n, "parms");
   Delete(cres);
   Delete(call);

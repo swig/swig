@@ -18,3 +18,4 @@ cpp_invalid_qualifiers.i:40: Error: Static function m4() const cannot have a qua
 cpp_invalid_qualifiers.i:41: Error: Static function m5() & cannot have a qualifier.
 cpp_invalid_qualifiers.i:42: Error: Static function m6() && cannot have a qualifier.
 cpp_invalid_qualifiers.i:42: Warning 405: Method with rvalue ref-qualifier m6() && ignored.
+cpp_invalid_qualifiers.i:43: Error: Static function m7() const cannot have a qualifier.

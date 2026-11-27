@@ -146,13 +146,13 @@ class string;
 %typemap(godirectorin,fragment="CopyString") string *
 %{ *$result = swigCopyString(*$input); %}
 
-%typemap(argout,fragment="AllocateString") string *
+%typemap(argout,fragment="AllocateString",match="in") string *
 %{
   if ($1)
     *$input = Swig_AllocateString($1->data(), $1->length());
 %}
 
-%typemap(goargout,fragment="CopyString") string *
+%typemap(goargout,fragment="CopyString",match="in") string *
 %{
   if $input != nil {
     *$1 = swigCopyString(*$input)

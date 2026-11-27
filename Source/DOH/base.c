@@ -505,11 +505,11 @@ void DohSetChar(DOH *obj, const DOH *name, char *value) {
  * ----------------------------------------------------------------------------- */
 
 void DohSetFlagAttr(DOH *obj, const DOH *name, const DOH *attr) {
-  Setattr(obj, (DOH *)name, attr ? attr : NewString("0"));
+  Setattr(obj, (DOH *)name, attr ? attr : "0");
 }
 
 void DohSetFlag(DOH *obj, const DOH *name) {
-  Setattr(obj, (DOH *)name, NewString("1"));
+  Setattr(obj, (DOH *)name, "1");
 }
 
 /* -----------------------------------------------------------------------------

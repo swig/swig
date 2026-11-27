@@ -564,8 +564,8 @@ int Language::top(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::extendDirective(Node *n) {
-  save_value<int> oldam(Extend, CWRAP_EXTEND);
-  save_value<AccessMode> oldmode(cplus_mode, PUBLIC);
+  SaveValue<int> oldam(Extend, CWRAP_EXTEND);
+  SaveValue<AccessMode> oldmode(cplus_mode, PUBLIC);
   emit_children(n);
   return SWIG_OK;
 }
@@ -902,6 +902,7 @@ int Language::cDeclaration(Node *n) {
   Node *over;
   File *f_header = 0;
   SwigType *ty, *fullty;
+  bool typedef_function = false;
 
   if (Getattr(n, "feature:onlychildren")) {
     if (GetFlag(n, "feature:ignore")) {
@@ -1020,6 +1021,8 @@ int Language::cDeclaration(Node *n) {
       ParmList *parms = SwigType_function_parms(fty, n);
       Setattr(n, "parms", parms);
       Delete(fty);
+      /* An empty "decl" is that of a function declared through a function typedef, as in 'F f;', rather than a reference to a function */
+      typedef_function = Len(decl) == 0;
     }
     /* Transform the node into a 'function' node and emit */
     if (!CurrentClass) {
@@ -1040,45 +1043,49 @@ int Language::cDeclaration(Node *n) {
                calling conventions - SWIG doesn't understand Windows (non standard) calling
                conventions in the first place, so can't regenerate them.
              */
-            String *str = SwigType_str(ty, name);
-            Printf(f_header, "%s", str);
+            String *str = Swig_name_extern_decl(n, ty);
+            Printf(f_header, "%s;\n", str);
             Delete(str);
-            {
-              DOH *t = Getattr(n, "throws");
-              if (t) {
-                Printf(f_header, " throw(");
-                while (t) {
-                  Printf(f_header, "%s", Getattr(t, "type"));
-                  t = nextSibling(t);
-                  if (t)
-                    Printf(f_header, ",");
-                }
-                Printf(f_header, ")");
-              }
-            }
-            Printf(f_header, ";\n");
           } else if (Swig_storage_isexternc(n)) {
             /* here 'extern "C"' is needed */
-            String *str = SwigType_str(ty, name);
+            String *str = Swig_name_extern_decl(n, ty);
             Printf(f_header, "extern \"C\" %s;\n", str);
             Delete(str);
           }
         }
       }
     }
-    /* This needs to check qualifiers */
-    if (SwigType_isqualifier(ty)) {
-      SwigType *qual = SwigType_pop(ty);
-      Setattr(n, "qualifier", qual);
-      Delete(qual);
+    /* The "qualifier" attribute is the cv-qualifier of a member function, which follows any ref-qualifier, as in 'r.q(const).f().' for 'int f() const &' */
+    SwigType *function = SwigType_pop_function(ty);
+    SwigType *qualifier = SwigType_remove_reference(SwigType_pop_function_qualifiers(function));
+    /* A 'noexcept' in the function type is that of the declared function, as for f in:
+         typedef int F(int) noexcept;
+         F f; */
+    if (SwigType_remove_noexcept_qualifier(qualifier))
+      Setattr(n, "noexcept", "true");
+    if (SwigType_isqualifier(qualifier))
+      Setattr(n, "qualifier", qualifier);
+    if (typedef_function) {
+      /* Give the function the declarator from the typedef, which has the cv-qualifier and ref-qualifier of a member function */
+      SwigType *function_decl = Copy(function);
+      SwigType_push(function_decl, qualifier);
+      SwigType_push(function_decl, Getattr(n, "refqualifier"));
+      DohIncref(decl);
+      Setattr(n, "decl", function_decl);
+      Delete(function_decl);
     }
-    Delete(SwigType_pop_function(ty));
+    Delete(qualifier);
+    Delete(function);
     DohIncref(type);
     Setattr(n, "type", ty);
 
     functionHandler(n);
 
     Setattr(n, "type", type);
+    if (typedef_function) {
+      Setattr(n, "decl", decl);
+      Delete(decl);
+    }
     Delete(ty);
     Delete(type);
     return SWIG_OK;
@@ -1715,7 +1722,7 @@ int Language::staticmembervariableHandler(Node *n) {
     }
 
     SwigType *t1 = SwigType_typedef_resolve_all(Getattr(n, "type"));
-    SwigType *t2 = SwigType_strip_qualifiers(t1);
+    SwigType *t2 = SwigType_remove_qualifier(Copy(t1));
     Setattr(n, "type", t2);
     Delete(t1);
     Delete(t2);
@@ -2001,6 +2008,7 @@ void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, 
         Append(vm, item);
       else
         Setitem(vm, replace, item);
+      Delete(item);
       Setattr(n, "directorNode", m);
 
       Delete(mname);
@@ -2484,7 +2492,7 @@ int Language::classDeclaration(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classHandler(Node *n) {
-  save_value<int> oldExtend(Extend);
+  SaveValue<int> oldExtend(Extend);
   if (Getattr(n, "template"))
     Extend = 0;
   bool hasDirector = Swig_directorclass(n) ? true : false;
@@ -2519,7 +2527,7 @@ int Language::classHandler(Node *n) {
     if (dirprot_mode() && extraDirectorProtectedCPPMethodsRequired()) {
       Node *vtable = Getattr(n, "vtable");
       String *symname = Getattr(n, "sym:name");
-      save_value<AccessMode> old_mode(cplus_mode);
+      SaveValue<AccessMode> old_mode(cplus_mode);
       cplus_mode = PROTECTED;
       int len = Len(vtable);
       for (int i = 0; i < len; i++) {
@@ -3315,11 +3323,14 @@ Node *Language::classLookup(const SwigType *s) {
                                (Strcmp(prefix, "r.") == 0) ||               // reference
                                (Strcmp(prefix, "z.") == 0) ||               // rvalue reference
                                SwigType_prefix_is_simple_1D_array(prefix);  // Simple 1D array (not arrays of pointers/references)
-      // Also accept pointer by const reference, not non-const pointer reference
-      if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {
-        Delete(prefix);
-        prefix = SwigType_prefix(ty1);
-        acceptable_prefix = (Strncmp(prefix, "r.q(const", 9) == 0);
+      // Also accept a pointer passed by const reference, which the 'SWIGTYPE *const&' typemaps wrap as the class. Any other
+      // reference to a pointer, such as 'Foo *&' or 'Foo *const volatile &', is wrapped by the 'SWIGTYPE &' typemaps instead.
+      if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0) && SwigType_isreference(ty1)) {
+        SwigType *referred = SwigType_del_reference(Copy(ty1));
+        SwigType *const_pointer = SwigType_add_qualifier(SwigType_remove_qualifier(Copy(referred)), "const");
+        acceptable_prefix = Equal(referred, const_pointer);
+        Delete(const_pointer);
+        Delete(referred);
       }
       if (acceptable_prefix) {
         SwigType *cs = Copy(s);
@@ -3870,7 +3881,7 @@ void Language::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  * attribute on the 'argout' typemap says which of these the typemap builds and is
  * available as the wrap:outputcontainer attribute on n.
  *
- * Returns a new string owned by the caller, or NULL if no type can be composed.
+ * Returns a new string, or NULL if no type can be composed.
  * ---------------------------------------------------------------------- */
 
 String *Language::composeOutputType(Node *n, List *types) {

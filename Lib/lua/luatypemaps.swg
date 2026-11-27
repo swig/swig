@@ -288,6 +288,18 @@ $1=($1_ltype)&temp;%}
   SWIG_NewMemberObj(L,(void*)(&$1),sizeof($1),$descriptor); SWIG_arg++;
 %}
 
+%typemap(in,checkfn="lua_isuserdata") (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp)
+%{
+  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&temp),sizeof(temp),$*descriptor)))
+    SWIG_fail_ptr("$symname",$argnum,$*descriptor);
+  $1 = &temp;
+%}
+
+%typemap(out) SWIGTYPE (CLASS::*const&)
+%{
+  SWIG_NewMemberObj(L,(void*)($1),sizeof(*$1),$*descriptor); SWIG_arg++;
+%}
+
 
 // void (must be empty without the SWIG_arg++)
 %typemap(out) void ""
@@ -298,6 +310,9 @@ but if it's an output, then it should be wrapped like any other SWIG object (usi
 */
 %typemap(in,checkfn="SWIG_isptrtype") void*
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
+%typemap(in,checkfn="SWIG_isptrtype") void *const& ($*1_ltype temp)
+%{temp=($*1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");
+$1=&temp;%}
 
 /* long long is another special case:
 as lua only supports one numeric type (lua_Number), we will just
@@ -396,7 +411,17 @@ parameters match which function
   }
 }
 
-%typecheck(SWIG_TYPECHECK_VOIDPTR) void * {
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*) %{
+  char swig_memberptr[sizeof($1_ltype)];
+  $1 = SWIG_IsOK(SWIG_ConvertMember(L, $input, swig_memberptr, sizeof(swig_memberptr), $descriptor));
+%}
+
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE (CLASS::*const&) %{
+  char swig_memberptr[sizeof($*1_ltype)];
+  $1 = SWIG_IsOK(SWIG_ConvertMember(L, $input, swig_memberptr, sizeof(swig_memberptr), $*descriptor));
+%}
+
+%typecheck(SWIG_TYPECHECK_VOIDPTR) void *, void *const& {
   void *ptr;
   if (SWIG_isptrtype(L,$input)==0 || SWIG_ConvertPtr(L,$input, (void **) &ptr, 0, 0)) {
     $1 = 0;
@@ -439,12 +464,11 @@ parameters match which function
 %typecheck(SWIG_TYPECHECK_STRING) char (&)[ANY], char (&&)[ANY] {
   $1 = lua_isstring(L,$input);
 }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 // size_t (which is just a unsigned long)
 %apply unsigned long { size_t };

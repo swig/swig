@@ -7,6 +7,7 @@ arrays_null.arrays_null_fill(other, 10)
 s.ints = other.ints
 s.items = other.items
 s.grid = other.grid
+s.cube = other.cube
 swig_check(arrays_null.arrays_null_check(s, 10), 1)
 
 # Setting an array member or global variable to None is an error, as there is nothing to copy from.
@@ -16,11 +17,14 @@ with swig_assert_raises(TypeError):
     s.items = None
 with swig_assert_raises(TypeError):
     s.grid = None
+with swig_assert_raises(TypeError):
+    s.cube = None
 swig_check(arrays_null.arrays_null_check(s, 10), 1)
 
 arrays_null.cvar.arrays_null_ints = s.ints
 arrays_null.cvar.arrays_null_items = s.items
 arrays_null.cvar.arrays_null_grid = s.grid
+arrays_null.cvar.arrays_null_cube = s.cube
 swig_check(arrays_null.arrays_null_globals_check(10), 1)
 
 with swig_assert_raises(TypeError):
@@ -29,6 +33,8 @@ with swig_assert_raises(TypeError):
     arrays_null.cvar.arrays_null_items = None
 with swig_assert_raises(TypeError):
     arrays_null.cvar.arrays_null_grid = None
+with swig_assert_raises(TypeError):
+    arrays_null.cvar.arrays_null_cube = None
 with swig_assert_raises(TypeError):
     arrays_null.cvar.arrays_null_ints_ref = None
 with swig_assert_raises(TypeError):

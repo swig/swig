@@ -5,7 +5,7 @@
 
 struct TYPE {
 %pythoncode %{
-    def one():
+    def one(self):
         a = 1
 # Comment XXXX
         return a
@@ -14,7 +14,7 @@ struct TYPE {
 
 %define %bar
 %pythoncode %{
-    def one():
+    def one(self):
         a = 1
         #
         return a

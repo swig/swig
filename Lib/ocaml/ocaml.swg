@@ -71,6 +71,13 @@
     $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $1_descriptor);
 }
 
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE & %{
+    $result = ($ltype) caml_ptr_val($input,$1_descriptor);
+    if (!$result) {
+        SWIG_OCamlThrowException(SWIG_OCamlNullReferenceException, "Unexpected null return for type $1_type");
+    }
+%}
+
 #if 0
 %typemap(argout) SWIGTYPE & {
     const value *fromval = caml_named_value("create_$ntype_from_ptr");
@@ -307,8 +314,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $1 = ($ltype)caml_ptr_val($input,$1_descriptor);
 }
 %typemap(how) SWIGTYPE (CLASS::*) {
-    void *v = caml_ptr_val($input,$1_descriptor);
-    memcpy(& $1, &v, sizeof(v));
+    caml_member_val($input, (void *)&$1, sizeof($1), $1_descriptor);
 }
 %enddef
 
@@ -318,9 +324,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 %define %swigtype_ptr_out(how)
 %typemap(how) SWIGTYPE (CLASS::*) {
-    void *v;
-    memcpy(&v,& $1, sizeof(void *));
-    $result = caml_val_ptr (v,$1_descriptor);
+    $result = caml_val_member((void *)&$1, sizeof($1), $1_descriptor);
 }
 %enddef
 
@@ -331,10 +335,47 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swigtype_ptr_out(varout);
 
 %typemap(directorin) SWIGTYPE (CLASS::*) {
-    void *v;
-    memcpy(&v,& $1, sizeof(void *));
-    args = caml_list_append(args, caml_val_ptr(v,$1_descriptor));
+    args = caml_list_append(args, caml_val_member((void *)&$1, sizeof($1), $1_descriptor));
 }
+
+%typemap(in) (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) %{
+    caml_member_val($input, (void *)&temp, sizeof(temp), $*1_descriptor);
+    $1 = &temp;
+%}
+%typemap(out) SWIGTYPE (CLASS::*const&) %{
+    $result = caml_val_member((void *)$1, sizeof(*$1), $*1_descriptor);
+%}
+%typemap(varout) SWIGTYPE (CLASS::*const&) %{
+    $result = caml_val_member((void *)&$1, sizeof($1), $*1_descriptor);
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE (CLASS::*const&) %{
+    static SwigTypeIdentity< $*1_ltype >::type swig_temp;
+    caml_member_val($input, (void *)&swig_temp, sizeof(swig_temp), $*1_descriptor);
+    $result = &swig_temp;
+%}
+%typemap(directorin) SWIGTYPE (CLASS::*const&) %{
+    args = caml_list_append(args, caml_val_member((void *)&$1, sizeof($1), $*1_descriptor));
+%}
+
+/* A const reference to a pointer is passed as the pointer, as in the other target languages */
+%typemap(in) SWIGTYPE *const& ($*1_ltype temp) %{
+    temp = ($*1_ltype)caml_ptr_val($input,$*1_descriptor);
+    $1 = &temp;
+%}
+%typemap(out) SWIGTYPE *const& %{
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)*$1, $*1_descriptor);
+%}
+%typemap(varout) SWIGTYPE *const& %{
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $*1_descriptor);
+%}
+%typemap(directorin) SWIGTYPE *const& %{
+    args = caml_list_append(args, caml_val_ptr((void *)$1, $*1_descriptor));
+%}
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) SWIGTYPE *const& %{
+    static $*1_ltype swig_temp;
+    swig_temp = ($*1_ltype)caml_ptr_val($input,$*1_descriptor);
+    $result = &swig_temp;
+%}
 
 /* Arrays, as a pointer to the first element */
 %typemap(in) SWIGTYPE [] = SWIGTYPE *;
@@ -450,12 +491,11 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     }
     $1 = ($1_ltype)temp;
 }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 %typemap(varin) SWIGTYPE ((&&)[ANY]) = SWIGTYPE [ANY];
 %typemap(varin) SWIGTYPE ((&&)[]) = SWIGTYPE [];
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
-%apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

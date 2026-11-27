@@ -515,18 +515,46 @@
   SWIG_SetPointerZval($input, (void *)&$1, $1_descriptor, $owner);
 %}
 
-%typemap(out, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
+%typemap(out, phptype="SWIG\\$&1_mangle") SWIGTYPE (CLASS::*)
 {
   void * p = emalloc(sizeof($1));
   memcpy(p, &$1, sizeof($1));
   SWIG_SetPointerZval($result, (void *)p, $&1_descriptor, 1);
 }
 
-%typemap(in, phptype="SWIGTYPE") SWIGTYPE (CLASS::*)
-{
-  void * p = SWIG_Z_FETCH_OBJ_P(&$input)->ptr;
-  memcpy(&$1, p, sizeof($1));
-}
+%typemap(in, phptype="SWIG\\$&1_mangle") SWIGTYPE (CLASS::*)
+%{
+  {
+    void *argp = 0;
+    if (SWIG_ConvertPtr(&$input, &argp, $&1_descriptor, 0) < 0 || argp == NULL) {
+      zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
+      return;
+    }
+    memcpy(&$1, argp, sizeof($1));
+  }
+%}
+
+%typemap(directorin) SWIGTYPE (CLASS::*)
+%{
+  {
+    void * p = emalloc(sizeof($1));
+    memcpy(p, &$1, sizeof($1));
+    ZVAL_UNDEF($input);
+    SWIG_SetPointerZval($input, (void *)p, $&1_descriptor, 1);
+  }
+%}
+
+%typemap(directorout) SWIGTYPE (CLASS::*)
+%{
+  {
+    void *argp = 0;
+    if (SWIG_ConvertPtr($input, &argp, $&1_descriptor, 0) < 0 || argp == NULL) {
+      zend_type_error("Expected $&1_descriptor for argument $argnum of $symname");
+      SWIG_fail;
+    }
+    memcpy(&$result, argp, sizeof($result));
+  }
+%}
 
 %typemap(out, phptype="?SWIGTYPE") SWIGTYPE *DYNAMIC
 {
@@ -614,7 +642,7 @@
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char [], char [ANY]
  " $1 = (Z_TYPE($input) == IS_STRING || Z_TYPE($input) == IS_NULL); "
 
-%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE
+%typecheck(SWIG_TYPECHECK_POINTER) SWIGTYPE, SWIGTYPE (CLASS::*)
 {
   void *tmp;
   $1 = (SWIG_ConvertPtr(&$input, (void **)&tmp, $&1_descriptor, SWIG_POINTER_NO_NULL) >= 0);
@@ -697,10 +725,10 @@
 }
 %typemap(typecheck,precedence=SWIG_TYPECHECK_STRING) char (&)[ANY], char (&&)[ANY]
  " $1 = (Z_TYPE($input) == IS_STRING); "
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
-/* const pointers */
-%apply SWIGTYPE * { SWIGTYPE *const }
+/* const and volatile pointers */
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 

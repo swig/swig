@@ -16,6 +16,7 @@ func main() {
 	check("called_argout", ignore_parameter.GetCalled_argout(), 1)
 	check("called_freearg", ignore_parameter.GetCalled_freearg(), 1)
 	check("fiat", ignore_parameter.Fiat(17), 17)
+	check("porsche", ignore_parameter.Porsche(), 6)
 
 	car := ignore_parameter.NewSportsCars()
 	check("daimler", car.Daimler(200, 0), "hello")

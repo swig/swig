@@ -2,18 +2,31 @@
 
 # Check that no line in a <pre> element is too long for the pdf documentation.
 #
-# Text in <pre> elements is not wrapped, so an over long line runs out of the coloured box it
-# sits in and is then clipped at the page edge by wkhtmltopdf, silently losing the text beyond
-# it. Worse, wkhtmltopdf shrinks the whole document to help fit the widest content, so a few
-# over long lines make the text smaller on every one of the 500+ pages. Keeping every line
-# within the limit below avoids both. Prose is unaffected as it is wrapped to the page width.
+# Text in <pre> elements is not wrapped, so an over long line runs out of the coloured box it sits in and is then
+# clipped at the page edge, silently losing the text beyond it. page.css sizes the code in the pdf for a line of up to
+# the length below to fit across the page. Prose is unaffected as it is wrapped to the page width.
 
+import argparse
 import glob
 import html
 import re
 import sys
 
 MAX_LENGTH = 130
+
+parser = argparse.ArgumentParser(
+    formatter_class=lambda prog: argparse.RawDescriptionHelpFormatter(prog, width=80),
+    description="""\
+Check that no line in a <pre> element of the SWIG manual is longer than %d
+characters, the longest line of code that fits across a page of the pdf
+documentation.""" % MAX_LENGTH,
+    epilog="""\
+Checks index.html, Sections.html and the chapters listed in the chapters file,
+read from the current directory, which must be Doc/Manual. A line is measured
+as it is shown, without any markup and with entities such as &lt; expanded.
+
+Exits 0 when no line is too long and 1 otherwise.""")
+parser.parse_args()
 
 filenames = ["index.html", "Sections.html"]
 for line in open("chapters"):

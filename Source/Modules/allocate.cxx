@@ -281,8 +281,7 @@ class Allocate : public Dispatcher {
   }
 
   /* Returns the return type for a function. The node n should be a function.
-     If resolve is true the fully returned type is fully resolved.
-     Caller is responsible for deleting returned string. */
+     If resolve is true the fully returned type is fully resolved. */
   String *function_return_type(Node *n, bool resolve = true) {
     String *ty = Swig_function_return_type(n);
     if (resolve) {
@@ -752,9 +751,9 @@ public:
   virtual int classDeclaration(Node *n) {
     Symtab *symtab = Swig_symbol_current();
     Swig_symbol_setscope(Getattr(n, "symtab"));
-    save_value<Node *> oldInclass(inclass);
-    save_value<AccessMode> oldAcessMode(cplus_mode);
-    save_value<int> oldExtendMode(extendmode);
+    SaveValue<Node *> oldInclass(inclass);
+    SaveValue<AccessMode> oldAcessMode(cplus_mode);
+    SaveValue<int> oldExtendMode(extendmode);
     if (Getattr(n, "template"))
       extendmode = 0;
     if (!CPlusPlus) {

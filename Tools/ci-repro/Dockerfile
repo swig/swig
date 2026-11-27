@@ -25,13 +25,13 @@ ARG HOST_GID=1000
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Base toolchain the CI scripts assume is already present on the runner image.
-# pcre2-config (libpcre2-dev) is what configure needs; the CI scripts add their
-# own per language packages on top of this.
+# pcre2-config (libpcre2-dev) is what configure needs and pip is what the python
+# install uses; the CI scripts add their own per language packages on top of this.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential autoconf automake libtool bison \
         libpcre2-dev pkg-config \
         git curl wget ca-certificates gnupg2 software-properties-common \
-        file procps sudo \
+        file procps sudo python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 # Reproduce the non-root, passwordless-sudo user that GHA runs jobs as, so RVM /

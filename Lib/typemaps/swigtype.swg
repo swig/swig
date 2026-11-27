@@ -194,15 +194,13 @@
 }
 
 
-/* memberin/globalin/varin, for fix double arrays. */
+/* memberin/globalin/varin, for fix arrays of arrays.  These also match an array of three or more dimensions, such as an
+   int [2][3][4], so all $1_size elements are copied, not the elements of the first two dimensions, which are arrays. */
 
 %typemap(memberin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$1_dim0; ++ii) {
-      size_t jj = 0;
-      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
-    }
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
   } else {
     %variable_nullref("$type","$name");
   }
@@ -211,26 +209,20 @@
 %typemap(globalin) SWIGTYPE [ANY][ANY] {
   if ($input) {
     size_t ii = 0;
-    for (; ii < (size_t)$1_dim0; ++ii) {
-      size_t jj = 0;
-      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = $input[ii][jj];
-    }
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)$input + ii);
   } else {
     %variable_nullref("$type","$name");
   }
 }
 
 %typemap(varin) SWIGTYPE [ANY][ANY] {
-  $basetype (*inp)[$1_dim1] = 0;
+  $basetype *inp = 0;
   int res = SWIG_ConvertPtr($input, %as_voidptrptr(&inp), $descriptor, %convertptr_flags);
   if (!SWIG_IsOK(res)) {
     %variable_fail(res, "$type", "$name");
   } else if (inp) {
     size_t ii = 0;
-    for (; ii < (size_t)$1_dim0; ++ii) {
-      size_t jj = 0;
-      for (; jj < (size_t)$1_dim1; ++jj) $1[ii][jj] = inp[ii][jj];
-    }
+    for (; ii < (size_t)$1_size; ++ii) *(($1_basetype *)$1 + ii) = *(($1_basetype *)inp + ii);
   } else {
     %variable_nullref("$type", "$name");
   }
@@ -318,6 +310,10 @@
 
 %typemap(varout, noblock=1) SWIGTYPE [] {
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $descriptor, %newpointer_flags));
+}
+
+%typemap(varout, noblock=1) SWIGTYPE *const& {
+  %set_varoutput(SWIG_NewPointerObj(%as_voidptr($1), $*descriptor, %newpointer_flags));
 }
 
 /* References */
@@ -563,6 +559,12 @@
   }
 }
 
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE (CLASS::*) {
+  char swig_memberptr[sizeof($1_ltype)];
+  int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $descriptor);
+  $1 = SWIG_CheckState(res);
+}
+
 %typemap(out,noblock=1) SWIGTYPE (CLASS::*) {
   %set_output(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $descriptor));
 }
@@ -598,10 +600,55 @@
     %dirout_fail(swig_res,"$type");
   }
 }
+
+/* A member pointer is not owned, so it is not released as the SWIGTYPE * directorfree typemap does */
+%typemap(directorfree) SWIGTYPE (CLASS::*) ""
 #endif
 
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
+
+%typemap(in) (SWIGTYPE (CLASS::*const&)) ($*1_ltype temp) {
+  int res = SWIG_ConvertMember($input, %as_voidptr(&temp), sizeof(temp), $*descriptor);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res, "$type", $symname, $argnum);
+  }
+  $1 = &temp;
+}
+
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE (CLASS::*const&) {
+  char swig_memberptr[sizeof($*1_ltype)];
+  int res = SWIG_ConvertMember($input, swig_memberptr, sizeof(swig_memberptr), $*descriptor);
+  $1 = SWIG_CheckState(res);
+}
+
+%typemap(out,noblock=1) SWIGTYPE (CLASS::*const&) {
+  %set_output(SWIG_NewMemberObj(%as_voidptr($1), sizeof(*$1), $*descriptor));
+}
+
+%typemap(varout,noblock=1) SWIGTYPE (CLASS::*const&) {
+  %set_varoutput(SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $*descriptor));
+}
+
+#if defined(SWIG_DIRECTOR_TYPEMAPS)
+%typemap(directorin,noblock=1) SWIGTYPE (CLASS::*const&) {
+  $input = SWIG_NewMemberObj(%as_voidptr(&$1), sizeof($1), $*descriptor);
+}
+
+%typemap(directorout,noblock=1,warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) (SWIGTYPE (CLASS::*const&)) ($*1_ltype swig_val) {
+  int swig_res = SWIG_ConvertMember($input, %as_voidptr(&swig_val), sizeof(swig_val), $*descriptor);
+  if (!SWIG_IsOK(swig_res)) {
+    %dirout_fail(swig_res, "$type");
+  }
+  $result = new ($*1_ltype)(swig_val);
+  swig_acquire_ownership($result);
+}
+%typemap(directorfree,noblock=1) SWIGTYPE (CLASS::*const&) {
+  if (director) {
+    director->swig_release_ownership(%as_voidptr($input));
+  }
+}
+#endif
 
 /* ------------------------------------------------------------
  * --- function ptr typemaps --- 
@@ -646,6 +693,14 @@
 }
 %typemap(constcode) SWIGTYPE ((* const)(ANY)) = SWIGTYPE ((*)(ANY));
 
+%typemap(out, noblock=1) SWIGTYPE ((*const&)(ANY)) {
+  %set_output(SWIG_NewFunctionPtrObj((void *)(*$1), $*descriptor));
+}
+
+%typemap(varout, noblock=1) SWIGTYPE ((*const&)(ANY)) {
+  %set_varoutput(SWIG_NewFunctionPtrObj((void *)($1), $*descriptor));
+}
+
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 
 /* directorin */
@@ -662,16 +717,19 @@
     %dirout_fail(swig_res,"$type");
   }
 }
+
+/* A function pointer is not owned, so it is not released as the SWIGTYPE * directorfree typemap does */
+%typemap(directorfree) SWIGTYPE ((*)(ANY)) ""
 #endif
 
 %apply SWIGTYPE ((*)(ANY)) { SWIGTYPE ((* const)(ANY)) }
 
 /* ------------------------------------------------------------
  * --- function reference typemaps ---
- * A reference to a function is passed and returned as a function pointer.
+ * A reference to a function, lvalue or rvalue, is passed and returned as a function pointer that is not owned.
  * ------------------------------------------------------------ */
 
-%typemap(in) SWIGTYPE ((&)(ANY)) {
+%typemap(in) SWIGTYPE ((&)(ANY)), SWIGTYPE ((&&)(ANY)) {
   int res = SWIG_ConvertFunctionPtr($input, (void**)(&$1), $descriptor);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res, "$type", $symname, $argnum);
@@ -681,17 +739,17 @@
   }
 }
 
-%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)) {
+%typecheck(SWIG_TYPECHECK_POINTER,noblock=1) SWIGTYPE ((&)(ANY)), SWIGTYPE ((&&)(ANY)) {
   void *ptr = 0;
   int res = SWIG_ConvertFunctionPtr($input, &ptr, $descriptor);
   $1 = ptr ? SWIG_CheckState(res) : 0;
 }
 
-%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)) {
+%typemap(out, noblock=1) SWIGTYPE ((&)(ANY)), SWIGTYPE ((&&)(ANY)) {
   %set_output(SWIG_NewFunctionPtrObj((void *)($1), $descriptor));
 }
 
-%apply SWIGTYPE * { SWIGTYPE *const }
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 
 /* ------------------------------------------------------------
  * --- Special typemaps ---

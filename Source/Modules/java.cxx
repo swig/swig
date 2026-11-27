@@ -3350,7 +3350,6 @@ public:
    * the enum value will be generated. Otherwise the C/C++ enum value will be used if there
    * is one and hopefully it will compile as Java code - e.g. 20 as in: enum E{e=20};
    * The %javaconstvalue feature overrides all other ways to generate the constant value.
-   * The caller must delete memory allocated for the returned string.
    * ------------------------------------------------------------------------ */
 
   String *enumValue(Node *n) {
@@ -3463,7 +3462,7 @@ public:
   bool substituteClassname(SwigType *pt, String *tm, bool jnidescriptor = false) {
     bool substitution_performed = false;
     SwigType *type = Copy(SwigType_typedef_resolve_all(pt));
-    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *strippedtype = SwigType_strip_qualifiers_except_member_function(type);
 
     if (Strstr(tm, "$javaclassname")) {
       SwigType *classnametype = Copy(strippedtype);
@@ -4207,13 +4206,15 @@ public:
                something other than a NULL-initialized reference. */
             SwigType *noref_type = SwigType_del_reference(Copy(returntype));
             String *noref_ltype = SwigType_lstr(noref_type, 0);
-            String *return_ltype = SwigType_lstr(returntype, 0);
+            String *result_default_decl = SwigType_lstr(noref_type, "result_default");
+            String *c_result_decl = SwigType_lstr(returntype, "c_result");
 
-            Wrapper_add_localv(w, "result_default", "static", noref_ltype, "result_default", NIL);
-            Wrapper_add_localv(w, "c_result", return_ltype, "c_result", NIL);
+            Wrapper_add_localv(w, "result_default", "static", result_default_decl, NIL);
+            Wrapper_add_localv(w, "c_result", c_result_decl, NIL);
             Printf(w->code, "result_default = SwigValueInit< %s >();\n", noref_ltype);
             Printf(w->code, "c_result = &result_default;\n");
-            Delete(return_ltype);
+            Delete(c_result_decl);
+            Delete(result_default_decl);
             Delete(noref_ltype);
             Delete(noref_type);
           }
@@ -4551,15 +4552,16 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    String *exception_specification = Swig_director_exception_specification(n);
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0, exception_specification);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
-    target = Swig_method_decl(rtype, decl, name, l, 1);
+    target = Swig_method_decl(rtype, decl, name, l, 1, exception_specification);
     Printf(declaration, "    virtual %s", target);
     Delete(target);
+    Delete(exception_specification);
 
-    // Add any exception specifications to the methods in the director class
     // Get any Java exception classes in the throws typemap
     ParmList *throw_parm_list = NULL;
 
@@ -4574,39 +4576,16 @@ public:
       }
     }
 
-    if (Getattr(n, "noexcept")) {
-      Append(w->def, " noexcept");
-      Append(declaration, " noexcept");
-    }
-    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-      int gencomma = 0;
-
-      Append(w->def, " throw(");
-      Append(declaration, " throw(");
-
-      if (throw_parm_list) {
-        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-        Swig_typemap_attach_parms("directorthrows", throw_parm_list, 0);
-      }
-      for (p = throw_parm_list; p; p = nextSibling(p)) {
-        if (Getattr(p, "tmap:throws")) {
-          // %catches replaces the specified exception specification
-          if (!catches_list) {
+    if ((throw_parm_list = Getattr(n, "throws"))) {
+      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      Swig_typemap_attach_parms("directorthrows", throw_parm_list, 0);
+      // %catches replaces the specified exception specification
+      if (!catches_list) {
+        for (p = throw_parm_list; p; p = nextSibling(p)) {
+          if (Getattr(p, "tmap:throws"))
             addThrows(n, "tmap:throws", p);
-          }
-
-          if (gencomma++) {
-            Append(w->def, ", ");
-            Append(declaration, ", ");
-          }
-
-          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
-          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
         }
       }
-
-      Append(w->def, ")");
-      Append(declaration, ")");
     }
 
     Append(w->def, " {");

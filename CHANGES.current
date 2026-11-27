@@ -7,6 +7,2047 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.6.0 (in progress)
 ===========================
 
+2026-11-26: wsfulton
+            [Python] Fix further reference counting errors in the SWIG runtime code, mostly in the
+            handling of failures such as running out of memory. Some of these failures raised a
+            SystemError and now raise an appropriate exception, such as MemoryError, instead.
+            Importing a C++ module again after creating a SWIG runtime type failed now raises
+            ImportError instead of SystemError.
+
+2026-11-25: wsfulton
+            [Python] Fix crashes using a Python class deriving from the SwigPyObject type, which is
+            the type of a plain pointer wrapper such as an 'int *'. Freeing an instance of the class
+            corrupted the heap. Freeing an instance that had been given ownership with acquire() also
+            released a reference it did not hold on SWIG's runtime data, which was then freed while
+            still in use. Affects SWIG 4.3.0 and later.
+
+2026-11-25: wsfulton
+            [Python] Fix a memory leak when the cvar object holding a module's global variables is
+            destroyed, such as when the Python interpreter is finalized. The memory of the object
+            itself was never freed.
+
+2026-11-25: wsfulton
+            [Python] Fix a crash when a function returns a smart pointer holding NULL and the
+            smart pointer class is wrapped using %extend_smart_pointer, such as get_rca() in:
+
+              %extend_smart_pointer(RCPtr<A>);
+              %template(RCPtr_A) RCPtr<A>;
+              RCPtr<A> get_rca();
+
+2026-11-25: wsfulton
+            [Python] Passing a wrapped function an object whose 'this' attribute is created on each
+            access, such as by a property returning a new proxy object, used the 'this' object after
+            it had been freed. This raised a TypeError for an argument of the correct type or crashed.
+            The 'this' object is now kept alive while it is used.
+
+            SWIG_Python_GetSwigThis() now returns a new reference instead of a borrowed reference.
+            User code calling it must now release the returned object with Py_XDECREF().
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-24: wsfulton
+            [Python] Fix freeing a wrapper not releasing the reference it holds on its Python type
+            with Python 3.8 and later. The refcount of the SwigPyObject and SwigPyPacked types and
+            of each -builtin class type grew by one for every wrapper freed. A Python class
+            deriving from a -builtin class was never freed as a result. Each wrapper now releases
+            this reference when it is freed. Affects SWIG 4.3.0 and later, 4.2.0 and later with
+            Py_LIMITED_API. The -builtin class wrappers are affected from SWIG 4.4.0.
+
+2026-11-24: wsfulton
+            [Python] Fix a weak reference to a SwigPyObject still referring to it after it was
+            freed. A SwigPyObject wraps a plain pointer such as an 'int *' and is the 'this'
+            attribute of a proxy class when not using -builtin. Calling the weak reference used
+            freed memory and its callback was never called. The weak reference is now cleared
+            when the SwigPyObject is freed, so it returns None and its callback is called.
+            Affects SWIG 4.4.0 and later.
+
+2026-11-21: wsfulton
+            [Python] #3528 The str() method of the std::ostringstream and std::wostringstream
+            classes in std_sstream.i was annotated with -typehints as returning "str". The method
+            hides the str builtin in its class, so this named the method and type checkers rejected
+            it. It is now annotated as returning "__builtin__.str". The .pyi stub file now imports
+            the builtins module as __builtin__, as the .py file does, so that a pytyping typemap can
+            name a builtin type hidden by a class member in the same way.
+
+2026-11-20: wsfulton
+            [Python] #3602 Fix a seg fault in SWIG_NewPointerObj() and SWIG_NewPackedObj() called
+            from code using the external runtime header from swig -external-runtime if the SWIG
+            runtime Python type for the object could not be created, for example when out of
+            memory. They now return NULL instead.
+
+2026-11-18: jackvreeken
+            [Python] #3611 Faster overload resolution when not using -builtin and an argument,
+            such as a float or str, does not match a pointer parameter. Modules compiled for
+            Python 3.13 or later, or for version 3.13 or later of the limited API, benefit.
+
+2026-11-18: benmwebb
+            [Python] #3608 Faster calls to wrapped functions and methods taking proxy class
+            arguments, including self, when not using -builtin. Each argument's type was
+            checked by making a new string. Calls are now two to three times as fast.
+
+2026-11-16: wsfulton
+            The -addextern command line option is deprecated and now gives Warning 129. It will
+            be removed in a future release. The option adds a declaration of each extern function
+            and variable to the wrapper code, which is only needed if the header file declaring
+            them has not been added to the wrapper code. SWIG cannot always generate these
+            declarations correctly and the wrapper code then fails to compile. Examples are
+            extern functions with default arguments declared in a namespace and functions using
+            a nonstandard calling convention, such as Windows __stdcall, which SWIG does not
+            handle.
+
+            Add the declarations to the wrapper code instead, usually by including the header
+            file in a %{ %} block. Alternatively, declare them with %inline. For example, replace:
+
+              extern void foo(int);
+
+            with:
+
+              %inline %{
+              extern void foo(int);
+              %}
+
+2026-11-11: erezgeva, wsfulton
+            #3583 The pdf documentation is now generated by WeasyPrint instead of
+            wkhtmltopdf, which is no longer maintained. The text in the pdf is larger and
+            the table of contents has page numbers.
+
+2026-11-11: wsfulton
+            [Python] #3542 Add typecheck typemaps for std::filesystem::path. Overloaded
+            functions taking a path only accepted a wrapped std::filesystem::path and now
+            accept a str or pathlib.Path too. A str is passed to an overload taking a string
+            ahead of one taking a path.
+
+2026-11-11: wsfulton
+            [Python] #3541 Passing None for a std::filesystem::path parameter crashed the
+            interpreter. TypeError is now raised.
+
+2026-11-11: wsfulton
+            [Python] #3541 An exception raised when creating the pathlib.Path for a returned
+            std::filesystem::path was replaced by a SystemError when the function also has an
+            output parameter, such as int *OUTPUT. The exception is now propagated.
+
+2026-11-11: alonfaraj
+            [Python] #3541 Fix crashes in the std::filesystem::path typemaps. Passing a str
+            that cannot be encoded as UTF-8, such as a filename that is not valid UTF-8, now
+            raises UnicodeEncodeError, as does a pathlib.Path holding one except on Windows.
+            Returning a path that is not valid UTF-8 now raises UnicodeDecodeError and an
+            exception raised by the __str__ of a pathlib.Path subclass is now propagated.
+            A reference leak when a pathlib.Path fails to convert on Windows is also fixed.
+
+2026-11-09: vincentcouvert
+            [Scilab] #3150 Fix std::string being an incomplete type when std_basic_string.i is
+            included before std_string.i, which gave warning 402 for classes derived from
+            std::string.
+
+2026-11-08: wsfulton
+            The typemap search for a type with both const and volatile qualifiers now strips
+            volatile first, so a typemap for the const type is used before one for the type
+            without qualifiers. Previously both were stripped in one step. For example, a
+            parameter of type:
+
+              const volatile int &iii
+
+            used the 'int &' typemaps, which wrap it as a pointer in most target languages,
+            rather than the 'const int &' typemaps, which pass it by value. The search now
+            looks for 'int const &iii' and 'int const &' before 'int &iii' and 'int &'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-08: wsfulton
+            [C] A pointer to a const volatile builtin type, such as 'const volatile int *', is
+            now declared as 'const int *' rather than 'int *' in the C and C++ wrappers, so it
+            keeps its const.
+
+2026-11-07: wsfulton
+            [C] Fix the C++ wrappers in the .h file not compiling for a parameter that is a volatile
+            class passed by value, or a pointer or a reference to one, such as those of:
+
+              void f(volatile Foo v, volatile Foo *p, const volatile Foo &r);
+
+            The C++ wrappers now take and return them without volatile, as 'Foo const &', 'Foo *'
+            and 'Foo const &', as the other target languages do.
+
+2026-11-07: wsfulton
+            [C] Fix the C++ wrappers in the .h file not compiling for a global variable, struct
+            member or parameter that is an array of pointers to an enum or an array of arrays of
+            enums, such as:
+
+              enum Finger { One, Two };
+              Finger *finger_ptrs[3];
+              Finger finger_grid[2][3];
+
+            The C++ wrappers now leave them out with warning 761, as for such arrays of a class.
+
+2026-11-07: wsfulton
+            [C] When wrapping C++, fix the wrappers not compiling for an array of arrays other than
+            a two dimensional array of a builtin type, for a global variable or struct member that
+            is an array of pointers to a class and for a struct member that is an array of classes,
+            such as:
+
+              int cube[2][3][4];
+              Foo foos[2][4];
+              Foo *ptrs[3];
+              struct Holder { Foo items[2]; };
+
+            It is now passed and returned as a pointer to its first element, as other arrays are.
+
+2026-11-07: wsfulton
+            [C] When wrapping C++, fix the wrapper of a function with a parameter that is an array
+            of pointers, such as:
+
+              int count(char *strs[3]);
+
+            The wrapper freed the array passed to it, so passing an array that C code declared
+            crashed or corrupted the heap. The array is no longer freed.
+
+2026-11-07: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl] #142
+            Fix the wrapper not compiling for a global variable or struct member that is an array of
+            three or more dimensions, such as:
+
+              double x[2][3][4];
+
+            Setting the variable now copies all of its elements.
+
+2026-11-06: wsfulton
+            [C] Fix the .h file not compiling as C before C23 for a bool used only in a global
+            variable or struct member declared in the .h file when wrapping C code, such as:
+
+              extern bool flag;
+              struct Options {
+                bool visible;
+              };
+
+            The same went wrong for a global function pointer when wrapping C or C++ code:
+
+              extern int (*callback)(bool);
+
+            The .h file now includes stdbool.h for all of these, as it does for a bool parameter.
+
+2026-11-04: patricksnape
+            [Python] #3600 Fix the runtime data being destroyed while still in use, after which new wrappers
+            lacked their proxy classes and freed type data was used. This happened when a wrapper that did
+            not own its pointer acquired ownership later and was then freed, such as after setting
+            'thisown = True' on the result of a function returning a raw pointer.
+            Affects SWIG 4.1.1 and later.
+
+2026-11-04: wsfulton
+            [C] Fix a two dimensional array of a builtin type passed to a wrapper function or to the
+            setter of a global or member variable when wrapping C++ code, such as the parameter of:
+
+              int sum_grid(const int grid[2][3]);
+
+            The wrapper freed the array passed to it, so passing an array that C code declared
+            crashed or corrupted the heap. The array is no longer freed.
+
+2026-11-03: wsfulton
+            [D] Fix a const member function declared through a function typedef, such as m in:
+
+              typedef int G(double) const;
+              struct S {
+                G m;
+              };
+
+            It was wrapped as a D method that is not const, unlike a const member function declared
+            directly. It is now a D const method.
+
+2026-11-03: wsfulton
+            Fix the $decl and $fulldecl special variables for a function declared through a function
+            typedef, such as f in:
+
+              typedef int F(int);
+              F f;
+
+            $decl gave just the name and $fulldecl gave the declaration of a variable, 'int f'. They
+            now give 'f(int)' and:
+
+              int f(int)
+
+            A member function declared through a function typedef also gets the cv-qualifier and
+            ref-qualifier of the typedef, as in 'S::m(double) const'.
+
+2026-11-03: wsfulton
+            The $decl and $fulldecl special variables and the declarations in warning messages left
+            out the exception specification of a function, constructor or destructor, such as the
+            'noexcept' of fp in:
+
+              struct S {
+                static int (*fp(int) noexcept)(double);
+              };
+
+            $fulldecl gave 'int (*S::fp(int))(double)' and now gives:
+
+              int (*S::fp(int) noexcept)(double)
+
+            A 'noexcept(expr)' or 'throw' exception specification is given too. The list of C/C++
+            prototypes in the error for wrong arguments to an overloaded function in target
+            languages such as Python has the exception specifications as well.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-03: wsfulton
+            [C#, D, Java] Fix a director method returning a reference to a member pointer, or a
+            non-const reference to a function pointer, such as getMemberPtrCref() in:
+
+              struct Funcs {
+                int increment(int x);
+              };
+              struct MemberPtrDirector {
+                virtual int (Funcs::*const &getMemberPtrCref())(int);
+              };
+
+            The C++ code of the director class did not compile, as the variables for the value
+            returned were declared with the name after the type, as in
+            'static int (Funcs::*)(int) result_default ;'.
+
+2026-11-03: wsfulton
+            [Python] Fix the $pytypename special variable in a 'pytyping' typemap for a pointer to
+            a member function with a cv-qualifier or a ref-qualifier, such as the parameter f in:
+
+              %typemap(pytyping) SWIGTYPE (CLASS::*) "$pytypename";
+              struct Funcs {
+                short CC(bool) const;
+              };
+              int take_c(short (Funcs::*f)(bool) const);
+
+            It gave SWIGTYPE_m_Funcs__f_bool__short, the name for a pointer to a non-const member
+            function, so the annotation of f named the wrong class. It now gives
+            SWIGTYPE_m_Funcs__q_const__f_bool__short, the runtime type of f. The same goes for
+            $&pytypename and $*pytypename.
+
+2026-11-03: wsfulton
+            [Javascript, Lua, OCaml, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl] Fix the wrappers
+            of a static constexpr pointer to a const data member or to a member function with a
+            cv-qualifier, a ref-qualifier or a const return type, such as cdp, cpp and csp in:
+
+              struct Funcs {
+                short CC(bool) const;
+                const char *SS(bool) const;
+                int data;
+              };
+              struct Holder {
+                static constexpr const int Funcs::*cdp = &Funcs::data;
+                static constexpr short (Funcs::*cpp)(bool) const = &Funcs::CC;
+                static constexpr const char *(Funcs::*csp)(bool) const = &Funcs::SS;
+              };
+
+            The wrappers did not compile, as the constants were given their types without these
+            qualifiers, such as 'short (Funcs::*)(bool)' for cpp. The constants now keep their
+            types.
+
+2026-11-03: wsfulton
+            [C, C#, Guile, Java] Fix the type of a static constexpr pointer to a member function
+            with a cv-qualifier or a ref-qualifier, such as cpp in:
+
+              struct Funcs {
+                short FF(bool);
+                short CC(bool) const;
+              };
+              struct Holder {
+                static constexpr short (Funcs::*cpp)(bool) const = &Funcs::CC;
+              };
+              int take_c(short (Funcs::*f)(bool) const);
+              int take_f(short (Funcs::*f)(bool));
+
+            The constant had the type of a pointer to a non-const member function,
+            SWIGTYPE_m_Funcs__f_bool__short, so it could not be passed to take_c and could be
+            passed to take_f. It now has the type SWIGTYPE_m_Funcs__q_const__f_bool__short of the
+            parameter of take_c.
+
+2026-11-03: wsfulton
+            [C#, D, Java] Fix a const reference to a member pointer, such as m in:
+
+              struct Shape {
+                virtual double area();
+              };
+              double do_op_cref(Shape *s, double (Shape::*const &m)());
+
+            The parameter took the type wrapper class of a pointer to the member pointer,
+            SWIGTYPE_p_m_Shape__f_void__double, so a member pointer, which has the class
+            SWIGTYPE_m_Shape__f_void__double, could not be passed for m. Passing null for m threw an
+            exception. A function or variable of such a type gave a pointer to the member pointer,
+            which could not be passed for a member pointer. A const reference to a member pointer is
+            now passed and returned as the member pointer with the class of the member pointer, as
+            a const reference to a pointer is passed and returned as the pointer. null is passed as
+            a NULL member pointer and a NULL member pointer is returned as null. A director method
+            gets and returns such a reference as the member pointer too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-03: wsfulton
+            [PHP] Add the names that PHP 8.0 to PHP 8.5 added to the keywords, reserved class names,
+            built-in constants and built-in functions that SWIG warns about and renames, such as the
+            class Override and the function array_first(). A wrapped class with the name of a PHP
+            class replaced the PHP class and a wrapped function with the name of a PHP function
+            stopped the module from loading. Such a class or function is now renamed with a c_
+            prefix and warning 314 is given, as for the names that were already listed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-03: wsfulton
+            [PHP] Fix the type declarations of a member pointer parameter or return value, such as
+            for m and areapt in:
+
+              double do_op(Shape *s, double (Shape::*m)(void));
+              double (Shape::*areapt())(void);
+
+            They named the PHP class SWIG\_m_Shape__f_void__double, but a member pointer is passed
+            and returned as an object of class SWIG\_p_m_Shape__f_void__double, so reflection showed
+            a type that the member pointer objects are not instances of. They now name the class of
+            the member pointer objects.
+
+2026-11-03: wsfulton
+            [R] Fix a crash passing an object for a member pointer, such as an S object passed for
+            the parameter of:
+
+              struct S {
+                int f(int);
+              };
+              int call(int (S::*m)(int));
+
+            The object was read as the member pointer and R crashed. A member pointer read back
+            with readRDS() crashed too. A SWIG type error is now given for these as for any other
+            value that is not a member pointer, such as a number or NULL.
+
+2026-11-03: wsfulton
+            [Go] Fix a const reference to a member pointer, such as m and the return type in:
+
+              struct Shape {
+                virtual double area();
+              };
+              typedef double (Shape::*AreaFunc)();
+              double do_op_cref(Shape *s, double (Shape::*const &m)());
+              const AreaFunc &area_cref();
+
+            Its Go type was a pointer to the Go type of a member pointer. Passing the address of a
+            member pointer for m panicked with "argument of cgo function has Go pointer to unpinned
+            Go pointer" and what area_cref() returned could not be used as a member pointer. A const
+            reference to a member pointer is now passed and returned as the member pointer, with the
+            same Go type, SwigMemberPtr, as a const reference to a pointer is passed and returned as
+            the pointer. A director method gets and returns such a type as the member pointer too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [Guile, Octave, Perl, Python, Ruby, Scilab, Tcl]
+            Fix overload dispatch on a parameter that is a const reference to a void pointer, as in:
+
+              char *fvoidcref(int);
+              char *fvoidcref(void *const &);
+
+            Such a parameter takes any pointer, as a 'void *' parameter does, but calling fvoidcref
+            with a pointer of a type other than 'void *' failed with an error saying that no
+            overload matches. The overload taking the 'void *const &' is now called.
+
+2026-11-02: wsfulton
+            [Lua] Fix a parameter that is a const reference to a void pointer, such as in:
+
+              char *fvoidcref(void *const &);
+
+            Only a 'void *' was accepted for it. Any pointer is now accepted, as for a 'void *'
+            parameter, including in overload dispatch.
+
+2026-11-02: wsfulton
+            [Javascript, Perl, Ruby, Tcl] Fix a crash when passing the wrong kind of value for a
+            member pointer, such as for m in:
+
+              double do_op(Shape *s, double (Shape::*m)());
+
+            Passing a pointer to an object in Tcl, a pointer to a type with no proxy class in Perl,
+            a string that starts with an underscore but is not a member pointer in Ruby or null in
+            Javascript with the node or napi engine crashed. So did calling an overloaded function
+            with one of these when an overload takes a member pointer. A type error is now raised,
+            or the overload that takes the value is called.
+
+2026-11-02: wsfulton
+            [Guile, Javascript, Lua, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            Fix a const reference to a member pointer, such as m in:
+
+              struct Shape {
+                virtual double area();
+              };
+              double do_op_cref(Shape *s, double (Shape::*const &m)());
+
+            Passing a member pointer for m failed with a type error, as a pointer to the member
+            pointer was expected. A function or variable of such a type gave a pointer to the
+            member pointer, which could not be passed for a member pointer. A const reference to a
+            member pointer is now passed and returned as the member pointer, with its type checked,
+            as a const reference to a pointer is passed and returned as the pointer. A director
+            method gets and returns such a type as the member pointer too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [C] Fix %rename being ignored by the C++ wrappers of member functions, static member
+            functions and member variables, such as in:
+
+              %rename(NewMethod) Foo::OldMethod;
+              struct Foo {
+                int OldMethod();
+              };
+
+            The C++ wrapper class declared the member with its C++ name, OldMethod, while the C
+            function and the C++ wrappers of global functions and variables have the name given by
+            %rename. The C++ wrappers of these members now have the name given by %rename too:
+
+              int NewMethod();
+
+            An operator keeps its C++ name. A static member function added with %extend also gets
+            its own name instead of the name of the function that SWIG generates to implement it.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [C] Fix the generated code not compiling as C++ for a declaration of C++ code that is
+            given a name that is a C++ keyword, such as by:
+
+              %rename(new) create;
+
+            The C++ wrapper used the name as it is, as in 'inline int new()'. So did the C
+            declaration of a constant, as in '#define new 12', or, without -namespace, of a class,
+            enum or enumerator. Such a declaration is now renamed by adding a 'c_' prefix to its
+            C++ name, with a warning, as the other target languages rename their own keywords:
+
+              Warning 314: 'new' is a C++ keyword, renaming to 'c_create'
+
+            The C function is then named after c_create, as is the C++ wrapper. C code is not
+            renamed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            Fix a g++ -Wextra warning, "type qualifiers ignored on cast result type", in the
+            generated code for a const pointer to member, such as the parameter of:
+
+              struct A {
+                int f(int);
+              };
+              int call(int (A::*const mp)(int));
+
+            whose wrapper did:
+
+              result = (int)call((int (A::*const)(int))arg1);
+
+            The top level const is now left out of the cast, as it already was for other types.
+
+2026-11-02: wsfulton
+            [C#, D, Go, Java, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
+            Fix the director method of a virtual method declared noexcept(false), such as:
+
+              struct Base {
+                virtual int ping() noexcept(false);
+              };
+
+            It was declared noexcept in the director class, so an exception thrown by the director
+            method, such as the one for an exception raised by the override in the target language,
+            called std::terminate() instead of reaching the caller. It is now declared
+            noexcept(false), like the method.
+
+2026-11-02: wsfulton
+            [C] Fix the C++ wrappers crashing when NULL is passed for a pointer to a class, such as
+            for the parameter of:
+
+              int count(Foo *f);
+
+            or to the setter of a member variable that is a pointer to a class. The C++ wrapper
+            called a member function through the pointer to get the pointer to pass to the C
+            function. NULL is now passed on to the C function, as NULL returned by the C function is
+            returned by the C++ wrapper.
+
+2026-11-02: wsfulton
+            [C] Fix the C++ wrappers not compiling for a parameter or variable that is an array of a
+            class, such as the parameter of f() in:
+
+              struct Foo {
+                int x;
+              };
+              void f(const Foo a[3]);
+
+            The C++ wrapper was declared with the array type before the name, as 'Foo const [3] a'.
+            It now takes a pointer to the C++ wrapper class, as the C function takes a pointer to
+            the first element of the array:
+
+              void f(Foo const * a);
+
+2026-11-02: wsfulton
+            [C] Fix the .h file of a module importing another one not compiling as C99. It
+            repeated typedefs of the .h file of the other module, which it includes, while C99
+            does not allow a typedef to be repeated, unlike C11. With -c++, these were:
+
+              typedef struct SwigObj SwigObj;
+
+            and the typedef of a class that neither module wraps but both use, such as Opaque in:
+
+              class Opaque;
+              void use_opaque(Opaque *o);
+
+            which is:
+
+              typedef struct SWIGTYPE_p_Opaque SWIGTYPE_p_Opaque;
+
+            Each of these typedefs is now declared once.
+
+2026-11-02: wsfulton
+            [PHP] A member pointer constant was not wrapped, so ADD_BY_VALUE was not defined for:
+
+              struct Funktions {
+                int addByValue(const int &a, int b);
+              };
+              %constant int (Funktions::*ADD_BY_VALUE)(const int &, int) = &Funktions::addByValue;
+
+            Member pointer constants are now wrapped in the same way as a member pointer returned by
+            a function.
+
+2026-11-02: wsfulton
+            [PHP] The type of a member pointer passed by value was not checked. A member pointer of
+            another type or any other object was accepted and its bytes were copied as the member
+            pointer. Passing null crashed. These now raise a TypeError.
+
+2026-11-02: wsfulton
+            [Go] Fix passing nil for a member pointer, such as for m in:
+
+              struct Shape {
+                double area();
+              };
+              double do_op(Shape *s, double (Shape::*m)());
+
+            This crashed and now passes a NULL member pointer. A NULL member pointer returned from
+            C++, such as by a function, a variable or a %constant, was not nil and is now nil. So is a
+            NULL member pointer passed to a director method.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [C] Add support for pointers to members, which could not be used, as in:
+
+              struct Shape {
+                double area() const;
+              };
+              double call(const Shape *s, double (Shape::*m)() const);
+              double (Shape::*area_pointer())() const;
+
+            The .h file declared them with a C++ type, as in 'double (Shape::*carg2)()', which is
+            not valid C and loses the const, while the wrapper function took a pointer, which
+            cannot hold a pointer to member function. The C++ wrappers left them out. Two overloads
+            differing only in the type of a pointer to member function had the same name. A
+            pointer to member, or a const reference to one, is now passed and returned by value as
+            an opaque struct holding its bytes, which the C++ wrappers use too:
+
+              typedef struct SWIGTYPE_m_Shape__q_const__f___double {
+                void *swig_data[4];
+              } SWIGTYPE_m_Shape__q_const__f___double;
+
+              double example_call(Shape* carg1,SWIGTYPE_m_Shape__q_const__f___double carg2);
+              SWIGTYPE_m_Shape__q_const__f___double example_area_pointer();
+
+            A variable that is a pointer to member is wrapped by accessor functions and a %constant
+            by a getter function. Any other pointer or reference to a pointer to member is an
+            opaque pointer. The name of an overload now has the parameter and return types of a
+            pointer to member function parameter instead of just 'f'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [C] Fix the C++ wrappers not compiling for a conversion operator, such as in:
+
+              %rename(toFoo) Bar::operator Foo();
+              %rename(toFooRef) Bar::operator Foo&();
+              struct Bar {
+                operator Foo();
+                operator Foo&();
+              };
+
+            The C++ wrapper class declared them with a return type, as in 'Foo operator Foo&();'.
+            A conversion operator is now wrapped by a conversion operator to the type that its C++
+            wrapper returns, keeping 'explicit', while its C function has the name given by
+            %rename, such as Bar_toFoo. If another one already converts to this type, as both
+            return a Foo object here, or if the type is a function pointer, it is wrapped by a
+            member function with the name given by %rename instead. So the C++ wrapper class of Bar
+            declares:
+
+              operator Foo();
+              Foo toFooRef();
+
+2026-11-02: wsfulton
+            [C] Fix the C++ wrappers not compiling for an instance of a member function template,
+            such as:
+
+              struct Calculator {
+                template<typename T> T cube(T x) const { return x * x * x; }
+              };
+              %template(cube_int) Calculator::cube<int>;
+
+            The C++ wrapper class declared it with its C++ name, as 'cube< int >', which is not
+            valid in a declaration. It is now declared with the name given by %template, as the C
+            function is:
+
+              int cube_int(int x) const;
+
+2026-11-02: wsfulton
+            [Go] Fix a director method taking or returning a member pointer, such as:
+
+              %feature("director") MemberPtrDirector;
+              class MemberPtrDirector {
+              public:
+                virtual ~MemberPtrDirector();
+                virtual int useMemberPtr(int (Funcs::*m)(int), int x);
+                virtual int (Funcs::*getMemberPtr())(int);
+              };
+
+            Go could not override these methods, as the Go type of a member pointer, _swig_memberptr,
+            was not exported. A C++ call of getMemberPtr panicked with "result of Go function ...
+            called from cgo is unpinned Go pointer", even when Go did not override it, as the member
+            pointer was returned in Go memory. The Go type of a member pointer is now SwigMemberPtr. A
+            member pointer returned by a Go director method is now copied to C++ memory.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [Go] Fix the wrapper for a parameter with an 'in' typemap of your own that takes no
+            input, such as:
+
+              %typemap(in, numinputs=0) int &level (int temp) "temp = 1; $1 = &temp;"
+              void set_level(int &level);
+
+            It did not compile, as the argout typemap for 'int &' was also used. It writes the value
+            back through the input using a local variable of the 'in' typemap for 'int &'. The
+            argout typemaps for 'int &', 'int &&' and 'std::string *' and the goargout typemap for
+            'std::string *' are now only used with the 'in' typemap for the same type and not when
+            it takes no input. If an 'in' typemap of your own relied on one of them to write the
+            value back, add an argout typemap for it.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [OCaml] Fix a const reference to a pointer, such as in:
+
+              void set(Struct *const &s);
+              Struct *const &get();
+
+            It took and returned a pointer to the pointer, so passing a Struct object to set() gave
+            a Failure exception, as did using the Struct object returned by get(). It is now passed
+            and returned as the pointer, as in the other target languages, including in a director
+            method.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [OCaml] Fix a variable of an unnamed enum type, such as x here, which did not compile:
+
+              enum { A, B } x;
+
+            As there is no OCaml enum type for an unnamed enum, the variable is now an int, as a
+            member variable of an unnamed enum type is.
+
+2026-11-02: wsfulton
+            [OCaml] Fix a director method returning a reference, such as Ref() here:
+
+              %feature("director") Base;
+              struct Base {
+                virtual DoubleHolder &Ref(DoubleHolder &x);
+                virtual ~Base();
+              };
+
+            The reference returned to C++ was a NULL reference whatever the method returned in
+            OCaml, so C++ crashed using it, even when the method was not overridden in OCaml. The
+            reference returned in OCaml is now passed to C++. C_void returned for a reference gives
+            an Invalid_argument exception.
+
+2026-11-02: wsfulton
+            [OCaml] Fix a pointer or reference parameter accepting any C_string without a type check,
+            such as a member pointer value for f or m in:
+
+              struct Funcs {
+                short FF(bool);
+              };
+              typedef short (Funcs::*FuncsPtr)(bool);
+              short call(Funcs *f, FuncsPtr &m);
+
+            The text of the string was used as the object pointed to, so using it could crash. A
+            C_string is now accepted only for a string or a void * parameter, so a member pointer
+            value passed for any other pointer or reference gives a Failure exception. A non-const
+            reference to a member pointer takes a pointer to a member pointer, as in the other
+            target languages.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [Lua] Fix calling an overloaded function with nil when one of the overloads takes a
+            member pointer, such as memberpt_or_pointer in:
+
+              struct Funktions {
+                int addByValue(const int &a, int b);
+              };
+              int memberpt_or_pointer(int (Funktions::*d)(const int &, int));
+              int memberpt_or_pointer(Funktions *f);
+
+            The overload taking the member pointer was chosen for nil, which it does not accept,
+            so the call failed with an error such as "expected 'int (Funktions::*)(int const &,int)'
+            got 'nil'". The overload taking the pointer is now called.
+
+2026-11-02: wsfulton
+            [Guile] Fix a pointer passed or returned by const reference, such as:
+
+              Foo *const &get();
+              void set(Foo *const &foo);
+
+            It was wrapped as a pointer to the pointer, so the Foo returned by get could not be
+            used and set could not be passed a Foo. It is now wrapped as the pointer, as in the
+            other target languages. The same goes for a global or static member variable of such a
+            type, except that a const reference to a char pointer is wrapped as a string, as is the
+            result of a function returning one.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [Octave, Perl, Python, Ruby, Scilab, Tcl]
+            Fix a global or static member variable that is a const reference to a pointer, such as:
+
+              Foo *const &foo_ref = foo_ptr;
+              char *const &str_ref = str_ptr;
+
+            It was wrapped as a pointer to the pointer, so the Foo it points to could not be used
+            through it, nor could it be passed to a function taking a 'Foo *'. It is now wrapped as
+            the pointer it refers to, or as a string for a char pointer such as str_ref, the same
+            as the result of a function returning that type.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-02: wsfulton
+            [Javascript, Octave, Perl, Python, R, Ruby, Scilab, Tcl]
+            Fix a function returning a const reference to a function pointer and a global or static
+            member variable of that type, such as get_fn_ref and fn_ref in:
+
+              typedef int (*FnPtr)(int, int);
+              const FnPtr &fn_ref = fn_ptr;
+              const FnPtr &get_fn_ref();
+
+            The wrapper of get_fn_ref did not compile. The wrapper of fn_ref did not compile either
+            or wrapped it as a pointer to the function pointer. Both are now wrapped as the function
+            pointer they refer to.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            Fix the declarations that the -addextern option adds for a function with an exception
+            specification, such as:
+
+              extern int (*f() noexcept)(int);
+              extern int (*g() throw(int))(int);
+              extern int h() throw(Foo *);
+
+            The exception specification was left out or put after the parameter list of the
+            function pointed to. The type in a 'throw' was not a C++ type, as in 'throw(p.Foo)'.
+            The declarations gave compiler warnings or errors as a result. Now the exception
+            specification is kept and goes after the parameter list of the declared function.
+
+2026-11-01: wsfulton
+            Fix a template parameter qualified by const or volatile in a template instantiated
+            with an array type, as in the parameter type of take in:
+
+              template <typename T> struct Holder {
+                int take(const T &);
+              };
+              %template(HolderInt3) Holder<int [3]>;
+              %template(HolderConstInt3) Holder<const int [3]>;
+
+            The wrapper of take for Holder<const int [3]> did not compile. The parameter of take
+            for Holder<int [3]> was wrongly wrapped as a const reference to a pointer, using the
+            typemaps for 'SWIGTYPE *const &'. The const now qualifies the elements of the array, as
+            for a typedef of an array, so both parameters use any typemaps for 'const int (&)[ANY]'
+            or else the default typemaps for a reference to an array.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            Fix the local variables of a typemap for a function pointer, named or not, such as:
+
+              %typemap(in) int (*)(int) (int temp) { ... }
+              %typemap(in) int (*f)(int) (int temp) { ... }
+
+            The locals were parsed as part of the pattern, so the typemaps were registered for the
+            types 'int (*)(int)(int)' and 'int (*f)(int)(int)' with no locals and were silently
+            never used. The same went for a reference to a function, a pointer to a member function
+            and an array of function pointers.
+
+2026-11-01: wsfulton
+            Fix the qualifiers after a declarator that is not the first in a declaration, such as
+            those of b, PB and g in:
+
+              int (*a)(int) noexcept, (*b)(int) noexcept;
+              typedef int (C::*PA)(int) const, (C::*PB)(int) const;
+              struct S {
+                int f() &, g() &&;
+              };
+
+            They were not handled as for the first declarator. b was a pointer to a function that
+            is not noexcept, so the wrapper for setting a member variable like b did not compile
+            from C++17. PB was a const pointer to a member function that is not const. g lost its
+            rvalue ref-qualifier, so it was wrapped rather than ignored and the wrapper did not
+            compile. Each declarator now gets the type and qualifiers it gets as the first one.
+
+2026-11-01: wsfulton
+            [C] Fix the .h file not compiling as C99 when a type that SWIG does not wrap is used
+            more than once, as in:
+
+              struct Opaque;
+              Opaque *opaque_pointer();
+              int opaque_value(Opaque *o);
+
+            The opaque struct of the type was declared each time it was used, so the .h file
+            repeated this typedef, which C99 does not allow, unlike C11:
+
+              typedef struct SWIGTYPE_p_Opaque SWIGTYPE_p_Opaque;
+
+            It is now declared once.
+
+2026-11-01: wsfulton
+            [C] Fix the builtin types other than void, bool, char, short, int, long, float and
+            double, such as unsigned int, signed char and long long, not being handled as the
+            builtin types they are when wrapping C++ code. For example, given:
+
+              unsigned int count;
+              struct Arrays {
+                unsigned int uints[2];
+              };
+              unsigned int value(unsigned int ***p);
+
+            The member array was wrapped as an array of pointers. Its setter took an
+            'unsigned int **' and wrote pointers into the array, beyond its end on a 64 bit
+            platform. It also freed the pointer passed to it. It now takes an 'unsigned int *' and
+            copies the values, as for an int array. The parameter of value was declared with
+            'SWIGTYPE_p_p_p_unsigned_int *' and is now declared as 'unsigned int ***'. Without
+            -namespace, the global variable is now declared in the .h file, as an int variable is,
+            instead of being wrapped with accessor functions.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            [C] Fix the C declarations in the .h file when wrapping C++ code for a const reference
+            to a pointer to a builtin type and for a pointer to a pointer to an enum, such as in:
+
+              enum Colour { RED, GREEN };
+              int int_value(int *const &p);
+              int colour_value(Colour **c);
+              int colour_reference_value(Colour *&c);
+
+            The wrapper of int_value took a pointer to the pointer, but it was declared as taking a
+            'const int **', which C code passing an 'int **' did not compile with. A const reference
+            to a pointer to a builtin type, such as 'int *const &' or 'const int *const &', is now
+            passed and returned as the pointer, as in the other target languages and as any other
+            pointer passed by const reference already is. This changes the declarations of int_value
+            and of the functions of a container of such pointers, such as:
+
+              %template(IntConstPtrVector) std::vector<const int *>;
+
+            in a module named example, from:
+
+              int example_int_value(const int **carg1);
+              void example_IntConstPtrVector_push_back(example_IntConstPtrVector *carg1, const int **carg2);
+              const int **example_IntConstPtrVector_get(example_IntConstPtrVector *carg1, int carg2);
+
+            to:
+
+              int example_int_value(int *carg1);
+              void example_IntConstPtrVector_push_back(example_IntConstPtrVector *carg1, const int *carg2);
+              const int *example_IntConstPtrVector_get(example_IntConstPtrVector *carg1, int carg2);
+
+            so C code passes the pointer, p, instead of its address, &p. The C++ wrappers take and
+            return the pointer too.
+
+            The other two functions were declared as taking an 'enum Colour *', losing a pointer, as
+            did the C++ wrappers. They are now declared as taking an 'enum Colour **' and the C++
+            wrappers take 'Colour **' and 'Colour *&'. They also take an array of enums as a pointer
+            to the enum instead of as the enum. A typedef of a pointer or a reference to an enum is
+            now taken and returned as the type it stands for, as in the C declarations.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            [C] Fix the wrappers of std::map not compiling for a mapped type without a default
+            constructor, such as NoDefault in:
+
+              struct NoDefault {
+                NoDefault(int v);
+              };
+              %template(NoDefaultMap) std::map<int, NoDefault>;
+
+            The set function used operator[], which needs a default constructor. It now uses
+            insert_or_assign when the C++17 standard library provides it, as the other target
+            languages do.
+
+2026-11-01: wsfulton
+            [C#, Java] Fix a memory leak each time a member pointer was passed between C++ and the
+            target language, such as to a function, to set a variable or to a director method. The
+            copy of the string holding the member pointer was never freed.
+
+2026-11-01: wsfulton
+            [C#, D, Java] Fix passing null for a member pointer, which crashed in D and threw a
+            NullReferenceException in C# or a NullPointerException in Java, as did a director
+            method overridden to return null for a member pointer. A NULL member pointer is now
+            passed, as a NULL pointer is for a pointer. A NULL member pointer returned from C++,
+            or passed to a director method, was an object and is now null.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            [C#, D, Java] Fix pointers to member functions that differ only in their cv-qualifier
+            getting the same proxy class. Given:
+
+              struct Funcs {
+                short FF(bool);
+                short CC(bool) const;
+              };
+              int aaa1(short (Funcs::*)(bool) const);
+              int bbb1(short (Funcs::*)(bool));
+
+            the parameters of aaa1 and bbb1 were both of the class SWIGTYPE_m_Funcs__f_bool__short,
+            so a pointer to Funcs::FF could be passed to aaa1 and a pointer to Funcs::CC to bbb1.
+            The parameter of aaa1 is now of the class SWIGTYPE_m_Funcs__q_const__f_bool__short and
+            likewise for a pointer or reference to such a member pointer, which was of the class
+            SWIGTYPE_p_m_Funcs__f_bool__short and is now SWIGTYPE_p_m_Funcs__q_const__f_bool__short.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            #2087 Fix the syntax error for a noexcept function type in an abstract declarator, such
+            as that of an unnamed parameter, an alias declaration, a template argument or a
+            trailing return type:
+
+              void f(int (*)(int) noexcept);
+              using FP = int (*)(int) noexcept;
+              %template(HolderFP) Holder<int (*)(int) noexcept>;
+              auto g() -> int (*)(int) noexcept;
+
+            The noexcept is now part of the type, as for a named parameter. It is now also part of
+            the type of a function typedef and of an alias declaration with a trailing return type,
+            which dropped it, so the wrappers for a parameter of type MFP here did not compile:
+
+              typedef int F(int) noexcept;
+              using MFP = auto (C::*)(int) const noexcept -> int;
+
+            A named parameter of a function pointer type with a noexcept or cv-qualifier after its
+            parameter list can now have a default argument, which was a syntax error:
+
+              void h(int (*p)(int) noexcept = nullptr);
+
+2026-11-01: wsfulton
+            Fix the qualifiers of the types in a template instantiated with a volatile type, such
+            as the parameter types in:
+
+              template <typename T> struct Holder {
+                int take(const T &);
+                int take_volatile(volatile T &);
+              };
+              %template(HolderVolatileInt) Holder<volatile int>;
+              %template(HolderConstVolatileInt) Holder<const volatile int>;
+
+            The volatile of Holder<const volatile int> was lost from the parameter of take, which
+            was wrapped as 'const int &'. For Holder<volatile int> it did not match a typemap for
+            'const volatile int &'. The wrappers of take_volatile cast to 'int volatile volatile &'
+            and 'int const volatile volatile &', which do not compile. Now the qualifiers are
+            merged. The parameter of take is 'const volatile int &' in both and uses the typemaps
+            for it, which by default are not those of 'const int &'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-11-01: wsfulton
+            [Guile, Javascript, Lua, OCaml, Octave, Perl, PHP, Python, R, Ruby, Scilab, Tcl]
+            Fix a pointer to a member function being accepted for a pointer to a member function
+            that differs only in its cv-qualifier. Given:
+
+              struct Funcs {
+                short FF(bool);
+                short CC(bool) const;
+              };
+              int aaa1(short (Funcs::*)(bool) const);
+
+            a pointer to Funcs::FF was accepted for the parameter of aaa1 and a pointer to Funcs::CC
+            for a parameter of type 'short (Funcs::*)(bool)'. Both are now rejected with a type
+            error, as is any pointer to a member function for one with a different cv-qualifier.
+
+2026-11-01: wsfulton
+            [R] Fix passing an R integer, such as 1L, for a double parameter. R failed with the
+            error "REAL() can only be applied to a 'numeric', not a 'integer'". Likewise an R
+            function passed for a function pointer failed when it returned a value of another R
+            type than the C return type, such as a number, which R stores as a double, for an int.
+            Such a value is now converted to the C type.
+
+2026-10-31: wsfulton
+            [R] Fix the check that an R function passed for a function pointer can take its
+            arguments accepting any R function when the function pointer type had been used
+            before, such as in a typedef. The R function then failed when it was called with
+            "error in calling R function as a function pointer". Now it is rejected before the
+            wrapped function is called.
+
+2026-10-31: wsfulton
+            [R] Fix an R function passed for a function pointer returning a value that cannot be
+            converted to the return type, such as two integers for an int. In C++ R was terminated
+            by an uncaught C++ exception. In C the C code was given an unconverted value and R
+            warned of a stack imbalance. Now the R function gives an R error, such as
+            "SWIG:TypeError in method '_p_f_int_int__int', argument 0 of type 'int'".
+
+2026-10-31: wsfulton
+            [R] Fix calling an R function passed for a function pointer freeing all the memory
+            given by R_alloc() to the code that called R. The R function optim() from the stats
+            package, for example, keeps its work vectors in such memory while it calls the R
+            function that it minimizes. Given a wrapped function taking a function pointer:
+
+              int do_op(int a, int b, int (*op)(int, int));
+
+            R could crash when the function minimized by optim() called it, as in:
+
+              optim(c(1, 2), function(p) { do_op(1, 2, function(x, y) x + y); sum(p^2) })
+
+            The memory is now kept until the code that allocated it releases it.
+
+2026-10-31: wsfulton
+            [R] Fix R functions passed for function pointer parameters, which could be called
+            only once. A C function calling its function pointer twice failed with "Supposedly
+            impossible error occurred in the SWIG callback mechanism". For a function with two
+            function pointer parameters, the first called the R function passed for the second
+            and the second called the one passed for the first. An R function that the C code did
+            not call could be called later in place of another. An R function can now be called
+            any number of times until the wrapped function returns. Calling it after that, such
+            as through a function pointer that the C code kept, now gives an R error instead of
+            calling some other R function or one that may have been freed.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [C#, D, Go, Java, Lua, OCaml, Octave, Perl, PHP, Python, Ruby]
+            Fix the director method of a virtual method with an exception specification inside the
+            parentheses of the declarator, as for a method returning a function pointer:
+
+              struct D {
+                virtual int (*f() const noexcept)(int);
+              };
+
+            It was declared as 'int (*f() const)(int) noexcept' in the director class, which does
+            not compile.
+
+2026-10-31: wsfulton
+            #2087 Fix a noexcept after the declarator of a function returning a function pointer or
+            of a function pointer variable, which belongs to the function pointed to:
+
+              int (*f())(int) noexcept;
+              struct S {
+                int (*v)(int) noexcept;
+              };
+
+            It was taken to be that of f, which is not noexcept, and the wrapper for setting v did
+            not compile. The pointer that f returns can still be passed for a parameter of type
+            'int (*)(int)'. A noexcept inside the parentheses for the function pointed to was
+            dropped, such as for g in:
+
+              int (*(*g)() noexcept)(int);
+
+2026-10-31: wsfulton
+            Fix the false error 'Static function f() cannot have a qualifier' for a static member
+            function or variable whose type is a pointer to a const member function of a class C:
+
+              struct C {
+                static int (C::*f())(int) const;
+                static int (C::*v)(int) const;
+              };
+
+            The const is that of the member function pointed to, not that of f or v.
+
+2026-10-31: wsfulton
+            #2087 Fix the wrappers for a parameter of a noexcept function pointer type, such as g:
+
+              void f(int (*g)(int) noexcept);
+
+            They did not compile, as the noexcept was put before the declarator, as in the cast
+            '(int noexcept (*)(int))', and a pointer to a function without noexcept was passed.
+
+2026-10-31: wsfulton
+            [Go] Fix the generated code of a director class with a method taking or returning a
+            member pointer, such as MemberPtrDirector in the entry below, which did not compile.
+
+2026-10-31: wsfulton
+            [Perl, Python, Ruby] Fix a director method returning a member pointer, such as
+            getMemberPtr in the entry below. The generated code did not compile.
+
+2026-10-31: wsfulton
+            [C#, D, Java, Lua, PHP] Fix a director method with a member pointer parameter or return
+            type, such as:
+
+              struct Funcs {
+                int increment(int x);
+              };
+              %feature("director") MemberPtrDirector;
+              class MemberPtrDirector {
+              public:
+                virtual ~MemberPtrDirector();
+                virtual int useMemberPtr(int (Funcs::*m)(int), int x);
+                virtual int (Funcs::*getMemberPtr())(int);
+              };
+
+            The generated code did not compile. Such a method can now be overridden in the target
+            language.
+
+2026-10-31: wsfulton
+            [Guile, Octave, Perl, PHP, Python, Ruby, Scilab, Tcl]
+            Fix an overloaded function with a member pointer parameter, such as call_overloaded in:
+
+              struct Funktions {
+                int addByValue(const int &a, int b);
+              };
+              int call_overloaded(int (Funktions::*d)(const int &, int), int a, int b);
+              int call_overloaded(int c, int a, int b);
+
+            A member pointer never matched the member pointer parameter when choosing the overload
+            to call, so a call passing one failed with an error such as "Wrong number or type of
+            arguments for overloaded function". The overload taking the member pointer is now
+            called.
+
+2026-10-31: wsfulton
+            [Java, Octave, Python, Ruby, Scilab, Tcl]
+            The wrappers of a variable whose type is a pointer with a top level volatile
+            qualifier, such as 'Foo *volatile' or 'Foo *const volatile', did not compile. A
+            function parameter of such a type was wrapped as a pointer to the pointer instead
+            of as a pointer to Foo. Such a pointer is now wrapped the same way as 'Foo *const'.
+
+2026-10-31: wsfulton
+            [C#, D, Go, Guile, Javascript, Lua, OCaml, Perl, PHP, R]
+            A variable or function parameter whose type is a pointer with a top level volatile
+            qualifier, such as 'Foo *volatile' or 'Foo *const volatile', was wrapped as a
+            pointer to the pointer instead of as a pointer to Foo. Such a pointer is now
+            wrapped the same way as 'Foo *const'.
+
+2026-10-31: wsfulton
+            Remove a stray space from a const pointer to a function or array with no name in
+            warnings and runtime error messages, which was shown as 'int (*const )(int,int)' and
+            is now 'int (*const)(int,int)'.
+
+2026-10-31: wsfulton
+            Fix a const reference to a typedef of a const pointer, such as 'const CFP &' given:
+
+              typedef Foo *const CFP;
+
+            The wrappers did not compile, as it was not wrapped as 'Foo *const &' by the
+            'SWIGTYPE *const&' typemaps but as a const reference to 'Foo *const const'. It is
+            now wrapped as 'Foo *const &' is. Likewise a const reference to a typedef of a
+            volatile pointer is now wrapped as 'Foo *const volatile &' is. A template
+            instantiated with 'const CFP' now uses an explicit or partial specialization for
+            'Foo *const' and is the same instantiation as one with 'Foo *const', so
+            instantiating both gives warning 404.
+
+2026-10-31: wsfulton
+            Fix the wrappers not compiling for a pointer to a member of a class in a namespace
+            when the class is written without the namespace, as in the return type of memfuncptr in:
+
+              namespace N {
+                struct ABC {
+                  int (ABC::*memfuncptr())(int) const;
+                };
+              }
+
+            The wrappers used the type 'int (ABC::*)(int) const' and $fulldecl was
+            'int (ABC::*N::ABC::memfuncptr())(int) const'. The class is now qualified, as in
+            'int (N::ABC::*)(int) const'. This also changes the mangled name of such a type, so the
+            type wrapper class of a member pointer to a class in a namespace is renamed, such as
+            SWIGTYPE_m_N__ABC__int instead of SWIGTYPE_m_ABC__int for 'int N::ABC::*'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            Fix '$fulldecl' for an unnamed enum. It gave the name that SWIG makes up for the enum in
+            the declaration of a variable of the enum and two spaces after 'enum' in the
+            declaration of an enumerator. For example, for:
+
+              enum { EA, EB } unnamedenumvar;
+
+            it gave 'enum $unnamed1$ unnamedenumvar' and 'enum  EA' and now gives
+            'enum unnamedenumvar' and 'enum EA'.
+
+2026-10-31: wsfulton
+            Fix the wrapper of a member function with both a cv-qualifier and a ref-qualifier, which
+            called it on a non-const object, so it called an overload without the cv-qualifier
+            instead, if there was one. For example, with:
+
+              %rename(cl_const) X::cl() const &;
+              struct X {
+                int cl() &;
+                int cl() const &;
+              };
+
+            cl_const called 'int cl() &' and now calls 'int cl() const &'. As SWIG does not evaluate
+            constraints, an instantiation of such a C++20 member function template that does not
+            satisfy its constraints now has to be ignored, as its wrapper no longer compiles, see
+            the C++20 chapter.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [C] Fix a pointer to a class wrapped with %shared_ptr passed or returned by const
+            reference using the wrong object, which could crash, given a class Klass, in:
+
+              %shared_ptr(Klass)
+              Klass *const &pointerreftest(Klass *const &k);
+
+2026-10-31: wsfulton
+            [C] Fix the C++ wrappers of a pointer to an enum passed or returned by const reference
+            taking and returning a reference to the enum instead of the pointer, for example:
+
+              enum E { A, B };
+              void set(E *const &p);
+              E *const &get();
+
+2026-10-31: wsfulton
+            [C] Fix a pointer to a class passed or returned by const reference using the wrong
+            pointer, which could crash, given a class Foo, in:
+
+              void set(Foo *const &p);
+              Foo *const &get();
+
+            The pointer itself is now passed and returned, as the .h file declares. Any other
+            pointer passed or returned by const reference is now also passed and returned as the
+            pointer, as in the other target languages, and the .h file declares it as it declares
+            the pointer. For example, 'void *const &' was declared as 'void **' and is now declared
+            as 'void *', and a function pointer passed by const reference, such as
+            'int (*const &)(int)', is declared as 'int (*)(int)'. A pointer to a class that is not
+            wrapped, such as X given only:
+
+              struct X;
+
+            passed as 'X *const &', was declared as 'SWIGTYPE_p_p_X *' and is now declared as
+            'SWIGTYPE_p_X *'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            Fix an rvalue reference to a function used as a parameter or return type, such as:
+
+              typedef int Fn(int);
+              int call(int (&&fn)(int), int i);
+              int call_typedef(Fn &&fn, int i);
+              int (&&get())(int);
+
+            The wrapper code did not compile in most target languages, as it took ownership of the
+            function from the target language and deleted it after the call. It is now wrapped in the
+            same way as a reference to a function, so a function pointer constant or the result of
+            get() can be passed to call().
+
+2026-10-31: wsfulton
+            [OCaml] Fix a compile error in a director class template with more than one template
+            parameter and an ignored virtual method, such as ignored() here:
+
+              %feature("director") Base;
+              %ignore Base::ignored;
+              template <typename X, typename Y> class Base {
+              public:
+                virtual int ignored() { return 1; }
+                virtual ~Base() {}
+              };
+              %template(BaseII) Base<int, int>;
+
+            The call to the base class method was passed to the CAMLreturnT macro, which took the
+            comma in 'Base< int,int >' as a separator between its arguments. The call is now in
+            parentheses.
+
+2026-10-31: wsfulton
+            [OCaml] Fix a parameter that is a const reference to a member pointer, such as m in:
+
+              struct Shape {
+                virtual double area();
+              };
+              double do_op(Shape *s, double (Shape::*const &m)());
+
+            Any C_string was accepted for it with no type check and the text was read as a member
+            pointer, so passing a member pointer value could crash. It is now passed as a member
+            pointer value with its type checked, as a const reference to a simple type is passed as
+            a value. A const reference to a member pointer returned from a function or variable is
+            now a member pointer value instead of a C_ptr to the member pointer. A director method
+            gets and returns such a type as a member pointer value too.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [C] When wrapping C code, the generated header now declares a struct or union that SWIG
+            has not seen defined before a wrapper function taking a pointer to it, such as Tree,
+            which is only declared in a %{ %} block, in:
+
+              %{
+              struct Tree;
+              %}
+              void clear_tree_flags(struct Tree *tp, int i);
+
+            The struct was first named in the parameter list of the wrapper function, giving a
+            compiler warning that it is not visible outside it. A pointer to the struct declared
+            by the caller then had an incompatible pointer type for the wrapper function.
+
+2026-10-31: wsfulton
+            [C] Fix the declarations of C structs and unions in the generated header when wrapping
+            C code, which did not match the wrapper functions, for example for:
+
+              typedef struct Size { int width; int height; } Size;
+              typedef union Value { int i; double d; } Value;
+              struct Point { int x; int y; };
+              void draw(struct Point *p, Size *s, Value *v);
+
+            The header declared 'typedef struct {...} Size;' without the tag, but the wrapper
+            function with a 'struct Size *' parameter, so C code calling it got an incompatible
+            pointer type error. A union was declared as a struct, so it did not have the layout of
+            the union. With the -namespace option, 'struct Point' was declared as
+            'struct ns_Point'. The header now declares them as in the original code.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [C] Fix the C declarations in the .h file when wrapping C++ code for a pointer to a
+            pointer of a builtin type, which had a pointer too many, and for a variable that is an
+            array of arrays of unknown size, which was a syntax error, such as:
+
+              int tri(int ***p);
+              const int arr[][3] = { {1, 2, 3}, {4, 5, 6} };
+
+            The parameter of tri was declared with 'int ****' and is now declared with 'int ***'.
+            The getter of arr was declared as returning 'int [][3]*' and now returns 'int *'.
+
+2026-10-31: wsfulton
+            [C] Fix the C declarations in the .h file when wrapping C++ code losing a pointer of a
+            pointer to a pointer to a class or of a reference to a pointer to a class, such as:
+
+              struct Struct { int value; };
+              Struct **make_ptr_ptr();
+              int pointer_reference_value(Struct *&s);
+
+            These were declared with 'mod_Struct*' with -namespace mod, but the wrappers return
+            and take a pointer to the pointer. They are now declared with 'mod_Struct **'. The same
+            is fixed for a const volatile reference to a pointer, as in 'Struct *const volatile &'.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file declaration of a global variable or struct member of a function
+            pointer type using an enum that SWIG does not know, as it is only declared in a %{ %}
+            block, such as:
+
+              %{
+              enum E { EA };
+              enum EE { EEA };
+              %}
+              enum E (*fp)(enum EE);
+
+            The declaration was the invalid 'SWIGIMPORT int (*fp)(intE);'. An unknown enum is now
+            declared as int in the parameters of a function pointer too, giving:
+
+              SWIGIMPORT int (*fp)(int);
+
+2026-10-31: wsfulton
+            [C] Fix two dimensional arrays in the .h file when wrapping C code, for example for:
+
+              int grid[2][3];
+              int sum_grid(int a[2][3]);
+
+            The global variable was declared as 'SWIGIMPORT int grid[];'. The parameter used
+            'int **' instead of the pointer to an array that the wrapper uses, as did the accessor
+            functions of the variable with -namespace, so C code using them did not compile. They
+            are now declared as:
+
+              SWIGIMPORT int grid[][3];
+              SWIGIMPORT int grid_sum_grid(int (*carg1)[3]);
+
+2026-10-31: wsfulton
+            [C] Fix the members of a struct declared in the .h file when wrapping C code losing
+            their pointer, array or function pointer declarators, for example for:
+
+              struct Members {
+                int *ip;
+                int (*fp)(int);
+                int arr[4];
+              };
+
+            The .h file declared 'int ip; int fp; int arr;', so the struct had a different layout
+            from the one the wrappers were compiled with. A function pointer returning void gave
+            'void fptr;', which did not compile. The members are now declared as in the original
+            struct.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file declaring a struct passed or returned by value as a pointer to it
+            when wrapping C code, for example for:
+
+              typedef struct { int myInt; short myShort; } test;
+              test get_test();
+              int get_my_int(test t);
+
+            The .h file declared 'test *mod_get_test()' and 'int mod_get_my_int(test *carg1)' for
+            a module named mod, but the wrappers pass and return the struct by value, as the C
+            functions do. The .h file now declares them by value too.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file dropping the inner qualifiers of a pointer type when wrapping C code,
+            for example for:
+
+              int point_x(const struct Point *p);
+              int colour_value(const enum Colour *const *c);
+
+            The parameters were declared as 'struct Point *carg1' and 'enum Colour* carg1', so C
+            code passing a pointer to a const struct got a discarded qualifier warning. A pointer
+            to a pointer to an enum also lost a pointer. They are now declared as in the C
+            function, as 'struct Point const *carg1' and 'enum Colour const *const *carg1'.
+
+2026-10-31: wsfulton
+            [C] Fix the wrapper of a C function returning a pointer to a const pointer, such as:
+
+              const char **names_get(void);
+              const char *(*namer_get(void))(int);
+
+            not compiling with gcc 14 and later when wrapping C code, with the error "returning
+            'char **' from a function with incompatible return type 'const char **'". The result
+            is now cast back to the return type.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling as C before C23 for a bool used only in a function
+            pointer type, such as in:
+
+              int call(bool (*fn)(bool), int i);
+
+            The .h file now includes stdbool.h for it, as it does for a bool parameter.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a function pointer using a class that is not
+            wrapped, as it is only declared or is ignored, such as:
+
+              struct Opaque;
+              void set_cb(void (*cb)(Opaque *));
+
+            The parameter was declared as 'void (*carg1)(Opaque *)' and the C++ wrapper of set_cb
+            did not compile. The class is now the opaque struct used for it elsewhere in the .h
+            file, as in 'void (*carg1)(SWIGTYPE_p_Opaque *)', and the C++ wrapper is left out with
+            warning 761.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a pointer or a reference to an array, such as in:
+
+              int sum(int (*a)[4]);
+              int sum_ptr_ref(int (*&a)[4]);
+              int (&get_array())[4];
+
+            These were declared with an 'int (*)[4]* carg1' parameter and as returning 'int [4]*',
+            and are now declared with 'int (*carg1)[4]' and 'int (**carg1)[4]' parameters and as
+            'int (*get_array())[4]'.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a reference to a function, such as in:
+
+              int call_ref(int (&f)(const int &, int), int a, int b);
+              int (&get_ref())(const int &, int);
+
+            These were declared with an 'int (int const &,int)* carg1' parameter and as returning
+            'int (int const &,int)*', and are now declared with a pointer to the function, as in
+            'int (*carg1)(int const *,int)' and 'int (*get_ref())(int const *,int)'.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a reference in the parameters or return type of a
+            function pointer, such as in:
+
+              int call(int &(*op)(const int &, int), int a, int b);
+
+            The parameter was declared as 'int &(*carg1)(int const &,int)'. As C has no references,
+            each reference in a function pointer type is now declared as a pointer, as in
+            'int *(*carg1)(int const *,int)', and the C++ wrapper casts the function pointer.
+
+2026-10-31: wsfulton
+            #45 Fix a member function with its name in parentheses, as is done to stop a
+            function-like macro of the same name expanding, such as:
+
+              struct Foo {
+                int (foo)(int i);
+              };
+
+            It was ignored with the warning below and is now wrapped in the same way as when its
+            name is not in parentheses:
+
+              Warning 504: Function Foo::int(foo) must have a return type. Ignored.
+
+            The syntax error for 'const', 'noexcept' or '= 0' after the parameters of such a
+            function is fixed, outside a class too. So are a function template and a function with
+            a qualified return type, which were dropped without a warning, such as:
+
+              std::string (bar)(int i);
+
+            Outside a class, such a function now gets the overloaded wrappers for its default
+            arguments.
+
+2026-10-31: wsfulton
+            Fix syntax error for a reference to a function returning a pointer as a parameter or
+            return type, for example:
+
+              int callref(int *(&d)(int), int i);
+              int *(&g())(int);
+
+            These are now wrapped in the same way as when the function type is a typedef, as in
+            'PIntFn &' given:
+
+              typedef int *PIntFn(int);
+
+2026-10-31: wsfulton
+            Fix syntax error for a member function returning a pointer to a member function when
+            the member function has a cv-qualifier or ref-qualifier, which is written inside the
+            parentheses of the declarator, such as f here:
+
+              struct C {};
+              typedef int (C::*CMemFn)(int) const;
+              struct S {
+                int (C::*f() const)(int) const;
+                CMemFn g() const;
+              };
+
+            f is now wrapped in the same way as g, which declares the same member function with a
+            typedef for its return type.
+
+2026-10-31: wsfulton
+            Fix syntax error for a member function returning a pointer or reference to a function
+            when the member function has a 'noexcept' or 'throw' exception specification, which is
+            written inside the parentheses of the declarator, such as f here:
+
+              typedef int (*IntOp)(int);
+              struct S {
+                int (*f() const noexcept)(int);
+                IntOp g() const noexcept;
+              };
+
+            f is now wrapped in the same way as g, which declares the same member function with a
+            typedef for its return type.
+
+2026-10-31: wsfulton
+            [C] The C function names of some overloads change, as the mangled types of their
+            parameters, which are appended to the names, no longer drop the closing parenthesis
+            from an array size, such as for the parameter of:
+
+              void f(char text[sizeof("abc")]);
+
+            which was mangled as 'asizeof_Sp__S22_abc_S22_c' and is now
+            'asizeof_Sp__S22_abc_S22__SP_c'. The mangled types of a reference to a function, a
+            pointer to a pointer to a function and a pointer to a member of a class template
+            instance change too, such as 'int (&)(int)', which was 'rf_Sp_inti' and is now
+            'rf_ii'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [C] Fix the generated code not compiling for the overloads of a member function that
+            differ only in their qualifiers, unless one is just the const overload of the other.
+            For example:
+
+              struct S {
+                int g(int);
+                int g(int) volatile;
+                int h(int);
+                int h(int) const volatile;
+              };
+
+            The overloads of each pair were given the same C function name. An overload now gets
+            the '_const', '_volatile' and '_rvalue' suffixes in its C function name for each of
+            its 'const', 'volatile' and '&&' qualifiers that another overload with the same
+            parameters does not have. So the second overloads of g and h are now S_g_volatile_i
+            and S_h_const_volatile_i.
+
+2026-10-31: wsfulton
+            [C] Fix the C++ wrapper of a member function with both a cv-qualifier and a
+            ref-qualifier, which was not a const method, so it could not be called on a const C++
+            wrapper object. For example:
+
+              struct Host {
+                int cl() const &;
+              };
+
+            gave 'int cl();' in the C++ wrapper class Host and now gives:
+
+              int cl() const;
+
+2026-10-31: wsfulton
+            [C] Fix the C++ wrappers of the accessor functions of a global variable without the
+            -namespace option, which called themselves instead of the C accessor functions with the
+            same names. For example:
+
+              namespace space {
+                int number = 1;
+              }
+
+            gave a C++ wrapper number_set() that crashed on infinite recursion. The C++ wrapper of
+            the getter of a variable of class type did not compile. The C++ wrappers are now named
+            after the variable, as they are with -namespace, so number(1) sets the variable and
+            number() gets it.
+
+2026-10-31: wsfulton
+            Fix the $fulldecl special variable in the get and set wrappers of a variable used with
+            %allowexception. A set wrapper gave the void return type and the variable name, such as
+            'void ABC::funcptrvar' for:
+
+              struct ABC {
+                int (*funcptrvar)(int);
+              };
+
+            The get wrapper of a variable of class type gave a pointer or const reference type. Both
+            wrappers now give the declaration of the variable, such as 'int (*ABC::funcptrvar)(int)'.
+
+2026-10-31: wsfulton
+            Fix the $fulldecl special variable for a conversion operator, which gave a return type in
+            front of the declaration, such as 'int ABC::operator int() const' for:
+
+              struct ABC {
+                operator int() const;
+              };
+
+            It now gives 'ABC::operator int() const'.
+
+2026-10-31: wsfulton
+            [C] Fix a pointer to a class with top level qualifiers, such as 'Foo *const' or
+            'Foo *volatile', being wrapped as an object passed by value, as in:
+
+              void constptr(Foo *const p);
+              Foo *volatile vfoo;
+
+            The C function for constptr read the 'Foo *' it was given as a pointer to a pointer and
+            the getter of vfoo returned a pointer to a new copy of the pointer. When wrapping C, the
+            header file declared the parameter of constptr as 'struct Foo **'. The C++ wrappers did
+            not compile. These pointers are now wrapped as a 'Foo *', as the other target languages
+            do for 'Foo *const'. A pointer to an enum with top level qualifiers, such as 'E *const',
+            no longer makes SWIG fail an assertion when generating the C++ wrappers. A function
+            pointer with top level qualifiers, such as 'int (*const f)(int)', is now declared in the
+            header file as the function pointer. It was declared as a pointer to the function
+            pointer when wrapping C and as 'int (**)(int)*', which did not compile, when wrapping
+            C++.
+
+2026-10-31: wsfulton
+            Fix a g++ -Wextra warning, "type qualifiers ignored on cast result type", in the
+            generated code for a variable or function parameter whose type has a top level
+            volatile qualifier, such as for:
+
+              volatile int vi;
+
+            whose setter did:
+
+              vi = (int volatile )arg1;
+
+            The top level volatile is now left out of the cast, as a top level const already
+            was.
+
+2026-10-31: wsfulton
+            [Java] Fix the generated code not compiling for a pointer to a class passed by const
+            volatile reference, such as 'Foo *const volatile &', or by const reference to a typedef
+            of a const or volatile pointer, such as 'const CFP &' given:
+
+              typedef Foo *const CFP;
+
+            These are wrapped as a reference to a pointer, as for 'Foo *&', but the native method
+            also had a parameter of the proxy class Foo, as for 'Foo *const &'.
+
+2026-10-31: wsfulton
+            [PHP] Fix the declared type of a parameter that is a pointer to a class passed by const
+            volatile reference, such as 'Foo *const volatile &', which was the class Foo. It is now
+            the type of the pointer to a pointer that the parameter takes, as for 'Foo *&'. The same
+            is fixed for a const reference to a typedef of a const or volatile pointer.
+
+2026-10-31: wsfulton
+            [C] Fix the C++ wrappers not compiling for a pointer to a class passed by const volatile
+            reference, such as 'Foo *const volatile &', or by const reference to a typedef of a
+            const or volatile pointer. Such a function is now left out of the C++ wrappers with
+            warning 761, as for 'Foo *&'.
+
+2026-10-31: wsfulton
+            [R] Fix a string returned by an R function passed for a 'const char *(*)(int)' or
+            similar function pointer possibly being freed by the garbage collector before the C
+            code used it, for example a string built by paste0(). The R value returned is now kept
+            until the wrapped function returns.
+
+2026-10-31: wsfulton
+            [R] Fix the error for a value of the wrong type returned by an R function passed for a
+            function pointer having '$symname' and '$argnum' in it. It now names the function
+            pointer type and argument 0, such as "in method '_p_f_int__int', argument 0 of type
+            'int'".
+
+2026-10-31: wsfulton
+            [R] Fix an R function passed for function pointer types that differ only in the
+            qualifiers of their return type, such as 'char *(*)(int)' and 'const char *(*)(int)'.
+            The value it returned was converted for whichever of the types was wrapped first. So a
+            'char *' it returned could point into the R string instead of being a copy. C code
+            changing that string then changed the R string. Each type now has its own conversion.
+
+2026-10-31: wsfulton
+            [R] Fix a parameter whose type is a typedef of a function pointer not taking an R
+            function. Passing one gave an error such as "SWIG:TypeError in method 'apply',
+            argument 2 of type 'FnPtr'" for:
+
+              typedef int (*FnPtr)(int);
+              int apply(int i, FnPtr fn);
+
+            It now takes an R function, as a function pointer written out in full does.
+
+2026-10-31: wsfulton
+            [C] Fix a const function pointer parameter or return type, such as in:
+
+              int call_op(int (*const op)(int, int));
+              int (*const get_op())(int, int);
+
+            When wrapping C++, call_op took a pointer to the function pointer and had no C++
+            wrapper, giving warning 761, and the wrapper of get_op, or of a member function
+            returning a const function pointer, did not compile. When wrapping C, the .h file
+            declared call_op and get_op as taking and returning a pointer to the function pointer,
+            unlike the C functions. They now take and return the function pointer, as for a
+            non-const function pointer, and have C++ wrappers.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a reference or a pointer to a function pointer,
+            such as the parameters in:
+
+              typedef int (*IntOp)(int, int);
+              void set_op(IntOp &op);
+              void set_op_ptr(IntOp *op);
+
+            These were declared as 'int (*)(int,int)* carg1' or similar. As C has no references,
+            they are now declared as a pointer to the function pointer, 'int (**carg1)(int,int)'.
+            The same is fixed for an rvalue reference and for a function returning a reference or
+            a pointer to a function pointer.
+
+2026-10-31: wsfulton
+            [C] Fix the .h file not compiling for a function pointer that uses a class or an enum
+            in its parameters or return type, such as:
+
+              namespace ns {
+                struct Foo {...};
+                enum Color { RED, GREEN };
+              }
+              void set_cb(void (*cb)(ns::Foo *));
+              void set_shader(ns::Color (*shader)(int));
+
+            The C declarations used the C++ name of the class, as in 'void (*carg1)(ns::Foo *)',
+            and declared set_shader as taking a pointer to the enum instead of the function
+            pointer. They now use the C names of the class and the enum that the .h file uses
+            elsewhere, as in 'void (*carg1)(mod_Foo *)' and 'enum mod_Color (*carg1)(int)' with
+            -namespace mod. When wrapping C, a function pointer returning an enum was declared as
+            a pointer to the enum too and is now declared as it is.
+
+2026-10-31: wsfulton
+            Fix the typedefs in the parameters of a function pointer not being resolved when it
+            returns a class or an enum in a namespace, such as after:
+
+              namespace ns {
+                enum Colour { Red, Green };
+              }
+              typedef int Index;
+              ns::Colour (*get_colour_fn())(int);
+              ns::Colour call_colour_fn(ns::Colour (*fn)(Index), Index i);
+
+            The function pointer returned by get_colour_fn could not be passed to call_colour_fn,
+            giving a TypeError in Python for example, as 'ns::Colour (*)(Index)' was not known to
+            be the same type as 'ns::Colour (*)(int)', and a typemap for the resolved type did not
+            match. The C#, D and Java classes for such function pointer types are now named after
+            the resolved type, such as SWIGTYPE_p_f_int__ns__Colour instead of
+            SWIGTYPE_p_f_Index__ns__Colour.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [OCaml] Fix member function pointers, which were cut short to the size of a pointer when
+            passed between C++ and OCaml. A member function pointer is twice that size with GCC and
+            Clang, so calling a member function through one could crash. A member pointer is now a
+            C_string value holding the whole member pointer and its type name, instead of a C_ptr.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-31: wsfulton
+            [OCaml] Fix a compile error in a director method returning a class template type with
+            more than one template argument, such as getPair() here:
+
+              %feature("director") Base;
+              template <typename X, typename Y> class Pair {};
+              struct Base {
+                virtual Pair<int, int> getPair();
+              };
+
+            The return type was passed to the CAMLreturnT macro, which took the comma in
+            'Pair< int,int >' as a separator between its arguments. A local typedef for the return
+            type is now used in the macro instead.
+
+2026-10-31: wsfulton
+            [C#, D, Java] A director method returning a function pointer, such as getFuncPtr in:
+
+              class FuncPtrClass {
+              public:
+                virtual int (*getFuncPtr(int which))(int, int);
+              };
+
+            gave Warning 473 "Returning a reference, pointer or pointer wrapper in a director method
+            is not recommended." This warning is about the lifetime of an object returned by pointer
+            or reference. A function pointer does not point to such an object, so the warning is no
+            longer given, as in the other target languages.
+
+2026-10-30: wsfulton
+            Fix syntax error for a reference to a function pointer as a parameter, return type or
+            variable, for example:
+
+              void ref_op(int (*&r)(int));
+              int (*&getFuncPtrRef())(int, int);
+
+            These are now wrapped in the same way as when the function pointer type is a typedef, as
+            in 'IntOp &' given:
+
+              typedef int (*IntOp)(int);
+
+            An rvalue reference such as 'int (*&&r)(int)' is fixed too. So are a reference to a
+            const pointer such as 'int (*const &r)(int)' and a reference to a pointer to an array
+            such as 'int (*&a)[4]'.
+
+            The exception is a director method returning a reference to a function pointer, which
+            does not compile in some target languages unless the function pointer type is a typedef.
+
+2026-10-30: wsfulton
+            Fix syntax error for a member function returning a pointer or reference to a function
+            when the member function has a cv-qualifier or ref-qualifier, which is written inside
+            the parentheses of the declarator, such as f here:
+
+              typedef int (*IntOp)(int, int);
+              struct S {
+                int (*f() const)(int, int);
+                IntOp g() const;
+              };
+
+            f is now wrapped in the same way as g, which declares the same member function with a
+            typedef for its return type. So f is a const method. A member function with an '&&'
+            ref-qualifier is ignored by default as usual.
+
+2026-10-30: wsfulton
+            Fix the wrong operator->() being called for a const volatile method accessed through a
+            smart pointer class that has both a const and a non-const operator->(), such as get()
+            here:
+
+              struct Foo {
+                int get() const volatile;
+              };
+              struct FooPtr {
+                Foo *operator->();
+                const Foo *operator->() const;
+              };
+
+            The wrapper for get() through FooPtr called the non-const operator->(). It now calls
+            the const operator->(), as it already did for a const method. The same goes for a const
+            volatile method added to Foo with %extend.
+
+2026-10-30: wsfulton
+            Fix the $fulldecl special variable for a function returning a function pointer, such as:
+
+              struct ABC {
+                static int (*funcptrmethod(int x))(int, int);
+              };
+
+            $fulldecl put the return type in front of the name, giving
+            'int (*)(int,int) ABC::funcptrmethod(int)', and now gives the declaration as it is
+            written in C++, 'int (*ABC::funcptrmethod(int))(int,int)'. The same is fixed for a
+            variable with a function pointer or array type, such as 'int ABC::arr[10]' instead of
+            'int [10] ABC::arr'. There is no longer a space between a pointer or reference return
+            type and the name, so 'short * ABC::method(int)' is now 'short *ABC::method(int)'.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2026-10-30: wsfulton
+            [R] Fix the generated code not compiling for a function with a function pointer
+            parameter whose return type is const, such as:
+
+              const char *do_name(int i, const char *(*namer)(int));
+
+            The C++ compiler gave an invalid conversion error, as the code that calls an R
+            function passed as the callback returned 'const char *' while the parameter was held
+            in a variable whose function pointer type returned 'char *'. The wrapper now compiles
+            and an R function or a C function pointer can be passed for the parameter.
+
+2026-10-30: wsfulton
+            [C] Fix the generated code not compiling for a method with a volatile and a const
+            volatile overload with the same parameters, such as:
+
+              struct V {
+                int f(int) volatile;
+                int f(int) const volatile;
+              };
+
+            Both overloads were given the same C function name. The const volatile overload now
+            gets the '_const' suffix in its C function name, as a const overload does.
+
+2026-10-30: wsfulton
+            [C] Fix the C++ wrappers not compiling when the name of a struct or class is a part of
+            'const' or 'volatile', such as 's' here:
+
+              typedef struct s {...} S;
+              int get_x(const S *p);
+
+            The C++ wrapper class name S replaced every 's' in the parameter type, giving
+            'S conSt *p'. Now only the type name is replaced, as in 'S const *p'.
+
+2026-10-30: wsfulton
+            [C] #3180 Fix the C++ wrappers leaving out a function, a method or a member variable with a
+            function pointer parameter or return type, such as:
+
+              class MyClass {
+              public:
+                void setCreateCallback(void *(*c_callback)(const char *json));
+              };
+
+            These gave warning 761 and were only available as C functions. The C++ wrappers now take
+            or return the same function pointer as the C function, so a C or C++ function can be
+            passed to setCreateCallback in the C++ MyClass class. A function pointer that uses a class
+            or an enum in its parameters or return type still gives warning 761.
+
+2026-10-30: wsfulton
+            [C] Fix the .h file dropping the const in the return type of a function pointer, so
+            passing a function returning 'const char *' to this function failed to compile:
+
+              void set_namer(const char *(*namer)(int));
+
+            The C function and its C++ wrapper took a 'char *(*)(int)' parameter and now take a
+            'char const *(*)(int)' parameter. The same applies to a function returning such a
+            function pointer and to a member variable of this type.
+
+2026-10-30: wsfulton
+            [C] Fix the C++ wrappers in the .h file not using the names of the parameters, except
+            the first one, such as 'y' here:
+
+              int add(int x, int y);
+
+            The C++ wrappers now use the parameter names of the wrapped function.
+
+2026-10-30: wsfulton
+            [C] Fix the C++ wrapper of a member function declared 'const volatile', which was not a
+            const method, so it could not be called on a const C++ wrapper object. For example:
+
+              struct S {
+                int cv() const volatile;
+              };
+
+            gave 'int cv();' in the C++ wrapper class S and now gives:
+
+              int cv() const;
+
+2026-10-30: wsfulton
+            [OCaml] Fix a director method returning a function pointer, a member function pointer or
+            a pointer to an array failing to compile, as the type was passed to CAMLreturnT(), as in
+            'CAMLreturnT(int (*)(int,int), ...)'. A typedef of such a type is now passed instead.
+
+2026-10-30: wsfulton
+            [Perl, Python, Ruby] Fix the wrapper of a director method returning a function pointer
+            failing to compile, as it released the ownership of the function pointer as if it were
+            a pointer to an object.
+
+2026-10-30: wsfulton
+            Fix a director method returning a function pointer failing to compile, such as:
+
+              %feature("director") FuncPtrClass;
+              class FuncPtrClass {
+              public:
+                virtual int (*getFuncPtr(int which))(int, int);
+              };
+
+            The director class declared the method as 'int (*)(int,int)getFuncPtr(int which)' and
+            now declares it as 'int (*getFuncPtr(int which))(int,int)'.
+
+2026-10-28: wsfulton
+            Fix the CMake build on macOS using the PCRE2 header from one install and the PCRE2
+            library from another. With PCRE2 installed by Homebrew, the build compiled against the
+            Homebrew header but linked against the older PCRE2 library that comes with macOS.
+            'swig -pcreversion' then showed a different version to the one CMake reported. The
+            library is now taken from the same install as the header.
+
 2026-10-25: wsfulton
             Fix %apply giving no warning when it applies nothing. Warning 453 was not given if the
             last parameter of the pattern being applied had any typemaps, even ones that are not part
@@ -71,6 +2112,27 @@ Version 4.6.0 (in progress)
               %typemap(in, numinputs=0) double numbers[*] "$1 = (double *)calloc($1_dim0, sizeof(double));"
               %typemap(freearg) double numbers[*] "free($1);"
               void squares(int n, double numbers[n]);
+
+2026-10-24: wsfulton
+            [C, Lua, Octave, Perl, PHP, Python, R, Ruby, Tcl] #3598 A 'freearg' typemap can now crash
+            the wrapper if it assumes that the 'in' typemap with numinputs=0 for the same parameter has
+            run. The 'freearg' typemaps also run when a call fails, such as for the wrong number of
+            arguments or an earlier argument that cannot be converted. The 'in' typemap now comes after
+            the code converting the earlier arguments, so it may not have run by then. A pointer
+            parameter is then still NULL and most other types are not initialised. For example, with
+            these typemaps, calling get_name with an invalid 'id' raised an error and now crashes:
+
+              %typemap(in, numinputs=0) char **out (char *temp = 0) "$1 = &temp;"
+              %typemap(freearg) char **out "free(*$1);"
+              void get_name(int id, char **out);
+
+            Such a typemap must check the pointer first, which also works with older versions of SWIG:
+
+              %typemap(freearg) char **out "if ($1) free(*$1);"
+
+            In Ruby, this only happens if an 'in' typemap of your own uses SWIG_fail.
+
+            *** POTENTIAL INCOMPATIBILITY ***
 
 2026-10-23: wsfulton
             [C] Fix the .cxx file not compiling for a const function pointer parameter when wrapping C++
@@ -591,6 +2653,11 @@ Version 4.6.0 (in progress)
 
             instantiated the first make as '5 make()', which did not compile.
 
+2026-10-14: ysheikh2
+            [Python] #3061 Fix a seg fault or abort importing a module when module initialization
+            fails, for example if creating one of the SWIG runtime types fails with a MemoryError.
+            The import now raises the exception instead.
+
 2026-10-14: wsfulton
             Add support for 'static', type qualifiers and '*' in the brackets of a function
             parameter's array, as allowed by C99, which were a syntax error.  They do not change
@@ -977,6 +3044,15 @@ Version 4.6.0 (in progress)
             variable, such as 'int [4]', 'Foo [2]' or 'int [2][3]', to NULL, such as null in Java,
             as the array was copied from it. An error is now raised instead, as in the other target
             languages. NULL for an array parameter is still passed as a NULL pointer.
+
+2026-10-09: wsfulton
+            [C#, D, Go, Guile, Java, Lua, PHP] #142 Fix setting a global variable or struct member
+            that is an array of three or more dimensions, which copied only some of its elements,
+            such as only the first 6 of the 24 elements of:
+
+              double x[2][3][4];
+
+            All the elements are now copied. In Guile only a struct member was affected.
 
 2026-10-09: wsfulton
             [C] When wrapping C++, fix a crash when setting an array member or global variable,

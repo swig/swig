@@ -11,6 +11,10 @@ a1 = gv.A()
 a1.x = 11
 gv.a = a1
 assert(gv.a.x == 11)
+assert(gv.acvp.x == 11)
+
+gv.avp = a1
+assert(gv.avp.x == 11)
 
 gv.x = 10
 assert(gv.x == 10)
@@ -20,6 +24,9 @@ assert(gv.Hola ~= nil)
 
 gv.h = gv.Hi
 assert(gv.h == gv.Hi)
+
+gv.assign_hp(gv.hcpr)
+assert(swig_type(gv.hp) == swig_type(gv.hcp))
 
 -- It is not clear whether these tests should work or not
 -- Currently they don't.

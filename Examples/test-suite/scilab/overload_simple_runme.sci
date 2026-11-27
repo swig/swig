@@ -63,6 +63,11 @@ s = new_Spam(v);
 checkequal(Spam_type_get(s), "void *", "Spam::Spam(void *)");
 delete_Spam(s);
 
+// A const reference to a void pointer takes any pointer, as a void pointer does
+checkequal(fvoidcref(f), "fvoidcref:void *const &", "fvoidcref(Foo *)");
+checkequal(fvoidcref(v), "fvoidcref:void *const &", "fvoidcref(void *)");
+checkequal(fvoidcref(3), "fvoidcref:int", "fvoidcref(int)");
+
 delete_Foo(f);
 delete_Bar(b);
 free_void(v);

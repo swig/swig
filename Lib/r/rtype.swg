@@ -19,7 +19,7 @@
 %typemap("rtype") const enum SWIGTYPE & "character"
 %typemap("rtype") enum SWIGTYPE && "character"
 %typemap("rtype") SWIGTYPE * "$R_class"
-%typemap("rtype") SWIGTYPE *const "$R_class"
+%typemap("rtype") SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile "$R_class"
 %typemap("rtype") SWIGTYPE *const& "$*R_class"
 %typemap("rtype") SWIGTYPE & "$R_class"
 %typemap("rtype") SWIGTYPE && "$R_class"
@@ -145,7 +145,7 @@
                       float [ANY], double [ANY]
   %{    %}
 
-%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE *const&, SWIGTYPE &, SWIGTYPE &&
+%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile, SWIGTYPE *const&, SWIGTYPE &, SWIGTYPE &&
  %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}
 
 /*
@@ -217,7 +217,7 @@ string &, std::string &
   else new("$R_class", ref=$result); %}
 
  
-%typemap(scoerceout) SWIGTYPE *const
+%typemap(scoerceout) SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile
   %{ $result <- if (is.null($result)) $result
   else new("$R_class", ref=$result); %}
 

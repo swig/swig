@@ -1,4 +1,7 @@
+import sys
+
 from li_std_vector import *
+from swig_test_utils import swig_check
 
 if typedef_test(101) != 101:
     raise RuntimeError
@@ -32,3 +35,10 @@ if cvar.global_variable[0] != 30:
 cvar.global_variable.clear()
 if len(cvar.global_variable) != 0:
     raise RuntimeError("global_variable clear")
+
+# Passing a wrapped vector where a sequence is expected does not leak a reference to its 'this'
+iv = IntVector([1, 2, 3])
+refs = sys.getrefcount(iv.this)
+for i in range(10):
+    swig_check(sum(iv), 6)
+swig_check(sys.getrefcount(iv.this), refs)

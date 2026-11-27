@@ -28,6 +28,9 @@
 // A library freearg typemap for the type, such as one freeing an 'int *' converted by a library 'in' typemap, must not be used
 %typemap(in,numinputs=0) int *dd (int temp) "temp = 5; $1 = &temp;"
 
+// A library argout typemap for the type, such as one writing back an 'int &' converted by a library 'in' typemap, must not be used
+%typemap(in,numinputs=0) int &ee (int temp) "temp = 6; $1 = &temp;"
+
 %ignore unignorable;
 // Don't let SWIG expand this function with its default parameter: instead,
 // always "require" the version of the function with a single argument, but
@@ -46,6 +49,7 @@ double tvr(char* aaa, int bbb, double ccc) { return ccc; }
 int ferrari(int bb) { return bb; }
 int fiat(int unignorable) { return unignorable; }
 int peugeot(int *dd) { return *dd; }
+int porsche(int &ee) { return ee; }
 
 // member function tests
 struct SportsCars {

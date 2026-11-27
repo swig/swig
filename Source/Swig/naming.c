@@ -374,7 +374,7 @@ String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_p
   rmembername = SwigType_namestr(membername);
   r = get_naming_format_for("member", "%n%c_%m");
   cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
+  if (SwigType_isclasskey(rclassname)) {
     cname = strchr(cname, ' ') + 1;
   }
   replace_nspace(r, nspace);
@@ -430,7 +430,7 @@ static String *make_full_name_for(const char *method, const char *def_format, co
   r = get_naming_format_for(method, def_format);
 
   cname = Char(rclassname);
-  if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
+  if (SwigType_isclasskey(rclassname)) {
     cname = strchr(cname, ' ') + 1;
   }
 
@@ -1843,12 +1843,12 @@ List *Swig_make_inherit_list(String *clsname, List *names, String *Namespacepref
 }
 
 /* -----------------------------------------------------------------------------
- * void Swig_name_str()
+ * Swig_name_str()
  *
  * Return a stringified version of a C/C++ symbol from a node.
  * The node passed in is expected to be a function, constructor, destructor or
  * variable. Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate"
+ *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate"
  *   "MyNameSpace::ABC::ABC"
  *   "MyNameSpace::ABC::constmethod"
  *   "MyNameSpace::ABC::variablename"
@@ -1889,17 +1889,38 @@ String *Swig_name_str(Node *n) {
   return qname;
 }
 
+/* Append the exception specification of the function n, if it has one, to declarator, as in ' noexcept', ' noexcept(false)' or ' throw(int)'. */
+static void append_exception_specification(String *declarator, Node *n) {
+  String *nexcept = Getattr(n, "noexcept");
+  ParmList *throws = Getattr(n, "throws");
+  if (nexcept) {
+    if (Equal(nexcept, "true")) {
+      Append(declarator, " noexcept");
+    } else {
+      String *expression = SwigType_namestr(nexcept);
+      Printf(declarator, " noexcept(%s)", expression);
+      Delete(expression);
+    }
+  } else if (throws || Getattr(n, "throw")) {
+    String *throws_str = ParmList_str(throws);
+    Printf(declarator, " throw(%s)", throws_str);
+    Delete(throws_str);
+  }
+}
+
 /* -----------------------------------------------------------------------------
- * void Swig_name_decl()
+ * Swig_name_decl()
  *
  * Return a stringified version of a C/C++ declaration without the return type.
  * The node passed in is usually a function, constructor, destructor.
  * Other nodes result in a simple fully qualified string of the symbol.
  * Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
  *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
+ *   "MyNameSpace::ABC::noexceptmethod(int) const noexcept"
+ *   "MyNameSpace::ABC::funcptrmethod(int)"
  *   "MyNameSpace::ABC::variablename"
  *   "MyNameSpace::ABC::MyClass"
  * ----------------------------------------------------------------------------- */
@@ -1923,6 +1944,7 @@ String *Swig_name_decl(Node *n) {
         Printv(decl, " ", qualifiers_string, NIL);
         Delete(qualifiers_string);
       }
+      append_exception_specification(decl, n);
       Delete(decl_temp);
     }
   }
@@ -1932,31 +1954,84 @@ String *Swig_name_decl(Node *n) {
   return decl;
 }
 
+/* A copy of type, the type of n, for Swig_name_fulldecl(), with an unnamed enum as just 'enum'.  An unnamed enum is otherwise
+ * 'enum ' in the type of its enumerators and has the name made up for it, such as 'enum $unnamed1$', in the type of its variables. */
+static SwigType *fulldecl_type(Node *n, SwigType *type) {
+  String *unnamed = Getattr(n, "unnamed");
+  String *unnamed_enum = NewStringf("enum %s", unnamed ? unnamed : "");
+  SwigType *base = SwigType_base(type);
+  SwigType *result;
+  if (Equal(base, unnamed_enum)) {
+    result = SwigType_prefix(type);
+    Append(result, "enum");
+  } else {
+    result = Copy(type);
+  }
+  Delete(base);
+  Delete(unnamed_enum);
+  return result;
+}
+
 /* -----------------------------------------------------------------------------
- * void Swig_name_fulldecl()
+ * Swig_name_fulldecl()
  *
  * Return a stringified version of a C/C++ declaration including the return type.
- * The node passed in is expected to be a function, constructor or destructor.
+ * The node passed in is expected to be a function, constructor, destructor or variable.
+ * The return type is put around the declaration from Swig_name_decl() as in C/C++ code, so that the declaration goes
+ * inside a function pointer return type. A constructor, destructor or conversion operator has no return type in its
+ * declaration. A variable gives the declaration of the variable for both its get and set wrappers, which replace the
+ * type of the node with their own return type and keep the type of the variable in "wrap:vartype".
  * Some example return values:
- *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
+ *   "MyNameSpace::MyTemplate< MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
- *   "int * MyNameSpace::ABC::constmethod(int) const"
+ *   "MyNameSpace::ABC::operator int() const"
+ *   "int *MyNameSpace::ABC::constmethod(int) const"
+ *   "int (*MyNameSpace::ABC::funcptrmethod(int))(int,int)"
+ *   "int (*MyNameSpace::ABC::noexceptfuncptrmethod(int) noexcept)(int,int)"
+ *   "int (*MyNameSpace::ABC::funcptrvariable)(int)"
+ *   "enum MyNameSpace::ABC::unnamedenumvariable"
  *
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_fulldecl(Node *n) {
   String *decl = Swig_name_decl(n);
-  String *type = Getattr(n, "type");
+  String *vartype = Getattr(n, "wrap:vartype");
+  String *type = vartype ? vartype : Getattr(n, "type");
   String *nodetype = nodeType(n);
   String *fulldecl;
   /* add on the return type */
-  if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) {
+  if ((nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor"))) || GetFlag(n, "conversion_operator")) {
     fulldecl = decl;
   } else {
-    String *t = SwigType_str(type, 0);
-    fulldecl = NewStringf("%s %s", t, decl);
+    SwigType *decl_type = fulldecl_type(n, type);
+    fulldecl = SwigType_str(decl_type, decl);
+    Delete(decl_type);
     Delete(decl);
-    Delete(t);
   }
   return fulldecl;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_extern_decl()
+ *
+ * Return the declaration of the function n that the -addextern option adds, where type is the type of n including the
+ * return type, such as 'f(int).p.f(double).int'.  The exception specification of n goes after the parameter list of the
+ * declared function, which is inside the parentheses of the declarator of a function returning a pointer to a function.
+ * Some example return values:
+ *   "int f(int) noexcept(false)"
+ *   "int (*f(int) noexcept)(double)"
+ *   "int (&f() throw(int))[3]"
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_extern_decl(Node *n, SwigType *type) {
+  SwigType *return_type = Copy(type);
+  SwigType *function = SwigType_pop_function(return_type);
+  String *declarator = SwigType_str(function, Getattr(n, "name"));
+  String *declaration;
+  append_exception_specification(declarator, n);
+  declaration = SwigType_str(return_type, declarator);
+  Delete(declarator);
+  Delete(function);
+  Delete(return_type);
+  return declaration;
 }

@@ -91,6 +91,9 @@
   "$input = (void *) $1;"
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE *
   "$result = ($1_ltype)$input;"
+/* A function pointer does not point to an object that can be deleted, so there is no warning as for SWIGTYPE * */
+%typemap(directorout) SWIGTYPE ((*)(ANY)), SWIGTYPE ((* const)(ANY))
+  "$result = ($1_ltype)$input;"
 
 %typemap(ddirectorin,
   nativepointer="cast($dtype)$winput"
@@ -112,8 +115,8 @@
   return ret;
 }
 
-// Use the same typemaps for const pointers.
-%apply SWIGTYPE * { SWIGTYPE *const }
+// Use the same typemaps for const and volatile pointers.
+%apply SWIGTYPE * { SWIGTYPE *const, SWIGTYPE *volatile, SWIGTYPE *const volatile }
 
 
 /*
@@ -207,7 +210,7 @@
 
 // Treat references to arrays like references to a single element.
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]) }
+%apply SWIGTYPE & { SWIGTYPE ((&&)[ANY]), SWIGTYPE ((&&)[]), SWIGTYPE ((&&)(ANY)) }
 
 
 /*

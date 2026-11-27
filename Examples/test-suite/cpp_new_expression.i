@@ -87,11 +87,8 @@ struct NewNames {
 };
 %}
 
-#if !defined(SWIGC)
-// TODO: the C backend emits a constant as a macro, so one named 'new' breaks its C++ header.
 %warnfilter(SWIGWARN_PARSE_KEYWORD, SWIGWARN_RUBY_WRONG_NAME) new;
 %constant int new = 12;
-#endif
 
 #if !defined(SWIGC) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGJAVA)
 // TODO: a keyword given as a %template name is not renamed as other names are.

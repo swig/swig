@@ -6,6 +6,12 @@ LANGUAGE     = c
 C            = gcc
 CXX          = g++
 RUNMESUFFIX  = _runme
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
+HAVE_CXX23   = @HAVE_CXX23@
+HAVE_CXX26   = @HAVE_CXX26@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -13,43 +19,32 @@ top_builddir = ../@top_builddir@
 CPP_TEST_CASES := \
     c_backend_cpp_natural_std_string \
     c_backend_cpp_exception \
+    c_builtin_types \
     c_exceptions \
+    c_no_namespace_globals \
+    li_std_set \
 
 CPP11_TEST_CASES := \
 
 C_TEST_CASES := \
     c_namespace_globals \
+    c_structs \
 
 # The following tests are currently broken and need to be fixed.
 FAILING_C_TESTS := \
-    arrays \
     nested \
     nested_extend_c \
     nested_structs \
-    typedef_struct \
-    union_parameter \
     unions \
 
 FAILING_CPP_TESTS := \
     apply_signed_char \
-    array_member \
-    array_typedef_memberin \
-    arrayref \
-    arrays_global \
-    arrays_global_twodim \
     assign_const \
     assign_reference \
     cpp_enum \
-    constant_pointers \
-    director_char_array \
-    director_unwrap_result \
     enum_thorough \
     extend \
     extend_default \
-    extern_c \
-    funcptr_cpp \
-    global_scope_types \
-    grouping \
     import_nomodule \
     li_attribute \
     li_attribute_template \
@@ -59,39 +54,27 @@ FAILING_CPP_TESTS := \
     li_std_deque \
     li_std_wstring \
     li_windows \
-    member_funcptr_galore \
-    member_pointer \
-    member_pointer_const \
-    mixed_types \
-    nested_class \
     private_assign \
     special_variable_macros \
     string_constants \
-    template_basic \
-    template_default \
     template_enum \
-    template_explicit \
-    template_function_parm \
-    template_template_parameters \
-    template_typedef_fnc \
-    typedef_array_member \
-    typedef_funcptr \
-    typedef_inherit_using \
-    typedef_struct_cpp \
     typemap_namespace \
     typemap_various \
     using_extend \
     using_extend_flatten \
     varargs \
     varargs_overload \
-    virtual_poly \
-    cpp11_ref_qualifiers \
-    cpp11_ref_qualifiers_typemaps \
-    cpp11_result_of \
-    cpp11_rvalue_reference2 \
-    cpp11_rvalue_reference_array \
+    cpp11_assign_delete \
+    cpp11_assign_rvalue_reference \
+    cpp11_auto_variable \
+    cpp11_director_using_constructor \
+    cpp11_directors \
+    cpp11_move_only \
+    cpp11_move_typemaps \
+    cpp11_rvalue_reference_move \
+    cpp11_std_unique_ptr \
     cpp11_template_pack \
-    cpp11_type_aliasing \
+    cpp11_using_constructor \
 
 # Ignore warnings about failing to apply typemaps because none are defined:
 # usually there is no need for special typemaps in C.
@@ -111,58 +94,18 @@ SWIGOPT += -w524 -w761
 
 # When wrapping C code, global variables are only wrapped with accessor functions with -namespace.
 c_namespace_globals.ctest: SWIGOPT += -namespace ns
+c_structs.ctest: SWIGOPT += -namespace ns
 
 # Tests for which C++ wrappers currently don't compile.
-contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with multiple base classes and hence ignored.
-conversion.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
-conversion_namespace.cpptest: SWIG_NOCXX = -nocxx # Conversion operator name not handled correctly.
-conversion_ns_template.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return not handled specially.
-cpp11_decltype_nontype_template_parameter.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
-cpp11_explicit_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
 cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.
-cpp11_template_function_overload_kind.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 default_constructor.cpptest: SWIG_NOCXX = -nocxx # Something weird with OSRSpatialReferenceShadow.
-director_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
-director_frob.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
-extend_template_method.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
-features.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
-global_namespace.cpptest: SWIG_NOCXX = -nocxx # Const const reference type.
-li_carrays_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays not really supported currently.
 li_cdata_cpp.cpptest: SWIG_NOCXX = -nocxx # No support for multiarg typemaps required here.
-member_template.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
 multiple_inheritance_abstract.cpptest: SWIG_NOCXX = -nocxx # Multiple inheritance not supported.
-multiple_inheritance_interfaces.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
 multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
-namespace_class.cpptest: SWIG_NOCXX = -nocxx # Many broken type names.
-operator_pointer_ref.cpptest: SWIG_NOCXX = -nocxx
-operbool.cpptest: SWIG_NOCXX = -nocxx
-overload_null.cpptest: SWIG_NOCXX = -nocxx
-overload_template.cpptest: SWIG_NOCXX = -nocxx
-overload_template_fast.cpptest: SWIG_NOCXX = -nocxx
-pure_virtual.cpptest: SWIG_NOCXX = -nocxx
-rename1.cpptest: SWIG_NOCXX = -nocxx
-rename2.cpptest: SWIG_NOCXX = -nocxx
-rename3.cpptest: SWIG_NOCXX = -nocxx
-rename4.cpptest: SWIG_NOCXX = -nocxx
-rename_wildcard.cpptest: SWIG_NOCXX = -nocxx
-return_const_value.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
 smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
-smart_pointer_templatemethods.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
-struct_initialization_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays in initialization not supported.
-template_const_ref.cpptest: SWIG_NOCXX = -nocxx
-template_default_arg_overloaded.cpptest: SWIG_NOCXX = -nocxx
-template_function_overload_kind.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
-template_inherit_abstract.cpptest: SWIG_NOCXX = -nocxx
-template_methods.cpptest: SWIG_NOCXX = -nocxx
-template_nested.cpptest: SWIG_NOCXX = -nocxx
-template_nested_flat.cpptest: SWIG_NOCXX = -nocxx
-template_qualifier.cpptest: SWIG_NOCXX = -nocxx
-template_static.cpptest: SWIG_NOCXX = -nocxx
-typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # Arrays not supported.
-valuewrapper_const.cpptest: SWIG_NOCXX = -nocxx # Misplaced const.
 
 # Avoid conflict with the C++ keyword for some tests.
 SWIG_NS = $*
@@ -170,9 +113,15 @@ SWIG_NS = $*
 dynamic_cast.cpptest: SWIG_NS = dyn_cast
 typename.cpptest: SWIG_NS = type_name
 
+SWIG_NAMESPACE = -namespace $(SWIG_NS)
+
+# Tests run without -namespace.
+c_builtin_types.cpptest: SWIG_NAMESPACE =
+c_no_namespace_globals.cpptest: SWIG_NAMESPACE =
+
 %.multicpptest: SWIGOPT += -namespace $*
 
-%.cpptest: SWIGOPT += -namespace $(SWIG_NS) $(SWIG_NOCXX)
+%.cpptest: SWIGOPT += $(SWIG_NAMESPACE) $(SWIG_NOCXX)
 
 SRCDIR       = ../$(srcdir)/
 

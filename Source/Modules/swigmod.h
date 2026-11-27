@@ -270,9 +270,6 @@ protected:
   /* Return the node for the current class */
   Node *getCurrentClass() const;
 
-  /* Return C++ mode */
-  int getCPlusMode() const;
-
   /* Return the namespace for the class/enum - the nspace feature */
   String *getNSpace() const;
 
@@ -400,8 +397,10 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l);
 String *Swig_class_declaration(Node *n, String *name);
 String *Swig_class_name(Node *n);
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
-String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args);
+String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args,
+                         const_String_or_char_ptr exception_specification = 0);
 String *Swig_director_declaration(Node *n);
+String *Swig_director_exception_specification(Node *n);
 bool Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);
 bool Swig_director_can_unwrap(Node *n);
@@ -449,19 +448,19 @@ void Swig_interface_propagate_methods(Node *n);
 
 /* Miscellaneous */
 template <class T>
-class save_value {
+class SaveValue {
   T _value;
   T &_value_ptr;
-  save_value(const save_value &);
-  save_value &operator=(const save_value &);
+  SaveValue(const SaveValue &);
+  SaveValue &operator=(const SaveValue &);
 
 public:
-  save_value(T &value) : _value(value), _value_ptr(value) {
+  SaveValue(T &value) : _value(value), _value_ptr(value) {
   }
-  save_value(T &value, T new_val) : _value(value), _value_ptr(value) {
+  SaveValue(T &value, T new_val) : _value(value), _value_ptr(value) {
     value = new_val;
   }
-  ~save_value() {
+  ~SaveValue() {
     _value_ptr = _value;
   }
 };

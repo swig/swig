@@ -402,6 +402,8 @@ SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_
   if (*c != '_') return SWIG_ERROR;
   c++;
   c = SWIG_UnpackData(c,ptr,sz);
+  if (!c)
+    return SWIG_ERROR;
   if (ty) {
     tc = SWIG_TypeCheck(c,ty);
     if (!tc) return SWIG_ERROR;

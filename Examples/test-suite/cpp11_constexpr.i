@@ -10,6 +10,8 @@
 // Suppress: 'constexpr' non-static member function will not be implicitly 'const' in C++14; add 'const' to avoid a change in behavior
 // For MMM() and NNN()
 #pragma clang diagnostic ignored "-Wconstexpr-not-const"
+// Suppress: mangled name of 'takeConstNoexceptPtr' will change in C++17 due to non-throwing exception specification in function signature
+#pragma clang diagnostic ignored "-Wc++17-compat-mangling"
 #endif
 
 #include <limits>
@@ -20,14 +22,14 @@
 
 %inline %{
 #ifdef SWIG
-#define SWIGTESTCONST const
+#define TESTCONST const
 #else
-#define SWIGTESTCONST
+#define TESTCONST
 #endif
 constexpr int AAA = 10;
 constexpr const int BBB = 20;
 constexpr int CCC() { return 30; }
-constexpr SWIGTESTCONST int DDD() { return 40; }
+constexpr TESTCONST int DDD() { return 40; }
 
 constexpr int XXX() { return 10; }
 constexpr int YYY = XXX() + 100;
@@ -37,7 +39,7 @@ struct ConstExpressions {
   static constexpr int KKK = 200;
   static const int LLL = 300;
   constexpr int MMM() { return 400; }
-  constexpr SWIGTESTCONST int NNN() { return 500; }
+  constexpr TESTCONST int NNN() { return 500; }
   // Regression tests for support added in SWIG 3.0.4:
   static constexpr const int JJJ1 = 101;
   constexpr static int KKK1 = 201;
@@ -92,4 +94,41 @@ constexpr std::size_t my_enum_size =
 std::array<bool, my_enum_size> do_something() {
   return std::array<bool, my_enum_size>{true,true,true,true,true};
 }
+%}
+
+// Static constexpr member pointers initialised in the class keep the qualifiers of the type pointed to
+%inline %{
+struct MemberFuncs {
+  short nonConstFunc(bool) { return 1; }
+  short constFunc(bool) const { return 2; }
+  short volatileFunc(bool) volatile { return 3; }
+  short constRefFunc(bool) const & { return 4; }
+  short constNoexceptFunc(bool) const noexcept { return 5; }
+  const char *constStringFunc(bool) const { return "six"; }
+  int data = 7;
+};
+typedef short (MemberFuncs::*ConstFuncPtr)(bool) const;
+struct MemberPointerConstants {
+  static constexpr short (MemberFuncs::*NonConstPtr)(bool) = &MemberFuncs::nonConstFunc;
+  static constexpr short (MemberFuncs::*ConstPtr)(bool) const = &MemberFuncs::constFunc;
+  static constexpr short (MemberFuncs::*VolatilePtr)(bool) volatile = &MemberFuncs::volatileFunc;
+  static constexpr short (MemberFuncs::*ConstRefPtr)(bool) const & = &MemberFuncs::constRefFunc;
+  static constexpr short (MemberFuncs::*ConstNoexceptPtr)(bool) const noexcept = &MemberFuncs::constNoexceptFunc;
+  static constexpr const char *(MemberFuncs::*ConstStringPtr)(bool) const = &MemberFuncs::constStringFunc;
+  static constexpr const int MemberFuncs::*ConstDataPtr = &MemberFuncs::data;
+  static constexpr ConstFuncPtr TypedefPtr = &MemberFuncs::constFunc;
+};
+short takeNonConstPtr(short (MemberFuncs::*f)(bool)) { MemberFuncs m; return (m.*f)(true); }
+short takeConstPtr(short (MemberFuncs::*f)(bool) const) { MemberFuncs m; return (m.*f)(true); }
+short takeVolatilePtr(short (MemberFuncs::*f)(bool) volatile) { MemberFuncs m; return (m.*f)(true); }
+short takeConstRefPtr(short (MemberFuncs::*f)(bool) const &) { MemberFuncs m; return (m.*f)(true); }
+// extern "C" as C++17 changes the mangled name
+extern "C" short takeConstNoexceptPtr(short (MemberFuncs::*f)(bool) const noexcept) { MemberFuncs m; return (m.*f)(true); }
+// TODO: Fix the syntax error for a named parameter of this type
+const char *takeConstStringPtr(const char *(MemberFuncs::*)(bool) const);
+int takeConstDataPtr(const int MemberFuncs::*d) { MemberFuncs m; return m.*d; }
+short takeTypedefPtr(ConstFuncPtr f) { MemberFuncs m; return (m.*f)(true); }
+%}
+%{
+const char *takeConstStringPtr(const char *(MemberFuncs::*f)(bool) const) { MemberFuncs m; return (m.*f)(true); }
 %}

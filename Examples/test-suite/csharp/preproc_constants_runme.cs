@@ -6,7 +6,7 @@ public class runme {
   static void Main() {
     System.Type typeof_long = typeof(int);
     System.Type typeof_ulong = typeof(uint);
-    if (preproc_constants.SWIGWORDSIZE64_enabled == 1) {
+    if (preproc_constants.WORDSIZE64_enabled == 1) {
       typeof_long = typeof(long);
       typeof_ulong = typeof(ulong);
     }

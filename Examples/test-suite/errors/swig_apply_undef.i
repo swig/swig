@@ -12,3 +12,5 @@
 %apply int *CLEARED { int *c };
 %apply float *NOSUCH { float *g };
 %apply (float *NOSUCH, float *NOSUCH2) { (float *f, float *g) };
+%apply int (*const)(int, int) { int (*const fp)(int, int) };
+%apply double (*const)[4] { double (*const dp)[4] };

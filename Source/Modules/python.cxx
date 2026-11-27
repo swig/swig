@@ -1026,6 +1026,8 @@ public:
         Printv(f_stub_pyi, "\n", stub_begin, "\n", NIL);
 
       Printv(f_stub_pyi, "import typing\n", NULL);
+      /* Need builtins to qualify names like str that a class member might hide, as in the .py file */
+      Printv(f_stub_pyi, "import builtins as __builtin__\n", NULL);
       if (Len(stub_imports) > 0)
         Printv(f_stub_pyi, stub_imports, NULL);
 
@@ -1733,8 +1735,7 @@ public:
    * Ignore autodoc if there is a Doxygen comment, otherwise
    * create the autodoc string and append to any docstring.
    *
-   * Return new string to be deleted by caller (never NIL but
-   * may be empty if there is no docstring).
+   * Return new string, never NIL but may be empty if there is no docstring.
    * ------------------------------------------------------------ */
 
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const char *indent = "", bool low_level = false) {
@@ -3059,7 +3060,7 @@ public:
       return false;
     bool substitution_performed = false;
     SwigType *type = SwigType_typedef_resolve_all(pt);
-    SwigType *strippedtype = SwigType_strip_qualifiers(type);
+    SwigType *strippedtype = SwigType_strip_qualifiers_except_member_function(type);
 
     if (Strstr(tm, "$pytypename")) {
       SwigType *classnametype = Copy(strippedtype);
@@ -6537,46 +6538,16 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
   String *pclassname = NewStringf("SwigDirector_%s", classname);
   String *qualified_name = NewStringf("%s::%s", pclassname, name);
   SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-  target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+  String *exception_specification = Swig_director_exception_specification(n);
+  target = Swig_method_decl(rtype, decl, qualified_name, l, 0, exception_specification);
   Printf(w->def, "%s", target);
   Delete(qualified_name);
   Delete(target);
   /* header declaration */
-  target = Swig_method_decl(rtype, decl, name, l, 1);
+  target = Swig_method_decl(rtype, decl, name, l, 1, exception_specification);
   Printf(declaration, "    virtual %s", target);
   Delete(target);
-
-  // Get any exception classes in the throws typemap
-  if (Getattr(n, "noexcept")) {
-    Append(w->def, " noexcept");
-    Append(declaration, " noexcept");
-  }
-  ParmList *throw_parm_list = 0;
-  if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
-    Parm *p;
-    int gencomma = 0;
-
-    Append(w->def, " throw(");
-    Append(declaration, " throw(");
-
-    if (throw_parm_list)
-      Swig_typemap_attach_parms("throws", throw_parm_list, 0);
-    for (p = throw_parm_list; p; p = nextSibling(p)) {
-      if (Getattr(p, "tmap:throws")) {
-        if (gencomma++) {
-          Append(w->def, ", ");
-          Append(declaration, ", ");
-        }
-        String *str = SwigType_str(Getattr(p, "type"), 0);
-        Append(w->def, str);
-        Append(declaration, str);
-        Delete(str);
-      }
-    }
-
-    Append(w->def, ")");
-    Append(declaration, ")");
-  }
+  Delete(exception_specification);
 
   Append(w->def, " {");
   Append(declaration, ";\n");

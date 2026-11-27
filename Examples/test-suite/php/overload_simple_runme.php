@@ -1,7 +1,8 @@
 <?php
 require "tests.php";
 
-check::functions(array('foo','blah','fbool','fint','fdouble','num','fid','as_l','as_ll','as_ul','as_ull','malloc_void','free_void','int_object','sizeof_long'));
+check::functions(array('foo','blah','fbool','fint','fdouble','num','fid','fvoidcref',
+                       'as_l','as_ll','as_ul','as_ull','malloc_void','free_void','int_object','sizeof_long'));
 check::classes(array('Foo','Bar','overload_simple','Spam','ClassA'));
 // No new vars
 check::globals(array());
@@ -135,6 +136,8 @@ check::equal($s->type, "Bar *", "Spam(Bar *)");
 $s = new Spam($v);
 check::is_a($s, "spam");
 check::equal($s->type, "void *", "Spam(void *)");
+
+# TODO: check fvoidcref, which fails as PHP takes a 'void *const &' parameter by reference using the 'void *&' typemaps
 
 #
 # Combine dispatch

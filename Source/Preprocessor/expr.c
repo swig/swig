@@ -37,7 +37,7 @@ typedef struct {
    * Otherwise unused.
    */
   String *svalue;
-} exprval;
+} ExprVal;
 
 #define EXPR_TOP   1
 #define EXPR_VALUE 2
@@ -50,7 +50,7 @@ typedef struct {
 #define OP_UMINUS  100
 #define OP_UPLUS   101
 
-static exprval stack[256];     /* Parsing stack       */
+static ExprVal stack[256];     /* Parsing stack       */
 static int sp = 0;             /* Stack pointer       */
 static int prec[256];          /* Precedence rules    */
 static int expr_init = 0;      /* Initialization flag */
