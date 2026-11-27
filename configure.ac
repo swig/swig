@@ -130,7 +130,14 @@ echo "Checking packages required for SWIG developers."
 echo "Note : None of the following packages are required for users to compile and install SWIG from the distributed tarball"
 echo ""
 
-AC_CHECK_PROGS([BISON], [bison], [$MISSING bison])
+AC_CHECK_PROGS([BISON], [bison])
+AS_IF([test -n "$BISON"], [
+  AX_PROG_BISON_VERSION([3.5], [], [
+    AC_MSG_ERROR([bison version 3.5 or later is required to build the SWIG parser, found: $BISON_VERSION])
+  ])
+], [
+  BISON="$MISSING bison"
+])
 
 #----------------------------------------------------------------
 # clang-format
