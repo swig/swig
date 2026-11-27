@@ -27,7 +27,7 @@ SWIG_From_dec(float)(float flValue) {
 
 %fragment("SWIG_SciDouble_AsFloatArrayAndSize", "header") {
 SWIGINTERN int
-SWIG_SciDouble_AsFloatArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, char *fname) {
+SWIG_SciDouble_AsFloatArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, float **pfValue, int *piAllocated, char *fname) {
   SciErr sciErr;
   int *piAddrVar = NULL;
   double *pdValue = NULL;
@@ -50,6 +50,8 @@ SWIG_SciDouble_AsFloatArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iC
     *pfValue = (float *) malloc((*iRows) * (*iCols) * sizeof(float));
     for (i=0; i < (*iRows) * (*iCols); i++)
       (*pfValue)[i] = (float) pdValue[i];
+
+    *piAllocated = 1;
 
     return SWIG_OK;
   }
