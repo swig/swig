@@ -572,3 +572,5 @@ template <typename T> struct SwigTypeIdentity {
 #endif
 
 %insert("runtime") "swigcompat.swg"
+
+typedef __WCHAR_T__ wchar_t;
