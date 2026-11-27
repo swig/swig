@@ -32,7 +32,7 @@
 %dmethodmodifiers NotForDeriving1::~NotForDeriving1 "public final";
 %dmethodmodifiers NotForDeriving2::~NotForDeriving2 "public final";
 
-#elif defined(SWIGJAVA)
+#elif defined(SWIGJAVA_SOURCE)
 
 %typemap(javaclassmodifiers) NotForDeriving1, NotForDeriving2 "public final class"
 %javamethodmodifiers NotForDeriving1::~NotForDeriving1 "public synchronized final";

@@ -6,6 +6,7 @@
 %include "enumtypeunsafe.swg"
 
 // Some pragmas to add in an interface to the module class
+#ifdef SWIGJAVA_SOURCE
 %pragma(java) moduleinterfaces="Serializable"
 %pragma(java) moduleimports=%{
 import java.io.*; // For Serializable
@@ -13,6 +14,12 @@ import java.io.*; // For Serializable
 %pragma(java) modulecode=%{
   public static final long serialVersionUID = 0x52151001; // Suppress ecj warning
 %}
+#elif defined SWIGKOTLIN_SOURCE
+%pragma(java) moduleinterfaces="java.io.Serializable"
+%pragma(java) modulecode=%{
+  @JvmField public val serialVersionUID: Long = 0x52151001L // Suppress warning
+%}
+#endif
 
 
 // Set default Java const code generation
@@ -33,8 +40,10 @@ enum WithTrailingCommaAndIgnoredFirstItem
     SecondNonIgnoredOne,
 };
 
+#ifdef SWIGJAVA_SOURCE
 // Change the default generation so that these enums are generated into an interface instead of a class
 %typemap(javaclassmodifiers) enum stuff "public interface"
+#endif
 
 %inline %{
 enum stuff { FIDDLE = 2*100,  STICKS = 5+8, BONGO, DRUMS };
@@ -44,8 +53,13 @@ enum stuff { FIDDLE = 2*100,  STICKS = 5+8, BONGO, DRUMS };
 %javaconst(0); // will create compile errors in runme file if short typemaps not used 
 
 namespace Space {
+#ifdef SWIGJAVA_SOURCE
 %typemap(jtype) enum nonsense "short"
 %typemap(jstype) enum nonsense "short"
+#elif defined SWIGKOTLIN_SOURCE
+%typemap(jtype) enum nonsense "Short"
+%typemap(jstype) enum nonsense "Short"
+#endif
 %typemap(javain) enum nonsense "$javainput"
 %typemap(in) enum nonsense %{ $1 = (enum Space::nonsense)$input; %}
 %typemap(out) enum nonsense %{ $result = (jshort)$1; %}

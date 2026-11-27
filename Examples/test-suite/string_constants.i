@@ -25,6 +25,7 @@
 #define EN1 "a\0bc"
 // Universal character names, the same as SS1 and SS2
 #define UU1 "\u00C6\u00CEOU\n"
+#define AR1 "\342\206\222"
 %}
 %constant SS2="ÆÎOU\n";
 %constant AA2="A\rB\nC";
@@ -36,6 +37,7 @@
 %constant PR2=("paren");
 %constant EN2="a\0bc";
 %constant UU2="\u00C6\u00CEOU\n";
+%constant AR2="\342\206\222";
 
 // The wrapper is given the default value
 %feature("compactdefaultargs") things::embedded_nul_default;
@@ -49,6 +51,7 @@ static const char *ZS3 = "\0";
 static const char *ES3 = "";
 static const char *QQ3 = "\b00! \18\14200!";
 static const char *PR3 = ("paren");
+static const char *AR3 = "\342\206\222";
 struct things {
   const char * defarguments1(const char *SS4 = "ÆÎOU\n") { return SS4; }
   const char * defarguments2(const char *AA4 = "A\rB\nC") { return AA4; }
@@ -58,6 +61,7 @@ struct things {
   const char * defarguments6(const char *ES4 = "") { return ES4; }
   const char * defarguments7(const char *QQ4 = "\b00! \18\14200!") { return QQ4; }
   const char * defarguments8(const char *PR4 = ("paren")) { return PR4; }
+  const char * defarguments9(const char *AR4 = "\342\206\222") { return AR4; }
   bool embedded_nul_default(const char *s = "a\0bc") { return s[0] == 'a' && s[1] == '\0' && s[2] == 'b' && s[3] == 'c'; }
 };
 %}
@@ -89,11 +93,18 @@ typedef wchar_t wide_char;
 %}
 #if defined(SWIGJAVA)
 %typemap(jstype) const wide_char * "String"
+#ifdef SWIGJAVA_SOURCE
 %typemap(jstype) wide_char "char"
+#endif
+#ifdef SWIGKOTLIN_SOURCE
+%typemap(jstype) wide_char "Char"
+#endif
 #else
 %typemap(dtype) const wide_char * "wstring"
 %typemap(dtype) wide_char "wchar"
 #endif
+#ifndef SWIGKOTLIN_SOURCE
 %constant const wide_char *WS6 = L"\u00C6\"\U0001F600\xE9" L"7";
+#endif
 %constant wide_char WC6 = L'\u00C6';
 #endif
