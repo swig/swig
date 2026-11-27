@@ -86,6 +86,35 @@ SWIG_Python_TypeErrorOccurred(PyObject *obj)
   return error && PyErr_GivenExceptionMatches(error, PyExc_TypeError);
 }
 
+/* Overload dispatch support: incremented by each keyword argument enabled wrapper after its arguments are
+   successfully parsed and converted, just before executing the wrapped call. The dispatch wrapper reads it
+   before calling an overload to tell a signature mismatch (unchanged, try the next overload) from an error
+   raised while executing a matched overload (changed, propagate immediately). Per-thread storage is required
+   as the GIL is released while the wrapped call runs, so another thread could otherwise increment the count
+   between the save and the check in the dispatch wrapper. Where no thread local storage is available the
+   counter degrades to a plain process wide static and the dispatch wrapper retries on any "TypeError",
+   giving up the matched overload distinction rather than silently changing which exception the caller sees.
+   Note that argument conversion itself may run Python code, such as the "index" method for the "i" format
+   or a "typemap(in)" body calling back into Python, and a nested keyword dispatch then increments the count
+   before this overload has matched. That reentrant case is exotic and untested; a conversion "TypeError"
+   there may propagate instead of trying the next overload. */
+#if defined(_MSC_VER) && !defined(__clang__)
+#define SWIG_PYTHON_PARSE_COUNT_IS_THREAD_LOCAL 1
+static SWIGUNUSED __declspec(thread) unsigned long SWIG_Python_parse_count = 0;
+#elif defined(__GNUC__) || defined(__clang__)
+#define SWIG_PYTHON_PARSE_COUNT_IS_THREAD_LOCAL 1
+static SWIGUNUSED __thread unsigned long SWIG_Python_parse_count = 0;
+#elif defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+#define SWIG_PYTHON_PARSE_COUNT_IS_THREAD_LOCAL 1
+static SWIGUNUSED _Thread_local unsigned long SWIG_Python_parse_count = 0;
+#elif defined(__cplusplus) && __cplusplus >= 201103L
+#define SWIG_PYTHON_PARSE_COUNT_IS_THREAD_LOCAL 1
+static SWIGUNUSED thread_local unsigned long SWIG_Python_parse_count = 0;
+#else
+/* No thread local storage available, the dispatch wrapper retries on any "TypeError" (see above). */
+static SWIGUNUSED unsigned long SWIG_Python_parse_count = 0;
+#endif
+
 SWIGRUNTIME void
 SWIG_Python_RaiseOrModifyTypeError(const char *message)
 {
